@@ -247,7 +247,7 @@ function expectValuesFor<T>(context: StateContext<T>, subscriber: string, values
 // Note one thing to worry about here might be getting into an endless loop somehow ...
 
 export default
-  behavior("atom", [
+  behavior("state", [
     subscribeAndUpdate,
     derivedState,
     multipleSourceState

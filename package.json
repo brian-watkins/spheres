@@ -10,6 +10,7 @@
   "author": "Brian Watkins",
   "license": "MIT",
   "devDependencies": {
+    "@types/node": "^18.11.18",
     "esbehavior": "^3.1.1",
     "great-expectations": "file:../great-expectations",
     "playwright": "^1.29.2",

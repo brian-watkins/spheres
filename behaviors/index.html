@@ -1,0 +1,17 @@
+<html>
+
+<head>
+  <title>Behaviors!</title>
+</head>
+<script type="module">
+  import { validate } from "esbehavior"
+  import stateBehavior from "./state.behavior"
+
+  window.validateBehaviors = () => {
+    return validate([
+      stateBehavior
+    ])
+  }
+</script>
+
+</html>

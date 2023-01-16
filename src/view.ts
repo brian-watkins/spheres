@@ -62,11 +62,6 @@ export function viewGenerator(viewState: State<View>): View {
         viewState.onChange(() => {
           oldNode = patch(oldNode, viewState.read())
         })
-
-        vnode.children = [viewState.read()]
-      },
-      prepatch: (_, vNode) => {
-        vNode.children = [viewState.read()]
       }
     }
   })

@@ -1,7 +1,7 @@
 import { behavior, Context, effect, example, fact, step } from "esbehavior";
 import { equalTo, expect, is, stringContaining } from "great-expectations";
 import { Display } from "../src/display";
-import { derive, root, Root } from "../src/state";
+import { derive, root, Root, State } from "../src/state";
 import * as View from "../src/view"
 import { TestDisplay } from "./helpers/testDisplay";
 
@@ -48,39 +48,42 @@ function testAppContext<T>(): Context<TestApp<T>> {
 }
 
 interface TestData {
-  people: Array<{ name: string, age: number }>
+  peopleState: Root<Array<{ name: string, age: number }>>
+  peopleView: State<View.View>
 }
 
 const simpleViewBehavior =
-  example(testAppContext<Root<TestData>>())
+  example(testAppContext<TestData>())
     .description("Rendering a simple view")
     .script({
       suppose: [
         fact("some data is provided for the view", (testApp) => {
-          testApp.setState(root({
-            people: [
-              { name: "Cool Dude", age: 41 },
-              { name: "Awesome Person", age: 28 }
-            ]
-          }))
+          const peopleState = root([
+            { name: "Cool Dude", age: 41 },
+            { name: "Awesome Person", age: 28 }
+          ])
+          const peopleView = derive((get) => {
+            const people = get(peopleState)
+            return View.ul([], people.map(person => {
+              return View.li([View.data("person")], [
+                `${person.name} - ${person.age}`
+              ])
+            }))
+          })
+          testApp.setState({
+            peopleState,
+            peopleView
+          })
         }),
         fact("the view is rendered", (testApp) => {
           const view = View.div([], [
             View.p([], [
               "Here is some text"
             ]),
-            View.viewGenerator(derive((get) => {
-              const people = get(testApp.state).people
-              return View.ul([], people.map(person => {
-                return View.li([View.data("person")], [
-                  `${person.name} - ${person.age}`
-                ])
-              }))
-            }))
-
+            View.viewGenerator(testApp.state.peopleView)
           ])
-          testApp.setView(view)
 
+          testApp.setView(view)
           testApp.start()
         })
       ],
@@ -96,11 +99,9 @@ const simpleViewBehavior =
     }).andThen({
       perform: [
         step("the root state is updated", (testApp) => {
-          testApp.state.write({
-            people: [
-              { name: "Fun Person", age: 99 }
-            ]
-          })
+          testApp.state.peopleState.write([
+            { name: "Fun Person", age: 99 }
+          ])
         })
       ],
       observe: [
@@ -116,6 +117,8 @@ const simpleViewBehavior =
 interface TestDataMulti {
   name: Root<string>
   age: Root<number>
+  nameView: State<View.View>,
+  ageView: State<View.View>
 }
 
 const multipleViewsBehavior =
@@ -124,24 +127,28 @@ const multipleViewsBehavior =
     .script({
       suppose: [
         fact("some state is provided for the view", (testApp) => {
+          const nameState = root("hello")
+          const ageState = root(27)
           testApp.setState({
-            name: root("hello"),
-            age: root(27)
+            name: nameState,
+            age: ageState,
+            nameView: derive((get) => {
+              return View.p([View.data("name")], [
+                `My name is: ${get(nameState)}`
+              ])
+            }),
+            ageView: derive((get) => {
+              return View.p([View.data("age")], [
+                `My age is: ${get(ageState)}`
+              ])
+            })
           })
         }),
         fact("the view is rendered", (testApp) => {
           const view = View.div([], [
             View.h1([], ["This is only a test!"]),
-            View.viewGenerator(derive((get) => {
-              return View.p([View.data("name")], [
-                `My name is: ${get(testApp.state.name)}`
-              ])
-            })),
-            View.viewGenerator(derive((get) => {
-              return View.p([View.data("age")], [
-                `My age is: ${get(testApp.state.age)}`
-              ])
-            }))
+            View.viewGenerator(testApp.state.nameView),
+            View.viewGenerator(testApp.state.ageView)
           ])
 
           testApp.setView(view)
@@ -180,26 +187,31 @@ const nestedViewsBehavior =
     .script({
       suppose: [
         fact("some state is provided for the view", (testApp) => {
+          const nameState = root("hello")
+          const ageState = root(27)
+          const ageView = derive((get) => {
+            return View.p([View.data("age")], [
+              `My age is: ${get(ageState)}`
+            ])
+          })
           testApp.setState({
-            name: root("hello"),
-            age: root(27)
+            name: nameState,
+            age: ageState,
+            nameView: derive((get) => {
+              return View.div([], [
+                View.p([View.data("name")], [
+                  `My name is: ${get(nameState)}`
+                ]),
+                View.viewGenerator(ageView)
+              ])
+            }),
+            ageView
           })
         }),
         fact("the view is rendered", (testApp) => {
           const view = View.div([], [
             View.h1([], ["This is only a test!"]),
-            View.viewGenerator(derive((get) => {
-              return View.div([], [
-                View.p([View.data("name")], [
-                  `My name is: ${get(testApp.state.name)}`
-                ]),
-                View.viewGenerator(derive((aget) => {
-                  return View.p([View.data("age")], [
-                    `My age is: ${aget(testApp.state.age)}`
-                  ])
-                }))
-              ])
-            })),
+            View.viewGenerator(testApp.state.nameView),
           ])
 
           testApp.setView(view)
@@ -218,8 +230,7 @@ const nestedViewsBehavior =
     })
     .andThen({
       perform: [
-        step("the name state is update", (testApp) => {
-          testApp.state.age.write(31)
+        step("the name state is updated", (testApp) => {
           testApp.state.name.write("Fun Person")
         })
       ],
@@ -229,7 +240,24 @@ const nestedViewsBehavior =
           expect(nameText, is(stringContaining("Fun Person")))
 
           const ageText = testApp.display.elementMatching("[data-age]").text()
-          expect(ageText, is(stringContaining("31")))
+          expect(ageText, is(stringContaining("27")))
+        })
+      ]
+    })
+    .andThen({
+      perform: [
+        step("the age state is updated with the name", (testApp) => {
+          testApp.state.name.write("Happy Person")
+          testApp.state.age.write(33)
+        })
+      ],
+      observe: [
+        effect("the updated name is displayed", (testApp) => {
+          const nameText = testApp.display.elementMatching("[data-name]").text()
+          expect(nameText, is(stringContaining("Happy Person")))
+
+          const ageText = testApp.display.elementMatching("[data-age]").text()
+          expect(ageText, is(stringContaining("33")))
         })
       ]
     })

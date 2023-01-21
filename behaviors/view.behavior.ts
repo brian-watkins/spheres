@@ -198,12 +198,16 @@ const nestedViewsBehavior =
             name: nameState,
             age: ageState,
             nameView: derive((get) => {
-              return View.div([], [
+              const name = get(nameState)
+              let children = [
                 View.p([View.data("name")], [
-                  `My name is: ${get(nameState)}`
-                ]),
-                View.viewGenerator(ageView)
-              ])
+                  `My name is: ${name}`
+                ])
+              ]
+              if (name !== "AGELESS PERSON") {
+                children.push(View.viewGenerator(ageView))
+              }
+              return View.div([], children)
             }),
             ageView
           })
@@ -258,6 +262,36 @@ const nestedViewsBehavior =
 
           const ageText = testApp.display.elementMatching("[data-age]").text()
           expect(ageText, is(stringContaining("33")))
+        })
+      ]
+    })
+    .andThen({
+      perform: [
+        step("the nested view is removed", (testApp) => {
+          testApp.state.name.write("AGELESS PERSON")
+        })
+      ],
+      observe: [
+        effect("the age is not present", (testApp) => {
+          const ageIsVisible = testApp.display.hasElementMatching("[data-age]")
+          expect(ageIsVisible, is(equalTo(false)))
+        })
+      ]
+    })
+    .andThen({
+      perform: [
+        step("the nested view is recreated", (testApp) => {
+          testApp.state.name.write("FUNNY PERSON")
+          testApp.state.age.write(81)
+        })
+      ],
+      observe: [
+        effect("the age is present once again", (testApp) => {
+          const nameText = testApp.display.elementMatching("[data-name]").text()
+          expect(nameText, is(stringContaining("FUNNY PERSON")))
+
+          const ageText = testApp.display.elementMatching("[data-age]").text()
+          expect(ageText, is(stringContaining("81")))
         })
       ]
     })

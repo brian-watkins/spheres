@@ -55,13 +55,19 @@ export function viewGenerator(viewState: State<View>): View {
         const patch = init([
           propsModule,
           attributesModule,
-        ])
+        ])      
 
-        let oldNode: VNode = vnode
+        const holder = document.createElement("view-holder")
+        vnode.elm!.appendChild(holder)
+
+        let oldNode: VNode | HTMLElement = holder
 
         viewState.onChange(() => {
           oldNode = patch(oldNode, viewState.read())
         })
+      },
+      destroy: (vnode) => {
+        vnode.elm!.childNodes.forEach(node => node.remove())
       }
     }
   })

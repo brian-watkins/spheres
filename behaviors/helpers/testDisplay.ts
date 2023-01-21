@@ -20,6 +20,10 @@ export class DisplayElementList {
 }
 
 export class TestDisplay {
+  hasElementMatching(selector: string): boolean {
+    return document.querySelector(selector) !== null
+  }
+
   elementMatching(selector: string): DisplayElement {
     const element: HTMLElement | null = document.querySelector(selector)
     if (!element) {

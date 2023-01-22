@@ -250,16 +250,12 @@ const nestedViewsBehavior =
     })
     .andThen({
       perform: [
-        step("the age state is updated with the name", (testApp) => {
-          testApp.state.name.write("Happy Person")
+        step("the age state is updated", (testApp) => {
           testApp.state.age.write(33)
         })
       ],
       observe: [
-        effect("the updated name is displayed", (testApp) => {
-          const nameText = testApp.display.elementMatching("[data-name]").text()
-          expect(nameText, is(stringContaining("Happy Person")))
-
+        effect("the updated age is displayed", (testApp) => {
           const ageText = testApp.display.elementMatching("[data-age]").text()
           expect(ageText, is(stringContaining("33")))
         })
@@ -282,16 +278,15 @@ const nestedViewsBehavior =
       perform: [
         step("the nested view is recreated", (testApp) => {
           testApp.state.name.write("FUNNY PERSON")
-          testApp.state.age.write(81)
         })
       ],
       observe: [
-        effect("the age is present once again", (testApp) => {
+        effect("the age is present once again with the current state", (testApp) => {
           const nameText = testApp.display.elementMatching("[data-name]").text()
           expect(nameText, is(stringContaining("FUNNY PERSON")))
 
           const ageText = testApp.display.elementMatching("[data-age]").text()
-          expect(ageText, is(stringContaining("81")))
+          expect(ageText, is(stringContaining("33")))
         })
       ]
     })

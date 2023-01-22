@@ -42,16 +42,20 @@ upon.
 It's not clear that this is a recommended way to use Snabbdom, but we've been able
 to make it work. The key is to wrap each view element in a custom element (call it
 `<view-element />`) and when Snabbdom decides to insert this element into the view,
-it will use it as the root node for the patch process and use a provided function
-to calculate the virtual dom that should be patched in at this point. The result is
-that the `<view-element />` tag will be removed from the actual dom and replaced
-with the computed virtual dom. However, the `<view-element />` will *remain* in the
-virtual dom from Snabbdom's perspective. Since this element won't have any tags
+it will create a child that will serve as the root node for a new patch process
+which uses a provided function to calculate the virtual dom that should be patched
+at this point (via Snabbdom's insert hook). The result is that the child of the
+`<view-element />` tag will be removed from the actual dom and replaced with the
+computed virtual dom. However, the `<view-element />` will *remain* in the virtual
+dom from Snabbdom's perspective. Since this element won't have any tags
 or attributes and doesn't share the fact that it has children, in subsequent patches
 involving this node, Snabbdom will think it hasn't changed and so just leave it
 alone. This is what we want, since that part of the virtual dom 'owned' by this
 element is able to patch itself. In this way, we can nest `<view-element />` with
 no problem and they will each update only when the state they depend upon changes.
+When the surrounding dom is changed so that the `<view-element />` needs to be removed
+the real dom children will be removed (via the Snabbdom's destroy hook) and then
+the element will be destroyed.
 
 ### Caveats
 

@@ -1,3 +1,4 @@
+import { ViewMessage } from "./view"
 
 export interface State<T> {
   read(): T
@@ -37,6 +38,9 @@ export function root<T>(initialValue: T): Root<T> {
   return new Root(initialValue)
 }
 
+// PROBLEM: Note that we are assuming here that the derivation function always
+// calls get with ALL atoms it depends on ... but given logic or conditionals in
+// the function that might not be true ...
 export function derive<T>(derivation: (get: <S>(atom: State<S>) => S) => T): State<T> {
   let atomsToRegister: Set<State<any>> = new Set()
   const getCurrentValue = <P>(atom: State<P>) => {
@@ -59,4 +63,18 @@ export function derive<T>(derivation: (get: <S>(atom: State<S>) => S) => T): Sta
   })
 
   return atom
+}
+
+export interface SetStateMessage<T> extends ViewMessage {
+  type: "set-state"
+  root: Root<T>
+  value: T
+}
+
+export function setState<T>(root: Root<T>, value: T): SetStateMessage<T> {
+  return {
+    type: "set-state",
+    root,
+    value
+  }
 }

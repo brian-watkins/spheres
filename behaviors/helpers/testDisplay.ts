@@ -5,6 +5,10 @@ export class DisplayElement {
   text(): string {
     return this.element.innerText
   }
+
+  click() {
+    this.element.click()
+  }
 }
 
 export class DisplayElementList {

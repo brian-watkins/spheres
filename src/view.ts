@@ -1,4 +1,4 @@
-import { attributesModule, h, init, propsModule, VNode, VNodeChildElement } from "snabbdom";
+import { attributesModule, eventListenersModule, h, init, propsModule, VNode, VNodeChildElement } from "snabbdom";
 import { State } from "./state";
 
 export type View = VNode
@@ -16,7 +16,7 @@ class Attribute {
   constructor(public key: string, public value: string) { }
 }
 
-export type ViewAttribute = Property | Attribute //| CssClasses | EventHandler | NullViewAttribute
+export type ViewAttribute = Property | Attribute | EventHandler //| CssClasses | NullViewAttribute
 
 export function data(name: string, value: string = ""): ViewAttribute {
   return new Attribute(`data-${name}`, value)
@@ -46,6 +46,24 @@ export function li(attributes: Array<ViewAttribute>, children: Array<ViewChild>)
   return basicElement("li", attributes, children)
 }
 
+export function button(attributes: Array<ViewAttribute>, children: Array<ViewChild>): View {
+  return basicElement("button", attributes, children)
+}
+
+class EventHandler {
+  type: "event" = "event"
+
+  constructor(public event: string, public generator: (evt: Event) => any) { }
+}
+
+export interface ViewMessage {
+  type: string
+}
+
+export function onClick<M extends ViewMessage>(message: M): ViewAttribute {
+  return new EventHandler("click", () => message)
+}
+
 export type ViewGenerator = (parent: View) => View
 
 export function viewGenerator(viewState: State<View>): View {
@@ -55,7 +73,8 @@ export function viewGenerator(viewState: State<View>): View {
         const patch = init([
           propsModule,
           attributesModule,
-        ])      
+          eventListenersModule
+        ])
 
         const holder = document.createElement("view-holder")
         vnode.elm!.appendChild(holder)
@@ -77,6 +96,7 @@ function makeAttributes(attributes: Array<ViewAttribute>): any {
   const dict: any = {
     props: {},
     attrs: {},
+    on: {}
   }
   for (const attr of attributes) {
     switch (attr.type) {
@@ -85,6 +105,15 @@ function makeAttributes(attributes: Array<ViewAttribute>): any {
         break
       case "attribute":
         dict.attrs[attr.key] = attr.value
+        break
+      case "event":
+        dict.on[attr.event] = function (evt: Event) {
+          evt.target?.dispatchEvent(new CustomEvent("displayMessage", {
+            bubbles: true,
+            cancelable: true,
+            detail: attr.generator(evt)
+          }))
+        }
         break
       default:
         exhaustiveMatchGuard(attr)

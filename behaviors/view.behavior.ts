@@ -16,21 +16,23 @@ const simpleViewBehavior =
     .script({
       suppose: [
         fact("some data is provided for the view", (testApp) => {
-          const peopleState = root([
-            { name: "Cool Dude", age: 41 },
-            { name: "Awesome Person", age: 28 }
-          ])
-          const peopleView = derive((get) => {
-            const people = get(peopleState)
-            return View.ul([], people.map(person => {
-              return View.li([View.data("person")], [
-                `${person.name} - ${person.age}`
-              ])
-            }))
-          })
-          testApp.setState({
-            peopleState,
-            peopleView
+          testApp.setState((loop) => {
+            const peopleState = root(loop, [
+              { name: "Cool Dude", age: 41 },
+              { name: "Awesome Person", age: 28 }
+            ])
+            const peopleView = derive(loop, (get) => {
+              const people = get(peopleState)
+              return View.ul([], people.map(person => {
+                return View.li([View.data("person")], [
+                  `${person.name} - ${person.age}`
+                ])
+              }))
+            })
+            return {
+              peopleState,
+              peopleView
+            }
           })
         }),
         fact("the view is rendered", (testApp) => {
@@ -57,7 +59,7 @@ const simpleViewBehavior =
     }).andThen({
       perform: [
         step("the root state is updated", (testApp) => {
-          testApp.state.peopleState.write([
+          testApp.updateState(testApp.state.peopleState, [
             { name: "Fun Person", age: 99 }
           ])
         })
@@ -85,21 +87,23 @@ const multipleViewsBehavior =
     .script({
       suppose: [
         fact("some state is provided for the view", (testApp) => {
-          const nameState = root("hello")
-          const ageState = root(27)
-          testApp.setState({
-            name: nameState,
-            age: ageState,
-            nameView: derive((get) => {
-              return View.p([View.data("name")], [
-                `My name is: ${get(nameState)}`
-              ])
-            }),
-            ageView: derive((get) => {
-              return View.p([View.data("age")], [
-                `My age is: ${get(ageState)}`
-              ])
-            })
+          testApp.setState((loop) => {
+            const nameState = root(loop, "hello")
+            const ageState = root(loop, 27)
+            return {
+              name: nameState,
+              age: ageState,
+              nameView: derive(loop, (get) => {
+                return View.p([View.data("name")], [
+                  `My name is: ${get(nameState)}`
+                ])
+              }),
+              ageView: derive(loop, (get) => {
+                return View.p([View.data("age")], [
+                  `My age is: ${get(ageState)}`
+                ])
+              })
+            }
           })
         }),
         fact("the view is rendered", (testApp) => {
@@ -125,7 +129,7 @@ const multipleViewsBehavior =
     }).andThen({
       perform: [
         step("the name state is update", (testApp) => {
-          testApp.state.name.write("Cool Dude")
+          testApp.updateState(testApp.state.name, "Cool Dude")
         })
       ],
       observe: [
@@ -145,29 +149,31 @@ const nestedViewsBehavior =
     .script({
       suppose: [
         fact("some state is provided for the view", (testApp) => {
-          const nameState = root("hello")
-          const ageState = root(27)
-          const ageView = derive((get) => {
-            return View.p([View.data("age")], [
-              `My age is: ${get(ageState)}`
-            ])
-          })
-          testApp.setState({
-            name: nameState,
-            age: ageState,
-            nameView: derive((get) => {
-              const name = get(nameState)
-              let children = [
-                View.p([View.data("name")], [
-                  `My name is: ${name}`
-                ])
-              ]
-              if (name !== "AGELESS PERSON") {
-                children.push(View.viewGenerator(ageView))
-              }
-              return View.div([], children)
-            }),
-            ageView
+          testApp.setState((loop) => {
+            const nameState = root(loop, "hello")
+            const ageState = root(loop, 27)
+            const ageView = derive(loop, (get) => {
+              return View.p([View.data("age")], [
+                `My age is: ${get(ageState)}`
+              ])
+            })
+            return {
+              name: nameState,
+              age: ageState,
+              nameView: derive(loop, (get) => {
+                const name = get(nameState)
+                let children = [
+                  View.p([View.data("name")], [
+                    `My name is: ${name}`
+                  ])
+                ]
+                if (name !== "AGELESS PERSON") {
+                  children.push(View.viewGenerator(ageView))
+                }
+                return View.div([], children)
+              }),
+              ageView
+            }
           })
         }),
         fact("the view is rendered", (testApp) => {
@@ -193,7 +199,7 @@ const nestedViewsBehavior =
     .andThen({
       perform: [
         step("the name state is updated", (testApp) => {
-          testApp.state.name.write("Fun Person")
+          testApp.updateState(testApp.state.name, "Fun Person")
         })
       ],
       observe: [
@@ -209,7 +215,7 @@ const nestedViewsBehavior =
     .andThen({
       perform: [
         step("the age state is updated", (testApp) => {
-          testApp.state.age.write(33)
+          testApp.updateState(testApp.state.age, 33)
         })
       ],
       observe: [
@@ -222,7 +228,7 @@ const nestedViewsBehavior =
     .andThen({
       perform: [
         step("the nested view is removed", (testApp) => {
-          testApp.state.name.write("AGELESS PERSON")
+          testApp.updateState(testApp.state.name, "AGELESS PERSON")
         })
       ],
       observe: [
@@ -235,7 +241,7 @@ const nestedViewsBehavior =
     .andThen({
       perform: [
         step("the nested view is recreated", (testApp) => {
-          testApp.state.name.write("FUNNY PERSON")
+          testApp.updateState(testApp.state.name, "FUNNY PERSON")
         })
       ],
       observe: [

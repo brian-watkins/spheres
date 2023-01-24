@@ -1,42 +1,24 @@
 import { behavior, effect, example, fact, step } from "esbehavior";
 import { Root, root, derive, State } from "../src/state";
-import { arrayWith, equalTo, expect, is } from "great-expectations"
+import { arrayWithItemAt, equalTo, expect, is } from "great-expectations"
+import { TestSubscriberContext, testSubscriberContext } from "./helpers/testSubscriberContext";
 
-class StateContext<T> {
-  private subscribers: Map<string, Array<T>> = new Map()
-
-  constructor(public state: State<T>) {}
-
-  subscribeToState(name: string) {
-    this.state.onChange(() => {
-      const value = this.state.read()
-      const values = this.subscribers.get(name)
-      if (values === undefined) {
-        this.subscribers.set(name, [value])
-      } else {
-        values.push(value)
-      }
-    })
-  }
-
-  valuesReceivedBySubscriber(name: string): Array<T> {
-    return this.subscribers.get(name) ?? []
-  }
-}
-
-class RootContext<T> extends StateContext<T> {
-  constructor(public root: Root<T>) {
-    super(root)
-  }
+interface SingleRoot {
+  root: Root<string>
 }
 
 const subscribeAndUpdate =
-  example({ init: () => new RootContext(root("hello")) })
+  example(testSubscriberContext<SingleRoot>())
     .description("Updating listeners")
     .script({
       perform: [
+        step("there is a root state", (context) => {
+          context.setState((loop) => ({
+            root: root(loop, "hello")
+          }))
+        }),
         step("a listener subscribes", (context) => {
-          context.subscribeToState("subscriber-one")
+          context.subscribeTo(context.state.root, "subscriber-one")
         })
       ],
       observe: [
@@ -49,21 +31,18 @@ const subscribeAndUpdate =
     }).andThen({
       perform: [
         step("the root state is updated", (context) => {
-          context.root.write("next")
+          context.updateState(context.state.root, "next")
         })
       ],
       observe: [
         effect("the listener receives the updated value", (context) => {
-          expectValuesFor(context, "subscriber-one", [
-            "hello",
-            "next"
-          ])
+          expect(context.valuesReceivedBy("subscriber-one"), is(arrayWithItemAt(1, equalTo("next"))))
         })
       ]
     }).andThen({
       perform: [
         step("another listener subscribes", (context) => {
-          context.subscribeToState("subscriber-two")
+          context.subscribeTo(context.state.root, "subscriber-two")
         })
       ],
       observe: [
@@ -82,7 +61,7 @@ const subscribeAndUpdate =
     }).andThen({
       perform: [
         step("the root state is updated again", (context) => {
-          context.root.write("finally")
+          context.updateState(context.state.root, "finally")
         })
       ],
       observe: [
@@ -100,33 +79,35 @@ const subscribeAndUpdate =
       ]
     })
 
-interface DerivedStateContext {
-  basic: RootContext<number>,
-  derived?: StateContext<string>
-  thirdLevel?: StateContext<number>
+interface DerivedState {
+  basic: Root<number>,
+  derived?: State<string>
+  thirdLevel?: State<number>
 }
 
 const derivedState =
-  example({ init: () => {
-    return {
-      basic: new RootContext(root(17)),
-    } as DerivedStateContext
-  }})
+  example(testSubscriberContext<DerivedState>())
     .description("Derivative State")
     .script({
       suppose: [
-        fact("there is a derived state", (context) => {
-          context.derived = new StateContext(derive((get) => `${get(context.basic.state)} things!`))
-        })
+        fact("there is root and derived state", (context) => {
+          context.setState((loop) => {
+            const basic = root(loop, 17)
+            return {
+              basic,
+              derived: derive(loop, (get) => `${get(basic)} things!`)
+            }
+          })
+        }),
       ],
       perform: [
         step("subscribe to the derived state", (context) => {
-          context.derived!.subscribeToState("subscriber-one")
+          context.subscribeTo(context.state.derived!, "subscriber-one")
         })
       ],
       observe: [
         effect("the derived state's initial value is based on the root state", (context) => {
-          expectValuesFor(context.derived!, "subscriber-one", [
+          expectValuesFor(context, "subscriber-one", [
             "17 things!"
           ])
         })
@@ -134,12 +115,12 @@ const derivedState =
     }).andThen({
       perform: [
         step("the root state is updated", (context) => {
-          context.basic.root.write(27)
+          context.updateState(context.state.basic, 27)
         })
       ],
       observe: [
         effect("the derived state updates its subscribers with the new value", (context) => {
-          expectValuesFor(context.derived!, "subscriber-one", [
+          expectValuesFor(context, "subscriber-one", [
             "17 things!",
             "27 things!"
           ])
@@ -148,21 +129,27 @@ const derivedState =
     }).andThen({
       perform: [
         step("a state is derived from the derived state", (context) => {
-          context.thirdLevel = new StateContext(derive((get) => get(context.derived!.state).length))
-          context.thirdLevel.subscribeToState("subscriber-two")
+          context.setState((loop) => {
+            return {
+              basic: context.state.basic,
+              derived: context.state.derived,
+              thirdLevel: derive(loop, (get) => get(context.state.derived!).length)
+            }
+          })
+          context.subscribeTo(context.state.thirdLevel!, "subscriber-two")
         }),
         step("a subscriber subscribed to the root state", (context) => {
-          context.basic.subscribeToState("subscriber-three")
+          context.subscribeTo(context.state.basic, "subscriber-three")
         })
       ],
       observe: [
         effect("the derived derived state subscriber gets the current value", (context) => {
-          expectValuesFor(context.thirdLevel!, "subscriber-two", [
+          expectValuesFor(context, "subscriber-two", [
             10
           ])
         }),
         effect("the root subscriber gets the current value", (context) => {
-          expectValuesFor(context.basic, "subscriber-three", [
+          expectValuesFor(context, "subscriber-three", [
             27
           ])
         })
@@ -170,25 +157,25 @@ const derivedState =
     }).andThen({
       perform: [
         step("the root state is updated", (context) => {
-          context.basic.root.write(8)
+          context.updateState(context.state.basic, 8)
         })
       ],
       observe: [
         effect("the root subscriber gets the latest value", (context) => {
-          expectValuesFor(context.basic, "subscriber-three", [
+          expectValuesFor(context, "subscriber-three", [
             27,
             8
           ])
         }),
         effect("the derived state subscriber gets the latest value", (context) => {
-          expectValuesFor(context.derived!, "subscriber-one", [
+          expectValuesFor(context, "subscriber-one", [
             "17 things!",
             "27 things!",
             "8 things!"
           ])
         }),
         effect("the derived derived state subscriber gets the current value", (context) => {
-          expectValuesFor(context.thirdLevel!, "subscriber-two", [
+          expectValuesFor(context, "subscriber-two", [
             10,
             9
           ])
@@ -196,52 +183,50 @@ const derivedState =
       ]
     })
 
-interface MultipleSourceStateContext {
+interface MultipleSourceState {
   numberAtom: Root<number>
   stringAtom: Root<string>
   anotherAtom: Root<string>
-  derived?: StateContext<string>
+  derived?: State<string>
 }
 
 const multipleSourceState =
-    example<MultipleSourceStateContext>({ init: () => ({
-      numberAtom: root(27),
-      stringAtom: root("hello"),
-      anotherAtom: root("next")
-    })})
-      .description("Derived state with multiple sources")
-      .script({
-        perform: [
-          step("a derived state is created from the root states", (context) => {
-            context.derived = new StateContext(derive((get) => `${get(context.stringAtom)} ${get(context.numberAtom)} times. And then ${get(context.anotherAtom)}!`))
+  example(testSubscriberContext<MultipleSourceState>())
+    .description("Derived state with multiple sources")
+    .script({
+      perform: [
+        step("a derived state is created from the root states", (context) => {
+          context.setState((loop) => {
+            const numberAtom = root(loop, 27)
+            const stringAtom = root(loop, "hello")
+            const anotherAtom = root(loop, "next")
+            return {
+              numberAtom,
+              stringAtom,
+              anotherAtom,
+              derived: derive(loop, (get) => `${get(stringAtom)} ${get(numberAtom)} times. And then ${get(anotherAtom)}!`)
+            }
           })
-        ],
-        observe: [
-          effect("the derived state has the expected initial state", (context) => {
-            expect(context.derived!.state.read(), is(equalTo("hello 27 times. And then next!")))
-          })
-        ]
-      }).andThen({
-        perform: [
-          step("subscribe to the derived state", (context) => {
-            context.derived!.subscribeToState("subscriber-one")
-          }),
-          step("a root state is updated", (context) => {
-            context.stringAtom.write("JUMP")
-          })
-        ],
-        observe: [
-          effect("the subscriber gets the update", (context) => {
-            expectValuesFor(context.derived!, "subscriber-one", [
-              "hello 27 times. And then next!",
-              "JUMP 27 times. And then next!"
-            ])
-          })
-        ]
-      })
+        }),
+        step("subscribe to the derived state", (context) => {
+          context.subscribeTo(context.state.derived!, "subscriber-one")
+        }),
+        step("a root state is updated", (context) => {
+          context.updateState(context.state.stringAtom, "JUMP")
+        })
+      ],
+      observe: [
+        effect("the subscriber gets the initial state and then the update", (context) => {
+          expectValuesFor(context, "subscriber-one", [
+            "hello 27 times. And then next!",
+            "JUMP 27 times. And then next!"
+          ])
+        })
+      ]
+    })
 
-function expectValuesFor<T>(context: StateContext<T>, subscriber: string, values: Array<T>) {
-  expect(context.valuesReceivedBySubscriber(subscriber), is(equalTo(values)))
+function expectValuesFor<T>(context: TestSubscriberContext<T>, subscriber: string, values: Array<any>) {
+  expect(context.valuesReceivedBy(subscriber), is(equalTo(values)))
 }
 
 // Note one thing to worry about here might be getting into an endless loop somehow ...

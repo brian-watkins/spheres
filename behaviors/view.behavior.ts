@@ -1,12 +1,12 @@
 import { behavior, effect, example, fact, step } from "esbehavior";
 import { equalTo, expect, is, stringContaining } from "great-expectations";
-import { derive, root, Root, State } from "../src/state";
+import { derive, container, Container, State } from "../src/state";
 import * as View from "../src/view"
 import { testAppContext } from "./helpers/testApp";
 
 
 interface TestData {
-  peopleState: Root<Array<{ name: string, age: number }>>
+  peopleState: Container<Array<{ name: string, age: number }>>
   peopleView: State<View.View>
 }
 
@@ -17,7 +17,7 @@ const simpleViewBehavior =
       suppose: [
         fact("some data is provided for the view", (testApp) => {
           testApp.setState((loop) => {
-            const peopleState = root(loop, [
+            const peopleState = container(loop, [
               { name: "Cool Dude", age: 41 },
               { name: "Awesome Person", age: 28 }
             ])
@@ -75,8 +75,8 @@ const simpleViewBehavior =
     })
 
 interface TestDataMulti {
-  name: Root<string>
-  age: Root<number>
+  name: Container<string>
+  age: Container<number>
   nameView: State<View.View>,
   ageView: State<View.View>
 }
@@ -88,8 +88,8 @@ const multipleViewsBehavior =
       suppose: [
         fact("some state is provided for the view", (testApp) => {
           testApp.setState((loop) => {
-            const nameState = root(loop, "hello")
-            const ageState = root(loop, 27)
+            const nameState = container(loop, "hello")
+            const ageState = container(loop, 27)
             return {
               name: nameState,
               age: ageState,
@@ -150,8 +150,8 @@ const nestedViewsBehavior =
       suppose: [
         fact("some state is provided for the view", (testApp) => {
           testApp.setState((loop) => {
-            const nameState = root(loop, "hello")
-            const ageState = root(loop, 27)
+            const nameState = container(loop, "hello")
+            const ageState = container(loop, 27)
             const ageView = derive(loop, (get) => {
               return View.p([View.data("age")], [
                 `My age is: ${get(ageState)}`

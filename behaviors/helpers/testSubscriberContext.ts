@@ -13,13 +13,11 @@ export class TestSubscriberContext<S> extends TestLoop<S> {
 
   subscribeTo<T>(state: State<T>, name: string) {
     state.onChange(() => {
-      // const value = state.read()
-      const value = this.loop.readState(state)
       const values = this.subscribers.get(name)
       if (values === undefined) {
-        this.subscribers.set(name, [value])
+        this.subscribers.set(name, [state.value])
       } else {
-        values.push(value)
+        values.push(state.value)
       }
     })
   }

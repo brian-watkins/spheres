@@ -1,5 +1,5 @@
 import { behavior, effect, example, fact, step } from "esbehavior";
-import { derive, root, setState, State } from "../src/state";
+import { derive, container, setState, State } from "../src/state";
 import { testAppContext } from "./helpers/testApp";
 import * as View from "../src/view"
 import { expect, is, stringContaining } from "great-expectations";
@@ -15,7 +15,7 @@ export default behavior("view events", [
       suppose: [
         fact("there is a view that depends on click count", (context) => {
           context.setState((loop) => {
-            const clickCount = root(loop, 0)
+            const clickCount = container(loop, 0)
 
             const clickCounterView = derive(loop, (get) => {
               return View.div([], [

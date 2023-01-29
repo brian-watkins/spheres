@@ -1,24 +1,24 @@
 import { behavior, effect, example, fact, step } from "esbehavior";
-import { Root, root, derive, State } from "../src/state";
+import { Container, container, derive, State } from "../src/state";
 import { arrayWithItemAt, equalTo, expect, is } from "great-expectations"
 import { TestSubscriberContext, testSubscriberContext } from "./helpers/testSubscriberContext";
 
-interface SingleRoot {
-  root: Root<string>
+interface SingleContainer {
+  container: Container<string>
 }
 
 const subscribeAndUpdate =
-  example(testSubscriberContext<SingleRoot>())
+  example(testSubscriberContext<SingleContainer>())
     .description("Updating listeners")
     .script({
       perform: [
         step("there is a root state", (context) => {
           context.setState((loop) => ({
-            root: root(loop, "hello")
+            container: container(loop, "hello")
           }))
         }),
         step("a listener subscribes", (context) => {
-          context.subscribeTo(context.state.root, "subscriber-one")
+          context.subscribeTo(context.state.container, "subscriber-one")
         })
       ],
       observe: [
@@ -31,7 +31,7 @@ const subscribeAndUpdate =
     }).andThen({
       perform: [
         step("the root state is updated", (context) => {
-          context.updateState(context.state.root, "next")
+          context.updateState(context.state.container, "next")
         })
       ],
       observe: [
@@ -42,7 +42,7 @@ const subscribeAndUpdate =
     }).andThen({
       perform: [
         step("another listener subscribes", (context) => {
-          context.subscribeTo(context.state.root, "subscriber-two")
+          context.subscribeTo(context.state.container, "subscriber-two")
         })
       ],
       observe: [
@@ -61,7 +61,7 @@ const subscribeAndUpdate =
     }).andThen({
       perform: [
         step("the root state is updated again", (context) => {
-          context.updateState(context.state.root, "finally")
+          context.updateState(context.state.container, "finally")
         })
       ],
       observe: [
@@ -80,7 +80,7 @@ const subscribeAndUpdate =
     })
 
 interface DerivedState {
-  basic: Root<number>,
+  basic: Container<number>,
   derived?: State<string>
   thirdLevel?: State<number>
 }
@@ -92,7 +92,7 @@ const derivedState =
       suppose: [
         fact("there is root and derived state", (context) => {
           context.setState((loop) => {
-            const basic = root(loop, 17)
+            const basic = container(loop, 17)
             return {
               basic,
               derived: derive(loop, (get) => `${get(basic)} things!`)
@@ -184,9 +184,9 @@ const derivedState =
     })
 
 interface MultipleSourceState {
-  numberAtom: Root<number>
-  stringAtom: Root<string>
-  anotherAtom: Root<string>
+  numberAtom: Container<number>
+  stringAtom: Container<string>
+  anotherAtom: Container<string>
   derived?: State<string>
 }
 
@@ -197,9 +197,9 @@ const multipleSourceState =
       perform: [
         step("a derived state is created from the root states", (context) => {
           context.setState((loop) => {
-            const numberAtom = root(loop, 27)
-            const stringAtom = root(loop, "hello")
-            const anotherAtom = root(loop, "next")
+            const numberAtom = container(loop, 27)
+            const stringAtom = container(loop, "hello")
+            const anotherAtom = container(loop, "next")
             return {
               numberAtom,
               stringAtom,

@@ -48,15 +48,9 @@ atom should provide a method to generate a `Message` that describes a request to
 its state. The `Message` should be passed to the runtime and processed there. When complete,
 subscribers to that state will be notified.
 
-When it comes to reading state, I think it is ok to allow for this to occur explicitly
-whenever necessary. Primarily, though, this will occur with the `get` function when describing
-derived state so typically user code should not need to call the `read()` method on an atom.
-
-Nevertheless, whenever `read()` is called, it will ask the runtime for the current state
-value and return it immediately. Even if, in the future, writing state may be an
-asynchronous process, it should be the case that there is always a current state for any
-atom and that state can be returned immediately when requested (ie without any Promise
-required).
+For reading state, subscribers will simply get the latest value whenever it updates. When
+describing derived state, we will use the `get` function to reference the value for a piece
+of state.
 
 So, `Root` and `State` *describe* the application state, and the runtime actually *stores*
 the state. To read and write that state, you need to talk to the runtime. Each root will

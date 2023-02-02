@@ -1,7 +1,6 @@
-import { Managed, ManagedValue, StateManager } from "./stateManager"
+import { Managed, StateManager } from "./stateManager"
 
 export interface State<T> {
-  value: T
   onChange(notify: (updatedState: T) => void): void
 }
 
@@ -15,21 +14,77 @@ export interface LoopMessage {
 
 export class Loop {
   private connections = new WeakMap<State<any>, (value: any) => void>()
+  private storage = new WeakMap<State<any>, any>()
 
-  manageState<T>(state: State<Managed<T>>, stateManager: StateManager<T>) {
-    stateManager.onChange((value) => {
-      this.connections.get(state)?.(value)
+  manageState<T, K>(state: State<Managed<T, K>>, stateManager: StateManager<T, K>) {
+    const connection = this.connections.get(state)
+    if (!connection) return
+
+    this.connections.set(state, (value) => {
+      connection(value)
+      stateManager.refreshState(value.key)
     })
+
+    stateManager.onChange(connection)
+
+    stateManager.refreshState(this.storage.get(state).key)
   }
 
   createContainer<T>(initialState: T): Container<T> {
-    const container = new BasicContainer(initialState)
+    const self = this
+    const container = new BasicContainer<T>(function (this: BasicContainer<T>) {
+      return self.storage.get(this)
+    })
+    this.storage.set(container, initialState)
 
     this.connections.set(container, (value) => {
-      container.setValue(value)
+      this.storage.set(container, value)
+      container.notifySubscribers(value)
     })
 
     return container
+  }
+
+  managedContainer<T, K>(keyDerivation?: (get: <S>(state: State<S>) => S) => K): State<Managed<T, K>> {
+    if (!keyDerivation) {
+      return this.createContainer({ type: "loading" })
+    }
+
+    return this.deriveContainer((get) => {
+      return {
+        type: "loading",
+        key: keyDerivation(get)
+      }
+    })
+  }
+
+  // PROBLEM: Note that we are assuming here that the derivation function always
+  // calls get with ALL atoms it depends on ... but given logic or conditionals in
+  // the function that might not be true ...
+
+  // PROBLEM: What if there are no atoms identified at all in the derivation?
+  deriveContainer<T>(derivation: (get: <S>(state: State<S>) => S) => T): State<T> {
+    let atomsToRegister: Set<State<any>> = new Set()
+    const getCurrentValue = <P>(atom: State<P>) => {
+      atomsToRegister.add(atom)
+      return this.storage.get(atom)
+    }
+
+    const initialValue = derivation(getCurrentValue)
+
+    const atom = this.createContainer(initialValue)
+
+    const getUpdatedValue = <P>(state: State<P>): P => {
+      return this.storage.get(state)
+    }
+
+    atomsToRegister.forEach((basic) => {
+      basic.onChange(() => {
+        this.dispatch(atom.updateRequest(derivation(getUpdatedValue)))
+      })
+    })
+
+    return atom
   }
 
   dispatch(message: LoopMessage) {
@@ -52,23 +107,15 @@ export class Loop {
 
 class BasicContainer<T> implements Container<T> {
   public subscribers: Set<((updatedState: T) => void)> = new Set()
-  private _value: T
 
-  constructor(initialValue: T) {
-    this._value = initialValue
-  }
+  constructor(private get: () => T) { }
 
-  get value(): T {
-    return this._value
-  }
-
-  setValue(value: T) {
-    this._value = value
-    this.subscribers.forEach(notify => notify(this.value))
+  notifySubscribers(value: T) {
+    this.subscribers.forEach(notify => notify(value))
   }
 
   onChange(notify: (updatedState: T) => void): void {
-    notify(this.value)
+    notify(this.get())
     this.subscribers.add(notify)
   }
 
@@ -85,37 +132,12 @@ export function container<T>(loop: Loop, initialValue: T): Container<T> {
   return loop.createContainer(initialValue)
 }
 
-// PROBLEM: Note that we are assuming here that the derivation function always
-// calls get with ALL atoms it depends on ... but given logic or conditionals in
-// the function that might not be true ...
-
-export function view<T>(loop: Loop, stateValue: ManagedValue<T>): State<Managed<T>> {
-  return container(loop, stateValue.initialState)
+export function manage<T, K>(loop: Loop, keyDerivation?: (get: <S>(atom: State<S>) => S) => K): State<Managed<T, K>> {
+  return loop.managedContainer(keyDerivation)
 }
 
-// PROBLEM: What if there are no atoms identified at all in the derivation?
 export function derive<T>(loop: Loop, derivation: (get: <S>(atom: State<S>) => S) => T): State<T> {
-  let atomsToRegister: Set<State<any>> = new Set()
-  const getCurrentValue = <P>(atom: State<P>) => {
-    atomsToRegister.add(atom)
-    return atom.value
-  }
-
-  const initialValue = derivation(getCurrentValue)
-
-  const atom = container(loop, initialValue)
-
-  const getUpdatedValue = <P>(state: State<P>): P => {
-    return state.value
-  }
-
-  atomsToRegister.forEach((basic) => {
-    basic.onChange(() => {
-      loop.dispatch(atom.updateRequest(derivation(getUpdatedValue)))
-    })
-  })
-
-  return atom
+  return loop.deriveContainer(derivation)
 }
 
 export interface SetStateMessage<T> extends LoopMessage {

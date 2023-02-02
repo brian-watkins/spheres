@@ -12,12 +12,12 @@ export class TestSubscriberContext<S> extends TestLoop<S> {
   private subscribers: Map<string, Array<any>> = new Map()
 
   subscribeTo<T>(state: State<T>, name: string) {
-    state.onChange(() => {
+    state.onChange((updatedValue) => {
       const values = this.subscribers.get(name)
       if (values === undefined) {
-        this.subscribers.set(name, [state.value])
+        this.subscribers.set(name, [updatedValue])
       } else {
-        values.push(state.value)
+        values.push(updatedValue)
       }
     })
   }

@@ -1,4 +1,4 @@
-import { Managed, StateManager } from "./stateManager"
+import { Managed, StateReader } from "./stateManager"
 
 export interface State<T> {
   onChange(notify: (updatedState: T) => void): void
@@ -16,18 +16,18 @@ export class Loop {
   private connections = new WeakMap<State<any>, (value: any) => void>()
   private storage = new WeakMap<State<any>, any>()
 
-  manageState<T, K>(state: State<Managed<T, K>>, stateManager: StateManager<T, K>) {
+  manageState<T, K>(state: State<Managed<T, K>>, stateReader: StateReader<T, K>) {
     const connection = this.connections.get(state)
     if (!connection) return
 
     this.connections.set(state, (value) => {
       connection(value)
-      stateManager.refreshState(value.key)
+      stateReader.refresh(value.key)
     })
 
-    stateManager.onChange(connection)
+    stateReader.onChange(connection)
 
-    stateManager.refreshState(this.storage.get(state).key)
+    stateReader.refresh(this.storage.get(state).key)
   }
 
   createContainer<T>(initialState: T): Container<T> {

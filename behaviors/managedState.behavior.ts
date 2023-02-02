@@ -3,12 +3,12 @@ import { arrayWith, arrayWithItemAt, defined, equalTo, expect, is, objectWith, o
 import { Matcher } from "great-expectations/dist/matcher";
 import { container, Container, State, manage } from "../src/state";
 import { Managed } from "../src/stateManager";
-import { TestManager } from "./helpers/testLoop";
+import { TestStateReader } from "./helpers/testLoop";
 import { testSubscriberContext } from "./helpers/testSubscriberContext";
 
 interface ManagedValueContext {
   view: State<Managed<string, void>>
-  manager: TestManager<string>
+  reader: TestStateReader<string>
 }
 
 const simpleManagedValue =
@@ -19,9 +19,9 @@ const simpleManagedValue =
         fact("there is a view with a managed value", (context) => {
           context.setState((loop) => ({
             view: manage(loop),
-            manager: new TestManager()
+            reader: new TestStateReader()
           }))
-          context.manageState(context.state.view, context.state.manager)
+          context.manageState(context.state.view, context.state.reader)
         }),
         fact("there is a subscriber", (context) => {
           context.subscribeTo(context.state.view, "subscriber-one")
@@ -36,7 +36,7 @@ const simpleManagedValue =
     }).andThen({
       perform: [
         step("the managed value loads", (context) => {
-          context.state.manager.loadState("funny")
+          context.state.reader.loadState("funny")
         })
       ],
       observe: [
@@ -58,7 +58,7 @@ interface FunKey {
 interface ManagedValueWithKeyContext {
   profileState: Container<string>,
   view: State<Managed<string, FunKey>>
-  manager: TestManager<string, FunKey>
+  reader: TestStateReader<string, FunKey>
 }
 
 const managedValueWithDerivedKey =
@@ -76,10 +76,10 @@ const managedValueWithDerivedKey =
                 profileId: get(profileState),
                 page: get(pageNumber)
               })),
-              manager: new TestManager()
+              reader: new TestStateReader()
             }
           })
-          context.manageState(context.state.view, context.state.manager)
+          context.manageState(context.state.view, context.state.reader)
         }),
         fact("there is a subscriber", (context) => {
           context.subscribeTo(context.state.view, "subscriber-one")
@@ -87,8 +87,8 @@ const managedValueWithDerivedKey =
       ],
       observe: [
         effect("the state manager is passed the current value of the key", (context) => {
-          expect(context.state.manager.lastRefreshKey, is(defined()))
-          expect(context.state.manager.lastRefreshKey!, is(equalTo({
+          expect(context.state.reader.lastRefreshKey, is(defined()))
+          expect(context.state.reader.lastRefreshKey!, is(equalTo({
             profileId: "profile-1",
             page: 17
           })))
@@ -97,7 +97,7 @@ const managedValueWithDerivedKey =
     }).andThen({
       perform: [
         step("the managed value loads", (context) => {
-          context.state.manager.loadState("Fun Stuff")
+          context.state.reader.loadState("Fun Stuff")
         }),
         step("the key changes", (context) => {
           context.updateState(context.state.profileState, "profile-7")
@@ -113,7 +113,7 @@ const managedValueWithDerivedKey =
             ])))
         }),
         effect("the state manager gets the updated key", (context) => {
-          expect(context.state.manager.lastRefreshKey!, is(equalTo({
+          expect(context.state.reader.lastRefreshKey!, is(equalTo({
             profileId: "profile-7",
             page: 17
           })))
@@ -133,7 +133,7 @@ const managedValueWithDerivedKey =
     }).andThen({
       perform: [
         step("the managed value is updated", (context) => {
-          context.state.manager.loadState("Even more fun stuff!")
+          context.state.reader.loadState("Even more fun stuff!")
         })
       ],
       observe: [

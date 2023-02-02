@@ -1,7 +1,7 @@
 import { Loop, Container, State } from "../../src/state";
-import { Managed, StateManager } from "../../src/stateManager";
+import { Managed, StateReader } from "../../src/stateManager";
 
-export class TestManager<T, K = void> implements StateManager<T, K> {
+export class TestStateReader<T, K = void> implements StateReader<T, K> {
   readResolver: ((value: Managed<T, K>) => void) | undefined
   lastRefreshKey: K | undefined
 
@@ -12,7 +12,7 @@ export class TestManager<T, K = void> implements StateManager<T, K> {
     })
   }
 
-  refreshState(key: K) {
+  refresh(key: K) {
     this.lastRefreshKey = key
   }
 
@@ -33,8 +33,8 @@ export class TestLoop<S> {
     return this.stateDescription!
   }
 
-  manageState<T, K>(state: State<Managed<T, K>>, manager: StateManager<T, K>) {
-    this.loop.manageState(state, manager)
+  manageState<T, K>(state: State<Managed<T, K>>, reader: StateReader<T, K>) {
+    this.loop.manageState(state, reader)
   }
 
   updateState<T>(root: Container<T>, value: T) {

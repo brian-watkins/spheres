@@ -11,7 +11,7 @@ export interface LoadedState<T, K> {
 
 export type Managed<T, K> = LoadingState<K> | LoadedState<T, K>
 
-export interface StateManager<T, K = void> {
-  refreshState(key: K): void
+export interface StateReader<T, K = void> {
+  refresh(key: K): void
   onChange(callback: (value: Managed<T, K>) => void): void
 }

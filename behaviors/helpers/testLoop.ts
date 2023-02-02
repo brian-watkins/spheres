@@ -8,7 +8,8 @@ export class TestStateReader<T, K = void> implements StateReader<T, K> {
   loadState(value: T) {
     this.readResolver?.({
       type: "loaded",
-      value
+      value,
+      key: this.lastRefreshKey
     })
   }
 

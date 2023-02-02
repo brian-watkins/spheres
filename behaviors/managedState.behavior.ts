@@ -107,9 +107,9 @@ const managedValueWithDerivedKey =
         effect("the managed state returns to loading", (context) => {
           expect(context.valuesReceivedBy("subscriber-one"),
             is(arrayWith([
-              loadingState(),
-              loadedWith("Fun Stuff"),
-              loadingState()
+              loadingState({ profileId: "profile-1", page: 17 }),
+              loadedWith("Fun Stuff", { profileId: "profile-1", page: 17 }),
+              loadingState({ profileId: "profile-7", page: 17 })
             ])))
         }),
         effect("the state manager gets the updated key", (context) => {
@@ -127,7 +127,7 @@ const managedValueWithDerivedKey =
       ],
       observe: [
         effect("the subscriber gets the latest managed value", (context) => {
-          loadingState()
+          loadingState({ profileId: "profile-7", page: 17 })
         })
       ]
     }).andThen({
@@ -140,17 +140,17 @@ const managedValueWithDerivedKey =
         effect("subscriber-one gets the update", (context) => {
           expect(context.valuesReceivedBy("subscriber-one"),
             is(arrayWith([
-              loadingState(),
-              loadedWith("Fun Stuff"),
-              loadingState(),
-              loadedWith("Even more fun stuff!"),
+              loadingState({ profileId: "profile-1", page: 17 }),
+              loadedWith("Fun Stuff", { profileId: "profile-1", page: 17 }),
+              loadingState({ profileId: "profile-7", page: 17 }),
+              loadedWith("Even more fun stuff!", { profileId: "profile-7", page: 17 }),
             ])))
         }),
         effect("subscriber-two gets the update", (context) => {
           expect(context.valuesReceivedBy("subscriber-two"),
             is(arrayWith([
-              loadingState(),
-              loadedWith("Even more fun stuff!")
+              loadingState({ profileId: "profile-7", page: 17 }),
+              loadedWith("Even more fun stuff!", { profileId: "profile-7", page: 17 })
             ])))
         })
       ]
@@ -164,20 +164,24 @@ const managedValueWithDerivedKey =
         effect("the third subscriber gets the latest managed value", (context) => {
           expect(context.valuesReceivedBy("subscriber-three"),
             is(arrayWith([
-              loadedWith("Even more fun stuff!")
+              loadedWith("Even more fun stuff!", { profileId: "profile-7", page: 17 })
             ])))
         })
       ]
     })
 
-function loadingState(): Matcher<Managed<string, any>> {
-  return objectWithProperty("type", equalTo("loading"))
+function loadingState(key?: any): Matcher<Managed<string, any>> {
+  return objectWith({
+    type: equalTo("loading"),
+    key: equalTo(key)
+  })
 }
 
-function loadedWith(value: string): Matcher<Managed<string, any>> {
+function loadedWith(value: string, key?: any): Matcher<Managed<string, any>> {
   return objectWith({
     type: equalTo("loaded"),
-    value: equalTo(value)
+    value: equalTo(value),
+    key: equalTo(key)
   })
 }
 

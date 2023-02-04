@@ -1,20 +1,33 @@
-import { Loop, Container, State } from "../../src/state";
-import { Managed, StateReader } from "../../src/stateManager";
+import { Loop, Container, State, writer, StateManager, LoopMessage } from "../../src/state";
+import { Managed } from "../../src/stateManager";
 
-export class TestStateReader<T, K = void> implements StateReader<T, K> {
-  readResolver: ((value: Managed<T, K>) => void) | undefined
+export class TestStateManager<T, K = void> implements StateManager<T, K> {
+  readResolver: ((value: any) => void) | undefined
   lastRefreshKey: K | undefined
+  lastValueToWrite: T | undefined
 
   loadState(value: T) {
     this.readResolver?.({
-      type: "loaded",
-      value,
-      key: this.lastRefreshKey
+      type: "write",
+      value: {
+        type: "loaded",
+        value,
+        key: this.lastRefreshKey
+      }
     })
   }
 
-  refresh(key: K) {
-    this.lastRefreshKey = key
+  update(message: LoopMessage<Managed<T, K>>): void {
+    switch (message.type) {
+      case "read":
+        this.lastRefreshKey = message.value.key
+        break
+      case "write":
+        if (message.value.type === "writing") {
+          this.lastValueToWrite = message.value.value
+        }
+        break
+    }
   }
 
   onChange(callback: (value: Managed<T, K>) => void) {
@@ -34,11 +47,15 @@ export class TestLoop<S> {
     return this.stateDescription!
   }
 
-  manageState<T, K>(state: State<Managed<T, K>>, reader: StateReader<T, K>) {
+  manageState<T, K>(state: State<Managed<T, K>>, reader: StateManager<T, K>) {
     this.loop.manageState(state, reader)
   }
 
+  update(updater: (loop: Loop) => void) {
+    updater(this.loop)
+  }
+
   updateState<T>(root: Container<T>, value: T) {
-    this.loop.dispatch(root.updateRequest(value))
+    this.loop.dispatch(writer(root)(value))
   }
 }

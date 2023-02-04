@@ -9,9 +9,11 @@ export interface LoadedState<T, K> {
   key?: K
 }
 
-export type Managed<T, K> = LoadingState<K> | LoadedState<T, K>
-
-export interface StateReader<T, K = void> {
-  refresh(key: K): void
-  onChange(callback: (value: Managed<T, K>) => void): void
+export interface WritingState<T, K> {
+  type: "writing",
+  value: T
+  key?: K
 }
+
+// I'd prefer to have WritingState here only if the state is actually writable ...
+export type Managed<T, K> = LoadingState<K> | LoadedState<T, K> | WritingState<T, K>

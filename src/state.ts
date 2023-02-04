@@ -1,33 +1,49 @@
-import { Managed, StateReader } from "./stateManager"
+import { Managed } from "./stateManager"
 
 export interface State<T> {
   onChange(notify: (updatedState: T) => void): void
 }
 
-export interface Container<T> extends State<T> {
-  updateRequest(value: T): SetStateMessage<T>
+export interface Container<T> extends State<T> {}
+
+export interface StateManager<T, K = void> {
+  update(message: LoopMessage<Managed<T, K>>): void
+  onChange(callback: (value: Managed<T, K>) => void): void
 }
 
-export interface LoopMessage {
+interface Valuable<T> {
+  value: T
+}
+
+export interface LoopMessage<T> extends Valuable<T> {
   type: string
+  value: T
+  container: Container<T>
 }
 
 export class Loop {
   private connections = new WeakMap<State<any>, (value: any) => void>()
   private storage = new WeakMap<State<any>, any>()
 
-  manageState<T, K>(state: State<Managed<T, K>>, stateReader: StateReader<T, K>) {
+  // This is probably something we can remove ...
+  // IF we pass in the manager when defining the state and the
+  // container and derived functions get more sophisticated
+  manageState<T, K>(state: State<Managed<T, K>>, stateReader: StateManager<T, K>) {
     const connection = this.connections.get(state)
-    if (!connection) return
+    if (!connection) {
+      console.log("NO connection!??!")
+      return
+    }
 
-    this.connections.set(state, (value) => {
-      connection(value)
-      stateReader.refresh(value.key)
+    this.connections.set(state, (message) => {
+      connection(message)
+      stateReader.update(message)
     })
 
     stateReader.onChange(connection)
 
-    stateReader.refresh(this.storage.get(state).key)
+    // is this always the right thing to do?
+    stateReader.update({ type: "read", value: this.storage.get(state), container: state })
   }
 
   createContainer<T>(initialState: T): Container<T> {
@@ -37,25 +53,12 @@ export class Loop {
     })
     this.storage.set(container, initialState)
 
-    this.connections.set(container, (value) => {
-      this.storage.set(container, value)
-      container.notifySubscribers(value)
+    this.connections.set(container, (message: Valuable<T>) => {
+      this.storage.set(container, message.value)
+      container.notifySubscribers(message.value)
     })
 
     return container
-  }
-
-  managedContainer<T, K>(keyDerivation?: (get: <S>(state: State<S>) => S) => K): State<Managed<T, K>> {
-    if (!keyDerivation) {
-      return this.createContainer({ type: "loading" })
-    }
-
-    return this.deriveContainer((get) => {
-      return {
-        type: "loading",
-        key: keyDerivation(get)
-      }
-    })
   }
 
   // PROBLEM: Note that we are assuming here that the derivation function always
@@ -80,22 +83,18 @@ export class Loop {
 
     atomsToRegister.forEach((basic) => {
       basic.onChange(() => {
-        this.dispatch(atom.updateRequest(derivation(getUpdatedValue)))
+        this.connections.get(atom)?.({
+          type: "read",
+          value: derivation(getUpdatedValue)
+        })
       })
     })
 
     return atom
   }
 
-  dispatch(message: LoopMessage) {
-    switch (message.type) {
-      case "set-state":
-        const setStateMessage = message as SetStateMessage<any>
-        this.connections.get(setStateMessage.root)?.(setStateMessage.value)
-        break
-      default:
-        console.log("Unknown message", message)
-    }
+  dispatch<T>(message: LoopMessage<T>) {
+    this.connections.get(message.container)?.(message)
   }
 }
 
@@ -118,14 +117,31 @@ class BasicContainer<T> implements Container<T> {
     notify(this.get())
     this.subscribers.add(notify)
   }
+}
 
-  updateRequest(value: T): SetStateMessage<T> {
-    return {
-      type: "set-state",
-      root: this,
+export interface WriteValueMessage<T> extends LoopMessage<T> {
+  type: "write"
+  value: T
+  container: Container<T>
+}
+
+export function managedWriter<T, K>(container: Container<Managed<T, K>>): (value: T) => WriteValueMessage<Managed<T, K>> {
+  return (value) => ({
+    type: "write",
+    value: {
+      type: "writing",
       value
-    }
-  }
+    },
+    container
+  })
+}
+
+export function writer<T>(container: Container<T>): (value: T) => WriteValueMessage<T> {
+  return (value) => ({
+    type: "write",
+    value,
+    container
+  })
 }
 
 export function container<T>(loop: Loop, initialValue: T): Container<T> {
@@ -133,23 +149,18 @@ export function container<T>(loop: Loop, initialValue: T): Container<T> {
 }
 
 export function manage<T, K>(loop: Loop, keyDerivation?: (get: <S>(atom: State<S>) => S) => K): State<Managed<T, K>> {
-  return loop.managedContainer(keyDerivation)
+  return loop.deriveContainer((get) => {
+    return {
+      type: "loading",
+      key: keyDerivation?.(get)
+    }
+  })
+}
+
+export function manageContainer<T>(loop: Loop): Container<Managed<T, void>> {
+  return loop.createContainer<Managed<T, void>>({ type: "loading" })
 }
 
 export function derive<T>(loop: Loop, derivation: (get: <S>(atom: State<S>) => S) => T): State<T> {
   return loop.deriveContainer(derivation)
-}
-
-export interface SetStateMessage<T> extends LoopMessage {
-  type: "set-state"
-  root: Container<T>
-  value: T
-}
-
-export function setState<T>(root: Container<T>, value: T): SetStateMessage<T> {
-  return {
-    type: "set-state",
-    root,
-    value
-  }
 }

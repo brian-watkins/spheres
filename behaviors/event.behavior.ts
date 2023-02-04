@@ -1,5 +1,5 @@
 import { behavior, effect, example, fact, step } from "esbehavior";
-import { derive, container, setState, State } from "../src/state";
+import { derive, container, State, writer } from "../src/state";
 import { testAppContext } from "./helpers/testApp";
 import * as View from "../src/view"
 import { expect, is, stringContaining } from "great-expectations";
@@ -20,7 +20,7 @@ export default behavior("view events", [
             const clickCounterView = derive(loop, (get) => {
               return View.div([], [
                 View.button([
-                  View.onClick(setState(clickCount, get(clickCount) + 1))
+                  View.onClick(writer(clickCount)(get(clickCount) + 1))
                 ], [ "Click me!" ]),
                 View.p([View.data("click-count")], [
                   `You've clicked the button ${get(clickCount)} times!`

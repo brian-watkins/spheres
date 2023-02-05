@@ -1,7 +1,7 @@
 import { behavior, effect, example, fact, step } from "esbehavior";
 import { arrayWith, equalTo, expect, is, objectWith } from "great-expectations";
-import { Container } from "../src/state";
-import { manageContainer, Managed, managedWriter } from "../src/asyncStateManager";
+import { container, Container, managedBy } from "../src/state";
+import { Managed, managedWriter } from "../src/asyncStateManager";
 import { TestStateManager } from "./helpers/testLoop";
 import { testSubscriberContext } from "./helpers/testSubscriberContext";
 
@@ -16,11 +16,11 @@ export default behavior("Managed Update", [
     .script({
       suppose: [
         fact("there is a managed container", (context) => {
+          const manager = new TestStateManager<string>()
           context.setState((loop) => ({
-            view: manageContainer(loop),
-            manager: new TestStateManager()
+            view: container(managedBy(manager), loop),
+            manager
           }))
-          context.manageState(context.state.view, context.state.manager)
         }),
         fact("there is a subscriber", (context) => {
           context.subscribeTo(context.state.view, "subscriber-one")

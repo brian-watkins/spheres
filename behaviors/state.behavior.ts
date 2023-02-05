@@ -1,5 +1,5 @@
 import { behavior, effect, example, fact, step } from "esbehavior";
-import { Container, container, derive, State } from "../src/state";
+import { Container, container, state, State, withDerivedValue, withInitialValue } from "../src/state";
 import { arrayWithItemAt, equalTo, expect, is } from "great-expectations"
 import { TestSubscriberContext, testSubscriberContext } from "./helpers/testSubscriberContext";
 
@@ -14,7 +14,7 @@ const subscribeAndUpdate =
       perform: [
         step("there is a root state", (context) => {
           context.setState((loop) => ({
-            container: container(loop, "hello")
+            container: container(withInitialValue("hello"), loop)
           }))
         }),
         step("a listener subscribes", (context) => {
@@ -92,10 +92,10 @@ const derivedState =
       suppose: [
         fact("there is root and derived state", (context) => {
           context.setState((loop) => {
-            const basic = container(loop, 17)
+            const basic = container(withInitialValue(17), loop)
             return {
               basic,
-              derived: derive(loop, (get) => `${get(basic)} things!`)
+              derived: state(withDerivedValue((get) => `${get(basic)} things!`), loop)
             }
           })
         }),
@@ -133,7 +133,7 @@ const derivedState =
             return {
               basic: context.state.basic,
               derived: context.state.derived,
-              thirdLevel: derive(loop, (get) => get(context.state.derived!).length)
+              thirdLevel: state(withDerivedValue((get) => get(context.state.derived!).length), loop)
             }
           })
           context.subscribeTo(context.state.thirdLevel!, "subscriber-two")
@@ -197,14 +197,14 @@ const multipleSourceState =
       perform: [
         step("a derived state is created from the root states", (context) => {
           context.setState((loop) => {
-            const numberAtom = container(loop, 27)
-            const stringAtom = container(loop, "hello")
-            const anotherAtom = container(loop, "next")
+            const numberAtom = container(withInitialValue(27), loop)
+            const stringAtom = container(withInitialValue("hello"), loop)
+            const anotherAtom = container(withInitialValue("next"), loop)
             return {
               numberAtom,
               stringAtom,
               anotherAtom,
-              derived: derive(loop, (get) => `${get(stringAtom)} ${get(numberAtom)} times. And then ${get(anotherAtom)}!`)
+              derived: state(withDerivedValue((get) => `${get(stringAtom)} ${get(numberAtom)} times. And then ${get(anotherAtom)}!`), loop)
             }
           })
         }),

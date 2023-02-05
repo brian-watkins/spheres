@@ -1,6 +1,6 @@
 import { behavior, effect, example, fact, step } from "esbehavior";
 import { equalTo, expect, is, stringContaining } from "great-expectations";
-import { derive, container, Container, State } from "../src/state";
+import { container, Container, state, State, withDerivedValue, withInitialValue } from "../src/state";
 import * as View from "../src/view"
 import { testAppContext } from "./helpers/testApp";
 
@@ -17,18 +17,18 @@ const simpleViewBehavior =
       suppose: [
         fact("some data is provided for the view", (testApp) => {
           testApp.setState((loop) => {
-            const peopleState = container(loop, [
+            const peopleState = container(withInitialValue([
               { name: "Cool Dude", age: 41 },
               { name: "Awesome Person", age: 28 }
-            ])
-            const peopleView = derive(loop, (get) => {
+            ]), loop)
+            const peopleView = state(withDerivedValue((get) => {
               const people = get(peopleState)
               return View.ul([], people.map(person => {
                 return View.li([View.data("person")], [
                   `${person.name} - ${person.age}`
                 ])
               }))
-            })
+            }), loop)
             return {
               peopleState,
               peopleView
@@ -88,21 +88,21 @@ const multipleViewsBehavior =
       suppose: [
         fact("some state is provided for the view", (testApp) => {
           testApp.setState((loop) => {
-            const nameState = container(loop, "hello")
-            const ageState = container(loop, 27)
+            const nameState = container(withInitialValue("hello"), loop)
+            const ageState = container(withInitialValue(27), loop)
             return {
               name: nameState,
               age: ageState,
-              nameView: derive(loop, (get) => {
+              nameView: state(withDerivedValue((get) => {
                 return View.p([View.data("name")], [
                   `My name is: ${get(nameState)}`
                 ])
-              }),
-              ageView: derive(loop, (get) => {
+              }), loop),
+              ageView: state(withDerivedValue((get) => {
                 return View.p([View.data("age")], [
                   `My age is: ${get(ageState)}`
                 ])
-              })
+              }), loop)
             }
           })
         }),
@@ -150,17 +150,17 @@ const nestedViewsBehavior =
       suppose: [
         fact("some state is provided for the view", (testApp) => {
           testApp.setState((loop) => {
-            const nameState = container(loop, "hello")
-            const ageState = container(loop, 27)
-            const ageView = derive(loop, (get) => {
+            const nameState = container(withInitialValue("hello"), loop)
+            const ageState = container(withInitialValue(27), loop)
+            const ageView = state(withDerivedValue((get) => {
               return View.p([View.data("age")], [
                 `My age is: ${get(ageState)}`
               ])
-            })
+            }), loop)
             return {
               name: nameState,
               age: ageState,
-              nameView: derive(loop, (get) => {
+              nameView: state(withDerivedValue((get) => {
                 const name = get(nameState)
                 let children = [
                   View.p([View.data("name")], [
@@ -171,7 +171,7 @@ const nestedViewsBehavior =
                   children.push(View.viewGenerator(ageView))
                 }
                 return View.div([], children)
-              }),
+              }), loop),
               ageView
             }
           })

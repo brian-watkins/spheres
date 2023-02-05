@@ -3,9 +3,12 @@ export interface State<T> {
   onChange(notify: (updatedState: T) => void): void
 }
 
-export interface Container<T> extends State<T> {}
+export interface Container<T> extends State<T> {
+  _containerBrand: any
+}
 
-export interface StateManager<T> {
+export interface StateManager<T, K> {
+  initialValue(key?: K): T
   update(message: LoopMessage<T>): void
   onChange(callback: (value: T) => void): void
 }
@@ -16,7 +19,7 @@ export class Loop {
   private connections = new WeakMap<State<any>, (value: any) => void>()
   private storage = new WeakMap<State<any>, any>()
 
-  manageState<T>(state: State<T>, stateReader: StateManager<T>) {
+  manageState<T, K>(state: State<T>, stateReader: StateManager<T, K>) {
     const connection = this.connections.get(state)
     if (!connection) {
       console.log("NO connection!??!")
@@ -54,7 +57,7 @@ export class Loop {
   // the function that might not be true ...
 
   // PROBLEM: What if there are no atoms identified at all in the derivation?
-  deriveContainer<T>(derivation: (get: <S>(state: State<S>) => S) => T): State<T> {
+  deriveContainer<T>(derivation: (get: <S>(state: State<S>) => S) => T): Container<T> {
     let atomsToRegister: Set<State<any>> = new Set()
     const getCurrentValue = <P>(atom: State<P>) => {
       atomsToRegister.add(atom)
@@ -79,7 +82,7 @@ export class Loop {
   }
 
   dispatch<T>(message: LoopMessage<T>) {
-    this.connections.get(message.container)?.(message)
+    this.connections.get(message.state)?.(message)
   }
 }
 
@@ -90,6 +93,7 @@ export class Loop {
 // is removed from the DOM ... should it unsubscribe? not sure ...
 
 class BasicContainer<T> implements Container<T> {
+  _containerBrand: any
   public subscribers: Set<((updatedState: T) => void)> = new Set()
 
   constructor(private get: () => T) { }
@@ -107,35 +111,79 @@ class BasicContainer<T> implements Container<T> {
 export interface ReadValueMessage<T> {
   type: "read"
   value: T
-  container: Container<T>
+  state: State<T>
 }
 
-function readMessage<T>(container: Container<T>, value: T): ReadValueMessage<T> {
+function readMessage<T>(state: State<T>, value: T): ReadValueMessage<T> {
   return {
     type: "read",
     value,
-    container
+    state
   }
 }
 
 export interface WriteValueMessage<T> {
   type: "write"
   value: T
-  container: Container<T>
+  state: State<T>
 }
 
 export function writer<T>(container: Container<T>): (value: T) => WriteValueMessage<T> {
   return (value) => ({
     type: "write",
     value,
-    container
+    state: container
   })
 }
 
-export function container<T>(loop: Loop, initialValue: T): Container<T> {
-  return loop.createContainer(initialValue)
+interface ContainerInitializer<T> extends StateInitializer<T> {
+  initialize(loop: Loop): Container<T>
 }
 
-export function derive<T>(loop: Loop, derivation: (get: <S>(atom: State<S>) => S) => T): State<T> {
-  return loop.deriveContainer(derivation)
+interface StateInitializer<T> {
+  initialize(loop: Loop): State<T>
+}
+
+export function withInitialValue<T>(value: T): ContainerInitializer<T> {
+  return {
+    initialize: (loop) => {
+      return loop.createContainer(value)
+    }
+  }
+}
+
+export function withDerivedValue<T>(derivation: (get: <S>(atom: State<S>) => S) => T): StateInitializer<T> {
+  return {
+    initialize: (loop) => {
+      return loop.deriveContainer(derivation)
+    }
+  }
+}
+
+export interface StateManagerOptions<K> {
+  withDerivedKey?: ((get: <S>(state: State<S>) => S) => K)
+}
+
+export function managedBy<T, K>(manager: StateManager<T, K>, options: StateManagerOptions<K> = {}): ContainerInitializer<T> {
+  return {
+    initialize: (loop) => {
+      let container: Container<T>
+      if (options.withDerivedKey) {
+        const keyDerivation = options.withDerivedKey
+        container = loop.deriveContainer((get) => manager.initialValue(keyDerivation(get)))
+      } else {
+        container = loop.createContainer(manager.initialValue())
+      }
+      loop.manageState(container, manager)
+      return container
+    }
+  }
+}
+
+export function container<T>(initializer: ContainerInitializer<T>, loop: Loop): Container<T> {
+  return initializer.initialize(loop)
+}
+
+export function state<T>(initializer: StateInitializer<T>, loop: Loop): State<T> {
+  return initializer.initialize(loop)
 }

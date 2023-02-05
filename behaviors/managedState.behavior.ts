@@ -1,8 +1,8 @@
 import { behavior, effect, example, fact, step } from "esbehavior";
 import { arrayWith, arrayWithItemAt, defined, equalTo, expect, is, objectWith, objectWithProperty } from "great-expectations";
 import { Matcher } from "great-expectations/dist/matcher";
-import { container, Container, State } from "../src/state";
-import { manage, Managed } from "../src/asyncStateManager";
+import { container, Container, managedBy, state, State, withInitialValue } from "../src/state";
+import { Managed } from "../src/asyncStateManager";
 import { TestStateManager } from "./helpers/testLoop";
 import { testSubscriberContext } from "./helpers/testSubscriberContext";
 
@@ -17,11 +17,11 @@ const simpleManagedValue =
     .script({
       suppose: [
         fact("there is a view with a managed value", (context) => {
+          const manager = new TestStateManager<string, void>()
           context.setState((loop) => ({
-            view: manage(loop),
-            manager: new TestStateManager()
+            view: state(managedBy(manager), loop),
+            manager
           }))
-          context.manageState(context.state.view, context.state.manager)
         }),
         fact("there is a subscriber", (context) => {
           context.subscribeTo(context.state.view, "subscriber-one")
@@ -68,18 +68,20 @@ const managedValueWithDerivedKey =
       suppose: [
         fact("there is a view with a managed value", (context) => {
           context.setState((loop) => {
-            const profileState = container(loop, "profile-1")
-            const pageNumber = container(loop, 17)
+            const profileState = container(withInitialValue("profile-1"), loop)
+            const pageNumber = container(withInitialValue(17), loop)
+            const manager = new TestStateManager<string, FunKey>()
             return {
               profileState,
-              view: manage(loop, (get) => ({
-                profileId: get(profileState),
-                page: get(pageNumber)
-              })),
-              manager: new TestStateManager()
+              view: state(managedBy(manager, {
+                withDerivedKey: (get) => ({
+                  profileId: get(profileState),
+                  page: get(pageNumber)
+                })
+              }), loop),
+              manager
             }
           })
-          context.manageState(context.state.view, context.state.manager)
         }),
         fact("there is a subscriber", (context) => {
           context.subscribeTo(context.state.view, "subscriber-one")

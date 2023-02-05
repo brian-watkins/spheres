@@ -1,5 +1,5 @@
 import { attributesModule, eventListenersModule, h, init, propsModule, VNode, VNodeChildElement } from "snabbdom";
-import { State } from "./state";
+import { LoopMessage, State } from "./state";
 
 export type View = VNode
 export type ViewChild = VNodeChildElement
@@ -56,11 +56,7 @@ class EventHandler {
   constructor(public event: string, public generator: (evt: Event) => any) { }
 }
 
-export interface ViewMessage {
-  type: string
-}
-
-export function onClick<M extends ViewMessage>(message: M): ViewAttribute {
+export function onClick<M extends LoopMessage<any>>(message: M): ViewAttribute {
   return new EventHandler("click", () => message)
 }
 

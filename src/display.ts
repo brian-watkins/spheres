@@ -1,6 +1,6 @@
 import { attributesModule, init, propsModule } from "snabbdom";
-import { Loop } from "./state";
-import { View, ViewMessage } from "./view";
+import { Loop, LoopMessage } from "./state";
+import { View } from "./view";
 
 export class Display {
   private appRoot: HTMLElement | undefined
@@ -13,7 +13,7 @@ export class Display {
     this.appRoot.appendChild(mountPoint)
 
     this.appRoot.addEventListener("displayMessage", (evt) => {
-      const displayMessageEvent = evt as CustomEvent<ViewMessage>
+      const displayMessageEvent = evt as CustomEvent<LoopMessage<any>>
       this.loop.dispatch(displayMessageEvent.detail)
     })
 

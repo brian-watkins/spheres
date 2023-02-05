@@ -1,7 +1,7 @@
 import { Loop, Container, State, writer, StateManager, LoopMessage } from "../../src/state";
 import { Managed } from "../../src/stateManager";
 
-export class TestStateManager<T, K = void> implements StateManager<T, K> {
+export class TestStateManager<T, K = void> implements StateManager<Managed<T, K>> {
   readResolver: ((value: any) => void) | undefined
   lastRefreshKey: K | undefined
   lastValueToWrite: T | undefined
@@ -47,7 +47,7 @@ export class TestLoop<S> {
     return this.stateDescription!
   }
 
-  manageState<T, K>(state: State<Managed<T, K>>, reader: StateManager<T, K>) {
+  manageState<T, K>(state: State<Managed<T, K>>, reader: StateManager<Managed<T, K>>) {
     this.loop.manageState(state, reader)
   }
 

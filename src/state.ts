@@ -1,4 +1,3 @@
-import { Managed } from "./stateManager"
 
 export interface State<T> {
   onChange(notify: (updatedState: T) => void): void
@@ -6,29 +5,18 @@ export interface State<T> {
 
 export interface Container<T> extends State<T> {}
 
-export interface StateManager<T, K = void> {
-  update(message: LoopMessage<Managed<T, K>>): void
-  onChange(callback: (value: Managed<T, K>) => void): void
+export interface StateManager<T> {
+  update(message: LoopMessage<T>): void
+  onChange(callback: (value: T) => void): void
 }
 
-interface Valuable<T> {
-  value: T
-}
-
-export interface LoopMessage<T> extends Valuable<T> {
-  type: string
-  value: T
-  container: Container<T>
-}
+export type LoopMessage<T> = WriteValueMessage<T> | ReadValueMessage<T>
 
 export class Loop {
   private connections = new WeakMap<State<any>, (value: any) => void>()
   private storage = new WeakMap<State<any>, any>()
 
-  // This is probably something we can remove ...
-  // IF we pass in the manager when defining the state and the
-  // container and derived functions get more sophisticated
-  manageState<T, K>(state: State<Managed<T, K>>, stateReader: StateManager<T, K>) {
+  manageState<T>(state: State<T>, stateReader: StateManager<T>) {
     const connection = this.connections.get(state)
     if (!connection) {
       console.log("NO connection!??!")
@@ -43,7 +31,7 @@ export class Loop {
     stateReader.onChange(connection)
 
     // is this always the right thing to do?
-    stateReader.update({ type: "read", value: this.storage.get(state), container: state })
+    stateReader.update(readMessage(state, this.storage.get(state)))
   }
 
   createContainer<T>(initialState: T): Container<T> {
@@ -53,7 +41,7 @@ export class Loop {
     })
     this.storage.set(container, initialState)
 
-    this.connections.set(container, (message: Valuable<T>) => {
+    this.connections.set(container, (message: LoopMessage<T>) => {
       this.storage.set(container, message.value)
       container.notifySubscribers(message.value)
     })
@@ -83,10 +71,7 @@ export class Loop {
 
     atomsToRegister.forEach((basic) => {
       basic.onChange(() => {
-        this.connections.get(atom)?.({
-          type: "read",
-          value: derivation(getUpdatedValue)
-        })
+        this.connections.get(atom)?.(readMessage(atom, derivation(getUpdatedValue)))
       })
     })
 
@@ -119,21 +104,24 @@ class BasicContainer<T> implements Container<T> {
   }
 }
 
-export interface WriteValueMessage<T> extends LoopMessage<T> {
-  type: "write"
+export interface ReadValueMessage<T> {
+  type: "read"
   value: T
   container: Container<T>
 }
 
-export function managedWriter<T, K>(container: Container<Managed<T, K>>): (value: T) => WriteValueMessage<Managed<T, K>> {
-  return (value) => ({
-    type: "write",
-    value: {
-      type: "writing",
-      value
-    },
+function readMessage<T>(container: Container<T>, value: T): ReadValueMessage<T> {
+  return {
+    type: "read",
+    value,
     container
-  })
+  }
+}
+
+export interface WriteValueMessage<T> {
+  type: "write"
+  value: T
+  container: Container<T>
 }
 
 export function writer<T>(container: Container<T>): (value: T) => WriteValueMessage<T> {
@@ -146,19 +134,6 @@ export function writer<T>(container: Container<T>): (value: T) => WriteValueMess
 
 export function container<T>(loop: Loop, initialValue: T): Container<T> {
   return loop.createContainer(initialValue)
-}
-
-export function manage<T, K>(loop: Loop, keyDerivation?: (get: <S>(atom: State<S>) => S) => K): State<Managed<T, K>> {
-  return loop.deriveContainer((get) => {
-    return {
-      type: "loading",
-      key: keyDerivation?.(get)
-    }
-  })
-}
-
-export function manageContainer<T>(loop: Loop): Container<Managed<T, void>> {
-  return loop.createContainer<Managed<T, void>>({ type: "loading" })
 }
 
 export function derive<T>(loop: Loop, derivation: (get: <S>(atom: State<S>) => S) => T): State<T> {

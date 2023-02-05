@@ -1,5 +1,5 @@
 import { Loop, Container, State, writer, StateManager, LoopMessage } from "../../src/state";
-import { Managed } from "../../src/stateManager";
+import { Managed } from "../../src/asyncStateManager";
 
 export class TestStateManager<T, K = void> implements StateManager<Managed<T, K>> {
   readResolver: ((value: any) => void) | undefined

@@ -2,7 +2,7 @@ import { behavior, effect, example, fact, step } from "esbehavior";
 import { arrayWith, arrayWithItemAt, defined, equalTo, expect, is, objectWith, objectWithProperty } from "great-expectations";
 import { Matcher } from "great-expectations/dist/matcher";
 import { container, Container, State } from "../src/state";
-import { manage, Managed } from "../src/stateManager";
+import { manage, Managed } from "../src/asyncStateManager";
 import { TestStateManager } from "./helpers/testLoop";
 import { testSubscriberContext } from "./helpers/testSubscriberContext";
 

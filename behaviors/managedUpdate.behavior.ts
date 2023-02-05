@@ -1,7 +1,7 @@
 import { behavior, effect, example, fact, step } from "esbehavior";
 import { arrayWith, equalTo, expect, is, objectWith } from "great-expectations";
 import { Container } from "../src/state";
-import { manageContainer, Managed, managedWriter } from "../src/stateManager";
+import { manageContainer, Managed, managedWriter } from "../src/asyncStateManager";
 import { TestStateManager } from "./helpers/testLoop";
 import { testSubscriberContext } from "./helpers/testSubscriberContext";
 

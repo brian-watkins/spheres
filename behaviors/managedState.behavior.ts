@@ -1,6 +1,5 @@
 import { behavior, effect, example, fact, step } from "esbehavior";
-import { arrayWith, arrayWithItemAt, defined, equalTo, expect, is, objectWith, objectWithProperty } from "great-expectations";
-import { Matcher } from "great-expectations/dist/matcher";
+import { arrayWith, arrayWithItemAt, assignedWith, equalTo, expect, is, Matcher, objectWith, objectWithProperty } from "great-expectations";
 import { container, Container, managedBy, state, State, withInitialValue } from "../src/state";
 import { Managed } from "../src/asyncStateManager";
 import { TestStateManager } from "./helpers/testLoop";
@@ -89,11 +88,10 @@ const managedValueWithDerivedKey =
       ],
       observe: [
         effect("the state manager is passed the current value of the key", (context) => {
-          expect(context.state.manager.lastRefreshKey, is(defined()))
-          expect(context.state.manager.lastRefreshKey!, is(equalTo({
+          expect(context.state.manager.lastRefreshKey, is(assignedWith(equalTo({
             profileId: "profile-1",
             page: 17
-          })))
+          }))))
         })
       ]
     }).andThen({
@@ -115,10 +113,10 @@ const managedValueWithDerivedKey =
             ])))
         }),
         effect("the state manager gets the updated key", (context) => {
-          expect(context.state.manager.lastRefreshKey!, is(equalTo({
+          expect(context.state.manager.lastRefreshKey, is(assignedWith(equalTo({
             profileId: "profile-7",
             page: 17
-          })))
+          }))))
         })
       ]
     }).andThen({

@@ -1,5 +1,5 @@
 import { behavior, effect, example, fact, step } from "esbehavior";
-import { arrayWith, defined, equalTo, expect, is, objectWith } from "great-expectations";
+import { arrayWith, assignedWith, equalTo, expect, is, objectWith } from "great-expectations";
 import { container, Container, managedBy, withInitialValue } from "../src/state";
 import { Managed, managedWriter } from "../src/asyncStateManager";
 import { TestStateManager } from "./helpers/testLoop";
@@ -43,7 +43,7 @@ const simpleManagedContainer =
       ],
       observe: [
         effect("the manager gets the data to update", (context) => {
-          expect(context.state.manager.lastValueToWrite!, is(equalTo("Something Funny!")))
+          expect(context.state.manager.lastValueToWrite, is(assignedWith(equalTo("Something Funny!"))))
         }),
         effect("the subscriber get a writing message", (context) => {
           expect(context.valuesReceivedBy("subscriber-one"), is(equalTo([
@@ -107,8 +107,7 @@ const managedContainerWithDerivedKey =
       ],
       observe: [
         effect("the state manager gets the initial derived key", (context) => {
-          expect(context.state.manager.lastRefreshKey, is(defined()))
-          expect(context.state.manager.lastRefreshKey!, is(equalTo("User Id: person-1")))
+          expect(context.state.manager.lastRefreshKey, is(assignedWith(equalTo("User Id: person-1"))))
         }),
         effect("the subscriber gets the initial state with the derived key", (context) => {
           expect(context.valuesReceivedBy("sub-one"), is(equalTo([
@@ -158,8 +157,7 @@ const managedContainerWithDerivedKey =
       ],
       observe: [
         effect("the state manager gets the new value to write", (context) => {
-          expect(context.state.manager.lastValueToWrite, is(defined()))
-          expect(context.state.manager.lastValueToWrite!, is(equalTo(44)))
+          expect(context.state.manager.lastValueToWrite, is(assignedWith(equalTo(44))))
         }),
         effect("the subscriber gets a writing message with the new value", (context) => {
           expect(context.valuesReceivedBy("sub-one"), is(equalTo([

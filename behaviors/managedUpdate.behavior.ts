@@ -1,6 +1,6 @@
 import { behavior, effect, example, fact, step } from "esbehavior";
-import { arrayWith, equalTo, expect, is, objectWith } from "great-expectations";
-import { container, Container, managedBy } from "../src/state";
+import { arrayWith, defined, equalTo, expect, is, objectWith } from "great-expectations";
+import { container, Container, managedBy, withInitialValue } from "../src/state";
 import { Managed, managedWriter } from "../src/asyncStateManager";
 import { TestStateManager } from "./helpers/testLoop";
 import { testSubscriberContext } from "./helpers/testSubscriberContext";
@@ -10,7 +10,7 @@ interface ManagedContainerContext {
   manager: TestStateManager<string>
 }
 
-export default behavior("Managed Update", [
+const simpleManagedContainer =
   example(testSubscriberContext<ManagedContainerContext>())
     .description("update to simple container")
     .script({
@@ -74,4 +74,105 @@ export default behavior("Managed Update", [
         })
       ]
     })
+
+interface ManagedContainerWithKeyContext {
+  userIdState: Container<string>
+  container: Container<Managed<number, string>>
+  manager: TestStateManager<number, string>
+}
+
+const managedContainerWithDerivedKey =
+  example(testSubscriberContext<ManagedContainerWithKeyContext>())
+    .description("managed container with derived key")
+    .script({
+      suppose: [
+        fact("there is a managed container with a derived key", (context) => {
+          context.setState((loop) => {
+            const manager = new TestStateManager<number, string>()
+            const userIdState = container(withInitialValue("person-1"), loop)
+            return {
+              userIdState,
+              container: container(managedBy(manager, {
+                withDerivedKey(get) {
+                  return `User Id: ${get(userIdState)}`
+                },
+              }), loop),
+              manager
+            }
+          })
+        }),
+        fact("there is a subscriber", (context) => {
+          context.subscribeTo(context.state.container, "sub-one")
+        })
+      ],
+      observe: [
+        effect("the state manager gets the initial derived key", (context) => {
+          expect(context.state.manager.lastRefreshKey, is(defined()))
+          expect(context.state.manager.lastRefreshKey!, is(equalTo("User Id: person-1")))
+        }),
+        effect("the subscriber gets the initial state with the derived key", (context) => {
+          expect(context.valuesReceivedBy("sub-one"), is(equalTo([
+            { type: "loading", key: "User Id: person-1" }
+          ])))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the manager produces a new value", (context) => {
+          context.state.manager.loadState(27)
+        })
+      ],
+      observe: [
+        effect("the subscriber gets the loaded value", (context) => {
+          expect(context.valuesReceivedBy("sub-one"), is(equalTo([
+            { type: "loading", key: "User Id: person-1" },
+            { type: "loaded", value: 27, key: "User Id: person-1" }
+          ])))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the user id state changes", (context) => {
+          context.updateState(context.state.userIdState, "person-22")
+        })
+      ],
+      observe: [
+        effect("the state manager gets the new refresh key", (context) => {
+          expect(context.state.manager.lastRefreshKey!, is(equalTo("User Id: person-22")))
+        }),
+        effect("the subscriber gets a loading message with the new key", (context) => {
+          expect(context.valuesReceivedBy("sub-one"), is(equalTo([
+            { type: "loading", key: "User Id: person-1" },
+            { type: "loaded", value: 27, key: "User Id: person-1" },
+            { type: "loading", key: "User Id: person-22" }
+          ])))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the container receives a write message", (context) => {
+          context.update((loop) => {
+            loop.dispatch(managedWriter(context.state.container)(44))
+          })
+        })
+      ],
+      observe: [
+        effect("the state manager gets the new value to write", (context) => {
+          expect(context.state.manager.lastValueToWrite, is(defined()))
+          expect(context.state.manager.lastValueToWrite!, is(equalTo(44)))
+        }),
+        effect("the subscriber gets a writing message with the new value", (context) => {
+          expect(context.valuesReceivedBy("sub-one"), is(equalTo([
+            { type: "loading", key: "User Id: person-1" },
+            { type: "loaded", value: 27, key: "User Id: person-1" },
+            { type: "loading", key: "User Id: person-22" },
+            { type: "writing", value: 44 }
+          ])))
+        })
+      ]
+    })
+
+export default behavior("Managed Update", [
+  simpleManagedContainer,
+  managedContainerWithDerivedKey
 ])

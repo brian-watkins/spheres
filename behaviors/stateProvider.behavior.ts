@@ -1,7 +1,6 @@
 import { behavior, effect, example, fact, step } from "esbehavior";
 import { arrayWith, arrayWithItemAt, equalTo, expect, is, Matcher, objectWith, objectWithProperty } from "great-expectations";
 import { container, Container, state, State, useProvider, withInitialValue } from "../src/state";
-import { Managed } from "../src/asyncStateManager";
 import { testSubscriberContext } from "./helpers/testSubscriberContext";
 import { TestProvidedState, TestProvider } from "./helpers/testProvider";
 
@@ -203,14 +202,14 @@ const providedValueWithDerivedKey =
       ]
     })
 
-function loadingState(key?: any): Matcher<Managed<string, any>> {
+function loadingState(key?: any): Matcher<TestProvidedState<string>> {
   return objectWith({
     type: equalTo("loading"),
     key: equalTo(key)
   })
 }
 
-function loadedWith(value: string, key: any): Matcher<Managed<string, any>> {
+function loadedWith(value: string, key: any): Matcher<TestProvidedState<string>> {
   return objectWith({
     type: equalTo("loaded"),
     value: equalTo(`Value: ${value} for profile ${key.profileId} on page ${key.page}`)

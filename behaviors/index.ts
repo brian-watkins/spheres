@@ -1,7 +1,7 @@
 import { validate } from "esbehavior"
 import eventBehavior from "./event.behavior"
 import stateProviderBehavior from "./stateProvider.behavior"
-import managedUpdateBehavior from "./managedUpdate.behavior"
+import stateWriterBehavior from "./stateWriter.behavior"
 import stateBehavior from "./state.behavior"
 import viewBehavior from "./view.behavior"
 
@@ -11,6 +11,6 @@ window.validateBehaviors = () => {
     viewBehavior,
     eventBehavior,
     stateProviderBehavior,
-    managedUpdateBehavior
+    stateWriterBehavior
   ], { failFast: true })
 }

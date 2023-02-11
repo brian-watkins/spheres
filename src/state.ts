@@ -1,4 +1,3 @@
-
 export interface State<T> {
   onChange(notify: (updatedState: T) => void): void
 }
@@ -7,16 +6,11 @@ export interface Container<T> extends State<T> {
   _containerBrand: any
 }
 
-export interface StateManager<T, K> {
-  initialValue(key?: K): T
-  update(message: LoopMessage<T>): void
-  onChange(callback: (value: T) => void): void
-}
-
 export type LoopMessage<T> = WriteValueMessage<T> | ReadValueMessage<T>
 
 export class Loop {
   private connections = new WeakMap<State<any>, (value: any) => void>()
+  private writers = new WeakMap<State<any>, (value: any) => void>()
   private storage = new WeakMap<State<any>, any>()
 
   registerProvider(provider: Provider) {
@@ -40,22 +34,12 @@ export class Loop {
     provider.provide(get, set)
   }
 
-  manageState<T, K>(state: State<T>, stateReader: StateManager<T, K>) {
-    const connection = this.connections.get(state)
-    if (!connection) {
-      console.log("NO connection!??!")
-      return
-    }
-
-    this.connections.set(state, (message) => {
-      connection(message)
-      stateReader.update(message)
+  registerWriter<Q>(container: Container<Q>, writer: Writer<Q>) {
+    this.writers.set(container, (message) => {
+      writer.write(message.value, (state) => this.storage.get(state), (value) => {
+        this.connections.get(container)?.(readMessage(container, value))
+      })
     })
-
-    stateReader.onChange(connection)
-
-    // is this always the right thing to do?
-    stateReader.update(readMessage(state, this.storage.get(state)))
   }
 
   createContainer<T>(initialState: T): Container<T> {
@@ -103,7 +87,12 @@ export class Loop {
   }
 
   dispatch<T>(message: LoopMessage<T>) {
-    this.connections.get(message.state)?.(message)
+    const writer = this.writers.get(message.state)
+    if (writer) {
+      writer(message)
+    } else {
+      this.connections.get(message.state)?.(message)
+    }
   }
 }
 
@@ -149,12 +138,12 @@ export interface WriteValueMessage<T> {
   state: State<T>
 }
 
-export function writer<T>(container: Container<T>): (value: T) => WriteValueMessage<T> {
-  return (value) => ({
+export function writeMessage<T>(container: Container<T>, value: T): WriteValueMessage<T> {
+  return {
     type: "write",
     value,
     state: container
-  })
+  }
 }
 
 interface ContainerInitializer<T> extends StateInitializer<T> {
@@ -181,26 +170,6 @@ export function withDerivedValue<T>(derivation: (get: <S>(atom: State<S>) => S) 
   }
 }
 
-export interface StateManagerOptions<K> {
-  withDerivedKey?: ((get: <S>(state: State<S>) => S) => K)
-}
-
-export function managedBy<T, K>(manager: StateManager<T, K>, options: StateManagerOptions<K> = {}): ContainerInitializer<T> {
-  return {
-    initialize: (loop) => {
-      let container: Container<T>
-      if (options.withDerivedKey) {
-        const keyDerivation = options.withDerivedKey
-        container = loop.deriveContainer((get) => manager.initialValue(keyDerivation(get)))
-      } else {
-        container = loop.createContainer(manager.initialValue())
-      }
-      loop.manageState(container, manager)
-      return container
-    }
-  }
-}
-
 export function container<T>(initializer: ContainerInitializer<T>, loop: Loop): Container<T> {
   return initializer.initialize(loop)
 }
@@ -208,7 +177,6 @@ export function container<T>(initializer: ContainerInitializer<T>, loop: Loop): 
 export function state<T>(initializer: StateInitializer<T>, loop: Loop): State<T> {
   return initializer.initialize(loop)
 }
-
 
 // Provider stuff
 
@@ -218,4 +186,14 @@ export interface Provider {
 
 export function useProvider(provider: Provider, loop: Loop) {
   loop.registerProvider(provider)
+}
+
+// Writer stuff
+
+export interface Writer<T> {
+  write(value: T, get: <S>(state: State<S>) => S, set: (value: T) => void): void 
+}
+
+export function useWriter<T>(container: Container<T>, writer: Writer<T>, loop: Loop) {
+  loop.registerWriter(container, writer)
 }

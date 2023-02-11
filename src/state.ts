@@ -19,6 +19,27 @@ export class Loop {
   private connections = new WeakMap<State<any>, (value: any) => void>()
   private storage = new WeakMap<State<any>, any>()
 
+  registerProvider(provider: Provider) {
+    const dependencies = new Set<State<any>>()
+
+    const set = <Q>(state: State<Q>, value: Q) => {
+      this.connections.get(state)?.({ type: "write", value })
+    }
+
+    const get = <S>(state: State<S>) => {
+      if (!dependencies.has(state)) {
+        dependencies.add(state)
+        state.onChange(() => {
+          provider.provide(get, set)
+        })
+      }
+
+      return this.storage.get(state)
+    }
+
+    provider.provide(get, set)
+  }
+
   manageState<T, K>(state: State<T>, stateReader: StateManager<T, K>) {
     const connection = this.connections.get(state)
     if (!connection) {
@@ -186,4 +207,15 @@ export function container<T>(initializer: ContainerInitializer<T>, loop: Loop): 
 
 export function state<T>(initializer: StateInitializer<T>, loop: Loop): State<T> {
   return initializer.initialize(loop)
+}
+
+
+// Provider stuff
+
+export interface Provider {
+  provide(get: <S>(state: State<S>) => S, set: <Q>(state: State<Q>, value: Q) => void): void | Promise<void>
+}
+
+export function useProvider(provider: Provider, loop: Loop) {
+  loop.registerProvider(provider)
 }

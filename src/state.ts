@@ -6,7 +6,7 @@ export interface Container<T> extends State<T> {
   _containerBrand: any
 }
 
-export type LoopMessage<T> = WriteValueMessage<T> | ReadValueMessage<T>
+export type LoopMessage<T> = WriteValueMessage<T> | RefreshValueMessage<T>
 
 export class Loop {
   private connections = new WeakMap<State<any>, (value: any) => void>()
@@ -42,7 +42,7 @@ export class Loop {
   registerWriter<Q>(container: Container<Q>, writer: Writer<Q>) {
     this.writers.set(container, (message) => {
       writer.write(message.value, (state) => this.storage.get(state), (value) => {
-        this.connections.get(container)?.(readMessage(container, value))
+        this.connections.get(container)?.(refreshMessage(container, value))
       })
     })
   }
@@ -84,7 +84,7 @@ export class Loop {
 
     atomsToRegister.forEach((basic) => {
       basic.onChange(() => {
-        this.connections.get(atom)?.(readMessage(atom, derivation(getUpdatedValue)))
+        this.connections.get(atom)?.(refreshMessage(atom, derivation(getUpdatedValue)))
       })
     })
 
@@ -123,13 +123,13 @@ class BasicContainer<T> implements Container<T> {
   }
 }
 
-export interface ReadValueMessage<T> {
+export interface RefreshValueMessage<T> {
   type: "read"
   value: T
   state: State<T>
 }
 
-function readMessage<T>(state: State<T>, value: T): ReadValueMessage<T> {
+function refreshMessage<T>(state: State<T>, value: T): RefreshValueMessage<T> {
   return {
     type: "read",
     value,

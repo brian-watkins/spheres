@@ -21,9 +21,7 @@ export class Loop {
     const get = <S>(state: State<S>) => {
       if (!queryDependencies.has(state)) {
         queryDependencies.add(state)
-        this.addDependency(state, () => {
-          provider.provide(get, set)
-        })
+        this.addDependency(state, () => provider.provide(get, set))
       }
 
       return this.registry.get(state)?.value
@@ -37,11 +35,7 @@ export class Loop {
   }
 
   registerWriter<Q>(container: Container<Q>, writer: Writer<Q>) {
-    this.registry.get(container)?.setWriter((value) => {
-      writer.write(value, (state) => this.registry.get(state)?.value, (value) => {
-        this.registry.get(container)?.refreshValue(value)
-      })
-    })
+    this.registry.get(container)?.setWriter(writer)
   }
 
   createContainer<T>(initialState: T): Container<T> {
@@ -50,7 +44,7 @@ export class Loop {
       return self.registry.get(this)?.value
     })
 
-    this.registry.set(container, new MetaContainer(container, initialState))
+    this.registry.set(container, new MetaContainer(container, initialState, (state) => this.registry.get(state)?.value))
 
     return container
   }
@@ -93,10 +87,14 @@ class MetaContainer<S> {
   private writer = (value: S) => this.refreshValue(value)
   private dependents = new Set<(value: S) => void>()
   
-  constructor(private container: BasicContainer<S>, private _value: S) {}
+  constructor(private container: BasicContainer<S>, private _value: S, private get: <Q>(state: State<Q>) => Q) {}
 
-  setWriter(writer: (value: S) => void) {
-    this.writer = writer
+  setWriter(writer: Writer<S>) {
+    this.writer = (value) => {
+      writer.write(value, this.get, (value) => {
+        this.refreshValue(value)
+      })
+    }
   }
 
   addDependent(notifier: (value: S) => void) {

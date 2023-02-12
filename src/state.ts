@@ -49,11 +49,6 @@ export class Loop {
     return container
   }
 
-  // PROBLEM: Note that we are assuming here that the derivation function always
-  // calls get with ALL atoms it depends on ... but given logic or conditionals in
-  // the function that might not be true ...
-
-  // PROBLEM: What if there are no atoms identified at all in the derivation?
   deriveContainer<T>(derivation: (get: <S>(state: State<S>) => S) => T): Container<T> {
     let atomsToRegister: Set<State<any>> = new Set()
     const getCurrentValue = <P>(atom: State<P>) => {
@@ -66,6 +61,12 @@ export class Loop {
     const atom = this.createContainer(initialValue)
 
     const getUpdatedValue = <P>(state: State<P>): P => {
+      if (!atomsToRegister.has(state)) {
+        atomsToRegister.add(state)
+        this.addDependency(state, () => {
+          this.registry.get(atom)?.refreshValue(derivation(getUpdatedValue))
+        })
+      }
       return this.registry.get(state)?.value
     }
 

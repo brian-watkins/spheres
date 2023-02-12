@@ -258,6 +258,73 @@ const reactiveQueryCountForProvider =
       ]
     })
 
+
+interface DeferredDependencyContext {
+  numberState: Container<number>,
+  stringState: Container<string>,
+  managedState: State<TestProvidedState<string>>
+  provider: TestProvider<string>
+}
+
+const deferredDependency =
+  example(testSubscriberContext<DeferredDependencyContext>())
+    .description("dependency that is not used on first execution")
+    .script({
+      suppose: [
+        fact("there is derived state with a dependency used only later", (context) => {
+          context.setState((loop) => {
+            const numberState = container(withInitialValue(6), loop)
+            const stringState = container(withInitialValue("hello"), loop)
+            const managedState = state<TestProvidedState<string>>(withInitialValue({ type: "unknown" }), loop)
+            const provider = new TestProvider<string>()
+            provider.setHandler(async (get, set, waitFor) => {
+              if (get(stringState) === "now") {
+                set(managedState, { type: "loaded", value: `Number ${get(numberState)}` })
+              } else {
+                set(managedState, { type: "loaded", value: `Number 0` })
+              }
+            })
+            useProvider(provider, loop)
+
+            return {
+              numberState,
+              stringState,
+              managedState,
+              provider
+            }
+          })
+        }),
+        fact("there is a subscriber", (context) => {
+          context.subscribeTo(context.state.managedState, "sub-one")
+        })
+      ],
+      perform: [
+        step("the state is updated to expose the number", (context) => {
+          context.updateState(context.state.stringState, "now")
+        }),
+        step("the number state updates", (context) => {
+          context.updateState(context.state.numberState, 27)
+        }),
+        step("the string state updates to hide the number state", (context) => {
+          context.updateState(context.state.stringState, "later")
+        }),
+        step("the number state updates again", (context) => {
+          context.updateState(context.state.numberState, 14)
+        })
+      ],
+      observe: [
+        effect("the subscriber gets all the updates", (context) => {
+          expect(context.valuesReceivedBy("sub-one"), is(arrayWith([
+            loadedWith("Number 0"),
+            loadedWith("Number 6"),
+            loadedWith("Number 27"),
+            loadedWith("Number 0"),
+            loadedWith("Number 0")
+          ])))
+        })
+      ]
+    })
+
 function loadingState(key?: any): Matcher<TestProvidedState<string>> {
   return objectWith({
     type: equalTo("loading"),
@@ -275,5 +342,6 @@ function loadedWith(value: string): Matcher<TestProvidedState<string>> {
 export default behavior("state provider", [
   simpleProvidedValue,
   providedValueWithDerivedKey,
-  reactiveQueryCountForProvider
+  reactiveQueryCountForProvider,
+  deferredDependency
 ])

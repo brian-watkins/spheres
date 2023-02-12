@@ -279,6 +279,67 @@ const reactiveQueryCount =
       ]
     })
 
+interface DeferredDependencyContext {
+  numberState: Container<number>,
+  stringState: Container<string>,
+  derivedState: State<number>
+}
+
+const deferredDependency =
+  example(testSubscriberContext<DeferredDependencyContext>())
+    .description("dependency that is not used on first execution")
+    .script({
+      suppose: [
+        fact("there is derived state with a dependency used only later", (context) => {
+          context.setState((loop) => {
+            const numberState = container(withInitialValue(6), loop)
+            const stringState = container(withInitialValue("hello"), loop)
+            const derivedState = state(withDerivedValue((get) => {
+              if (get(stringState) === "now") {
+                return get(numberState)
+              } else {
+                return 0
+              }
+            }), loop)
+
+            return {
+              numberState,
+              stringState,
+              derivedState
+            }
+          })
+        }),
+        fact("there is a subscriber", (context) => {
+          context.subscribeTo(context.state.derivedState, "sub-one")
+        })
+      ],
+      perform: [
+        step("the state is updated to expose the number", (context) => {
+          context.updateState(context.state.stringState, "now")
+        }),
+        step("the number state updates", (context) => {
+          context.updateState(context.state.numberState, 27)
+        }),
+        step("the string state updates to hide the number state", (context) => {
+          context.updateState(context.state.stringState, "later")
+        }),
+        step("the number state updates again", (context) => {
+          context.updateState(context.state.numberState, 14)
+        })
+      ],
+      observe: [
+        effect("the subscriber gets all the updates", (context) => {
+          expect(context.valuesReceivedBy("sub-one"), is(equalTo([
+            0,
+            6,
+            27,
+            0,
+            0
+          ])))
+        })
+      ]
+    })
+
 function expectValuesFor<T>(context: TestSubscriberContext<T>, subscriber: string, values: Array<any>) {
   expect(context.valuesReceivedBy(subscriber), is(equalTo(values)))
 }
@@ -290,5 +351,6 @@ export default
     subscribeAndUpdate,
     derivedState,
     multipleSourceState,
-    reactiveQueryCount
+    reactiveQueryCount,
+    deferredDependency
   ])

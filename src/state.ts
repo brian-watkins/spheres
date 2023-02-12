@@ -6,43 +6,40 @@ export interface Container<T> extends State<T> {
   _containerBrand: any
 }
 
-export type LoopMessage<T> = WriteValueMessage<T> | RefreshValueMessage<T>
+export type LoopMessage<T> = WriteValueMessage<T>
 
 export class Loop {
-  private connections = new WeakMap<State<any>, (value: any) => void>()
-  private writers = new WeakMap<State<any>, (value: any) => void>()
-  private storage = new WeakMap<State<any>, any>()
+  private registry = new WeakMap<State<any>, MetaContainer<any>>()
 
   registerProvider(provider: Provider) {
-    const dependencies = new Set<State<any>>()
+    const queryDependencies = new Set<State<any>>()
 
     const set = <Q>(state: State<Q>, value: Q) => {
-      this.connections.get(state)?.({ type: "write", value })
+      this.registry.get(state)?.refreshValue(value)
     }
 
     const get = <S>(state: State<S>) => {
-      if (!dependencies.has(state)) {
-        dependencies.add(state)
-        let initialUpdate = true
-        state.onChange(() => {
-          if (initialUpdate) {
-            initialUpdate = false
-            return
-          }
+      if (!queryDependencies.has(state)) {
+        queryDependencies.add(state)
+        this.addDependency(state, () => {
           provider.provide(get, set)
         })
       }
 
-      return this.storage.get(state)
+      return this.registry.get(state)?.value
     }
 
     provider.provide(get, set)
   }
 
+  addDependency<S>(state: State<S>, notifier: (value: S) => void) {
+    this.registry.get(state)?.addDependent(notifier)
+  }
+
   registerWriter<Q>(container: Container<Q>, writer: Writer<Q>) {
-    this.writers.set(container, (message) => {
-      writer.write(message.value, (state) => this.storage.get(state), (value) => {
-        this.connections.get(container)?.(refreshMessage(container, value))
+    this.registry.get(container)?.setWriter((value) => {
+      writer.write(value, (state) => this.registry.get(state)?.value, (value) => {
+        this.registry.get(container)?.refreshValue(value)
       })
     })
   }
@@ -50,14 +47,10 @@ export class Loop {
   createContainer<T>(initialState: T): Container<T> {
     const self = this
     const container = new BasicContainer<T>(function (this: BasicContainer<T>) {
-      return self.storage.get(this)
+      return self.registry.get(this)?.value
     })
-    this.storage.set(container, initialState)
 
-    this.connections.set(container, (message: LoopMessage<T>) => {
-      this.storage.set(container, message.value)
-      container.notifySubscribers(message.value)
-    })
+    this.registry.set(container, new MetaContainer(container, initialState))
 
     return container
   }
@@ -71,7 +64,7 @@ export class Loop {
     let atomsToRegister: Set<State<any>> = new Set()
     const getCurrentValue = <P>(atom: State<P>) => {
       atomsToRegister.add(atom)
-      return this.storage.get(atom)
+      return this.registry.get(atom)?.value
     }
 
     const initialValue = derivation(getCurrentValue)
@@ -79,17 +72,12 @@ export class Loop {
     const atom = this.createContainer(initialValue)
 
     const getUpdatedValue = <P>(state: State<P>): P => {
-      return this.storage.get(state)
+      return this.registry.get(state)?.value
     }
 
     atomsToRegister.forEach((basic) => {
-      let isInitialUpdate = true
-      basic.onChange(() => {
-        if (isInitialUpdate) {
-          isInitialUpdate = false
-          return
-        }
-        this.connections.get(atom)?.(refreshMessage(atom, derivation(getUpdatedValue)))
+      this.addDependency(basic, () => {
+        this.registry.get(atom)?.refreshValue(derivation(getUpdatedValue))
       })
     })
 
@@ -97,12 +85,36 @@ export class Loop {
   }
 
   dispatch<T>(message: LoopMessage<T>) {
-    const writer = this.writers.get(message.state)
-    if (writer) {
-      writer(message)
-    } else {
-      this.connections.get(message.state)?.(message)
-    }
+    this.registry.get(message.state)?.writeValue(message.value)
+  }
+}
+
+class MetaContainer<S> {
+  private writer = (value: S) => this.refreshValue(value)
+  private dependents = new Set<(value: S) => void>()
+  
+  constructor(private container: BasicContainer<S>, private _value: S) {}
+
+  setWriter(writer: (value: S) => void) {
+    this.writer = writer
+  }
+
+  addDependent(notifier: (value: S) => void) {
+    this.dependents.add(notifier)
+  }
+
+  get value(): S {
+    return this._value
+  }
+
+  refreshValue(value: S) {
+    this._value = value
+    this.dependents.forEach(notify => notify(value))
+    this.container.notifySubscribers(value)
+  }
+
+  writeValue(value: S) {
+    this.writer(value)
   }
 }
 
@@ -125,20 +137,6 @@ class BasicContainer<T> implements Container<T> {
   onChange(notify: (updatedState: T) => void): void {
     notify(this.get())
     this.subscribers.add(notify)
-  }
-}
-
-export interface RefreshValueMessage<T> {
-  type: "read"
-  value: T
-  state: State<T>
-}
-
-function refreshMessage<T>(state: State<T>, value: T): RefreshValueMessage<T> {
-  return {
-    type: "read",
-    value,
-    state
   }
 }
 

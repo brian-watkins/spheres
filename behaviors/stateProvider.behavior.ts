@@ -1,6 +1,6 @@
 import { behavior, effect, example, fact, step } from "esbehavior";
 import { arrayWith, arrayWithItemAt, equalTo, expect, is, Matcher, objectWith, objectWithProperty } from "great-expectations";
-import { container, Container, state, State, useProvider, withInitialValue } from "../src/state";
+import { container, Container, Provider, state, State, useProvider, withInitialValue } from "../src/state";
 import { testSubscriberContext } from "./helpers/testSubscriberContext";
 import { TestProvidedState, TestProvider } from "./helpers/testProvider";
 
@@ -122,7 +122,7 @@ const providedValueWithDerivedKey =
           expect(context.valuesReceivedBy("sub-one"),
             is(arrayWith([
               loadingState({ profileId: "profile-1", page: 17 }),
-              loadedWith("Fun Stuff", { profileId: "profile-1", page: 17 }),
+              loadedWith(`Value: Fun Stuff for profile profile-1 on page 17`),
               loadingState({ profileId: "profile-7", page: 17 })
             ])))
         }),
@@ -151,16 +151,16 @@ const providedValueWithDerivedKey =
           expect(context.valuesReceivedBy("sub-one"),
             is(arrayWith([
               loadingState({ profileId: "profile-1", page: 17 }),
-              loadedWith("Fun Stuff", { profileId: "profile-1", page: 17 }),
+              loadedWith("Value: Fun Stuff for profile profile-1 on page 17"),
               loadingState({ profileId: "profile-7", page: 17 }),
-              loadedWith("Even more fun stuff!", { profileId: "profile-7", page: 17 }),
+              loadedWith("Value: Even more fun stuff! for profile profile-7 on page 17"),
             ])))
         }),
         effect("subscriber-two gets the update", (context) => {
           expect(context.valuesReceivedBy("sub-two"),
             is(arrayWith([
               loadingState({ profileId: "profile-7", page: 17 }),
-              loadedWith("Even more fun stuff!", { profileId: "profile-7", page: 17 })
+              loadedWith("Value: Even more fun stuff! for profile profile-7 on page 17")
             ])))
         })
       ]
@@ -178,9 +178,9 @@ const providedValueWithDerivedKey =
           expect(context.valuesReceivedBy("sub-one"),
             is(arrayWith([
               loadingState({ profileId: "profile-1", page: 17 }),
-              loadedWith("Fun Stuff", { profileId: "profile-1", page: 17 }),
+              loadedWith("Value: Fun Stuff for profile profile-1 on page 17"),
               loadingState({ profileId: "profile-7", page: 17 }),
-              loadedWith("Even more fun stuff!", { profileId: "profile-7", page: 17 }),
+              loadedWith("Value: Even more fun stuff! for profile profile-7 on page 17"),
               loadingState({ profileId: "profile-7", page: 21 })
             ])))
         }),
@@ -188,16 +188,72 @@ const providedValueWithDerivedKey =
           expect(context.valuesReceivedBy("sub-two"),
             is(arrayWith([
               loadingState({ profileId: "profile-7", page: 17 }),
-              loadedWith("Even more fun stuff!", { profileId: "profile-7", page: 17 }),
+              loadedWith("Value: Even more fun stuff! for profile profile-7 on page 17"),
               loadingState({ profileId: "profile-7", page: 21 })
             ])))
         }),
         effect("the third subscriber gets the latest provided value and the loading update", (context) => {
           expect(context.valuesReceivedBy("sub-three"),
             is(arrayWith([
-              loadedWith("Even more fun stuff!", { profileId: "profile-7", page: 17 }),
+              loadedWith("Value: Even more fun stuff! for profile profile-7 on page 17"),
               loadingState({ profileId: "profile-7", page: 21 })
             ])))
+        })
+      ]
+    })
+
+interface StatefulProviderContext {
+  counterState: State<TestProvidedState<string>>
+  otherState: Container<number>
+  provider: Provider
+}
+
+const reactiveQueryCountForProvider =
+  example(testSubscriberContext<StatefulProviderContext>())
+    .description("reactive query count for provider")
+    .script({
+      suppose: [
+        fact("there is some state and a provider", (context) => {
+          context.setState((loop) => {
+            const counterState = state<TestProvidedState<string>>(withInitialValue({ type: "loading", value: "0" }), loop)
+            const otherState = container(withInitialValue(27), loop)
+            const anotherState = state(withInitialValue(22), loop)
+            const provider = new TestProvider<string>()
+            let counter = 0
+            provider.setHandler(async (get, set, waitFor) => {
+              counter = counter + 1
+              const total = get(otherState) + get(anotherState)
+              set(counterState, { type: "loaded", value: `${counter} - ${total}` })
+            })
+            useProvider(provider, loop)
+            return {
+              counterState,
+              otherState,
+              provider
+            }
+          })
+        }),
+        fact("there is a subscriber", (context) => {
+          context.subscribeTo(context.state.counterState, "sub-one")
+        })
+      ],
+      observe: [
+        effect("the reactive query is executed only once on initialization", (context) => {
+          expect(context.valuesReceivedBy("sub-one"), is(arrayWith([
+            loadedWith("1 - 49")
+          ])))
+        })
+      ]
+    })
+    .andThen({
+      perform: [
+        step("a state dependency is updated", (context) => {
+          context.updateState(context.state.otherState, 14)
+        })
+      ],
+      observe: [
+        effect("the reactive query is executed once more", (context) => {
+          expect(context.valuesReceivedBy("sub-one"), is(arrayWithItemAt(1, loadedWith("2 - 36"))))
         })
       ]
     })
@@ -209,14 +265,15 @@ function loadingState(key?: any): Matcher<TestProvidedState<string>> {
   })
 }
 
-function loadedWith(value: string, key: any): Matcher<TestProvidedState<string>> {
+function loadedWith(value: string): Matcher<TestProvidedState<string>> {
   return objectWith({
     type: equalTo("loaded"),
-    value: equalTo(`Value: ${value} for profile ${key.profileId} on page ${key.page}`)
+    value: equalTo(value)
   })
 }
 
 export default behavior("state provider", [
   simpleProvidedValue,
-  providedValueWithDerivedKey
+  providedValueWithDerivedKey,
+  reactiveQueryCountForProvider
 ])

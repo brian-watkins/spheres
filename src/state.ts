@@ -23,7 +23,12 @@ export class Loop {
     const get = <S>(state: State<S>) => {
       if (!dependencies.has(state)) {
         dependencies.add(state)
+        let initialUpdate = true
         state.onChange(() => {
+          if (initialUpdate) {
+            initialUpdate = false
+            return
+          }
           provider.provide(get, set)
         })
       }

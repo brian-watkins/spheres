@@ -83,7 +83,12 @@ export class Loop {
     }
 
     atomsToRegister.forEach((basic) => {
+      let isInitialUpdate = true
       basic.onChange(() => {
+        if (isInitialUpdate) {
+          isInitialUpdate = false
+          return
+        }
         this.connections.get(atom)?.(refreshMessage(atom, derivation(getUpdatedValue)))
       })
     })

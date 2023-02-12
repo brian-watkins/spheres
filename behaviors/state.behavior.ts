@@ -1,6 +1,6 @@
 import { behavior, effect, example, fact, step } from "esbehavior";
 import { Container, container, state, State, withDerivedValue, withInitialValue } from "../src/state";
-import { arrayWithItemAt, equalTo, expect, is } from "great-expectations"
+import { arrayWith, arrayWithItemAt, equalTo, expect, is } from "great-expectations"
 import { TestSubscriberContext, testSubscriberContext } from "./helpers/testSubscriberContext";
 
 interface SingleContainer {
@@ -187,7 +187,7 @@ interface MultipleSourceState {
   numberAtom: Container<number>
   stringAtom: Container<string>
   anotherAtom: Container<string>
-  derived?: State<string>
+  derived: State<string>
 }
 
 const multipleSourceState =
@@ -225,6 +225,60 @@ const multipleSourceState =
       ]
     })
 
+const reactiveQueryCount =
+  example(testSubscriberContext<MultipleSourceState>())
+    .description("Reactive query count for derived state")
+    .script({
+      suppose: [
+        fact("there is a derived state", (context) => {
+          context.setState((loop) => {
+            const numberAtom = container(withInitialValue(27), loop)
+            const stringAtom = container(withInitialValue("hello"), loop)
+            const anotherAtom = container(withInitialValue("next"), loop)
+            let counter = 0
+            return {
+              numberAtom,
+              stringAtom,
+              anotherAtom,
+              derived: state(withDerivedValue((get) => {
+                counter = counter + 1
+                return `${counter} => ${get(stringAtom)} ${get(numberAtom)} times. And then ${get(anotherAtom)}!`
+              }), loop)
+            }
+          })
+        }),
+        fact("there is a subscriber", (context) => {
+          context.subscribeTo(context.state.derived, "sub-one")
+        })
+      ],
+      observe: [
+        effect("the reactive query is called only once on initialization", (context) => {
+          expect(context.valuesReceivedBy("sub-one"), is(equalTo([
+            "1 => hello 27 times. And then next!"
+          ])))
+        })
+      ]
+    })
+    .andThen({
+      perform: [
+        step("one dependency is updated", (context) => {
+          context.updateState(context.state.numberAtom, 31)
+        }),
+        step("another dependency is updated", (context) => {
+          context.updateState(context.state.stringAtom, "Some fun")
+        })
+      ],
+      observe: [
+        effect("the reactive query executes once for each update", (context) => {
+          expect(context.valuesReceivedBy("sub-one"), is(equalTo([
+            "1 => hello 27 times. And then next!",
+            "2 => hello 31 times. And then next!",
+            "3 => Some fun 31 times. And then next!",
+          ])))
+        })
+      ]
+    })
+
 function expectValuesFor<T>(context: TestSubscriberContext<T>, subscriber: string, values: Array<any>) {
   expect(context.valuesReceivedBy(subscriber), is(equalTo(values)))
 }
@@ -235,5 +289,6 @@ export default
   behavior("state", [
     subscribeAndUpdate,
     derivedState,
-    multipleSourceState
+    multipleSourceState,
+    reactiveQueryCount
   ])

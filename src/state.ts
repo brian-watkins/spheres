@@ -47,30 +47,20 @@ export class Loop {
 
   deriveContainer<T>(derivation: (get: <S>(state: State<S>) => S) => T): Container<T> {
     let dependencies: Set<State<any>> = new Set()
-    const getCurrentValue = <P>(state: State<P>) => {
-      dependencies.add(state)
-      return this.registry.get(state)?.value
-    }
 
-    const initialValue = derivation(getCurrentValue)
+    let container: Container<T>
 
-    const container = this.createContainer(initialValue)
-
-    const getUpdatedValue = <P>(state: State<P>): P => {
+    const get = <P>(state: State<P>): P => {
       if (!dependencies.has(state)) {
         dependencies.add(state)
         this.registry.get(state)?.addDependent(() => {
-          this.registry.get(container)?.refreshValue(derivation(getUpdatedValue))
+          this.registry.get(container)?.refreshValue(derivation(get))
         })
       }
       return this.registry.get(state)?.value
     }
 
-    dependencies.forEach((basic) => {
-      this.registry.get(basic)?.addDependent(() => {
-        this.registry.get(container)?.refreshValue(derivation(getUpdatedValue))
-      })
-    })
+    container = this.createContainer(derivation(get))
 
     return container
   }

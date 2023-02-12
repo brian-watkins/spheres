@@ -21,17 +21,13 @@ export class Loop {
     const get = <S>(state: State<S>) => {
       if (!queryDependencies.has(state)) {
         queryDependencies.add(state)
-        this.addDependency(state, () => provider.provide(get, set))
+        this.registry.get(state)?.addDependent(() => provider.provide(get, set))
       }
 
       return this.registry.get(state)?.value
     }
 
     provider.provide(get, set)
-  }
-
-  addDependency<S>(state: State<S>, notifier: (value: S) => void) {
-    this.registry.get(state)?.addDependent(notifier)
   }
 
   registerWriter<Q>(container: Container<Q>, writer: Writer<Q>) {
@@ -50,33 +46,33 @@ export class Loop {
   }
 
   deriveContainer<T>(derivation: (get: <S>(state: State<S>) => S) => T): Container<T> {
-    let atomsToRegister: Set<State<any>> = new Set()
-    const getCurrentValue = <P>(atom: State<P>) => {
-      atomsToRegister.add(atom)
-      return this.registry.get(atom)?.value
+    let dependencies: Set<State<any>> = new Set()
+    const getCurrentValue = <P>(state: State<P>) => {
+      dependencies.add(state)
+      return this.registry.get(state)?.value
     }
 
     const initialValue = derivation(getCurrentValue)
 
-    const atom = this.createContainer(initialValue)
+    const container = this.createContainer(initialValue)
 
     const getUpdatedValue = <P>(state: State<P>): P => {
-      if (!atomsToRegister.has(state)) {
-        atomsToRegister.add(state)
-        this.addDependency(state, () => {
-          this.registry.get(atom)?.refreshValue(derivation(getUpdatedValue))
+      if (!dependencies.has(state)) {
+        dependencies.add(state)
+        this.registry.get(state)?.addDependent(() => {
+          this.registry.get(container)?.refreshValue(derivation(getUpdatedValue))
         })
       }
       return this.registry.get(state)?.value
     }
 
-    atomsToRegister.forEach((basic) => {
-      this.addDependency(basic, () => {
-        this.registry.get(atom)?.refreshValue(derivation(getUpdatedValue))
+    dependencies.forEach((basic) => {
+      this.registry.get(basic)?.addDependent(() => {
+        this.registry.get(container)?.refreshValue(derivation(getUpdatedValue))
       })
     })
 
-    return atom
+    return container
   }
 
   dispatch<T>(message: LoopMessage<T>) {
@@ -169,7 +165,7 @@ export function withInitialValue<T>(value: T): ContainerInitializer<T> {
   }
 }
 
-export function withDerivedValue<T>(derivation: (get: <S>(atom: State<S>) => S) => T): StateInitializer<T> {
+export function withDerivedValue<T>(derivation: (get: <S>(state: State<S>) => S) => T): StateInitializer<T> {
   return {
     initialize: (loop) => {
       return loop.deriveContainer(derivation)

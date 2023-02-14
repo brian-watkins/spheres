@@ -77,7 +77,7 @@ export function viewGenerator(viewState: State<View>): View {
 
         let oldNode: VNode | HTMLElement = holder
 
-        viewState.onChange((updatedView) => {
+        viewState.subscribe((updatedView) => {
           oldNode = patch(oldNode, updatedView)
         })
       },

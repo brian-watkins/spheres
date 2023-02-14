@@ -10,9 +10,10 @@ export function testSubscriberContext<S>(): Context<TestSubscriberContext<S>> {
 
 export class TestSubscriberContext<S> extends TestLoop<S> {
   private subscribers: Map<string, Array<any>> = new Map()
+  private unsubscribers: Map<string, () => void> = new Map()
 
   subscribeTo<T>(state: State<T>, name: string) {
-    state.onChange((updatedValue) => {
+    const unsubscribe = state.subscribe((updatedValue) => {
       const values = this.subscribers.get(name)
       if (values === undefined) {
         this.subscribers.set(name, [updatedValue])
@@ -20,6 +21,12 @@ export class TestSubscriberContext<S> extends TestLoop<S> {
         values.push(updatedValue)
       }
     })
+
+    this.unsubscribers.set(name, unsubscribe)
+  }
+
+  unsubscribe(name: string) {
+    this.unsubscribers.get(name)?.()
   }
 
   valuesReceivedBy(name: string): Array<any> {

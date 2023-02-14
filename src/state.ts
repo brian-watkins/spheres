@@ -1,5 +1,5 @@
 export interface State<T> {
-  onChange(notify: (updatedState: T) => void): void
+  subscribe(notify: (updatedState: T) => void): () => void
 }
 
 export interface Container<T> extends State<T> {
@@ -119,9 +119,13 @@ class BasicContainer<T> implements Container<T> {
     this.subscribers.forEach(notify => notify(value))
   }
 
-  onChange(notify: (updatedState: T) => void): void {
+  subscribe(notify: (updatedState: T) => void): () => void {
     notify(this.get())
     this.subscribers.add(notify)
+
+    return () => {
+      this.subscribers.delete(notify)
+    }
   }
 }
 

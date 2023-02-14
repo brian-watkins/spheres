@@ -4,6 +4,7 @@ import stateProviderBehavior from "./stateProvider.behavior"
 import stateWriterBehavior from "./stateWriter.behavior"
 import stateBehavior from "./state.behavior"
 import viewBehavior from "./view.behavior"
+import unsubscribeBehavior from "./unsubscribe.behavior"
 
 window.validateBehaviors = () => {
   return validate([
@@ -11,6 +12,7 @@ window.validateBehaviors = () => {
     viewBehavior,
     eventBehavior,
     stateProviderBehavior,
-    stateWriterBehavior
+    stateWriterBehavior,
+    unsubscribeBehavior
   ], { failFast: true })
 }

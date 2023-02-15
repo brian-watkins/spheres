@@ -64,6 +64,7 @@ export type ViewGenerator = (parent: View) => View
 
 export function viewGenerator(viewState: State<View>): View {
   return h("view-fragment", {
+    loop: {},
     hook: {
       insert: (vnode) => {
         const patch = init([
@@ -77,12 +78,16 @@ export function viewGenerator(viewState: State<View>): View {
 
         let oldNode: VNode | HTMLElement = holder
 
-        viewState.subscribe((updatedView) => {
+        vnode.data!.loop.unsubscribe = viewState.subscribe((updatedView) => {
           oldNode = patch(oldNode, updatedView)
         })
       },
+      postpatch: (oldVNode, vNode) => {
+        vNode.data!.loop = oldVNode.data!.loop
+      },
       destroy: (vnode) => {
         vnode.elm!.childNodes.forEach(node => node.remove())
+        vnode.data!.loop.unsubscribe()
       }
     }
   })

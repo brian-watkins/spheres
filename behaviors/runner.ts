@@ -16,7 +16,7 @@ const browser = await chromium.launch({
 })
 
 const page = await browser.newPage()
-page.on("console", console.log)
+page.on("console", (message) => console.log(fixStackTrace(message.text())))
 page.on("pageerror", console.log)
 
 await page.goto(`http://localhost:${serverPort}/behaviors/index.html`)
@@ -29,3 +29,9 @@ if (summary.invalid > 0 || summary.skipped > 0) {
 
 await browser.close()
 await server.close()
+
+// -------
+
+function fixStackTrace(line: string): string {
+  return line.replace(`http://localhost:${serverPort}`, '')
+}

@@ -1,6 +1,6 @@
 import { attributesModule, classModule, eventListenersModule, init, propsModule } from "snabbdom";
-import { Loop, LoopMessage } from "../loop";
-import { View } from "./view";
+import { Loop, LoopMessage } from "../loop.js";
+import { View } from "./view.js";
 
 export class Display {
   private appRoot: HTMLElement | undefined

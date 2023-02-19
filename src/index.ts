@@ -1,4 +1,6 @@
-import { Container, Loop, Provider, State, Writer } from "./loop"
+import { Container, Loop, Provider, State, Writer } from "./loop.js"
+export { Loop } from "./loop.js"
+export type { Container, State, Provider, Writer } from "./loop.js"
 
 interface ContainerInitializer<T> extends StateInitializer<T> {
   initialize(loop: Loop): Container<T>

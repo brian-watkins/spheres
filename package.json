@@ -9,11 +9,18 @@
     "url": "https://github.com/brian-watkins/esdisplay"
   },
   "main": "./dist/index.js",
-  "exports": {
-    ".": "./dist/index.js",
-    "./display": "./dist/display"
-  },
   "types": "./dist/index.d.ts",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./display": {
+      "types": "./dist/display/index.d.ts",
+      "import": "./dist/display/index.js"
+    }
+  },
   "type": "module",
   "files": [
     "dist/"

@@ -1,7 +1,7 @@
 import { Context } from "esbehavior"
 import { loop } from "../../src"
-import { Display } from "../../src/display/"
-import * as View from "../../src/display/"
+import { Display } from "../../src/display"
+import * as View from "../../src/display"
 import { TestDisplay } from "./testDisplay"
 import { TestLoop } from "./testLoop"
 

@@ -18,7 +18,7 @@ const simpleProvidedValue =
         fact("there is a view with a provided value", (context) => {
           const receiver = state<TestProvidedState<string>>(withInitialValue({ type: "unknown" }))
           const provider = new TestProvider<string>()
-          provider.setHandler(async (get, set, waitFor) => {
+          provider.setHandler(async (_, set, waitFor) => {
             set(receiver, { type: "loading" })
             const value = await waitFor()
             set(receiver, { type: "loaded", value })
@@ -214,7 +214,7 @@ const reactiveQueryCountForProvider =
           const anotherState = state(withInitialValue(22))
           const provider = new TestProvider<string>()
           let counter = 0
-          provider.setHandler(async (get, set, waitFor) => {
+          provider.setHandler(async (get, set, _) => {
             counter = counter + 1
             const total = get(otherState) + get(anotherState)
             set(counterState, { type: "loaded", value: `${counter} - ${total}` })
@@ -269,7 +269,7 @@ const deferredDependency =
           const stringState = container(withInitialValue("hello"))
           const managedState = state<TestProvidedState<string>>(withInitialValue({ type: "unknown" }))
           const provider = new TestProvider<string>()
-          provider.setHandler(async (get, set, waitFor) => {
+          provider.setHandler(async (get, set, _) => {
             if (get(stringState) === "now") {
               set(managedState, { type: "loaded", value: `Number ${get(numberState)}` })
             } else {

@@ -18,7 +18,7 @@ const simpleManagedContainer =
         fact("there is a container that uses a writer", (context) => {
           const containerState = container<TestWritable<string>>(withInitialValue({ type: "write-unknown" }))
           const writer = new TestWriter<string>()
-          writer.setHandler(async (value, get, set, waitFor) => {
+          writer.setHandler(async (value, _, set, waitFor) => {
             set(value)
             const writtenValue = await waitFor()
             set(writtenValue)

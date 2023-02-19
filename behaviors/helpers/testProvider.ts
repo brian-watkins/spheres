@@ -1,4 +1,4 @@
-import { Provider, State } from "../../src/state";
+import { Provider, State } from "../../src/loop";
 
 interface TestUnknownState {
   type: "unknown"

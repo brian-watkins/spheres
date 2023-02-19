@@ -1,4 +1,5 @@
 import { Context } from "esbehavior"
+import { loop } from "../../src"
 import { Display } from "../../src/display"
 import * as View from "../../src/view"
 import { TestDisplay } from "./testDisplay"
@@ -20,7 +21,7 @@ export class TestApp<S> extends TestLoop<S> {
   }
 
   start() {
-    this.appDisplay = new Display(this.loop, this.view!)
+    this.appDisplay = new Display(loop(), this.view!)
     this.appDisplay.mount(document.querySelector("#test-display")!)
   }
 

@@ -1,8 +1,9 @@
 import { behavior, effect, example, fact, step } from "esbehavior";
-import { container, state, State, withDerivedValue, withInitialValue, writeMessage } from "../src/state";
+import { State, writeMessage } from "../src/loop";
 import { testAppContext } from "./helpers/testApp";
 import * as View from "../src/view"
 import { expect, is, stringContaining } from "great-expectations";
+import { container, state, withDerivedValue, withInitialValue } from "../src";
 
 interface ClickCounterState {
   clickCounterView: State<View.View>
@@ -14,23 +15,21 @@ export default behavior("view events", [
     .script({
       suppose: [
         fact("there is a view that depends on click count", (context) => {
-          context.setState((loop) => {
-            const clickCount = container(withInitialValue(0), loop)
+          const clickCount = container(withInitialValue(0))
 
-            const clickCounterView = state(withDerivedValue((get) => {
-              return View.div([], [
-                View.button([
-                  View.onClick(writeMessage(clickCount, get(clickCount) + 1))
-                ], [ "Click me!" ]),
-                View.p([View.data("click-count")], [
-                  `You've clicked the button ${get(clickCount)} times!`
-                ])
+          const clickCounterView = state(withDerivedValue((get) => {
+            return View.div([], [
+              View.button([
+                View.onClick(writeMessage(clickCount, get(clickCount) + 1))
+              ], ["Click me!"]),
+              View.p([View.data("click-count")], [
+                `You've clicked the button ${get(clickCount)} times!`
               ])
-            }), loop)
+            ])
+          }))
 
-            return {
-              clickCounterView
-            }
+          context.setState({
+            clickCounterView
           })
 
           context.setView(View.div([], [

@@ -1,11 +1,15 @@
-import { Loop, Container, writeMessage } from "../../src/state";
+import { loop } from "../../src";
+import { Loop, Container, writeMessage } from "../../src/loop";
 
 export class TestLoop<S> {
-  protected loop: Loop = new Loop()
   private stateDescription: S | undefined
 
-  setState(generator: (loop: Loop) => S) {
-    this.stateDescription = generator(this.loop)
+  constructor() {
+    loop().reset()
+  }
+
+  setState(state: S) {
+    this.stateDescription = state
   }
 
   get state(): S {
@@ -13,10 +17,10 @@ export class TestLoop<S> {
   }
 
   update(updater: (loop: Loop) => void) {
-    updater(this.loop)
+    updater(loop())
   }
 
   updateState<T>(root: Container<T>, value: T) {
-    this.loop.dispatch(writeMessage(root, value))
+    loop().dispatch(writeMessage(root, value))
   }
 }

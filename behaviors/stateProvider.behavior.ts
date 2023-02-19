@@ -1,8 +1,9 @@
 import { behavior, effect, example, fact, step } from "esbehavior";
 import { arrayWith, arrayWithItemAt, equalTo, expect, is, Matcher, objectWith, objectWithProperty } from "great-expectations";
-import { container, Container, Provider, state, State, useProvider, withInitialValue } from "../src/state";
+import { Container, Provider, State } from "../src/loop";
 import { testSubscriberContext } from "./helpers/testSubscriberContext";
 import { TestProvidedState, TestProvider } from "./helpers/testProvider";
+import { container, state, useProvider, withInitialValue } from "../src";
 
 interface ProvidedValueContext {
   receiver: State<TestProvidedState<string>>
@@ -15,20 +16,17 @@ const simpleProvidedValue =
     .script({
       suppose: [
         fact("there is a view with a provided value", (context) => {
-          context.setState((loop) => {
-            const receiver = state<TestProvidedState<string>>(withInitialValue({ type: "unknown" }), loop)
-            const provider = new TestProvider<string>()
-            provider.setHandler(async (get, set, waitFor) => {
-              set(receiver, { type: "loading" })
-              const value = await waitFor()
-              set(receiver, { type: "loaded", value })
-            })
-            useProvider(provider, loop)
-
-            return {
-              receiver,
-              provider
-            }
+          const receiver = state<TestProvidedState<string>>(withInitialValue({ type: "unknown" }))
+          const provider = new TestProvider<string>()
+          provider.setHandler(async (get, set, waitFor) => {
+            set(receiver, { type: "loading" })
+            const value = await waitFor()
+            set(receiver, { type: "loaded", value })
+          })
+          useProvider(provider)
+          context.setState({
+            receiver,
+            provider
           })
         }),
         fact("there is a subscriber", (context) => {
@@ -73,28 +71,25 @@ const providedValueWithDerivedKey =
     .script({
       suppose: [
         fact("there is a view with a provided value", (context) => {
-          context.setState((loop) => {
-            const profileState = container(withInitialValue("profile-1"), loop)
-            const pageNumberState = container(withInitialValue(17), loop)
-            const receiver = container<TestProvidedState<string>>(withInitialValue({ type: "unknown" }), loop)
-            const provider = new TestProvider<string>()
-            provider.setHandler(async (get, set, waitFor) => {
-              const key = {
-                profileId: get(profileState),
-                page: get(pageNumberState)
-              }
-              set(receiver, { type: "loading", key })
-              const extraValue = await waitFor()
-              set(receiver, { type: "loaded", value: `Value: ${extraValue} for profile ${key.profileId} on page ${key.page}` })
-            })
-            useProvider(provider, loop)
-
-            return {
-              profileState,
-              pageNumberState,
-              receiver,
-              provider
+          const profileState = container(withInitialValue("profile-1"))
+          const pageNumberState = container(withInitialValue(17))
+          const receiver = container<TestProvidedState<string>>(withInitialValue({ type: "unknown" }))
+          const provider = new TestProvider<string>()
+          provider.setHandler(async (get, set, waitFor) => {
+            const key = {
+              profileId: get(profileState),
+              page: get(pageNumberState)
             }
+            set(receiver, { type: "loading", key })
+            const extraValue = await waitFor()
+            set(receiver, { type: "loaded", value: `Value: ${extraValue} for profile ${key.profileId} on page ${key.page}` })
+          })
+          useProvider(provider)
+          context.setState({
+            profileState,
+            pageNumberState,
+            receiver,
+            provider
           })
         }),
         fact("there is a subscriber", (context) => {
@@ -214,23 +209,21 @@ const reactiveQueryCountForProvider =
     .script({
       suppose: [
         fact("there is some state and a provider", (context) => {
-          context.setState((loop) => {
-            const counterState = state<TestProvidedState<string>>(withInitialValue({ type: "loading", value: "0" }), loop)
-            const otherState = container(withInitialValue(27), loop)
-            const anotherState = state(withInitialValue(22), loop)
-            const provider = new TestProvider<string>()
-            let counter = 0
-            provider.setHandler(async (get, set, waitFor) => {
-              counter = counter + 1
-              const total = get(otherState) + get(anotherState)
-              set(counterState, { type: "loaded", value: `${counter} - ${total}` })
-            })
-            useProvider(provider, loop)
-            return {
-              counterState,
-              otherState,
-              provider
-            }
+          const counterState = state<TestProvidedState<string>>(withInitialValue({ type: "loading", value: "0" }))
+          const otherState = container(withInitialValue(27))
+          const anotherState = state(withInitialValue(22))
+          const provider = new TestProvider<string>()
+          let counter = 0
+          provider.setHandler(async (get, set, waitFor) => {
+            counter = counter + 1
+            const total = get(otherState) + get(anotherState)
+            set(counterState, { type: "loaded", value: `${counter} - ${total}` })
+          })
+          useProvider(provider)
+          context.setState({
+            counterState,
+            otherState,
+            provider
           })
         }),
         fact("there is a subscriber", (context) => {
@@ -272,26 +265,23 @@ const deferredDependency =
     .script({
       suppose: [
         fact("there is derived state with a dependency used only later", (context) => {
-          context.setState((loop) => {
-            const numberState = container(withInitialValue(6), loop)
-            const stringState = container(withInitialValue("hello"), loop)
-            const managedState = state<TestProvidedState<string>>(withInitialValue({ type: "unknown" }), loop)
-            const provider = new TestProvider<string>()
-            provider.setHandler(async (get, set, waitFor) => {
-              if (get(stringState) === "now") {
-                set(managedState, { type: "loaded", value: `Number ${get(numberState)}` })
-              } else {
-                set(managedState, { type: "loaded", value: `Number 0` })
-              }
-            })
-            useProvider(provider, loop)
-
-            return {
-              numberState,
-              stringState,
-              managedState,
-              provider
+          const numberState = container(withInitialValue(6))
+          const stringState = container(withInitialValue("hello"))
+          const managedState = state<TestProvidedState<string>>(withInitialValue({ type: "unknown" }))
+          const provider = new TestProvider<string>()
+          provider.setHandler(async (get, set, waitFor) => {
+            if (get(stringState) === "now") {
+              set(managedState, { type: "loaded", value: `Number ${get(numberState)}` })
+            } else {
+              set(managedState, { type: "loaded", value: `Number 0` })
             }
+          })
+          useProvider(provider)
+          context.setState({
+            numberState,
+            stringState,
+            managedState,
+            provider
           })
         }),
         fact("there is a subscriber", (context) => {

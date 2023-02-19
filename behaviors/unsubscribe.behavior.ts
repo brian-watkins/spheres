@@ -1,6 +1,7 @@
 import { behavior, effect, example, fact, step } from "esbehavior";
 import { equalTo, expect, is } from "great-expectations";
-import { container, Container, withInitialValue } from "../src/state";
+import { container, withInitialValue } from "../src";
+import { Container } from "../src/loop";
 import { testSubscriberContext } from "./helpers/testSubscriberContext";
 
 interface BasicUnsubscribeContext {
@@ -13,10 +14,8 @@ export default behavior("unsubscribe from state", [
     .script({
       suppose: [
         fact("there is a container", (context) => {
-          context.setState((loop) => {
-            return {
-              numberContainer: container(withInitialValue(0), loop)
-            }
+          context.setState({
+            numberContainer: container(withInitialValue(0))
           })
         }),
         fact("there is a subscriber", (context) => {

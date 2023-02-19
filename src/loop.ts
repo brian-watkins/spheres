@@ -6,6 +6,14 @@ export interface Container<T> extends State<T> {
   _containerBrand: any
 }
 
+export interface Provider {
+  provide(get: <S>(state: State<S>) => S, set: <Q>(state: State<Q>, value: Q) => void): void | Promise<void>
+}
+
+export interface Writer<T> {
+  write(value: T, get: <S>(state: State<S>) => S, set: (value: T) => void): void 
+}
+
 export type LoopMessage<T> = WriteValueMessage<T>
 
 export class Loop {
@@ -68,6 +76,10 @@ export class Loop {
   dispatch<T>(message: LoopMessage<T>) {
     this.registry.get(message.state)?.writeValue(message.value)
   }
+
+  reset() {
+    this.registry = new WeakMap<State<any>, MetaContainer<any>>()
+  }
 }
 
 class MetaContainer<S> {
@@ -103,12 +115,6 @@ class MetaContainer<S> {
   }
 }
 
-// I guess the other problem with this is that now you
-// have strong references to subscribers? which means that
-// subscribers (ie derived state) will never be released from
-// memory? not sure ... Or if there is a derived view, and it
-// is removed from the DOM ... should it unsubscribe? not sure ...
-
 class BasicContainer<T> implements Container<T> {
   _containerBrand: any
   public subscribers: Set<((updatedState: T) => void)> = new Set()
@@ -141,56 +147,4 @@ export function writeMessage<T>(container: Container<T>, value: T): WriteValueMe
     value,
     state: container
   }
-}
-
-interface ContainerInitializer<T> extends StateInitializer<T> {
-  initialize(loop: Loop): Container<T>
-}
-
-interface StateInitializer<T> {
-  initialize(loop: Loop): State<T>
-}
-
-export function withInitialValue<T>(value: T): ContainerInitializer<T> {
-  return {
-    initialize: (loop) => {
-      return loop.createContainer(value)
-    }
-  }
-}
-
-export function withDerivedValue<T>(derivation: (get: <S>(state: State<S>) => S) => T): StateInitializer<T> {
-  return {
-    initialize: (loop) => {
-      return loop.deriveContainer(derivation)
-    }
-  }
-}
-
-export function container<T>(initializer: ContainerInitializer<T>, loop: Loop): Container<T> {
-  return initializer.initialize(loop)
-}
-
-export function state<T>(initializer: StateInitializer<T>, loop: Loop): State<T> {
-  return initializer.initialize(loop)
-}
-
-// Provider stuff
-
-export interface Provider {
-  provide(get: <S>(state: State<S>) => S, set: <Q>(state: State<Q>, value: Q) => void): void | Promise<void>
-}
-
-export function useProvider(provider: Provider, loop: Loop) {
-  loop.registerProvider(provider)
-}
-
-// Writer stuff
-
-export interface Writer<T> {
-  write(value: T, get: <S>(state: State<S>) => S, set: (value: T) => void): void 
-}
-
-export function useWriter<T>(container: Container<T>, writer: Writer<T>, loop: Loop) {
-  loop.registerWriter(container, writer)
 }

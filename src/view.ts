@@ -1,5 +1,5 @@
 import { attributesModule, eventListenersModule, h, init, propsModule, VNode, VNodeChildElement } from "snabbdom";
-import { LoopMessage, State } from "./state";
+import { LoopMessage, State } from "./loop";
 
 export type View = VNode
 export type ViewChild = VNodeChildElement

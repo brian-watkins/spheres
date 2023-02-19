@@ -1,4 +1,4 @@
-import { Container, State, Writer, WriteValueMessage } from "../../src/state"
+import { Container, State, Writer, WriteValueMessage } from "../../src/loop"
 
 interface TestUnknown {
   type: "write-unknown"

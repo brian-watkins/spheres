@@ -1,6 +1,7 @@
 import { behavior, effect, example, fact, step } from "esbehavior";
 import { arrayWith, assignedWith, equalTo, expect, is, Matcher, objectWith } from "great-expectations";
-import { container, Container, useWriter, withInitialValue } from "../src/state";
+import { container, useWriter, withInitialValue } from "../src";
+import { Container } from "../src/loop";
 import { testSubscriberContext } from "./helpers/testSubscriberContext";
 import { TestWritable, testWriteMessage, TestWriter } from "./helpers/testWriter";
 
@@ -15,20 +16,18 @@ const simpleManagedContainer =
     .script({
       suppose: [
         fact("there is a container that uses a writer", (context) => {
-          context.setState((loop) => {
-            const containerState = container<TestWritable<string>>(withInitialValue({ type: "write-unknown" }), loop)
-            const writer = new TestWriter<string>()
-            writer.setHandler(async (value, get, set, waitFor) => {
-              set(value)
-              const writtenValue = await waitFor()
-              set(writtenValue)
-            })
-            useWriter(containerState, writer, loop)
+          const containerState = container<TestWritable<string>>(withInitialValue({ type: "write-unknown" }))
+          const writer = new TestWriter<string>()
+          writer.setHandler(async (value, get, set, waitFor) => {
+            set(value)
+            const writtenValue = await waitFor()
+            set(writtenValue)
+          })
+          useWriter(containerState, writer)
 
-            return {
-              container: containerState,
-              writer
-            }
+          context.setState({
+            container: containerState,
+            writer
           })
         }),
         fact("there is a subscriber", (context) => {
@@ -93,26 +92,23 @@ const writerThatUsesOtherState =
     .script({
       suppose: [
         fact("there is a container with a writer", (context) => {
-          context.setState((loop) => {
-            const userIdState = container(withInitialValue(28), loop)
-            const thingContainer = container<TestWritable<string>>(withInitialValue({ type: "write-unknown" }), loop)
-            const writer = new TestWriter<string>()
-            writer.setHandler(async (value, get, set, waitFor) => {
-              if (value.type === "write-pending") {
-                set({ type: "write-pending", value: `Writing ${value.value} for user ${get(userIdState)}` })
-              }
-              const thing = await waitFor()
-              if (thing.type === "write-ok") {
-                set({ type: "write-ok", value: `Wrote ${thing.value} for user ${get(userIdState)}` })
-              }
-            })
-            useWriter(thingContainer, writer, loop)
-
-            return {
-              userIdState,
-              container: thingContainer,
-              writer
+          const userIdState = container(withInitialValue(28))
+          const thingContainer = container<TestWritable<string>>(withInitialValue({ type: "write-unknown" }))
+          const writer = new TestWriter<string>()
+          writer.setHandler(async (value, get, set, waitFor) => {
+            if (value.type === "write-pending") {
+              set({ type: "write-pending", value: `Writing ${value.value} for user ${get(userIdState)}` })
             }
+            const thing = await waitFor()
+            if (thing.type === "write-ok") {
+              set({ type: "write-ok", value: `Wrote ${thing.value} for user ${get(userIdState)}` })
+            }
+          })
+          useWriter(thingContainer, writer)
+          context.setState({
+            userIdState,
+            container: thingContainer,
+            writer
           })
         }),
         fact("there is a subscriber", (context) => {

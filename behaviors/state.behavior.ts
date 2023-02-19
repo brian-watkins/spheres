@@ -1,7 +1,8 @@
 import { behavior, effect, example, fact, step } from "esbehavior";
-import { Container, container, state, State, withDerivedValue, withInitialValue } from "../src/state";
-import { arrayWith, arrayWithItemAt, equalTo, expect, is } from "great-expectations"
+import { Container, State } from "../src/loop";
+import { arrayWithItemAt, equalTo, expect, is } from "great-expectations"
 import { TestSubscriberContext, testSubscriberContext } from "./helpers/testSubscriberContext";
+import { container, state, withDerivedValue, withInitialValue } from "../src";
 
 interface SingleContainer {
   container: Container<string>
@@ -13,9 +14,9 @@ const subscribeAndUpdate =
     .script({
       perform: [
         step("there is a root state", (context) => {
-          context.setState((loop) => ({
-            container: container(withInitialValue("hello"), loop)
-          }))
+          context.setState({
+            container: container(withInitialValue("hello"))
+          })
         }),
         step("a listener subscribes", (context) => {
           context.subscribeTo(context.state.container, "subscriber-one")
@@ -91,12 +92,10 @@ const derivedState =
     .script({
       suppose: [
         fact("there is root and derived state", (context) => {
-          context.setState((loop) => {
-            const basic = container(withInitialValue(17), loop)
-            return {
-              basic,
-              derived: state(withDerivedValue((get) => `${get(basic)} things!`), loop)
-            }
+          const basic = container(withInitialValue(17))
+          context.setState({
+            basic,
+            derived: state(withDerivedValue((get) => `${get(basic)} things!`))
           })
         }),
       ],
@@ -129,12 +128,10 @@ const derivedState =
     }).andThen({
       perform: [
         step("a state is derived from the derived state", (context) => {
-          context.setState((loop) => {
-            return {
-              basic: context.state.basic,
-              derived: context.state.derived,
-              thirdLevel: state(withDerivedValue((get) => get(context.state.derived!).length), loop)
-            }
+          context.setState({
+            basic: context.state.basic,
+            derived: context.state.derived,
+            thirdLevel: state(withDerivedValue((get) => get(context.state.derived!).length))
           })
           context.subscribeTo(context.state.thirdLevel!, "subscriber-two")
         }),
@@ -196,16 +193,14 @@ const multipleSourceState =
     .script({
       perform: [
         step("a derived state is created from the root states", (context) => {
-          context.setState((loop) => {
-            const numberAtom = container(withInitialValue(27), loop)
-            const stringAtom = container(withInitialValue("hello"), loop)
-            const anotherAtom = container(withInitialValue("next"), loop)
-            return {
-              numberAtom,
-              stringAtom,
-              anotherAtom,
-              derived: state(withDerivedValue((get) => `${get(stringAtom)} ${get(numberAtom)} times. And then ${get(anotherAtom)}!`), loop)
-            }
+          const numberAtom = container(withInitialValue(27))
+          const stringAtom = container(withInitialValue("hello"))
+          const anotherAtom = container(withInitialValue("next"))
+          context.setState({
+            numberAtom,
+            stringAtom,
+            anotherAtom,
+            derived: state(withDerivedValue((get) => `${get(stringAtom)} ${get(numberAtom)} times. And then ${get(anotherAtom)}!`))
           })
         }),
         step("subscribe to the derived state", (context) => {
@@ -231,20 +226,18 @@ const reactiveQueryCount =
     .script({
       suppose: [
         fact("there is a derived state", (context) => {
-          context.setState((loop) => {
-            const numberAtom = container(withInitialValue(27), loop)
-            const stringAtom = container(withInitialValue("hello"), loop)
-            const anotherAtom = container(withInitialValue("next"), loop)
-            let counter = 0
-            return {
-              numberAtom,
-              stringAtom,
-              anotherAtom,
-              derived: state(withDerivedValue((get) => {
-                counter = counter + 1
-                return `${counter} => ${get(stringAtom)} ${get(numberAtom)} times. And then ${get(anotherAtom)}!`
-              }), loop)
-            }
+          const numberAtom = container(withInitialValue(27))
+          const stringAtom = container(withInitialValue("hello"))
+          const anotherAtom = container(withInitialValue("next"))
+          let counter = 0
+          context.setState({
+            numberAtom,
+            stringAtom,
+            anotherAtom,
+            derived: state(withDerivedValue((get) => {
+              counter = counter + 1
+              return `${counter} => ${get(stringAtom)} ${get(numberAtom)} times. And then ${get(anotherAtom)}!`
+            }))
           })
         }),
         fact("there is a subscriber", (context) => {
@@ -291,22 +284,19 @@ const deferredDependency =
     .script({
       suppose: [
         fact("there is derived state with a dependency used only later", (context) => {
-          context.setState((loop) => {
-            const numberState = container(withInitialValue(6), loop)
-            const stringState = container(withInitialValue("hello"), loop)
-            const derivedState = state(withDerivedValue((get) => {
-              if (get(stringState) === "now") {
-                return get(numberState)
-              } else {
-                return 0
-              }
-            }), loop)
-
-            return {
-              numberState,
-              stringState,
-              derivedState
+          const numberState = container(withInitialValue(6))
+          const stringState = container(withInitialValue("hello"))
+          const derivedState = state(withDerivedValue((get) => {
+            if (get(stringState) === "now") {
+              return get(numberState)
+            } else {
+              return 0
             }
+          }))
+          context.setState({
+            numberState,
+            stringState,
+            derivedState
           })
         }),
         fact("there is a subscriber", (context) => {

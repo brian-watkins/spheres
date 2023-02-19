@@ -38,6 +38,10 @@ export function h1(attributes: Array<ViewAttribute>, children: Array<ViewChild>)
   return basicElement("h1", attributes, children)
 }
 
+export function article(attributes: Array<ViewAttribute>, children: Array<ViewChild>): View {
+  return basicElement("article", attributes, children)
+}
+
 export function p(attributes: Array<ViewAttribute>, children: Array<ViewChild>): View {
   return basicElement("p", attributes, children)
 }

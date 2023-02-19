@@ -6,11 +6,13 @@ import stateBehavior from "./state.behavior"
 import viewBehavior from "./view.behavior"
 import unsubscribeBehavior from "./unsubscribe.behavior"
 import cssBehavior from "./css.behavior"
+import elementBehavior from "./element.behavior"
 
 window.validateBehaviors = () => {
   return validate([
     stateBehavior,
     viewBehavior,
+    elementBehavior,
     cssBehavior,
     eventBehavior,
     stateProviderBehavior,

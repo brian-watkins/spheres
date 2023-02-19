@@ -11,7 +11,8 @@ const viewWithElements =
     Html.ul([], [
       Html.li([], [ Html.text("hello") ])
     ]),
-    Html.button([], [ Html.text("Click it!") ])
+    Html.button([], [ Html.text("Click it!") ]),
+    Html.element("some-custom-element", [], [])
   ])
 
 export default behavior("View Elements", [
@@ -31,7 +32,8 @@ export default behavior("View Elements", [
         theElementExists("H1"),
         theElementExists("UL"),
         theElementExists("LI"),
-        theElementExists("BUTTON")
+        theElementExists("BUTTON"),
+        theElementExists("some-custom-element"),
       ]
     })
 ])

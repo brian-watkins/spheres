@@ -26,36 +26,36 @@ export function data(name: string, value: string = ""): ViewAttribute {
   return new Attribute(`data-${name}`, value)
 }
 
-function basicElement(tag: string, attributes: Array<ViewAttribute>, children: Array<ViewChild>) {
+export function element(tag: string, attributes: Array<ViewAttribute>, children: Array<ViewChild>) {
   return h(tag, makeAttributes(attributes), children)
 }
 
 export function div(attributes: Array<ViewAttribute>, children: Array<ViewChild>): View {
-  return basicElement("div", attributes, children)
+  return element("div", attributes, children)
 }
 
 export function h1(attributes: Array<ViewAttribute>, children: Array<ViewChild>): View {
-  return basicElement("h1", attributes, children)
+  return element("h1", attributes, children)
 }
 
 export function article(attributes: Array<ViewAttribute>, children: Array<ViewChild>): View {
-  return basicElement("article", attributes, children)
+  return element("article", attributes, children)
 }
 
 export function p(attributes: Array<ViewAttribute>, children: Array<ViewChild>): View {
-  return basicElement("p", attributes, children)
+  return element("p", attributes, children)
 }
 
 export function ul(attributes: Array<ViewAttribute>, children: Array<ViewChild>): View {
-  return basicElement("ul", attributes, children)
+  return element("ul", attributes, children)
 }
 
 export function li(attributes: Array<ViewAttribute>, children: Array<ViewChild>): View {
-  return basicElement("li", attributes, children)
+  return element("li", attributes, children)
 }
 
 export function button(attributes: Array<ViewAttribute>, children: Array<ViewChild>): View {
-  return basicElement("button", attributes, children)
+  return element("button", attributes, children)
 }
 
 export function text(value: string): ViewChild {

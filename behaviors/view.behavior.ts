@@ -2,7 +2,7 @@ import { behavior, effect, example, fact, step } from "esbehavior";
 import { equalTo, expect, is, stringContaining } from "great-expectations";
 import { container, state, withDerivedValue, withInitialValue } from "../src";
 import { Container, State } from "../src/loop";
-import * as View from "../src/view"
+import * as View from "../src/display/"
 import { testAppContext } from "./helpers/testApp";
 
 

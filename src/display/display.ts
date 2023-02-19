@@ -1,5 +1,5 @@
 import { attributesModule, init, propsModule } from "snabbdom";
-import { Loop, LoopMessage } from "./loop";
+import { Loop, LoopMessage } from "../loop";
 import { View } from "./view";
 
 export class Display {

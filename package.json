@@ -9,6 +9,10 @@
     "url": "https://github.com/brian-watkins/esdisplay"
   },
   "main": "./dist/index.js",
+  "exports": {
+    ".": "./dist/index.js",
+    "./display": "./dist/display"
+  },
   "types": "./dist/index.d.ts",
   "type": "module",
   "files": [
@@ -16,7 +20,7 @@
   ],
   "scripts": {
     "prepublishOnly": "npm run build",
-    "build": "tsc --build --clean && tsc --build",
+    "build": "rm -rf ./dist && tsc --build",
     "test": "ts-node --esm --swc ./behaviors/runner.ts"
   },
   "devDependencies": {

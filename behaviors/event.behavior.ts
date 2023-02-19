@@ -1,7 +1,7 @@
 import { behavior, effect, example, fact, step } from "esbehavior";
 import { State, writeMessage } from "../src/loop";
 import { testAppContext } from "./helpers/testApp";
-import * as View from "../src/view"
+import * as View from "../src/display/"
 import { expect, is, stringContaining } from "great-expectations";
 import { container, state, withDerivedValue, withInitialValue } from "../src";
 

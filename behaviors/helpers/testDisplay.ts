@@ -6,6 +6,14 @@ export class DisplayElement {
     return this.element.innerText
   }
 
+  classes(): Array<string> {
+    let classes = []
+    for (const val of this.element.classList.values()) {
+      classes.push(val)
+    }
+    return classes
+  }
+
   click() {
     this.element.click()
   }

@@ -1,4 +1,4 @@
-import { attributesModule, init, propsModule } from "snabbdom";
+import { attributesModule, classModule, eventListenersModule, init, propsModule } from "snabbdom";
 import { Loop, LoopMessage } from "../loop";
 import { View } from "./view";
 
@@ -19,7 +19,9 @@ export class Display {
 
     const patch = init([
       propsModule,
-      attributesModule
+      attributesModule,
+      classModule,
+      eventListenersModule
     ])
 
     patch(mountPoint, this.view)

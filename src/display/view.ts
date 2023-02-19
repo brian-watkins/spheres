@@ -1,4 +1,4 @@
-import { attributesModule, eventListenersModule, h, init, propsModule, VNode, VNodeChildElement } from "snabbdom";
+import { attributesModule, classModule, eventListenersModule, h, init, propsModule, VNode, VNodeChildElement } from "snabbdom";
 import { LoopMessage, State } from "../loop";
 
 export type View = VNode
@@ -16,7 +16,11 @@ class Attribute {
   constructor(public key: string, public value: string) { }
 }
 
-export type ViewAttribute = Property | Attribute | EventHandler //| CssClasses | NullViewAttribute
+export type ViewAttribute = Property | Attribute | EventHandler | CssClasses //| NullViewAttribute
+
+export function id(value: string): ViewAttribute {
+  return new Property("id", value)
+}
 
 export function data(name: string, value: string = ""): ViewAttribute {
   return new Attribute(`data-${name}`, value)
@@ -50,6 +54,27 @@ export function button(attributes: Array<ViewAttribute>, children: Array<ViewChi
   return basicElement("button", attributes, children)
 }
 
+export function text(value: string): ViewChild {
+  return value
+}
+
+export type CssClassname = string
+
+class CssClasses {
+  type: "css-classes" = "css-classes"
+
+  constructor(public classObject: { [key: CssClassname]: boolean }) { }
+}
+
+export function cssClasses(classes: Array<CssClassname>): ViewAttribute {
+  const classObject: { [key: CssClassname]: boolean } = {}
+  for (const classname of classes) {
+    classObject[classname] = true
+  }
+
+  return new CssClasses(classObject)
+}
+
 class EventHandler {
   type: "event" = "event"
 
@@ -70,6 +95,7 @@ export function viewGenerator(viewState: State<View>): View {
         const patch = init([
           propsModule,
           attributesModule,
+          classModule,
           eventListenersModule
         ])
 
@@ -97,6 +123,7 @@ function makeAttributes(attributes: Array<ViewAttribute>): any {
   const dict: any = {
     props: {},
     attrs: {},
+    class: {},
     on: {}
   }
   for (const attr of attributes) {
@@ -106,6 +133,9 @@ function makeAttributes(attributes: Array<ViewAttribute>): any {
         break
       case "attribute":
         dict.attrs[attr.key] = attr.value
+        break
+      case "css-classes":
+        dict.class = Object.assign(dict.class, attr.classObject)
         break
       case "event":
         dict.on[attr.event] = function (evt: Event) {

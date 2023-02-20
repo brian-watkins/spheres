@@ -29,7 +29,7 @@ export default (context: Context<TestAppController>) => behavior("View Elements"
 
 function theElementExists(tag: string): Observation<TestAppController> {
   return effect(`there is a ${tag} element`, async (context) => {
-    const hasElement = await context.display.elementMatching(tag).exists()
+    const hasElement = await context.display.select(tag).exists()
     expect(hasElement, is(equalTo(true)))
   })
 }

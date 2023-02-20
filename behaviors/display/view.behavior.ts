@@ -14,7 +14,7 @@ const simpleViewBehavior = (context: Context<TestAppController>) =>
       ],
       observe: [
         effect("the initial data is rendered on the screen", async (controller) => {
-          const texts = await controller.display.elementsMatching("[data-person]").map((element) => element.text())
+          const texts = await controller.display.selectAll("[data-person]").map((element) => element.text())
           expect(texts, is(equalTo([
             "Cool Dude - 41",
             "Awesome Person - 28"
@@ -24,13 +24,13 @@ const simpleViewBehavior = (context: Context<TestAppController>) =>
     }).andThen({
       perform: [
         step("a new name is input", async (controller) => {
-          await controller.display.elementMatching("input").type("Fun Person")
-          await controller.display.elementMatching("button").click()
+          await controller.display.select("input").type("Fun Person")
+          await controller.display.select("button").click()
         })
       ],
       observe: [
         effect("the updated view is rendered", async (controller) => {
-          const texts = await controller.display.elementsMatching("[data-person]").map((element) => element.text())
+          const texts = await controller.display.selectAll("[data-person]").map((element) => element.text())
           expect(texts, is(equalTo([
             "Fun Person - 104",
           ])))
@@ -49,10 +49,10 @@ const nestedViewsBehavior = (context: Context<TestAppController>) =>
       ],
       observe: [
         effect("it displays the default name and age", async (controller) => {
-          const nameText = await controller.display.elementMatching("[data-name]").text()
+          const nameText = await controller.display.select("[data-name]").text()
           expect(nameText, is(stringContaining("hello")))
 
-          const ageText = await controller.display.elementMatching("[data-age]").text()
+          const ageText = await controller.display.select("[data-age]").text()
           expect(ageText, is(stringContaining("27")))
         })
       ]
@@ -60,16 +60,16 @@ const nestedViewsBehavior = (context: Context<TestAppController>) =>
     .andThen({
       perform: [
         step("the name state is updated", async (controller) => {
-          await controller.display.elementMatching("[data-name-input]").type("Fun Person")
+          await controller.display.select("[data-name-input]").type("Fun Person")
         })
       ],
       observe: [
         effect("the updated name is displayed", async (controller) => {
-          const nameText = await controller.display.elementMatching("[data-name]").text()
+          const nameText = await controller.display.select("[data-name]").text()
           expect(nameText, is(stringContaining("Fun Person")))
         }),
         effect("the age remains the same", async (controller) => {
-          const ageText = await controller.display.elementMatching("[data-age]").text()
+          const ageText = await controller.display.select("[data-age]").text()
           expect(ageText, is(stringContaining("27")))
         })
       ]
@@ -77,12 +77,12 @@ const nestedViewsBehavior = (context: Context<TestAppController>) =>
     .andThen({
       perform: [
         step("the age state is updated", async (controller) => {
-          await controller.display.elementMatching("[data-age-input]").type("33")
+          await controller.display.select("[data-age-input]").type("33")
         })
       ],
       observe: [
         effect("the updated age is displayed", async (controller) => {
-          const ageText = await controller.display.elementMatching("[data-age]").text()
+          const ageText = await controller.display.select("[data-age]").text()
           expect(ageText, is(stringContaining("33")))
         })
       ]
@@ -90,12 +90,12 @@ const nestedViewsBehavior = (context: Context<TestAppController>) =>
     .andThen({
       perform: [
         step("the nested view is removed", async (controller) => {
-          await controller.display.elementMatching("[data-name-input]").type("AGELESS PERSON", { clear: true })
+          await controller.display.select("[data-name-input]").type("AGELESS PERSON", { clear: true })
         })
       ],
       observe: [
         effect("the age is not present", async (controller) => {
-          const ageExists = await controller.display.elementMatching("[data-age]").exists()
+          const ageExists = await controller.display.select("[data-age]").exists()
           expect(ageExists, is(equalTo(false)))
         })
       ]
@@ -103,16 +103,16 @@ const nestedViewsBehavior = (context: Context<TestAppController>) =>
     .andThen({
       perform: [
         step("the nested view is recreated", async (controller) => {
-          await controller.display.elementMatching("[data-name-input]").type("FUNNY PERSON", { clear: true })
+          await controller.display.select("[data-name-input]").type("FUNNY PERSON", { clear: true })
         })
       ],
       observe: [
         effect("the updated name is displayed", async (controller) => {
-          const nameText = await controller.display.elementMatching("[data-name]").text()
+          const nameText = await controller.display.select("[data-name]").text()
           expect(nameText, is(stringContaining("FUNNY PERSON")))
         }),
         effect("the age is present once again with the current state", async (controller) => {
-          const ageText = await controller.display.elementMatching("[data-age]").text()
+          const ageText = await controller.display.select("[data-age]").text()
           expect(ageText, is(stringContaining("33")))
         })
       ]

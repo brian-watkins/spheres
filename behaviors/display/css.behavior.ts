@@ -14,11 +14,11 @@ export default (context: Context<TestAppController>) => behavior("css attributes
       ],
       observe: [
         effect("the main view has the expected css", async (controller) => {
-          const classes = await controller.display.elementMatching("h1").classes()
+          const classes = await controller.display.select("h1").classes()
           expect(classes, is(equalTo(["super-title"])))
         }),
         effect("the odd css class is present", async (controller) => {
-          const classes = await controller.display.elementMatching("#cool-stuff").classes()
+          const classes = await controller.display.select("#cool-stuff").classes()
           expect(classes, is(equalTo([
             "zoom",
             "odd"
@@ -29,12 +29,12 @@ export default (context: Context<TestAppController>) => behavior("css attributes
     .andThen({
       perform: [
         step("the state is updated", async (controller) => {
-          await controller.display.elementMatching("[data-number-input]").type("24", { clear: true })
+          await controller.display.select("[data-number-input]").type("24", { clear: true })
         })
       ],
       observe: [
         effect("the css class list is updated", async (controller) => {
-          const classes = await controller.display.elementMatching("#cool-stuff").classes()
+          const classes = await controller.display.select("#cool-stuff").classes()
           expect(classes, is(equalTo([
             "zoom",
             "even"

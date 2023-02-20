@@ -29,11 +29,11 @@ export class TestAppController {
 class TestAppDisplay {
   constructor(private page: Page) {}
 
-  elementMatching(selector: string): DisplayElement {
+  select(selector: string): DisplayElement {
     return new DisplayElement(this.page.locator(selector))
   }
 
-  elementsMatching(selector: string): DisplayElementList {
+  selectAll(selector: string): DisplayElementList {
     return new DisplayElementList(this.page.locator(selector))
   }
 }

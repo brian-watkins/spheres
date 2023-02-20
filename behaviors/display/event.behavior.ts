@@ -14,14 +14,14 @@ export default (context: Context<TestAppController>) => behavior("view events", 
       ],
       perform: [
         step("the button is clicked three times", async (controller) => {
-          await controller.display.elementMatching("button").click()
-          await controller.display.elementMatching("button").click()
-          await controller.display.elementMatching("button").click()
+          await controller.display.select("button").click()
+          await controller.display.select("button").click()
+          await controller.display.select("button").click()
         })
       ],
       observe: [
         effect("the click counter is updated", async (context) => {
-          const counterText = await context.display.elementMatching("[data-click-count]").text()
+          const counterText = await context.display.select("[data-click-count]").text()
           expect(counterText, is(stringContaining("3 times")))
         })
       ]

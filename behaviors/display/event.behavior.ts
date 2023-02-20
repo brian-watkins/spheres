@@ -1,0 +1,29 @@
+import { behavior, Context, effect, example, fact, step } from "esbehavior";
+import { expect, is, stringContaining } from "great-expectations";
+import { TestAppController } from "./helpers/testAppController.js";
+
+
+export default (context: Context<TestAppController>) => behavior("view events", [
+  example(context)
+    .description("counting clicks with local state")
+    .script({
+      suppose: [
+        fact("there is a view that depends on click count", async (controller) => {
+          await controller.loadApp("clickCounter.app")
+        })
+      ],
+      perform: [
+        step("the button is clicked three times", async (controller) => {
+          await controller.display.elementMatching("button").click()
+          await controller.display.elementMatching("button").click()
+          await controller.display.elementMatching("button").click()
+        })
+      ],
+      observe: [
+        effect("the click counter is updated", async (context) => {
+          const counterText = await context.display.elementMatching("[data-click-count]").text()
+          expect(counterText, is(stringContaining("3 times")))
+        })
+      ]
+    })
+])

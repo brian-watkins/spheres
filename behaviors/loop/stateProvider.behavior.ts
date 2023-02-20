@@ -1,9 +1,9 @@
 import { behavior, effect, example, fact, step } from "esbehavior";
 import { arrayWith, arrayWithItemAt, equalTo, expect, is, Matcher, objectWith, objectWithProperty } from "great-expectations";
-import { Container, Provider, State } from "../src/loop";
-import { testSubscriberContext } from "./helpers/testSubscriberContext";
-import { TestProvidedState, TestProvider } from "./helpers/testProvider";
-import { container, state, useProvider, withInitialValue } from "../src";
+import { Container, Provider, State } from "@src/loop.js";
+import { testSubscriberContext } from "./helpers/testSubscriberContext.js";
+import { TestProvidedState, TestProvider } from "./helpers/testProvider.js";
+import { container, state, useProvider, withInitialValue } from "@src/index.js";
 
 interface ProvidedValueContext {
   receiver: State<TestProvidedState<string>>

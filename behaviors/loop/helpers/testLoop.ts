@@ -1,5 +1,5 @@
-import { loop } from "../../src";
-import { Loop, Container, writeMessage } from "../../src/loop";
+import { loop } from "../../../src";
+import { Loop, Container, writeMessage } from "../../../src/loop";
 
 export class TestLoop<S> {
   private stateDescription: S | undefined

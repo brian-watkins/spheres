@@ -1,9 +1,9 @@
 import { behavior, effect, example, fact, step } from "esbehavior";
 import { equalTo, expect, is, stringContaining } from "great-expectations";
-import { container, state, withDerivedValue, withInitialValue } from "../src";
-import { Container, State } from "../src/loop";
-import * as View from "../src/display"
-import { testAppContext } from "./helpers/testApp";
+import { container, state, withDerivedValue, withInitialValue } from "@src/index.js";
+import { Container, State } from "@src/loop.js";
+import * as View from "@src/display/index.js"
+import { testAppContext } from "./helpers/testApp.js";
 
 
 interface TestData {

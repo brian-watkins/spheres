@@ -1,8 +1,8 @@
 import { behavior, effect, example, fact, step } from "esbehavior";
 import { equalTo, expect, is } from "great-expectations";
-import { container, withInitialValue } from "../src";
-import { Container } from "../src/loop";
-import { testSubscriberContext } from "./helpers/testSubscriberContext";
+import { container, withInitialValue } from "@src/index.js";
+import { Container } from "@src/loop.js";
+import { testSubscriberContext } from "./helpers/testSubscriberContext.js";
 
 interface BasicUnsubscribeContext {
   numberContainer: Container<number>

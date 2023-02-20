@@ -1,8 +1,8 @@
 import { behavior, effect, example, fact, step } from "esbehavior";
-import { Container, State } from "../src/loop";
+import { Container, State } from "@src/loop.js";
 import { arrayWithItemAt, equalTo, expect, is } from "great-expectations"
-import { TestSubscriberContext, testSubscriberContext } from "./helpers/testSubscriberContext";
-import { container, state, withDerivedValue, withInitialValue } from "../src";
+import { TestSubscriberContext, testSubscriberContext } from "./helpers/testSubscriberContext.js";
+import { container, state, withDerivedValue, withInitialValue } from "@src/index.js";
 
 interface SingleContainer {
   container: Container<string>

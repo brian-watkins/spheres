@@ -1,9 +1,9 @@
 import { behavior, effect, example, fact, step } from "esbehavior";
 import { arrayWith, assignedWith, equalTo, expect, is, Matcher, objectWith } from "great-expectations";
-import { container, useWriter, withInitialValue } from "../src";
-import { Container } from "../src/loop";
-import { testSubscriberContext } from "./helpers/testSubscriberContext";
-import { TestWritable, testWriteMessage, TestWriter } from "./helpers/testWriter";
+import { container, useWriter, withInitialValue } from "@src/index.js";
+import { Container } from "@src/loop.js";
+import { testSubscriberContext } from "./helpers/testSubscriberContext.js";
+import { TestWritable, testWriteMessage, TestWriter } from "./helpers/testWriter.js";
 
 interface ContainerWithWriterContext {
   container: Container<TestWritable<string>>

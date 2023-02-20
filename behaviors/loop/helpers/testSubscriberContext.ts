@@ -1,5 +1,5 @@
 import { Context } from "esbehavior";
-import { State } from "../../src/loop";
+import { State } from "../../../src/loop";
 import { TestLoop } from "./testLoop";
 
 export function testSubscriberContext<S>(): Context<TestSubscriberContext<S>> {

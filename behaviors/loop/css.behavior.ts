@@ -1,8 +1,8 @@
 import { behavior, effect, example, fact, step } from "esbehavior";
-import { container, state, withDerivedValue, withInitialValue } from "../src";
-import { Container, State } from "../src/loop";
-import { testAppContext } from "./helpers/testApp";
-import * as Html from "../src/display/view"
+import { container, state, withDerivedValue, withInitialValue } from "@src/index.js";
+import { Container, State } from "@src/loop.js";
+import { testAppContext } from "./helpers/testApp.js";
+import * as Html from "@src/display/index.js"
 import { equalTo, expect, is } from "great-expectations";
 
 interface CssAppState {

@@ -1,12 +1,16 @@
 import { createServer } from "vite"
 import { chromium } from "playwright"
+import tsConfigPaths from "vite-tsconfig-paths"
 
 const serverPort = 5957
 
 const server = await createServer({
   server: {
     port: serverPort
-  }
+  },
+  plugins: [
+    tsConfigPaths()
+  ]
 })
 
 await server.listen()
@@ -19,7 +23,7 @@ const page = await browser.newPage()
 page.on("console", (message) => console.log(fixStackTrace(message.text())))
 page.on("pageerror", console.log)
 
-await page.goto(`http://localhost:${serverPort}/behaviors/index.html`)
+await page.goto(`http://localhost:${serverPort}/behaviors/loop/index.html`)
 
 const summary = await page.evaluate(() => window.validateBehaviors())
 

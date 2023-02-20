@@ -16,7 +16,11 @@ class Attribute {
   constructor(public key: string, public value: string) { }
 }
 
-export type ViewAttribute = Property | Attribute | EventHandler | CssClasses //| NullViewAttribute
+class NoAttribute {
+  type: "no-attribute" = "no-attribute"
+}
+
+export type ViewAttribute = Property | Attribute | EventHandler | CssClasses | NoAttribute
 
 export function property(name: string, value: string): ViewAttribute {
   return new Property(name, value)
@@ -32,6 +36,10 @@ export function data(name: string, value: string = ""): ViewAttribute {
 
 export function value(value: string): ViewAttribute {
   return new Attribute("value", value)
+}
+
+export function disabled(isDisabled: boolean): ViewAttribute {
+  return isDisabled ? new Attribute("disabled", "") : new NoAttribute()
 }
 
 export function element(tag: string, attributes: Array<ViewAttribute>, children: Array<ViewChild>) {
@@ -175,6 +183,8 @@ function makeAttributes(attributes: Array<ViewAttribute>): any {
             detail: attr.generator(evt)
           }))
         }
+        break
+      case "no-attribute":
         break
       default:
         exhaustiveMatchGuard(attr)

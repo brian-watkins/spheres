@@ -11,10 +11,10 @@ export function testAppContext(page: Page): Context<TestAppController> {
 export class TestAppController {
   constructor(private page: Page) {}
 
-  async loadApp(appName: string) {
-    await this.page.evaluate((scriptName) => {
-      return window.esdisplay_testApp.startApp(scriptName)
-    }, appName)
+  async loadApp<T>(appName: string, context?: T) {
+    await this.page.evaluate(({ appName, context }) => {
+      return window.esdisplay_testApp.startApp(appName, context)
+    }, { appName, context })
   }
 
   async destroyApp() {
@@ -80,5 +80,17 @@ class DisplayElement {
   async exists(): Promise<boolean> {
     const count = await this.locator.count()
     return count > 0
+  }
+
+  async attribute(name: string): Promise<string | undefined> {
+    const attr = await this.locator.first().getAttribute(name)
+    if (attr === null) {
+      return undefined
+    }
+    return attr
+  }
+
+  async isDisabled(): Promise<boolean> {
+    return this.locator.first().isDisabled({ timeout: 200 })
   }
 }

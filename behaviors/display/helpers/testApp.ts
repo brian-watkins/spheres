@@ -4,9 +4,10 @@ import { loop } from "@src/index.js"
 export class TestApp {
   private appDisplay: Display | undefined
 
-  async startApp(name: string) {
+  async startApp<T>(name: string, context?: T) {
+    loop().reset()
     const viewConfiguration = await import(`../fixtures/${name}.ts`)
-    const view = viewConfiguration.default()
+    const view = viewConfiguration.default(context)
     this.appDisplay = new Display(loop(), view)
     this.appDisplay.mount(document.querySelector("#test-display")!)
   }

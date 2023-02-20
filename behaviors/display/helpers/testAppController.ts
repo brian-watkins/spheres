@@ -72,6 +72,11 @@ class DisplayElement {
     return this.locator.first().innerText({ timeout: 200 })
   }
 
+  async classes(): Promise<Array<string>> {
+    const attr = await this.locator.first().getAttribute("class", { timeout: 200 })
+    return attr ? attr.split(" ") : []
+  }
+
   async exists(): Promise<boolean> {
     const count = await this.locator.count()
     return count > 0

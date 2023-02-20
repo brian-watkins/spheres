@@ -16,8 +16,10 @@ export default (context: Context<TestAppController>) => behavior("View Elements"
         theElementExists("ARTICLE"),
         theElementExists("P"),
         theElementExists("H1"),
+        theElementExists("HR"),
         theElementExists("UL"),
         theElementExists("LI"),
+        theElementExists("INPUT"),
         theElementExists("BUTTON"),
         theElementExists("some-custom-element"),
         theElementExists("TEXTAREA")

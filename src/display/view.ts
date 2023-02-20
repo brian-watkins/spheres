@@ -18,12 +18,20 @@ class Attribute {
 
 export type ViewAttribute = Property | Attribute | EventHandler | CssClasses //| NullViewAttribute
 
+export function property(name: string, value: string): ViewAttribute {
+  return new Property(name, value)
+}
+
 export function id(value: string): ViewAttribute {
   return new Property("id", value)
 }
 
 export function data(name: string, value: string = ""): ViewAttribute {
   return new Attribute(`data-${name}`, value)
+}
+
+export function value(value: string): ViewAttribute {
+  return new Attribute("value", value)
 }
 
 export function element(tag: string, attributes: Array<ViewAttribute>, children: Array<ViewChild>) {
@@ -36,6 +44,10 @@ export function div(attributes: Array<ViewAttribute>, children: Array<ViewChild>
 
 export function h1(attributes: Array<ViewAttribute>, children: Array<ViewChild>): View {
   return element("h1", attributes, children)
+}
+
+export function hr(attributes: Array<ViewAttribute>, children: Array<ViewChild>): View {
+  return element("hr", attributes, children)
 }
 
 export function article(attributes: Array<ViewAttribute>, children: Array<ViewChild>): View {
@@ -54,8 +66,16 @@ export function li(attributes: Array<ViewAttribute>, children: Array<ViewChild>)
   return element("li", attributes, children)
 }
 
+export function input(attributes: Array<ViewAttribute>, children: Array<ViewChild>): View {
+  return element("input", attributes, children)
+}
+
 export function button(attributes: Array<ViewAttribute>, children: Array<ViewChild>): View {
   return element("button", attributes, children)
+}
+
+export function textarea(attributes: Array<ViewAttribute>, children: Array<ViewChild>): View {
+  return element("textarea", attributes, children)
 }
 
 export function text(value: string): ViewChild {
@@ -87,6 +107,12 @@ class EventHandler {
 
 export function onClick<M extends LoopMessage<any>>(message: M): ViewAttribute {
   return new EventHandler("click", () => message)
+}
+
+export function onInput<M extends LoopMessage<any>>(generator: (value: string) => M): ViewAttribute {
+  return new EventHandler("input", (evt) => {
+    return generator((<HTMLInputElement>evt.target)?.value)
+  })
 }
 
 export type ViewGenerator = (parent: View) => View

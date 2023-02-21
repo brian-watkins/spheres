@@ -2,8 +2,8 @@ export interface State<T> {
   subscribe(notify: (updatedState: T) => void): () => void
 }
 
-export interface Container<T> extends State<T> {
-  _containerBrand: any
+export interface Container<T, M = T> extends State<T> {
+  _containerBrand: any | M
 }
 
 export interface Provider {
@@ -14,16 +14,16 @@ export interface Writer<T> {
   write(value: T, get: <S>(state: State<S>) => S, set: (value: T) => void): void 
 }
 
-export type LoopMessage<T> = WriteValueMessage<T>
+export type LoopMessage<T, M = T> = WriteValueMessage<T, M>
 
 export class Loop {
-  private registry = new WeakMap<State<any>, MetaContainer<any>>()
+  private registry = new WeakMap<State<any>, ContainerController<any>>()
 
   registerProvider(provider: Provider) {
     const queryDependencies = new Set<State<any>>()
 
     const set = <Q>(state: State<Q>, value: Q) => {
-      this.registry.get(state)?.refreshValue(value)
+      this.registry.get(state)?.updateValue(value)
     }
 
     const get = <S>(state: State<S>) => {
@@ -39,16 +39,23 @@ export class Loop {
   }
 
   registerWriter<Q>(container: Container<Q>, writer: Writer<Q>) {
-    this.registry.get(container)?.setWriter(writer)
+    const controller = this.registry.get(container)
+    if (controller) {
+      controller.setWriter((value) => {
+        writer.write(value, (state) => this.registry.get(state)?.value, (value) => {
+          controller.updateValue(value)
+        })
+      })
+    }
   }
 
-  createContainer<T>(initialState: T): Container<T> {
+  createContainer<T, M>(initialState: T, update: (message: M, current: T) => T): Container<T, M> {
     const self = this
     const container = new BasicContainer<T>(function (this: BasicContainer<T>) {
       return self.registry.get(this)?.value
     })
 
-    this.registry.set(container, new MetaContainer(container, initialState, (state) => this.registry.get(state)?.value))
+    this.registry.set(container, new ContainerController(container, initialState, update))
 
     return container
   }
@@ -62,38 +69,34 @@ export class Loop {
       if (!dependencies.has(state)) {
         dependencies.add(state)
         this.registry.get(state)?.addDependent(() => {
-          this.registry.get(container)?.refreshValue(derivation(get))
+          this.registry.get(container)?.updateValue(derivation(get))
         })
       }
       return this.registry.get(state)?.value
     }
 
-    container = this.createContainer(derivation(get))
+    container = this.createContainer(derivation(get), (val) => val)
 
     return container
   }
 
-  dispatch<T>(message: LoopMessage<T>) {
+  dispatch<T, M>(message: LoopMessage<T, M>) {
     this.registry.get(message.state)?.writeValue(message.value)
   }
 
   reset() {
-    this.registry = new WeakMap<State<any>, MetaContainer<any>>()
+    this.registry = new WeakMap<State<any>, ContainerController<any>>()
   }
 }
 
-class MetaContainer<S> {
-  private writer = (value: S) => this.refreshValue(value)
+class ContainerController<S> {
+  private writer = (value: S) => this.updateValue(value)
   private dependents = new Set<(value: S) => void>()
   
-  constructor(private container: BasicContainer<S>, private _value: S, private get: <Q>(state: State<Q>) => Q) {}
+  constructor(private container: BasicContainer<S>, private _value: S, private update: (message: any, current: S) => S) {}
 
-  setWriter(writer: Writer<S>) {
-    this.writer = (value) => {
-      writer.write(value, this.get, (value) => {
-        this.refreshValue(value)
-      })
-    }
+  setWriter(writer: (value: S) => void) {
+    this.writer = writer
   }
 
   addDependent(notifier: (value: S) => void) {
@@ -104,10 +107,10 @@ class MetaContainer<S> {
     return this._value
   }
 
-  refreshValue(value: S) {
-    this._value = value
-    this.dependents.forEach(notify => notify(value))
-    this.container.notifySubscribers(value)
+  updateValue(value: S) {
+    this._value = this.update(value, this._value)
+    this.dependents.forEach(notify => notify(this._value))
+    this.container.notifySubscribers(this._value)
   }
 
   writeValue(value: S) {
@@ -135,13 +138,13 @@ class BasicContainer<T> implements Container<T> {
   }
 }
 
-export interface WriteValueMessage<T> {
+export interface WriteValueMessage<T, M> {
   type: "write"
-  value: T
+  value: M
   state: State<T>
 }
 
-export function writeMessage<T>(container: Container<T>, value: T): WriteValueMessage<T> {
+export function writeMessage<T, M>(container: Container<T, M>, value: M): WriteValueMessage<T, M> {
   return {
     type: "write",
     value,

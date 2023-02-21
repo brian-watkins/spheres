@@ -2,18 +2,18 @@ import { Container, Loop, Provider, State, Writer } from "./loop.js"
 export { Loop } from "./loop.js"
 export type { Container, State, Provider, Writer } from "./loop.js"
 
-interface ContainerInitializer<T> extends StateInitializer<T> {
-  initialize(loop: Loop): Container<T>
+export interface ContainerInitializer<T, M = T> extends StateInitializer<T> {
+  initialize(loop: Loop): Container<T, M>
 }
 
-interface StateInitializer<T> {
+export interface StateInitializer<T> {
   initialize(loop: Loop): State<T>
 }
 
 export function withInitialValue<T>(value: T): ContainerInitializer<T> {
   return {
     initialize: (loop) => {
-      return loop.createContainer(value)
+      return loop.createContainer(value, (val) => val)
     }
   }
 }

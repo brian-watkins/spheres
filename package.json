@@ -16,6 +16,10 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
+    "./collection": {
+      "types": "./dist/collection/index.d.ts",
+      "import": "./dist/collection/index.js"
+    },
     "./display": {
       "types": "./dist/display/index.d.ts",
       "import": "./dist/display/index.js"

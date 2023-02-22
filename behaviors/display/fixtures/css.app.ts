@@ -1,6 +1,5 @@
-import { container, state, withDerivedValue, withInitialValue } from "@src/index.js"
+import { container, state, withDerivedValue, withInitialValue, writeMessage } from "@src/index.js"
 import * as View from "@src/display/index.js"
-import { writeMessage } from "@src/loop"
 
 const numberState = container(withInitialValue(17))
 

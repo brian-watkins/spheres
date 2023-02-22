@@ -1,4 +1,4 @@
-import { Container, State, Writer, WriteValueMessage } from "../../../src/loop"
+import { Container, State, Writer, WriteValueMessage } from "@src/loop.js"
 
 interface TestUnknown {
   type: "write-unknown"

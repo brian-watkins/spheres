@@ -1,5 +1,5 @@
-import { Container, LoopMessage, writeMessage } from "../loop"
-import { ContainerInitializer } from "../index.js"
+import { Container, LoopMessage } from "../loop"
+import { ContainerInitializer, writeMessage } from "../index.js"
 
 export interface Collection<T> {
   items: Array<T>

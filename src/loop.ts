@@ -14,6 +14,12 @@ export interface Writer<T> {
   write(value: T, get: <S>(state: State<S>) => S, set: (value: T) => void): void 
 }
 
+export interface WriteValueMessage<T, M = T> {
+  type: "write"
+  value: M
+  state: State<T>
+}
+
 export type LoopMessage<T, M = T> = WriteValueMessage<T, M>
 
 export class Loop {
@@ -135,19 +141,5 @@ class BasicContainer<T> implements Container<T> {
     return () => {
       this.subscribers.delete(notify)
     }
-  }
-}
-
-export interface WriteValueMessage<T, M> {
-  type: "write"
-  value: M
-  state: State<T>
-}
-
-export function writeMessage<T, M>(container: Container<T, M>, value: M): WriteValueMessage<T, M> {
-  return {
-    type: "write",
-    value,
-    state: container
   }
 }

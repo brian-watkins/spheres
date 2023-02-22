@@ -1,6 +1,5 @@
 import * as View from "@src/display/index.js"
-import { container, state, withDerivedValue, withInitialValue } from "@src/index.js"
-import { writeMessage } from "@src/loop"
+import { container, state, withDerivedValue, withInitialValue, writeMessage } from "@src/index.js"
 
 const peopleState = container(withInitialValue([
   { name: "Cool Dude", age: 41 },

@@ -1,4 +1,4 @@
-import { Container, Loop, Provider, State, Writer } from "./loop.js"
+import { Container, Loop, Provider, State, Writer, WriteValueMessage } from "./loop.js"
 export { Loop } from "./loop.js"
 export type { Container, State, Provider, Writer } from "./loop.js"
 
@@ -46,4 +46,12 @@ export function useProvider(provider: Provider) {
 
 export function useWriter<T>(container: Container<T>, writer: Writer<T>) {
   loop().registerWriter(container, writer)
+}
+
+export function writeMessage<T, M>(container: Container<T, M>, value: M): WriteValueMessage<T, M> {
+  return {
+    type: "write",
+    value,
+    state: container
+  }
 }

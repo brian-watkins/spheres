@@ -6,7 +6,7 @@ import { testSubscriberContext } from "./helpers/testSubscriberContext.js";
 
 interface BasicRuleContext {
   numberContainer: Container<number>,
-  incrementModThreeRule: Rule<number, number>
+  incrementModThreeRule: Rule<number>
 }
 
 const basicRule =
@@ -53,7 +53,7 @@ const basicRule =
 
 interface RuleWithInputContext {
   numberContainer: Container<number>
-  incrementRule: Rule<number, number, number>
+  incrementRule: Rule<number, number>
 }
 
 const ruleWithInput =
@@ -63,7 +63,7 @@ const ruleWithInput =
       suppose: [
         fact("there is a rule", (context) => {
           const numberContainer = container(withInitialValue(1))
-          const incrementRule: Rule<number, number, number> = rule(numberContainer, (get, value) => {
+          const incrementRule = rule(numberContainer, (get, value: number) => {
             return get(numberContainer) + value
           })
           context.setState({

@@ -11,7 +11,12 @@ export interface Provider {
 }
 
 export interface Writer<T> {
-  write(value: T, get: <S>(state: State<S>) => S, set: (value: T) => void): void 
+  write(value: T, get: <S>(state: State<S>) => S, set: (value: T) => void): void
+}
+
+export interface Rule<T, M, Q = undefined> {
+  readonly container: Container<T, M>
+  readonly apply: (get: <S>(state: State<S>) => S, input: Q) => M
 }
 
 export interface WriteValueMessage<T, M = T> {
@@ -20,7 +25,13 @@ export interface WriteValueMessage<T, M = T> {
   state: State<T>
 }
 
-export type LoopMessage<T, M = T> = WriteValueMessage<T, M>
+export interface TriggerRuleMessage<T, M> {
+  type: "trigger"
+  rule: Rule<T, M, any>
+  input: any
+}
+
+export type LoopMessage<T, M = T> = WriteValueMessage<T, M> | TriggerRuleMessage<T, M>
 
 export class Loop {
   private registry = new WeakMap<State<any>, ContainerController<any>>()
@@ -87,7 +98,16 @@ export class Loop {
   }
 
   dispatch<T, M>(message: LoopMessage<T, M>) {
-    this.registry.get(message.state)?.writeValue(message.value)
+    switch (message.type) {
+      case "write":
+        this.registry.get(message.state)?.writeValue(message.value)
+        break
+      case "trigger":
+        const result = message.rule.apply((state) => this.registry.get(state)?.value, message.input)
+        this.registry.get(message.rule.container)?.writeValue(result)
+        break
+    }
+
   }
 
   reset() {
@@ -98,8 +118,8 @@ export class Loop {
 class ContainerController<S> {
   private writer = (value: S) => this.updateValue(value)
   private dependents = new Set<(value: S) => void>()
-  
-  constructor(private container: BasicContainer<S>, private _value: S, private update: (message: any, current: S) => S) {}
+
+  constructor(private container: BasicContainer<S>, private _value: S, private update: (message: any, current: S) => S) { }
 
   setWriter(writer: (value: S) => void) {
     this.writer = writer

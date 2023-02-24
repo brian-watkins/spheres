@@ -1,4 +1,4 @@
-import { Container, Loop, Provider, State, Writer, WriteValueMessage } from "./loop.js"
+import { Container, Loop, Provider, Rule, State, TriggerRuleMessage, Writer, WriteValueMessage } from "./loop.js"
 export { Loop } from "./loop.js"
 export type { Container, State, Provider, Writer } from "./loop.js"
 
@@ -40,6 +40,13 @@ export function state<T>(initializer: StateInitializer<T>): State<T> {
   return initializer.initialize(loop())
 }
 
+export function rule<T, M, Q>(container: Container<T, M>, definition: (get: <S>(state: State<S>) => S, inputValue: Q) => M): Rule<T, M, Q> {
+  return {
+    container,
+    apply: definition
+  }
+}
+
 export function useProvider(provider: Provider) {
   loop().registerProvider(provider)
 }
@@ -53,5 +60,15 @@ export function writeMessage<T, M>(container: Container<T, M>, value: M): WriteV
     type: "write",
     value,
     state: container
+  }
+}
+
+type TriggerInputArg<Q> = Q extends undefined ? [] : [Q]
+
+export function trigger<T, M, Q = undefined>(rule: Rule<T, M, Q>, ...input: TriggerInputArg<Q>): TriggerRuleMessage<T, M> {
+  return {
+    type: "trigger",
+    rule,
+    input: input.length === 0 ? undefined : input[0]
   }
 }

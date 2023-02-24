@@ -14,7 +14,7 @@ export interface Writer<T> {
   write(value: T, get: <S>(state: State<S>) => S, set: (value: T) => void): void
 }
 
-export interface Rule<ContainerContents, RuleArgument = undefined, ContainerMessage = ContainerContents> {
+export interface Rule<ContainerContents, ContainerMessage = ContainerContents, RuleArgument = undefined> {
   readonly container: Container<ContainerContents, ContainerMessage>
   readonly apply: (get: <S>(state: State<S>) => S, input: RuleArgument) => ContainerMessage
 }
@@ -27,7 +27,7 @@ export interface WriteValueMessage<T, M = T> {
 
 export interface TriggerRuleMessage<T, M> {
   type: "trigger"
-  rule: Rule<T, any, M>
+  rule: Rule<T, M, any>
   input: any
 }
 

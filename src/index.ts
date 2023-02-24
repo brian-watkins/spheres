@@ -40,7 +40,7 @@ export function state<T>(initializer: StateInitializer<T>): State<T> {
   return initializer.initialize(loop())
 }
 
-export function rule<T, Q = undefined, M = T>(container: Container<T, M>, definition: (get: <S>(state: State<S>) => S, inputValue: Q) => M): Rule<T, Q, M> {
+export function rule<T, M = T, Q = undefined>(container: Container<T, M>, definition: (get: <S>(state: State<S>) => S, inputValue: Q) => M): Rule<T, M, Q> {
   return {
     container,
     apply: definition
@@ -65,7 +65,7 @@ export function writeMessage<T, M>(container: Container<T, M>, value: M): WriteV
 
 type TriggerInputArg<Q> = Q extends undefined ? [] : [Q]
 
-export function trigger<T, Q, M>(rule: Rule<T, Q, M>, ...input: TriggerInputArg<Q>): TriggerRuleMessage<T, M> {
+export function trigger<T, M, Q>(rule: Rule<T, M, Q>, ...input: TriggerInputArg<Q>): TriggerRuleMessage<T, M> {
   return {
     type: "trigger",
     rule,

@@ -53,7 +53,7 @@ const basicRule =
 
 interface RuleWithInputContext {
   numberContainer: Container<number>
-  incrementRule: Rule<number, number, number>
+  incrementRule: Rule<number, number>
 }
 
 const ruleWithInput =

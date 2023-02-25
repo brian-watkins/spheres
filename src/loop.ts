@@ -14,8 +14,8 @@ export interface Writer<T> {
   write(value: T, get: <S>(state: State<S>) => S, set: (value: T) => void): void
 }
 
-export interface Rule<ContainerContents, ContainerMessage = ContainerContents, RuleArgument = undefined> {
-  readonly container: Container<ContainerContents, ContainerMessage>
+export interface Rule<ContainerMessage, RuleArgument = undefined> {
+  readonly container: Container<any, ContainerMessage>
   readonly apply: (get: <S>(state: State<S>) => S, input: RuleArgument) => ContainerMessage
 }
 
@@ -25,13 +25,13 @@ export interface WriteValueMessage<T, M = T> {
   state: State<T>
 }
 
-export interface TriggerRuleMessage<T, M> {
+export interface TriggerRuleMessage<M> {
   type: "trigger"
-  rule: Rule<T, M, any>
+  rule: Rule<M, any>
   input: any
 }
 
-export type LoopMessage<T, M = T> = WriteValueMessage<T, M> | TriggerRuleMessage<T, M>
+export type LoopMessage<T, M = T> = WriteValueMessage<T, M> | TriggerRuleMessage<M>
 
 export class Loop {
   private registry = new WeakMap<State<any>, ContainerController<any>>()

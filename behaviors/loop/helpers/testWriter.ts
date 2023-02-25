@@ -39,6 +39,6 @@ export function testWriteMessage<T>(container: Container<TestWritable<T>>, value
   return {
     type: "write",
     value,
-    state: container
+    container
   }
 }

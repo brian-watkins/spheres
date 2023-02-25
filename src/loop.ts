@@ -22,7 +22,7 @@ export interface Rule<ContainerMessage, RuleArgument = undefined> {
 export interface WriteValueMessage<T, M = T> {
   type: "write"
   value: M
-  state: State<T>
+  container: Container<T, M>
 }
 
 export interface TriggerRuleMessage<M> {
@@ -100,7 +100,7 @@ export class Loop {
   dispatch<T, M>(message: LoopMessage<T, M>) {
     switch (message.type) {
       case "write":
-        this.registry.get(message.state)?.writeValue(message.value)
+        this.registry.get(message.container)?.writeValue(message.value)
         break
       case "trigger":
         const result = message.rule.apply((state) => this.registry.get(state)?.value, message.input)

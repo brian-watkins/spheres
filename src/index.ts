@@ -59,7 +59,7 @@ export function writeMessage<T, M>(container: Container<T, M>, value: M): WriteV
   return {
     type: "write",
     value,
-    state: container
+    container
   }
 }
 

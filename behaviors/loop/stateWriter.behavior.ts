@@ -141,7 +141,7 @@ const writerThatUsesOtherState =
     }).andThen({
       perform: [
         step("the user id state changes", (context) => {
-          context.updateState(context.state.userIdState, 41)
+          context.write(context.state.userIdState, 41)
         }),
         step("the write completes", (context) => {
           context.state.writer.resolveWith?.({ type: "write-ok", value: "wrote-hello" })

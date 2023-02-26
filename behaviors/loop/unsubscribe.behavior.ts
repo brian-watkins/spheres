@@ -30,7 +30,7 @@ export default behavior("unsubscribe from state", [
           context.unsubscribe("sub-one")
         }),
         step("the container value is updated", (context) => {
-          context.updateState(context.state.numberContainer, 27)
+          context.write(context.state.numberContainer, 27)
         })
       ],
       observe: [

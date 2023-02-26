@@ -1,17 +1,17 @@
-import { container, state, withDerivedValue, withInitialValue, writeMessage } from "@src/index.js"
+import { container, state, withInitialValue, writeMessage } from "@src/index.js"
 import * as View from "@src/display/index.js"
 
 const nameState = container(withInitialValue("hello"))
 
 const ageState = container(withInitialValue(27))
 
-const ageView = state(withDerivedValue((get) => {
+const ageView = state((get) => {
   return View.p([View.data("age")], [
     `My age is: ${get(ageState)}`
   ])
-}))
+})
 
-const nameView = state(withDerivedValue((get) => {
+const nameView = state((get) => {
   const name = get(nameState)
   let children = [
     View.p([View.data("name")], [
@@ -22,7 +22,7 @@ const nameView = state(withDerivedValue((get) => {
     children.push(View.viewGenerator(ageView))
   }
   return View.div([], children)
-}))
+})
 
 
 export default function(): View.View {

@@ -5,6 +5,7 @@ import stateBehavior from "./state.behavior"
 import unsubscribeBehavior from "./unsubscribe.behavior"
 import collectionBehavior from "./collection.behavior"
 import ruleBehavior from "./rule.behavior"
+import updateContainerBehavior from "./updateContainer.behavior"
 
 window.validateBehaviors = () => {
   return validate([
@@ -13,6 +14,7 @@ window.validateBehaviors = () => {
     stateWriterBehavior,
     ruleBehavior,
     unsubscribeBehavior,
+    updateContainerBehavior,
     collectionBehavior
   ], { failFast: true })
 }

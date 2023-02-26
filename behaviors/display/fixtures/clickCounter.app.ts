@@ -1,9 +1,9 @@
-import { container, state, withDerivedValue, withInitialValue, writeMessage } from "@src/index.js"
+import { container, state, withInitialValue, writeMessage } from "@src/index.js"
 import * as View from "@src/display/index.js"
 
 const clickCount = container(withInitialValue(0))
 
-const clickCounterView = state(withDerivedValue((get) => {
+const clickCounterView = state((get) => {
   return View.div([], [
     View.button([
       View.onClick(writeMessage(clickCount, get(clickCount) + 1))
@@ -12,7 +12,7 @@ const clickCounterView = state(withDerivedValue((get) => {
       `You've clicked the button ${get(clickCount)} times!`
     ])
   ])
-}))
+})
 
 export default function (): View.View {
   return View.div([], [

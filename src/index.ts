@@ -2,12 +2,8 @@ import { Container, Loop, Provider, Rule, State, TriggerRuleMessage, Writer, Wri
 export { Loop } from "./loop.js"
 export type { Container, State, Provider, Writer } from "./loop.js"
 
-export interface ContainerInitializer<T, M = T> extends StateInitializer<T> {
+export interface ContainerInitializer<T, M = T> {
   initialize(loop: Loop): Container<T, M>
-}
-
-export interface StateInitializer<T> {
-  initialize(loop: Loop): State<T>
 }
 
 export function withInitialValue<T>(value: T): ContainerInitializer<T> {
@@ -18,10 +14,10 @@ export function withInitialValue<T>(value: T): ContainerInitializer<T> {
   }
 }
 
-export function withDerivedValue<T>(derivation: (get: <S>(state: State<S>) => S) => T): StateInitializer<T> {
+export function withReducer<T, M>(initialValue: T, update: (message: M, current: T) => T): ContainerInitializer<T, M> {
   return {
     initialize: (loop) => {
-      return loop.deriveContainer(derivation)
+      return loop.createContainer(initialValue, update)
     }
   }
 }
@@ -32,12 +28,12 @@ export function loop(): Loop {
   return mainLoop
 }
 
-export function container<T>(initializer: ContainerInitializer<T>): Container<T> {
+export function container<T, M = T>(initializer: ContainerInitializer<T, M>): Container<T, M> {
   return initializer.initialize(loop())
 }
 
-export function state<T>(initializer: StateInitializer<T>): State<T> {
-  return initializer.initialize(loop())
+export function state<T>(derivation: (get: <S>(state: State<S>) => S) => T): State<T> {
+  return loop().deriveContainer(derivation)
 }
 
 export function rule<M, Q = undefined>(container: Container<any, M>, definition: (get: <S>(state: State<S>) => S, inputValue: Q) => M): Rule<M, Q> {

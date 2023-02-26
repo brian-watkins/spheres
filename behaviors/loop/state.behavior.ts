@@ -2,7 +2,7 @@ import { behavior, effect, example, fact, step } from "esbehavior";
 import { Container, State } from "@src/loop.js";
 import { arrayWithItemAt, equalTo, expect, is } from "great-expectations"
 import { TestSubscriberContext, testSubscriberContext } from "./helpers/testSubscriberContext.js";
-import { container, state, withDerivedValue, withInitialValue } from "@src/index.js";
+import { container, state, withInitialValue } from "@src/index.js";
 
 interface SingleContainer {
   container: Container<string>
@@ -32,7 +32,7 @@ const subscribeAndUpdate =
     }).andThen({
       perform: [
         step("the root state is updated", (context) => {
-          context.updateState(context.state.container, "next")
+          context.write(context.state.container, "next")
         })
       ],
       observe: [
@@ -62,7 +62,7 @@ const subscribeAndUpdate =
     }).andThen({
       perform: [
         step("the root state is updated again", (context) => {
-          context.updateState(context.state.container, "finally")
+          context.write(context.state.container, "finally")
         })
       ],
       observe: [
@@ -95,7 +95,7 @@ const derivedState =
           const basic = container(withInitialValue(17))
           context.setState({
             basic,
-            derived: state(withDerivedValue((get) => `${get(basic)} things!`))
+            derived: state((get) => `${get(basic)} things!`)
           })
         }),
       ],
@@ -114,7 +114,7 @@ const derivedState =
     }).andThen({
       perform: [
         step("the root state is updated", (context) => {
-          context.updateState(context.state.basic, 27)
+          context.write(context.state.basic, 27)
         })
       ],
       observe: [
@@ -131,7 +131,7 @@ const derivedState =
           context.setState({
             basic: context.state.basic,
             derived: context.state.derived,
-            thirdLevel: state(withDerivedValue((get) => get(context.state.derived!).length))
+            thirdLevel: state((get) => get(context.state.derived!).length)
           })
           context.subscribeTo(context.state.thirdLevel!, "subscriber-two")
         }),
@@ -154,7 +154,7 @@ const derivedState =
     }).andThen({
       perform: [
         step("the root state is updated", (context) => {
-          context.updateState(context.state.basic, 8)
+          context.write(context.state.basic, 8)
         })
       ],
       observe: [
@@ -200,14 +200,14 @@ const multipleSourceState =
             numberAtom,
             stringAtom,
             anotherAtom,
-            derived: state(withDerivedValue((get) => `${get(stringAtom)} ${get(numberAtom)} times. And then ${get(anotherAtom)}!`))
+            derived: state((get) => `${get(stringAtom)} ${get(numberAtom)} times. And then ${get(anotherAtom)}!`)
           })
         }),
         step("subscribe to the derived state", (context) => {
           context.subscribeTo(context.state.derived!, "subscriber-one")
         }),
         step("a root state is updated", (context) => {
-          context.updateState(context.state.stringAtom, "JUMP")
+          context.write(context.state.stringAtom, "JUMP")
         })
       ],
       observe: [
@@ -234,10 +234,10 @@ const reactiveQueryCount =
             numberAtom,
             stringAtom,
             anotherAtom,
-            derived: state(withDerivedValue((get) => {
+            derived: state((get) => {
               counter = counter + 1
               return `${counter} => ${get(stringAtom)} ${get(numberAtom)} times. And then ${get(anotherAtom)}!`
-            }))
+            })
           })
         }),
         fact("there is a subscriber", (context) => {
@@ -255,10 +255,10 @@ const reactiveQueryCount =
     .andThen({
       perform: [
         step("one dependency is updated", (context) => {
-          context.updateState(context.state.numberAtom, 31)
+          context.write(context.state.numberAtom, 31)
         }),
         step("another dependency is updated", (context) => {
-          context.updateState(context.state.stringAtom, "Some fun")
+          context.write(context.state.stringAtom, "Some fun")
         })
       ],
       observe: [
@@ -286,13 +286,13 @@ const deferredDependency =
         fact("there is derived state with a dependency used only later", (context) => {
           const numberState = container(withInitialValue(6))
           const stringState = container(withInitialValue("hello"))
-          const derivedState = state(withDerivedValue((get) => {
+          const derivedState = state((get) => {
             if (get(stringState) === "now") {
               return get(numberState)
             } else {
               return 0
             }
-          }))
+          })
           context.setState({
             numberState,
             stringState,
@@ -305,16 +305,16 @@ const deferredDependency =
       ],
       perform: [
         step("the state is updated to expose the number", (context) => {
-          context.updateState(context.state.stringState, "now")
+          context.write(context.state.stringState, "now")
         }),
         step("the number state updates", (context) => {
-          context.updateState(context.state.numberState, 27)
+          context.write(context.state.numberState, 27)
         }),
         step("the string state updates to hide the number state", (context) => {
-          context.updateState(context.state.stringState, "later")
+          context.write(context.state.stringState, "later")
         }),
         step("the number state updates again", (context) => {
-          context.updateState(context.state.numberState, 14)
+          context.write(context.state.numberState, 14)
         })
       ],
       observe: [

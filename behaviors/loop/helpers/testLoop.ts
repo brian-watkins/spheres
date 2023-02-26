@@ -20,7 +20,7 @@ export class TestLoop<S> {
     updater(loop())
   }
 
-  updateState<T>(root: Container<T>, value: T) {
+  write<T, M>(root: Container<T, M>, value: M) {
     loop().dispatch(writeMessage(root, value))
   }
 }

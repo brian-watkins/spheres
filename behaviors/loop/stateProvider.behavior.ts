@@ -16,7 +16,7 @@ const simpleProvidedValue =
     .script({
       suppose: [
         fact("there is a view with a provided value", (context) => {
-          const receiver = state<TestProvidedState<string>>(withInitialValue({ type: "unknown" }))
+          const receiver = state<TestProvidedState<string>>(() => ({ type: "unknown" }))
           const provider = new TestProvider<string>()
           provider.setHandler(async (_, set, waitFor) => {
             set(receiver, { type: "loading" })
@@ -109,7 +109,7 @@ const providedValueWithDerivedKey =
           context.state.provider.resolver?.("Fun Stuff")
         }),
         step("the key changes", (context) => {
-          context.updateState(context.state.profileState, "profile-7")
+          context.write(context.state.profileState, "profile-7")
         })
       ],
       observe: [
@@ -165,7 +165,7 @@ const providedValueWithDerivedKey =
           context.subscribeTo(context.state.receiver, "sub-three")
         }),
         step("a state dependency is updated", (context) => {
-          context.updateState(context.state.pageNumberState, 21)
+          context.write(context.state.pageNumberState, 21)
         })
       ],
       observe: [
@@ -209,9 +209,9 @@ const reactiveQueryCountForProvider =
     .script({
       suppose: [
         fact("there is some state and a provider", (context) => {
-          const counterState = state<TestProvidedState<string>>(withInitialValue({ type: "loading", value: "0" }))
+          const counterState = container<TestProvidedState<string>>(withInitialValue({ type: "loading", value: "0" }))
           const otherState = container(withInitialValue(27))
-          const anotherState = state(withInitialValue(22))
+          const anotherState = container(withInitialValue(22))
           const provider = new TestProvider<string>()
           let counter = 0
           provider.setHandler(async (get, set, _) => {
@@ -241,7 +241,7 @@ const reactiveQueryCountForProvider =
     .andThen({
       perform: [
         step("a state dependency is updated", (context) => {
-          context.updateState(context.state.otherState, 14)
+          context.write(context.state.otherState, 14)
         })
       ],
       observe: [
@@ -267,7 +267,7 @@ const deferredDependency =
         fact("there is derived state with a dependency used only later", (context) => {
           const numberState = container(withInitialValue(6))
           const stringState = container(withInitialValue("hello"))
-          const managedState = state<TestProvidedState<string>>(withInitialValue({ type: "unknown" }))
+          const managedState = container<TestProvidedState<string>>(withInitialValue({ type: "unknown" }))
           const provider = new TestProvider<string>()
           provider.setHandler(async (get, set, _) => {
             if (get(stringState) === "now") {
@@ -290,16 +290,16 @@ const deferredDependency =
       ],
       perform: [
         step("the state is updated to expose the number", (context) => {
-          context.updateState(context.state.stringState, "now")
+          context.write(context.state.stringState, "now")
         }),
         step("the number state updates", (context) => {
-          context.updateState(context.state.numberState, 27)
+          context.write(context.state.numberState, 27)
         }),
         step("the string state updates to hide the number state", (context) => {
-          context.updateState(context.state.stringState, "later")
+          context.write(context.state.stringState, "later")
         }),
         step("the number state updates again", (context) => {
-          context.updateState(context.state.numberState, 14)
+          context.write(context.state.numberState, 14)
         })
       ],
       observe: [

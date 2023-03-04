@@ -10,8 +10,8 @@ export interface Provider {
   provide(get: <S>(state: State<S>) => S, set: <Q>(state: State<Q>, value: Q) => void): void | Promise<void>
 }
 
-export interface Writer<T> {
-  write(value: T, get: <S>(state: State<S>) => S, set: (value: T) => void): void
+export interface Writer<M> {
+  write(message: M, get: <S>(state: State<S>) => S, set: (value: Meta<M>) => void): void
 }
 
 export interface Rule<ContainerMessage, RuleArgument = undefined> {
@@ -32,6 +32,18 @@ export interface TriggerRuleMessage<M> {
 }
 
 export type LoopMessage<T, M = T> = WriteValueMessage<T, M> | TriggerRuleMessage<M>
+
+export interface PendingMessage<M> {
+  type: "pending"
+  message: M
+}
+
+export interface OkMessage<M> {
+  type: "ok"
+  message: M
+}
+
+export type Meta<M> = PendingMessage<M> | OkMessage<M>
 
 export class Loop {
   private registry = new WeakMap<State<any>, ContainerController<any>>()
@@ -60,10 +72,27 @@ export class Loop {
     if (controller) {
       controller.setWriter((value) => {
         writer.write(value, (state) => this.registry.get(state)?.value, (value) => {
-          controller.updateValue(value)
+          if (controller.metaContainer) {
+            this.registry.get(controller.metaContainer)?.updateValue(value)
+          }
+
+          if (value.type === "ok") {
+            controller.updateValue(value.message)
+          }
         })
       })
     }
+  }
+
+  fetchMetaContainer<M>(state: State<M>): State<Meta<M>> {
+    const containerController = this.registry.get(state)!
+
+    if (!containerController.metaContainer) {
+      const initialMetaState = ok(containerController.value)
+      containerController.metaContainer = this.createContainer<Meta<M>, Meta<M>>(initialMetaState, (val) => val)
+    }
+
+    return containerController.metaContainer
   }
 
   createContainer<T, M>(initialState: T, update: (message: M, current: T) => T): Container<T, M> {
@@ -118,6 +147,7 @@ export class Loop {
 class ContainerController<S> {
   private writer = (value: S) => this.updateValue(value)
   private dependents = new Set<(value: S) => void>()
+  public metaContainer: State<Meta<S>> | undefined
 
   constructor(private container: BasicContainer<S>, private _value: S, private update: (message: any, current: S) => S) { }
 
@@ -161,5 +191,19 @@ class BasicContainer<T> implements Container<T> {
     return () => {
       this.subscribers.delete(notify)
     }
+  }
+}
+
+export function ok<M>(message: M): OkMessage<M> {
+  return {
+    type: "ok",
+    message
+  }
+}
+
+export function pending<M>(message: M): PendingMessage<M> {
+  return {
+    type: "pending",
+    message
   }
 }

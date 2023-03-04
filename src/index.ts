@@ -1,6 +1,6 @@
-import { Container, Loop, Provider, Rule, State, TriggerRuleMessage, Writer, WriteValueMessage } from "./loop.js"
-export { Loop } from "./loop.js"
-export type { Container, State, Provider, Writer } from "./loop.js"
+import { Container, Loop, Meta, Provider, Rule, State, TriggerRuleMessage, Writer, WriteValueMessage } from "./loop.js"
+export { Loop, ok, pending } from "./loop.js"
+export type { Container, State, Provider, Writer, PendingMessage, OkMessage, Meta } from "./loop.js"
 
 export interface ContainerInitializer<T, M = T> {
   initialize(loop: Loop): Container<T, M>
@@ -30,6 +30,10 @@ export function loop(): Loop {
 
 export function container<T, M = T>(initializer: ContainerInitializer<T, M>): Container<T, M> {
   return initializer.initialize(loop())
+}
+
+export function meta<M>(state: State<M>): State<Meta<M>> {
+  return loop().fetchMetaContainer(state)
 }
 
 export function state<T>(derivation: (get: <S>(state: State<S>) => S) => T): State<T> {

@@ -103,12 +103,10 @@ export class Loop {
   }
 
   createContainer<T, M = T>(initialState: T, update: (message: M, current: T) => T): Container<T, M> {
-    const self = this
-    const container = new BasicContainer<T>(function (this: BasicContainer<T>) {
-      return self.registry.get(this)?.value
-    })
+    const controller = new ContainerController(initialState, update)
+    const container = new BasicContainer<T>(controller)
 
-    this.registry.set(container, new ContainerController(container, initialState, update))
+    this.registry.set(container, controller)
 
     return container
   }
@@ -153,9 +151,10 @@ export class Loop {
 class ContainerController<S> {
   private writer = (value: S) => this.updateValue(value)
   private dependents = new Set<(value: S) => void>()
+  public subscribers: Set<((value: S) => void)> = new Set()
   public metaContainer: State<Meta<S>> | undefined
 
-  constructor(private container: BasicContainer<S>, private _value: S, private update: (message: any, current: S) => S) { }
+  constructor(private _value: S, private update: (message: any, current: S) => S) { }
 
   setWriter(writer: (value: S) => void) {
     this.writer = writer
@@ -165,6 +164,15 @@ class ContainerController<S> {
     this.dependents.add(notifier)
   }
 
+  addSubscriber(notify: (value: S) => void): () => void {
+    notify(this._value)
+    this.subscribers.add(notify)
+
+    return () => {
+      this.subscribers.delete(notify)
+    }
+  }
+
   get value(): S {
     return this._value
   }
@@ -172,7 +180,7 @@ class ContainerController<S> {
   updateValue(value: S) {
     this._value = this.update(value, this._value)
     this.dependents.forEach(notify => notify(this._value))
-    this.container.notifySubscribers(this._value)
+    this.subscribers.forEach(notify => notify(this._value))
   }
 
   writeValue(value: S) {
@@ -182,21 +190,11 @@ class ContainerController<S> {
 
 class BasicContainer<T> implements Container<T> {
   _containerBrand: any
-  public subscribers: Set<((updatedState: T) => void)> = new Set()
 
-  constructor(private get: () => T) { }
-
-  notifySubscribers(value: T) {
-    this.subscribers.forEach(notify => notify(value))
-  }
+  constructor(private controller: ContainerController<T>) {}
 
   subscribe(notify: (updatedState: T) => void): () => void {
-    notify(this.get())
-    this.subscribers.add(notify)
-
-    return () => {
-      this.subscribers.delete(notify)
-    }
+    return this.controller.addSubscriber(notify)
   }
 }
 

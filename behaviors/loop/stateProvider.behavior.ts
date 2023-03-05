@@ -1,12 +1,12 @@
 import { behavior, effect, example, fact, step } from "esbehavior";
-import { arrayWith, arrayWithItemAt, equalTo, expect, is, Matcher, objectWith, objectWithProperty } from "great-expectations";
-import { Container, Provider, State } from "@src/loop.js";
+import { arrayWith, arrayWithItemAt, equalTo, expect, is } from "great-expectations";
 import { testSubscriberContext } from "./helpers/testSubscriberContext.js";
-import { TestProvidedState, TestProvider } from "./helpers/testProvider.js";
-import { container, state, useProvider, withInitialValue } from "@src/index.js";
+import { TestProvider } from "./helpers/testProvider.js";
+import { Container, container, meta, ok, pending, Provider, State, state, useProvider, withInitialValue } from "@src/index.js";
+import { okMessage, pendingMessage } from "./helpers/metaMatchers.js";
 
 interface ProvidedValueContext {
-  receiver: State<TestProvidedState<string>>
+  receiver: State<string>
   provider: TestProvider<string>
 }
 
@@ -16,12 +16,12 @@ const simpleProvidedValue =
     .script({
       suppose: [
         fact("there is a view with a provided value", (context) => {
-          const receiver = state<TestProvidedState<string>>(() => ({ type: "unknown" }))
+          const receiver = state<string>(() => "initial")
           const provider = new TestProvider<string>()
           provider.setHandler(async (_, set, waitFor) => {
-            set(receiver, { type: "loading" })
+            set(meta(receiver), pending("loading"))
             const value = await waitFor()
-            set(receiver, { type: "loaded", value })
+            set(meta(receiver), ok(value))
           })
           useProvider(provider)
           context.setState({
@@ -31,14 +31,21 @@ const simpleProvidedValue =
         }),
         fact("there is a subscriber", (context) => {
           context.subscribeTo(context.state.receiver, "sub-one")
+        }),
+        fact("there is a meta subscriber", (context) => {
+          context.subscribeTo(meta(context.state.receiver), "meta-sub")
         })
       ],
       observe: [
-        effect("the subscriber receives a loading message", (context) => {
-          expect(context.valuesReceivedBy("sub-one"),
-            is(arrayWith([
-              objectWithProperty("type", equalTo("loading")),
-            ])))
+        effect("the subscriber receives the initial message", (context) => {
+          expect(context.valuesReceivedBy("sub-one"), is(equalTo([
+            "initial"
+          ])))
+        }),
+        effect("the meta subscriber receives a pending message", (context) => {
+          expect(context.valuesReceivedBy("meta-sub"), is(arrayWith([
+            pendingMessage("loading")
+          ])))
         })
       ]
     }).andThen({
@@ -49,11 +56,16 @@ const simpleProvidedValue =
       ],
       observe: [
         effect("the subscriber receives the provided value", (context) => {
-          expect(context.valuesReceivedBy("sub-one"),
-            is(arrayWithItemAt(1, objectWith({
-              type: equalTo("loaded"),
-              value: equalTo("funny")
-            }))))
+          expect(context.valuesReceivedBy("sub-one"), is(equalTo([
+            "initial",
+            "funny"
+          ])))
+        }),
+        effect("the meta subscriber receives an ok message", (context) => {
+          expect(context.valuesReceivedBy("meta-sub"), is(arrayWith([
+            pendingMessage("loading"),
+            okMessage("funny")
+          ])))
         })
       ]
     })
@@ -61,7 +73,7 @@ const simpleProvidedValue =
 interface ProvidedValueWithKeyContext {
   profileState: Container<string>,
   pageNumberState: Container<number>,
-  receiver: State<TestProvidedState<string>>
+  receiver: State<string>
   provider: TestProvider<string>
 }
 
@@ -73,16 +85,16 @@ const providedValueWithDerivedKey =
         fact("there is a view with a provided value", (context) => {
           const profileState = container(withInitialValue("profile-1"))
           const pageNumberState = container(withInitialValue(17))
-          const receiver = container<TestProvidedState<string>>(withInitialValue({ type: "unknown" }))
+          const receiver = container<string>(withInitialValue("initial"))
           const provider = new TestProvider<string>()
           provider.setHandler(async (get, set, waitFor) => {
             const key = {
               profileId: get(profileState),
               page: get(pageNumberState)
             }
-            set(receiver, { type: "loading", key })
+            set(meta(receiver), pending(`Value for profile ${key.profileId} on page ${key.page}`))
             const extraValue = await waitFor()
-            set(receiver, { type: "loaded", value: `Value: ${extraValue} for profile ${key.profileId} on page ${key.page}` })
+            set(meta(receiver), ok(`Value: ${extraValue} for profile ${key.profileId} on page ${key.page}`))
           })
           useProvider(provider)
           context.setState({
@@ -94,12 +106,20 @@ const providedValueWithDerivedKey =
         }),
         fact("there is a subscriber", (context) => {
           context.subscribeTo(context.state.receiver, "sub-one")
+        }),
+        fact("there is a meta-subscriber", (context) => {
+          context.subscribeTo(meta(context.state.receiver), "meta-sub")
         })
       ],
       observe: [
         effect("the current key is used", (context) => {
-          expect(context.valuesReceivedBy("sub-one"), is(arrayWith([
-            loadingState({ profileId: "profile-1", page: 17 })
+          expect(context.valuesReceivedBy("sub-one"), is(equalTo([
+            "initial",
+          ])))
+        }),
+        effect("the meta subscriber gets the pending message", (context) => {
+          expect(context.valuesReceivedBy("meta-sub"), is(arrayWith([
+            pendingMessage("Value for profile profile-1 on page 17"),
           ])))
         })
       ]
@@ -113,14 +133,20 @@ const providedValueWithDerivedKey =
         })
       ],
       observe: [
-        effect("the provided state returns to loading", (context) => {
+        effect("the receiver gets the written value", (context) => {
           expect(context.valuesReceivedBy("sub-one"),
-            is(arrayWith([
-              loadingState({ profileId: "profile-1", page: 17 }),
-              loadedWith(`Value: Fun Stuff for profile profile-1 on page 17`),
-              loadingState({ profileId: "profile-7", page: 17 })
+            is(equalTo([
+              "initial",
+              "Value: Fun Stuff for profile profile-1 on page 17"
             ])))
         }),
+        effect("the meta subscriber gets the pending message again", (context) => {
+          expect(context.valuesReceivedBy("meta-sub"), is(arrayWith([
+            pendingMessage("Value for profile profile-1 on page 17"),
+            okMessage("Value: Fun Stuff for profile profile-1 on page 17"),
+            pendingMessage("Value for profile profile-7 on page 17")
+          ])))
+        })
       ]
     }).andThen({
       perform: [
@@ -129,9 +155,9 @@ const providedValueWithDerivedKey =
         })
       ],
       observe: [
-        effect("the subscriber gets the latest provided value", (context) => {
-          expect(context.valuesReceivedBy("sub-two"), is(arrayWith([
-            loadingState({ profileId: "profile-7", page: 17 })
+        effect("the subscriber gets the latest written value", (context) => {
+          expect(context.valuesReceivedBy("sub-two"), is(equalTo([
+            "Value: Fun Stuff for profile profile-1 on page 17"
           ])))
         })
       ]
@@ -144,19 +170,26 @@ const providedValueWithDerivedKey =
       observe: [
         effect("subscriber-one gets the update", (context) => {
           expect(context.valuesReceivedBy("sub-one"),
-            is(arrayWith([
-              loadingState({ profileId: "profile-1", page: 17 }),
-              loadedWith("Value: Fun Stuff for profile profile-1 on page 17"),
-              loadingState({ profileId: "profile-7", page: 17 }),
-              loadedWith("Value: Even more fun stuff! for profile profile-7 on page 17"),
+            is(equalTo([
+              "initial",
+              "Value: Fun Stuff for profile profile-1 on page 17",
+              "Value: Even more fun stuff! for profile profile-7 on page 17"
             ])))
         }),
         effect("subscriber-two gets the update", (context) => {
           expect(context.valuesReceivedBy("sub-two"),
-            is(arrayWith([
-              loadingState({ profileId: "profile-7", page: 17 }),
-              loadedWith("Value: Even more fun stuff! for profile profile-7 on page 17")
+            is(equalTo([
+              "Value: Fun Stuff for profile profile-1 on page 17",
+              "Value: Even more fun stuff! for profile profile-7 on page 17"
             ])))
+        }),
+        effect("the meta subscriber gets the ok message", (context) => {
+          expect(context.valuesReceivedBy("meta-sub"), is(arrayWith([
+            pendingMessage("Value for profile profile-1 on page 17"),
+            okMessage("Value: Fun Stuff for profile profile-1 on page 17"),
+            pendingMessage("Value for profile profile-7 on page 17"),
+            okMessage("Value: Even more fun stuff! for profile profile-7 on page 17")
+          ])))
         })
       ]
     }).andThen({
@@ -169,36 +202,41 @@ const providedValueWithDerivedKey =
         })
       ],
       observe: [
-        effect("subscriber-one returns to loading", (context) => {
+        effect("subscriber-one receives no message yet", (context) => {
           expect(context.valuesReceivedBy("sub-one"),
-            is(arrayWith([
-              loadingState({ profileId: "profile-1", page: 17 }),
-              loadedWith("Value: Fun Stuff for profile profile-1 on page 17"),
-              loadingState({ profileId: "profile-7", page: 17 }),
-              loadedWith("Value: Even more fun stuff! for profile profile-7 on page 17"),
-              loadingState({ profileId: "profile-7", page: 21 })
+            is(equalTo([
+              "initial",
+              "Value: Fun Stuff for profile profile-1 on page 17",
+              "Value: Even more fun stuff! for profile profile-7 on page 17"
             ])))
         }),
-        effect("subscriber-two gets the loading update", (context) => {
+        effect("subscriber-two receives no message yet", (context) => {
           expect(context.valuesReceivedBy("sub-two"),
-            is(arrayWith([
-              loadingState({ profileId: "profile-7", page: 17 }),
-              loadedWith("Value: Even more fun stuff! for profile profile-7 on page 17"),
-              loadingState({ profileId: "profile-7", page: 21 })
+            is(equalTo([
+              "Value: Fun Stuff for profile profile-1 on page 17",
+              "Value: Even more fun stuff! for profile profile-7 on page 17"
             ])))
         }),
-        effect("the third subscriber gets the latest provided value and the loading update", (context) => {
+        effect("the third subscriber gets the latest written value", (context) => {
           expect(context.valuesReceivedBy("sub-three"),
-            is(arrayWith([
-              loadedWith("Value: Even more fun stuff! for profile profile-7 on page 17"),
-              loadingState({ profileId: "profile-7", page: 21 })
+            is(equalTo([
+              "Value: Even more fun stuff! for profile profile-7 on page 17"
             ])))
+        }),
+        effect("the meta subscriber gets the loading message again", (context) => {
+          expect(context.valuesReceivedBy("meta-sub"), is(arrayWith([
+            pendingMessage("Value for profile profile-1 on page 17"),
+            okMessage("Value: Fun Stuff for profile profile-1 on page 17"),
+            pendingMessage("Value for profile profile-7 on page 17"),
+            okMessage("Value: Even more fun stuff! for profile profile-7 on page 17"),
+            pendingMessage("Value for profile profile-7 on page 21")
+          ])))
         })
       ]
     })
 
 interface StatefulProviderContext {
-  counterState: State<TestProvidedState<string>>
+  counterState: State<string>
   otherState: Container<number>
   provider: Provider
 }
@@ -209,7 +247,7 @@ const reactiveQueryCountForProvider =
     .script({
       suppose: [
         fact("there is some state and a provider", (context) => {
-          const counterState = container<TestProvidedState<string>>(withInitialValue({ type: "loading", value: "0" }))
+          const counterState = container<string>(withInitialValue("0"))
           const otherState = container(withInitialValue(27))
           const anotherState = container(withInitialValue(22))
           const provider = new TestProvider<string>()
@@ -217,7 +255,7 @@ const reactiveQueryCountForProvider =
           provider.setHandler(async (get, set, _) => {
             counter = counter + 1
             const total = get(otherState) + get(anotherState)
-            set(counterState, { type: "loaded", value: `${counter} - ${total}` })
+            set(meta(counterState), ok(`${counter} - ${total}`))
           })
           useProvider(provider)
           context.setState({
@@ -232,8 +270,8 @@ const reactiveQueryCountForProvider =
       ],
       observe: [
         effect("the reactive query is executed only once on initialization", (context) => {
-          expect(context.valuesReceivedBy("sub-one"), is(arrayWith([
-            loadedWith("1 - 49")
+          expect(context.valuesReceivedBy("sub-one"), is(equalTo([
+            "1 - 49"
           ])))
         })
       ]
@@ -246,7 +284,7 @@ const reactiveQueryCountForProvider =
       ],
       observe: [
         effect("the reactive query is executed once more", (context) => {
-          expect(context.valuesReceivedBy("sub-one"), is(arrayWithItemAt(1, loadedWith("2 - 36"))))
+          expect(context.valuesReceivedBy("sub-one"), is(arrayWithItemAt(1, equalTo("2 - 36"))))
         })
       ]
     })
@@ -255,7 +293,7 @@ const reactiveQueryCountForProvider =
 interface DeferredDependencyContext {
   numberState: Container<number>,
   stringState: Container<string>,
-  managedState: State<TestProvidedState<string>>
+  managedState: State<string>
   provider: TestProvider<string>
 }
 
@@ -267,13 +305,13 @@ const deferredDependency =
         fact("there is derived state with a dependency used only later", (context) => {
           const numberState = container(withInitialValue(6))
           const stringState = container(withInitialValue("hello"))
-          const managedState = container<TestProvidedState<string>>(withInitialValue({ type: "unknown" }))
+          const managedState = container<string>(withInitialValue("initial"))
           const provider = new TestProvider<string>()
           provider.setHandler(async (get, set, _) => {
             if (get(stringState) === "now") {
-              set(managedState, { type: "loaded", value: `Number ${get(numberState)}` })
+              set(meta(managedState), ok(`Number ${get(numberState)}`))
             } else {
-              set(managedState, { type: "loaded", value: `Number 0` })
+              set(meta(managedState), ok(`Number 0`))
             }
           })
           useProvider(provider)
@@ -304,30 +342,16 @@ const deferredDependency =
       ],
       observe: [
         effect("the subscriber gets all the updates", (context) => {
-          expect(context.valuesReceivedBy("sub-one"), is(arrayWith([
-            loadedWith("Number 0"),
-            loadedWith("Number 6"),
-            loadedWith("Number 27"),
-            loadedWith("Number 0"),
-            loadedWith("Number 0")
+          expect(context.valuesReceivedBy("sub-one"), is(equalTo([
+            "Number 0",
+            "Number 6",
+            "Number 27",
+            "Number 0",
+            "Number 0"
           ])))
         })
       ]
     })
-
-function loadingState(key?: any): Matcher<TestProvidedState<string>> {
-  return objectWith({
-    type: equalTo("loading"),
-    key: equalTo(key)
-  })
-}
-
-function loadedWith(value: string): Matcher<TestProvidedState<string>> {
-  return objectWith({
-    type: equalTo("loaded"),
-    value: equalTo(value)
-  })
-}
 
 export default behavior("state provider", [
   simpleProvidedValue,

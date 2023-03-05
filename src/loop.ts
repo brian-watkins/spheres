@@ -7,7 +7,7 @@ export interface Container<T, M = T> extends State<T> {
 }
 
 export interface Provider {
-  provide(get: <S>(state: State<S>) => S, set: <Q>(state: State<Q>, value: Q) => void): void | Promise<void>
+  provide(get: <S>(state: State<S>) => S, set: <Q>(state: State<Meta<Q>>, value: Meta<Q>) => void): void
 }
 
 export interface Writer<M> {
@@ -51,7 +51,7 @@ export class Loop {
   registerProvider(provider: Provider) {
     const queryDependencies = new Set<State<any>>()
 
-    const set = <Q>(state: State<Q>, value: Q) => {
+    const set = <Q>(state: State<Meta<Q>>, value: Meta<Q>) => {
       this.registry.get(state)?.updateValue(value)
     }
 
@@ -74,9 +74,7 @@ export class Loop {
         writer.write(value, (state) => this.registry.get(state)?.value, (value) => {
           if (controller.metaContainer) {
             this.registry.get(controller.metaContainer)?.updateValue(value)
-          }
-
-          if (value.type === "ok") {
+          } else if (value.type === "ok") {
             controller.updateValue(value.message)
           }
         })
@@ -89,13 +87,22 @@ export class Loop {
 
     if (!containerController.metaContainer) {
       const initialMetaState = ok(containerController.value)
-      containerController.metaContainer = this.createContainer<Meta<M>, Meta<M>>(initialMetaState, (val) => val)
+
+      containerController.metaContainer = this.createContainer<Meta<M>>(initialMetaState, (val) => val)
+
+      const metaController: ContainerController<Meta<M>> = this.registry.get(containerController.metaContainer)!
+
+      metaController.addDependent((signal) => {
+        if (signal.type === "ok") {
+          containerController.updateValue(signal.message)
+        }
+      })
     }
 
     return containerController.metaContainer
   }
 
-  createContainer<T, M>(initialState: T, update: (message: M, current: T) => T): Container<T, M> {
+  createContainer<T, M = T>(initialState: T, update: (message: M, current: T) => T): Container<T, M> {
     const self = this
     const container = new BasicContainer<T>(function (this: BasicContainer<T>) {
       return self.registry.get(this)?.value
@@ -136,7 +143,6 @@ export class Loop {
         this.registry.get(message.rule.container)?.writeValue(result)
         break
     }
-
   }
 
   reset() {

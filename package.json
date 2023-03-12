@@ -39,7 +39,7 @@
   "devDependencies": {
     "@swc/core": "^1.3.35",
     "@types/node": "^18.11.18",
-    "esbehavior": "^3.1.1",
+    "esbehavior": "^4.0.0",
     "great-expectations": "^1.1.1",
     "playwright": "^1.29.2",
     "source-map-support": "^0.5.21",

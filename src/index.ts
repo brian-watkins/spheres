@@ -32,7 +32,7 @@ export function container<T, M = T>(initializer: ContainerInitializer<T, M>): Co
   return initializer.initialize(loop())
 }
 
-export function meta<M>(state: State<M>): State<Meta<M>> {
+export function meta<T, M = T>(state: Container<T, M> | State<M>): State<Meta<M>> {
   return loop().fetchMetaContainer(state)
 }
 

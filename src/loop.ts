@@ -82,7 +82,7 @@ export class Loop {
     }
   }
 
-  fetchMetaContainer<M>(state: State<M>): State<Meta<M>> {
+  fetchMetaContainer<T, M>(state: Container<T, M> | State<M>): State<Meta<M>> {
     const containerController = this.registry.get(state)!
 
     if (!containerController.metaContainer) {

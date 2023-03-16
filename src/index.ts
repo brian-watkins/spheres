@@ -51,7 +51,7 @@ export function useProvider(provider: Provider) {
   loop().registerProvider(provider)
 }
 
-export function useWriter<T>(container: Container<T>, writer: Writer<T>) {
+export function useWriter<T, M = T>(container: Container<T, M>, writer: Writer<M>) {
   loop().registerWriter(container, writer)
 }
 

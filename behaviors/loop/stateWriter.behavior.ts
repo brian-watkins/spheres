@@ -1,6 +1,6 @@
-import { behavior, effect, example, fact, step } from "esbehavior";
+import { behavior, ConfigurableExample, effect, example, fact, step } from "esbehavior";
 import { arrayWith, assignedWith, equalTo, expect, is } from "great-expectations";
-import { container, meta, ok, pending, useWriter, withInitialValue } from "@src/index.js";
+import { container, meta, ok, pending, useWriter, withInitialValue, withReducer } from "@src/index.js";
 import { Container } from "@src/loop.js";
 import { testSubscriberContext } from "./helpers/testSubscriberContext.js";
 import { TestWriter } from "./helpers/testWriter.js";
@@ -181,7 +181,56 @@ const writerThatUsesOtherState =
       ]
     })
 
+interface ReducerContainerWriterContext {
+  reducerContainer: Container<number, string>
+  writer: TestWriter<string>
+}
+
+const reducerContainerWriter: ConfigurableExample =
+  example(testSubscriberContext<ReducerContainerWriterContext>())
+    .description("writer for container with reducer")
+    .script({
+      suppose: [
+        fact("there is a reducer container with a writer", (context) => {
+          const reducerContainer = container(withReducer(28, (message: string, current: number) => {
+            return message === "add" ? current + 1 : current - 1
+          }))
+          const writer = new TestWriter<string>()
+          writer.setHandler(async (_, __, set, waitFor) => {
+            const thing = await waitFor()
+            set(ok(thing))
+          })
+          useWriter(reducerContainer, writer)
+          context.setState({
+            reducerContainer,
+            writer
+          })
+        }),
+        fact("there is a subscriber", (context) => {
+          context.subscribeTo(context.state.reducerContainer, "sub-one")
+        })
+      ],
+      perform: [
+        step("a value is written to the container", (context) => {
+          context.write(context.state.reducerContainer, "hello")
+        }),
+        step("the write completes", (context) => {
+          context.state.writer.resolveWith?.("add")
+        })
+      ],
+      observe: [
+        effect("the subscriber receives the written value", (context) => {
+          expect(context.valuesReceivedBy("sub-one"), is(equalTo([
+            28,
+            29
+          ])))
+        })
+      ]
+    })
+
+
 export default behavior("Managed Update", [
   simpleManagedContainer,
-  writerThatUsesOtherState
+  writerThatUsesOtherState,
+  reducerContainerWriter
 ])

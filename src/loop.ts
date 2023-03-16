@@ -67,7 +67,7 @@ export class Loop {
     provider.provide(get, set)
   }
 
-  registerWriter<Q>(container: Container<Q>, writer: Writer<Q>) {
+  registerWriter<T, M>(container: Container<T, M>, writer: Writer<M>) {
     const controller = this.registry.get(container)
     if (controller) {
       controller.setWriter((value) => {

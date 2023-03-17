@@ -1,5 +1,5 @@
 import { Container, Loop, Meta, Provider, Rule, State, TriggerRuleMessage, Writer, WriteValueMessage } from "./loop.js"
-export { Loop, ok, pending } from "./loop.js"
+export { Loop, ok, pending, error } from "./loop.js"
 export type { Container, State, Provider, Writer, PendingMessage, OkMessage, Meta } from "./loop.js"
 
 export interface ContainerInitializer<T, M = T> {

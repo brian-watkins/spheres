@@ -43,7 +43,12 @@ export interface OkMessage<M> {
   message: M
 }
 
-export type Meta<M> = PendingMessage<M> | OkMessage<M>
+export interface ErrorMessage<M> {
+  type: "error"
+  message: M
+}
+
+export type Meta<M> = PendingMessage<M> | OkMessage<M> | ErrorMessage<M>
 
 export class Loop {
   private registry = new WeakMap<State<any>, ContainerController<any>>()
@@ -208,6 +213,13 @@ export function ok<M>(message: M): OkMessage<M> {
 export function pending<M>(message: M): PendingMessage<M> {
   return {
     type: "pending",
+    message
+  }
+}
+
+export function error<M>(message: M): ErrorMessage<M> {
+  return {
+    type: "error",
     message
   }
 }

@@ -1,9 +1,9 @@
-import { behavior, Context, effect, example, fact, step } from "esbehavior";
+import { behavior, ConfigurableExample, Context, effect, example, fact, step } from "esbehavior";
 import { equalTo, expect, is, stringContaining } from "great-expectations";
 import { TestAppController } from "./helpers/testAppController";
 
 
-const simpleViewBehavior = (context: Context<TestAppController>) =>
+const simpleViewBehavior = (context: Context<TestAppController>): ConfigurableExample =>
   example(context)
     .description("Rendering a simple view")
     .script({
@@ -38,7 +38,7 @@ const simpleViewBehavior = (context: Context<TestAppController>) =>
       ]
     })
 
-const nestedViewsBehavior = (context: Context<TestAppController>) =>
+const nestedViewsBehavior = (context: Context<TestAppController>): ConfigurableExample =>
   example(context)
     .description("nested views")
     .script({

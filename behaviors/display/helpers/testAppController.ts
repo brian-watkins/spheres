@@ -30,6 +30,10 @@ export class TestAppController {
 class TestAppDisplay {
   constructor(private page: Page) {}
 
+  pause(): Promise<void> {
+    return this.page.pause()
+  }
+
   observe(selector: string): Promise<void> {
     return this.page.evaluate((selector) => {
       window.esdisplay_testApp.observe(selector)

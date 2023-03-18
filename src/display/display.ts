@@ -4,6 +4,7 @@ import { View } from "./view.js";
 
 export class Display {
   private appRoot: HTMLElement | undefined
+  private listener: (evt: Event) => void = () => {}
 
   constructor(private loop: Loop, private view: View) {}
 
@@ -12,10 +13,12 @@ export class Display {
     const mountPoint = document.createElement("div")
     this.appRoot.appendChild(mountPoint)
 
-    this.appRoot.addEventListener("displayMessage", (evt) => {
+    this.listener = (evt: Event) => {
       const displayMessageEvent = evt as CustomEvent<LoopMessage<any>>
       this.loop.dispatch(displayMessageEvent.detail)
-    })
+    }
+
+    this.appRoot.addEventListener("displayMessage", this.listener)
 
     const patch = init([
       propsModule,
@@ -30,6 +33,8 @@ export class Display {
   destroy() {
     if (this.appRoot) {
       this.appRoot.childNodes.forEach(node => node.remove())
+      this.appRoot.removeEventListener("displayMessage", this.listener)
+      this.listener = () => {}
       this.appRoot = undefined
     }
   }

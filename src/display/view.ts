@@ -125,11 +125,12 @@ export function onInput<M extends LoopMessage<any>>(generator: (value: string) =
 
 export type ViewGenerator = (parent: View) => View
 
-export function viewGenerator(viewState: State<View>): View {
+export function viewGenerator(viewState: State<View>, key?: string): View {
   return h("view-fragment", {
     loop: {},
+    key,
     hook: {
-      insert: (vnode) => {
+      create: (_, vnode) => {
         const patch = init([
           propsModule,
           attributesModule,

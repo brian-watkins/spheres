@@ -1,5 +1,6 @@
 import { Context } from "esbehavior";
 import { Locator, Page } from "playwright";
+import { DOMChangeRecord } from "./changeRecords";
 
 export function testAppContext(page: Page): Context<TestAppController> {
   return {
@@ -28,6 +29,18 @@ export class TestAppController {
 
 class TestAppDisplay {
   constructor(private page: Page) {}
+
+  observe(selector: string): Promise<void> {
+    return this.page.evaluate((selector) => {
+      window.esdisplay_testApp.observe(selector)
+    }, selector)
+  }
+
+  changeRecords(): Promise<Array<DOMChangeRecord>> {
+    return this.page.evaluate(() => {
+      return window.esdisplay_testApp.changeRecords
+    })
+  }
 
   select(selector: string): DisplayElement {
     return new DisplayElement(this.page.locator(selector))

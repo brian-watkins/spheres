@@ -194,12 +194,20 @@ class ContainerController<S> {
 }
 
 class BasicContainer<T> implements Container<T> {
+  private static _id = 0
+  private _internalId: number
   _containerBrand: any
 
-  constructor(private controller: ContainerController<T>) {}
+  constructor(private controller: ContainerController<T>) {
+    this._internalId = BasicContainer._id++
+  }
 
   subscribe(notify: (updatedState: T) => void): () => void {
     return this.controller.addSubscriber(notify)
+  }
+
+  toString(): string {
+    return `state-${this._internalId}`
   }
 }
 

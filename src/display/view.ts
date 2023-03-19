@@ -16,11 +16,17 @@ class Attribute {
   constructor(public key: string, public value: string) { }
 }
 
+class Key {
+  type: "key" = "key"
+
+  constructor(public key: string) { }
+}
+
 class NoAttribute {
   type: "no-attribute" = "no-attribute"
 }
 
-export type ViewAttribute = Property | Attribute | EventHandler | CssClasses | NoAttribute
+export type ViewAttribute = Property | Attribute | EventHandler | CssClasses | Key | NoAttribute
 
 export function property(name: string, value: string): ViewAttribute {
   return new Property(name, value)
@@ -28,6 +34,10 @@ export function property(name: string, value: string): ViewAttribute {
 
 export function id(value: string): ViewAttribute {
   return new Property("id", value)
+}
+
+export function key(value: string | number | State<any>): ViewAttribute {
+  return new Key(`${value}`)
 }
 
 export function data(name: string, value: string = ""): ViewAttribute {
@@ -125,10 +135,9 @@ export function onInput<M extends LoopMessage<any>>(generator: (value: string) =
 
 export type ViewGenerator = (parent: View) => View
 
-export function viewGenerator(viewState: State<View>, key?: string): View {
+export function viewGenerator(viewState: State<View>): View {
   return h("view-fragment", {
     loop: {},
-    key,
     hook: {
       create: (_, vnode) => {
         const patch = init([
@@ -181,6 +190,9 @@ function makeAttributes(attributes: Array<ViewAttribute>): any {
             detail: attr.generator(evt)
           }))
         }
+        break
+      case "key":
+        dict.key = attr.key
         break
       case "no-attribute":
         break

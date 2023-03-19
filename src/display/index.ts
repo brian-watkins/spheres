@@ -9,6 +9,6 @@ export function display(view: View): Display {
   return new Display(loop(), view)
 }
 
-export function component(generator: (get: <S>(state: State<S>) => S) => View, key?: string): View {
-  return viewGenerator(state(generator), key)
+export function withState(generator: (get: <S>(state: State<S>) => S) => View): View {
+  return viewGenerator(state(generator))
 }

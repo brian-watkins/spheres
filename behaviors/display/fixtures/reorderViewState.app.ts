@@ -51,20 +51,20 @@ const peopleView: State<View.View> = state(get => {
       View.onClick(trigger(incrementTicker))
     ], [View.text("Increment")]),
     View.hr([], []),
-    View.ul([], list.map(get).map(state => {
-      return View.component(personView(state), state.name)
-    }))
+    View.ul([], list.map(personView))
   ])
 })
 
-function personView(person: Person): (get: <S>(state: State<S>) => S) => View.View {
-  return (get => {
-    return View.li([], [
+function personView(person: State<Person>): View.View {
+  return View.li([
+    View.key(person)
+  ], [
+    View.withState(get => (
       View.h1([View.data("person")], [
-        View.text(`${person.name} is ${person.age} years old: ${get(ticker)}`)
+        View.text(`${get(person).name} is ${get(person).age} years old: ${get(ticker)}`)
       ])
-    ])
-  })
+    ))
+  ])
 }
 
 export default function (): View.View {

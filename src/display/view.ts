@@ -138,20 +138,17 @@ export function viewGenerator(viewState: State<View>, key?: string): View {
           eventListenersModule
         ])
 
-        const holder = document.createElement("view-holder")
-        vnode.elm!.appendChild(holder)
-
-        let oldNode: VNode | HTMLElement = holder
+        let oldNode: VNode | Element = vnode.elm as Element
 
         vnode.data!.loop.unsubscribe = viewState.subscribe((updatedView) => {
           oldNode = patch(oldNode, updatedView)
+          vnode.elm = oldNode.elm
         })
       },
       postpatch: (oldVNode, vNode) => {
         vNode.data!.loop = oldVNode.data!.loop
       },
       destroy: (vnode) => {
-        vnode.elm!.childNodes.forEach(node => node.remove())
         vnode.data!.loop.unsubscribe()
       }
     }

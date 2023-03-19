@@ -52,13 +52,13 @@ const peopleView: State<View.View> = state(get => {
     ], [View.text("Increment")]),
     View.hr([], []),
     View.ul([], list.map(get).map(state => {
-      return View.viewGenerator(personView(state), state.name)
+      return View.component(personView(state), state.name)
     }))
   ])
 })
 
-function personView(person: Person): State<View.View> {
-  return state(get => {
+function personView(person: Person): (get: <S>(state: State<S>) => S) => View.View {
+  return (get => {
     return View.li([], [
       View.h1([View.data("person")], [
         View.text(`${person.name} is ${person.age} years old: ${get(ticker)}`)

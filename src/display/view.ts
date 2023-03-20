@@ -11,8 +11,6 @@ export interface View {
   key: string | undefined;
 }
 
-export type ViewChild = View | string
-
 // Tailored from Snabbdom VNodeData
 interface ViewData {
   props?: Props;
@@ -76,71 +74,65 @@ export function disabled(isDisabled: boolean): ViewAttribute {
   return isDisabled ? new Attribute("disabled", "") : new NoAttribute()
 }
 
-function makeNode(tag: string | undefined, data: ViewData | undefined, children?: Array<ViewChild>, text?: string): View {
+function makeNode(tag: string | undefined, data: ViewData | undefined, children?: Array<View>, text?: string): View {
   // See Snabbdom src/h.ts and src/vnode.ts
   // We are not supporting SVG at the moment but otherwise this should work
   return {
     sel: tag,
     data,
-    children: children?.map(child => {
-      if (typeof child === "string") {
-        return makeNode(undefined, undefined, undefined, child)
-      } else {
-        return child
-      }
-    }),
+    children,
     text,
     elm: undefined,
     key: data?.key
   }
 }
 
-export function element(tag: string, attributes: Array<ViewAttribute>, children: Array<ViewChild>): View {
+export function text(value: string): View {
+  return makeNode(undefined, undefined, undefined, value)
+}
+
+export function element(tag: string, attributes: Array<ViewAttribute>, children: Array<View>): View {
   return makeNode(tag, makeViewData(attributes), children)
 }
 
-export function div(attributes: Array<ViewAttribute>, children: Array<ViewChild>): View {
+export function div(attributes: Array<ViewAttribute>, children: Array<View>): View {
   return element("div", attributes, children)
 }
 
-export function h1(attributes: Array<ViewAttribute>, children: Array<ViewChild>): View {
+export function h1(attributes: Array<ViewAttribute>, children: Array<View>): View {
   return element("h1", attributes, children)
 }
 
-export function hr(attributes: Array<ViewAttribute>, children: Array<ViewChild>): View {
+export function hr(attributes: Array<ViewAttribute>, children: Array<View>): View {
   return element("hr", attributes, children)
 }
 
-export function article(attributes: Array<ViewAttribute>, children: Array<ViewChild>): View {
+export function article(attributes: Array<ViewAttribute>, children: Array<View>): View {
   return element("article", attributes, children)
 }
 
-export function p(attributes: Array<ViewAttribute>, children: Array<ViewChild>): View {
+export function p(attributes: Array<ViewAttribute>, children: Array<View>): View {
   return element("p", attributes, children)
 }
 
-export function ul(attributes: Array<ViewAttribute>, children: Array<ViewChild>): View {
+export function ul(attributes: Array<ViewAttribute>, children: Array<View>): View {
   return element("ul", attributes, children)
 }
 
-export function li(attributes: Array<ViewAttribute>, children: Array<ViewChild>): View {
+export function li(attributes: Array<ViewAttribute>, children: Array<View>): View {
   return element("li", attributes, children)
 }
 
-export function input(attributes: Array<ViewAttribute>, children: Array<ViewChild>): View {
+export function input(attributes: Array<ViewAttribute>, children: Array<View>): View {
   return element("input", attributes, children)
 }
 
-export function button(attributes: Array<ViewAttribute>, children: Array<ViewChild>): View {
+export function button(attributes: Array<ViewAttribute>, children: Array<View>): View {
   return element("button", attributes, children)
 }
 
-export function textarea(attributes: Array<ViewAttribute>, children: Array<ViewChild>): View {
+export function textarea(attributes: Array<ViewAttribute>, children: Array<View>): View {
   return element("textarea", attributes, children)
-}
-
-export function text(value: string): ViewChild {
-  return value
 }
 
 export type CssClassname = string

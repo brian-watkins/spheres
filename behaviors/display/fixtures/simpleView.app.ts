@@ -10,7 +10,7 @@ const peopleView = state((get) => {
   const people = get(peopleState)
   return View.ul([], people.map(person => {
     return View.li([View.data("person")], [
-      `${person.name} - ${person.age}`
+      View.text(`${person.name} - ${person.age}`)
     ])
   }))
 })
@@ -29,7 +29,7 @@ const updateButton = state(get =>
 export default function(): View.View {
   return View.div([], [
     View.p([], [
-      "Here is some person"
+      View.text("Here is some person")
     ]),
     View.stateful(peopleView),
     View.hr([], []),

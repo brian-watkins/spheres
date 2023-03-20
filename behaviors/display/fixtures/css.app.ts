@@ -22,7 +22,9 @@ export default function (): View.View {
       View.cssClasses([
         "super-title"
       ])
-    ], ["This is only a test!"]),
+    ], [
+      View.text("This is only a test!")
+    ]),
     View.stateful(funView),
     View.hr([], []),
     View.input([

@@ -7,16 +7,20 @@ const clickCounterView = state((get) => {
   return View.div([], [
     View.button([
       View.onClick(writeMessage(clickCount, get(clickCount) + 1))
-    ], ["Click me!"]),
+    ], [
+      View.text("Click me!")
+    ]),
     View.p([View.data("click-count")], [
-      `You've clicked the button ${get(clickCount)} times!`
+      View.text(`You've clicked the button ${get(clickCount)} times!`)
     ])
   ])
 })
 
 export default function (): View.View {
   return View.div([], [
-    View.h1([], ["This is the click counter!"]),
+    View.h1([], [
+      View.text("This is the click counter!")
+    ]),
     View.stateful(clickCounterView)
   ])
 }

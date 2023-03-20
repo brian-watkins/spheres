@@ -7,7 +7,7 @@ const ageState = container(withInitialValue(27))
 
 const ageView = state((get) => {
   return View.p([View.data("age")], [
-    `My age is: ${get(ageState)}`
+    View.text(`My age is: ${get(ageState)}`)
   ])
 })
 
@@ -15,7 +15,7 @@ const nameView = state((get) => {
   const name = get(nameState)
   let children = [
     View.p([View.data("name")], [
-      `My name is: ${name}`
+      View.text(`My name is: ${name}`)
     ])
   ]
   if (name !== "AGELESS PERSON") {
@@ -27,7 +27,7 @@ const nameView = state((get) => {
 
 export default function(): View.View {
   return View.div([], [
-    View.h1([], ["This is only a test!"]),
+    View.h1([], [View.text("This is only a test!")]),
     View.stateful(nameView),
     View.hr([], []),
     View.input([

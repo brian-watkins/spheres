@@ -1,8 +1,32 @@
-import { attributesModule, classModule, eventListenersModule, h, init, propsModule, VNode, VNodeChildElement } from "snabbdom";
+import { attributesModule, Attrs, Classes, classModule, eventListenersModule, Hooks, init, On, Props, propsModule, VNode } from "snabbdom";
 import { LoopMessage, State } from "../loop.js";
 
-export type View = VNode
-export type ViewChild = VNodeChildElement
+// Tailored from Snabbdom VNode
+export interface View {
+  sel: string | undefined;
+  data: ViewData | undefined;
+  children: Array<View | string> | undefined;
+  elm: Node | undefined;
+  text: string | undefined;
+  key: string | undefined;
+}
+
+export type ViewChild = View | string
+
+// Tailored from Snabbdom VNodeData
+interface ViewData {
+  props?: Props;
+  attrs?: Attrs;
+  class?: Classes;
+  on?: On;
+  hook?: Hooks;
+  key?: string;
+  loop?: LoopData
+}
+
+interface LoopData {
+  unsubscribe: () => void
+}
 
 class Property {
   type: "property" = "property"
@@ -52,8 +76,27 @@ export function disabled(isDisabled: boolean): ViewAttribute {
   return isDisabled ? new Attribute("disabled", "") : new NoAttribute()
 }
 
-export function element(tag: string, attributes: Array<ViewAttribute>, children: Array<ViewChild>) {
-  return h(tag, makeAttributes(attributes), children)
+function makeNode(tag: string | undefined, data: ViewData | undefined, children?: Array<ViewChild>, text?: string): View {
+  // See Snabbdom src/h.ts and src/vnode.ts
+  // We are not supporting SVG at the moment but otherwise this should work
+  return {
+    sel: tag,
+    data,
+    children: children?.map(child => {
+      if (typeof child === "string") {
+        return makeNode(undefined, undefined, undefined, child)
+      } else {
+        return child
+      }
+    }),
+    text,
+    elm: undefined,
+    key: data?.key
+  }
+}
+
+export function element(tag: string, attributes: Array<ViewAttribute>, children: Array<ViewChild>): View {
+  return makeNode(tag, makeViewData(attributes), children)
 }
 
 export function div(attributes: Array<ViewAttribute>, children: Array<ViewChild>): View {
@@ -135,9 +178,10 @@ export function onInput<M extends LoopMessage<any>>(generator: (value: string) =
 
 export type ViewGenerator = (parent: View) => View
 
-export function viewGenerator(viewState: State<View>): View {
-  return h("view-fragment", {
-    loop: {},
+export function stateful(viewState: State<View>, key?: string): View {
+  return makeNode("view-fragment", {
+    loop: { unsubscribe: () => {} },
+    key,
     hook: {
       create: (_, vnode) => {
         const patch = init([
@@ -164,7 +208,7 @@ export function viewGenerator(viewState: State<View>): View {
   })
 }
 
-function makeAttributes(attributes: Array<ViewAttribute>): any {
+function makeViewData(attributes: Array<ViewAttribute>): ViewData {
   const dict: any = {
     props: {},
     attrs: {},

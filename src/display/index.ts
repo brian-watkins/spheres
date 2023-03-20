@@ -1,6 +1,6 @@
-import { loop, State, state } from "../index.js";
+import { loop, State } from "../index.js";
 import { Display } from "./display.js";
-import { View, viewGenerator } from "./view.js";
+import { View, stateful } from "./view.js";
 
 export * from "./view.js"
 export * from "./display.js"
@@ -10,5 +10,6 @@ export function display(view: View): Display {
 }
 
 export function withState(generator: (get: <S>(state: State<S>) => S) => View): View {
-  return viewGenerator(state(generator))
+  const stateDerivation = loop().deriveContainer(generator)
+  return stateful(stateDerivation.state, stateDerivation.initialValue.key)
 }

@@ -23,7 +23,7 @@ export default function (): View.View {
         "super-title"
       ])
     ], ["This is only a test!"]),
-    View.viewGenerator(funView),
+    View.stateful(funView),
     View.hr([], []),
     View.input([
       View.data("number-input"),

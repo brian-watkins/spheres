@@ -50,6 +50,11 @@ export interface ErrorMessage<M> {
 
 export type Meta<M> = PendingMessage<M> | OkMessage<M> | ErrorMessage<M>
 
+export interface StateDerivation<T> {
+  state: State<T>,
+  initialValue: T
+}
+
 export class Loop {
   private registry = new WeakMap<State<any>, ContainerController<any>>()
 
@@ -116,7 +121,7 @@ export class Loop {
     return container
   }
 
-  deriveContainer<T>(derivation: (get: <S>(state: State<S>) => S) => T): Container<T> {
+  deriveContainer<T>(derivation: (get: <S>(state: State<S>) => S) => T): StateDerivation<T> {
     let dependencies: Set<State<any>> = new Set()
 
     let container: Container<T>
@@ -131,9 +136,13 @@ export class Loop {
       return this.registry.get(state)?.value
     }
 
-    container = this.createContainer(derivation(get), (val) => val)
+    const initialValue = derivation(get)
+    container = this.createContainer(initialValue, (val) => val)
 
-    return container
+    return {
+      state: container,
+      initialValue
+    }
   }
 
   dispatch<T, M>(message: LoopMessage<T, M>) {

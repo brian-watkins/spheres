@@ -37,7 +37,7 @@ export function meta<T, M = T>(state: Container<T, M> | State<M>): State<Meta<M>
 }
 
 export function state<T>(derivation: (get: <S>(state: State<S>) => S) => T): State<T> {
-  return loop().deriveContainer(derivation)
+  return loop().deriveContainer(derivation).state
 }
 
 export function rule<M, Q = undefined>(container: Container<any, M>, definition: (get: <S>(state: State<S>) => S, inputValue: Q) => M): Rule<M, Q> {

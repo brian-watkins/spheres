@@ -17,7 +17,7 @@ const clickCounterView = state((get) => {
 export default function (): View.View {
   return View.div([], [
     View.h1([], ["This is the click counter!"]),
-    View.viewGenerator(clickCounterView)
+    View.stateful(clickCounterView)
   ])
 }
 

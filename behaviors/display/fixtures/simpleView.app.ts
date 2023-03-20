@@ -31,11 +31,11 @@ export default function(): View.View {
     View.p([], [
       "Here is some person"
     ]),
-    View.viewGenerator(peopleView),
+    View.stateful(peopleView),
     View.hr([], []),
     View.input([
       View.onInput(value => writeMessage(localState, value))
     ], []),
-    View.viewGenerator(updateButton)
+    View.stateful(updateButton)
   ])
 }

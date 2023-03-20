@@ -56,21 +56,21 @@ const peopleView: State<View.View> = state(get => {
 })
 
 function personView(person: State<Person>): View.View {
-  return View.li([
-    View.key(person)
-  ], [
-    View.withState(get => (
+  return View.withState(get =>
+    View.li([
+      View.key(person)
+    ], [
       View.h1([View.data("person")], [
         View.text(`${get(person).name} is ${get(person).age} years old: ${get(ticker)}`)
       ])
-    ))
-  ])
+    ])
+  )
 }
 
 export default function (): View.View {
   return View.div([
     View.id("reorder-list")
   ], [
-    View.viewGenerator(peopleView)
+    View.stateful(peopleView)
   ])
 }

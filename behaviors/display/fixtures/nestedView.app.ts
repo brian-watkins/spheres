@@ -19,7 +19,7 @@ const nameView = state((get) => {
     ])
   ]
   if (name !== "AGELESS PERSON") {
-    children.push(View.viewGenerator(ageView))
+    children.push(View.stateful(ageView))
   }
   return View.div([], children)
 })
@@ -28,7 +28,7 @@ const nameView = state((get) => {
 export default function(): View.View {
   return View.div([], [
     View.h1([], ["This is only a test!"]),
-    View.viewGenerator(nameView),
+    View.stateful(nameView),
     View.hr([], []),
     View.input([
       View.data("name-input"),

@@ -4,12 +4,17 @@ import { DOMChangeRecord, DOMStructureChangeRecord } from "./helpers/changeRecor
 import { TestAppController } from "./helpers/testAppController";
 
 export default (context: Context<TestAppController>) => behavior("dynamic view state", [
+  reorderExampleGenerator(context, "reordering by key on element passed to state", "reorderUsingImplicitStateKey.app"),
+  reorderExampleGenerator(context, "reordering by key with state on element", "reorderUsingElementKey.app"),
+])
+
+const reorderExampleGenerator = (context: Context<TestAppController>, title: string, app: string) =>
   example(context)
-    .description("reordering view state elements")
+    .description(title)
     .script({
       suppose: [
         fact("there is a list of view state elements", async (controller) => {
-          await controller.loadApp("reorderViewState.app")
+          await controller.loadApp(app)
         }),
         fact("observe the element", async (controller) => {
           await controller.display.observe("#reorder-list")
@@ -53,7 +58,6 @@ export default (context: Context<TestAppController>) => behavior("dynamic view s
         })
       ]
     })
-])
 
 function sumUpStructureChanges(records: Array<DOMChangeRecord>, property: (record: DOMStructureChangeRecord) => number): number {
   return records.reduce((acc, curr) => {

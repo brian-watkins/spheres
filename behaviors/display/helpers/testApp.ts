@@ -5,10 +5,12 @@ import { DOMChangeRecord, structureChangeRecord, textChangeRecord } from "./chan
 export class TestApp {
   private appDisplay: Display | undefined
   private observer: MutationObserver | undefined
-  readonly changeRecords: Array<DOMChangeRecord> = []
+  public changeRecords: Array<DOMChangeRecord> = []
 
   async startApp<T>(name: string, context?: T) {
     loop().reset()
+    this.changeRecords = []
+
     const viewConfiguration = await import(`../fixtures/${name}.ts`)
     const view = viewConfiguration.default(context)
     this.appDisplay = new Display(loop(), view)

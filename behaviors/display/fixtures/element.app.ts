@@ -3,6 +3,11 @@ import * as View from "@src/display/index.js"
 export default function(): View.View {
   return View.div([], [
     View.h1([], []),
+    View.h2([], []),
+    View.h3([], []),
+    View.h4([], []),
+    View.h5([], []),
+    View.h6([], []),
     View.hr([], []),
     View.article([], []),
     View.p([], []),

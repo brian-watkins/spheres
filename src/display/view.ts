@@ -107,6 +107,26 @@ export function h1(attributes: Array<ViewAttribute>, children: Array<View>): Vie
   return element("h1", attributes, children)
 }
 
+export function h2(attributes: Array<ViewAttribute>, children: Array<View>): View {
+  return element("h2", attributes, children)
+}
+
+export function h3(attributes: Array<ViewAttribute>, children: Array<View>): View {
+  return element("h3", attributes, children)
+}
+
+export function h4(attributes: Array<ViewAttribute>, children: Array<View>): View {
+  return element("h4", attributes, children)
+}
+
+export function h5(attributes: Array<ViewAttribute>, children: Array<View>): View {
+  return element("h5", attributes, children)
+}
+
+export function h6(attributes: Array<ViewAttribute>, children: Array<View>): View {
+  return element("h6", attributes, children)
+}
+
 export function hr(attributes: Array<ViewAttribute>, children: Array<View>): View {
   return element("hr", attributes, children)
 }

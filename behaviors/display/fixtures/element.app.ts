@@ -10,6 +10,7 @@ export default function(): View.View {
     View.h6([], []),
     View.hr([], []),
     View.article([], []),
+    View.section([], []),
     View.p([], []),
     View.ul([], [
       View.li([], [ View.text("hello") ])

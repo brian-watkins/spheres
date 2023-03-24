@@ -135,6 +135,10 @@ export function article(attributes: Array<ViewAttribute>, children: Array<View>)
   return element("article", attributes, children)
 }
 
+export function section(attributes: Array<ViewAttribute>, children: Array<View>): View {
+  return element("section", attributes, children)
+}
+
 export function p(attributes: Array<ViewAttribute>, children: Array<View>): View {
   return element("p", attributes, children)
 }

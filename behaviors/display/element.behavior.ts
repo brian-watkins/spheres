@@ -14,6 +14,7 @@ export default (context: Context<TestAppController>) => behavior("View Elements"
       observe: [
         theElementExists("DIV"),
         theElementExists("ARTICLE"),
+        theElementExists("SECTION"),
         theElementExists("P"),
         theElementExists("H1"),
         theElementExists("H2"),

@@ -22,7 +22,8 @@ export default (context: Context<TestAppController>) => behavior("View Elements"
         theElementExists("INPUT"),
         theElementExists("BUTTON"),
         theElementExists("some-custom-element"),
-        theElementExists("TEXTAREA")
+        theElementExists("TEXTAREA"),
+        theElementExists("A[href='http://blah.blah']")
       ]
     })
 ])

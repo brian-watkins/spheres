@@ -74,6 +74,10 @@ export function disabled(isDisabled: boolean): ViewAttribute {
   return isDisabled ? new Attribute("disabled", "") : new NoAttribute()
 }
 
+export function href(value: string): ViewAttribute {
+  return new Attribute("href", value)
+}
+
 function makeNode(tag: string | undefined, data: ViewData | undefined, children?: Array<View>, text?: string): View {
   // See Snabbdom src/h.ts and src/vnode.ts
   // We are not supporting SVG at the moment but otherwise this should work
@@ -121,6 +125,10 @@ export function ul(attributes: Array<ViewAttribute>, children: Array<View>): Vie
 
 export function li(attributes: Array<ViewAttribute>, children: Array<View>): View {
   return element("li", attributes, children)
+}
+
+export function a(attributes: Array<ViewAttribute>, children: Array<View>): View {
+  return element("a", attributes, children)
 }
 
 export function input(attributes: Array<ViewAttribute>, children: Array<View>): View {

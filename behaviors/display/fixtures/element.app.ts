@@ -13,5 +13,6 @@ export default function(): View.View {
     View.button([], [ View.text("Click it!") ]),
     View.element("some-custom-element", [], []),
     View.textarea([], []),
+    View.a([View.href("http://blah.blah")], [View.text("Click me!")])
   ])
 }

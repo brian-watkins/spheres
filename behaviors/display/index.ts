@@ -6,6 +6,7 @@ import elementBehavior from "./element.behavior.js";
 import eventBehavior from "./event.behavior.js";
 import { testAppContext } from "./helpers/testAppController.js";
 import inputPropertiesBehavior from "./inputProperties.behavior.js";
+import renderBehavior from "./render.behavior.js";
 import viewBehavior from "./view.behavior.js";
 
 export function validateBehaviors(page: Page): Promise<Summary> {
@@ -17,6 +18,7 @@ export function validateBehaviors(page: Page): Promise<Summary> {
     cssBehavior(context),
     eventBehavior(context),
     inputPropertiesBehavior(context),
-    dynamicViewStateBehavior(context)
+    dynamicViewStateBehavior(context),
+    renderBehavior
   ], { failFast: true })
 }

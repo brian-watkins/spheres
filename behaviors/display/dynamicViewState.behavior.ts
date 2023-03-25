@@ -1,7 +1,7 @@
 import { behavior, Context, effect, example, fact, step } from "esbehavior";
 import { equalTo, expect, is } from "great-expectations";
-import { DOMChangeRecord, DOMStructureChangeRecord } from "./helpers/changeRecords";
-import { TestAppController } from "./helpers/testAppController";
+import { DOMChangeRecord, DOMStructureChangeRecord } from "./helpers/changeRecords.js";
+import { TestAppController } from "./helpers/testAppController.js";
 
 export default (context: Context<TestAppController>) => behavior("dynamic view state", [
   reorderExampleGenerator(context, "reordering by key on element passed to state", "reorderUsingImplicitStateKey.app"),

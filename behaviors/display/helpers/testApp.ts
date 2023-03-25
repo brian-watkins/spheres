@@ -1,6 +1,6 @@
 import { Display } from "@src/display/index.js"
 import { loop } from "@src/index.js"
-import { DOMChangeRecord, structureChangeRecord, textChangeRecord } from "./changeRecords"
+import { DOMChangeRecord, structureChangeRecord, textChangeRecord } from "./changeRecords.js"
 
 export class TestApp {
   private appDisplay: Display | undefined

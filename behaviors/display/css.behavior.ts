@@ -1,6 +1,6 @@
 import { behavior, Context, effect, example, fact, step } from "esbehavior";
 import { equalTo, expect, is } from "great-expectations";
-import { TestAppController } from "./helpers/testAppController";
+import { TestAppController } from "./helpers/testAppController.js";
 
 
 export default (context: Context<TestAppController>) => behavior("css attributes on view", [

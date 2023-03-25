@@ -1,6 +1,6 @@
 import { Context } from "esbehavior";
 import { Locator, Page } from "playwright";
-import { DOMChangeRecord } from "./changeRecords";
+import { DOMChangeRecord } from "./changeRecords.js";
 
 export function testAppContext(page: Page): Context<TestAppController> {
   return {

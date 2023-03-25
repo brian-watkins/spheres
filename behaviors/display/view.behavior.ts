@@ -1,6 +1,6 @@
 import { behavior, ConfigurableExample, Context, effect, example, fact, step } from "esbehavior";
 import { equalTo, expect, is, stringContaining } from "great-expectations";
-import { TestAppController } from "./helpers/testAppController";
+import { TestAppController } from "./helpers/testAppController.js";
 
 
 const simpleViewBehavior = (context: Context<TestAppController>): ConfigurableExample =>

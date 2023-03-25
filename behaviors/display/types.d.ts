@@ -1,5 +1,5 @@
 import { Summary } from "esbehavior"
-import { TestApp } from "./helpers/testApp"
+import { TestApp } from "./helpers/testApp.js"
 
 export declare global {
   interface Window {

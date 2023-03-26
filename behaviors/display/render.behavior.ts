@@ -1,7 +1,7 @@
 import { render } from "../../src/display/index.js";
 import { behavior, effect, example, Example } from "esbehavior";
 import { equalTo, expect, is } from "great-expectations";
-import { appWithPropertiesAndAttributes, staticApp } from "./fixtures/static.app.js";
+import { appWithDataAttributesNoValue, appWithPropertiesAndAttributes, staticApp } from "./fixtures/static.app.js";
 
 export default behavior("Render view to HTML", [
   test("render view with no event handlers or state", () => {
@@ -11,6 +11,10 @@ export default behavior("Render view to HTML", [
   test("render view with properties and attributes", () => {
     const actual = render(appWithPropertiesAndAttributes({ name: "Awesome Person", age: 99 }))
     expect(actual, is(equalTo(`<div id="element-1"><div class="my-class another-class" data-person="Awesome Person">99 years old</div></div>`)))
+  }),
+  test("render view with data attribute that has no value", () => {
+    const actual = render(appWithDataAttributesNoValue({ name: "Funny Dude", age: 11 }))
+    expect(actual, is(equalTo(`<div><div data-is-person="true">11 years old</div></div>`)))
   })
 ])
 

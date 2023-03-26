@@ -29,3 +29,13 @@ export function appWithPropertiesAndAttributes(props: StaticViewProps): View.Vie
     ])
   ])
 }
+
+export function appWithDataAttributesNoValue(props: StaticViewProps): View.View {
+  return View.div([], [
+    View.div([
+      View.data("is-person")
+    ], [
+      View.text(`${props.age} years old`)
+    ])
+  ])
+}

@@ -62,7 +62,7 @@ export function key(value: string | number | State<any>): ViewAttribute {
   return new Key(`${value}`)
 }
 
-export function data(name: string, value: string = ""): ViewAttribute {
+export function data(name: string, value: string = "true"): ViewAttribute {
   return new Attribute(`data-${name}`, value)
 }
 

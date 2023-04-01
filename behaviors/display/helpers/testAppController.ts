@@ -2,10 +2,25 @@ import { Context } from "esbehavior";
 import { Locator, Page } from "playwright";
 import { DOMChangeRecord } from "./changeRecords.js";
 
-export function testAppContext(page: Page): Context<TestAppController> {
+export interface DisplayBehaviorOptions {
+  debug: boolean
+}
+
+export function testAppContext(page: Page, options: DisplayBehaviorOptions): Context<TestAppController> {
   return {
-    init: () => new TestAppController(page),
-    teardown: (controller) => controller.destroyApp()
+    init: async () => {
+      if (options.debug) {
+        await page.reload()
+      }
+      return new TestAppController(page)
+    },
+    teardown: async (controller) => {
+      if (options.debug) {
+        return
+      }
+
+      await controller.destroyApp()
+    }
   }
 }
 

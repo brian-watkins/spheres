@@ -17,7 +17,7 @@ const server = await createServer({
 await server.listen()
 
 const browser = await chromium.launch({
-  headless: true
+  headless: !isDebug()
 })
 
 const page = await browser.newPage()
@@ -26,17 +26,23 @@ page.on("pageerror", console.log)
 
 await page.goto(`http://localhost:${serverPort}/behaviors/display/index.html`)
 
-const summary = await validateBehaviors(page)
+const summary = await validateBehaviors(page, { debug: isDebug() })
 
 if (summary.invalid > 0 || summary.skipped > 0) {
   process.exitCode = 1
 }
 
-await browser.close()
-await server.close()
+if (!isDebug()) {
+  await browser.close()
+  await server.close()  
+}
 
 // -------
 
 function fixStackTrace(line: string): string {
   return line.replace(`http://localhost:${serverPort}`, '')
+}
+
+function isDebug(): boolean {
+  return process.env["DEBUG"] !== undefined
 }

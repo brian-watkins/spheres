@@ -4,13 +4,13 @@ import cssBehavior from "./css.behavior.js";
 import dynamicViewStateBehavior from "./dynamicViewState.behavior.js";
 import elementBehavior from "./element.behavior.js";
 import eventBehavior from "./event.behavior.js";
-import { testAppContext } from "./helpers/testAppController.js";
+import { DisplayBehaviorOptions, testAppContext } from "./helpers/testAppController.js";
 import inputPropertiesBehavior from "./inputProperties.behavior.js";
 import renderBehavior from "./render.behavior.js";
 import viewBehavior from "./view.behavior.js";
 
-export function validateBehaviors(page: Page): Promise<Summary> {
-  const context = testAppContext(page)
+export function validateBehaviors(page: Page, options: DisplayBehaviorOptions): Promise<Summary> {
+  const context = testAppContext(page, options)
   
   return validate([
     elementBehavior(context),

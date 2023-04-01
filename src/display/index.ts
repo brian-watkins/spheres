@@ -12,5 +12,5 @@ export function display(view: View): Display {
 
 export function withState(generator: (get: <S>(state: State<S>) => S) => View): View {
   const stateDerivation = loop().deriveContainer(generator)
-  return stateful(stateDerivation.state, stateDerivation.initialValue.key)
+  return stateful(stateDerivation.state, stateDerivation.initialValue)
 }

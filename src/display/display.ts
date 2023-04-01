@@ -1,5 +1,5 @@
-import { attributesModule, classModule, eventListenersModule, init, propsModule } from "snabbdom";
-import { Loop, LoopMessage } from "../loop.js";
+import { attributesModule, classModule, eventListenersModule, init, Module, propsModule, VNode } from "snabbdom";
+import { Loop, LoopMessage, State } from "../loop.js";
 import { View } from "./view.js";
 
 export class Display {
@@ -24,7 +24,8 @@ export class Display {
       propsModule,
       attributesModule,
       classModule,
-      eventListenersModule
+      eventListenersModule,
+      viewFragmentModule
     ])
 
     patch(mountPoint, this.view)
@@ -36,6 +37,41 @@ export class Display {
       this.appRoot.removeEventListener("displayMessage", this.listener)
       this.listener = () => {}
       this.appRoot = undefined
+    }
+  }
+}
+
+const viewFragmentModule: Module = {
+  create: (_: VNode, vNode: VNode) => {
+    if (vNode.sel === "view-fragment") {
+      const viewState: State<View> = vNode.data!.loop.state
+      vNode.data = {
+        loop: { unsubscribe: () => {} },
+        hook: {
+          create: (_, vnode) => {
+            const patch = init([
+              propsModule,
+              attributesModule,
+              classModule,
+              eventListenersModule,
+              viewFragmentModule
+            ])
+
+            let oldNode: VNode | Element = vnode.elm as Element
+
+            vnode.data!.loop.unsubscribe = viewState.subscribe((updatedView) => {
+              oldNode = patch(oldNode, updatedView)
+              vnode.elm = oldNode.elm
+            })
+          },
+          postpatch: (oldVNode, vNode) => {
+            vNode.data!.loop = oldVNode.data!.loop
+          },
+          destroy: (vnode) => {
+            vnode.data!.loop.unsubscribe()
+          }
+        }
+      }
     }
   }
 }

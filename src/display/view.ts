@@ -1,4 +1,4 @@
-import { attributesModule, Attrs, Classes, classModule, eventListenersModule, Hooks, init, On, Props, propsModule, VNode } from "snabbdom";
+import { Attrs, Classes, Hooks, On, Props } from "snabbdom";
 import { LoopMessage, State } from "../loop.js";
 
 // Tailored from Snabbdom VNode
@@ -23,7 +23,8 @@ interface ViewData {
 }
 
 interface LoopData {
-  unsubscribe: () => void
+  state: State<any>
+  initialView: View
 }
 
 class Property {
@@ -202,33 +203,13 @@ export function onInput<M extends LoopMessage<any>>(generator: (value: string) =
 
 export type ViewGenerator = (parent: View) => View
 
-export function stateful(viewState: State<View>, key?: string): View {
+export function stateful(viewState: State<View>, initial: View): View {
   return makeNode("view-fragment", {
-    loop: { unsubscribe: () => {} },
-    key,
-    hook: {
-      create: (_, vnode) => {
-        const patch = init([
-          propsModule,
-          attributesModule,
-          classModule,
-          eventListenersModule
-        ])
-
-        let oldNode: VNode | Element = vnode.elm as Element
-
-        vnode.data!.loop.unsubscribe = viewState.subscribe((updatedView) => {
-          oldNode = patch(oldNode, updatedView)
-          vnode.elm = oldNode.elm
-        })
-      },
-      postpatch: (oldVNode, vNode) => {
-        vNode.data!.loop = oldVNode.data!.loop
-      },
-      destroy: (vnode) => {
-        vnode.data!.loop.unsubscribe()
-      }
-    }
+    loop: {
+      state: viewState,
+      initialView: initial
+    },
+    key: initial.key
   })
 }
 

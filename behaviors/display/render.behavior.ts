@@ -1,7 +1,7 @@
 import { render } from "../../src/display/index.js";
 import { behavior, effect, example, Example } from "esbehavior";
 import { equalTo, expect, is } from "great-expectations";
-import { appWithDataAttributesNoValue, appWithPropertiesAndAttributes, staticApp } from "./fixtures/static.app.js";
+import { appWithDataAttributesNoValue, appWithNestedState, appWithPropertiesAndAttributes, appWithSimpleState, staticApp } from "./fixtures/static.app.js";
 
 export default behavior("Render view to HTML", [
   test("render view with no event handlers or state", () => {
@@ -15,6 +15,14 @@ export default behavior("Render view to HTML", [
   test("render view with data attribute that has no value", () => {
     const actual = render(appWithDataAttributesNoValue({ name: "Funny Dude", age: 11 }))
     expect(actual, is(equalTo(`<div><div data-is-person="true">11 years old</div></div>`)))
+  }),
+  test("render view with state", () => {
+    const actual = render(appWithSimpleState())
+    expect(actual, is(equalTo(`<div><view-fragment><h2>Cool Person!</h2></view-fragment></div>`)))
+  }),
+  test("render view with nested stateful views", () => {
+    const actual = render(appWithNestedState())
+    expect(actual, is(equalTo(`<div><view-fragment><div><view-fragment><h2>Cool Person!</h2></view-fragment><p>98 years!</p></div></view-fragment></div>`)))
   })
 ])
 

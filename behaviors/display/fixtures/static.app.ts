@@ -1,3 +1,4 @@
+import { container, GetState, withInitialValue } from "../../../src/index.js";
 import * as View from "../../../src/display/index.js";
 
 interface StaticViewProps {
@@ -37,5 +38,29 @@ export function appWithDataAttributesNoValue(props: StaticViewProps): View.View 
     ], [
       View.text(`${props.age} years old`)
     ])
+  ])
+}
+
+const nameState = container(withInitialValue("Cool Person!"))
+const ageState = container(withInitialValue(98))
+
+function nameView(get: GetState): View.View {
+  return View.h2([], [View.text(get(nameState))])
+}
+
+export function appWithSimpleState(): View.View {
+  return View.div([], [
+    View.withState(nameView)
+  ])
+}
+
+export function appWithNestedState(): View.View {
+  return View.div([], [
+    View.withState((get) => {
+      return View.div([], [
+        View.withState(nameView),
+        View.p([], [View.text(`${get(ageState)} years!`)])
+      ])
+    })
   ])
 }

@@ -20,13 +20,7 @@ export class Display {
 
     this.appRoot.addEventListener("displayMessage", this.listener)
 
-    const patch = init([
-      propsModule,
-      attributesModule,
-      classModule,
-      eventListenersModule,
-      viewFragmentModule
-    ])
+    const patch = createPatch()
 
     patch(mountPoint, this.view)
   }
@@ -49,13 +43,7 @@ const viewFragmentModule: Module = {
         loop: { unsubscribe: () => {} },
         hook: {
           create: (_, vnode) => {
-            const patch = init([
-              propsModule,
-              attributesModule,
-              classModule,
-              eventListenersModule,
-              viewFragmentModule
-            ])
+            const patch = createPatch()
 
             let oldNode: VNode | Element = vnode.elm as Element
 
@@ -74,4 +62,14 @@ const viewFragmentModule: Module = {
       }
     }
   }
+}
+
+function createPatch() {
+  return init([
+    propsModule,
+    attributesModule,
+    classModule,
+    eventListenersModule,
+    viewFragmentModule
+  ])
 }

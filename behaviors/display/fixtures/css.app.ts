@@ -1,9 +1,9 @@
-import { container, state, withInitialValue, writeMessage } from "@src/index.js"
+import { container, GetState, withInitialValue, writeMessage } from "@src/index.js"
 import * as View from "@src/display/index.js"
 
 const numberState = container(withInitialValue(17))
 
-const funView = state((get) => {
+const funView = (get: GetState) => {
   return View.div([
     View.id("cool-stuff"),
     View.cssClasses([
@@ -13,7 +13,7 @@ const funView = state((get) => {
   ], [
     View.text("This is some cool stuff!")
   ])
-})
+}
 
 
 export default function (): View.View {
@@ -25,7 +25,7 @@ export default function (): View.View {
     ], [
       View.text("This is only a test!")
     ]),
-    View.stateful(funView),
+    View.withState(funView),
     View.hr([], []),
     View.input([
       View.data("number-input"),

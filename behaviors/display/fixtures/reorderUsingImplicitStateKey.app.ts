@@ -1,4 +1,4 @@
-import { container, rule, state, State, trigger, withInitialValue } from "@src/index.js";
+import { container, GetState, rule, State, trigger, withInitialValue } from "@src/index.js";
 import * as View from "@src/display/index.js"
 
 interface Person {
@@ -37,7 +37,7 @@ const incrementTicker = rule(ticker, (get) => {
   return get(ticker) + 1
 })
 
-const peopleView: State<View.View> = state(get => {
+const peopleView = (get: GetState) => {
   const list = get(people)
 
   return View.div([], [
@@ -53,7 +53,7 @@ const peopleView: State<View.View> = state(get => {
     View.hr([], []),
     View.ul([], list.map(personView))
   ])
-})
+}
 
 function personView(person: State<Person>): View.View {
   return View.withState(get =>
@@ -71,6 +71,6 @@ export default function (): View.View {
   return View.div([
     View.id("reorder-list")
   ], [
-    View.stateful(peopleView)
+    View.withState(peopleView)
   ])
 }

@@ -1,17 +1,17 @@
-import { container, state, withInitialValue, writeMessage } from "@src/index.js"
+import { container, GetState, withInitialValue, writeMessage } from "@src/index.js"
 import * as View from "@src/display/index.js"
 
 const nameState = container(withInitialValue("hello"))
 
 const ageState = container(withInitialValue(27))
 
-const ageView = state((get) => {
-  return View.p([View.data("age")], [
+const ageView = (get: GetState) => {
+  return View.p([View.key("my-age"), View.data("age")], [
     View.text(`My age is: ${get(ageState)}`)
   ])
-})
+}
 
-const nameView = state((get) => {
+const nameView = (get: GetState) => {
   const name = get(nameState)
   let children = [
     View.p([View.data("name")], [
@@ -19,16 +19,16 @@ const nameView = state((get) => {
     ])
   ]
   if (name !== "AGELESS PERSON") {
-    children.push(View.stateful(ageView))
+    children.push(View.withState(ageView))
   }
   return View.div([], children)
-})
+}
 
 
 export default function(): View.View {
   return View.div([], [
     View.h1([], [View.text("This is only a test!")]),
-    View.stateful(nameView),
+    View.withState(nameView),
     View.hr([], []),
     View.input([
       View.data("name-input"),

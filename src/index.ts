@@ -36,7 +36,9 @@ export function meta<T, M = T>(state: Container<T, M> | State<M>): State<Meta<M>
   return loop().fetchMetaContainer(state)
 }
 
-export function state<T>(derivation: (get: <S>(state: State<S>) => S) => T): State<T> {
+export type GetState = <S>(state: State<S>) => S
+
+export function state<T>(derivation: (get: GetState) => T): State<T> {
   return loop().deriveContainer(derivation).state
 }
 

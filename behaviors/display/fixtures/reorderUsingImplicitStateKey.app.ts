@@ -56,10 +56,8 @@ const peopleView = (get: GetState) => {
 }
 
 function personView(person: State<Person>): View.View {
-  return View.withState(get =>
-    View.li([
-      View.key(person)
-    ], [
+  return View.withState({ key: person }, get =>
+    View.li([], [
       View.h1([View.data("person")], [
         View.text(`${get(person).name} is ${get(person).age} years old: ${get(ticker)}`)
       ])

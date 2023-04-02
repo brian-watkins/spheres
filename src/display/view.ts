@@ -1,55 +1,8 @@
-import { Attrs, Classes, Hooks, On, Props } from "snabbdom";
+import { GetState } from "../index.js";
 import { LoopMessage, State } from "../loop.js";
+import { Attribute, CssClasses, CssClassname, EventHandler, Key, makeNode, makeViewData, NoAttribute, Property, statefulView, StatefulViewOptions, View, ViewAttribute } from "./vdom.js";
+export type { View, ViewAttribute } from "./vdom.js"
 
-// Tailored from Snabbdom VNode
-export interface View {
-  sel: string | undefined;
-  data: ViewData | undefined;
-  children: Array<View | string> | undefined;
-  elm: Node | undefined;
-  text: string | undefined;
-  key: string | undefined;
-}
-
-// Tailored from Snabbdom VNodeData
-interface ViewData {
-  props?: Props;
-  attrs?: Attrs;
-  class?: Classes;
-  on?: On;
-  hook?: Hooks;
-  key?: string;
-  loop?: LoopData
-}
-
-interface LoopData {
-  state: State<any>
-  initialView: View
-}
-
-class Property {
-  type: "property" = "property"
-
-  constructor(public key: string, public value: string) { }
-}
-
-class Attribute {
-  type: "attribute" = "attribute"
-
-  constructor(public key: string, public value: string) { }
-}
-
-class Key {
-  type: "key" = "key"
-
-  constructor(public key: string) { }
-}
-
-class NoAttribute {
-  type: "no-attribute" = "no-attribute"
-}
-
-export type ViewAttribute = Property | Attribute | EventHandler | CssClasses | Key | NoAttribute
 
 export function property(name: string, value: string): ViewAttribute {
   return new Property(name, value)
@@ -77,19 +30,6 @@ export function disabled(isDisabled: boolean): ViewAttribute {
 
 export function href(value: string): ViewAttribute {
   return new Attribute("href", value)
-}
-
-function makeNode(tag: string | undefined, data: ViewData | undefined, children?: Array<View>, text?: string): View {
-  // See Snabbdom src/h.ts and src/vnode.ts
-  // We are not supporting SVG at the moment but otherwise this should work
-  return {
-    sel: tag,
-    data,
-    children,
-    text,
-    elm: undefined,
-    key: data?.key
-  }
 }
 
 export function text(value: string): View {
@@ -168,14 +108,6 @@ export function textarea(attributes: Array<ViewAttribute>, children: Array<View>
   return element("textarea", attributes, children)
 }
 
-export type CssClassname = string
-
-class CssClasses {
-  type: "css-classes" = "css-classes"
-
-  constructor(public classObject: { [key: CssClassname]: boolean }) { }
-}
-
 export function cssClasses(classes: Array<CssClassname>): ViewAttribute {
   const classObject: { [key: CssClassname]: boolean } = {}
   for (const classname of classes) {
@@ -185,11 +117,6 @@ export function cssClasses(classes: Array<CssClassname>): ViewAttribute {
   return new CssClasses(classObject)
 }
 
-class EventHandler {
-  type: "event" = "event"
-
-  constructor(public event: string, public generator: (evt: Event) => any) { }
-}
 
 export function onClick<M extends LoopMessage<any>>(message: M): ViewAttribute {
   return new EventHandler("click", () => message)
@@ -203,55 +130,12 @@ export function onInput<M extends LoopMessage<any>>(generator: (value: string) =
 
 export type ViewGenerator = (parent: View) => View
 
-export function stateful(viewState: State<View>, initial: View): View {
-  return makeNode("view-fragment", {
-    loop: {
-      state: viewState,
-      initialView: initial
-    },
-    key: initial.key
-  })
-}
-
-function makeViewData(attributes: Array<ViewAttribute>): ViewData {
-  const dict: any = {
-    props: {},
-    attrs: {},
-    class: {},
-    on: {}
+export function withState(options: StatefulViewOptions, generator: (get: <S>(state: State<S>) => S) => View): View
+export function withState(generator: (get: <S>(state: State<S>) => S) => View): View
+export function withState(optionsOrGenerator: StatefulViewOptions | ((get: GetState) => View), generator?: (get: GetState) => View): View {
+  if (typeof optionsOrGenerator === "function") {
+    return statefulView({}, optionsOrGenerator as (get: GetState) => View)
+  } else {
+    return statefulView(optionsOrGenerator as StatefulViewOptions, generator!)
   }
-  for (const attr of attributes) {
-    switch (attr.type) {
-      case "property":
-        dict.props[attr.key] = attr.value
-        break
-      case "attribute":
-        dict.attrs[attr.key] = attr.value
-        break
-      case "css-classes":
-        dict.class = Object.assign(dict.class, attr.classObject)
-        break
-      case "event":
-        dict.on[attr.event] = function (evt: Event) {
-          evt.target?.dispatchEvent(new CustomEvent("displayMessage", {
-            bubbles: true,
-            cancelable: true,
-            detail: attr.generator(evt)
-          }))
-        }
-        break
-      case "key":
-        dict.key = attr.key
-        break
-      case "no-attribute":
-        break
-      default:
-        exhaustiveMatchGuard(attr)
-    }
-  }
-  return dict
-}
-
-function exhaustiveMatchGuard(_: never) {
-  throw new Error("Should never get here!")
 }

@@ -1,11 +1,14 @@
 import { VNode } from "snabbdom";
 import init from "snabbdom-to-html/init.js"
 import modules from "snabbdom-to-html/modules/index.js"
-import { View } from "./view.js";
+import { loop } from "../index.js";
+import { StateDerivation } from "../loop.js";
+import { View } from "./vdom.js";
 
 function viewFragmentHandler(vnode: VNode) {
   if (vnode.sel === "view-fragment") {
-    vnode.children = [ vnode.data!.loop.initialView ]
+    const derivation: StateDerivation<View> = loop().deriveContainer(vnode.data!.loop.generator)
+    vnode.children = [ derivation.initialValue ]
   }
 }
 

@@ -1,5 +1,5 @@
-import { attributesModule, classModule, eventListenersModule, init, Module, propsModule, VNode } from "snabbdom";
-import { Loop, LoopMessage, State } from "../loop.js";
+import { Loop, LoopMessage } from "../loop.js";
+import { createPatch } from "./vdom.js";
 import { View } from "./view.js";
 
 export class Display {
@@ -33,43 +33,4 @@ export class Display {
       this.appRoot = undefined
     }
   }
-}
-
-const viewFragmentModule: Module = {
-  create: (_: VNode, vNode: VNode) => {
-    if (vNode.sel === "view-fragment") {
-      const viewState: State<View> = vNode.data!.loop.state
-      vNode.data = {
-        loop: { unsubscribe: () => {} },
-        hook: {
-          create: (_, vnode) => {
-            const patch = createPatch()
-
-            let oldNode: VNode | Element = vnode.elm as Element
-
-            vnode.data!.loop.unsubscribe = viewState.subscribe((updatedView) => {
-              oldNode = patch(oldNode, updatedView)
-              vnode.elm = oldNode.elm
-            })
-          },
-          postpatch: (oldVNode, vNode) => {
-            vNode.data!.loop = oldVNode.data!.loop
-          },
-          destroy: (vnode) => {
-            vnode.data!.loop.unsubscribe()
-          }
-        }
-      }
-    }
-  }
-}
-
-function createPatch() {
-  return init([
-    propsModule,
-    attributesModule,
-    classModule,
-    eventListenersModule,
-    viewFragmentModule
-  ])
 }

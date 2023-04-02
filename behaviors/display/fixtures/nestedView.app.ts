@@ -6,7 +6,9 @@ const nameState = container(withInitialValue("hello"))
 const ageState = container(withInitialValue(27))
 
 const ageView = (get: GetState) => {
-  return View.p([View.key("my-age"), View.data("age")], [
+  return View.p([
+    View.data("age")
+  ], [
     View.text(`My age is: ${get(ageState)}`)
   ])
 }

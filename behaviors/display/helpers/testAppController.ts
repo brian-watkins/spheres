@@ -1,6 +1,7 @@
 import { Context } from "esbehavior";
 import { Locator, Page } from "playwright";
 import { DOMChangeRecord } from "./changeRecords.js";
+import { fixStackTraceForPage } from "./stackTrace.js";
 
 export interface DisplayBehaviorOptions {
   debug: boolean
@@ -28,9 +29,13 @@ export class TestAppController {
   constructor(private page: Page) {}
 
   async loadApp<T>(appName: string, context?: T) {
-    await this.page.evaluate(({ appName, context }) => {
-      return window.esdisplay_testApp.startApp(appName, context)
-    }, { appName, context })
+    try {
+      await this.page.evaluate(({ appName, context }) => {
+        return window.esdisplay_testApp.startApp(appName, context)
+      }, { appName, context })  
+    } catch (err: any) {
+      throw new Error(`Error loading ${appName}\n\n${fixStackTraceForPage(this.page, err.message)}`)
+    }
   }
 
   async destroyApp() {

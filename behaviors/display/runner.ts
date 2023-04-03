@@ -2,8 +2,10 @@ import { createServer } from "vite"
 import { chromium } from "playwright"
 import tsConfigPaths from "vite-tsconfig-paths"
 import { validateBehaviors } from "./index.js"
+import { fixStackTrace } from "./helpers/stackTrace.js"
 
 const serverPort = 5957
+const serverHost = `http://localhost:${serverPort}`
 
 const server = await createServer({
   server: {
@@ -21,7 +23,7 @@ const browser = await chromium.launch({
 })
 
 const page = await browser.newPage()
-page.on("console", (message) => console.log(fixStackTrace(message.text())))
+page.on("console", (message) => console.log(fixStackTrace(serverHost, message.text())))
 page.on("pageerror", console.log)
 
 await page.goto(`http://localhost:${serverPort}/behaviors/display/index.html`)
@@ -34,14 +36,10 @@ if (summary.invalid > 0 || summary.skipped > 0) {
 
 if (!isDebug()) {
   await browser.close()
-  await server.close()  
+  await server.close()
 }
 
 // -------
-
-function fixStackTrace(line: string): string {
-  return line.replace(`http://localhost:${serverPort}`, '')
-}
 
 function isDebug(): boolean {
   return process.env["DEBUG"] !== undefined

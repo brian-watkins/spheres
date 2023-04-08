@@ -134,8 +134,13 @@ export function withState(options: StatefulViewOptions, generator: (get: <S>(sta
 export function withState(generator: (get: <S>(state: State<S>) => S) => View): View
 export function withState(optionsOrGenerator: StatefulViewOptions | ((get: GetState) => View), generator?: (get: GetState) => View): View {
   if (typeof optionsOrGenerator === "function") {
-    return statefulView({}, optionsOrGenerator as (get: GetState) => View)
+    return statefulView("view-fragment", {}, optionsOrGenerator as (get: GetState) => View)
   } else {
-    return statefulView(optionsOrGenerator as StatefulViewOptions, generator!)
+    return statefulView("view-fragment", optionsOrGenerator as StatefulViewOptions, generator!)
   }
+}
+
+export async function island(loader: () => Promise<{ default: (get: GetState) => View }>): Promise<View> {
+  const loadedModule = await loader()
+  return statefulView("view-island", { loader: loader.toString() }, loadedModule.default)
 }

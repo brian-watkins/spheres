@@ -1,6 +1,7 @@
+import { loop } from "../index.js";
 import { Loop, LoopMessage } from "../loop.js";
 import { createPatch } from "./vdom.js";
-import { View } from "./view.js";
+import { View, island } from "./view.js";
 
 export class Display {
   private appRoot: HTMLElement | undefined
@@ -31,6 +32,25 @@ export class Display {
       this.appRoot.removeEventListener("displayMessage", this.listener)
       this.listener = () => {}
       this.appRoot = undefined
+    }
+  }
+}
+
+export async function activateIslands() {
+  document.addEventListener("displayMessage", (evt) => {
+    const displayMessageEvent = evt as CustomEvent<LoopMessage<any>>
+    loop().dispatch(displayMessageEvent.detail)
+  })
+
+  const islandElements = document.querySelectorAll("view-island")
+
+  for (const islandElement of islandElements) {
+    const islandIndex = (islandElement as HTMLElement).dataset.islandId ?? ""
+    const loader = window.esdisplay.islands[islandIndex]
+    if (loader) {
+      const virtualIsland = await island(loader)
+      virtualIsland.elm = islandElement
+      virtualIsland.data!.hook!.create!(virtualIsland, virtualIsland)
     }
   }
 }

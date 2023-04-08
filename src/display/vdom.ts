@@ -25,6 +25,7 @@ export interface ViewData {
 export interface LoopData {
   unsubscribe: () => void,
   generator: (get: GetState) => View
+  loader?: string
 }
 
 export class Property {
@@ -132,14 +133,16 @@ export function makeNode(tag: string | undefined, data: ViewData | undefined, ch
 
 export interface StatefulViewOptions {
   key?: string | State<any>
+  loader?: string
 }
 
-export function statefulView(options: StatefulViewOptions, generator: (get: GetState) => View): View {
-  return makeNode("view-fragment", {
+export function statefulView(tag: string, options: StatefulViewOptions, generator: (get: GetState) => View): View {
+  return makeNode(tag, {
     key: options.key?.toString(),
     loop: {
       unsubscribe: () => { },
-      generator
+      generator,
+      loader: options.loader
     },
     hook: {
       create: (_, vnode) => {

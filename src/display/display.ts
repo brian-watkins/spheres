@@ -36,21 +36,32 @@ export class Display {
   }
 }
 
-export async function activateIslands() {
+export function activate(island: View) {
+  
+}
+
+export async function activateIslands(elements: Array<View>) {
   document.addEventListener("displayMessage", (evt) => {
     const displayMessageEvent = evt as CustomEvent<LoopMessage<any>>
     loop().dispatch(displayMessageEvent.detail)
   })
 
-  const islandElements = document.querySelectorAll("view-island")
-
-  for (const islandElement of islandElements) {
-    const islandIndex = (islandElement as HTMLElement).dataset.islandId ?? ""
-    const loader = window.esdisplay.islands[islandIndex]
-    if (loader) {
-      const virtualIsland = await island(loader)
-      virtualIsland.elm = islandElement
-      virtualIsland.data!.hook!.create!(virtualIsland, virtualIsland)
-    }
+  for (const island of elements) {
+    const name = island.data!.loop!.islandName
+    const viewIsland = document.querySelector(`view-island[data-name='${name}']`) as HTMLElement
+    island.elm = viewIsland
+    island.data!.hook!.create!(island, island)
   }
+
+  // const islandElements = document.querySelectorAll("view-island")
+
+  // for (const islandElement of islandElements) {
+  //   const islandIndex = (islandElement as HTMLElement).dataset.islandId ?? ""
+  //   const loader = window.esdisplay.islands[islandIndex]
+  //   if (loader) {
+  //     const virtualIsland = await island(loader)
+  //     virtualIsland.elm = islandElement
+  //     virtualIsland.data!.hook!.create!(virtualIsland, virtualIsland)
+  //   }
+  // }
 }

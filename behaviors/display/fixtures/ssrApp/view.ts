@@ -1,13 +1,15 @@
 import * as View from "../../../../src/display/index.js"
+import counterIsland from "./counter.js"
+import tallyIsland from "./tally.js"
 
-export default async function (): Promise<View.View> {
+export default function (): View.View {
   return View.div([], [
     View.h1([], [
       View.text("This is the click counter!")
     ]),
-    await View.island(() => import("./counter.js")),
+    counterIsland,
     View.hr([], []),
-    await View.island(() => import("./tally.js"))
+    tallyIsland
   ])
 }
 

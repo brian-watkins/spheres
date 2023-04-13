@@ -3,8 +3,15 @@ import { equalTo, expect, is, stringContaining } from "great-expectations";
 import { ssrTestAppContext } from "./helpers/testServer.js";
 import { Browser } from "playwright";
 
+// we need a test for potentially multiple island elements that use
+// the same component (ie which have the same name) ...
+
+// And then what about dynamic import of the components?
+// We should be able to load and patch each component 'indepdendently'
+// via separate promises ...
+
 export default (browser: Browser, debug: boolean) => behavior("client activation of server rendered views", [
-  example(ssrTestAppContext(browser, debug))
+  (m) => m.pick() && example(ssrTestAppContext(browser, debug))
     .description("simple app with multiple islands sharing state")
     .script({
       suppose: [

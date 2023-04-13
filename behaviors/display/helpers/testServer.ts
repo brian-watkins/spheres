@@ -50,7 +50,7 @@ class TestBrowser {
   }
 
   async loadApp(): Promise<void> {
-    this.page?.goto("http://localhost:9899/index.html")
+    await this.page?.goto("http://localhost:9899/index.html")
   }
 
   async stop(): Promise<void> {
@@ -95,7 +95,7 @@ class TestServer {
         template = await this.viteDevServer!.transformIndexHtml(url, template)
 
         const viewGenerator = await import(options.view)
-        const view = await viewGenerator.default()
+        const view = viewGenerator.default()
         const appHtml = render(view)
 
         const html = template.replace(`<!-- SSR-CONTENT -->`, appHtml)

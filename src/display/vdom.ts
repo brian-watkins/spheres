@@ -25,7 +25,7 @@ export interface ViewData {
 export interface LoopData {
   unsubscribe: () => void,
   generator: (get: GetState) => View
-  loader?: string
+  islandName?: string
 }
 
 export class Property {
@@ -133,7 +133,7 @@ export function makeNode(tag: string | undefined, data: ViewData | undefined, ch
 
 export interface StatefulViewOptions {
   key?: string | State<any>
-  loader?: string
+  name?: string
 }
 
 export function statefulView(tag: string, options: StatefulViewOptions, generator: (get: GetState) => View): View {
@@ -142,7 +142,7 @@ export function statefulView(tag: string, options: StatefulViewOptions, generato
     loop: {
       unsubscribe: () => { },
       generator,
-      loader: options.loader
+      islandName: options.name
     },
     hook: {
       create: (_, vnode) => {

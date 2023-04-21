@@ -24,7 +24,7 @@ export interface ViewData {
 
 export interface LoopData {
   unsubscribe: () => void,
-  islandName?: string
+  activationId?: string
 }
 
 export class Property {
@@ -132,25 +132,16 @@ export function makeNode(tag: string | undefined, data: ViewData | undefined, ch
 
 export interface StatefulViewOptions {
   key?: string | State<any>
+  activationId?: string
 }
 
 export function statefulView(tag: string, options: StatefulViewOptions, generator: (get: GetState) => View): View {
-  return makeNode(tag, {
+  let data: ViewData = {
     key: options.key?.toString(),
     loop: {
       unsubscribe: () => { }
     },
     hook: {
-      render: (_: View): Promise<View> => {
-        const state = loop().deriveContainer(generator)
-
-        return new Promise((resolve) => {
-          const unsubscribe = state.subscribe((view) => {
-            resolve(view)
-            unsubscribe()
-          })
-        })
-      },
       create: (_, vnode) => {
         const state = loop().deriveContainer(generator)
 
@@ -170,5 +161,44 @@ export function statefulView(tag: string, options: StatefulViewOptions, generato
         vnode.data!.loop.unsubscribe()
       }
     }
-  })
+  }
+
+  if (options.activationId) {
+    data.loop!.activationId = options.activationId
+    data.hook!.render = activatableRenderer(options.activationId, generator)
+  } else {
+    data.hook!.render = staticRenderer(generator)
+  }
+
+  return makeNode(tag, data)
+}
+
+function staticRenderer(generator: (get: GetState) => View): (view: View) => Promise<View> {
+  return (_: View): Promise<View> => {
+    const state = loop().deriveContainer(generator)
+
+    return new Promise((resolve) => {
+      const unsubscribe = state.subscribe((view) => {
+        resolve(view)
+        unsubscribe()
+      })
+    })
+  }
+}
+
+function activatableRenderer(activationId: string, generator: (get: GetState) => View): (view: View) => Promise<View> {
+  return (node) => {
+    const state = loop().deriveContainer(generator!)
+
+    return new Promise((resolve) => {
+      const unsubscribe = state.subscribe((view) => {
+        node.data!.attrs = {
+          "data-activation-id": activationId
+        }
+        node.children = [view]
+        resolve(node)
+        unsubscribe()
+      })
+    })
+  }
 }

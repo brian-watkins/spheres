@@ -1,4 +1,4 @@
-import { GetState, loop } from "../index.js";
+import { GetState } from "../index.js";
 import { LoopMessage, State } from "../loop.js";
 import { Attribute, CssClasses, CssClassname, EventHandler, Key, makeNode, makeViewData, NoAttribute, Property, statefulView, StatefulViewOptions, View, ViewAttribute } from "./vdom.js";
 export type { View, ViewAttribute } from "./vdom.js"
@@ -132,6 +132,7 @@ export type ViewGenerator = (parent: View) => View
 
 export interface WithStateOptions {
   key?: string | State<any>
+  activationId?: string
 }
 
 export function withState(options: WithStateOptions, generator: (get: <S>(state: State<S>) => S) => View): View
@@ -140,27 +141,7 @@ export function withState(optionsOrGenerator: StatefulViewOptions | ((get: GetSt
   if (typeof optionsOrGenerator === "function") {
     return statefulView("view-fragment", {}, optionsOrGenerator as (get: GetState) => View)
   } else {
-    return statefulView("view-fragment", optionsOrGenerator as StatefulViewOptions, generator!)
+    const options = optionsOrGenerator as WithStateOptions
+    return statefulView("view-fragment", options, generator!)
   }
-}
-
-export function island(name: string, derivation: (get: GetState) => View): View {
-  const view = statefulView("view-island", {}, derivation)
-  view.data!.loop!.islandName = name
-  view.data!.hook!.render = (node) => {
-    const state = loop().deriveContainer(derivation)
-
-    return new Promise((resolve) => {
-      const unsubscribe = state.subscribe((view) => {
-        node.data!.attrs = {
-          "data-island-name": name
-        }
-        node.children = [view]
-        resolve(node)
-        unsubscribe()
-      })
-    })
-  }
-
-  return view
 }

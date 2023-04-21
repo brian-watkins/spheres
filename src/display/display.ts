@@ -24,8 +24,8 @@ export class Display {
   }
 
   activateIsland(island: View) {
-    const name = island.data!.loop!.islandName
-    const viewIslands = document.querySelectorAll(`view-island[data-island-name='${name}']`)
+    const name = island.data!.loop!.activationId
+    const viewIslands = document.querySelectorAll(`view-fragment[data-activation-id='${name}']`)
     for (const viewIsland of viewIslands) {
       island.elm = viewIsland
       island.data!.hook!.create!(island, island)        

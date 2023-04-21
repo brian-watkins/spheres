@@ -1,5 +1,5 @@
 import { GetState, loop } from "../index.js";
-import { LoopMessage, State, StateDerivation } from "../loop.js";
+import { LoopMessage, State } from "../loop.js";
 import { Attribute, CssClasses, CssClassname, EventHandler, Key, makeNode, makeViewData, NoAttribute, Property, statefulView, StatefulViewOptions, View, ViewAttribute } from "./vdom.js";
 export type { View, ViewAttribute } from "./vdom.js"
 
@@ -148,10 +148,10 @@ export function island(name: string, derivation: (get: GetState) => View): View 
   const view = statefulView("view-island", {}, derivation)
   view.data!.loop!.islandName = name
   view.data!.hook!.render = (node) => {
-    const stateDerivation: StateDerivation<View> = loop().deriveContainer(derivation)
+    const state = loop().deriveContainer(derivation)
 
     return new Promise((resolve) => {
-      const unsubscribe = stateDerivation.state.subscribe((view) => {
+      const unsubscribe = state.subscribe((view) => {
         node.data!.attrs = {
           "data-island-name": name
         }

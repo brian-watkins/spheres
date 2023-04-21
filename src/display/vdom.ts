@@ -142,23 +142,23 @@ export function statefulView(tag: string, options: StatefulViewOptions, generato
     },
     hook: {
       render: (_: View): Promise<View> => {
-        const stateDerivation = loop().deriveContainer(generator)
+        const state = loop().deriveContainer(generator)
 
         return new Promise((resolve) => {
-          const unsubscribe = stateDerivation.state.subscribe((view) => {
+          const unsubscribe = state.subscribe((view) => {
             resolve(view)
             unsubscribe()
           })
         })
       },
       create: (_, vnode) => {
-        const derivation = loop().deriveContainer(generator)
+        const state = loop().deriveContainer(generator)
 
         const patch = createPatch()
 
         let oldNode: VNode | Element = vnode.elm as Element
 
-        vnode.data!.loop.unsubscribe = derivation.state.subscribe((updatedView) => {
+        vnode.data!.loop.unsubscribe = state.subscribe((updatedView) => {
           oldNode = patch(oldNode, updatedView)
           vnode.elm = oldNode.elm
         })

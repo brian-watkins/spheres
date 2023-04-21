@@ -140,7 +140,6 @@ export function withState(optionsOrGenerator: StatefulViewOptions | ((get: GetSt
   }
 }
 
-export async function island(loader: () => Promise<{ default: (get: GetState) => View }>): Promise<View> {
-  const loadedModule = await loader()
-  return statefulView("view-island", { loader: loader.toString() }, loadedModule.default)
+export function island(name: string, derivation: (get: GetState) => View): View {
+  return statefulView("view-island", { name }, derivation)
 }

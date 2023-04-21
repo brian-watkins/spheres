@@ -13,34 +13,12 @@ function viewFragmentHandler(vnode: VNode) {
 }
 
 class ViewIslandHandler {
-  private idCounter = 0
-  private loaderRegistry: Map<string, string> = new Map()
-
   handle(vnode: VNode, attributes: Map<string, string>) {
     if (vnode.sel === "view-island") {
       const derivation: StateDerivation<View> = loop().deriveContainer(vnode.data!.loop.generator)
       vnode.children = [ derivation.initialValue ]
-      const islandId = `island-${this.idCounter}`
-      attributes.set("data-island-id", islandId)
-      this.idCounter = this.idCounter + 1
-      const loader = vnode.data!.loop.loader
-      this.loaderRegistry.set(islandId, loader)
+      attributes.set("data-name", vnode.data!.loop!.islandName)
     }
-  }
-
-  hasIslands(): boolean {
-    return this.loaderRegistry.size > 0
-  }
-
-  registryScript(): string {
-    let lines: Array<string> = []
-    lines.push("<script type='module'>")
-    lines.push(`window.esdisplay = { islands: {} };`)
-    for (const islandIndex of this.loaderRegistry.keys()) {
-      lines.push(`window.esdisplay.islands["${islandIndex}"] = ${this.loaderRegistry.get(islandIndex)};`)
-    }
-    lines.push("</script>")
-    return lines.join("\n")
   }
 }
 
@@ -57,11 +35,5 @@ export function render(view: View): string {
     }
   ])
 
-  let html = toHTML(view)
-
-  if (viewIslandHandler.hasIslands()) {
-    html += "\n" + viewIslandHandler.registryScript()
-  }
-
-  return html
+  return toHTML(view)
 }

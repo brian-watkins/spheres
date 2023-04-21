@@ -1,11 +1,11 @@
 import { behavior, effect, example, fact, step } from "esbehavior";
-import { equalTo, expect, is, stringContaining } from "great-expectations";
+import { arrayWith, equalTo, expect, is, stringContaining } from "great-expectations";
 import { ssrTestAppContext } from "./helpers/testServer.js";
 import { Browser } from "playwright";
 
 export default (browser: Browser, debug: boolean) => behavior("client activation of server rendered views", [
   example(ssrTestAppContext(browser, debug))
-    .description("simple app with multiple islands sharing state")
+    .description("simple app with multiple islands sharing state, some of the same element")
     .script({
       suppose: [
         fact("the app is loaded in the browser", async (context) => {
@@ -32,9 +32,12 @@ export default (browser: Browser, debug: boolean) => behavior("client activation
         })
       ],
       observe: [
-        effect("the click counter is updated", async (context) => {
-          const counterText = await context.browser.display.select("[data-click-count]").text()
-          expect(counterText, is(stringContaining("3 times")))
+        effect("both click tally islands are updated", async (context) => {
+          const counterTexts = await context.browser.display.selectAll("[data-click-count]").map(el => el.text())
+          expect(counterTexts, is(arrayWith([
+            stringContaining("3 times"),
+            stringContaining("3 times"),
+          ])))
         })
       ]
     })

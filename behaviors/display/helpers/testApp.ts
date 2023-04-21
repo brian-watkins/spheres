@@ -13,10 +13,10 @@ export class TestApp {
 
     const viewConfiguration = await import(`../fixtures/${name}.ts`)
     const view = viewConfiguration.default(context)
-    this.appDisplay = new Display(loop(), view)
+    this.appDisplay = new Display(loop())
     
     const testAppMountPoint: HTMLElement = document.querySelector("#test-display")!
-    this.appDisplay.mount(testAppMountPoint)  
+    this.appDisplay.mountView(testAppMountPoint, view)
   }
 
   observe(selector: string) {

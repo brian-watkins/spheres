@@ -1,6 +1,6 @@
-import { GetState, writeMessage } from "../../../../src/index.js"
-import * as View from "../../../../src/display/index.js"
-import { clickCount } from "./state.js"
+import { GetState, writeMessage } from "../../../../../src/index.js"
+import * as View from "../../../../../src/display/index.js"
+import { clickCount } from "../state.js"
 
 export default View.island("counter", (get: GetState) => {
   return View.div([], [

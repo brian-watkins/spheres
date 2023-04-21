@@ -5,7 +5,7 @@ import { GetState, loop, State } from "../index.js";
 export interface View {
   sel: string | undefined;
   data: ViewData | undefined;
-  children: Array<View | string> | undefined;
+  children: Array<View> | undefined;
   elm: Node | undefined;
   text: string | undefined;
   key: string | undefined;
@@ -17,14 +17,13 @@ export interface ViewData {
   attrs?: Attrs;
   class?: Classes;
   on?: On;
-  hook?: Hooks;
+  hook?: Hooks & { render?: (vnode: View) => Promise<View> };
   key?: string;
   loop?: LoopData
 }
 
 export interface LoopData {
   unsubscribe: () => void,
-  generator: (get: GetState) => View
   islandName?: string
 }
 
@@ -133,18 +132,25 @@ export function makeNode(tag: string | undefined, data: ViewData | undefined, ch
 
 export interface StatefulViewOptions {
   key?: string | State<any>
-  name?: string
 }
 
 export function statefulView(tag: string, options: StatefulViewOptions, generator: (get: GetState) => View): View {
   return makeNode(tag, {
     key: options.key?.toString(),
     loop: {
-      unsubscribe: () => { },
-      generator,
-      islandName: options.name
+      unsubscribe: () => { }
     },
     hook: {
+      render: (_: View): Promise<View> => {
+        const stateDerivation = loop().deriveContainer(generator)
+
+        return new Promise((resolve) => {
+          const unsubscribe = stateDerivation.state.subscribe((view) => {
+            resolve(view)
+            unsubscribe()
+          })
+        })
+      },
       create: (_, vnode) => {
         const derivation = loop().deriveContainer(generator)
 

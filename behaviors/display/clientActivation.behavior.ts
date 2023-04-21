@@ -5,13 +5,33 @@ import { Browser } from "playwright";
 
 export default (browser: Browser, debug: boolean) => behavior("client activation of server rendered views", [
   example(ssrTestAppContext(browser, debug))
+    .description("rendered content before activating the island")
+    .script({
+      suppose: [
+        fact("the app is loaded in the browser", async (context) => {
+          await context.server.start({
+            template: "../fixtures/ssrApp/renderOnlyTemplate.html",
+            view: "./behaviors/display/fixtures/ssrApp/view.ts"
+          })
+          await context.browser.start()
+          await context.browser.loadApp()
+        }),
+      ],
+      observe: [
+        effect("the default state from the server is loaded", async (context) => {
+          const clickText = await context.browser.display.select("[data-click-count]").text()
+          expect(clickText, is(equalTo("You've clicked the button 0 times!")))
+        })
+      ]
+    }),
+  example(ssrTestAppContext(browser, debug))
     .description("simple app with multiple islands sharing state, some of the same element")
     .script({
       suppose: [
         fact("the app is loaded in the browser", async (context) => {
           await context.server.start({
             template: "../fixtures/ssrApp/template.html",
-            view: "../fixtures/ssrApp/view.ts"
+            view: "./behaviors/display/fixtures/ssrApp/view.ts"
           })
           await context.browser.start()
           await context.browser.loadApp()

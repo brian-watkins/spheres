@@ -1,5 +1,5 @@
-import { GetState } from "../index.js";
-import { LoopMessage, State } from "../loop.js";
+import { GetState, loop } from "../index.js";
+import { LoopMessage, State, StateDerivation } from "../loop.js";
 import { Attribute, CssClasses, CssClassname, EventHandler, Key, makeNode, makeViewData, NoAttribute, Property, statefulView, StatefulViewOptions, View, ViewAttribute } from "./vdom.js";
 export type { View, ViewAttribute } from "./vdom.js"
 
@@ -130,7 +130,11 @@ export function onInput<M extends LoopMessage<any>>(generator: (value: string) =
 
 export type ViewGenerator = (parent: View) => View
 
-export function withState(options: StatefulViewOptions, generator: (get: <S>(state: State<S>) => S) => View): View
+export interface WithStateOptions {
+  key?: string | State<any>
+}
+
+export function withState(options: WithStateOptions, generator: (get: <S>(state: State<S>) => S) => View): View
 export function withState(generator: (get: <S>(state: State<S>) => S) => View): View
 export function withState(optionsOrGenerator: StatefulViewOptions | ((get: GetState) => View), generator?: (get: GetState) => View): View {
   if (typeof optionsOrGenerator === "function") {
@@ -141,5 +145,22 @@ export function withState(optionsOrGenerator: StatefulViewOptions | ((get: GetSt
 }
 
 export function island(name: string, derivation: (get: GetState) => View): View {
-  return statefulView("view-island", { name }, derivation)
+  const view = statefulView("view-island", {}, derivation)
+  view.data!.loop!.islandName = name
+  view.data!.hook!.render = (node) => {
+    const stateDerivation: StateDerivation<View> = loop().deriveContainer(derivation)
+
+    return new Promise((resolve) => {
+      const unsubscribe = stateDerivation.state.subscribe((view) => {
+        node.data!.attrs = {
+          "data-island-name": name
+        }
+        node.children = [view]
+        resolve(node)
+        unsubscribe()
+      })
+    })
+  }
+
+  return view
 }

@@ -25,7 +25,7 @@ export class Display {
 
   activateIsland(island: View) {
     const name = island.data!.loop!.islandName
-    const viewIslands = document.querySelectorAll(`view-island[data-name='${name}']`)
+    const viewIslands = document.querySelectorAll(`view-island[data-island-name='${name}']`)
     for (const viewIsland of viewIslands) {
       island.elm = viewIsland
       island.data!.hook!.create!(island, island)        

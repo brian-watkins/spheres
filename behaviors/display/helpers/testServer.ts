@@ -5,7 +5,7 @@ import express from "express"
 import { Server } from "http"
 import { ViteDevServer, createServer as createViteServer } from "vite"
 import tsConfigPaths from "vite-tsconfig-paths"
-import { render } from '../../../src/display/index.js'
+import { View, render } from '../../../src/display/index.js'
 import { Context } from 'esbehavior'
 import { Browser, BrowserContext, Page } from 'playwright'
 import { TestAppDisplay } from './testDisplay.js'
@@ -97,9 +97,9 @@ class TestServer {
 
         template = await this.viteDevServer!.transformIndexHtml(url, template)
 
-        const viewGenerator = await import(options.view)
+        const viewGenerator: any = await this.viteDevServer?.ssrLoadModule(options.view)
         const view = viewGenerator.default()
-        const appHtml = render(view)
+        const appHtml = await render(view as View)
 
         const html = template.replace(`<!-- SSR-CONTENT -->`, appHtml)
 

@@ -1,4 +1,4 @@
-import * as View from "../../../../../src/display/index.js"
+import * as View from "@src/display/index.js"
 import superIsland from "./nestedIsland.js"
 
 export default function (): View.View {

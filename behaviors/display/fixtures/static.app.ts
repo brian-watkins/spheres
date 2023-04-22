@@ -57,6 +57,21 @@ export function appWithSimpleState(): View.View {
 export function appWithNestedState(): View.View {
   return View.div([], [
     View.withState((get) => {
+      const age = get(ageState)
+      if (age < 100) {
+        return View.withState(nameView)
+      } else {
+        return View.p([], [
+          View.text("You are old!")
+        ])
+      }
+    })
+  ])
+}
+
+export function appWithDeeplyNestedState(): View.View {
+  return View.div([], [
+    View.withState((get) => {
       return View.div([], [
         View.withState(nameView),
         View.p([], [View.text(`${get(ageState)} years!`)])

@@ -1,7 +1,7 @@
 import { render } from "../../src/display/index.js";
 import { behavior, effect, example, Example } from "esbehavior";
 import { equalTo, expect, is } from "great-expectations";
-import { appWithDataAttributesNoValue, appWithInnerHTML, appWithNestedState, appWithPropertiesAndAttributes, appWithSimpleState, staticApp } from "./fixtures/static.app.js";
+import { appWithDataAttributesNoValue, appWithDeeplyNestedState, appWithInnerHTML, appWithNestedState, appWithPropertiesAndAttributes, appWithSimpleState, staticApp } from "./fixtures/static.app.js";
 
 export default behavior("Render view to HTML", [
   test("render view with no event handlers or state", async () => {
@@ -22,6 +22,10 @@ export default behavior("Render view to HTML", [
   }),
   test("render view with nested stateful views", async () => {
     const actual = await render(appWithNestedState())
+    expect(actual, is(equalTo(`<div><h2>Cool Person!</h2></div>`)))
+  }),
+  test("render view with deeply nested stateful views", async () => {
+    const actual = await render(appWithDeeplyNestedState())
     expect(actual, is(equalTo(`<div><div><h2>Cool Person!</h2><p>98 years!</p></div></div>`)))
   }),
   test("render view with innerHTML property", async () => {

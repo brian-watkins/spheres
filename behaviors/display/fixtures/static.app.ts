@@ -64,3 +64,11 @@ export function appWithNestedState(): View.View {
     })
   ])
 }
+
+export function appWithInnerHTML(): View.View {
+  return View.div([], [
+    View.div([
+      View.property("innerHTML", "<h1>HELLO!!!</h1>")
+    ], [])
+  ])
+}

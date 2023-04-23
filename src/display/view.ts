@@ -132,7 +132,6 @@ export type ViewGenerator = (parent: View) => View
 
 export interface WithStateOptions {
   key?: string | State<any>
-  activationId?: string
 }
 
 export function withState(options: WithStateOptions, generator: (get: <S>(state: State<S>) => S) => View): View

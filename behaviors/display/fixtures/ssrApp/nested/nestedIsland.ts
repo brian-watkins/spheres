@@ -3,8 +3,8 @@ import { nameState } from "../state"
 import counterIsland from "../islands/counter"
 import tallyIsland from "../islands/tally"
 
-export default View.withState({ activationId: "super-island" }, (get) => {
-  return View.div([], [
+export default View.withState((get) => {
+  return View.div([ View.id("super-island" )], [
     View.h1([], [
       View.text(`This is for ${get(nameState)}!`)
     ]),

@@ -2,8 +2,8 @@ import * as View from "@src/display"
 import { GetState, writeMessage } from "@src/index"
 import { clickCount, nameState } from "../state"
 
-export default View.withState({ activationId: "nested-state-island" }, (get) => {
-  return View.div([], [
+export default View.withState((get) => {
+  return View.div([ View.id("nested-state-island" )], [
     View.h1([], [
       View.text(`This is ${get(nameState)}'s stuff!`)
     ]),

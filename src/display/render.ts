@@ -18,9 +18,7 @@ async function realizeVirtualTree(view: View): Promise<View> {
 
   if (view.data?.hook?.render) {
     tree = await view.data.hook.render(view)
-    if (tree.data?.hook?.render && !tree.data?.loop?.activationId) {
-      return await realizeVirtualTree(tree)
-    }
+    return await realizeVirtualTree(tree)
   }
 
   if (tree.children && tree.children.length > 0) {

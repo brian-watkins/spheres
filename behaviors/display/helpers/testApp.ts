@@ -3,7 +3,7 @@ import { loop } from "@src/index.js"
 import { DOMChangeRecord, structureChangeRecord, textChangeRecord } from "./changeRecords.js"
 
 export class TestApp {
-  private appDisplay: Display | undefined
+  private unmountTestApp: (() => void) | undefined
   private observer: MutationObserver | undefined
   public changeRecords: Array<DOMChangeRecord> = []
 
@@ -13,10 +13,13 @@ export class TestApp {
 
     const viewConfiguration = await import(`../fixtures/${name}.ts`)
     const view = viewConfiguration.default(context)
-    this.appDisplay = new Display(loop())
-    
-    const testAppMountPoint: HTMLElement = document.querySelector("#test-display")!
-    this.appDisplay.mountView(testAppMountPoint, view)
+    const appDisplay = new Display(loop())
+
+    const testAppMountPoint = document.createElement("div")
+    testAppMountPoint.id = "test-display"
+    document.body.appendChild(testAppMountPoint)
+
+    this.unmountTestApp = appDisplay.mount(testAppMountPoint, view)
   }
 
   observe(selector: string) {
@@ -46,10 +49,7 @@ export class TestApp {
   }
 
   destroyApp() {
-    if (this.appDisplay) {
-      this.appDisplay.destroy()
-      this.appDisplay = undefined
-      this.observer?.disconnect()
-    }
+    this.unmountTestApp?.()
+    this.observer?.disconnect()
   }
 }

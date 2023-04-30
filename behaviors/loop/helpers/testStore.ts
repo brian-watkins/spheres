@@ -1,4 +1,4 @@
-import { Container, Provider, Store } from "@src/store"
+import { Container, Provider, StateToken, Store } from "@src/store"
 import { Context } from "esbehavior"
 
 export function testStoreContext<T>(): Context<TestStore<T>> {
@@ -17,7 +17,7 @@ export class TestStore<T> {
     this.store = new Store()
   }
 
-  subscribeTo<S, M>(token: Container<S, M>, name: string) {
+  subscribeTo<S, N>(token: StateToken<S, N>, name: string) {
     this.values.set(name, [])
     const unsubscribe = this.store.subscribe(token, (updatedValue) => {
       this.values.get(name)?.push(updatedValue)

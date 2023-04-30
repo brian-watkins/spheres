@@ -5,10 +5,10 @@ import { TestProvider } from "./helpers/testProvider.js";
 // import { Container, container, meta, ok, pending, Provider, State, state, useProvider, withInitialValue } from "@src/index.js";
 import { okMessage, pendingMessage } from "./helpers/metaMatchers.js";
 import { testStoreContext } from "./helpers/testStore.js";
-import { Container, State, container, ok, pending, state, withInitialValue } from "@src/store.js";
+import { Container, Provider, DerivedState, container, ok, pending, state, withInitialValue } from "@src/store.js";
 
 interface ProvidedValueContext {
-  receiver: State<string>
+  receiver: DerivedState<string>
   provider: TestProvider<string>
 }
 
@@ -76,7 +76,7 @@ const simpleProvidedValue: ConfigurableExample =
 interface ProvidedValueWithKeyContext {
   profileState: Container<string>,
   pageNumberState: Container<number>,
-  receiver: State<string>
+  receiver: Container<string>
   provider: TestProvider<string>
 }
 
@@ -238,127 +238,127 @@ const providedValueWithDerivedKey: ConfigurableExample =
       ]
     })
 
-// interface StatefulProviderContext {
-//   counterState: State<string>
-//   otherState: Container<number>
-//   provider: Provider
-// }
+interface StatefulProviderContext {
+  counterState: Container<string>
+  otherState: Container<number>
+  provider: Provider
+}
 
-// const reactiveQueryCountForProvider =
-//   example(testSubscriberContext<StatefulProviderContext>())
-//     .description("reactive query count for provider")
-//     .script({
-//       suppose: [
-//         fact("there is some state and a provider", (context) => {
-//           const counterState = container<string>(withInitialValue("0"))
-//           const otherState = container(withInitialValue(27))
-//           const anotherState = container(withInitialValue(22))
-//           const provider = new TestProvider<string>()
-//           let counter = 0
-//           provider.setHandler(async (get, set, _) => {
-//             counter = counter + 1
-//             const total = get(otherState) + get(anotherState)
-//             set(meta(counterState), ok(`${counter} - ${total}`))
-//           })
-//           useProvider(provider)
-//           context.setState({
-//             counterState,
-//             otherState,
-//             provider
-//           })
-//         }),
-//         fact("there is a subscriber", (context) => {
-//           context.subscribeTo(context.state.counterState, "sub-one")
-//         })
-//       ],
-//       observe: [
-//         effect("the reactive query is executed only once on initialization", (context) => {
-//           expect(context.valuesReceivedBy("sub-one"), is(equalTo([
-//             "1 - 49"
-//           ])))
-//         })
-//       ]
-//     })
-//     .andThen({
-//       perform: [
-//         step("a state dependency is updated", (context) => {
-//           context.write(context.state.otherState, 14)
-//         })
-//       ],
-//       observe: [
-//         effect("the reactive query is executed once more", (context) => {
-//           expect(context.valuesReceivedBy("sub-one"), is(arrayWithItemAt(1, equalTo("2 - 36"))))
-//         })
-//       ]
-//     })
+const reactiveQueryCountForProvider: ConfigurableExample =
+  (m) => m.pick() && example(testStoreContext<StatefulProviderContext>())
+    .description("reactive query count for provider")
+    .script({
+      suppose: [
+        fact("there is some state and a provider", (context) => {
+          const counterState = container<string>(withInitialValue("0"))
+          const otherState = container(withInitialValue(27))
+          const anotherState = container(withInitialValue(22))
+          const provider = new TestProvider<string>()
+          let counter = 0
+          provider.setHandler(async (get, set, _) => {
+            counter = counter + 1
+            const total = get(otherState) + get(anotherState)
+            set(counterState.meta, ok(`${counter} - ${total}`))
+          })
+          context.useProvider(provider)
+          context.setTokens({
+            counterState,
+            otherState,
+            provider
+          })
+        }),
+        fact("there is a subscriber", (context) => {
+          context.subscribeTo(context.tokens.counterState, "sub-one")
+        })
+      ],
+      observe: [
+        effect("the reactive query is executed only once on initialization", (context) => {
+          expect(context.valuesForSubscriber("sub-one"), is(equalTo([
+            "1 - 49"
+          ])))
+        })
+      ]
+    })
+    .andThen({
+      perform: [
+        step("a state dependency is updated", (context) => {
+          context.writeTo(context.tokens.otherState, 14)
+        })
+      ],
+      observe: [
+        effect("the reactive query is executed once more", (context) => {
+          expect(context.valuesForSubscriber("sub-one"), is(arrayWithItemAt(1, equalTo("2 - 36"))))
+        })
+      ]
+    })
 
 
-// interface DeferredDependencyContext {
-//   numberState: Container<number>,
-//   stringState: Container<string>,
-//   managedState: State<string>
-//   provider: TestProvider<string>
-// }
+interface DeferredDependencyContext {
+  numberState: Container<number>,
+  stringState: Container<string>,
+  managedState: Container<string>
+  provider: TestProvider<string>
+}
 
-// const deferredDependency =
-//   example(testSubscriberContext<DeferredDependencyContext>())
-//     .description("dependency that is not used on first execution")
-//     .script({
-//       suppose: [
-//         fact("there is derived state with a dependency used only later", (context) => {
-//           const numberState = container(withInitialValue(6))
-//           const stringState = container(withInitialValue("hello"))
-//           const managedState = container<string>(withInitialValue("initial"))
-//           const provider = new TestProvider<string>()
-//           provider.setHandler(async (get, set, _) => {
-//             if (get(stringState) === "now") {
-//               set(meta(managedState), ok(`Number ${get(numberState)}`))
-//             } else {
-//               set(meta(managedState), ok(`Number 0`))
-//             }
-//           })
-//           useProvider(provider)
-//           context.setState({
-//             numberState,
-//             stringState,
-//             managedState,
-//             provider
-//           })
-//         }),
-//         fact("there is a subscriber", (context) => {
-//           context.subscribeTo(context.state.managedState, "sub-one")
-//         })
-//       ],
-//       perform: [
-//         step("the state is updated to expose the number", (context) => {
-//           context.write(context.state.stringState, "now")
-//         }),
-//         step("the number state updates", (context) => {
-//           context.write(context.state.numberState, 27)
-//         }),
-//         step("the string state updates to hide the number state", (context) => {
-//           context.write(context.state.stringState, "later")
-//         }),
-//         step("the number state updates again", (context) => {
-//           context.write(context.state.numberState, 14)
-//         })
-//       ],
-//       observe: [
-//         effect("the subscriber gets all the updates", (context) => {
-//           expect(context.valuesReceivedBy("sub-one"), is(equalTo([
-//             "Number 0",
-//             "Number 6",
-//             "Number 27",
-//             "Number 0",
-//             "Number 0"
-//           ])))
-//         })
-//       ]
-//     })
+const deferredDependency: ConfigurableExample =
+  (m) => m.pick() && example(testStoreContext<DeferredDependencyContext>())
+    .description("dependency that is not used on first execution")
+    .script({
+      suppose: [
+        fact("there is derived state with a dependency used only later", (context) => {
+          const numberState = container(withInitialValue(6))
+          const stringState = container(withInitialValue("hello"))
+          const managedState = container<string>(withInitialValue("initial"))
+          const provider = new TestProvider<string>()
+          provider.setHandler(async (get, set, _) => {
+            if (get(stringState) === "now") {
+              set(managedState.meta, ok(`Number ${get(numberState)}`))
+            } else {
+              set(managedState.meta, ok(`Number 0`))
+            }
+          })
+          context.useProvider(provider)
+          context.setTokens({
+            numberState,
+            stringState,
+            managedState,
+            provider
+          })
+        }),
+        fact("there is a subscriber", (context) => {
+          context.subscribeTo(context.tokens.managedState, "sub-one")
+        })
+      ],
+      perform: [
+        step("the state is updated to expose the number", (context) => {
+          context.writeTo(context.tokens.stringState, "now")
+        }),
+        step("the number state updates", (context) => {
+          context.writeTo(context.tokens.numberState, 27)
+        }),
+        step("the string state updates to hide the number state", (context) => {
+          context.writeTo(context.tokens.stringState, "later")
+        }),
+        step("the number state updates again", (context) => {
+          context.writeTo(context.tokens.numberState, 14)
+        })
+      ],
+      observe: [
+        effect("the subscriber gets all the updates", (context) => {
+          expect(context.valuesForSubscriber("sub-one"), is(equalTo([
+            "Number 0",
+            "Number 6",
+            "Number 27",
+            "Number 0",
+            "Number 0"
+          ])))
+        })
+      ]
+    })
 
 export default behavior("state provider", [
   simpleProvidedValue,
   providedValueWithDerivedKey,
-  // reactiveQueryCountForProvider,
-  // deferredDependency
+  reactiveQueryCountForProvider,
+  deferredDependency
 ])

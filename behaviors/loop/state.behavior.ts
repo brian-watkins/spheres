@@ -1,6 +1,6 @@
 import { ConfigurableExample, behavior, effect, example, fact, step } from "esbehavior";
 import { arrayWithItemAt, equalTo, expect, is } from "great-expectations"
-import { Container, State, container, state, withInitialValue } from "@src/store.js";
+import { Container, DerivedState, container, state, withInitialValue } from "@src/store.js";
 import { TestStore, testStoreContext } from "./helpers/testStore.js";
 
 interface BasicContainerTokens {
@@ -79,14 +79,14 @@ const subscribeAndUpdate: ConfigurableExample =
       ]
     })
 
-interface DerivedState {
+interface DerivedStateContext {
   basic: Container<number>,
-  derived?: State<string>
-  thirdLevel?: State<number>
+  derived?: DerivedState<string>
+  thirdLevel?: DerivedState<number>
 }
 
 const derivedState: ConfigurableExample =
-  (m) => m.pick() && example(testStoreContext<DerivedState>())
+  (m) => m.pick() && example(testStoreContext<DerivedStateContext>())
     .description("Derivative State")
     .script({
       suppose: [
@@ -183,7 +183,7 @@ interface MultipleSourceState {
   numberAtom: Container<number>
   stringAtom: Container<string>
   anotherAtom: Container<string>
-  derived: State<string>
+  derived: DerivedState<string>
 }
 
 const multipleSourceState: ConfigurableExample =
@@ -274,7 +274,7 @@ const reactiveQueryCount: ConfigurableExample =
 interface DeferredDependencyContext {
   numberState: Container<number>,
   stringState: Container<string>,
-  derivedState: State<number>
+  derivedState: DerivedState<number>
 }
 
 const deferredDependency: ConfigurableExample =

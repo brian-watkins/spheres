@@ -1,7 +1,7 @@
 // import { container, Container, meta, ok, useProvider, withInitialValue, withReducer } from "@src/index";
 import { behavior, ConfigurableExample, effect, example, fact } from "esbehavior";
 import { arrayWith, equalTo, expect, is } from "great-expectations";
-import { okMessage } from "./helpers/metaMatchers";
+import { initMessage } from "./helpers/metaMatchers";
 import { container, Container, ok, withInitialValue, withReducer } from "@src/store";
 import { testStoreContext } from "./helpers/testStore";
 // import { testSubscriberContext } from "./helpers/testSubscriberContext";
@@ -27,7 +27,7 @@ const basicMetaBehavior: ConfigurableExample =
       observe: [
         effect("the subscriber receives the initial meta value", (context) => {
           expect(context.valuesForSubscriber("meta-sub"), is(arrayWith([
-            okMessage(27)
+            initMessage(27)
           ])))
         })
       ]
@@ -50,7 +50,7 @@ const metaMetaBehavior: ConfigurableExample =
       observe: [
         effect("the subscriber receives the initial meta meta value", (context) => {
           expect(context.valuesForSubscriber("meta-meta-sub"), is(arrayWith([
-            okMessage(ok(27))
+            initMessage({type: "initialValue", value: 27 })
           ])))
         })
       ]
@@ -88,7 +88,7 @@ const metaContainerWithReducer: ConfigurableExample =
         }),
         effect("the subscriber receives the initial meta reducer value", (context) => {
           expect(context.valuesForSubscriber("meta-reducer-sub"), is(arrayWith([
-            okMessage(41)
+            initMessage(41)
           ])))
         })
       ]

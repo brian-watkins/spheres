@@ -1,4 +1,6 @@
-import { Meta, Provider, State } from "@src/loop.js";
+// import { Meta, Provider, State } from "@src/loop.js";
+
+import { Meta, Provider, State } from "@src/store"
 
 export class TestProvider<Q> implements Provider {
   resolver: ((value: Q) => void) | undefined

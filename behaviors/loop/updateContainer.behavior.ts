@@ -1,7 +1,7 @@
-import { Container, container, withReducer } from "@src/index";
 import { behavior, effect, example, fact, step } from "esbehavior";
 import { equalTo, expect, is } from "great-expectations";
-import { testSubscriberContext } from "./helpers/testSubscriberContext";
+import { Container, container, withReducer } from "@src/store";
+import { testStoreContext } from "./helpers/testStore";
 
 interface UpdateContainerContext {
   fancyContainer: Container<string, FancyMessage>
@@ -19,7 +19,7 @@ interface FancyReset {
 type FancyMessage = FancyInsert | FancyReset
 
 export default behavior("update container", [
-  example(testSubscriberContext<UpdateContainerContext>())
+  (m) => m.pick() && example(testStoreContext<UpdateContainerContext>())
     .description("custom update function")
     .script({
       suppose: [
@@ -33,30 +33,30 @@ export default behavior("update container", [
             }
           }))
 
-          context.setState({
+          context.setTokens({
             fancyContainer
           })
         }),
         fact("there is a subscriber", (context) => {
-          context.subscribeTo(context.state.fancyContainer, "sub-one")
+          context.subscribeTo(context.tokens.fancyContainer, "sub-one")
         })
       ],
       perform: [
         step("a custom message is sent to the container", (context) => {
-          context.write(context.state.fancyContainer, {
+          context.writeTo(context.tokens.fancyContainer, {
             type: "insert",
             value: "stuff!"
           })
         }),
         step("another custom message is sent to the container", (context) => {
-          context.write(context.state.fancyContainer, {
+          context.writeTo(context.tokens.fancyContainer, {
             type: "reset"
           })
         })
       ],
       observe: [
         effect("the subscriber receives the messages", (context) => {
-          expect(context.valuesReceivedBy("sub-one"), is(equalTo([
+          expect(context.valuesForSubscriber("sub-one"), is(equalTo([
             "hello",
             "hello stuff!",
             "reset!"

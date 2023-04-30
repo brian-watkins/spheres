@@ -1,25 +1,24 @@
-import { behavior, effect, example, fact, step } from "esbehavior";
-import { Container, State } from "@src/loop.js";
+import { ConfigurableExample, behavior, effect, example, fact, step } from "esbehavior";
 import { arrayWithItemAt, equalTo, expect, is } from "great-expectations"
-import { TestSubscriberContext, testSubscriberContext } from "./helpers/testSubscriberContext.js";
-import { container, state, withInitialValue } from "@src/index.js";
+import { Container, State, container, state, withInitialValue } from "@src/store.js";
+import { TestStore, testStoreContext } from "./helpers/testStore.js";
 
-interface SingleContainer {
-  container: Container<string>
+interface BasicContainerTokens {
+  nameToken: Container<string>
 }
 
-const subscribeAndUpdate =
-  example(testSubscriberContext<SingleContainer>())
+const subscribeAndUpdate: ConfigurableExample =
+  (m) => m.pick() && example(testStoreContext<BasicContainerTokens>())
     .description("Updating listeners")
     .script({
       perform: [
         step("there is a root state", (context) => {
-          context.setState({
-            container: container(withInitialValue("hello"))
+          context.setTokens({
+            nameToken: container(withInitialValue("hello"))
           })
         }),
         step("a listener subscribes", (context) => {
-          context.subscribeTo(context.state.container, "subscriber-one")
+          context.subscribeTo(context.tokens.nameToken, "subscriber-one")
         })
       ],
       observe: [
@@ -32,18 +31,18 @@ const subscribeAndUpdate =
     }).andThen({
       perform: [
         step("the root state is updated", (context) => {
-          context.write(context.state.container, "next")
+          context.writeTo(context.tokens.nameToken, "next")
         })
       ],
       observe: [
         effect("the listener receives the updated value", (context) => {
-          expect(context.valuesReceivedBy("subscriber-one"), is(arrayWithItemAt(1, equalTo("next"))))
+          expect(context.valuesForSubscriber("subscriber-one"), is(arrayWithItemAt(1, equalTo("next"))))
         })
       ]
     }).andThen({
       perform: [
         step("another listener subscribes", (context) => {
-          context.subscribeTo(context.state.container, "subscriber-two")
+          context.subscribeTo(context.tokens.nameToken, "subscriber-two")
         })
       ],
       observe: [
@@ -62,7 +61,7 @@ const subscribeAndUpdate =
     }).andThen({
       perform: [
         step("the root state is updated again", (context) => {
-          context.write(context.state.container, "finally")
+          context.writeTo(context.tokens.nameToken, "finally")
         })
       ],
       observe: [
@@ -86,14 +85,14 @@ interface DerivedState {
   thirdLevel?: State<number>
 }
 
-const derivedState =
-  example(testSubscriberContext<DerivedState>())
+const derivedState: ConfigurableExample =
+  (m) => m.pick() && example(testStoreContext<DerivedState>())
     .description("Derivative State")
     .script({
       suppose: [
         fact("there is root and derived state", (context) => {
           const basic = container(withInitialValue(17))
-          context.setState({
+          context.setTokens({
             basic,
             derived: state((get) => `${get(basic)} things!`)
           })
@@ -101,7 +100,7 @@ const derivedState =
       ],
       perform: [
         step("subscribe to the derived state", (context) => {
-          context.subscribeTo(context.state.derived!, "subscriber-one")
+          context.subscribeTo(context.tokens.derived!, "subscriber-one")
         })
       ],
       observe: [
@@ -114,7 +113,7 @@ const derivedState =
     }).andThen({
       perform: [
         step("the root state is updated", (context) => {
-          context.write(context.state.basic, 27)
+          context.writeTo(context.tokens.basic, 27)
         })
       ],
       observe: [
@@ -128,15 +127,15 @@ const derivedState =
     }).andThen({
       perform: [
         step("a state is derived from the derived state", (context) => {
-          context.setState({
-            basic: context.state.basic,
-            derived: context.state.derived,
-            thirdLevel: state((get) => get(context.state.derived!).length)
+          context.setTokens({
+            basic: context.tokens.basic,
+            derived: context.tokens.derived,
+            thirdLevel: state((get) => get(context.tokens.derived!).length)
           })
-          context.subscribeTo(context.state.thirdLevel!, "subscriber-two")
+          context.subscribeTo(context.tokens.thirdLevel!, "subscriber-two")
         }),
         step("a subscriber subscribed to the root state", (context) => {
-          context.subscribeTo(context.state.basic, "subscriber-three")
+          context.subscribeTo(context.tokens.basic, "subscriber-three")
         })
       ],
       observe: [
@@ -154,7 +153,7 @@ const derivedState =
     }).andThen({
       perform: [
         step("the root state is updated", (context) => {
-          context.write(context.state.basic, 8)
+          context.writeTo(context.tokens.basic, 8)
         })
       ],
       observe: [
@@ -187,8 +186,8 @@ interface MultipleSourceState {
   derived: State<string>
 }
 
-const multipleSourceState =
-  example(testSubscriberContext<MultipleSourceState>())
+const multipleSourceState: ConfigurableExample =
+  (m) => m.pick() && example(testStoreContext<MultipleSourceState>())
     .description("Derived state with multiple sources")
     .script({
       perform: [
@@ -196,7 +195,7 @@ const multipleSourceState =
           const numberAtom = container(withInitialValue(27))
           const stringAtom = container(withInitialValue("hello"))
           const anotherAtom = container(withInitialValue("next"))
-          context.setState({
+          context.setTokens({
             numberAtom,
             stringAtom,
             anotherAtom,
@@ -204,10 +203,10 @@ const multipleSourceState =
           })
         }),
         step("subscribe to the derived state", (context) => {
-          context.subscribeTo(context.state.derived!, "subscriber-one")
+          context.subscribeTo(context.tokens.derived!, "subscriber-one")
         }),
         step("a root state is updated", (context) => {
-          context.write(context.state.stringAtom, "JUMP")
+          context.writeTo(context.tokens.stringAtom, "JUMP")
         })
       ],
       observe: [
@@ -220,8 +219,8 @@ const multipleSourceState =
       ]
     })
 
-const reactiveQueryCount =
-  example(testSubscriberContext<MultipleSourceState>())
+const reactiveQueryCount: ConfigurableExample =
+  (m) => m.pick() && example(testStoreContext<MultipleSourceState>())
     .description("Reactive query count for derived state")
     .script({
       suppose: [
@@ -230,7 +229,7 @@ const reactiveQueryCount =
           const stringAtom = container(withInitialValue("hello"))
           const anotherAtom = container(withInitialValue("next"))
           let counter = 0
-          context.setState({
+          context.setTokens({
             numberAtom,
             stringAtom,
             anotherAtom,
@@ -241,12 +240,12 @@ const reactiveQueryCount =
           })
         }),
         fact("there is a subscriber", (context) => {
-          context.subscribeTo(context.state.derived, "sub-one")
+          context.subscribeTo(context.tokens.derived, "sub-one")
         })
       ],
       observe: [
         effect("the reactive query is called only once on initialization", (context) => {
-          expect(context.valuesReceivedBy("sub-one"), is(equalTo([
+          expect(context.valuesForSubscriber("sub-one"), is(equalTo([
             "1 => hello 27 times. And then next!"
           ])))
         })
@@ -255,15 +254,15 @@ const reactiveQueryCount =
     .andThen({
       perform: [
         step("one dependency is updated", (context) => {
-          context.write(context.state.numberAtom, 31)
+          context.writeTo(context.tokens.numberAtom, 31)
         }),
         step("another dependency is updated", (context) => {
-          context.write(context.state.stringAtom, "Some fun")
+          context.writeTo(context.tokens.stringAtom, "Some fun")
         })
       ],
       observe: [
         effect("the reactive query executes once for each update", (context) => {
-          expect(context.valuesReceivedBy("sub-one"), is(equalTo([
+          expect(context.valuesForSubscriber("sub-one"), is(equalTo([
             "1 => hello 27 times. And then next!",
             "2 => hello 31 times. And then next!",
             "3 => Some fun 31 times. And then next!",
@@ -278,8 +277,8 @@ interface DeferredDependencyContext {
   derivedState: State<number>
 }
 
-const deferredDependency =
-  example(testSubscriberContext<DeferredDependencyContext>())
+const deferredDependency: ConfigurableExample =
+  (m) => m.pick() && example(testStoreContext<DeferredDependencyContext>())
     .description("dependency that is not used on first execution")
     .script({
       suppose: [
@@ -293,33 +292,33 @@ const deferredDependency =
               return 0
             }
           })
-          context.setState({
+          context.setTokens({
             numberState,
             stringState,
             derivedState
           })
         }),
         fact("there is a subscriber", (context) => {
-          context.subscribeTo(context.state.derivedState, "sub-one")
+          context.subscribeTo(context.tokens.derivedState, "sub-one")
         })
       ],
       perform: [
         step("the state is updated to expose the number", (context) => {
-          context.write(context.state.stringState, "now")
+          context.writeTo(context.tokens.stringState, "now")
         }),
         step("the number state updates", (context) => {
-          context.write(context.state.numberState, 27)
+          context.writeTo(context.tokens.numberState, 27)
         }),
         step("the string state updates to hide the number state", (context) => {
-          context.write(context.state.stringState, "later")
+          context.writeTo(context.tokens.stringState, "later")
         }),
         step("the number state updates again", (context) => {
-          context.write(context.state.numberState, 14)
+          context.writeTo(context.tokens.numberState, 14)
         })
       ],
       observe: [
         effect("the subscriber gets all the updates", (context) => {
-          expect(context.valuesReceivedBy("sub-one"), is(equalTo([
+          expect(context.valuesForSubscriber("sub-one"), is(equalTo([
             0,
             6,
             27,
@@ -330,8 +329,8 @@ const deferredDependency =
       ]
     })
 
-function expectValuesFor<T>(context: TestSubscriberContext<T>, subscriber: string, values: Array<any>) {
-  expect(context.valuesReceivedBy(subscriber), is(equalTo(values)))
+function expectValuesFor<T>(context: TestStore<T>, subscriber: string, values: Array<any>) {
+  expect(context.valuesForSubscriber(subscriber), is(equalTo(values)))
 }
 
 // Note one thing to worry about here might be getting into an endless loop somehow ...

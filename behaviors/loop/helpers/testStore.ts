@@ -1,4 +1,4 @@
-import { Container, Provider, StateToken, Store, Writer } from "@src/store"
+import { Container, Provider, Rule, StateToken, Store, TriggerInputArg, Writer, trigger } from "@src/store"
 import { Context } from "esbehavior"
 
 export function testStoreContext<T>(): Context<TestStore<T>> {
@@ -36,6 +36,10 @@ export class TestStore<T> {
 
   useWriter<T, M>(token: StateToken<T, M>, writer: Writer<M>) {
     this.store.useWriter(token, writer)
+  }
+
+  triggerRule<M, A>(rule: Rule<M, A>, ...input: TriggerInputArg<A>) {
+    this.store.dispatch(trigger(rule, ...input))
   }
 
   writeTo<S, M = S>(token: Container<S, M>, value: M) {

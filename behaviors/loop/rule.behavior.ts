@@ -1,16 +1,18 @@
-import { Container, container, rule, trigger, withInitialValue } from "@src/index.js";
-import { Rule } from "@src/loop.js";
-import { behavior, effect, example, fact, step } from "esbehavior";
+// import { Container, container, rule, trigger, withInitialValue } from "@src/index.js";
+// import { Rule } from "@src/loop.js";
+import { ConfigurableExample, behavior, effect, example, fact, step } from "esbehavior";
 import { equalTo, expect, is } from "great-expectations";
-import { testSubscriberContext } from "./helpers/testSubscriberContext.js";
+// import { testSubscriberContext } from "./helpers/testSubscriberContext.js";
+import { Container, Rule, container, rule, withInitialValue } from "@src/store.js";
+import { testStoreContext } from "./helpers/testStore";
 
 interface BasicRuleContext {
   numberContainer: Container<number>,
   incrementModThreeRule: Rule<number>
 }
 
-const basicRule =
-  example(testSubscriberContext<BasicRuleContext>())
+const basicRule: ConfigurableExample =
+  (m) => m.pick() && example(testStoreContext<BasicRuleContext>())
     .description("trigger a rule")
     .script({
       suppose: [
@@ -19,32 +21,64 @@ const basicRule =
           const incrementModThreeRule = rule(numberContainer, (get) => {
             return (get(numberContainer) + 1) % 3
           })
-          context.setState({
+          context.setTokens({
             numberContainer,
             incrementModThreeRule
           })
         }),
         fact("there is a subscriber to the number container", (context) => {
-          context.subscribeTo(context.state.numberContainer, "sub-one")
+          context.subscribeTo(context.tokens.numberContainer, "sub-one")
         })
       ],
       perform: [
         step("the rule is triggered", (context) => {
-          context.update((loop) => {
-            loop.dispatch(trigger(context.state.incrementModThreeRule))
-          })
+          context.triggerRule(context.tokens.incrementModThreeRule)
         }),
         step("the rule is triggered again", (context) => {
-          context.update((loop) => {
-            loop.dispatch(trigger(context.state.incrementModThreeRule))
-          })
+          context.triggerRule(context.tokens.incrementModThreeRule)
         }),
       ],
       observe: [
         effect("the subscriber gets the updated values", (context) => {
-          expect(context.valuesReceivedBy("sub-one"), is(equalTo([
+          expect(context.valuesForSubscriber("sub-one"), is(equalTo([
             1,
             2,
+            0
+          ])))
+        })
+      ]
+    })
+
+const lateSubscribeRule: ConfigurableExample =
+  (m) => m.pick() && example(testStoreContext<BasicRuleContext>())
+    .description("trigger a rule on a container before any subscribers")
+    .script({
+      suppose: [
+        fact("there is a rule", (context) => {
+          const numberContainer = container(withInitialValue(1))
+          const incrementModThreeRule = rule(numberContainer, (get) => {
+            return (get(numberContainer) + 1) % 3
+          })
+          context.setTokens({
+            numberContainer,
+            incrementModThreeRule
+          })
+        })
+      ],
+      perform: [
+        step("the rule is triggered", (context) => {
+          context.triggerRule(context.tokens.incrementModThreeRule)
+        }),
+        step("the rule is triggered again", (context) => {
+          context.triggerRule(context.tokens.incrementModThreeRule)
+        }),
+        step("a listener subscribes to the container", (context) => {
+          context.subscribeTo(context.tokens.numberContainer, "sub-one")
+        })
+      ],
+      observe: [
+        effect("the subscriber gets the latest value", (context) => {
+          expect(context.valuesForSubscriber("sub-one"), is(equalTo([
             0
           ])))
         })
@@ -56,8 +90,8 @@ interface RuleWithInputContext {
   incrementRule: Rule<number, number>
 }
 
-const ruleWithInput =
-  example(testSubscriberContext<RuleWithInputContext>())
+const ruleWithInput: ConfigurableExample =
+  (m) => m.pick() && example(testStoreContext<RuleWithInputContext>())
     .description('a rule that takes an input value')
     .script({
       suppose: [
@@ -66,30 +100,26 @@ const ruleWithInput =
           const incrementRule = rule(numberContainer, (get, value: number) => {
             return get(numberContainer) + value
           })
-          context.setState({
+          context.setTokens({
             numberContainer,
             incrementRule
           })
         }),
         fact("there is a subscriber to the number container", (context) => {
-          context.subscribeTo(context.state.numberContainer, "sub-one")
+          context.subscribeTo(context.tokens.numberContainer, "sub-one")
         })
       ],
       perform: [
         step("the rule is triggered", (context) => {
-          context.update((loop) => {
-            loop.dispatch(trigger(context.state.incrementRule, 5))
-          })
+          context.triggerRule(context.tokens.incrementRule, 5)
         }),
         step("the rule is triggered again", (context) => {
-          context.update((loop) => {
-            loop.dispatch(trigger(context.state.incrementRule, 10))
-          })
+          context.triggerRule(context.tokens.incrementRule, 10)
         }),
       ],
       observe: [
         effect("the subscriber gets the updated values", (context) => {
-          expect(context.valuesReceivedBy("sub-one"), is(equalTo([
+          expect(context.valuesForSubscriber("sub-one"), is(equalTo([
             1,
             6,
             16
@@ -100,5 +130,6 @@ const ruleWithInput =
 
 export default behavior("rule", [
   basicRule,
+  lateSubscribeRule,
   ruleWithInput
 ])

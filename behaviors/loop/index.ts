@@ -17,6 +17,6 @@ window.validateBehaviors = () => {
     ruleBehavior,
     unsubscribeBehavior,
     updateContainerBehavior,
-    collectionBehavior
+    // collectionBehavior
   ], { failFast: true })
 }

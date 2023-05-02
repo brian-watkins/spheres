@@ -57,6 +57,35 @@ export interface Writer<M> {
   write(message: M, get: <S, N>(state: StateToken<S, N>) => S, set: (value: Meta<M>) => void): void
 }
 
+export interface Rule<ContainerMessage, RuleArgument = undefined> {
+  readonly container: Container<any, ContainerMessage>
+  readonly apply: (get: <S, N>(state: StateToken<S, N>) => S, input: RuleArgument) => ContainerMessage
+}
+
+export function rule<M, Q = undefined>(container: Container<any, M>, definition: (get: <S, N>(state: StateToken<S, N>) => S, inputValue: Q) => M): Rule<M, Q> {
+  return {
+    container,
+    apply: definition
+  }
+}
+
+export type TriggerInputArg<Q> = Q extends undefined ? [] : [Q]
+
+export interface TriggerMessage<M> {
+  type: "trigger"
+  rule: Rule<M, any>
+  input: any
+}
+
+export function trigger<M, Q>(rule: Rule<M, Q>, ...input: TriggerInputArg<Q>): TriggerMessage<M> {
+  return {
+    type: "trigger",
+    rule,
+    input: input.length === 0 ? undefined : input[0]
+  }
+}
+
+
 
 // Note we use this to create a 'module private' function on the token
 // const derivation = Symbol("derivation")
@@ -225,6 +254,8 @@ export interface WriteMessage<T, M> {
   value: M
 }
 
+export type StoreMessage<T, M = T> = WriteMessage<T, M> | TriggerMessage<M>
+
 export class Store {
   private registry: WeakMap<StateToken<any>, ContainerController<any, any>> = new WeakMap()
 
@@ -354,8 +385,24 @@ export class Store {
     })
   }
 
-  dispatch<T, M>(message: WriteMessage<T, M>) {
-    this.registry.get(message.token)?.writeValue(message.value)
+  dispatch<T, M>(message: StoreMessage<T, M>) {
+    switch (message.type) {
+      case "write":
+        this.registry.get(message.token)?.writeValue(message.value)
+        break
+      case "trigger":
+        const result = message.rule.apply((state) => {
+          if (!this.registry.has(state)) {
+            this.createState(state)
+          }
+          return this.registry.get(state)?.value
+        }, message.input)
+        if (!this.registry.has(message.rule.container)) {
+          this.createState(message.rule.container)
+        }
+        this.registry.get(message.rule.container)?.writeValue(result)
+        break
+    }
   }
 }
 

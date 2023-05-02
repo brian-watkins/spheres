@@ -1,4 +1,4 @@
-import { Container, Provider, StateToken, Store } from "@src/store"
+import { Container, Provider, StateToken, Store, Writer } from "@src/store"
 import { Context } from "esbehavior"
 
 export function testStoreContext<T>(): Context<TestStore<T>> {
@@ -32,6 +32,10 @@ export class TestStore<T> {
 
   useProvider(provider: Provider) {
     this.store.useProvider(provider)
+  }
+
+  useWriter<T, M>(token: StateToken<T, M>, writer: Writer<M>) {
+    this.store.useWriter(token, writer)
   }
 
   writeTo<S, M = S>(token: Container<S, M>, value: M) {

@@ -53,6 +53,10 @@ export interface Provider {
   provide(get: <S, N>(state: StateToken<S, N>) => S, set: <Q, M>(state: StateToken<Meta<Q, M>>, value: Meta<Q, M>) => void): void
 }
 
+export interface Writer<M> {
+  write(message: M, get: <S, N>(state: StateToken<S, N>) => S, set: (value: Meta<M>) => void): void
+}
+
 
 // Note we use this to create a 'module private' function on the token
 // const derivation = Symbol("derivation")
@@ -108,7 +112,7 @@ export class MetaState<T, M> extends StateToken<Meta<T, M>> {
     const controller = new ContainerController<Meta<T, M>>(init(tokenController.value), (val) => val)
     controller.addDependent((value) => {
       if (value.type === "ok") {
-        tokenController.writeValue(value.message)
+        tokenController.updateValue(value.message)
       }
     })
 
@@ -140,7 +144,7 @@ export class DerivedState<T> extends StateToken<T> {
         dependencies.add(state)
         const controller = getOrCreate(state)
         controller.addDependent(() => {
-          getOrCreate(this)?.writeValue(this.derivation(get))
+          getOrCreate(this)?.updateValue(this.derivation(get))
           // derivedStateController.writeValue(this.derivation(get))
         })
       }
@@ -310,7 +314,7 @@ export class Store {
         // this.registry.set(state, metaController)
       }
 
-      this.registry.get(state)?.writeValue(value)
+      this.registry.get(state)?.updateValue(value)
     }
 
     const get = <S, N>(state: StateToken<S, N>) => {
@@ -330,16 +334,43 @@ export class Store {
     provider.provide(get, set)
   }
 
+  useWriter<T, M>(token: StateToken<T, M>, writer: Writer<M>) {
+    if (!this.registry.has(token)) {
+      this.createState(token)
+    }
+
+    this.registry.get(token)?.setWriter((value) => {
+      writer.write(value, (state) => {
+        if (!this.registry.has(state)) {
+          this.createState(state)
+        }
+        return this.registry.get(state)?.value
+      }, (value) => {
+        if (!this.registry.has(token.meta)) {
+          this.createState(token.meta)
+        }
+        this.registry.get(token.meta)?.updateValue(value)
+      })
+    })
+  }
+
   dispatch<T, M>(message: WriteMessage<T, M>) {
     this.registry.get(message.token)?.writeValue(message.value)
   }
 }
 
 class ContainerController<T, M = T> {
-  public subscribers: Set<((value: T) => void)> = new Set()
-  public dependents: Set<((value: T) => void)> = new Set()
+  private subscribers: Set<((value: T) => void)> = new Set()
+  private dependents: Set<((value: T) => void)> = new Set()
+  private writer: (value: M) => void
 
-  constructor(private _value: T, private update: (message: M, current: T) => T) { }
+  constructor(private _value: T, private update: (message: M, current: T) => T) {
+    this.writer = (value) => this.updateValue(value)
+  }
+
+  setWriter(writer: (value: M) => void) {
+    this.writer = writer
+  }
 
   addDependent(notifier: (value: T) => void) {
     this.dependents.add(notifier)
@@ -354,10 +385,14 @@ class ContainerController<T, M = T> {
     }
   }
 
-  writeValue(value: M) {
+  updateValue(value: M) {
     this._value = this.update(value, this._value)
     this.dependents.forEach(notify => notify(this._value))
     this.subscribers.forEach(notify => notify(this._value))
+  }
+
+  writeValue(value: M) {
+    this.writer(value)
   }
 
   get value(): T {

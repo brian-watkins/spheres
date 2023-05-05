@@ -23,7 +23,7 @@ const page = await browser.newPage()
 page.on("console", (message) => console.log(fixStackTrace(message.text())))
 page.on("pageerror", console.log)
 
-await page.goto(`http://localhost:${serverPort}/behaviors/loop/index.html`)
+await page.goto(`http://localhost:${serverPort}/behaviors/store/index.html`)
 
 const summary = await page.evaluate(() => window.validateBehaviors())
 

@@ -3,7 +3,7 @@ import { arrayWith, arrayWithItemAt, equalTo, expect, is } from "great-expectati
 import { TestProvider } from "./helpers/testProvider.js";
 import { okMessage, pendingMessage } from "./helpers/metaMatchers.js";
 import { testStoreContext } from "./helpers/testStore.js";
-import { Container, Provider, DerivedState, container, ok, pending, state, withInitialValue } from "@src/store/";
+import { Container, Provider, DerivedState, container, ok, pending, derived, withInitialValue } from "@src/store/";
 
 interface ProvidedValueContext {
   receiver: DerivedState<string>
@@ -16,7 +16,7 @@ const simpleProvidedValue: ConfigurableExample =
     .script({
       suppose: [
         fact("there is a view with a provided value", (context) => {
-          const receiver = state<string>(() => "initial")
+          const receiver = derived<string>(() => "initial")
           const provider = new TestProvider<string>()
           provider.setHandler(async (_, set, waitFor) => {
             console.log("running provider!")

@@ -183,7 +183,7 @@ export function container<T, M = T>(initializer: ContainerInitializer<T, M>): Co
   return new Container(initializer.initialValue, initializer.reducer)
 }
 
-export function state<T>(derivation: (get: GetState) => T): DerivedState<T> {
+export function derived<T>(derivation: (get: GetState) => T): DerivedState<T> {
   return new DerivedState(derivation)
 }
 

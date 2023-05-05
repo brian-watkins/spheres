@@ -19,7 +19,7 @@ interface FancyReset {
 type FancyMessage = FancyInsert | FancyReset
 
 export default behavior("update container", [
-  (m) => m.pick() && example(testStoreContext<UpdateContainerContext>())
+  example(testStoreContext<UpdateContainerContext>())
     .description("custom update function")
     .script({
       suppose: [

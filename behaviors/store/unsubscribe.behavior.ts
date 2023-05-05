@@ -8,7 +8,7 @@ interface BasicUnsubscribeContext {
 }
 
 export default behavior("unsubscribe from state", [
-  (m) => m.pick() && example(testStoreContext<BasicUnsubscribeContext>())
+  example(testStoreContext<BasicUnsubscribeContext>())
     .description("a subscriber unsubscribes")
     .script({
       suppose: [

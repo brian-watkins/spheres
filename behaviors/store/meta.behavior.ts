@@ -1,17 +1,15 @@
-// import { container, Container, meta, ok, useProvider, withInitialValue, withReducer } from "@src/index";
 import { behavior, ConfigurableExample, effect, example, fact } from "esbehavior";
 import { arrayWith, equalTo, expect, is } from "great-expectations";
 import { initMessage } from "./helpers/metaMatchers";
 import { container, Container, ok, withInitialValue, withReducer } from "@src/store";
 import { testStoreContext } from "./helpers/testStore";
-// import { testSubscriberContext } from "./helpers/testSubscriberContext";
 
 interface MetaContext {
   container: Container<number>
 }
 
 const basicMetaBehavior: ConfigurableExample =
-  (m) => m.pick() && example(testStoreContext<MetaContext>())
+  example(testStoreContext<MetaContext>())
     .description("basic meta container")
     .script({
       suppose: [
@@ -34,7 +32,7 @@ const basicMetaBehavior: ConfigurableExample =
     })
 
 const metaMetaBehavior: ConfigurableExample =
-  (m) => m.pick() && example(testStoreContext<MetaContext>())
+  example(testStoreContext<MetaContext>())
     .description("meta meta container")
     .script({
       suppose: [
@@ -62,7 +60,7 @@ interface MetaReducerContext {
 }
 
 const metaContainerWithReducer: ConfigurableExample =
-  (m) => m.pick() && example(testStoreContext<MetaReducerContext>())
+  example(testStoreContext<MetaReducerContext>())
     .description("meta container with reducer")
     .script({
       suppose: [

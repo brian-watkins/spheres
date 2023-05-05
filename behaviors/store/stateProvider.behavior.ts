@@ -11,7 +11,7 @@ interface ProvidedValueContext {
 }
 
 const simpleProvidedValue: ConfigurableExample =
-  (m) => m.pick() && example(testStoreContext<ProvidedValueContext>())
+  example(testStoreContext<ProvidedValueContext>())
     .description("view with simple provided value")
     .script({
       suppose: [
@@ -79,7 +79,7 @@ interface ProvidedValueWithKeyContext {
 }
 
 const providedValueWithDerivedKey: ConfigurableExample =
-  (m) => m.pick() && example(testStoreContext<ProvidedValueWithKeyContext>())
+  example(testStoreContext<ProvidedValueWithKeyContext>())
     .description("provided value with derived key")
     .script({
       suppose: [
@@ -243,7 +243,7 @@ interface StatefulProviderContext {
 }
 
 const reactiveQueryCountForProvider: ConfigurableExample =
-  (m) => m.pick() && example(testStoreContext<StatefulProviderContext>())
+  example(testStoreContext<StatefulProviderContext>())
     .description("reactive query count for provider")
     .script({
       suppose: [
@@ -299,7 +299,7 @@ interface DeferredDependencyContext {
 }
 
 const deferredDependency: ConfigurableExample =
-  (m) => m.pick() && example(testStoreContext<DeferredDependencyContext>())
+  example(testStoreContext<DeferredDependencyContext>())
     .description("dependency that is not used on first execution")
     .script({
       suppose: [

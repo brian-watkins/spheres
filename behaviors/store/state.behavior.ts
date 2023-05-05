@@ -8,7 +8,7 @@ interface BasicContainerTokens {
 }
 
 const subscribeAndUpdate: ConfigurableExample =
-  (m) => m.pick() && example(testStoreContext<BasicContainerTokens>())
+  example(testStoreContext<BasicContainerTokens>())
     .description("Updating listeners")
     .script({
       perform: [
@@ -86,7 +86,7 @@ interface DerivedStateContext {
 }
 
 const derivedState: ConfigurableExample =
-  (m) => m.pick() && example(testStoreContext<DerivedStateContext>())
+  example(testStoreContext<DerivedStateContext>())
     .description("Derivative State")
     .script({
       suppose: [
@@ -187,7 +187,7 @@ interface MultipleSourceState {
 }
 
 const multipleSourceState: ConfigurableExample =
-  (m) => m.pick() && example(testStoreContext<MultipleSourceState>())
+  example(testStoreContext<MultipleSourceState>())
     .description("Derived state with multiple sources")
     .script({
       perform: [
@@ -220,7 +220,7 @@ const multipleSourceState: ConfigurableExample =
     })
 
 const reactiveQueryCount: ConfigurableExample =
-  (m) => m.pick() && example(testStoreContext<MultipleSourceState>())
+  example(testStoreContext<MultipleSourceState>())
     .description("Reactive query count for derived state")
     .script({
       suppose: [
@@ -278,7 +278,7 @@ interface DeferredDependencyContext {
 }
 
 const deferredDependency: ConfigurableExample =
-  (m) => m.pick() && example(testStoreContext<DeferredDependencyContext>())
+  example(testStoreContext<DeferredDependencyContext>())
     .description("dependency that is not used on first execution")
     .script({
       suppose: [

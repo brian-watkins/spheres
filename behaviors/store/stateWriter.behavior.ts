@@ -11,7 +11,7 @@ interface ContainerWithWriterContext {
 }
 
 const containerWithSimpleWriter: ConfigurableExample =
-  (m) => m.pick() && example(testStoreContext<ContainerWithWriterContext>())
+  example(testStoreContext<ContainerWithWriterContext>())
     .description("update to simple container with a writer")
     .script({
       suppose: [
@@ -96,7 +96,7 @@ interface ContainerAndStateWithWriter {
 }
 
 const writerThatUsesOtherState: ConfigurableExample =
-  (m) => m.pick() && example(testStoreContext<ContainerAndStateWithWriter>())
+  example(testStoreContext<ContainerAndStateWithWriter>())
     .description("writer that uses other state")
     .script({
       suppose: [
@@ -186,7 +186,7 @@ interface ReducerContainerWriterContext {
 }
 
 const reducerContainerWriter: ConfigurableExample =
-  (m) => m.pick() && example(testStoreContext<ReducerContainerWriterContext>())
+  example(testStoreContext<ReducerContainerWriterContext>())
     .description("writer for container with reducer")
     .script({
       suppose: [

@@ -9,7 +9,7 @@ interface BasicRuleContext {
 }
 
 const basicRule: ConfigurableExample =
-  (m) => m.pick() && example(testStoreContext<BasicRuleContext>())
+  example(testStoreContext<BasicRuleContext>())
     .description("trigger a rule")
     .script({
       suppose: [
@@ -47,7 +47,7 @@ const basicRule: ConfigurableExample =
     })
 
 const lateSubscribeRule: ConfigurableExample =
-  (m) => m.pick() && example(testStoreContext<BasicRuleContext>())
+  example(testStoreContext<BasicRuleContext>())
     .description("trigger a rule on a container before any subscribers")
     .script({
       suppose: [
@@ -88,7 +88,7 @@ interface RuleWithInputContext {
 }
 
 const ruleWithInput: ConfigurableExample =
-  (m) => m.pick() && example(testStoreContext<RuleWithInputContext>())
+  example(testStoreContext<RuleWithInputContext>())
     .description('a rule that takes an input value')
     .script({
       suppose: [

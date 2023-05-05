@@ -32,9 +32,8 @@
   "scripts": {
     "prepublishOnly": "npm run build",
     "build": "rm -rf ./dist && tsc --build",
-    "test": "npm run test:loop && npm run test:display",
-    "test:loop": "ts-node --esm --swc ./behaviors/loop/runner.ts",
-    "test:store": "ts-node --esm --swc ./behaviors/store/runner.ts",
+    "test": "npm run test:store && npm run test:display",
+    "test:store": "ts-node --esm --swc ./behaviors/loop/runner.ts",
     "test:display": "ts-node --esm --swc ./behaviors/display/runner.ts",
     "test:display:debug": "DEBUG=true npm run test:display"
   },

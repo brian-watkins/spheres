@@ -1,5 +1,3 @@
-// import { Meta, Provider, State } from "@src/loop.js";
-
 import { Meta, Provider, State } from "@src/store"
 
 export class TestProvider<Q, M = Q> implements Provider {

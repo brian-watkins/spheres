@@ -1,6 +1,6 @@
 import * as View from "@src/display/index.js"
-import { GetState } from "@src/index.js"
 import { clickCount } from "../state.js"
+import { GetState } from "@src/store/index.js"
 
 export default View.withState((get: GetState) => {
   return View.p([View.data("click-count")], [

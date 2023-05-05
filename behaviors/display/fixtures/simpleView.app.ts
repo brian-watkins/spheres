@@ -1,5 +1,5 @@
 import * as View from "@src/display/index.js"
-import { container, GetState, withInitialValue, writeMessage } from "@src/index.js"
+import { container, GetState, withInitialValue, write } from "@src/store/index.js"
 
 const peopleState = container(withInitialValue([
   { name: "Cool Dude", age: 41 },
@@ -19,7 +19,7 @@ const localState = container(withInitialValue(""))
 
 const updateButton = (get: GetState) => 
   View.button([
-    View.onClick(writeMessage(peopleState, [{
+    View.onClick(write(peopleState, [{
       name: get(localState),
       age: 104
     }]))
@@ -34,7 +34,7 @@ export default function(): View.View {
     View.withState(peopleView),
     View.hr([], []),
     View.input([
-      View.onInput(value => writeMessage(localState, value))
+      View.onInput(value => write(localState, value))
     ], []),
     View.withState(updateButton)
   ])

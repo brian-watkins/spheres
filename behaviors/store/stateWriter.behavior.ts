@@ -1,19 +1,18 @@
 import { behavior, ConfigurableExample, effect, example, fact, step } from "esbehavior";
 import { arrayWith, assignedWith, equalTo, expect, is } from "great-expectations";
-import { container, meta, ok, pending, useWriter, withInitialValue, withReducer } from "@src/index.js";
-import { Container } from "@src/loop.js";
-import { testSubscriberContext } from "./helpers/testSubscriberContext.js";
 import { TestWriter } from "./helpers/testWriter.js";
-import { okMessage, pendingMessage } from "./helpers/metaMatchers.js";
+import { initMessage, okMessage, pendingMessage } from "./helpers/metaMatchers.js";
+import { container, Container, ok, pending, withInitialValue, withReducer } from "@src/store/";
+import { testStoreContext } from "./helpers/testStore.js";
 
 interface ContainerWithWriterContext {
   container: Container<string>
   writer: TestWriter<string>
 }
 
-const simpleManagedContainer =
-  example(testSubscriberContext<ContainerWithWriterContext>())
-    .description("update to simple container")
+const containerWithSimpleWriter: ConfigurableExample =
+  (m) => m.pick() && example(testStoreContext<ContainerWithWriterContext>())
+    .description("update to simple container with a writer")
     .script({
       suppose: [
         fact("there is a container that uses a writer", (context) => {
@@ -24,23 +23,23 @@ const simpleManagedContainer =
             const writtenValue = await waitFor()
             set(ok(writtenValue))
           })
-          useWriter(containerState, writer)
+          context.useWriter(containerState, writer)
 
-          context.setState({
+          context.setTokens({
             container: containerState,
             writer
           })
         }),
         fact("there is a subscriber", (context) => {
-          context.subscribeTo(context.state.container, "sub-one")
+          context.subscribeTo(context.tokens.container, "sub-one")
         }),
         fact("there is a subscriber to the meta container", (context) => {
-          context.subscribeTo(meta(context.state.container), "meta-sub")
+          context.subscribeTo(context.tokens.container.meta, "meta-sub")
         })
       ],
       observe: [
         effect("the subscriber gets the initial value", (context) => {
-          expect(context.valuesReceivedBy("sub-one"), is(arrayWith([
+          expect(context.valuesForSubscriber("sub-one"), is(arrayWith([
             equalTo("initial")
           ])))
         })
@@ -48,21 +47,21 @@ const simpleManagedContainer =
     }).andThen({
       perform: [
         step("a write message is dispatched for the container", (context) => {
-          context.write(context.state.container, "Something Funny!")
+          context.writeTo(context.tokens.container, "Something Funny!")
         })
       ],
       observe: [
         effect("the writer gets the data to update", (context) => {
-          expect(context.state.writer.lastValueToWrite, is(assignedWith(equalTo("Something Funny!"))))
+          expect(context.tokens.writer.lastValueToWrite, is(assignedWith(equalTo("Something Funny!"))))
         }),
         effect("the subscriber does not receive the message yet", (context) => {
-          expect(context.valuesReceivedBy("sub-one"), is(arrayWith([
+          expect(context.valuesForSubscriber("sub-one"), is(arrayWith([
             equalTo("initial"),
           ])))
         }),
         effect("the subscriber to the meta container gets a pending message", (context) => {
-          expect(context.valuesReceivedBy("meta-sub"), is(arrayWith([
-            okMessage("initial"),
+          expect(context.valuesForSubscriber("meta-sub"), is(arrayWith([
+            initMessage("initial"),
             pendingMessage("Something Funny!")
           ])))
         })
@@ -70,19 +69,19 @@ const simpleManagedContainer =
     }).andThen({
       perform: [
         step("the manager writes the value and publishes it", (context) => {
-          context.state.writer.resolveWith?.("Wrote Something Funny!")
+          context.tokens.writer.resolveWith?.("Wrote Something Funny!")
         })
       ],
       observe: [
         effect("the subscriber receives the written value", (context) => {
-          expect(context.valuesReceivedBy("sub-one"), is(arrayWith([
+          expect(context.valuesForSubscriber("sub-one"), is(arrayWith([
             equalTo("initial"),
             equalTo("Wrote Something Funny!")
           ])))
         }),
         effect("the meta subscriber receives an ok value", (context) => {
-          expect(context.valuesReceivedBy("meta-sub"), is(arrayWith([
-            okMessage("initial"),
+          expect(context.valuesForSubscriber("meta-sub"), is(arrayWith([
+            initMessage("initial"),
             pendingMessage("Something Funny!"),
             okMessage("Wrote Something Funny!")
           ])))
@@ -96,8 +95,8 @@ interface ContainerAndStateWithWriter {
   writer: TestWriter<string>
 }
 
-const writerThatUsesOtherState =
-  example(testSubscriberContext<ContainerAndStateWithWriter>())
+const writerThatUsesOtherState: ConfigurableExample =
+  (m) => m.pick() && example(testStoreContext<ContainerAndStateWithWriter>())
     .description("writer that uses other state")
     .script({
       suppose: [
@@ -110,47 +109,47 @@ const writerThatUsesOtherState =
             const thing = await waitFor()
             set(ok(`Wrote ${thing} for user ${get(userIdState)}`))
           })
-          useWriter(thingContainer, writer)
-          context.setState({
+          context.useWriter(thingContainer, writer)
+          context.setTokens({
             userIdState,
             container: thingContainer,
             writer
           })
         }),
         fact("there is a subscriber", (context) => {
-          context.subscribeTo(context.state.container, "sub-one")
+          context.subscribeTo(context.tokens.container, "sub-one")
         }),
         fact("there is a subscriber to the meta-container", (context) => {
-          context.subscribeTo(meta(context.state.container), "meta-sub")
+          context.subscribeTo(context.tokens.container.meta, "meta-sub")
         })
       ],
       observe: [
         effect("the subscriber gets the initial state", (context) => {
-          expect(context.valuesReceivedBy("sub-one"), is(equalTo([
+          expect(context.valuesForSubscriber("sub-one"), is(equalTo([
             "initial"
           ])))
         }),
         effect("the meta subscriber gets the ok message with the initial value", (context) => {
-          expect(context.valuesReceivedBy("meta-sub"), is(arrayWith([
-            okMessage("initial")
+          expect(context.valuesForSubscriber("meta-sub"), is(arrayWith([
+            initMessage("initial")
           ])))
         })
       ]
     }).andThen({
       perform: [
         step("a value is written to the container", (context) => {
-          context.write(context.state.container, "hello")
+          context.writeTo(context.tokens.container, "hello")
         })
       ],
       observe: [
         effect("the meta subscriber gets the pending write value", (context) => {
-          expect(context.valuesReceivedBy("meta-sub"), is(arrayWith([
-            okMessage("initial"),
+          expect(context.valuesForSubscriber("meta-sub"), is(arrayWith([
+            initMessage("initial"),
             pendingMessage("Writing hello for user 28")
           ])))
         }),
         effect("the container subscriber receives no new value", (context) => {
-          expect(context.valuesReceivedBy("sub-one"), is(equalTo([
+          expect(context.valuesForSubscriber("sub-one"), is(equalTo([
             "initial"
           ])))
         })
@@ -158,22 +157,22 @@ const writerThatUsesOtherState =
     }).andThen({
       perform: [
         step("the user id state changes", (context) => {
-          context.write(context.state.userIdState, 41)
+          context.writeTo(context.tokens.userIdState, 41)
         }),
         step("the write completes", (context) => {
-          context.state.writer.resolveWith?.("wrote-hello")
+          context.tokens.writer.resolveWith?.("wrote-hello")
         })
       ],
       observe: [
         effect("the subscriber gets the written message with the new userId", (context) => {
-          expect(context.valuesReceivedBy("sub-one"), is(equalTo([
+          expect(context.valuesForSubscriber("sub-one"), is(equalTo([
             "initial",
             "Wrote wrote-hello for user 41"
           ])))
         }),
         effect("the meta subscriber gets the ok message with the written value", (context) => {
-          expect(context.valuesReceivedBy("meta-sub"), is(arrayWith([
-            okMessage("initial"),
+          expect(context.valuesForSubscriber("meta-sub"), is(arrayWith([
+            initMessage("initial"),
             pendingMessage("Writing hello for user 28"),
             okMessage("Wrote wrote-hello for user 41"),
           ])))
@@ -187,7 +186,7 @@ interface ReducerContainerWriterContext {
 }
 
 const reducerContainerWriter: ConfigurableExample =
-  example(testSubscriberContext<ReducerContainerWriterContext>())
+  (m) => m.pick() && example(testStoreContext<ReducerContainerWriterContext>())
     .description("writer for container with reducer")
     .script({
       suppose: [
@@ -200,27 +199,27 @@ const reducerContainerWriter: ConfigurableExample =
             const thing = await waitFor()
             set(ok(thing))
           })
-          useWriter(reducerContainer, writer)
-          context.setState({
+          context.useWriter(reducerContainer, writer)
+          context.setTokens({
             reducerContainer,
             writer
           })
         }),
         fact("there is a subscriber", (context) => {
-          context.subscribeTo(context.state.reducerContainer, "sub-one")
+          context.subscribeTo(context.tokens.reducerContainer, "sub-one")
         })
       ],
       perform: [
         step("a value is written to the container", (context) => {
-          context.write(context.state.reducerContainer, "hello")
+          context.writeTo(context.tokens.reducerContainer, "hello")
         }),
         step("the write completes", (context) => {
-          context.state.writer.resolveWith?.("add")
+          context.tokens.writer.resolveWith?.("add")
         })
       ],
       observe: [
         effect("the subscriber receives the written value", (context) => {
-          expect(context.valuesReceivedBy("sub-one"), is(equalTo([
+          expect(context.valuesForSubscriber("sub-one"), is(equalTo([
             28,
             29
           ])))
@@ -229,8 +228,8 @@ const reducerContainerWriter: ConfigurableExample =
     })
 
 
-export default behavior("Managed Update", [
-  simpleManagedContainer,
+export default behavior("Writer", [
+  containerWithSimpleWriter,
   writerThatUsesOtherState,
   reducerContainerWriter
 ])

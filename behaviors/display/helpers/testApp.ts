@@ -1,6 +1,6 @@
 import { Display } from "@src/display/index.js"
-import { loop } from "@src/index.js"
 import { DOMChangeRecord, structureChangeRecord, textChangeRecord } from "./changeRecords.js"
+import { Store } from "@src/store/index.js"
 
 export class TestApp {
   private unmountTestApp: (() => void) | undefined
@@ -8,12 +8,12 @@ export class TestApp {
   public changeRecords: Array<DOMChangeRecord> = []
 
   async startApp<T>(name: string, context?: T) {
-    loop().reset()
+    const store = new Store()
     this.changeRecords = []
 
     const viewConfiguration = await import(`../fixtures/${name}.ts`)
     const view = viewConfiguration.default(context)
-    const appDisplay = new Display(loop())
+    const appDisplay = new Display(store)
 
     const testAppMountPoint = document.createElement("div")
     testAppMountPoint.id = "test-display"

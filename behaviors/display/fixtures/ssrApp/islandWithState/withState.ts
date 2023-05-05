@@ -1,6 +1,6 @@
 import * as View from "@src/display"
-import { GetState, writeMessage } from "@src/index"
 import { clickCount, nameState } from "../state"
+import { GetState, write } from "@src/store"
 
 export default View.withState((get) => {
   return View.div([ View.id("nested-state-island" )], [
@@ -18,7 +18,7 @@ export default View.withState((get) => {
 function counterView(get: GetState) {
   return View.div([], [
     View.button([
-      View.onClick(writeMessage(clickCount, get(clickCount) + 1))
+      View.onClick(write(clickCount, get(clickCount) + 1))
     ], [
       View.text("Click me!")
     ])

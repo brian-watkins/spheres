@@ -1,19 +1,19 @@
-import { Loop, LoopMessage } from "../loop.js";
+import { Store, StoreMessage } from "../store/index.js";
 import { createPatch } from "./vdom.js";
 import { View } from "./view.js";
 
 export class Display {
   private listener: (evt: Event) => void = () => { }
 
-  constructor(loop: Loop) {
+  constructor(private store: Store) {
     this.listener = (evt: Event) => {
-      const displayMessageEvent = evt as CustomEvent<LoopMessage<any>>
-      loop.dispatch(displayMessageEvent.detail)
+      const displayMessageEvent = evt as CustomEvent<StoreMessage<any>>
+      this.store.dispatch(displayMessageEvent.detail)
     }
   }
 
   mount(element: Element, view: View): () => void {
-    const patch = createPatch()
+    const patch = createPatch(this.store)
     const vnode = patch(element, view)
     const mountPoint = vnode.elm as HTMLElement
     mountPoint.addEventListener("displayMessage", this.listener)

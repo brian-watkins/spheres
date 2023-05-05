@@ -1,11 +1,8 @@
 import { behavior, ConfigurableExample, effect, example, fact, step } from "esbehavior";
 import { arrayWith, assignedWith, equalTo, expect, is } from "great-expectations";
-// import { container, meta, ok, pending, useWriter, withInitialValue, withReducer } from "@src/index.js";
-// import { Container } from "@src/loop.js";
-// import { testSubscriberContext } from "./helpers/testSubscriberContext.js";
 import { TestWriter } from "./helpers/testWriter.js";
 import { initMessage, okMessage, pendingMessage } from "./helpers/metaMatchers.js";
-import { container, Container, ok, pending, withInitialValue, withReducer } from "@src/store.js";
+import { container, Container, ok, pending, withInitialValue, withReducer } from "@src/store/";
 import { testStoreContext } from "./helpers/testStore.js";
 
 interface ContainerWithWriterContext {

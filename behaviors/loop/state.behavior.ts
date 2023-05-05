@@ -1,6 +1,6 @@
 import { ConfigurableExample, behavior, effect, example, fact, step } from "esbehavior";
 import { arrayWithItemAt, equalTo, expect, is } from "great-expectations"
-import { Container, DerivedState, container, state, withInitialValue } from "@src/store.js";
+import { Container, DerivedState, container, state, withInitialValue } from "@src/store/";
 import { TestStore, testStoreContext } from "./helpers/testStore.js";
 
 interface BasicContainerTokens {

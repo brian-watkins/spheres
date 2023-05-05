@@ -11,7 +11,7 @@ export default (browser: Browser, debug: boolean) => behavior("client activation
         fact("the app is loaded in the browser", async (context) => {
           await context.server.start({
             template: "../fixtures/ssrApp/renderOnly/template.html",
-            view: "./behaviors/display/fixtures/ssrApp/basic/view.ts"
+            view: "./behaviors/display/fixtures/ssrApp/basic/server.ts"
           })
           await context.browser.start()
           await context.browser.loadApp()
@@ -31,7 +31,7 @@ export default (browser: Browser, debug: boolean) => behavior("client activation
         fact("the app is loaded in the browser", async (context) => {
           await context.server.start({
             template: "../fixtures/ssrApp/basic/template.html",
-            view: "./behaviors/display/fixtures/ssrApp/basic/view.ts"
+            view: "./behaviors/display/fixtures/ssrApp/basic/server.ts"
           })
           await context.browser.start()
           await context.browser.loadApp()
@@ -68,7 +68,7 @@ export default (browser: Browser, debug: boolean) => behavior("client activation
         fact("the app is loaded in the browser", async (context) => {
           await context.server.start({
             template: "../fixtures/ssrApp/nested/template.html",
-            view: "./behaviors/display/fixtures/ssrApp/nested/view.ts"
+            view: "./behaviors/display/fixtures/ssrApp/nested/server.ts"
           })
           await context.browser.start()
           await context.browser.loadApp()
@@ -105,7 +105,7 @@ export default (browser: Browser, debug: boolean) => behavior("client activation
         fact("the app is loaded in the browser", async (context) => {
           await context.server.start({
             template: "../fixtures/ssrApp/islandWithState/template.html",
-            view: "./behaviors/display/fixtures/ssrApp/islandWithState/view.ts"
+            view: "./behaviors/display/fixtures/ssrApp/islandWithState/server.ts"
           })
           await context.browser.start()
           await context.browser.loadApp()

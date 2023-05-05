@@ -1,4 +1,4 @@
-import { container, GetState, rule, State, trigger, withInitialValue } from "@src/index.js";
+import { container, GetState, rule, State, trigger, withInitialValue } from "@src/store/index.js";
 import * as View from "@src/display/index.js"
 
 interface Person {

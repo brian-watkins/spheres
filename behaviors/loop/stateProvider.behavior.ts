@@ -1,11 +1,9 @@
 import { ConfigurableExample, behavior, effect, example, fact, step } from "esbehavior";
 import { arrayWith, arrayWithItemAt, equalTo, expect, is } from "great-expectations";
-// import { testSubscriberContext } from "./helpers/testSubscriberContext.js";
 import { TestProvider } from "./helpers/testProvider.js";
-// import { Container, container, meta, ok, pending, Provider, State, state, useProvider, withInitialValue } from "@src/index.js";
 import { okMessage, pendingMessage } from "./helpers/metaMatchers.js";
 import { testStoreContext } from "./helpers/testStore.js";
-import { Container, Provider, DerivedState, container, ok, pending, state, withInitialValue } from "@src/store.js";
+import { Container, Provider, DerivedState, container, ok, pending, state, withInitialValue } from "@src/store/";
 
 interface ProvidedValueContext {
   receiver: DerivedState<string>

@@ -1,5 +1,5 @@
-import { attributesModule, Attrs, Classes, classModule, eventListenersModule, Hooks, init, On, Props, propsModule, VNode } from "snabbdom";
-import { GetState, loop, State } from "../index.js";
+import { attributesModule, Attrs, Classes, classModule, eventListenersModule, Hooks, init, Module, On, Props, propsModule, VNode } from "snabbdom";
+import { GetState, state, State, Store } from "../store/index.js";
 
 // Tailored from Snabbdom VNode
 export interface View {
@@ -17,13 +17,14 @@ export interface ViewData {
   attrs?: Attrs;
   class?: Classes;
   on?: On;
-  hook?: Hooks & { render?: (vnode: View) => Promise<View> };
+  hook?: Hooks & { render?: (store: Store, vnode: View) => Promise<View> };
   key?: string;
-  loop?: LoopData
+  storeContext?: StoreContext
 }
 
-export interface LoopData {
-  unsubscribe: () => void,
+export interface StoreContext {
+  store?: Store
+  unsubscribe: () => void
 }
 
 export class Property {
@@ -107,8 +108,22 @@ function exhaustiveMatchGuard(_: never) {
   throw new Error("Should never get here!")
 }
 
-export function createPatch() {
+function contextModule(mapper: (context: StoreContext) => StoreContext): Module {
+  return {
+    create: (_, vnode) => {
+      if (vnode.data?.storeContext) {
+        vnode.data.storeContext = mapper(vnode.data.storeContext)
+      }
+    }
+  }
+}
+
+export function createPatch(store: Store) {
   return init([
+    contextModule((storeContext) => {
+      storeContext.store = store
+      return storeContext
+    }),
     propsModule,
     attributesModule,
     classModule,
@@ -136,33 +151,34 @@ export interface StatefulViewOptions {
 export function statefulView(tag: string, options: StatefulViewOptions, generator: (get: GetState) => View): View {
   return makeNode(tag, {
     key: options.key?.toString(),
-    loop: {
+    storeContext: {
       unsubscribe: () => { }
     },
     hook: {
       create: (_, vnode) => {
-        const state = loop().deriveContainer(generator)
+        const token = state(generator)
+        const store: Store = vnode.data!.storeContext.store
 
-        const patch = createPatch()
+        const patch = createPatch(store)
 
         let oldNode: VNode | Element = vnode.elm as Element
 
-        vnode.data!.loop.unsubscribe = state.subscribe((updatedView) => {
+        vnode.data!.storeContext.unsubscribe = store.subscribe(token, (updatedView) => {
           oldNode = patch(oldNode, updatedView)
           vnode.elm = oldNode.elm
         })
       },
       postpatch: (oldVNode, vNode) => {
-        vNode.data!.loop = oldVNode.data!.loop
+        vNode.data!.storeContext = oldVNode.data!.storeContext
       },
       destroy: (vnode) => {
-        vnode.data!.loop.unsubscribe()
+        vnode.data!.storeContext.unsubscribe()
       },
-      render: () => {
-        const state = loop().deriveContainer(generator)
+      render: (store) => {
+        const token = state(generator)
 
         return new Promise((resolve) => {
-          const unsubscribe = state.subscribe((view) => {
+          const unsubscribe = store.subscribe(token, (view) => {
             resolve(view)
             unsubscribe()
           })

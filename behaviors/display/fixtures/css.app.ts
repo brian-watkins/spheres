@@ -1,4 +1,4 @@
-import { container, GetState, withInitialValue, writeMessage } from "@src/index.js"
+import { container, GetState, withInitialValue, write } from "@src/store"
 import * as View from "@src/display/index.js"
 
 const numberState = container(withInitialValue(17))
@@ -29,7 +29,7 @@ export default function (): View.View {
     View.hr([], []),
     View.input([
       View.data("number-input"),
-      View.onInput(value => writeMessage(numberState, Number(value)))
+      View.onInput(value => write(numberState, Number(value)))
     ], [])
   ])
 }

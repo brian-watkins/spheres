@@ -1,4 +1,4 @@
-import { container, withInitialValue } from "@src/index.js";
+import { container, withInitialValue } from "@src/store"
 
 export const clickCount = container(withInitialValue(0))
 

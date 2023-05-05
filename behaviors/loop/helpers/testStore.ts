@@ -1,4 +1,4 @@
-import { Container, Provider, Rule, StateToken, Store, TriggerInputArg, Writer, trigger } from "@src/store"
+import { Container, Provider, Rule, State, Store, TriggerInputArg, Writer, trigger } from "@src/store"
 import { Context } from "esbehavior"
 
 export function testStoreContext<T>(): Context<TestStore<T>> {
@@ -17,7 +17,7 @@ export class TestStore<T> {
     this.store = new Store()
   }
 
-  subscribeTo<S, N>(token: StateToken<S, N>, name: string) {
+  subscribeTo<S, N>(token: State<S, N>, name: string) {
     this.values.set(name, [])
     const unsubscribe = this.store.subscribe(token, (updatedValue) => {
       this.values.get(name)?.push(updatedValue)
@@ -34,7 +34,7 @@ export class TestStore<T> {
     this.store.useProvider(provider)
   }
 
-  useWriter<T, M>(token: StateToken<T, M>, writer: Writer<M>) {
+  useWriter<T, M>(token: State<T, M>, writer: Writer<M>) {
     this.store.useWriter(token, writer)
   }
 

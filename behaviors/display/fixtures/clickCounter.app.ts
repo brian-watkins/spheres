@@ -1,4 +1,4 @@
-import { container, GetState, withInitialValue, writeMessage } from "@src/index.js"
+import { GetState, container, withInitialValue, write } from "@src/store/index.js"
 import * as View from "@src/display/index.js"
 
 const clickCount = container(withInitialValue(0))
@@ -6,7 +6,7 @@ const clickCount = container(withInitialValue(0))
 const clickCounterView = (get: GetState) => {
   return View.div([], [
     View.button([
-      View.onClick(writeMessage(clickCount, get(clickCount) + 1))
+      View.onClick(write(clickCount, get(clickCount) + 1))
     ], [
       View.text("Click me!")
     ]),

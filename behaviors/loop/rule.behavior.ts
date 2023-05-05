@@ -1,9 +1,6 @@
-// import { Container, container, rule, trigger, withInitialValue } from "@src/index.js";
-// import { Rule } from "@src/loop.js";
 import { ConfigurableExample, behavior, effect, example, fact, step } from "esbehavior";
 import { equalTo, expect, is } from "great-expectations";
-// import { testSubscriberContext } from "./helpers/testSubscriberContext.js";
-import { Container, Rule, container, rule, withInitialValue } from "@src/store.js";
+import { Container, Rule, container, rule, withInitialValue } from "@src/store/";
 import { testStoreContext } from "./helpers/testStore";
 
 interface BasicRuleContext {

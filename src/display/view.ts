@@ -1,5 +1,4 @@
-import { GetState } from "../index.js";
-import { LoopMessage, State } from "../loop.js";
+import { GetState, State, StoreMessage } from "../store/index.js";
 import { Attribute, CssClasses, CssClassname, EventHandler, Key, makeNode, makeViewData, NoAttribute, Property, statefulView, StatefulViewOptions, View, ViewAttribute } from "./vdom.js";
 export type { View, ViewAttribute } from "./vdom.js"
 
@@ -118,11 +117,11 @@ export function cssClasses(classes: Array<CssClassname>): ViewAttribute {
 }
 
 
-export function onClick<M extends LoopMessage<any>>(message: M): ViewAttribute {
+export function onClick<M extends StoreMessage<any>>(message: M): ViewAttribute {
   return new EventHandler("click", () => message)
 }
 
-export function onInput<M extends LoopMessage<any>>(generator: (value: string) => M): ViewAttribute {
+export function onInput<M extends StoreMessage<any>>(generator: (value: string) => M): ViewAttribute {
   return new EventHandler("input", (evt) => {
     return generator((<HTMLInputElement>evt.target)?.value)
   })
@@ -134,8 +133,8 @@ export interface WithStateOptions {
   key?: string | State<any>
 }
 
-export function withState(options: WithStateOptions, generator: (get: <S>(state: State<S>) => S) => View): View
-export function withState(generator: (get: <S>(state: State<S>) => S) => View): View
+export function withState(options: WithStateOptions, generator: (get: GetState) => View): View
+export function withState(generator: (get: GetState) => View): View
 export function withState(optionsOrGenerator: StatefulViewOptions | ((get: GetState) => View), generator?: (get: GetState) => View): View {
   if (typeof optionsOrGenerator === "function") {
     return statefulView("view-fragment", {}, optionsOrGenerator as (get: GetState) => View)

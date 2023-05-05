@@ -1,4 +1,4 @@
-import { container, GetState, withInitialValue } from "../../../src/index.js";
+import { container, GetState, withInitialValue } from "../../../src/store/index.js";
 import * as View from "../../../src/display/index.js";
 
 interface StaticViewProps {

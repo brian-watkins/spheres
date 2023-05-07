@@ -1,4 +1,4 @@
-import { GetState, State, StoreMessage } from "../store/store.js";
+import { GetState, State, StoreMessage } from "../store/index.js";
 import { Attribute, CssClasses, CssClassname, EventHandler, Key, makeNode, makeViewData, NoAttribute, Property, statefulView, StatefulViewOptions, View, ViewAttribute } from "./vdom.js";
 export type { View, ViewAttribute } from "./vdom.js"
 

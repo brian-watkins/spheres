@@ -1,4 +1,4 @@
-import { Store, StoreMessage } from "../store/store.js";
+import { Store, StoreMessage } from "../store/index.js";
 import { createPatch } from "./vdom.js";
 import { View } from "./view.js";
 

@@ -1,5 +1,5 @@
 import { attributesModule, Attrs, Classes, classModule, eventListenersModule, Hooks, init, Module, On, Props, propsModule, VNode } from "snabbdom";
-import { GetState, derived, State, Store } from "../store/store.js";
+import { derived, GetState, State, Store } from "../store/index.js";
 
 // Tailored from Snabbdom VNode
 export interface View {

@@ -1,23 +1,22 @@
 import { Meta } from "@src/store"
 import { equalTo, Matcher } from "great-expectations"
 
-export function pendingMessage<M>(message: M): Matcher<Meta<any>> {
-  return equalTo<Meta<any>>({
+export function pendingMessage<M>(message: M): Matcher<Meta<M>> {
+  return equalTo<Meta<M>>({
     type: "pending",
     message
   })
 }
 
-export function okMessage<M>(message: M): Matcher<Meta<any>> {
-  return equalTo<Meta<any>>({
-    type: "ok",
+export function errorMessage<M>(message: M): Matcher<Meta<M>> {
+  return equalTo<Meta<M>>({
+    type: "error",
     message
   })
 }
 
-export function initMessage<T>(value: T): Matcher<Meta<any>> {
+export function okMessage(): Matcher<Meta<any>> {
   return equalTo<Meta<any>>({
-    type: "initialValue",
-    value
+    type: "ok"
   })
 }

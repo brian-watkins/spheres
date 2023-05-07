@@ -1,4 +1,4 @@
-import { Store } from "../store/index.js";
+import { Store } from "../store/store.js";
 import { Display } from "./display.js";
 
 export * from "./view.js"

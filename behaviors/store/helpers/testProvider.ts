@@ -1,16 +1,16 @@
-import { Meta, Provider, State } from "@src/store"
+import { Provider, State } from "@src/store"
 
-export class TestProvider<Q, M = Q> implements Provider {
-  resolver: ((value: M) => void) | undefined
-  handler: ((get: <S, N>(state: State<S, N>) => S, set: (state: State<Meta<Q, M>>, value: Meta<Q, M>) => void, waitFor: () => Promise<M>) => Promise<void>) | undefined
+export class TestProvider implements Provider {
+  resolver: ((value: any) => void) | undefined
+  handler: ((get: <S, N>(state: State<S, N>) => S, set: <Q, M>(state: State<Q, M>, value: M) => void, waitFor: () => Promise<any>) => Promise<void>) | undefined
 
-  setHandler(handler: (get: <S, N>(state: State<S, N>) => S, set: (state: State<Meta<Q, M>>, value: Meta<Q, M>) => void, waitFor: () => Promise<M>) => Promise<void>) {
+  setHandler(handler: (get: <S, N>(state: State<S, N>) => S, set: <Q, M>(state: State<Q, M>, value: M) => void, waitFor: () => Promise<any>) => Promise<void>) {
     this.handler = handler
   }
 
-  async provide(get: <S, N>(state: State<S, N>) => S, set: (state: State<Meta<Q, M>>, value: Meta<Q, M>) => void): Promise<void> {
+  async provide(get: <S, N>(state: State<S, N>) => S, set: <Q, M>(state: State<Q, M>, value: M) => void): Promise<void> {
     this.handler?.(get, set, () => {
-      return new Promise<M>((resolve) => {
+      return new Promise<any>((resolve) => {
         this.resolver = resolve
       })
     })

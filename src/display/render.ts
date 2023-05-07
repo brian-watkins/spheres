@@ -1,7 +1,7 @@
 import init from "snabbdom-to-html/init.js"
 import modules from "snabbdom-to-html/modules/index.js"
 import { View } from "./vdom.js";
-import { Store } from "../store/index.js";
+import { Store } from "../store/store.js";
 
 export async function render(store: Store, view: View): Promise<string> {
   const toHTML = init([

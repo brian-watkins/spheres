@@ -3,11 +3,11 @@ import { arrayWith, arrayWithItemAt, equalTo, expect, is } from "great-expectati
 import { TestProvider } from "./helpers/testProvider.js";
 import { okMessage, pendingMessage } from "./helpers/metaMatchers.js";
 import { testStoreContext } from "./helpers/testStore.js";
-import { Container, Provider, DerivedState, container, ok, pending, derived, withInitialValue } from "@src/store/";
+import { Container, Provider, DerivedState, container, pending, derived, withInitialValue } from "@src/store/";
 
 interface ProvidedValueContext {
   receiver: DerivedState<string>
-  provider: TestProvider<string>
+  provider: TestProvider
 }
 
 const simpleProvidedValue: ConfigurableExample =
@@ -17,12 +17,12 @@ const simpleProvidedValue: ConfigurableExample =
       suppose: [
         fact("there is a view with a provided value", (context) => {
           const receiver = derived<string>(() => "initial")
-          const provider = new TestProvider<string>()
+          const provider = new TestProvider()
           provider.setHandler(async (_, set, waitFor) => {
             console.log("running provider!")
             set(receiver.meta, pending("loading"))
             const value = await waitFor()
-            set(receiver.meta, ok(value))
+            set(receiver, value)
           })
           context.useProvider(provider)
           context.setTokens({
@@ -65,7 +65,7 @@ const simpleProvidedValue: ConfigurableExample =
         effect("the meta subscriber receives an ok message", (context) => {
           expect(context.valuesForSubscriber("meta-sub"), is(arrayWith([
             pendingMessage("loading"),
-            okMessage("funny")
+            okMessage()
           ])))
         })
       ]
@@ -75,7 +75,7 @@ interface ProvidedValueWithKeyContext {
   profileState: Container<string>,
   pageNumberState: Container<number>,
   receiver: Container<string>
-  provider: TestProvider<string>
+  provider: TestProvider
 }
 
 const providedValueWithDerivedKey: ConfigurableExample =
@@ -87,7 +87,7 @@ const providedValueWithDerivedKey: ConfigurableExample =
           const profileState = container(withInitialValue("profile-1"))
           const pageNumberState = container(withInitialValue(17))
           const receiver = container<string>(withInitialValue("initial"))
-          const provider = new TestProvider<string>()
+          const provider = new TestProvider()
           provider.setHandler(async (get, set, waitFor) => {
             const key = {
               profileId: get(profileState),
@@ -95,7 +95,7 @@ const providedValueWithDerivedKey: ConfigurableExample =
             }
             set(receiver.meta, pending(`Value for profile ${key.profileId} on page ${key.page}`))
             const extraValue = await waitFor()
-            set(receiver.meta, ok(`Value: ${extraValue} for profile ${key.profileId} on page ${key.page}`))
+            set(receiver, `Value: ${extraValue} for profile ${key.profileId} on page ${key.page}`)
           })
           context.useProvider(provider)
           context.setTokens({
@@ -144,7 +144,7 @@ const providedValueWithDerivedKey: ConfigurableExample =
         effect("the meta subscriber gets the pending message again", (context) => {
           expect(context.valuesForSubscriber("meta-sub"), is(arrayWith([
             pendingMessage("Value for profile profile-1 on page 17"),
-            okMessage("Value: Fun Stuff for profile profile-1 on page 17"),
+            okMessage(),
             pendingMessage("Value for profile profile-7 on page 17")
           ])))
         })
@@ -187,9 +187,9 @@ const providedValueWithDerivedKey: ConfigurableExample =
         effect("the meta subscriber gets the ok message", (context) => {
           expect(context.valuesForSubscriber("meta-sub"), is(arrayWith([
             pendingMessage("Value for profile profile-1 on page 17"),
-            okMessage("Value: Fun Stuff for profile profile-1 on page 17"),
+            okMessage(),
             pendingMessage("Value for profile profile-7 on page 17"),
-            okMessage("Value: Even more fun stuff! for profile profile-7 on page 17")
+            okMessage()
           ])))
         })
       ]
@@ -227,9 +227,9 @@ const providedValueWithDerivedKey: ConfigurableExample =
         effect("the meta subscriber gets the loading message again", (context) => {
           expect(context.valuesForSubscriber("meta-sub"), is(arrayWith([
             pendingMessage("Value for profile profile-1 on page 17"),
-            okMessage("Value: Fun Stuff for profile profile-1 on page 17"),
+            okMessage(),
             pendingMessage("Value for profile profile-7 on page 17"),
-            okMessage("Value: Even more fun stuff! for profile profile-7 on page 17"),
+            okMessage(),
             pendingMessage("Value for profile profile-7 on page 21")
           ])))
         })
@@ -251,12 +251,12 @@ const reactiveQueryCountForProvider: ConfigurableExample =
           const counterState = container<string>(withInitialValue("0"))
           const otherState = container(withInitialValue(27))
           const anotherState = container(withInitialValue(22))
-          const provider = new TestProvider<string>()
+          const provider = new TestProvider()
           let counter = 0
           provider.setHandler(async (get, set, _) => {
             counter = counter + 1
             const total = get(otherState) + get(anotherState)
-            set(counterState.meta, ok(`${counter} - ${total}`))
+            set(counterState, `${counter} - ${total}`)
           })
           context.useProvider(provider)
           context.setTokens({
@@ -295,7 +295,7 @@ interface DeferredDependencyContext {
   numberState: Container<number>,
   stringState: Container<string>,
   managedState: Container<string>
-  provider: TestProvider<string>
+  provider: TestProvider
 }
 
 const deferredDependency: ConfigurableExample =
@@ -307,12 +307,12 @@ const deferredDependency: ConfigurableExample =
           const numberState = container(withInitialValue(6))
           const stringState = container(withInitialValue("hello"))
           const managedState = container<string>(withInitialValue("initial"))
-          const provider = new TestProvider<string>()
+          const provider = new TestProvider()
           provider.setHandler(async (get, set, _) => {
             if (get(stringState) === "now") {
-              set(managedState.meta, ok(`Number ${get(numberState)}`))
+              set(managedState, `Number ${get(numberState)}`)
             } else {
-              set(managedState.meta, ok(`Number 0`))
+              set(managedState, `Number 0`)
             }
           })
           context.useProvider(provider)

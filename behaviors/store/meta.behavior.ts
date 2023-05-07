@@ -1,7 +1,7 @@
 import { behavior, ConfigurableExample, effect, example, fact } from "esbehavior";
 import { arrayWith, equalTo, expect, is } from "great-expectations";
-import { initMessage } from "./helpers/metaMatchers";
-import { container, Container, ok, withInitialValue, withReducer } from "@src/store";
+import { okMessage, pendingMessage } from "./helpers/metaMatchers";
+import { container, Container, pending, withInitialValue, withReducer } from "@src/store";
 import { testStoreContext } from "./helpers/testStore";
 
 interface MetaContext {
@@ -25,7 +25,7 @@ const basicMetaBehavior: ConfigurableExample =
       observe: [
         effect("the subscriber receives the initial meta value", (context) => {
           expect(context.valuesForSubscriber("meta-sub"), is(arrayWith([
-            initMessage(27)
+            okMessage()
           ])))
         })
       ]
@@ -48,7 +48,7 @@ const metaMetaBehavior: ConfigurableExample =
       observe: [
         effect("the subscriber receives the initial meta meta value", (context) => {
           expect(context.valuesForSubscriber("meta-meta-sub"), is(arrayWith([
-            initMessage({type: "initialValue", value: 27 })
+            okMessage()
           ])))
         })
       ]
@@ -86,7 +86,7 @@ const metaContainerWithReducer: ConfigurableExample =
         }),
         effect("the subscriber receives the initial meta reducer value", (context) => {
           expect(context.valuesForSubscriber("meta-reducer-sub"), is(arrayWith([
-            initMessage(41)
+            okMessage()
           ])))
         })
       ]
@@ -95,16 +95,21 @@ const metaContainerWithReducer: ConfigurableExample =
         fact("there is a provider for the container", (context) => {
           context.useProvider({
             provide: (_, set) => {
-              set(context.tokens.reducerContainer.meta, ok("add"))
+              set(context.tokens.reducerContainer.meta, pending("add"))
             }
           })
         })
       ],
       observe: [
-        effect("the subscriber receives the provided value", (context) => {
+        effect("the subscriber receives nothing", (context) => {
           expect(context.valuesForSubscriber("sub-one"), is(equalTo([
-            41,
-            42
+            41
+          ])))
+        }),
+        effect("the meta subscriber receives the pending message", (context) => {
+          expect(context.valuesForSubscriber("meta-reducer-sub"), is(arrayWith([
+            okMessage(),
+            pendingMessage("add")
           ])))
         })
       ]

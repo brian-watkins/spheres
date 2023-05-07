@@ -1,8 +1,8 @@
 import { behavior, ConfigurableExample, effect, example, fact, step } from "esbehavior";
 import { arrayWith, assignedWith, equalTo, expect, is } from "great-expectations";
 import { TestWriter } from "./helpers/testWriter.js";
-import { initMessage, okMessage, pendingMessage } from "./helpers/metaMatchers.js";
-import { container, Container, ok, pending, withInitialValue, withReducer } from "@src/store/";
+import { errorMessage, okMessage, pendingMessage } from "./helpers/metaMatchers.js";
+import { container, Container, withInitialValue, withReducer } from "@src/store/";
 import { testStoreContext } from "./helpers/testStore.js";
 
 interface ContainerWithWriterContext {
@@ -18,10 +18,10 @@ const containerWithSimpleWriter: ConfigurableExample =
         fact("there is a container that uses a writer", (context) => {
           const containerState = container(withInitialValue("initial"))
           const writer = new TestWriter<string>()
-          writer.setHandler(async (value, _, set, waitFor) => {
-            set(pending(value))
+          writer.setHandler(async (value, actions, waitFor) => {
+            actions.pending(value)
             const writtenValue = await waitFor()
-            set(ok(writtenValue))
+            actions.ok(writtenValue)
           })
           context.useWriter(containerState, writer)
 
@@ -61,7 +61,7 @@ const containerWithSimpleWriter: ConfigurableExample =
         }),
         effect("the subscriber to the meta container gets a pending message", (context) => {
           expect(context.valuesForSubscriber("meta-sub"), is(arrayWith([
-            initMessage("initial"),
+            okMessage(),
             pendingMessage("Something Funny!")
           ])))
         })
@@ -81,9 +81,102 @@ const containerWithSimpleWriter: ConfigurableExample =
         }),
         effect("the meta subscriber receives an ok value", (context) => {
           expect(context.valuesForSubscriber("meta-sub"), is(arrayWith([
-            initMessage("initial"),
+            okMessage(),
             pendingMessage("Something Funny!"),
-            okMessage("Wrote Something Funny!")
+            okMessage()
+          ])))
+        })
+      ]
+    })
+
+const errorWriter: ConfigurableExample =
+  example(testStoreContext<ContainerWithWriterContext>())
+    .description("writer results in error")
+    .script({
+      suppose: [
+        fact("there is a container with a writer", (context) => {
+          const containerState = container(withInitialValue("hello"))
+          const writer = new TestWriter<string>()
+          writer.setHandler(async (value, actions, waitFor) => {
+            actions.pending(value)
+            const error = await waitFor()
+            actions.error(error)
+          })
+          context.useWriter(containerState, writer)
+
+          context.setTokens({
+            container: containerState,
+            writer
+          })
+        }),
+        fact("there is a subscriber", (context) => {
+          context.subscribeTo(context.tokens.container, "sub-one")
+        })
+      ],
+      perform: [
+        step("a value is written to the container", (context) => {
+          context.writeTo(context.tokens.container, "try to save this!")
+        }),
+        step("the write fails", (context) => {
+          context.tokens.writer.resolveWith?.("error!")
+        }),
+        step("a listener subscribes to the meta state", (context) => {
+          context.subscribeTo(context.tokens.container.meta, "meta-sub")
+        })
+      ],
+      observe: [
+        effect("the subscriber does not update", (context) => {
+          expect(context.valuesForSubscriber("sub-one"), is(equalTo([
+            "hello"
+          ])))
+        }),
+        effect("the meta subscriber receives the error", (context) => {
+          expect(context.valuesForSubscriber("meta-sub"), is(arrayWith([
+            errorMessage("error!")
+          ])))
+        })
+      ]
+    })
+
+const pendingWriter: ConfigurableExample =
+  example(testStoreContext<ContainerWithWriterContext>())
+    .description("writer results in pending state")
+    .script({
+      suppose: [
+        fact("there is a container with a writer", (context) => {
+          const containerState = container(withInitialValue("hello"))
+          const writer = new TestWriter<string>()
+          writer.setHandler(async (value, actions) => {
+            actions.pending(value)
+          })
+          context.useWriter(containerState, writer)
+
+          context.setTokens({
+            container: containerState,
+            writer
+          })
+        }),
+        fact("there is a subscriber", (context) => {
+          context.subscribeTo(context.tokens.container, "sub-one")
+        })
+      ],
+      perform: [
+        step("a value is written to the container", (context) => {
+          context.writeTo(context.tokens.container, "try to save this!")
+        }),
+        step("a listener subscribes to the meta state", (context) => {
+          context.subscribeTo(context.tokens.container.meta, "meta-sub")
+        })
+      ],
+      observe: [
+        effect("the subscriber does not update", (context) => {
+          expect(context.valuesForSubscriber("sub-one"), is(equalTo([
+            "hello"
+          ])))
+        }),
+        effect("the meta subscriber receives the pending message", (context) => {
+          expect(context.valuesForSubscriber("meta-sub"), is(arrayWith([
+            pendingMessage("try to save this!")
           ])))
         })
       ]
@@ -104,10 +197,10 @@ const writerThatUsesOtherState: ConfigurableExample =
           const userIdState = container(withInitialValue(28))
           const thingContainer = container(withInitialValue("initial"))
           const writer = new TestWriter<string>()
-          writer.setHandler(async (value, get, set, waitFor) => {
-            set(pending(`Writing ${value} for user ${get(userIdState)}`))
+          writer.setHandler(async (value, actions, waitFor) => {
+            actions.pending(`Writing ${value} for user ${actions.get(userIdState)}`)
             const thing = await waitFor()
-            set(ok(`Wrote ${thing} for user ${get(userIdState)}`))
+            actions.ok(`Wrote ${thing} for user ${actions.get(userIdState)}`)
           })
           context.useWriter(thingContainer, writer)
           context.setTokens({
@@ -131,7 +224,7 @@ const writerThatUsesOtherState: ConfigurableExample =
         }),
         effect("the meta subscriber gets the ok message with the initial value", (context) => {
           expect(context.valuesForSubscriber("meta-sub"), is(arrayWith([
-            initMessage("initial")
+            okMessage()
           ])))
         })
       ]
@@ -144,7 +237,7 @@ const writerThatUsesOtherState: ConfigurableExample =
       observe: [
         effect("the meta subscriber gets the pending write value", (context) => {
           expect(context.valuesForSubscriber("meta-sub"), is(arrayWith([
-            initMessage("initial"),
+            okMessage(),
             pendingMessage("Writing hello for user 28")
           ])))
         }),
@@ -172,9 +265,9 @@ const writerThatUsesOtherState: ConfigurableExample =
         }),
         effect("the meta subscriber gets the ok message with the written value", (context) => {
           expect(context.valuesForSubscriber("meta-sub"), is(arrayWith([
-            initMessage("initial"),
+            okMessage(),
             pendingMessage("Writing hello for user 28"),
-            okMessage("Wrote wrote-hello for user 41"),
+            okMessage()
           ])))
         }),
       ]
@@ -195,9 +288,9 @@ const reducerContainerWriter: ConfigurableExample =
             return message === "add" ? current + 1 : current - 1
           }))
           const writer = new TestWriter<string>()
-          writer.setHandler(async (_, __, set, waitFor) => {
+          writer.setHandler(async (_, actions, waitFor) => {
             const thing = await waitFor()
-            set(ok(thing))
+            actions.ok(thing)
           })
           context.useWriter(reducerContainer, writer)
           context.setTokens({
@@ -227,9 +320,10 @@ const reducerContainerWriter: ConfigurableExample =
       ]
     })
 
-
 export default behavior("Writer", [
   containerWithSimpleWriter,
+  errorWriter,
+  pendingWriter,
   writerThatUsesOtherState,
   reducerContainerWriter
 ])

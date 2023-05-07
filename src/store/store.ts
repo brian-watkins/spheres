@@ -176,71 +176,56 @@ export class Store {
     this.registry.set(token, controller)
   }
 
-  subscribe<T, M>(token: State<T, M>, update: (value: T) => void): () => void {
+  private getController<T, M>(token: State<T, M>): ContainerController<T, M> {
     if (!this.registry.has(token)) {
       this.createState(token)
     }
+    return this.registry.get(token)!
+  }
 
-    return this.registry.get(token)!.addSubscriber(update)
+  subscribe<T, M>(token: State<T, M>, update: (value: T) => void): () => void {
+    return this.getController(token).addSubscriber(update)
   }
 
   useProvider(provider: Provider) {
     const queryDependencies = new Set<State<any>>()
 
     const set = <Q, M>(state: State<Q, M>, value: M) => {
-      if (!this.registry.has(state)) {
-        this.createState(state)
-      }
-
-      this.registry.get(state)?.updateValue(value)
+      this.getController(state).updateValue(value)
     }
 
     const get = <S, N>(state: State<S, N>) => {
+      const controller = this.getController(state)
       if (!queryDependencies.has(state)) {
         queryDependencies.add(state)
-        if (!this.registry.has(state)) {
-          this.createState(state)
-        }
-
-        this.registry.get(state)?.addDependent(() => provider.provide(get, set))
+        controller.addDependent(() => provider.provide(get, set))
       }
 
-      return this.registry.get(state)?.value
+      return controller.value
     }
 
     provider.provide(get, set)
   }
 
   useWriter<T, M>(token: State<T, M>, writer: Writer<T, M>) {
-    if (!this.registry.has(token)) {
-      this.createState(token)
-    }
+    const controller = this.getController(token)
 
-    this.registry.get(token)?.setWriter((value) => {
+    controller.setWriter((value) => {
       writer.write(value, {
         get: (state) => {
-          if (!this.registry.has(state)) {
-            this.createState(state)
-          }
-          return this.registry.get(state)?.value
+          return this.getController(state).value
         },
         ok: (value) => {
-          this.registry.get(token)?.updateValue(value)
+          controller.updateValue(value)
         },
         pending: (message) => {
-          if (!this.registry.has(token.meta)) {
-            this.createState(token.meta)
-          }
-          this.registry.get(token.meta)?.updateValue(pending(message))
+          this.getController(token.meta).updateValue(pending(message))
         },
         error: (message) => {
-          if (!this.registry.has(token.meta)) {
-            this.createState(token.meta)
-          }
-          this.registry.get(token.meta)?.updateValue(error(message))
+          this.getController(token.meta).updateValue(error(message))
         },
         current: () => {
-          return this.registry.get(token)?.value
+          return controller.value
         }
       })
     })
@@ -249,20 +234,13 @@ export class Store {
   dispatch<T, M>(message: StoreMessage<T, M>) {
     switch (message.type) {
       case "write":
-        // Note: what if the token does not exist yet?
-        this.registry.get(message.token)?.writeValue(message.value)
+        this.getController(message.token).writeValue(message.value)
         break
       case "trigger":
         const result = message.rule.apply((state) => {
-          if (!this.registry.has(state)) {
-            this.createState(state)
-          }
-          return this.registry.get(state)?.value
+          return this.getController(state).value
         }, message.input)
-        if (!this.registry.has(message.rule.container)) {
-          this.createState(message.rule.container)
-        }
-        this.registry.get(message.rule.container)?.writeValue(result)
+        this.getController(message.rule.container).writeValue(result)
         break
     }
   }

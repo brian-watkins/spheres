@@ -79,6 +79,34 @@ const subscribeAndUpdate: ConfigurableExample =
       ]
     })
 
+const lateSubscriber: ConfigurableExample =
+  example(testStoreContext<BasicContainerTokens>())
+    .description("subscribing after the container has been written to")
+    .script({
+      suppose: [
+        fact("there is a root state", (context) => {
+          context.setTokens({
+            nameToken: container(withInitialValue("hello"))
+          })
+        })
+      ],
+      perform: [
+        step("a value is written to the container", (context) => {
+          context.writeTo(context.tokens.nameToken, "Cool stuff!")
+        }),
+        step("someone subscribes to the state", (context) => {
+          context.subscribeTo(context.tokens.nameToken, "sub-one")
+        })
+      ],
+      observe: [
+        effect("the subscriber receives the last written value", (context) => {
+          expect(context.valuesForSubscriber("sub-one"), is(equalTo([
+            "Cool stuff!"
+          ])))
+        })
+      ]
+    })
+
 interface DerivedStateContext {
   basic: Container<number>,
   derived?: DerivedState<string>
@@ -338,6 +366,7 @@ function expectValuesFor<T>(context: TestStore<T>, subscriber: string, values: A
 export default
   behavior("state", [
     subscribeAndUpdate,
+    lateSubscriber,
     derivedState,
     multipleSourceState,
     reactiveQueryCount,

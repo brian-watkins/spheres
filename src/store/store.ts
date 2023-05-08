@@ -17,7 +17,7 @@ export interface WriterActions<T, M> {
   ok(value: M): void
   pending(value: M): void
   error(value: M): void
-  current(): T
+  current: T
 }
 
 export interface Writer<T, M = T> {
@@ -183,9 +183,7 @@ export class Store {
         error: (message) => {
           this.getController(token.meta).updateValue(error(message))
         },
-        current: () => {
-          return controller.value
-        }
+        current: controller.value
       })
     })
   }

@@ -275,7 +275,7 @@ const writerThatUsesOtherState: ConfigurableExample =
 
 interface ReducerContainerWriterContext {
   reducerContainer: Container<number, string>
-  writer: TestWriter<string>
+  writer: TestWriter<number, string>
 }
 
 const reducerContainerWriter: ConfigurableExample =
@@ -287,10 +287,10 @@ const reducerContainerWriter: ConfigurableExample =
           const reducerContainer = container(withReducer(28, (message: string, current: number) => {
             return message === "add" ? current + 1 : current - 1
           }))
-          const writer = new TestWriter<string>()
-          writer.setHandler(async (_, actions, waitFor) => {
+          const writer = new TestWriter<number, string>()
+          writer.setHandler(async (_, { ok }, waitFor) => {
             const thing = await waitFor()
-            actions.ok(thing)
+            ok(thing)
           })
           context.useWriter(reducerContainer, writer)
           context.setTokens({
@@ -320,10 +320,67 @@ const reducerContainerWriter: ConfigurableExample =
       ]
     })
 
+interface CurrentValueContext {
+  numberContainer: Container<number, string>
+  writer: TestWriter<number, string>
+}
+
+const currentValueWriter: ConfigurableExample =
+  example(testStoreContext<CurrentValueContext>())
+    .description("the writer references the current value of the container")
+    .script({
+      suppose: [
+        fact("there is a container that uses a writer", (context) => {
+          const numberContainer = container<number, string>(withReducer(0, (message, current) => {
+            if (message === "add") {
+              return current + 1
+            } else {
+              return 7
+            }
+          }))
+          const writer = new TestWriter<number, string>()
+          writer.setHandler(async (value, { ok, current }) => {
+            if (current % 2 === 1) {
+              ok(value)
+            } else {
+              ok("something else")
+            }
+          })
+          context.useWriter(numberContainer, writer)
+
+          context.setTokens({
+            numberContainer,
+            writer
+          })
+        }),
+        fact("there is a subscriber", (context) => {
+          context.subscribeTo(context.tokens.numberContainer, "sub-one")
+        })
+      ],
+      perform: [
+        step("a write message is dispatched for the container", (context) => {
+          context.writeTo(context.tokens.numberContainer, "add")
+        }),
+        step("another write message is dispatched for the container", (context) => {
+          context.writeTo(context.tokens.numberContainer, "add")
+        })
+      ],
+      observe: [
+        effect("the subscriber gets the updated values", (context) => {
+          expect(context.valuesForSubscriber("sub-one"), is(equalTo([
+            0,
+            7,
+            8
+          ])))
+        })
+      ]
+    })
+
 export default behavior("Writer", [
   containerWithSimpleWriter,
   errorWriter,
   pendingWriter,
   writerThatUsesOtherState,
-  reducerContainerWriter
+  reducerContainerWriter,
+  currentValueWriter
 ])

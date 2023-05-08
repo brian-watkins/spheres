@@ -1,4 +1,4 @@
-import { Provider, State } from "@src/store"
+import { Provider, ProviderActions, State } from "@src/store"
 
 export class TestProvider implements Provider {
   resolver: ((value: any) => void) | undefined
@@ -8,7 +8,7 @@ export class TestProvider implements Provider {
     this.handler = handler
   }
 
-  async provide(get: <S, N>(state: State<S, N>) => S, set: <Q, M>(state: State<Q, M>, value: M) => void): Promise<void> {
+  async provide({ get, set }: ProviderActions): Promise<void> {
     this.handler?.(get, set, () => {
       return new Promise<any>((resolve) => {
         this.resolver = resolve

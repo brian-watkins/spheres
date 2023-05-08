@@ -3,8 +3,13 @@ import { Meta, error, ok, pending } from "./meta.js"
 
 export type GetState = <S, N>(state: State<S, N>) => S
 
+export interface ProviderActions {
+  get: GetState
+  set: <Q, M>(state: State<Q, M>, value: M) => void
+}
+
 export interface Provider {
-  provide(get: <S, N>(state: State<S, N>) => S, set: <Q, M>(state: State<Q, M>, value: M) => void): void
+  provide(actions: ProviderActions): void
 }
 
 export interface WriterActions<T, M> {
@@ -152,13 +157,13 @@ export class Store {
       const controller = this.getController(state)
       if (!queryDependencies.has(state)) {
         queryDependencies.add(state)
-        controller.addDependent(() => provider.provide(get, set))
+        controller.addDependent(() => provider.provide({ get, set }))
       }
 
       return controller.value
     }
 
-    provider.provide(get, set)
+    provider.provide({ get, set })
   }
 
   useWriter<T, M>(token: State<T, M>, writer: Writer<T, M>) {

@@ -94,7 +94,7 @@ const metaContainerWithReducer: ConfigurableExample =
       suppose: [
         fact("there is a provider for the container", (context) => {
           context.useProvider({
-            provide: (_, set) => {
+            provide: ({ set }) => {
               set(context.tokens.reducerContainer.meta, pending("add"))
             }
           })

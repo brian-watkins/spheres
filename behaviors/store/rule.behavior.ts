@@ -5,7 +5,7 @@ import { testStoreContext } from "./helpers/testStore";
 
 interface BasicRuleContext {
   numberContainer: Container<number>,
-  incrementModThreeRule: Rule<number>
+  incrementModThreeRule: Rule<number, number>
 }
 
 const basicRule: ConfigurableExample =
@@ -15,8 +15,8 @@ const basicRule: ConfigurableExample =
       suppose: [
         fact("there is a rule", (context) => {
           const numberContainer = container(withInitialValue(1))
-          const incrementModThreeRule = rule(numberContainer, (get) => {
-            return (get(numberContainer) + 1) % 3
+          const incrementModThreeRule = rule(numberContainer, ({ current }) => {
+            return (current + 1) % 3
           })
           context.setTokens({
             numberContainer,
@@ -53,8 +53,8 @@ const lateSubscribeRule: ConfigurableExample =
       suppose: [
         fact("there is a rule", (context) => {
           const numberContainer = container(withInitialValue(1))
-          const incrementModThreeRule = rule(numberContainer, (get) => {
-            return (get(numberContainer) + 1) % 3
+          const incrementModThreeRule = rule(numberContainer, ({ current }) => {
+            return (current + 1) % 3
           })
           context.setTokens({
             numberContainer,
@@ -84,7 +84,7 @@ const lateSubscribeRule: ConfigurableExample =
 
 interface RuleWithInputContext {
   numberContainer: Container<number>
-  incrementRule: Rule<number, number>
+  incrementRule: Rule<number, number, number>
 }
 
 const ruleWithInput: ConfigurableExample =
@@ -94,8 +94,8 @@ const ruleWithInput: ConfigurableExample =
       suppose: [
         fact("there is a rule", (context) => {
           const numberContainer = container(withInitialValue(1))
-          const incrementRule = rule(numberContainer, (get, value: number) => {
-            return get(numberContainer) + value
+          const incrementRule = rule(numberContainer, ({ current }, value: number) => {
+            return current + value
           })
           context.setTokens({
             numberContainer,
@@ -125,8 +125,59 @@ const ruleWithInput: ConfigurableExample =
       ]
     })
 
+interface RuleWithOtherStateContext {
+  numberContainer: Container<number>
+  anotherContainer: Container<number>
+  incrementRule: Rule<number, number, number>
+}
+
+const ruleWithOtherState: ConfigurableExample =
+  example(testStoreContext<RuleWithOtherStateContext>())
+    .description('a rule that gets the value of another state')
+    .script({
+      suppose: [
+        fact("there is a rule", (context) => {
+          const numberContainer = container(withInitialValue(1))
+          const anotherContainer = container(withInitialValue(7))
+          const incrementRule = rule(numberContainer, ({ get, current }, value: number) => {
+            return get(anotherContainer) + current + value
+          })
+          context.setTokens({
+            numberContainer,
+            anotherContainer,
+            incrementRule
+          })
+        }),
+        fact("there is a subscriber to the number container", (context) => {
+          context.subscribeTo(context.tokens.numberContainer, "sub-one")
+        })
+      ],
+      perform: [
+        step("the rule is triggered", (context) => {
+          context.triggerRule(context.tokens.incrementRule, 5)
+        }),
+        step("the other container is updated", (context) => {
+          context.writeTo(context.tokens.anotherContainer, 3)
+        }),
+        step("the rule is triggered again", (context) => {
+          context.triggerRule(context.tokens.incrementRule, 10)
+        }),
+      ],
+      observe: [
+        effect("the subscriber gets the updated values", (context) => {
+          expect(context.valuesForSubscriber("sub-one"), is(equalTo([
+            1,
+            13,
+            26
+          ])))
+        })
+      ]
+    })
+
+
 export default behavior("rule", [
   basicRule,
   lateSubscribeRule,
-  ruleWithInput
+  ruleWithInput,
+  ruleWithOtherState
 ])

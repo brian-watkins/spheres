@@ -19,9 +19,14 @@ export interface Writer<T, M = T> {
   write(message: M, actions: WriterActions<T, M>): void
 }
 
-export interface Rule<ContainerMessage, RuleArgument = undefined> {
-  readonly container: Container<any, ContainerMessage>
-  readonly apply: (get: <S, N>(state: State<S, N>) => S, input: RuleArgument) => ContainerMessage
+export interface RuleActions<T> {
+  get: GetState,
+  current: T
+}
+
+export interface Rule<ContainerValue, ContainerMessage, RuleArgument = undefined> {
+  readonly container: Container<ContainerValue, ContainerMessage>
+  readonly apply: (actions: RuleActions<ContainerValue>, input: RuleArgument) => ContainerMessage
 }
 
 export interface WriteMessage<T, M> {
@@ -30,13 +35,13 @@ export interface WriteMessage<T, M> {
   value: M
 }
 
-export interface TriggerMessage<M> {
+export interface TriggerMessage<T, M> {
   type: "trigger"
-  rule: Rule<M, any>
+  rule: Rule<T, M, any>
   input: any
 }
 
-export type StoreMessage<T, M = T> = WriteMessage<T, M> | TriggerMessage<M>
+export type StoreMessage<T, M = T> = WriteMessage<T, M> | TriggerMessage<T, M>
 
 const registerState = Symbol("registerState")
 
@@ -116,11 +121,11 @@ export class Store {
     const getOrCreateToken = <S, N>(stateToken: State<S, N>) => {
       if (!this.registry.has(stateToken)) {
         const controller = stateToken[registerState](getOrCreateToken)
-        this.registry.set(stateToken, controller)              
+        this.registry.set(stateToken, controller)
       }
       return this.registry.get(stateToken)!
     }
-    
+
     const controller = token[registerState](getOrCreateToken)
     this.registry.set(token, controller)
   }
@@ -186,10 +191,14 @@ export class Store {
         this.getController(message.token).writeValue(message.value)
         break
       case "trigger":
-        const result = message.rule.apply((state) => {
-          return this.getController(state).value
+        const controller = this.getController(message.rule.container)
+        const result = message.rule.apply({
+          get: (state) => {
+            return this.getController(state).value
+          },
+          current: controller.value
         }, message.input)
-        this.getController(message.rule.container).writeValue(result)
+        controller.writeValue(result)
         break
     }
   }

@@ -1,6 +1,6 @@
-import { Container, GetState, Rule, TriggerMessage } from "./store.js";
+import { Container, Rule, RuleActions, TriggerMessage } from "./store.js";
 
-export function rule<M, Q = undefined>(container: Container<any, M>, definition: (get: GetState, inputValue: Q) => M): Rule<M, Q> {
+export function rule<T, M, Q = undefined>(container: Container<T, M>, definition: (actions: RuleActions<T>, inputValue: Q) => M): Rule<T, M, Q> {
   return {
     container,
     apply: definition
@@ -9,7 +9,7 @@ export function rule<M, Q = undefined>(container: Container<any, M>, definition:
 
 export type TriggerInputArg<Q> = Q extends undefined ? [] : [Q]
 
-export function trigger<M, Q>(rule: Rule<M, Q>, ...input: TriggerInputArg<Q>): TriggerMessage<M> {
+export function trigger<T, M, Q>(rule: Rule<T, M, Q>, ...input: TriggerInputArg<Q>): TriggerMessage<T, M> {
   return {
     type: "trigger",
     rule,

@@ -24,17 +24,15 @@ const people = container(withInitialValue([
   happyPerson
 ]))
 
-const shiftPeopleRule = rule(people, (get) => {
-  const current = get(people)
-
+const shiftPeopleRule = rule(people, ({current}) => {
   const first = current.shift()
   current.push(first!)
 
   return current
 })
 
-const incrementTicker = rule(ticker, (get) => {
-  return get(ticker) + 1
+const incrementTicker = rule(ticker, ({current}) => {
+  return current + 1
 })
 
 const peopleView = (get: GetState) => {

@@ -34,11 +34,11 @@ export class TestStore<T> {
     this.store.useProvider(provider)
   }
 
-  useWriter<T, M>(token: State<T, M>, writer: Writer<M>) {
+  useWriter<T, M>(token: State<T, M>, writer: Writer<T, M>) {
     this.store.useWriter(token, writer)
   }
 
-  triggerRule<M, A>(rule: Rule<M, A>, ...input: TriggerInputArg<A>) {
+  triggerRule<T, M, A>(rule: Rule<T, M, A>, ...input: TriggerInputArg<A>) {
     this.store.dispatch(trigger(rule, ...input))
   }
 

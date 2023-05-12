@@ -1,0 +1,19 @@
+{
+  "extends": "../../tsconfig.common.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist"
+  },
+  "include": [
+    "./src"
+  ],
+  "exclude": [
+    "node_modules"
+  ],
+  "references": [
+    { "path": "../state-party" }
+  ],
+  "ts-node": {
+    "experimentalResolver": true
+  }
+}

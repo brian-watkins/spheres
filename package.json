@@ -19,5 +19,8 @@
   "workspaces": [
     "packages/state-party",
     "packages/display-party"
-  ]
+  ],
+  "devDependencies": {
+    "@changesets/cli": "^2.26.1"
+  }
 }

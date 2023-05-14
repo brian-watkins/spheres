@@ -1,6 +1,6 @@
 import { ConfigurableExample, behavior, effect, example, fact, step } from "esbehavior";
 import { arrayWithItemAt, equalTo, expect, is } from "great-expectations"
-import { Container, DerivedState, container, derived, withInitialValue } from "@src/index.js";
+import { Container, DerivedState, State, container, derived, withInitialValue } from "@src/index.js";
 import { TestStore, testStoreContext } from "./helpers/testStore.js";
 
 interface BasicContainerTokens {
@@ -357,11 +357,56 @@ const deferredDependency: ConfigurableExample =
       ]
     })
 
+interface RecursiveDerivedStateContext {
+  numberState: Container<number>
+  derivedState: State<number>
+}
+
+const recursiveDerivedState: ConfigurableExample =
+  example(testStoreContext<RecursiveDerivedStateContext>())
+    .description("derived state that refers to itself")
+    .script({
+      suppose: [
+        fact("there is derived state that depends on its current value", (context) => {
+          const numberState = container(withInitialValue(6))
+          const derivedState = derived<number>((get, current) => {
+            return get(numberState) + (current ?? 0)
+          })
+          context.setTokens({
+            numberState,
+            derivedState
+          })
+        }),
+        fact("there is a subscriber", (context) => {
+          context.subscribeTo(context.tokens.derivedState, "sub-one")
+        })
+      ],
+      observe: [
+        effect("the subscriber gets the initial state", (context) => {
+          expect(context.valuesForSubscriber("sub-one"), is(equalTo([
+            6
+          ])))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the dependency is updated", (context) => {
+          context.writeTo(context.tokens.numberState, 18)
+        })
+      ],
+      observe: [
+        effect("the subscriber gets the updated derived state", (context) => {
+          expect(context.valuesForSubscriber("sub-one"), is(equalTo([
+            6,
+            24
+          ])))
+        })
+      ]
+    })
+
 function expectValuesFor<T>(context: TestStore<T>, subscriber: string, values: Array<any>) {
   expect(context.valuesForSubscriber(subscriber), is(equalTo(values)))
 }
-
-// Note one thing to worry about here might be getting into an endless loop somehow ...
 
 export default
   behavior("state", [
@@ -370,5 +415,6 @@ export default
     derivedState,
     multipleSourceState,
     reactiveQueryCount,
-    deferredDependency
+    deferredDependency,
+    recursiveDerivedState
   ])

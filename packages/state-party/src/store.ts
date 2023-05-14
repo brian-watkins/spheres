@@ -97,7 +97,7 @@ export class Container<T, M = T> extends State<T, M> {
 }
 
 export class DerivedState<T> extends State<T> {
-  constructor(private derivation: (get: GetState) => T) {
+  constructor(private derivation: (get: GetState, current: T | undefined) => T) {
     super()
   }
 
@@ -109,13 +109,14 @@ export class DerivedState<T> extends State<T> {
         dependencies.add(state)
         const controller = getOrCreate(state)
         controller.addDependent(() => {
-          getOrCreate(this)?.updateValue(this.derivation(get))
+          const derivedController = getOrCreate(this)
+          derivedController.updateValue(this.derivation(get, derivedController.value))
         })
       }
       return getOrCreate(state).value
     }
 
-    return new ContainerController(this.derivation(get), (val) => val)
+    return new ContainerController(this.derivation(get, undefined), (val) => val)
   }
 }
 

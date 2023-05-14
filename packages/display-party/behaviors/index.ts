@@ -17,7 +17,7 @@ export async function validateBehaviors(browser: Browser, serverHost: string, op
   page.on("console", (message) => console.log(fixStackTrace(serverHost, message.text())))
   page.on("pageerror", console.log)
 
-  await page.goto(`${serverHost}/behaviors/index.html`)
+  await page.goto(`${serverHost}/packages/display-party/behaviors/index.html`)
 
   const appContext = testAppContext(page, options)
   

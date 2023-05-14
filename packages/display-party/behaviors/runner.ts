@@ -7,13 +7,12 @@ const serverPort = 5957
 const serverHost = `http://localhost:${serverPort}`
 
 const server = await createServer({
+  root: "../../",
   server: {
     port: serverPort
   },
   plugins: [
-    tsConfigPaths({
-      root: "./behaviors"
-    })
+    tsConfigPaths()
   ]
 })
 

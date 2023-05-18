@@ -1,26 +1,26 @@
-import { Container, WriteMessage } from "./store.js"
+import { QueryActions, Container, WriteMessage } from "./store.js"
 
-interface ContainerInitializer<T, M = T> {
-  initialValue: T,
-  reducer: (message: M, current: T) => T
+class ContainerInitializer<T, M = T> {
+  public query: ((actions: QueryActions<T>, next?: M) => M) | undefined
+
+  constructor (public initialValue: T, public reducer: (message: M, current: T) => T) { }
+
+  withQuery(definition: (actions: QueryActions<T>, next?: M) => M): ContainerInitializer<T, M> {
+    this.query = definition
+    return this
+  }
 }
 
-export function withInitialValue<T>(value: T): ContainerInitializer<T> {
-  return {
-    initialValue: value,
-    reducer: (val) => val
-  }
+export function withInitialValue<T>(initialValue: T): ContainerInitializer<T> {
+  return new ContainerInitializer(initialValue, (val) => val)
 }
 
 export function withReducer<T, M>(initialValue: T, reducer: (message: M, current: T) => T): ContainerInitializer<T, M> {
-  return {
-    initialValue,
-    reducer
-  }
+  return new ContainerInitializer(initialValue, reducer)
 }
 
 export function container<T, M = T>(initializer: ContainerInitializer<T, M>): Container<T, M> {
-  return new Container(initializer.initialValue, initializer.reducer)
+  return new Container(initializer.initialValue, initializer.reducer, initializer.query)
 }
 
 export function write<T, M = T>(container: Container<T, M>, value: M): WriteMessage<T, M> {

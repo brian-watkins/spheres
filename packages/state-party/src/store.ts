@@ -24,6 +24,11 @@ export interface Writer<T, M = T> {
   write(message: M, actions: WriterActions<T, M>): void
 }
 
+export interface QueryActions<T> {
+  get: GetState,
+  current: T
+}
+
 export interface RuleActions<T> {
   get: GetState,
   current: T
@@ -87,12 +92,42 @@ export class MetaState<T, M> extends State<Meta<M>> {
 }
 
 export class Container<T, M = T> extends State<T, M> {
-  constructor(private initialValue: T, private update: (message: M, current: T) => T) {
+  constructor(
+    private initialValue: T,
+    private update: (message: M, current: T) => T,
+    private query?: (actions: QueryActions<T>, nextValue?: M) => M
+  ) {
     super()
   }
 
-  [registerState](_: <S, N>(state: State<S, N>) => ContainerController<S, N>): ContainerController<T, M> {
-    return new ContainerController(this.initialValue, this.update)
+  [registerState](getOrCreate: <S, N>(state: State<S, N>) => ContainerController<S, N>): ContainerController<T, M> {
+    const containerController = new ContainerController(this.initialValue, this.update)
+
+    if (!this.query) {
+      return containerController
+    }
+
+    const queryDependencies = new Set<State<any>>()
+
+    const get = <S, N>(state: State<S, N>) => {
+      const controller = getOrCreate(state)
+      if (!queryDependencies.has(state)) {
+        queryDependencies.add(state)
+        controller.addDependent(() => {
+          containerController.writeValue(this.query!({ get, current: containerController.value }))
+        })
+      }
+
+      return controller.value
+    }
+
+    containerController.setQuery((current, next) => {
+      return this.query!({ get, current }, next)
+    })
+
+    containerController.writeValue(this.query({ get, current: this.initialValue }))
+
+    return containerController
   }
 }
 
@@ -110,7 +145,7 @@ export class DerivedState<T> extends State<T> {
         const controller = getOrCreate(state)
         controller.addDependent(() => {
           const derivedController = getOrCreate(this)
-          derivedController.updateValue(this.derivation(get, derivedController.value))
+          derivedController.publishValue(this.derivation(get, derivedController.value))
         })
       }
       return getOrCreate(state).value
@@ -151,7 +186,7 @@ export class Store {
     const queryDependencies = new Set<State<any>>()
 
     const set = <Q, M>(state: State<Q, M>, value: M) => {
-      this.getController(state).updateValue(value)
+      this.getController(state).publishValue(value)
     }
 
     const get = <S, N>(state: State<S, N>) => {
@@ -176,13 +211,13 @@ export class Store {
           return this.getController(state).value
         },
         ok: (value) => {
-          controller.updateValue(value)
+          controller.publishValue(value)
         },
         pending: (message) => {
-          this.getController(token.meta).updateValue(pending(message))
+          this.getController(token.meta).publishValue(pending(message))
         },
         error: (message) => {
-          this.getController(token.meta).updateValue(error(message))
+          this.getController(token.meta).publishValue(error(message))
         },
         current: controller.value
       })
@@ -192,7 +227,7 @@ export class Store {
   dispatch<T, M>(message: StoreMessage<T, M>) {
     switch (message.type) {
       case "write":
-        this.getController(message.token).writeValue(message.value)
+        this.getController(message.token).updateValue(message.value)
         break
       case "trigger":
         const controller = this.getController(message.rule.container)
@@ -202,7 +237,7 @@ export class Store {
           },
           current: controller.value
         }, message.input)
-        controller.writeValue(result)
+        controller.updateValue(result)
         break
     }
   }

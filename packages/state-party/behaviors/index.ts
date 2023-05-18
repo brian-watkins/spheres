@@ -6,6 +6,7 @@ import unsubscribeBehavior from "./unsubscribe.behavior.js"
 import ruleBehavior from "./rule.behavior.js"
 import updateContainerBehavior from "./updateContainer.behavior.js"
 import metaBehavior from "./meta.behavior.js"
+import queryBehavior from "./query.behavior.js"
 
 window.validateBehaviors = () => {
   return validate([
@@ -14,6 +15,7 @@ window.validateBehaviors = () => {
     stateProviderBehavior,
     stateWriterBehavior,
     ruleBehavior,
+    queryBehavior,
     unsubscribeBehavior,
     updateContainerBehavior,
   ], { failFast: true })

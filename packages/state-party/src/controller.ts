@@ -1,10 +1,12 @@
 export class ContainerController<T, M = T> {
   private subscribers: Set<((value: T) => void)> = new Set()
   private dependents: Set<((value: T) => void)> = new Set()
+  private query: (current: T, next: M) => M
   private writer: (value: M) => void
 
   constructor(private _value: T, private update: (message: M, current: T) => T) {
-    this.writer = (value) => this.updateValue(value)
+    this.writer = (value) => this.publishValue(value)
+    this.query = (_, next) => next
   }
 
   setWriter(writer: (value: M) => void) {
@@ -24,7 +26,7 @@ export class ContainerController<T, M = T> {
     }
   }
 
-  updateValue(value: M) {
+  publishValue(value: M) {
     this._value = this.update(value, this._value)
     this.dependents.forEach(notify => notify(this._value))
     this.subscribers.forEach(notify => notify(this._value))
@@ -32,6 +34,14 @@ export class ContainerController<T, M = T> {
 
   writeValue(value: M) {
     this.writer(value)
+  }
+
+  setQuery(query: (current: T, next: M) => M) {
+    this.query = query
+  }
+
+  updateValue(value: M) {
+    this.writeValue(this.query(this._value, value))
   }
 
   get value(): T {

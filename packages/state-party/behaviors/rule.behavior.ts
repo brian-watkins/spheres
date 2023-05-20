@@ -1,11 +1,11 @@
+import { Command, Container, command, container, withInitialValue, withReducer } from "@src/index.js";
 import { ConfigurableExample, behavior, effect, example, fact, step } from "esbehavior";
 import { equalTo, expect, is } from "great-expectations";
-import { Container, Rule, container, rule, withInitialValue } from "@src/index.js";
-import { testStoreContext } from "./helpers/testStore.js";
+import { testStoreContext } from "helpers/testStore.js";
 
 interface BasicRuleContext {
-  numberContainer: Container<number>,
-  incrementModThreeRule: Rule<number, number>
+  numberContainer: Container<number>
+  stringContainer: Container<string>
 }
 
 const basicRule: ConfigurableExample =
@@ -13,171 +13,247 @@ const basicRule: ConfigurableExample =
     .description("trigger a rule")
     .script({
       suppose: [
-        fact("there is a rule", (context) => {
-          const numberContainer = container(withInitialValue(1))
-          const incrementModThreeRule = rule(numberContainer, ({ current }) => {
-            return (current + 1) % 3
-          })
+        fact("there is a container with a rule", (context) => {
+          const numberContainer = container(withInitialValue(7))
+          const stringContainer = container(withInitialValue("hello").withRule(({get, current}, next) => {
+            if (get(numberContainer) % 2 === 0) {
+              return "even"
+            } else {
+              return next ?? current
+            }
+          }))
           context.setTokens({
             numberContainer,
-            incrementModThreeRule
+            stringContainer
           })
         }),
-        fact("there is a subscriber to the number container", (context) => {
-          context.subscribeTo(context.tokens.numberContainer, "sub-one")
+        fact("there is a subscriber", (context) => {
+          context.subscribeTo(context.tokens.stringContainer, "sub-one")
         })
       ],
+      observe: [
+        effect("the subscriber gets the initial value", (context) => {
+          expect(context.valuesForSubscriber("sub-one"), is(equalTo([
+            "hello"
+          ])))
+        })
+      ]
+    }).andThen({
       perform: [
-        step("the rule is triggered", (context) => {
-          context.triggerRule(context.tokens.incrementModThreeRule)
-        }),
-        step("the rule is triggered again", (context) => {
-          context.triggerRule(context.tokens.incrementModThreeRule)
-        }),
+        step("the dependency is updated", (context) => {
+          context.writeTo(context.tokens.numberContainer, 4)
+        })
       ],
       observe: [
-        effect("the subscriber gets the updated values", (context) => {
+        effect("the subscriber gets the value updated after the rule is triggered", (context) => {
           expect(context.valuesForSubscriber("sub-one"), is(equalTo([
-            1,
-            2,
-            0
+            "hello",
+            "even"
+          ])))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("attempt to write a value that conflicts with the rule", (context) => {
+          context.writeTo(context.tokens.stringContainer, "something else!")
+        })
+      ],
+      observe: [
+        effect("the subscriber gets the value that conforms to the rule", (context) => {
+          expect(context.valuesForSubscriber("sub-one"), is(equalTo([
+            "hello",
+            "even",
+            "even"
+          ])))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("write a value that conforms to the rule", (context) => {
+          context.writeTo(context.tokens.numberContainer, 27)
+          context.writeTo(context.tokens.stringContainer, "this is odd!")
+        })
+      ],
+      observe: [
+        effect("the subscriber gets the value", (context) => {
+          expect(context.valuesForSubscriber("sub-one"), is(equalTo([
+            "hello",
+            "even",
+            "even",
+            "even", // note that this is the change in dependency triggering a write
+            "this is odd!"
           ])))
         })
       ]
     })
 
-const lateSubscribeRule: ConfigurableExample =
-  example(testStoreContext<BasicRuleContext>())
-    .description("trigger a rule on a container before any subscribers")
-    .script({
-      suppose: [
-        fact("there is a rule", (context) => {
-          const numberContainer = container(withInitialValue(1))
-          const incrementModThreeRule = rule(numberContainer, ({ current }) => {
-            return (current + 1) % 3
-          })
-          context.setTokens({
-            numberContainer,
-            incrementModThreeRule
-          })
-        })
-      ],
-      perform: [
-        step("the rule is triggered", (context) => {
-          context.triggerRule(context.tokens.incrementModThreeRule)
-        }),
-        step("the rule is triggered again", (context) => {
-          context.triggerRule(context.tokens.incrementModThreeRule)
-        }),
-        step("a listener subscribes to the container", (context) => {
-          context.subscribeTo(context.tokens.numberContainer, "sub-one")
-        })
-      ],
-      observe: [
-        effect("the subscriber gets the latest value", (context) => {
-          expect(context.valuesForSubscriber("sub-one"), is(equalTo([
-            0
-          ])))
-        })
-      ]
-    })
-
-interface RuleWithInputContext {
-  numberContainer: Container<number>
-  incrementRule: Rule<number, number, number>
+interface RuleDependencyContext {
+  stringContainer: Container<string>
+  anotherStringContainer: Container<string>
+  ruleContainer: Container<string>
 }
 
-const ruleWithInput: ConfigurableExample =
-  example(testStoreContext<RuleWithInputContext>())
-    .description('a rule that takes an input value')
+const ruleDependency: ConfigurableExample =
+  example(testStoreContext<RuleDependencyContext>())
+    .description("the rule has a dependency that is not used initially")
     .script({
       suppose: [
-        fact("there is a rule", (context) => {
-          const numberContainer = container(withInitialValue(1))
-          const incrementRule = rule(numberContainer, ({ current }, value: number) => {
-            return current + value
-          })
+        fact("there is a container with a rule", (context) => {
+          const stringContainer = container(withInitialValue("hello"))
+          const anotherStringContainer = container(withInitialValue("fun"))
+          const ruleContainer = container(withInitialValue("first").withRule(({get, current}, next) => {
+            const word = next ?? current
+            if (get(stringContainer) === "hello") {
+              return `${word} stuff`
+            } else {
+              return `${word} ${get(anotherStringContainer)} things!`
+            }
+          }))
           context.setTokens({
-            numberContainer,
-            incrementRule
+            stringContainer,
+            anotherStringContainer,
+            ruleContainer
           })
         }),
-        fact("there is a subscriber to the number container", (context) => {
+        fact("there is a subscriber to the rule container", (context) => {
+          context.subscribeTo(context.tokens.ruleContainer, "sub-one")
+        })
+      ],
+      perform: [
+        step("the other string container is updated", (context) => {
+          context.writeTo(context.tokens.anotherStringContainer, "awesome")
+        }),
+        step("the rule container is written to", (context) => {
+          context.writeTo(context.tokens.ruleContainer, "second")
+        }),
+        step("the string container is updated", (context) => {
+          context.writeTo(context.tokens.stringContainer, "something else")
+        }),
+        step("the other string container is updated", (context) => {
+          context.writeTo(context.tokens.anotherStringContainer, "cool")
+        })
+      ],
+      observe: [
+        effect("the subscriber receives all the values", (context) => {
+          expect(context.valuesForSubscriber("sub-one"), is(equalTo([
+            "first stuff",
+            "second stuff",
+            "second stuff awesome things!",
+            "second stuff awesome things! cool things!"
+          ])))
+        })
+      ]
+    })
+
+interface RuleCommandContext {
+  stringContainer: Container<string>,
+  numberContainer: Container<number>,
+  incrementModThreeCommand: Command<number, number>
+}
+
+const ruleFromCommand: ConfigurableExample =
+  example(testStoreContext<RuleCommandContext>())
+    .description("a command provides the value to a rule")
+    .script({
+      suppose: [
+        fact("there is a command for a container with a rule", (context) => {
+          const stringContainer = container(withInitialValue("init"))
+          const numberContainer = container(withInitialValue(1).withRule(({get, current}, next) => {
+            return get(stringContainer).length + (next ?? current)
+          }))
+          const incrementModThreeCommand = command(numberContainer, ({ current }) => {
+            return (current + 1) % 3
+          })
+          context.setTokens({
+            stringContainer,
+            numberContainer,
+            incrementModThreeCommand
+          })
+        }),
+        fact("there is a subscriber to the container", (context) => {
           context.subscribeTo(context.tokens.numberContainer, "sub-one")
         })
       ],
       perform: [
-        step("the rule is triggered", (context) => {
-          context.triggerRule(context.tokens.incrementRule, 5)
+        step("the command is dispatched", (context) => {
+          context.dispatchCommand(context.tokens.incrementModThreeCommand)
         }),
-        step("the rule is triggered again", (context) => {
-          context.triggerRule(context.tokens.incrementRule, 10)
+        step("the dependency is updated", (context) => {
+          context.writeTo(context.tokens.stringContainer, "hello")
         }),
+        step("the command is dispatched again", (context) => {
+          context.dispatchCommand(context.tokens.incrementModThreeCommand)
+        })
       ],
       observe: [
-        effect("the subscriber gets the updated values", (context) => {
+        effect("the subscriber receives all the updates", (context) => {
           expect(context.valuesForSubscriber("sub-one"), is(equalTo([
-            1,
+            5,
+            4,
+            9,
+            6
+          ])))
+        })
+      ]
+    })
+
+interface ReducerRuleContext {
+  numberContainer: Container<number>
+  ruleContainer: Container<number, string>
+}
+
+const ruleWithReducer: ConfigurableExample =
+  example(testStoreContext<ReducerRuleContext>())
+    .description("rule with a reducer")
+    .script({
+      suppose: [
+        fact("there is a container with a reducer and a rule", (context) => {
+          const numberContainer = container(withInitialValue(17))
+          const ruleContainer = container(withReducer(7, (message: string, current) => {
+            if (message === "add") {
+              return current + 1
+            } else {
+              return current - 1
+            }
+          }).withRule(({get}, next) => {
+            if (next) return next
+            return (get(numberContainer) % 2 === 0) ? "add" : "not-add"
+          }))
+          context.setTokens({
+            numberContainer,
+            ruleContainer
+          })
+        }),
+        fact("there is a subscriber", (context) => {
+          context.subscribeTo(context.tokens.ruleContainer, "sub-one")
+        })
+      ],
+      perform: [
+        step("the number container is updated", (context) => {
+          context.writeTo(context.tokens.numberContainer, 14)
+        }),
+        step("the number container is updated", (context) => {
+          context.writeTo(context.tokens.numberContainer, 3)
+        }),
+        step("a command is sent to the container", (context) => {
+          context.writeTo(context.tokens.ruleContainer, "add")
+        })
+      ],
+      observe: [
+        effect("the subscriber receives the values", (context) => {
+          expect(context.valuesForSubscriber("sub-one"), is(equalTo([
             6,
-            16
+            7,
+            6,
+            7
           ])))
         })
       ]
     })
-
-interface RuleWithOtherStateContext {
-  numberContainer: Container<number>
-  anotherContainer: Container<number>
-  incrementRule: Rule<number, number, number>
-}
-
-const ruleWithOtherState: ConfigurableExample =
-  example(testStoreContext<RuleWithOtherStateContext>())
-    .description('a rule that gets the value of another state')
-    .script({
-      suppose: [
-        fact("there is a rule", (context) => {
-          const numberContainer = container(withInitialValue(1))
-          const anotherContainer = container(withInitialValue(7))
-          const incrementRule = rule(numberContainer, ({ get, current }, value: number) => {
-            return get(anotherContainer) + current + value
-          })
-          context.setTokens({
-            numberContainer,
-            anotherContainer,
-            incrementRule
-          })
-        }),
-        fact("there is a subscriber to the number container", (context) => {
-          context.subscribeTo(context.tokens.numberContainer, "sub-one")
-        })
-      ],
-      perform: [
-        step("the rule is triggered", (context) => {
-          context.triggerRule(context.tokens.incrementRule, 5)
-        }),
-        step("the other container is updated", (context) => {
-          context.writeTo(context.tokens.anotherContainer, 3)
-        }),
-        step("the rule is triggered again", (context) => {
-          context.triggerRule(context.tokens.incrementRule, 10)
-        }),
-      ],
-      observe: [
-        effect("the subscriber gets the updated values", (context) => {
-          expect(context.valuesForSubscriber("sub-one"), is(equalTo([
-            1,
-            13,
-            26
-          ])))
-        })
-      ]
-    })
-
 
 export default behavior("rule", [
   basicRule,
-  lateSubscribeRule,
-  ruleWithInput,
-  ruleWithOtherState
+  ruleFromCommand,
+  ruleDependency,
+  ruleWithReducer
 ])

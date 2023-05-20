@@ -1,4 +1,4 @@
-import { container, GetState, rule, State, trigger, withInitialValue } from "state-party";
+import { command, container, dispatch, GetState, State, withInitialValue } from "state-party";
 import * as View from "@src/index.js"
 
 interface Person {
@@ -24,14 +24,14 @@ const people = container(withInitialValue([
   happyPerson
 ]))
 
-const shiftPeopleRule = rule(people, ({current}) => {
+const shiftPeopleCommand = command(people, ({current}) => {
   const first = current.shift()
   current.push(first!)
 
   return current
 })
 
-const incrementTicker = rule(ticker, ({current}) => {
+const incrementTicker = command(ticker, ({current}) => {
   return current + 1
 })
 
@@ -42,11 +42,11 @@ const peopleView = (get: GetState) => {
     View.h1([], [View.text(`There are ${list.length} people!`)]),
     View.button([
       View.data("reorder"),
-      View.onClick(trigger(shiftPeopleRule))
+      View.onClick(dispatch(shiftPeopleCommand))
     ], [View.text("Reorder People")]),
     View.button([
       View.data("increment-ticker"),
-      View.onClick(trigger(incrementTicker))
+      View.onClick(dispatch(incrementTicker))
     ], [View.text("Increment")]),
     View.hr([], []),
     View.ul([], list.map(personView))

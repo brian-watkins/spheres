@@ -1,12 +1,12 @@
-import { QueryActions, Container, WriteMessage } from "./store.js"
+import { RuleActions, Container, WriteMessage } from "./store.js"
 
 class ContainerInitializer<T, M = T> {
-  public query: ((actions: QueryActions<T>, next?: M) => M) | undefined
+  public rule: ((actions: RuleActions<T>, next?: M) => M) | undefined
 
   constructor (public initialValue: T, public reducer: (message: M, current: T) => T) { }
 
-  withQuery(definition: (actions: QueryActions<T>, next?: M) => M): ContainerInitializer<T, M> {
-    this.query = definition
+  withRule(definition: (actions: RuleActions<T>, next?: M) => M): ContainerInitializer<T, M> {
+    this.rule = definition
     return this
   }
 }
@@ -20,7 +20,7 @@ export function withReducer<T, M>(initialValue: T, reducer: (message: M, current
 }
 
 export function container<T, M = T>(initializer: ContainerInitializer<T, M>): Container<T, M> {
-  return new Container(initializer.initialValue, initializer.reducer, initializer.query)
+  return new Container(initializer.initialValue, initializer.reducer, initializer.rule)
 }
 
 export function write<T, M = T>(container: Container<T, M>, value: M): WriteMessage<T, M> {

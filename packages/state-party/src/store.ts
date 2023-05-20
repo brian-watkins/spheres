@@ -24,19 +24,19 @@ export interface Writer<T, M = T> {
   write(message: M, actions: WriterActions<T, M>): void
 }
 
-export interface QueryActions<T> {
-  get: GetState,
-  current: T
-}
-
 export interface RuleActions<T> {
   get: GetState,
   current: T
 }
 
-export interface Rule<ContainerValue, ContainerMessage, RuleArgument = undefined> {
+export interface CommandActions<T> {
+  get: GetState,
+  current: T
+}
+
+export interface Command<ContainerValue, ContainerMessage, CommandArgument = undefined> {
   readonly container: Container<ContainerValue, ContainerMessage>
-  readonly apply: (actions: RuleActions<ContainerValue>, input: RuleArgument) => ContainerMessage
+  readonly apply: (actions: CommandActions<ContainerValue>, input: CommandArgument) => ContainerMessage
 }
 
 export interface WriteMessage<T, M> {
@@ -45,13 +45,13 @@ export interface WriteMessage<T, M> {
   value: M
 }
 
-export interface TriggerMessage<T, M> {
-  type: "trigger"
-  rule: Rule<T, M, any>
+export interface DispatchMessage<T, M> {
+  type: "dispatch"
+  rule: Command<T, M, any>
   input: any
 }
 
-export type StoreMessage<T, M = T> = WriteMessage<T, M> | TriggerMessage<T, M>
+export type StoreMessage<T, M = T> = WriteMessage<T, M> | DispatchMessage<T, M>
 
 const registerState = Symbol("registerState")
 
@@ -95,7 +95,7 @@ export class Container<T, M = T> extends State<T, M> {
   constructor(
     private initialValue: T,
     private update: (message: M, current: T) => T,
-    private query?: (actions: QueryActions<T>, nextValue?: M) => M
+    private rule?: (actions: RuleActions<T>, nextValue?: M) => M
   ) {
     super()
   }
@@ -103,7 +103,7 @@ export class Container<T, M = T> extends State<T, M> {
   [registerState](getOrCreate: <S, N>(state: State<S, N>) => ContainerController<S, N>): ContainerController<T, M> {
     const containerController = new ContainerController(this.initialValue, this.update)
 
-    if (!this.query) {
+    if (!this.rule) {
       return containerController
     }
 
@@ -114,7 +114,7 @@ export class Container<T, M = T> extends State<T, M> {
       if (!queryDependencies.has(state)) {
         queryDependencies.add(state)
         controller.addDependent(() => {
-          containerController.writeValue(this.query!({ get, current: containerController.value }))
+          containerController.writeValue(this.rule!({ get, current: containerController.value }))
         })
       }
 
@@ -122,16 +122,16 @@ export class Container<T, M = T> extends State<T, M> {
     }
 
     containerController.setQuery((current, next) => {
-      return this.query!({ get, current }, next)
+      return this.rule!({ get, current }, next)
     })
 
-    containerController.writeValue(this.query({ get, current: this.initialValue }))
+    containerController.writeValue(this.rule({ get, current: this.initialValue }))
 
     return containerController
   }
 }
 
-export class DerivedState<T> extends State<T> {
+export class Value<T> extends State<T> {
   constructor(private derivation: (get: GetState, current: T | undefined) => T) {
     super()
   }
@@ -229,7 +229,7 @@ export class Store {
       case "write":
         this.getController(message.token).updateValue(message.value)
         break
-      case "trigger":
+      case "dispatch":
         const controller = this.getController(message.rule.container)
         const result = message.rule.apply({
           get: (state) => {

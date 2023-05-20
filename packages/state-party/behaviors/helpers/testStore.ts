@@ -1,4 +1,4 @@
-import { Container, Provider, Rule, State, Store, TriggerInputArg, Writer, trigger } from "@src/index.js"
+import { Command, Container, DispatchArg, Provider, State, Store, Writer, dispatch } from "@src/index.js"
 import { Context } from "esbehavior"
 
 export function testStoreContext<T>(): Context<TestStore<T>> {
@@ -38,8 +38,8 @@ export class TestStore<T> {
     this.store.useWriter(token, writer)
   }
 
-  triggerRule<T, M, A>(rule: Rule<T, M, A>, ...input: TriggerInputArg<A>) {
-    this.store.dispatch(trigger(rule, ...input))
+  dispatchCommand<T, M, A>(command: Command<T, M, A>, ...input: DispatchArg<A>) {
+    this.store.dispatch(dispatch(command, ...input))
   }
 
   writeTo<S, M = S>(token: Container<S, M>, value: M) {

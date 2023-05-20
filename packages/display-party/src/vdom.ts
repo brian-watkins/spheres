@@ -1,5 +1,5 @@
 import { attributesModule, Attrs, Classes, classModule, eventListenersModule, Hooks, init, Module, On, Props, propsModule, VNode } from "snabbdom";
-import { derived, GetState, State, Store } from "state-party";
+import { value, GetState, State, Store } from "state-party";
 
 // Tailored from Snabbdom VNode
 export interface View {
@@ -156,7 +156,7 @@ export function statefulView(tag: string, options: StatefulViewOptions, generato
     },
     hook: {
       create: (_, vnode) => {
-        const token = derived(generator)
+        const token = value(generator)
         const store: Store = vnode.data!.storeContext.store
 
         const patch = createPatch(store)
@@ -175,7 +175,7 @@ export function statefulView(tag: string, options: StatefulViewOptions, generato
         vnode.data!.storeContext.unsubscribe()
       },
       render: (store) => {
-        const token = derived(generator)
+        const token = value(generator)
 
         return new Promise((resolve) => {
           const unsubscribe = store.subscribe(token, (view) => {

@@ -7,6 +7,7 @@
   "type": "module",
   "scripts": {
     "build": "rm -rf ./dist && tsc --build",
+    "clean": "rm -rf ./dist && rm -rf ./tsconfig.tsbuildinfo",
     "test": "npm run build && ts-node --esm --swc ./behaviors/runner.ts",
     "test:tsx": "tsx ./behaviors/runner.ts"
   },

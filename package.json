@@ -11,6 +11,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc --build --verbose",
+    "clean": "npm run clean --workspaces",
     "test": "npm run test --workspaces",
     "test:store": "npm run test -w state-party",
     "test:display": "npm run test -w display-party",

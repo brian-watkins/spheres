@@ -10,7 +10,8 @@
   ],
   "scripts": {
     "prepublishOnly": "npm run build",
-    "build": "rm -rf ./dist && tsc --build",
+    "build": "tsc --build",
+    "clean": "rm -rf ./dist && rm -rf ./tsconfig.tsbuildinfo",
     "test": "ts-node --esm --swc ./behaviors/runner.ts"
   },
   "author": "Brian Watkins",

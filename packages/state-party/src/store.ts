@@ -36,22 +36,14 @@ export interface CommandActions<T> {
 
 export interface Command<ContainerValue, ContainerMessage, CommandArgument = undefined> {
   readonly container: Container<ContainerValue, ContainerMessage>
-  readonly apply: (actions: CommandActions<ContainerValue>, input: CommandArgument) => ContainerMessage
+  readonly execute: (actions: CommandActions<ContainerValue>, input: CommandArgument) => ContainerMessage
 }
 
-export interface WriteMessage<T, M> {
-  type: "write"
-  token: Container<T, M>
-  value: M
-}
-
-export interface DispatchMessage<T, M> {
+export interface StoreMessage<T, M = T> {
   type: "dispatch"
-  rule: Command<T, M, any>
+  command: Command<T, M, any>
   input: any
 }
-
-export type StoreMessage<T, M = T> = WriteMessage<T, M> | DispatchMessage<T, M>
 
 const registerState = Symbol("registerState")
 
@@ -225,20 +217,11 @@ export class Store {
   }
 
   dispatch<T, M>(message: StoreMessage<T, M>) {
-    switch (message.type) {
-      case "write":
-        this.getController(message.token).updateValue(message.value)
-        break
-      case "dispatch":
-        const controller = this.getController(message.rule.container)
-        const result = message.rule.apply({
-          get: (state) => {
-            return this.getController(state).value
-          },
-          current: controller.value
-        }, message.input)
-        controller.updateValue(result)
-        break
-    }
+    const controller = this.getController(message.command.container)
+    const result = message.command.execute({
+      get: (state) => this.getController(state).value,
+      current: controller.value
+    }, message.input)
+    controller.updateValue(result)
   }
 }

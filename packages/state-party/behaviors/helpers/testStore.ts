@@ -1,4 +1,4 @@
-import { Command, Container, DispatchArg, Provider, State, Store, Writer, dispatch, write } from "@src/index.js"
+import { Command, Container, Provider, State, Store, Writer, dispatch, write } from "@src/index.js"
 import { Context } from "esbehavior"
 
 export function testStoreContext<T>(): Context<TestStore<T>> {
@@ -38,8 +38,8 @@ export class TestStore<T> {
     this.store.useWriter(token, writer)
   }
 
-  dispatchCommand<T, M, A>(command: Command<T, M, A>, ...input: DispatchArg<A>) {
-    this.store.dispatch(dispatch(command, ...input))
+  dispatchCommand<T, M, A>(command: Command<T, M, A>, input?: A) {
+    this.store.dispatch(dispatch(command, input))
   }
 
   writeTo<S, M = S>(token: Container<S, M>, value: M) {

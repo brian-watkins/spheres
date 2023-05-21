@@ -8,22 +8,13 @@ export function command<T, M, Q = undefined>(container: Container<T, M>, definit
 }
 
 export function write<T, M = T>(container: Container<T, M>, value: M): StoreMessage<T, M> {
-  return {
-    type: "dispatch",
-    command: {
-      container,
-      execute: (_, value) => value
-    },
-    input: value
-  }
+  return dispatch(command(container, (_, val: M) => val), value)
 }
 
-export type DispatchArg<Q> = Q extends undefined ? [] : [Q]
-
-export function dispatch<T, M, Q>(rule: Command<T, M, Q>, ...input: DispatchArg<Q>): StoreMessage<T, M> {
+export function dispatch<T, M, Q>(command: Command<T, M, Q>, input?: Q): StoreMessage<T, M> {
   return {
     type: "dispatch",
-    command: rule,
-    input: input.length === 0 ? undefined : input[0]
+    command,
+    input
   }
 }

@@ -16,10 +16,11 @@ const simpleProvidedValue: ConfigurableExample =
     .script({
       suppose: [
         fact("there is a view with a provided value", (context) => {
-          const receiver = value<string>(() => "initial")
+          const receiver = value({
+            query: () => "initial"
+          })
           const provider = new TestProvider()
           provider.setHandler(async (_, set, waitFor) => {
-            console.log("running provider!")
             set(receiver.meta, pending("loading"))
             const value = await waitFor()
             set(receiver, value)

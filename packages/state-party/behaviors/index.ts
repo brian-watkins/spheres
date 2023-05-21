@@ -7,6 +7,7 @@ import updateContainerBehavior from "./updateContainer.behavior.js"
 import metaBehavior from "./meta.behavior.js"
 import commandBehavior from "command.behavior.js"
 import ruleBehavior from "rule.behavior.js"
+import valueBehavior from "value.behavior.js"
 
 window.validateBehaviors = () => {
   return validate([
@@ -18,5 +19,6 @@ window.validateBehaviors = () => {
     ruleBehavior,
     unsubscribeBehavior,
     updateContainerBehavior,
+    valueBehavior
   ], { failFast: true })
 }

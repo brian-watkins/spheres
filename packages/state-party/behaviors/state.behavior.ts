@@ -122,7 +122,9 @@ const derivedState: ConfigurableExample =
           const basic = container({ initialValue: 17 })
           context.setTokens({
             basic,
-            derived: value((get) => `${get(basic)} things!`)
+            derived: value({
+              query: (get) => `${get(basic)} things!`
+            })
           })
         }),
       ],
@@ -158,7 +160,9 @@ const derivedState: ConfigurableExample =
           context.setTokens({
             basic: context.tokens.basic,
             derived: context.tokens.derived,
-            thirdLevel: value((get) => get(context.tokens.derived!).length)
+            thirdLevel: value({
+              query: (get) => get(context.tokens.derived!).length
+            })
           })
           context.subscribeTo(context.tokens.thirdLevel!, "subscriber-two")
         }),
@@ -227,7 +231,9 @@ const multipleSourceState: ConfigurableExample =
             numberAtom,
             stringAtom,
             anotherAtom,
-            derived: value((get) => `${get(stringAtom)} ${get(numberAtom)} times. And then ${get(anotherAtom)}!`)
+            derived: value({
+              query: (get) => `${get(stringAtom)} ${get(numberAtom)} times. And then ${get(anotherAtom)}!`
+            })
           })
         }),
         step("subscribe to the derived state", (context) => {
@@ -261,9 +267,11 @@ const reactiveQueryCount: ConfigurableExample =
             numberAtom,
             stringAtom,
             anotherAtom,
-            derived: value((get) => {
-              counter = counter + 1
-              return `${counter} => ${get(stringAtom)} ${get(numberAtom)} times. And then ${get(anotherAtom)}!`
+            derived: value({
+              query: (get) => {
+                counter = counter + 1
+                return `${counter} => ${get(stringAtom)} ${get(numberAtom)} times. And then ${get(anotherAtom)}!`
+              }
             })
           })
         }),
@@ -313,11 +321,13 @@ const deferredDependency: ConfigurableExample =
         fact("there is derived state with a dependency used only later", (context) => {
           const numberState = container({ initialValue: 6 })
           const stringState = container({ initialValue: "hello" })
-          const derivedState = value((get) => {
-            if (get(stringState) === "now") {
-              return get(numberState)
-            } else {
-              return 0
+          const derivedState = value({
+            query: (get) => {
+              if (get(stringState) === "now") {
+                return get(numberState)
+              } else {
+                return 0
+              }
             }
           })
           context.setTokens({
@@ -369,8 +379,10 @@ const recursiveDerivedState: ConfigurableExample =
       suppose: [
         fact("there is derived state that depends on its current value", (context) => {
           const numberState = container({ initialValue: 6 })
-          const derivedState = value<number>((get, current) => {
-            return get(numberState) + (current ?? 0)
+          const derivedState = value({
+            query: (get, current?: number) => {
+              return get(numberState) + (current ?? 0)
+            }
           })
           context.setTokens({
             numberState,

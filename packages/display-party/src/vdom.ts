@@ -156,7 +156,7 @@ export function statefulView(tag: string, options: StatefulViewOptions, generato
     },
     hook: {
       create: (_, vnode) => {
-        const token = value(generator)
+        const token = value({ query: generator })
         const store: Store = vnode.data!.storeContext.store
 
         const patch = createPatch(store)
@@ -175,7 +175,7 @@ export function statefulView(tag: string, options: StatefulViewOptions, generato
         vnode.data!.storeContext.unsubscribe()
       },
       render: (store) => {
-        const token = value(generator)
+        const token = value({ query: generator })
 
         return new Promise((resolve) => {
           const unsubscribe = store.subscribe(token, (view) => {

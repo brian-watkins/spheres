@@ -131,27 +131,27 @@ export class Container<T, M = T> extends State<T, M> {
   }
 }
 
-export class Value<T> extends State<T> {
-  constructor(private derivation: (get: GetState, current: T | undefined) => T) {
+export class Value<T, M = T> extends State<T, M> {
+  constructor(private derivation: (get: GetState, current: T | undefined) => M, private reducer: (message: M, current: T | undefined) => T) {
     super()
   }
 
-  [registerState](getOrCreate: <S, N>(state: State<S, N>) => ContainerController<S, N>): ContainerController<T, T> {
+  [registerState](getOrCreate: <S, N>(state: State<S, N>) => ContainerController<S, N>): ContainerController<T, M> {
     let dependencies: Set<State<any>> = new Set()
 
     const get = <S, N>(state: State<S, N>) => {
+      const controller = getOrCreate(state)
       if (!dependencies.has(state)) {
         dependencies.add(state)
-        const controller = getOrCreate(state)
         controller.addDependent(() => {
           const derivedController = getOrCreate(this)
           derivedController.publishValue(this.derivation(get, derivedController.value))
         })
       }
-      return getOrCreate(state).value
+      return controller.value
     }
 
-    return new ContainerController(this.derivation(get, undefined), (val) => val)
+    return new ContainerController(this.reducer(this.derivation(get, undefined), undefined), this.reducer)
   }
 }
 

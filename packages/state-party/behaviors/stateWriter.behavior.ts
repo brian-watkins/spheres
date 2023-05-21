@@ -2,7 +2,7 @@ import { behavior, ConfigurableExample, effect, example, fact, step } from "esbe
 import { arrayWith, assignedWith, equalTo, expect, is } from "great-expectations";
 import { TestWriter } from "./helpers/testWriter.js";
 import { errorMessage, okMessage, pendingMessage } from "./helpers/metaMatchers.js";
-import { container, Container, withInitialValue, withReducer } from "@src/index.js";
+import { container, Container } from "@src/index.js";
 import { testStoreContext } from "./helpers/testStore.js";
 
 interface ContainerWithWriterContext {
@@ -16,7 +16,7 @@ const containerWithSimpleWriter: ConfigurableExample =
     .script({
       suppose: [
         fact("there is a container that uses a writer", (context) => {
-          const containerState = container(withInitialValue("initial"))
+          const containerState = container({ initialValue: "initial" })
           const writer = new TestWriter<string>()
           writer.setHandler(async (value, actions, waitFor) => {
             actions.pending(value)
@@ -95,7 +95,7 @@ const errorWriter: ConfigurableExample =
     .script({
       suppose: [
         fact("there is a container with a writer", (context) => {
-          const containerState = container(withInitialValue("hello"))
+          const containerState = container({ initialValue: "hello" })
           const writer = new TestWriter<string>()
           writer.setHandler(async (value, actions, waitFor) => {
             actions.pending(value)
@@ -144,7 +144,7 @@ const pendingWriter: ConfigurableExample =
     .script({
       suppose: [
         fact("there is a container with a writer", (context) => {
-          const containerState = container(withInitialValue("hello"))
+          const containerState = container({ initialValue: "hello" })
           const writer = new TestWriter<string>()
           writer.setHandler(async (value, actions) => {
             actions.pending(value)
@@ -194,8 +194,8 @@ const writerThatUsesOtherState: ConfigurableExample =
     .script({
       suppose: [
         fact("there is a container with a writer", (context) => {
-          const userIdState = container(withInitialValue(28))
-          const thingContainer = container(withInitialValue("initial"))
+          const userIdState = container({ initialValue: 28 })
+          const thingContainer = container({ initialValue: "initial" })
           const writer = new TestWriter<string>()
           writer.setHandler(async (value, actions, waitFor) => {
             actions.pending(`Writing ${value} for user ${actions.get(userIdState)}`)
@@ -284,9 +284,12 @@ const reducerContainerWriter: ConfigurableExample =
     .script({
       suppose: [
         fact("there is a reducer container with a writer", (context) => {
-          const reducerContainer = container(withReducer(28, (message: string, current: number) => {
-            return message === "add" ? current + 1 : current - 1
-          }))
+          const reducerContainer = container({
+            initialValue: 28,
+            reducer: (message: string, current) => {
+              return message === "add" ? current + 1 : current - 1
+            }
+          })
           const writer = new TestWriter<number, string>()
           writer.setHandler(async (_, { ok }, waitFor) => {
             const thing = await waitFor()
@@ -331,13 +334,12 @@ const currentValueWriter: ConfigurableExample =
     .script({
       suppose: [
         fact("there is a container that uses a writer", (context) => {
-          const numberContainer = container<number, string>(withReducer(0, (message, current) => {
-            if (message === "add") {
-              return current + 1
-            } else {
-              return 7
+          const numberContainer = container({
+            initialValue: 0,
+            reducer: (message: string, current) => {
+              return message === "add" ? current + 1 : 7
             }
-          }))
+          })
           const writer = new TestWriter<number, string>()
           writer.setHandler(async (value, { ok, current }) => {
             if (current % 2 === 1) {

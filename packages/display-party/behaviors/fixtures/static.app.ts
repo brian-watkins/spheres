@@ -1,4 +1,4 @@
-import { container, GetState, withInitialValue } from "state-party";
+import { container, GetState } from "state-party";
 import * as View from "../../src/index.js";
 
 interface StaticViewProps {
@@ -41,8 +41,8 @@ export function appWithDataAttributesNoValue(props: StaticViewProps): View.View 
   ])
 }
 
-const nameState = container(withInitialValue("Cool Person!"))
-const ageState = container(withInitialValue(98))
+const nameState = container({ initialValue: "Cool Person!" })
+const ageState = container({ initialValue: 98 })
 
 function nameView(get: GetState): View.View {
   return View.h2([], [View.text(get(nameState))])

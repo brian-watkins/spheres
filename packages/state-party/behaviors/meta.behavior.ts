@@ -1,7 +1,7 @@
 import { behavior, ConfigurableExample, effect, example, fact } from "esbehavior";
 import { arrayWith, equalTo, expect, is } from "great-expectations";
 import { okMessage, pendingMessage } from "./helpers/metaMatchers.js";
-import { container, Container, pending, withInitialValue, withReducer } from "@src/index.js";
+import { container, Container, pending } from "@src/index.js";
 import { testStoreContext } from "./helpers/testStore.js";
 
 interface MetaContext {
@@ -15,7 +15,7 @@ const basicMetaBehavior: ConfigurableExample =
       suppose: [
         fact("there is a container", (context) => {
           context.setTokens({
-            container: container(withInitialValue(27))
+            container: container({ initialValue: 27 })
           })
         }),
         fact("there is a subscriber to the meta container", (context) => {
@@ -38,7 +38,7 @@ const metaMetaBehavior: ConfigurableExample =
       suppose: [
         fact("there is a container", (context) => {
           context.setTokens({
-            container: container(withInitialValue(27))
+            container: container({ initialValue: 27 })
           })
         }),
         fact("there is a subscriber to a meta meta container", (context) => {
@@ -66,9 +66,12 @@ const metaContainerWithReducer: ConfigurableExample =
       suppose: [
         fact("there is a container with a reducer", (context) => {
           context.setTokens({
-            reducerContainer: container(withReducer(41, (message: string, current) => {
-              return message === "add" ? current + 1 : current - 1
-            }))
+            reducerContainer: container({
+              initialValue: 41,
+              reducer: (message, current) => {
+                return message === "add" ? current + 1 : current - 1
+              }
+            })
           })
         }),
         fact("there is a subscriber to the container", (context) => {

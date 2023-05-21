@@ -1,4 +1,4 @@
-import { command, container, dispatch, GetState, State, withInitialValue } from "state-party";
+import { command, container, dispatch, GetState, State } from "state-party";
 import * as View from "@src/index.js"
 
 interface Person {
@@ -13,25 +13,27 @@ function person(name: string): Person {
   }
 }
 
-const ticker = container(withInitialValue(1))
-const coolPerson = container(withInitialValue(person("Cool Dude")))
-const awesomePerson = container(withInitialValue(person("Fundamentally Awesome")))
-const happyPerson = container(withInitialValue(person("Happy Animal")))
+const ticker = container({ initialValue: 1 })
+const coolPerson = container({ initialValue: person("Cool Dude") })
+const awesomePerson = container({ initialValue: person("Fundamentally Awesome") })
+const happyPerson = container({ initialValue: person("Happy Animal") })
 
-const people = container(withInitialValue([
-  coolPerson,
-  awesomePerson,
-  happyPerson
-]))
+const people = container({
+  initialValue: [
+    coolPerson,
+    awesomePerson,
+    happyPerson
+  ]
+})
 
-const shiftPeopleCommand = command(people, ({current}) => {
+const shiftPeopleCommand = command(people, ({ current }) => {
   const first = current.shift()
   current.push(first!)
 
   return current
 })
 
-const incrementTicker = command(ticker, ({current}) => {
+const incrementTicker = command(ticker, ({ current }) => {
   return current + 1
 })
 

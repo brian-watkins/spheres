@@ -1,7 +1,7 @@
-import { container, GetState, withInitialValue, write } from "state-party"
+import { container, GetState, write } from "state-party"
 import * as View from "@src/index.js"
 
-const numberState = container(withInitialValue(17))
+const numberState = container({ initialValue: 17 })
 
 const funView = (get: GetState) => {
   return View.div([

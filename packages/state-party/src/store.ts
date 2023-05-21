@@ -94,14 +94,14 @@ export class MetaState<T, M> extends State<Meta<M>> {
 export class Container<T, M = T> extends State<T, M> {
   constructor(
     private initialValue: T,
-    private update: (message: M, current: T) => T,
+    private reducer: (message: M, current: T) => T,
     private rule?: (actions: RuleActions<T>, nextValue?: M) => M
   ) {
     super()
   }
 
   [registerState](getOrCreate: <S, N>(state: State<S, N>) => ContainerController<S, N>): ContainerController<T, M> {
-    const containerController = new ContainerController(this.initialValue, this.update)
+    const containerController = new ContainerController(this.initialValue, this.reducer)
 
     if (!this.rule) {
       return containerController

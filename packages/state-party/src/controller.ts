@@ -4,7 +4,7 @@ export class ContainerController<T, M = T> {
   private query: (current: T, next: M) => M
   private writer: (value: M) => void
 
-  constructor(private _value: T, private update: (message: M, current: T) => T) {
+  constructor(private _value: T, private reducer: (message: M, current: T) => T) {
     this.writer = (value) => this.publishValue(value)
     this.query = (_, next) => next
   }
@@ -27,7 +27,7 @@ export class ContainerController<T, M = T> {
   }
 
   publishValue(value: M) {
-    this._value = this.update(value, this._value)
+    this._value = this.reducer(value, this._value)
     this.dependents.forEach(notify => notify(this._value))
     this.subscribers.forEach(notify => notify(this._value))
   }

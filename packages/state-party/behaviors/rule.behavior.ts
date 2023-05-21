@@ -1,4 +1,4 @@
-import { Command, Container, command, container, withInitialValue, withReducer } from "@src/index.js";
+import { Command, Container, command, container } from "@src/index.js";
 import { ConfigurableExample, behavior, effect, example, fact, step } from "esbehavior";
 import { equalTo, expect, is } from "great-expectations";
 import { testStoreContext } from "helpers/testStore.js";
@@ -14,14 +14,17 @@ const basicRule: ConfigurableExample =
     .script({
       suppose: [
         fact("there is a container with a rule", (context) => {
-          const numberContainer = container(withInitialValue(7))
-          const stringContainer = container(withInitialValue("hello").withRule(({get, current}, next) => {
-            if (get(numberContainer) % 2 === 0) {
-              return "even"
-            } else {
-              return next ?? current
+          const numberContainer = container({ initialValue: 7 })
+          const stringContainer = container({
+            initialValue: "hello",
+            rule: ({get, current}, next) => {
+              if (get(numberContainer) % 2 === 0) {
+                return "even"
+              } else {
+                return next ?? current
+              }
             }
-          }))
+          })
           context.setTokens({
             numberContainer,
             stringContainer
@@ -99,16 +102,19 @@ const ruleDependency: ConfigurableExample =
     .script({
       suppose: [
         fact("there is a container with a rule", (context) => {
-          const stringContainer = container(withInitialValue("hello"))
-          const anotherStringContainer = container(withInitialValue("fun"))
-          const ruleContainer = container(withInitialValue("first").withRule(({get, current}, next) => {
-            const word = next ?? current
-            if (get(stringContainer) === "hello") {
-              return `${word} stuff`
-            } else {
-              return `${word} ${get(anotherStringContainer)} things!`
+          const stringContainer = container({ initialValue: "hello" })
+          const anotherStringContainer = container({ initialValue: "fun" })
+          const ruleContainer = container({
+            initialValue: "first",
+            rule: ({get, current}, next) => {
+              const word = next ?? current
+              if (get(stringContainer) === "hello") {
+                return `${word} stuff`
+              } else {
+                return `${word} ${get(anotherStringContainer)} things!`
+              }
             }
-          }))
+          })
           context.setTokens({
             stringContainer,
             anotherStringContainer,
@@ -157,10 +163,16 @@ const ruleFromCommand: ConfigurableExample =
     .script({
       suppose: [
         fact("there is a command for a container with a rule", (context) => {
-          const stringContainer = container(withInitialValue("init"))
-          const numberContainer = container(withInitialValue(1).withRule(({get, current}, next) => {
-            return get(stringContainer).length + (next ?? current)
-          }))
+          const stringContainer = container({ initialValue: "init" })
+          // const numberContainer = container(withInitialValue(1).withRule(({get, current}, next) => {
+          //   return get(stringContainer).length + (next ?? current)
+          // }))
+          const numberContainer = container({
+            initialValue: 1,
+            rule: ({get, current}, next) => {
+              return get(stringContainer).length + (next ?? current)
+            }
+          })
           const incrementModThreeCommand = command(numberContainer, ({ current }) => {
             return (current + 1) % 3
           })
@@ -208,17 +220,21 @@ const ruleWithReducer: ConfigurableExample =
     .script({
       suppose: [
         fact("there is a container with a reducer and a rule", (context) => {
-          const numberContainer = container(withInitialValue(17))
-          const ruleContainer = container(withReducer(7, (message: string, current) => {
-            if (message === "add") {
-              return current + 1
-            } else {
-              return current - 1
-            }
-          }).withRule(({get}, next) => {
-            if (next) return next
-            return (get(numberContainer) % 2 === 0) ? "add" : "not-add"
-          }))
+          const numberContainer = container({ initialValue: 17 })
+          const ruleContainer: Container<number, string> = container({
+            initialValue: 7,
+            rule: ({get}, next) => {
+              if (next) return next
+              return (get(numberContainer) % 2 === 0) ? "add" : "not-add"
+            },
+            reducer: (message, current) => {
+              if (message === "add") {
+                return current + 1
+              } else {
+                return current - 1
+              }
+            },
+          })
           context.setTokens({
             numberContainer,
             ruleContainer

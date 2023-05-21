@@ -1,6 +1,6 @@
 import { ConfigurableExample, behavior, effect, example, fact, step } from "esbehavior";
 import { equalTo, expect, is } from "great-expectations";
-import { Command, Container, command, container, withInitialValue } from "@src/index.js";
+import { Command, Container, command, container } from "@src/index.js";
 import { testStoreContext } from "./helpers/testStore.js";
 
 interface BasicCommandContext {
@@ -14,7 +14,7 @@ const basicCommand: ConfigurableExample =
     .script({
       suppose: [
         fact("there is a command", (context) => {
-          const numberContainer = container(withInitialValue(1))
+          const numberContainer = container({ initialValue: 1 })
           const incrementModThreeRule = command(numberContainer, ({ current }) => {
             return (current + 1) % 3
           })
@@ -52,7 +52,7 @@ const lateSubscribeCommand: ConfigurableExample =
     .script({
       suppose: [
         fact("there is a command", (context) => {
-          const numberContainer = container(withInitialValue(1))
+          const numberContainer = container({ initialValue: 1 })
           const incrementModThreeRule = command(numberContainer, ({ current }) => {
             return (current + 1) % 3
           })
@@ -93,7 +93,7 @@ const commandWithInput: ConfigurableExample =
     .script({
       suppose: [
         fact("there is a command", (context) => {
-          const numberContainer = container(withInitialValue(1))
+          const numberContainer = container({ initialValue: 1 })
           const incrementCommand = command(numberContainer, ({ current }, value: number) => {
             return current + value
           })
@@ -137,8 +137,8 @@ const commandWithOtherState: ConfigurableExample =
     .script({
       suppose: [
         fact("there is a command", (context) => {
-          const numberContainer = container(withInitialValue(1))
-          const anotherContainer = container(withInitialValue(7))
+          const numberContainer = container({ initialValue: 1 })
+          const anotherContainer = container({ initialValue: 7 })
           const incrementCommand = command(numberContainer, ({ get, current }, value: number) => {
             return get(anotherContainer) + current + value
           })

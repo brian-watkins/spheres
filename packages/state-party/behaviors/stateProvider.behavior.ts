@@ -3,7 +3,7 @@ import { arrayWith, arrayWithItemAt, equalTo, expect, is } from "great-expectati
 import { TestProvider } from "./helpers/testProvider.js";
 import { okMessage, pendingMessage } from "./helpers/metaMatchers.js";
 import { testStoreContext } from "./helpers/testStore.js";
-import { Container, Provider, Value, container, pending, value, withInitialValue } from "@src/index.js";
+import { Container, Provider, Value, container, pending, value } from "@src/index.js";
 
 interface ProvidedValueContext {
   receiver: Value<string>
@@ -84,9 +84,9 @@ const providedValueWithDerivedKey: ConfigurableExample =
     .script({
       suppose: [
         fact("there is a view with a provided value", (context) => {
-          const profileState = container(withInitialValue("profile-1"))
-          const pageNumberState = container(withInitialValue(17))
-          const receiver = container<string>(withInitialValue("initial"))
+          const profileState = container({ initialValue: "profile-1" })
+          const pageNumberState = container({ initialValue: 17 })
+          const receiver = container<string>({ initialValue: "initial" })
           const provider = new TestProvider()
           provider.setHandler(async (get, set, waitFor) => {
             const key = {
@@ -248,9 +248,9 @@ const reactiveQueryCountForProvider: ConfigurableExample =
     .script({
       suppose: [
         fact("there is some state and a provider", (context) => {
-          const counterState = container<string>(withInitialValue("0"))
-          const otherState = container(withInitialValue(27))
-          const anotherState = container(withInitialValue(22))
+          const counterState = container<string>({ initialValue: "0" })
+          const otherState = container({ initialValue: 27 })
+          const anotherState = container({ initialValue: 22 })
           const provider = new TestProvider()
           let counter = 0
           provider.setHandler(async (get, set, _) => {
@@ -304,9 +304,9 @@ const deferredDependency: ConfigurableExample =
     .script({
       suppose: [
         fact("there is derived state with a dependency used only later", (context) => {
-          const numberState = container(withInitialValue(6))
-          const stringState = container(withInitialValue("hello"))
-          const managedState = container<string>(withInitialValue("initial"))
+          const numberState = container({ initialValue: 6 })
+          const stringState = container({ initialValue: "hello" })
+          const managedState = container<string>({ initialValue: "initial" })
           const provider = new TestProvider()
           provider.setHandler(async (get, set, _) => {
             if (get(stringState) === "now") {

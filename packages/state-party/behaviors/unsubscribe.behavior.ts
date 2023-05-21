@@ -1,7 +1,7 @@
 import { behavior, effect, example, fact, step } from "esbehavior";
 import { equalTo, expect, is } from "great-expectations";
 import { testStoreContext } from "./helpers/testStore.js";
-import { Container, container, withInitialValue } from "@src/index.js";
+import { Container, container } from "@src/index.js";
 
 interface BasicUnsubscribeContext {
   numberContainer: Container<number>
@@ -14,7 +14,7 @@ export default behavior("unsubscribe from state", [
       suppose: [
         fact("there is a container", (context) => {
           context.setTokens({
-            numberContainer: container(withInitialValue(0))
+            numberContainer: container({ initialValue: 0 })
           })
         }),
         fact("there is a subscriber", (context) => {

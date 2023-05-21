@@ -1,5 +1,5 @@
-import { container, withInitialValue } from "state-party"
+import { container } from "state-party"
 
-export const clickCount = container(withInitialValue(0))
+export const clickCount = container({ initialValue: 0 })
 
-export const nameState = container(withInitialValue("Awesome Person"))
+export const nameState = container({ initialValue: "Awesome Person" })

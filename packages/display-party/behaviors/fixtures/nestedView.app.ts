@@ -1,9 +1,9 @@
-import { container, GetState, withInitialValue, write } from "state-party"
+import { container, GetState, write } from "state-party"
 import * as View from "@src/index.js"
 
-const nameState = container(withInitialValue("hello"))
+const nameState = container({ initialValue: "hello" })
 
-const ageState = container(withInitialValue(27))
+const ageState = container({ initialValue: 27 })
 
 const ageView = (get: GetState) => {
   return View.p([

@@ -1,7 +1,7 @@
-import { GetState, container, withInitialValue, write } from "state-party"
+import { GetState, container, write } from "state-party"
 import * as View from "@src/index.js"
 
-const clickCount = container(withInitialValue(0))
+const clickCount = container({ initialValue: 0 })
 
 const clickCounterView = (get: GetState) => {
   return View.div([], [

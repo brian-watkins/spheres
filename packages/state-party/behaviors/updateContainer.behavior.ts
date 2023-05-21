@@ -1,6 +1,6 @@
 import { behavior, effect, example, fact, step } from "esbehavior";
 import { equalTo, expect, is } from "great-expectations";
-import { Container, container, withReducer } from "@src/index.js";
+import { Container, container } from "@src/index.js";
 import { testStoreContext } from "./helpers/testStore.js";
 
 interface UpdateContainerContext {
@@ -24,14 +24,17 @@ export default behavior("update container", [
     .script({
       suppose: [
         fact("there is a container with a custom update function", (context) => {
-          const fancyContainer = container(withReducer("hello", (message: FancyMessage, current) => {
-            switch (message.type) {
-              case "insert":
-                return `${current} ${message.value}`
-              case "reset":
-                return "reset!"
+          const fancyContainer = container({
+            initialValue: "hello",
+            reducer: (message: FancyMessage, current) => {
+              switch (message.type) {
+                case "insert":
+                  return `${current} ${message.value}`
+                case "reset":
+                  return "reset!"
+              }
             }
-          }))
+          })
 
           context.setTokens({
             fancyContainer

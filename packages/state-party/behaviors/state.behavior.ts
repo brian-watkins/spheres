@@ -1,6 +1,6 @@
 import { ConfigurableExample, behavior, effect, example, fact, step } from "esbehavior";
 import { arrayWithItemAt, equalTo, expect, is } from "great-expectations"
-import { Container, State, Value, container, value, withInitialValue } from "@src/index.js";
+import { Container, State, Value, container, value } from "@src/index.js";
 import { TestStore, testStoreContext } from "./helpers/testStore.js";
 
 interface BasicContainerTokens {
@@ -14,7 +14,7 @@ const subscribeAndUpdate: ConfigurableExample =
       perform: [
         step("there is a root state", (context) => {
           context.setTokens({
-            nameToken: container(withInitialValue("hello"))
+            nameToken: container({ initialValue: "hello" })
           })
         }),
         step("a listener subscribes", (context) => {
@@ -86,7 +86,7 @@ const lateSubscriber: ConfigurableExample =
       suppose: [
         fact("there is a root state", (context) => {
           context.setTokens({
-            nameToken: container(withInitialValue("hello"))
+            nameToken: container({ initialValue: "hello" })
           })
         })
       ],
@@ -119,7 +119,7 @@ const derivedState: ConfigurableExample =
     .script({
       suppose: [
         fact("there is root and derived state", (context) => {
-          const basic = container(withInitialValue(17))
+          const basic = container({ initialValue: 17 })
           context.setTokens({
             basic,
             derived: value((get) => `${get(basic)} things!`)
@@ -220,9 +220,9 @@ const multipleSourceState: ConfigurableExample =
     .script({
       perform: [
         step("a derived state is created from the root states", (context) => {
-          const numberAtom = container(withInitialValue(27))
-          const stringAtom = container(withInitialValue("hello"))
-          const anotherAtom = container(withInitialValue("next"))
+          const numberAtom = container({ initialValue: 27 })
+          const stringAtom = container({ initialValue: "hello" })
+          const anotherAtom = container({ initialValue: "next" })
           context.setTokens({
             numberAtom,
             stringAtom,
@@ -253,9 +253,9 @@ const reactiveQueryCount: ConfigurableExample =
     .script({
       suppose: [
         fact("there is a derived state", (context) => {
-          const numberAtom = container(withInitialValue(27))
-          const stringAtom = container(withInitialValue("hello"))
-          const anotherAtom = container(withInitialValue("next"))
+          const numberAtom = container({ initialValue: 27 })
+          const stringAtom = container({ initialValue: "hello" })
+          const anotherAtom = container({ initialValue: "next" })
           let counter = 0
           context.setTokens({
             numberAtom,
@@ -311,8 +311,8 @@ const deferredDependency: ConfigurableExample =
     .script({
       suppose: [
         fact("there is derived state with a dependency used only later", (context) => {
-          const numberState = container(withInitialValue(6))
-          const stringState = container(withInitialValue("hello"))
+          const numberState = container({ initialValue: 6 })
+          const stringState = container({ initialValue: "hello" })
           const derivedState = value((get) => {
             if (get(stringState) === "now") {
               return get(numberState)
@@ -368,7 +368,7 @@ const recursiveDerivedState: ConfigurableExample =
     .script({
       suppose: [
         fact("there is derived state that depends on its current value", (context) => {
-          const numberState = container(withInitialValue(6))
+          const numberState = container({ initialValue: 6 })
           const derivedState = value<number>((get, current) => {
             return get(numberState) + (current ?? 0)
           })

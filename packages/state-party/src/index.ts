@@ -1,5 +1,5 @@
 export * from "./meta.js"
 export * from "./store.js"
-export * from "./command.js"
+export * from "./selection.js"
 export * from "./container.js"
 export * from "./value.js"

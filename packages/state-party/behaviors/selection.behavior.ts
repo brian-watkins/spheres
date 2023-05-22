@@ -1,26 +1,26 @@
 import { ConfigurableExample, behavior, effect, example, fact, step } from "esbehavior";
 import { equalTo, expect, is } from "great-expectations";
-import { Command, Container, command, container } from "@src/index.js";
+import { Selection, Container, selection, container } from "@src/index.js";
 import { testStoreContext } from "./helpers/testStore.js";
 
-interface BasicCommandContext {
+interface BasicSelectionContext {
   numberContainer: Container<number>,
-  incrementModThreeCommand: Command<number, number>
+  incrementModThreeSelection: Selection<number, number>
 }
 
-const basicCommand: ConfigurableExample =
-  example(testStoreContext<BasicCommandContext>())
-    .description("trigger a command")
+const basicSelection: ConfigurableExample =
+  example(testStoreContext<BasicSelectionContext>())
+    .description("trigger a selection")
     .script({
       suppose: [
-        fact("there is a command", (context) => {
+        fact("there is a selection", (context) => {
           const numberContainer = container({ initialValue: 1 })
-          const incrementModThreeRule = command(numberContainer, ({ current }) => {
+          const incrementModThreeSelection = selection(numberContainer, ({ current }) => {
             return (current + 1) % 3
           })
           context.setTokens({
             numberContainer,
-            incrementModThreeCommand: incrementModThreeRule
+            incrementModThreeSelection
           })
         }),
         fact("there is a subscriber to the number container", (context) => {
@@ -28,11 +28,11 @@ const basicCommand: ConfigurableExample =
         })
       ],
       perform: [
-        step("the command is dispatched", (context) => {
-          context.dispatchCommand(context.tokens.incrementModThreeCommand)
+        step("the selection is stored", (context) => {
+          context.storeSelection(context.tokens.incrementModThreeSelection)
         }),
-        step("the command is dispatched again", (context) => {
-          context.dispatchCommand(context.tokens.incrementModThreeCommand)
+        step("the selection is stored again", (context) => {
+          context.storeSelection(context.tokens.incrementModThreeSelection)
         }),
       ],
       observe: [
@@ -46,28 +46,28 @@ const basicCommand: ConfigurableExample =
       ]
     })
 
-const lateSubscribeCommand: ConfigurableExample =
-  example(testStoreContext<BasicCommandContext>())
-    .description("dispatch a command on a container before any subscribers")
+const lateSubscribeSelection: ConfigurableExample =
+  example(testStoreContext<BasicSelectionContext>())
+    .description("dispatch a selection on a container before any subscribers")
     .script({
       suppose: [
-        fact("there is a command", (context) => {
+        fact("there is a selection", (context) => {
           const numberContainer = container({ initialValue: 1 })
-          const incrementModThreeRule = command(numberContainer, ({ current }) => {
+          const incrementModThreeSelection = selection(numberContainer, ({ current }) => {
             return (current + 1) % 3
           })
           context.setTokens({
             numberContainer,
-            incrementModThreeCommand: incrementModThreeRule
+            incrementModThreeSelection
           })
         })
       ],
       perform: [
-        step("the command is dispatched", (context) => {
-          context.dispatchCommand(context.tokens.incrementModThreeCommand)
+        step("the selection is stored", (context) => {
+          context.storeSelection(context.tokens.incrementModThreeSelection)
         }),
-        step("the command is dispatched again", (context) => {
-          context.dispatchCommand(context.tokens.incrementModThreeCommand)
+        step("the selection is stored again", (context) => {
+          context.storeSelection(context.tokens.incrementModThreeSelection)
         }),
         step("a listener subscribes to the container", (context) => {
           context.subscribeTo(context.tokens.numberContainer, "sub-one")
@@ -82,24 +82,24 @@ const lateSubscribeCommand: ConfigurableExample =
       ]
     })
 
-interface CommandWithInputContext {
+interface SelectionWithInputContext {
   numberContainer: Container<number>
-  incrementCommand: Command<number, number, number>
+  incrementSelection: Selection<number, number, number>
 }
 
-const commandWithInput: ConfigurableExample =
-  example(testStoreContext<CommandWithInputContext>())
-    .description("a command that takes an input value")
+const selectionWithInput: ConfigurableExample =
+  example(testStoreContext<SelectionWithInputContext>())
+    .description("a selection that takes an input value")
     .script({
       suppose: [
-        fact("there is a command", (context) => {
+        fact("there is a selection", (context) => {
           const numberContainer = container({ initialValue: 1 })
-          const incrementCommand = command(numberContainer, ({ current }, value: number) => {
+          const incrementSelection = selection(numberContainer, ({ current }, value: number) => {
             return current + value
           })
           context.setTokens({
             numberContainer,
-            incrementCommand
+            incrementSelection
           })
         }),
         fact("there is a subscriber to the number container", (context) => {
@@ -107,11 +107,11 @@ const commandWithInput: ConfigurableExample =
         })
       ],
       perform: [
-        step("the command is dispatched", (context) => {
-          context.dispatchCommand(context.tokens.incrementCommand, 5)
+        step("the selection is stored", (context) => {
+          context.storeSelection(context.tokens.incrementSelection, 5)
         }),
-        step("the command is dispatched again", (context) => {
-          context.dispatchCommand(context.tokens.incrementCommand, 10)
+        step("the selection is stored again", (context) => {
+          context.storeSelection(context.tokens.incrementSelection, 10)
         }),
       ],
       observe: [
@@ -125,27 +125,27 @@ const commandWithInput: ConfigurableExample =
       ]
     })
 
-interface CommandWithOtherStateContext {
+interface SelectionWithOtherStateContext {
   numberContainer: Container<number>
   anotherContainer: Container<number>
-  incrementCommand: Command<number, number, number>
+  incrementSelection: Selection<number, number, number>
 }
 
-const commandWithOtherState: ConfigurableExample =
-  example(testStoreContext<CommandWithOtherStateContext>())
-    .description("a command that gets the value of another state")
+const selectionWithOtherState: ConfigurableExample =
+  example(testStoreContext<SelectionWithOtherStateContext>())
+    .description("a selection that gets the value of another state")
     .script({
       suppose: [
-        fact("there is a command", (context) => {
+        fact("there is a selection", (context) => {
           const numberContainer = container({ initialValue: 1 })
           const anotherContainer = container({ initialValue: 7 })
-          const incrementCommand = command(numberContainer, ({ get, current }, value: number) => {
+          const incrementSelection = selection(numberContainer, ({ get, current }, value: number) => {
             return get(anotherContainer) + current + value
           })
           context.setTokens({
             numberContainer,
             anotherContainer,
-            incrementCommand
+            incrementSelection
           })
         }),
         fact("there is a subscriber to the number container", (context) => {
@@ -153,14 +153,14 @@ const commandWithOtherState: ConfigurableExample =
         })
       ],
       perform: [
-        step("the command is dispatched", (context) => {
-          context.dispatchCommand(context.tokens.incrementCommand, 5)
+        step("the selection is stored", (context) => {
+          context.storeSelection(context.tokens.incrementSelection, 5)
         }),
         step("the other container is updated", (context) => {
           context.writeTo(context.tokens.anotherContainer, 3)
         }),
-        step("the command is dispatched again", (context) => {
-          context.dispatchCommand(context.tokens.incrementCommand, 10)
+        step("the selection is stored again", (context) => {
+          context.storeSelection(context.tokens.incrementSelection, 10)
         }),
       ],
       observe: [
@@ -175,9 +175,9 @@ const commandWithOtherState: ConfigurableExample =
     })
 
 
-export default behavior("command", [
-  basicCommand,
-  lateSubscribeCommand,
-  commandWithInput,
-  commandWithOtherState
+export default behavior("selection", [
+  basicSelection,
+  lateSubscribeSelection,
+  selectionWithInput,
+  selectionWithOtherState
 ])

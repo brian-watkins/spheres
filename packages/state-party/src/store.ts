@@ -29,19 +29,19 @@ export interface RuleActions<T> {
   current: T
 }
 
-export interface CommandActions<T> {
+export interface SelectionActions<T> {
   get: GetState,
   current: T
 }
 
-export interface Command<ContainerValue, ContainerMessage, CommandArgument = undefined> {
+export interface Selection<ContainerValue, ContainerMessage, SelectionArgument = undefined> {
   readonly container: Container<ContainerValue, ContainerMessage>
-  readonly execute: (actions: CommandActions<ContainerValue>, input: CommandArgument) => ContainerMessage
+  readonly query: (actions: SelectionActions<ContainerValue>, input: SelectionArgument) => ContainerMessage
 }
 
 export interface StoreMessage<T, M = T> {
-  type: "dispatch"
-  command: Command<T, M, any>
+  type: "store"
+  selection: Selection<T, M, any>
   input: any
 }
 
@@ -217,8 +217,8 @@ export class Store {
   }
 
   dispatch<T, M>(message: StoreMessage<T, M>) {
-    const controller = this.getController(message.command.container)
-    const result = message.command.execute({
+    const controller = this.getController(message.selection.container)
+    const result = message.selection.query({
       get: (state) => this.getController(state).value,
       current: controller.value
     }, message.input)

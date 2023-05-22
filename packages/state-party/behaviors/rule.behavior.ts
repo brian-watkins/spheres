@@ -1,4 +1,4 @@
-import { Command, Container, command, container } from "@src/index.js";
+import { Selection, Container, selection, container } from "@src/index.js";
 import { ConfigurableExample, behavior, effect, example, fact, step } from "esbehavior";
 import { equalTo, expect, is } from "great-expectations";
 import { testStoreContext } from "helpers/testStore.js";
@@ -151,35 +151,32 @@ const ruleDependency: ConfigurableExample =
       ]
     })
 
-interface RuleCommandContext {
+interface RuleSelectionContext {
   stringContainer: Container<string>,
   numberContainer: Container<number>,
-  incrementModThreeCommand: Command<number, number>
+  incrementModThreeSelection: Selection<number, number>
 }
 
-const ruleFromCommand: ConfigurableExample =
-  example(testStoreContext<RuleCommandContext>())
-    .description("a command provides the value to a rule")
+const ruleFromSelection: ConfigurableExample =
+  example(testStoreContext<RuleSelectionContext>())
+    .description("a selection provides the value to a rule")
     .script({
       suppose: [
-        fact("there is a command for a container with a rule", (context) => {
+        fact("there is a selection for a container with a rule", (context) => {
           const stringContainer = container({ initialValue: "init" })
-          // const numberContainer = container(withInitialValue(1).withRule(({get, current}, next) => {
-          //   return get(stringContainer).length + (next ?? current)
-          // }))
           const numberContainer = container({
             initialValue: 1,
             rule: ({get, current}, next) => {
               return get(stringContainer).length + (next ?? current)
             }
           })
-          const incrementModThreeCommand = command(numberContainer, ({ current }) => {
+          const incrementModThreeSelection = selection(numberContainer, ({ current }) => {
             return (current + 1) % 3
           })
           context.setTokens({
             stringContainer,
             numberContainer,
-            incrementModThreeCommand
+            incrementModThreeSelection
           })
         }),
         fact("there is a subscriber to the container", (context) => {
@@ -187,14 +184,14 @@ const ruleFromCommand: ConfigurableExample =
         })
       ],
       perform: [
-        step("the command is dispatched", (context) => {
-          context.dispatchCommand(context.tokens.incrementModThreeCommand)
+        step("the selection is stored", (context) => {
+          context.storeSelection(context.tokens.incrementModThreeSelection)
         }),
         step("the dependency is updated", (context) => {
           context.writeTo(context.tokens.stringContainer, "hello")
         }),
-        step("the command is dispatched again", (context) => {
-          context.dispatchCommand(context.tokens.incrementModThreeCommand)
+        step("the selection is stored again", (context) => {
+          context.storeSelection(context.tokens.incrementModThreeSelection)
         })
       ],
       observe: [
@@ -269,7 +266,7 @@ const ruleWithReducer: ConfigurableExample =
 
 export default behavior("rule", [
   basicRule,
-  ruleFromCommand,
+  ruleFromSelection,
   ruleDependency,
   ruleWithReducer
 ])

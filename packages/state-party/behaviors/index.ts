@@ -5,9 +5,9 @@ import stateBehavior from "./state.behavior.js"
 import unsubscribeBehavior from "./unsubscribe.behavior.js"
 import updateContainerBehavior from "./updateContainer.behavior.js"
 import metaBehavior from "./meta.behavior.js"
-import commandBehavior from "command.behavior.js"
 import ruleBehavior from "rule.behavior.js"
 import valueBehavior from "value.behavior.js"
+import selectionBehavior from "selection.behavior.js"
 
 window.validateBehaviors = () => {
   return validate([
@@ -15,7 +15,7 @@ window.validateBehaviors = () => {
     metaBehavior,
     stateProviderBehavior,
     stateWriterBehavior,
-    commandBehavior,
+    selectionBehavior,
     ruleBehavior,
     unsubscribeBehavior,
     updateContainerBehavior,

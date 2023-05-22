@@ -24,7 +24,7 @@ export interface Writer<T, M = T> {
   write(message: M, actions: WriterActions<T, M>): void
 }
 
-export interface RuleActions<T> {
+export interface QueryActions<T> {
   get: GetState,
   current: T
 }
@@ -87,7 +87,7 @@ export class Container<T, M = T> extends State<T, M> {
   constructor(
     private initialValue: T,
     private reducer: (message: M, current: T) => T,
-    private rule?: (actions: RuleActions<T>, nextValue?: M) => M
+    private query?: (actions: QueryActions<T>, nextValue?: M) => M
   ) {
     super()
   }
@@ -95,7 +95,7 @@ export class Container<T, M = T> extends State<T, M> {
   [registerState](getOrCreate: <S, N>(state: State<S, N>) => ContainerController<S, N>): ContainerController<T, M> {
     const containerController = new ContainerController(this.initialValue, this.reducer)
 
-    if (!this.rule) {
+    if (!this.query) {
       return containerController
     }
 
@@ -106,7 +106,7 @@ export class Container<T, M = T> extends State<T, M> {
       if (!queryDependencies.has(state)) {
         queryDependencies.add(state)
         controller.addDependent(() => {
-          containerController.writeValue(this.rule!({ get, current: containerController.value }))
+          containerController.writeValue(this.query!({ get, current: containerController.value }))
         })
       }
 
@@ -114,10 +114,10 @@ export class Container<T, M = T> extends State<T, M> {
     }
 
     containerController.setQuery((current, next) => {
-      return this.rule!({ get, current }, next)
+      return this.query!({ get, current }, next)
     })
 
-    containerController.writeValue(this.rule({ get, current: this.initialValue }))
+    containerController.writeValue(this.query({ get, current: this.initialValue }))
 
     return containerController
   }

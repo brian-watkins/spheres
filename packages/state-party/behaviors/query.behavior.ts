@@ -3,21 +3,21 @@ import { ConfigurableExample, behavior, effect, example, fact, step } from "esbe
 import { equalTo, expect, is } from "great-expectations";
 import { testStoreContext } from "helpers/testStore.js";
 
-interface BasicRuleContext {
+interface BasicQueryContext {
   numberContainer: Container<number>
   stringContainer: Container<string>
 }
 
-const basicRule: ConfigurableExample =
-  example(testStoreContext<BasicRuleContext>())
-    .description("trigger a rule")
+const basicQuery: ConfigurableExample =
+  example(testStoreContext<BasicQueryContext>())
+    .description("trigger a query")
     .script({
       suppose: [
-        fact("there is a container with a rule", (context) => {
+        fact("there is a container with a query", (context) => {
           const numberContainer = container({ initialValue: 7 })
           const stringContainer = container({
             initialValue: "hello",
-            rule: ({get, current}, next) => {
+            query: ({get, current}, next) => {
               if (get(numberContainer) % 2 === 0) {
                 return "even"
               } else {
@@ -48,7 +48,7 @@ const basicRule: ConfigurableExample =
         })
       ],
       observe: [
-        effect("the subscriber gets the value updated after the rule is triggered", (context) => {
+        effect("the subscriber gets the value updated after the query is triggered", (context) => {
           expect(context.valuesForSubscriber("sub-one"), is(equalTo([
             "hello",
             "even"
@@ -57,12 +57,12 @@ const basicRule: ConfigurableExample =
       ]
     }).andThen({
       perform: [
-        step("attempt to write a value that conflicts with the rule", (context) => {
+        step("write a value to trigger the query", (context) => {
           context.writeTo(context.tokens.stringContainer, "something else!")
         })
       ],
       observe: [
-        effect("the subscriber gets the value that conforms to the rule", (context) => {
+        effect("the subscriber gets the value that is produced by the query", (context) => {
           expect(context.valuesForSubscriber("sub-one"), is(equalTo([
             "hello",
             "even",
@@ -72,7 +72,7 @@ const basicRule: ConfigurableExample =
       ]
     }).andThen({
       perform: [
-        step("write a value that conforms to the rule", (context) => {
+        step("write another value that triggers the query", (context) => {
           context.writeTo(context.tokens.numberContainer, 27)
           context.writeTo(context.tokens.stringContainer, "this is odd!")
         })
@@ -90,23 +90,23 @@ const basicRule: ConfigurableExample =
       ]
     })
 
-interface RuleDependencyContext {
+interface QueryDependencyContext {
   stringContainer: Container<string>
   anotherStringContainer: Container<string>
-  ruleContainer: Container<string>
+  queryContainer: Container<string>
 }
 
-const ruleDependency: ConfigurableExample =
-  example(testStoreContext<RuleDependencyContext>())
-    .description("the rule has a dependency that is not used initially")
+const queryDependency: ConfigurableExample =
+  example(testStoreContext<QueryDependencyContext>())
+    .description("the query has a dependency that is not used initially")
     .script({
       suppose: [
-        fact("there is a container with a rule", (context) => {
+        fact("there is a container with a query", (context) => {
           const stringContainer = container({ initialValue: "hello" })
           const anotherStringContainer = container({ initialValue: "fun" })
-          const ruleContainer = container({
+          const queryContainer = container({
             initialValue: "first",
-            rule: ({get, current}, next) => {
+            query: ({get, current}, next) => {
               const word = next ?? current
               if (get(stringContainer) === "hello") {
                 return `${word} stuff`
@@ -118,19 +118,19 @@ const ruleDependency: ConfigurableExample =
           context.setTokens({
             stringContainer,
             anotherStringContainer,
-            ruleContainer
+            queryContainer
           })
         }),
-        fact("there is a subscriber to the rule container", (context) => {
-          context.subscribeTo(context.tokens.ruleContainer, "sub-one")
+        fact("there is a subscriber to the query container", (context) => {
+          context.subscribeTo(context.tokens.queryContainer, "sub-one")
         })
       ],
       perform: [
         step("the other string container is updated", (context) => {
           context.writeTo(context.tokens.anotherStringContainer, "awesome")
         }),
-        step("the rule container is written to", (context) => {
-          context.writeTo(context.tokens.ruleContainer, "second")
+        step("the query container is written to", (context) => {
+          context.writeTo(context.tokens.queryContainer, "second")
         }),
         step("the string container is updated", (context) => {
           context.writeTo(context.tokens.stringContainer, "something else")
@@ -151,22 +151,22 @@ const ruleDependency: ConfigurableExample =
       ]
     })
 
-interface RuleSelectionContext {
+interface QuerySelectionContext {
   stringContainer: Container<string>,
   numberContainer: Container<number>,
   incrementModThreeSelection: Selection<number, number>
 }
 
-const ruleFromSelection: ConfigurableExample =
-  example(testStoreContext<RuleSelectionContext>())
-    .description("a selection provides the value to a rule")
+const queryFromSelection: ConfigurableExample =
+  example(testStoreContext<QuerySelectionContext>())
+    .description("a selection provides the value to a query")
     .script({
       suppose: [
-        fact("there is a selection for a container with a rule", (context) => {
+        fact("there is a selection for a container with a query", (context) => {
           const stringContainer = container({ initialValue: "init" })
           const numberContainer = container({
             initialValue: 1,
-            rule: ({get, current}, next) => {
+            query: ({get, current}, next) => {
               return get(stringContainer).length + (next ?? current)
             }
           })
@@ -206,21 +206,21 @@ const ruleFromSelection: ConfigurableExample =
       ]
     })
 
-interface ReducerRuleContext {
+interface ReducerQueryContext {
   numberContainer: Container<number>
-  ruleContainer: Container<number, string>
+  queryContainer: Container<number, string>
 }
 
-const ruleWithReducer: ConfigurableExample =
-  example(testStoreContext<ReducerRuleContext>())
-    .description("rule with a reducer")
+const queryWithReducer: ConfigurableExample =
+  example(testStoreContext<ReducerQueryContext>())
+    .description("query with a reducer")
     .script({
       suppose: [
-        fact("there is a container with a reducer and a rule", (context) => {
+        fact("there is a container with a reducer and a query", (context) => {
           const numberContainer = container({ initialValue: 17 })
-          const ruleContainer: Container<number, string> = container({
+          const queryContainer: Container<number, string> = container({
             initialValue: 7,
-            rule: ({get}, next) => {
+            query: ({get}, next) => {
               if (next) return next
               return (get(numberContainer) % 2 === 0) ? "add" : "not-add"
             },
@@ -234,11 +234,11 @@ const ruleWithReducer: ConfigurableExample =
           })
           context.setTokens({
             numberContainer,
-            ruleContainer
+            queryContainer
           })
         }),
         fact("there is a subscriber", (context) => {
-          context.subscribeTo(context.tokens.ruleContainer, "sub-one")
+          context.subscribeTo(context.tokens.queryContainer, "sub-one")
         })
       ],
       perform: [
@@ -248,8 +248,8 @@ const ruleWithReducer: ConfigurableExample =
         step("the number container is updated", (context) => {
           context.writeTo(context.tokens.numberContainer, 3)
         }),
-        step("a command is sent to the container", (context) => {
-          context.writeTo(context.tokens.ruleContainer, "add")
+        step("a message is sent to the container", (context) => {
+          context.writeTo(context.tokens.queryContainer, "add")
         })
       ],
       observe: [
@@ -264,9 +264,9 @@ const ruleWithReducer: ConfigurableExample =
       ]
     })
 
-export default behavior("rule", [
-  basicRule,
-  ruleFromSelection,
-  ruleDependency,
-  ruleWithReducer
+export default behavior("query", [
+  basicQuery,
+  queryFromSelection,
+  queryDependency,
+  queryWithReducer
 ])

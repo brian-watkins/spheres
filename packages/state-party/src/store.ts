@@ -106,7 +106,7 @@ export class Container<T, M = T> extends State<T, M> {
       return containerController
     }
 
-    const queryDependencies = new Set<State<any>>()
+    const queryDependencies = new WeakSet<State<any>>()
 
     const get = <S, N>(state: State<S, N>) => {
       const controller = getOrCreate(state)
@@ -136,7 +136,7 @@ export class Value<T, M = T> extends State<T, M> {
   }
 
   [registerState](getOrCreate: <S, N>(state: State<S, N>) => ContainerController<S, N>): ContainerController<T, M> {
-    let dependencies: Set<State<any>> = new Set()
+    let dependencies = new WeakSet<State<any>>()
 
     const get = <S, N>(state: State<S, N>) => {
       const controller = getOrCreate(state)
@@ -182,12 +182,11 @@ export class Store {
   }
 
   useProvider(provider: Provider) {
-    const queryDependencies = new Set<State<any>>()
-
     const set = <Q, M>(state: State<Q, M>, value: M) => {
       this.getController(state).publishValue(value)
     }
 
+    const queryDependencies = new WeakSet<State<any>>()
     const get = <S, N>(state: State<S, N>) => {
       const controller = this.getController(state)
       if (!queryDependencies.has(state)) {

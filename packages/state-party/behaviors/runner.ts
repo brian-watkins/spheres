@@ -5,13 +5,17 @@ import tsConfigPaths from "vite-tsconfig-paths"
 const serverPort = 5957
 
 const server = await createServer({
+  root: "../../",
+  optimizeDeps: {
+    entries: [
+      "packages/state-party/behaviors/index.html"
+    ]
+  },
   server: {
     port: serverPort
   },
   plugins: [
-    tsConfigPaths({
-      root: "./behaviors"
-    })
+    tsConfigPaths()
   ]
 })
 
@@ -25,7 +29,7 @@ const page = await browser.newPage()
 page.on("console", (message) => console.log(fixStackTrace(message.text())))
 page.on("pageerror", console.log)
 
-await page.goto(`http://localhost:${serverPort}/behaviors/index.html`)
+await page.goto(`http://localhost:${serverPort}/packages/state-party/behaviors/index.html`)
 
 const summary = await page.evaluate(() => window.validateBehaviors())
 

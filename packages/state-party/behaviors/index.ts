@@ -8,6 +8,7 @@ import metaBehavior from "./meta.behavior.js"
 import valueBehavior from "value.behavior.js"
 import selectionBehavior from "selection.behavior.js"
 import queryBehavior from "query.behavior.js"
+import debugBehavior from "debug.behavior.js"
 
 window.validateBehaviors = () => {
   return validate([
@@ -19,6 +20,7 @@ window.validateBehaviors = () => {
     queryBehavior,
     unsubscribeBehavior,
     updateContainerBehavior,
-    valueBehavior
+    valueBehavior,
+    debugBehavior
   ], { failFast: true })
 }

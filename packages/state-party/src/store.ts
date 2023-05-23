@@ -49,8 +49,8 @@ const registerState = Symbol("registerState")
 
 export abstract class State<T, M = T> {
   private _meta: MetaState<T, M> | undefined
-  private static StateId = 0
-  private _id = State.StateId++
+  
+  constructor(private name: string) { }
 
   abstract [registerState](getOrCreate: <S, N>(state: State<S, N>) => ContainerController<S, N>): ContainerController<T, M>
 
@@ -62,13 +62,13 @@ export abstract class State<T, M = T> {
   }
 
   toString() {
-    return `State-${this._id}`
+    return this.name
   }
 }
 
 export class MetaState<T, M> extends State<Meta<M>> {
   constructor(private token: State<T, M>) {
-    super()
+    super(`meta${token.toString()}`)
   }
 
   [registerState](getOrCreate: <S, N>(state: State<S, N>) => ContainerController<S, N>): ContainerController<Meta<M>> {
@@ -83,13 +83,20 @@ export class MetaState<T, M> extends State<Meta<M>> {
   }
 }
 
+let tokenIndex = 0
+
+function uniqueName(name: string): string {
+  return `[${name} ${tokenIndex++}]`
+}
+
 export class Container<T, M = T> extends State<T, M> {
   constructor(
+    name: string,
     private initialValue: T,
     private reducer: (message: M, current: T) => T,
     private query?: (actions: QueryActions<T>, nextValue?: M) => M
   ) {
-    super()
+    super(uniqueName(name))
   }
 
   [registerState](getOrCreate: <S, N>(state: State<S, N>) => ContainerController<S, N>): ContainerController<T, M> {
@@ -124,8 +131,8 @@ export class Container<T, M = T> extends State<T, M> {
 }
 
 export class Value<T, M = T> extends State<T, M> {
-  constructor(private derivation: (get: GetState, current: T | undefined) => M, private reducer: (message: M, current: T | undefined) => T) {
-    super()
+  constructor(name: string, private derivation: (get: GetState, current: T | undefined) => M, private reducer: (message: M, current: T | undefined) => T) {
+    super(uniqueName(name))
   }
 
   [registerState](getOrCreate: <S, N>(state: State<S, N>) => ContainerController<S, N>): ContainerController<T, M> {

@@ -57,16 +57,15 @@ const basicQuery: ConfigurableExample =
       ]
     }).andThen({
       perform: [
-        step("write a value to trigger the query", (context) => {
+        step("write a value to trigger the query, which just results in the same value", (context) => {
           context.writeTo(context.tokens.stringContainer, "something else!")
         })
       ],
       observe: [
-        effect("the subscriber gets the value that is produced by the query", (context) => {
+        effect("the subscriber does not receive a new message", (context) => {
           expect(context.valuesForSubscriber("sub-one"), is(equalTo([
             "hello",
             "even",
-            "even"
           ])))
         })
       ]
@@ -82,8 +81,6 @@ const basicQuery: ConfigurableExample =
           expect(context.valuesForSubscriber("sub-one"), is(equalTo([
             "hello",
             "even",
-            "even",
-            "even", // note that this is the change in dependency triggering a write
             "this is odd!"
           ])))
         })

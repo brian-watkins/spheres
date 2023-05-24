@@ -27,7 +27,11 @@ export class ContainerController<T, M = T> {
   }
 
   publishValue(value: M) {
-    this._value = this.reducer(value, this._value)
+    const updatedValue = this.reducer(value, this._value)
+   
+    if (Object.is(this._value, updatedValue)) return
+   
+    this._value = updatedValue
     this.dependents.forEach(notify => notify(this._value))
     this.subscribers.forEach(notify => notify(this._value))
   }

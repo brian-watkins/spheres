@@ -350,7 +350,7 @@ const deferredDependency: ConfigurableExample =
         step("the string state updates to hide the number state", (context) => {
           context.writeTo(context.tokens.stringState, "later")
         }),
-        step("the number state updates again", (context) => {
+        step("the number state updates again, which does not result in a new value", (context) => {
           context.writeTo(context.tokens.numberState, 14)
         })
       ],
@@ -360,7 +360,6 @@ const deferredDependency: ConfigurableExample =
             0,
             6,
             27,
-            0,
             0
           ])))
         })

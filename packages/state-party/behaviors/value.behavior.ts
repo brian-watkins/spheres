@@ -40,7 +40,7 @@ export default behavior("value with reducer", [
           context.writeTo(context.tokens.dependency, 5)
         }),
         step("the dependency is updated", (context) => {
-          context.writeTo(context.tokens.dependency, 5)
+          context.writeTo(context.tokens.dependency, 7)
         }),
         step("the dependency is updated", (context) => {
           context.writeTo(context.tokens.dependency, 2)

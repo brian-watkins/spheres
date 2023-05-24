@@ -28,9 +28,10 @@ const people = container({
 
 const shiftPeopleSelection = selection(people, ({ current }) => {
   const first = current.shift()
-  current.push(first!)
-
-  return current
+  if (!first) {
+    return current
+  }
+  return [ ...current, first ]
 })
 
 const incrementTicker = selection(ticker, ({ current }) => {

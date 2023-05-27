@@ -1,5 +1,6 @@
 import { container, GetState, write } from "state-party"
 import * as View from "@src/index.js"
+import { inputValue } from "@src/index.js"
 
 const numberState = container({ initialValue: 17 })
 
@@ -29,7 +30,7 @@ export default function (): View.View {
     View.hr([], []),
     View.input([
       View.data("number-input"),
-      View.onInput(value => write(numberState, Number(value)))
+      View.onInput(event => write(numberState, Number(inputValue(event))))
     ], [])
   ])
 }

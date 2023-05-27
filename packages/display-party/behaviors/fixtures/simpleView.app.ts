@@ -1,5 +1,6 @@
 import * as View from "@src/index.js"
-import { container, GetState, write } from "state-party"
+import { inputValue } from "@src/index.js"
+import { container, GetState, selection, store, write } from "state-party"
 
 const peopleState = container({
   initialValue: [
@@ -19,14 +20,18 @@ const peopleView = (get: GetState) => {
 
 const localState = container({ initialValue: "" })
 
-const updateButton = (get: GetState) =>
-  View.button([
-    View.onClick(write(peopleState, [{
-      name: get(localState),
-      age: 104
-    }]))
-  ], [View.text("Click me!")])
+const writePeople = selection(peopleState, ({ get }) => {
+  return [{
+    name: get(localState),
+    age: 104
+  }]
+})
 
+function updateButton() {
+  return View.button([
+    View.onClick(() => store(writePeople))
+  ], [View.text("Click me!")])
+}
 
 export default function (): View.View {
   return View.div([], [
@@ -36,8 +41,8 @@ export default function (): View.View {
     View.withState(peopleView),
     View.hr([], []),
     View.input([
-      View.onInput(value => write(localState, value))
+      View.onInput(event => write(localState, inputValue(event)))
     ], []),
-    View.withState(updateButton)
+    updateButton()
   ])
 }

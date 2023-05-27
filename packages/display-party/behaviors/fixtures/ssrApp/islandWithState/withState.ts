@@ -1,6 +1,6 @@
 import * as View from "@src/index.js"
 import { clickCount, nameState } from "../state.js"
-import { GetState, write } from "state-party"
+import { GetState, selection, store } from "state-party"
 
 export default View.withState((get) => {
   return View.div([ View.id("nested-state-island" )], [
@@ -15,10 +15,12 @@ export default View.withState((get) => {
   ])
 })
 
-function counterView(get: GetState) {
+const incrementCount = selection(clickCount, ({current}) => current + 1)
+
+function counterView() {
   return View.div([], [
     View.button([
-      View.onClick(write(clickCount, get(clickCount) + 1))
+      View.onClick(() => store(incrementCount))
     ], [
       View.text("Click me!")
     ])

@@ -45,11 +45,11 @@ const peopleView = (get: GetState) => {
     View.h1([], [View.text(`There are ${list.length} people!`)]),
     View.button([
       View.data("reorder"),
-      View.onClick(store(shiftPeopleSelection))
+      View.onClick(() => store(shiftPeopleSelection))
     ], [View.text("Reorder People")]),
     View.button([
       View.data("increment-ticker"),
-      View.onClick(store(incrementTicker))
+      View.onClick(() => store(incrementTicker))
     ], [View.text("Increment")]),
     View.hr([], []),
     View.ul([], list.map(personView))

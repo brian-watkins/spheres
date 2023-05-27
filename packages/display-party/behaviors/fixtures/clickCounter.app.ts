@@ -1,12 +1,14 @@
-import { GetState, container, write } from "state-party"
+import { GetState, container, selection, store } from "state-party"
 import * as View from "@src/index.js"
 
 const clickCount = container({ initialValue: 0 })
 
+const incrementCount = selection(clickCount, ({current}) => current + 1)
+
 const clickCounterView = (get: GetState) => {
   return View.div([], [
     View.button([
-      View.onClick(write(clickCount, get(clickCount) + 1))
+      View.onClick(() => store(incrementCount))
     ], [
       View.text("Click me!")
     ]),

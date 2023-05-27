@@ -117,14 +117,16 @@ export function cssClasses(classes: Array<CssClassname>): ViewAttribute {
 }
 
 
-export function onClick<M extends StoreMessage<any>>(message: M): ViewAttribute {
-  return new EventHandler("click", () => message)
+export function onClick<M extends StoreMessage<any>>(handler: <E extends Event>(evt: E) => M): ViewAttribute {
+  return new EventHandler("click", handler)
 }
 
-export function onInput<M extends StoreMessage<any>>(generator: (value: string) => M): ViewAttribute {
-  return new EventHandler("input", (evt) => {
-    return generator((<HTMLInputElement>evt.target)?.value)
-  })
+export function onInput<M extends StoreMessage<any>>(handler: <E extends Event>(evt: E) => M): ViewAttribute {
+  return new EventHandler("input", handler)
+}
+
+export function inputValue(event: Event): string {
+  return (<HTMLInputElement>event.target).value
 }
 
 export type ViewGenerator = (parent: View) => View

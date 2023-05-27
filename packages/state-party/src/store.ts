@@ -34,7 +34,7 @@ export interface SelectionActions<T> {
   current: T
 }
 
-export interface Selection<ContainerValue, ContainerMessage, SelectionArgument = undefined> {
+export interface Selection<ContainerValue, ContainerMessage, SelectionArgument = never> {
   readonly container: Container<ContainerValue, ContainerMessage>
   readonly query: (actions: SelectionActions<ContainerValue>, input: SelectionArgument) => ContainerMessage
 }

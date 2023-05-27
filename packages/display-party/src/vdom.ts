@@ -1,5 +1,5 @@
 import { attributesModule, Attrs, Classes, classModule, eventListenersModule, Hooks, init, Module, On, Props, propsModule, VNode } from "snabbdom";
-import { value, GetState, State, Store } from "state-party";
+import { value, GetState, State, Store, StoreMessage } from "state-party";
 
 // Tailored from Snabbdom VNode
 export interface View {
@@ -56,7 +56,7 @@ export class CssClasses {
 export class EventHandler {
   type: "event" = "event"
 
-  constructor(public event: string, public generator: (evt: Event) => any) { }
+  constructor(public event: string, public generator: (evt: Event) => StoreMessage<any, any>) { }
 }
 
 export class NoAttribute {
@@ -84,7 +84,7 @@ export function makeViewData(attributes: Array<ViewAttribute>): ViewData {
         dict.class = Object.assign(dict.class, attr.classObject)
         break
       case "event":
-        dict.on[attr.event] = function (evt: Event) {
+        dict.on[attr.event] = function <E extends Event>(evt: E) {
           evt.target?.dispatchEvent(new CustomEvent("displayMessage", {
             bubbles: true,
             cancelable: true,

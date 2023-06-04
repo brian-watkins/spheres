@@ -1,6 +1,9 @@
 import { Store, StoreMessage } from "state-party";
-import { createPatch } from "./vdom.js";
-import { View } from "./view.js";
+import { View, renderToDOM } from "./view.js";
+
+export function createDisplay(store: Store = new Store()): Display {
+  return new Display(store)
+}
 
 export class Display {
   private listener: (evt: Event) => void = () => { }
@@ -13,17 +16,15 @@ export class Display {
   }
 
   mount(element: Element, view: View): () => void {
-    const patch = createPatch(this.store)
-    const vnode = patch(element, view)
-    const mountPoint = vnode.elm as HTMLElement
-    mountPoint.addEventListener("displayMessage", this.listener)
+    const root = renderToDOM(this.store, element, view)
+    root.addEventListener("displayMessage", this.listener)
 
     return () => {
-      this.unmount(mountPoint)
+      this.unmount(root)
     }
   }
 
-  private unmount(element: HTMLElement) {
+  private unmount(element: Element) {
     element.removeEventListener("displayMessage", this.listener)
     element.remove()
   }

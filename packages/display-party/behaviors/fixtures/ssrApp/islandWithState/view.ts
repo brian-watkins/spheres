@@ -1,12 +1,14 @@
-import * as View from "@src/index.js"
+import { View, view } from "@src/index.js";
 import withStateIsland from "./withState.js"
 
-export default function (): View.View {
-  return View.div([], [
-    View.h1([], [
-      View.text("This is the click counter!")
-    ]),
-    withStateIsland
-  ])
+export default function (): View {
+  return view()
+    .div(el => {
+      el.view
+        .h1(el => {
+          el.view.text("THis is the click counter!")
+        })
+        .withView(withStateIsland)
+    })
 }
 

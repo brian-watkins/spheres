@@ -12,14 +12,14 @@ export class TestApp {
     this.changeRecords = []
 
     const viewConfiguration = await import(`../fixtures/${name}.ts`)
-    const view = viewConfiguration.default(context)
+    const view = viewConfiguration.default
     const appDisplay = new Display(store)
 
     const testAppMountPoint = document.createElement("div")
     testAppMountPoint.id = "test-display"
     document.body.appendChild(testAppMountPoint)
 
-    this.unmountTestApp = appDisplay.mount(testAppMountPoint, view)
+    this.unmountTestApp = appDisplay.mount(testAppMountPoint, view(context))
   }
 
   observe(selector: string) {

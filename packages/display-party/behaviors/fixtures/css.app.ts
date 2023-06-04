@@ -1,37 +1,39 @@
 import { container, GetState, write } from "state-party"
-import * as View from "@src/index.js"
-import { inputValue } from "@src/index.js"
+import { inputValue, View, view } from "@src/index.js"
 
 const numberState = container({ initialValue: 17 })
 
 const funView = (get: GetState) => {
-  return View.div([
-    View.id("cool-stuff"),
-    View.cssClasses([
-      "zoom",
-      get(numberState) % 2 == 0 ? "even" : "odd"
-    ])
-  ], [
-    View.text("This is some cool stuff!")
-  ])
+  return view()
+    .div(el => {
+      el.config
+        .id("cool-stuff")
+        .classes([
+          "zoom",
+          get(numberState) % 2 == 0 ? "even" : "odd"
+        ])
+      el.view
+        .text("This is some cool stuff!")
+    })
 }
 
-
-export default function (): View.View {
-  return View.div([], [
-    View.h1([
-      View.cssClasses([
-        "super-title"
-      ])
-    ], [
-      View.text("This is only a test!")
-    ]),
-    View.withState(funView),
-    View.hr([], []),
-    View.input([
-      View.data("number-input"),
-      View.onInput(event => write(numberState, Number(inputValue(event))))
-    ], [])
-  ])
+export default function (): View {
+  return view()
+    .div(el => {
+      el.view
+        .h1(el => {
+          el.config
+            .classes([ "super-title" ])
+          el.view
+            .text("This is only a test!")
+        })
+        .withState(funView)
+        .hr()
+        .input(el => {
+          el.config
+            .dataAttribute("number-input")
+            .onInput(evt => write(numberState, Number(inputValue(evt))))
+        })
+    })
 }
 

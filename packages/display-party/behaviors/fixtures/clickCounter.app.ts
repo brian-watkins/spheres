@@ -1,29 +1,31 @@
+import { view } from "@src/index.js"
 import { GetState, container, selection, store } from "state-party"
-import * as View from "@src/index.js"
 
 const clickCount = container({ initialValue: 0 })
 
-const incrementCount = selection(clickCount, ({current}) => current + 1)
+const incrementCount = selection(clickCount, ({ current }) => current + 1)
 
 const clickCounterView = (get: GetState) => {
-  return View.div([], [
-    View.button([
-      View.onClick(() => store(incrementCount))
-    ], [
-      View.text("Click me!")
-    ]),
-    View.p([View.data("click-count")], [
-      View.text(`You've clicked the button ${get(clickCount)} times!`)
-    ])
-  ])
+  return view()
+    .div(div => {
+      div.view
+        .button(b => {
+          b.config.onClick(() => store(incrementCount))
+          b.view.text("Click me!")
+        })
+        .p(p => {
+          p.config.dataAttribute("click-count")
+          p.view.text(`You've click the button ${get(clickCount)} times!`)
+        })
+    })
 }
 
-export default function (): View.View {
-  return View.div([], [
-    View.h1([], [
-      View.text("This is the click counter!")
-    ]),
-    View.withState(clickCounterView)
-  ])
+export default function () {
+  return view()
+    .div(div => {
+      div.view
+        .h1(h1 => h1.view.text("This is the click counter!"))
+        .withState(clickCounterView)
+    })
 }
 

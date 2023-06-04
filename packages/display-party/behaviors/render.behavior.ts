@@ -1,4 +1,4 @@
-import { render, View } from "../src/index.js";
+import { renderToString, View } from "../src/index.js";
 import { behavior, effect, example, Example } from "esbehavior";
 import { equalTo, expect, is } from "great-expectations";
 import { appWithDataAttributesNoValue, appWithDeeplyNestedState, appWithInnerHTML, appWithNestedState, appWithPropertiesAndAttributes, appWithSimpleState, staticApp } from "./fixtures/static.app.js";
@@ -39,15 +39,16 @@ class TestRenderer {
   private store = new Store()
 
   async renderView(view: View): Promise<string> {
-    return render(this.store, view)
+    return renderToString(this.store, view)
   }
 }
 
 function renderTest(description: string, generator: (renderer: TestRenderer) => void): Example {
   return example({ init: () => new TestRenderer() })
+  .description(description)
     .script({
       observe: [
-        effect(description, generator)
+        effect("it produces the expected string representation", generator)
       ]
     })
 }

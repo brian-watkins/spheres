@@ -1,12 +1,11 @@
-import * as View from "@src/index.js"
+import { View, view } from "@src/index.js";
 import superIsland from "./nestedIsland.js"
 
-export default function (): View.View {
-  return View.div([], [
-    View.h1([], [
-      View.text("This is the click counter!")
-    ]),
-    superIsland
-  ])
+export default function(): View {
+  return view()
+    .div(el => {
+      el.view
+        .h1(el => el.view.text("This is the click counter!"))
+        .withView(superIsland)
+    })
 }
-

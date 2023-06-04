@@ -1,147 +1,205 @@
-import { GetState, State, StoreMessage } from "state-party";
-import { Attribute, CssClasses, CssClassname, EventHandler, Key, makeNode, makeViewData, NoAttribute, Property, statefulView, StatefulViewOptions, View, ViewAttribute } from "./vdom.js";
-export type { View, ViewAttribute } from "./vdom.js"
+import { GetState, State, Store, StoreMessage } from "state-party"
+import { EventHandler, Attribute, CssClasses, CssClassname, VirtualNode, VirtualNodeAttribute, makeFragment, makeVirtualNode, makeVirtualTextNode, makeStatefulVirtualNode, createDOMRenderer, Key, Property } from "./vdom.js"
+import { ViewElements } from "./htmlElements.js"
+import { createStringRenderer } from "./render.js"
 
 
-export function property(name: string, value: string): ViewAttribute {
-  return new Property(name, value)
+const getVirtualNodeAttributes = Symbol("getAllAttributes")
+
+export interface SpecialAttributes {
+  key(value: string | number | State<any>): this
+  classes(classes: Array<string>): this
+  dataAttribute(name: string, value?: string): this
+  property(name: string, value: string): this
+  [getVirtualNodeAttributes](): Array<VirtualNodeAttribute>
 }
 
-export function id(value: string): ViewAttribute {
-  return new Property("id", value)
-}
+class AttributesCollection implements SpecialAttributes {
+  attributes: Array<VirtualNodeAttribute> = []
 
-export function key(value: string | number | State<any>): ViewAttribute {
-  return new Key(`${value}`)
-}
-
-export function data(name: string, value: string = "true"): ViewAttribute {
-  return new Attribute(`data-${name}`, value)
-}
-
-export function value(value: string): ViewAttribute {
-  return new Attribute("value", value)
-}
-
-export function disabled(isDisabled: boolean): ViewAttribute {
-  return isDisabled ? new Attribute("disabled", "") : new NoAttribute()
-}
-
-export function href(value: string): ViewAttribute {
-  return new Attribute("href", value)
-}
-
-export function text(value: string): View {
-  return makeNode(undefined, undefined, undefined, value)
-}
-
-export function element(tag: string, attributes: Array<ViewAttribute>, children: Array<View>): View {
-  return makeNode(tag, makeViewData(attributes), children)
-}
-
-export function div(attributes: Array<ViewAttribute>, children: Array<View>): View {
-  return element("div", attributes, children)
-}
-
-export function h1(attributes: Array<ViewAttribute>, children: Array<View>): View {
-  return element("h1", attributes, children)
-}
-
-export function h2(attributes: Array<ViewAttribute>, children: Array<View>): View {
-  return element("h2", attributes, children)
-}
-
-export function h3(attributes: Array<ViewAttribute>, children: Array<View>): View {
-  return element("h3", attributes, children)
-}
-
-export function h4(attributes: Array<ViewAttribute>, children: Array<View>): View {
-  return element("h4", attributes, children)
-}
-
-export function h5(attributes: Array<ViewAttribute>, children: Array<View>): View {
-  return element("h5", attributes, children)
-}
-
-export function h6(attributes: Array<ViewAttribute>, children: Array<View>): View {
-  return element("h6", attributes, children)
-}
-
-export function hr(attributes: Array<ViewAttribute>, children: Array<View>): View {
-  return element("hr", attributes, children)
-}
-
-export function article(attributes: Array<ViewAttribute>, children: Array<View>): View {
-  return element("article", attributes, children)
-}
-
-export function section(attributes: Array<ViewAttribute>, children: Array<View>): View {
-  return element("section", attributes, children)
-}
-
-export function p(attributes: Array<ViewAttribute>, children: Array<View>): View {
-  return element("p", attributes, children)
-}
-
-export function ul(attributes: Array<ViewAttribute>, children: Array<View>): View {
-  return element("ul", attributes, children)
-}
-
-export function li(attributes: Array<ViewAttribute>, children: Array<View>): View {
-  return element("li", attributes, children)
-}
-
-export function a(attributes: Array<ViewAttribute>, children: Array<View>): View {
-  return element("a", attributes, children)
-}
-
-export function input(attributes: Array<ViewAttribute>, children: Array<View>): View {
-  return element("input", attributes, children)
-}
-
-export function button(attributes: Array<ViewAttribute>, children: Array<View>): View {
-  return element("button", attributes, children)
-}
-
-export function textarea(attributes: Array<ViewAttribute>, children: Array<View>): View {
-  return element("textarea", attributes, children)
-}
-
-export function cssClasses(classes: Array<CssClassname>): ViewAttribute {
-  const classObject: { [key: CssClassname]: boolean } = {}
-  for (const classname of classes) {
-    classObject[classname] = true
+  addAttribute(name: string, value: string) {
+    this.attributes.push(new Attribute(name, value))
   }
 
-  return new CssClasses(classObject)
+  property(name: string, value: string): this {
+    this.attributes.push(new Property(name, value))
+    return this
+  }
+
+  addEventHandler(name: string, handler: (evt: Event) => StoreMessage<any, any>) {
+    this.attributes.push(new EventHandler(name, handler))
+  }
+
+  key(value: string | number | State<any, any>): this {
+    this.attributes.push(new Key(`${value}`))
+    return this
+  }
+
+  classes(classes: string[]): this {
+    const classObject: { [key: CssClassname]: boolean } = {}
+    for (const classname of classes) {
+      classObject[classname] = true
+    }
+
+    this.attributes.push(new CssClasses(classObject))
+    return this
+  }
+
+  dataAttribute(name: string, value: string = "true"): this {
+    this.attributes.push(new Attribute(`data-${name}`, value))
+    return this
+  }
+
+  disabled(isDisabled: boolean): this {
+    if (isDisabled) {
+      this.addAttribute("disabled", "disabled")
+    }
+
+    return this
+  }
+
+  [getVirtualNodeAttributes](): VirtualNodeAttribute[] {
+    return this.attributes
+  }
 }
 
-
-export function onClick<M extends StoreMessage<any>>(handler: <E extends Event>(evt: E) => M): ViewAttribute {
-  return new EventHandler("click", handler)
+function makeElementConfig<A>(): A {
+  return new Proxy(new AttributesCollection(), {
+    get: (target, prop: string, receiver) => {
+      if (Reflect.has(target, prop)) {
+        return Reflect.get(target, prop, receiver)
+      } else if (prop.startsWith("on")) {
+        return (handler: <E extends Event>(evt: E) => StoreMessage<any>) => {
+          const eventName = prop.substring(2).toLowerCase()
+          target.addEventHandler(eventName, handler)
+          return receiver
+        }
+      } else {
+        return (value: string) => {
+          target.addAttribute(prop, value)
+          return receiver
+        }
+      }
+    }
+  }) as A
 }
 
-export function onInput<M extends StoreMessage<any>>(handler: <E extends Event>(evt: E) => M): ViewAttribute {
-  return new EventHandler("input", handler)
+export type ViewGenerator = () => View
+
+export function renderToDOM(store: Store, element: Element, view: View): Element {
+  const render = createDOMRenderer(store)
+  return render(element, view[toVirtualNode]())
 }
 
-export function inputValue(event: Event): string {
-  return (<HTMLInputElement>event.target).value
+export function renderToString(store: Store, view: View): Promise<string> {
+  const render = createStringRenderer(store)
+  return render(view[toVirtualNode]())
 }
 
-export type ViewGenerator = (parent: View) => View
+const toVirtualNode = Symbol("toVirtualNode")
+const getVirtualNodes = Symbol("getVirtualNodes")
+
+export interface View extends ViewElements {
+  [toVirtualNode](): VirtualNode
+}
+
+interface ElementChildren extends ViewElements {
+  [getVirtualNodes](): Array<VirtualNode>
+}
 
 export interface WithStateOptions {
   key?: string | State<any>
 }
 
-export function withState(options: WithStateOptions, generator: (get: GetState) => View): View
-export function withState(generator: (get: GetState) => View): View
-export function withState(optionsOrGenerator: StatefulViewOptions | ((get: GetState) => View), generator?: (get: GetState) => View): View {
-  if (typeof optionsOrGenerator === "function") {
-    return statefulView("view-fragment", {}, optionsOrGenerator as (get: GetState) => View)
-  } else {
-    const options = optionsOrGenerator as WithStateOptions
-    return statefulView("view-fragment", options, generator!)
+export interface SpecialElements {
+  text(value: string): this
+  withView(view: View): this
+  withState(generator: (get: GetState) => View): this
+}
+
+class BaseElementCollection implements SpecialElements {
+  nodes: Array<VirtualNode> = []
+
+  text(value: string): this {
+    this.nodes.push(makeVirtualTextNode(value))
+    return this
   }
+
+  withView(view: View): this {
+    this.nodes.push(view[toVirtualNode]())
+    return this
+  }
+
+  withState(definition: (get: GetState) => View): this {
+    const node = makeStatefulVirtualNode("view-with-state", {}, (get) => definition(get)[toVirtualNode]())
+    this.nodes.push(node)
+
+    return this
+  }
+
+  addElement(tag: string, builder?: <A extends SpecialAttributes>(element: ViewElement<A>) => void) {
+    const element = new ViewElement(tag)
+    builder?.(element)
+    this.nodes.push(element[toVirtualNode]())
+  }
+}
+
+export function view(): View {
+  return new Proxy(new BaseElementCollection(), {
+    get: (target, prop, receiver) => {
+      if (Reflect.has(target, prop)) {
+        return Reflect.get(target, prop, receiver)
+      } else if (prop === toVirtualNode) {
+        return () => {
+          if (target.nodes.length == 1) {
+            return target.nodes[0]
+          } else {
+            return makeFragment(target.nodes)
+          }
+        }
+      } else {
+        return (builder: <A extends SpecialAttributes>(element: ViewElement<A>) => void) => {
+          target.addElement(prop as string, builder)
+          return receiver
+        }
+      }
+    }
+  }) as unknown as View
+}
+
+function elementChildren(): ElementChildren {
+  return new Proxy(new BaseElementCollection(), {
+    get: (target, prop, receiver) => {
+      if (Reflect.has(target, prop)) {
+        return Reflect.get(target, prop, receiver)
+      } else if (prop === getVirtualNodes) {
+        return () => target.nodes
+      } else {
+        return (builder: <A extends SpecialAttributes>(element: ViewElement<A>) => void) => {
+          target.addElement(prop as string, builder)
+          return receiver
+        }
+      }
+    }
+  }) as unknown as ElementChildren
+}
+
+
+export class ViewElement<A extends SpecialAttributes> {
+  config = makeElementConfig<A>()
+  private children = elementChildren()
+
+  constructor(private tag?: string) { }
+
+  get view(): ViewElements {
+    return this.children
+  }
+
+  [toVirtualNode](): VirtualNode {
+    return makeVirtualNode(this.tag, this.config[getVirtualNodeAttributes](), this.children[getVirtualNodes]())
+  }
+}
+
+export function inputValue(event: Event): string {
+  return (<HTMLInputElement>event.target).value
 }

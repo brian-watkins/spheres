@@ -1,19 +1,23 @@
-import * as View from "@src/index.js"
+import { View, view } from "@src/index.js"
 
 export interface InputAppProps {
   defaultInputValue: string
 }
 
-export default function(context: InputAppProps): View.View {
-  return View.div([], [
-    View.input([
-      View.data("with-default"),
-      View.value(context.defaultInputValue),
-      View.disabled(false)
-    ], []),
-    View.input([
-      View.data("disabled"),
-      View.disabled(true)
-    ], [])
-  ])
+export default function(context: InputAppProps): View {
+  return view()
+    .div(el => {
+      el.view
+        .input(el => {
+          el.config
+            .dataAttribute("with-default")
+            .value(context.defaultInputValue)
+            .disabled(false)
+        })
+        .input(el => {
+          el.config
+            .dataAttribute("disabled")
+            .disabled(true)
+        })
+    })
 }

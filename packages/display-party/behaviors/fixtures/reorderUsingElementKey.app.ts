@@ -1,5 +1,5 @@
+import { View, view } from "@src/index.js";
 import { selection, container, store, GetState, State } from "state-party";
-import * as View from "@src/index.js"
 
 interface Person {
   name: string
@@ -41,37 +41,54 @@ const incrementTicker = selection(ticker, ({ current }) => {
 const peopleView = (get: GetState) => {
   const list = get(people)
 
-  return View.div([], [
-    View.h1([], [View.text(`There are ${list.length} people!`)]),
-    View.button([
-      View.data("reorder"),
-      View.onClick(() => store(shiftPeopleSelection))
-    ], [View.text("Reorder People")]),
-    View.button([
-      View.data("increment-ticker"),
-      View.onClick(() => store(incrementTicker))
-    ], [View.text("Increment")]),
-    View.hr([], []),
-    View.ul([], list.map(personView))
-  ])
+  return view()
+    .div(el => {
+      el.view
+        .h1(el => {
+          el.view.text(`There are ${list.length} people!`)
+        })
+        .button(el => {
+          el.config
+            .dataAttribute("reorder")
+            .onClick(() => store(shiftPeopleSelection))
+          el.view
+            .text("Reorder People")
+        })
+        .button(el => {
+          el.config
+            .dataAttribute("increment-ticker")
+            .onClick(() => store(incrementTicker))
+          el.view
+            .text("Increment")
+        })
+        .hr()
+        .ul(el => {
+          for (const person of list) {
+            el.view.withView(personView(person))
+          }
+        })
+    })
 }
 
-function personView(person: State<Person>): View.View {
-  return View.li([
-    View.key(person)
-  ], [
-    View.withState(get => (
-      View.h1([View.data("person")], [
-        View.text(`${get(person).name} is ${get(person).age} years old: ${get(ticker)}`)
-      ])
-    ))
-  ])
+function personView(person: State<Person>): View {
+  return view()
+    .li(el => {
+      el.config.key(person)
+      el.view
+        .withState(get => {
+          return view()
+            .h1(el => {
+              el.config.dataAttribute("person")
+              el.view.text(`${get(person).name} is ${get(person).age} years old: ${get(ticker)}`)
+            })
+        })
+    })
 }
 
-export default function (): View.View {
-  return View.div([
-    View.id("reorder-list")
-  ], [
-    View.withState(peopleView)
-  ])
+export default function (): View {
+  return view()
+    .div(el => {
+      el.config.id("reorder-list")
+      el.view.withState(peopleView)
+    })
 }

@@ -1,5 +1,5 @@
-import * as View from "@src/index.js"
+import { createDisplay } from "@src/index.js"
 import withStateIsland from "./withState.js"
 
-const display = View.createDisplay()
+const display = createDisplay()
 display.mount(document.getElementById("nested-state-island")!, withStateIsland)

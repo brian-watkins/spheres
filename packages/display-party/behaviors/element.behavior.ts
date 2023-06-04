@@ -8,28 +8,13 @@ export default (context: Context<TestAppController>) => behavior("View Elements"
     .script({
       suppose: [
         fact("there is a view with all the elements", async (controller) => {
-          await controller.loadApp("element.app")
+          await controller.loadApp("elements.app")
         })
       ],
       observe: [
-        theElementExists("DIV"),
-        theElementExists("ARTICLE"),
-        theElementExists("SECTION"),
-        theElementExists("P"),
-        theElementExists("H1"),
-        theElementExists("H2"),
-        theElementExists("H3"),
-        theElementExists("H4"),
-        theElementExists("H5"),
-        theElementExists("H6"),
-        theElementExists("HR"),
-        theElementExists("UL"),
-        theElementExists("LI"),
-        theElementExists("INPUT"),
-        theElementExists("BUTTON"),
-        theElementExists("some-custom-element"),
-        theElementExists("TEXTAREA"),
-        theElementExists("A[href='http://blah.blah']")
+        theElementExists("DIV#funny-id"),
+        theElementHasText("DIV P.super-class", "This is text"),
+        theElementExists("h3[data-title]")
       ]
     })
 ])
@@ -37,6 +22,13 @@ export default (context: Context<TestAppController>) => behavior("View Elements"
 function theElementExists(tag: string): Observation<TestAppController> {
   return effect(`there is a ${tag} element`, async (context) => {
     const hasElement = await context.display.select(tag).exists()
-    expect(hasElement, is(equalTo(true)))
+    expect(hasElement, is(equalTo(true)), `the ${tag} element exists`)
+  })
+}
+
+function theElementHasText(tag: string, text: string): Observation<TestAppController> {
+  return effect(`there is a ${tag} element with text`, async (context) => {
+    const elementText = await context.display.select(tag).text()
+    expect(elementText, is(equalTo(text)))
   })
 }

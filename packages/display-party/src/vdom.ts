@@ -2,27 +2,27 @@ import { attributesModule, Attrs, Classes, classModule, eventListenersModule, Ho
 import { value, GetState, State, Store, StoreMessage } from "state-party";
 
 // Tailored from Snabbdom VNode
-export interface View {
+export interface VirtualNode {
   sel: string | undefined;
-  data: ViewData | undefined;
-  children: Array<View> | undefined;
+  data: VirtualNodeConfig | undefined;
+  children: Array<VirtualNode> | undefined;
   elm: Node | undefined;
   text: string | undefined;
   key: string | undefined;
 }
 
 // Tailored from Snabbdom VNodeData
-export interface ViewData {
+interface VirtualNodeConfig {
   props?: Props;
   attrs?: Attrs;
   class?: Classes;
   on?: On;
-  hook?: Hooks & { render?: (store: Store, vnode: View) => Promise<View> };
+  hook?: Hooks & { render?: (store: Store, vnode: VirtualNode) => Promise<VirtualNode> };
   key?: string;
   storeContext?: StoreContext
 }
 
-export interface StoreContext {
+interface StoreContext {
   store?: Store
   unsubscribe: () => void
 }
@@ -59,13 +59,9 @@ export class EventHandler {
   constructor(public event: string, public generator: (evt: Event) => StoreMessage<any, any>) { }
 }
 
-export class NoAttribute {
-  type: "no-attribute" = "no-attribute"
-}
+export type VirtualNodeAttribute = Property | Attribute | EventHandler | CssClasses | Key
 
-export type ViewAttribute = Property | Attribute | EventHandler | CssClasses | Key | NoAttribute
-
-export function makeViewData(attributes: Array<ViewAttribute>): ViewData {
+export function makeVirtualNodeConfig(attributes: Array<VirtualNodeAttribute>): VirtualNodeConfig {
   const dict: any = {
     props: {},
     attrs: {},
@@ -95,8 +91,6 @@ export function makeViewData(attributes: Array<ViewAttribute>): ViewData {
       case "key":
         dict.key = attr.key
         break
-      case "no-attribute":
-        break
       default:
         exhaustiveMatchGuard(attr)
     }
@@ -118,7 +112,7 @@ function contextModule(mapper: (context: StoreContext) => StoreContext): Module 
   }
 }
 
-export function createPatch(store: Store) {
+function createPatch(store: Store) {
   return init([
     contextModule((storeContext) => {
       storeContext.store = store
@@ -128,62 +122,105 @@ export function createPatch(store: Store) {
     attributesModule,
     classModule,
     eventListenersModule,
-  ])
+  ], undefined, {
+    experimental: {
+      fragments: true
+    }
+  })
 }
 
-export function makeNode(tag: string | undefined, data: ViewData | undefined, children?: Array<View>, text?: string): View {
-  // See Snabbdom src/h.ts and src/vnode.ts
-  // We are not supporting SVG at the moment but otherwise this should work
-  return {
-    sel: tag,
-    data,
-    children,
-    text,
-    elm: undefined,
-    key: data?.key
+export type DOMRenderer = (element: Element, node: VirtualNode) => Element
+
+export function createDOMRenderer(store: Store): DOMRenderer {
+  const patch = createPatch(store)
+  return (element, node) => {
+    const rootNode = patch(element, node)
+    if (rootNode.elm instanceof DocumentFragment) {
+      // @ts-ignore
+      return rootNode.elm.parent
+    } else {
+      return rootNode.elm
+    }
   }
 }
 
-export interface StatefulViewOptions {
+export function makeVirtualNode(tag: string | undefined, attributes: Array<VirtualNodeAttribute>, children: Array<VirtualNode>): VirtualNode {
+  // See Snabbdom src/h.ts and src/vnode.ts
+  // We are not supporting SVG at the moment but otherwise this should work
+  const config = makeVirtualNodeConfig(attributes)
+  return {
+    sel: tag,
+    data: config,
+    children,
+    text: undefined,
+    elm: undefined,
+    key: config?.key
+  }
+}
+
+export function makeVirtualTextNode(text: string): VirtualNode {
+  // See Snabbdom src/h.ts and src/vnode.ts
+  return {
+    sel: undefined,
+    data: undefined,
+    children: undefined,
+    text,
+    elm: undefined,
+    key: undefined
+  }
+}
+
+export function makeFragment(children: Array<VirtualNode>): VirtualNode {
+  // following Snabbdom src/h.ts
+  return makeVirtualNode(undefined, [], children)
+}
+
+export interface StatefulVirtualNodeOptions {
   key?: string | State<any>
 }
 
-export function statefulView(tag: string, options: StatefulViewOptions, generator: (get: GetState) => View): View {
-  return makeNode(tag, {
-    key: options.key?.toString(),
-    storeContext: {
-      unsubscribe: () => { }
-    },
-    hook: {
-      create: (_, vnode) => {
-        const token = value({ query: generator })
-        const store: Store = vnode.data!.storeContext.store
-
-        const patch = createPatch(store)
-
-        let oldNode: VNode | Element = vnode.elm as Element
-
-        vnode.data!.storeContext.unsubscribe = store.subscribe(token, (updatedView) => {
-          oldNode = patch(oldNode, updatedView)
-          vnode.elm = oldNode.elm
-        })
+export function makeStatefulVirtualNode(tag: string, options: StatefulVirtualNodeOptions, generator: (get: GetState) => VirtualNode): VirtualNode {
+  return {
+    sel: tag,
+    data: {
+      storeContext: {
+        unsubscribe: () => { }
       },
-      postpatch: (oldVNode, vNode) => {
-        vNode.data!.storeContext = oldVNode.data!.storeContext
-      },
-      destroy: (vnode) => {
-        vnode.data!.storeContext.unsubscribe()
-      },
-      render: (store) => {
-        const token = value({ query: generator })
+      hook: {
+        create: (_, vnode) => {
+          const token = value({ query: generator })
+          const store: Store = vnode.data!.storeContext.store
 
-        return new Promise((resolve) => {
-          const unsubscribe = store.subscribe(token, (view) => {
-            resolve(view)
-            unsubscribe()
+          const patch = createPatch(store)
+
+          let oldNode: VNode | Element = vnode.elm as Element
+
+          vnode.data!.storeContext.unsubscribe = store.subscribe(token, (updatedNode) => {
+            oldNode = patch(oldNode, updatedNode)
+            vnode.elm = oldNode.elm
           })
-        })
+        },
+        postpatch: (oldVNode, vNode) => {
+          vNode.data!.storeContext = oldVNode.data!.storeContext
+        },
+        destroy: (vnode) => {
+          vnode.data!.storeContext.unsubscribe()
+        },
+        render: (store) => {
+          const token = value({ query: generator })
+
+          return new Promise((resolve) => {
+            const unsubscribe = store.subscribe(token, (node) => {
+              resolve(node)
+              unsubscribe()
+            })
+          })
+        }
       }
-    }
-  })
+    },
+    children: undefined,
+    elm: undefined,
+    text: undefined,
+    key: options.key?.toString()
+  }
 }

@@ -16,16 +16,12 @@ export class Display {
   }
 
   mount(element: Element, view: View): () => void {
-    const root = renderToDOM(this.store, element, view)
-    root.addEventListener("displayMessage", this.listener)
+    const renderResult = renderToDOM(this.store, element, view)
+    renderResult.root.addEventListener("displayMessage", this.listener)
 
     return () => {
-      this.unmount(root)
+      renderResult.root.removeEventListener("displayMessage", this.listener)
+      renderResult.unmount()
     }
-  }
-
-  private unmount(element: Element) {
-    element.removeEventListener("displayMessage", this.listener)
-    element.remove()
   }
 }

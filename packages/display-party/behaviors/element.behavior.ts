@@ -1,6 +1,7 @@
-import { behavior, Context, effect, example, fact, Observation } from "esbehavior";
+import { behavior, Context, effect, example, fact } from "esbehavior";
 import { equalTo, expect, is } from "great-expectations";
 import { TestAppController } from "./helpers/testAppController.js";
+import { theElementExists, theElementHasText } from "./helpers/effects.js";
 
 export default (context: Context<TestAppController>) => behavior("View Elements", [
   example(context)
@@ -22,17 +23,3 @@ export default (context: Context<TestAppController>) => behavior("View Elements"
       ]
     })
 ])
-
-function theElementExists(tag: string): Observation<TestAppController> {
-  return effect(`there is a ${tag} element`, async (context) => {
-    const hasElement = await context.display.select(tag).exists()
-    expect(hasElement, is(equalTo(true)), `the ${tag} element exists`)
-  })
-}
-
-function theElementHasText(tag: string, text: string): Observation<TestAppController> {
-  return effect(`there is a ${tag} element with text`, async (context) => {
-    const elementText = await context.display.select(tag).text()
-    expect(elementText, is(equalTo(text)))
-  })
-}

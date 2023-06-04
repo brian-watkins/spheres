@@ -1,8 +1,8 @@
-import { attributesModule, Attrs, Classes, classModule, eventListenersModule, Hooks, init, Module, On, Props, propsModule, VNode } from "snabbdom";
-import { value, GetState, Store, StoreMessage } from "state-party";
+import { Attrs, Classes, Hooks, On, Props, VNode } from "snabbdom";
+import { GetState, Store, StoreMessage } from "state-party";
 
 // Tailored from Snabbdom VNode
-export interface VirtualNode {
+export interface VirtualNode extends VNode {
   sel: string | undefined;
   data: VirtualNodeConfig | undefined;
   children: Array<VirtualNode> | undefined;
@@ -22,9 +22,10 @@ interface VirtualNodeConfig {
   storeContext?: StoreContext
 }
 
-interface StoreContext {
-  store?: Store
-  unsubscribe: () => void
+export interface StoreContext {
+  // store?: Store
+  generator: (get: GetState) => VirtualNode
+  unsubscribe?: () => void
 }
 
 export class Property {
@@ -59,7 +60,13 @@ export class EventHandler {
   constructor(public event: string, public generator: (evt: Event) => StoreMessage<any, any>) { }
 }
 
-export type VirtualNodeAttribute = Property | Attribute | EventHandler | CssClasses | Key
+export class StatefulGenerator {
+  type: "stateful" = "stateful"
+
+  constructor(public generator: (get: GetState) => VirtualNode) { }
+}
+
+export type VirtualNodeAttribute = Property | Attribute | EventHandler | CssClasses | Key | StatefulGenerator
 
 export function makeVirtualNodeConfig(attributes: Array<VirtualNodeAttribute>): VirtualNodeConfig {
   const dict: any = {
@@ -91,6 +98,11 @@ export function makeVirtualNodeConfig(attributes: Array<VirtualNodeAttribute>): 
       case "key":
         dict.key = attr.key
         break
+      case "stateful":
+        dict.storeContext = {
+          generator: attr.generator
+        }
+        break
       default:
         exhaustiveMatchGuard(attr)
     }
@@ -100,48 +112,6 @@ export function makeVirtualNodeConfig(attributes: Array<VirtualNodeAttribute>): 
 
 function exhaustiveMatchGuard(_: never) {
   throw new Error("Should never get here!")
-}
-
-function contextModule(mapper: (context: StoreContext) => StoreContext): Module {
-  return {
-    create: (_, vnode) => {
-      if (vnode.data?.storeContext) {
-        vnode.data.storeContext = mapper(vnode.data.storeContext)
-      }
-    }
-  }
-}
-
-function createPatch(store: Store) {
-  return init([
-    contextModule((storeContext) => {
-      storeContext.store = store
-      return storeContext
-    }),
-    propsModule,
-    attributesModule,
-    classModule,
-    eventListenersModule,
-  ], undefined, {
-    experimental: {
-      fragments: true
-    }
-  })
-}
-
-export type DOMRenderer = (element: Element, node: VirtualNode) => Element
-
-export function createDOMRenderer(store: Store): DOMRenderer {
-  const patch = createPatch(store)
-  return (element, node) => {
-    const rootNode = patch(element, node)
-    if (rootNode.elm instanceof DocumentFragment) {
-      // @ts-ignore
-      return rootNode.elm.parent
-    } else {
-      return rootNode.elm
-    }
-  }
 }
 
 export function makeVirtualNode(tag: string | undefined, attributes: Array<VirtualNodeAttribute>, children: Array<VirtualNode>): VirtualNode {
@@ -173,50 +143,4 @@ export function makeVirtualTextNode(text: string): VirtualNode {
 export function makeFragment(children: Array<VirtualNode>): VirtualNode {
   // following Snabbdom src/h.ts
   return makeVirtualNode(undefined, [], children)
-}
-
-export function makeStatefulVirtualNode(tag: string, generator: (get: GetState) => VirtualNode): VirtualNode {
-  return {
-    sel: tag,
-    data: {
-      storeContext: {
-        unsubscribe: () => { }
-      },
-      hook: {
-        create: (_, vnode) => {
-          const token = value({ query: generator })
-          const store: Store = vnode.data!.storeContext.store
-
-          const patch = createPatch(store)
-
-          let oldNode: VNode | Element = vnode.elm as Element
-
-          vnode.data!.storeContext.unsubscribe = store.subscribe(token, (updatedNode) => {
-            oldNode = patch(oldNode, updatedNode)
-            vnode.elm = oldNode.elm
-          })
-        },
-        postpatch: (oldVNode, vNode) => {
-          vNode.data!.storeContext = oldVNode.data!.storeContext
-        },
-        destroy: (vnode) => {
-          vnode.data!.storeContext.unsubscribe()
-        },
-        render: (store) => {
-          const token = value({ query: generator })
-
-          return new Promise((resolve) => {
-            const unsubscribe = store.subscribe(token, (node) => {
-              resolve(node)
-              unsubscribe()
-            })
-          })
-        }
-      }
-    },
-    children: undefined,
-    elm: undefined,
-    text: undefined,
-    key: undefined
-  }
 }

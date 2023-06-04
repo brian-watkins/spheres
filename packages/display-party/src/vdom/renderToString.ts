@@ -1,7 +1,7 @@
 import init from "snabbdom-to-html/init.js"
 import modules from "snabbdom-to-html/modules/index.js"
-import { Store } from "state-party";
-import { VirtualNode } from "./vdom.js";
+import { GetState, Store, value } from "state-party";
+import { VirtualNode } from "./virtualNode.js";
 
 export type StringRenderer = (node: VirtualNode) => Promise<string>
 
@@ -14,15 +14,15 @@ export function createStringRenderer(store: Store): StringRenderer {
 
   return async (node) => {
     const tree = await realizeVirtualTree(store, node)
-    return toHTML(tree)  
+    return toHTML(tree)
   }
 }
 
 async function realizeVirtualTree(store: Store, node: VirtualNode): Promise<VirtualNode> {
   let tree = node
 
-  if (node.data?.hook?.render) {
-    tree = await node.data.hook.render(store, node)
+  if (node.data?.storeContext) {
+    tree = await getStatefulTree(store, node.data!.storeContext!.generator)
     return await realizeVirtualTree(store, tree)
   }
 
@@ -36,4 +36,15 @@ async function realizeVirtualTree(store: Store, node: VirtualNode): Promise<Virt
   }
 
   return tree
+}
+
+async function getStatefulTree(store: Store, generator: (get: GetState) => VirtualNode): Promise<VirtualNode> {
+  const token = value({ query: generator })
+
+  return new Promise((resolve) => {
+    const unsubscribe = store.subscribe(token, (node) => {
+      resolve(node)
+      unsubscribe()
+    })
+  })
 }

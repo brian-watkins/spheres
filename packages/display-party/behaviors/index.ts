@@ -10,6 +10,7 @@ import renderBehavior from "./render.behavior.js";
 import viewBehavior from "./view.behavior.js";
 import clientActivationBehavior from "./clientActivation.behavior.js";
 import { fixStackTrace } from "./helpers/stackTrace.js";
+import fragmentBehavior from "./fragment.behavior.js";
 
 export async function validateBehaviors(browser: Browser, serverHost: string, options: DisplayBehaviorOptions): Promise<Summary> {
   
@@ -23,6 +24,7 @@ export async function validateBehaviors(browser: Browser, serverHost: string, op
   
   return validate([
     elementBehavior(appContext),
+    fragmentBehavior(appContext),
     viewBehavior(appContext),
     cssBehavior(appContext),
     eventBehavior(appContext),

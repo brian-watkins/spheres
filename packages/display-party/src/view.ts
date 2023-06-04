@@ -1,13 +1,35 @@
 import { GetState, State, Store, StoreMessage } from "state-party"
-import { EventHandler, Attribute, CssClasses, CssClassname, VirtualNode, VirtualNodeAttribute, makeFragment, makeVirtualNode, makeVirtualTextNode, makeStatefulVirtualNode, createDOMRenderer, Key, Property } from "./vdom.js"
+import { EventHandler, Attribute, CssClasses, CssClassname, VirtualNode, VirtualNodeAttribute, makeFragment, makeVirtualNode, makeVirtualTextNode, Key, Property, StatefulGenerator } from "./vdom/virtualNode.js"
 import { ViewElements, booleanAttributes } from "./htmlElements.js"
-import { createStringRenderer } from "./render.js"
+import { createStringRenderer } from "./vdom/renderToString.js"
+import { createDOMRenderer } from "./vdom/renderToDom.js"
 
 // Renderers
 
-export function renderToDOM(store: Store, element: Element, view: View): Element {
+export interface RenderResult {
+  root: Node
+  unmount: () => void
+}
+
+export function renderToDOM(store: Store, element: Element, view: View): RenderResult {
   const render = createDOMRenderer(store)
-  return render(element, view[toVirtualNode]())
+  const renderResult = render(element, view[toVirtualNode]())
+
+  return {
+    root: renderResult.root,
+    unmount: () => {
+      switch (renderResult.type) {
+        case "element-root":
+          renderResult.root.parentNode?.removeChild(renderResult.root)
+          break
+        case "fragment-root":
+          while (renderResult.root.hasChildNodes()) {
+            renderResult.root.lastChild?.remove()
+          }
+          break    
+      }
+    }
+  }
 }
 
 export function renderToString(store: Store, view: View): Promise<string> {
@@ -132,8 +154,10 @@ class BaseElementCollection implements SpecialElements {
   }
 
   withState(definition: (get: GetState) => View): this {
-    const node = makeStatefulVirtualNode("view-with-state", (get) => definition(get)[toVirtualNode]())
-    this.nodes.push(node)
+    const statefulNode = makeVirtualNode("view-with-state", [
+      new StatefulGenerator((get) => definition(get)[toVirtualNode]())
+    ], [])
+    this.nodes.push(statefulNode)
 
     return this
   }

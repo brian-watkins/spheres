@@ -27,6 +27,7 @@
     "great-expectations": "^1.4.0",
     "html-element-attributes": "^3.2.0",
     "html-event-attributes": "^2.1.0",
+    "html-tag-names": "^2.1.0",
     "playwright": "^1.29.2",
     "source-map-support": "^0.5.21",
     "ts-morph": "^18.0.0",

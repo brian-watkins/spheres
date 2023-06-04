@@ -1,6 +1,7 @@
 import { MethodSignatureStructure, OptionalKind, ParameterDeclarationStructure, Project, VariableDeclarationKind } from "ts-morph"
 import { htmlElementAttributes } from "html-element-attributes"
 import { htmlEventAttributes } from "html-event-attributes"
+import { htmlTagNames } from "html-tag-names"
 import { booleanAttributes } from "./booleanAttributes"
 
 const project = new Project({
@@ -75,12 +76,12 @@ const viewElementsInterface = htmlElementsFile.addInterface({
   isExported: true
 })
 
-for (const tag of Object.keys(htmlElementAttributes)) {
-  if (tag === "*") continue
+for (const tag of htmlTagNames) {
+  const elementAttributes = htmlElementAttributes[tag] ?? []
 
   htmlElementsFile.addInterface({
     name: attributesName(tag),
-    methods: htmlElementAttributes[tag].map(buildAttributeProperty(attributesName(tag))),
+    methods: elementAttributes.map(buildAttributeProperty(attributesName(tag))),
     extends: [
       "SpecialAttributes",
       "GlobalAttributes"

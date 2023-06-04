@@ -14,7 +14,11 @@ export default (context: Context<TestAppController>) => behavior("View Elements"
       observe: [
         theElementExists("DIV#funny-id"),
         theElementHasText("DIV P.super-class", "This is text"),
-        theElementExists("h3[data-title]")
+        theElementExists("h3[data-title]"),
+        effect("an element with boolean attributes, autofocused and not disabled", async (context) => {
+          const isFocused = await context.display.select("input[data-focused]").isFocused()
+          expect(isFocused, is(equalTo(true)), "the element is focused")
+        })
       ]
     })
 ])

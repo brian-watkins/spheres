@@ -1,6 +1,6 @@
 import { GetState, State, Store, StoreMessage } from "state-party"
 import { EventHandler, Attribute, CssClasses, CssClassname, VirtualNode, VirtualNodeAttribute, makeFragment, makeVirtualNode, makeVirtualTextNode, makeStatefulVirtualNode, createDOMRenderer, Key, Property } from "./vdom.js"
-import { ViewElements } from "./htmlElements.js"
+import { ViewElements, booleanAttributes } from "./htmlElements.js"
 import { createStringRenderer } from "./render.js"
 
 // Renderers
@@ -63,12 +63,10 @@ class AttributesCollection implements SpecialAttributes {
     return this
   }
 
-  disabled(isDisabled: boolean): this {
-    if (isDisabled) {
-      this.addAttribute("disabled", "disabled")
+  booleanAttribute(name: string, isSelected: boolean) {
+    if (isSelected) {
+      this.addAttribute(name, name)
     }
-
-    return this
   }
 
   [getVirtualNodeAttributes](): VirtualNodeAttribute[] {
@@ -88,9 +86,16 @@ function makeElementConfig<A>(): A {
           return receiver
         }
       } else {
-        return (value: string) => {
-          target.addAttribute(prop, value)
-          return receiver
+        if (booleanAttributes.has(prop)) {
+          return (value: boolean) => {
+            target.booleanAttribute(prop, value)
+            return receiver
+          }
+        } else {
+          return (value: string) => {
+            target.addAttribute(prop, value)
+            return receiver
+          }
         }
       }
     }

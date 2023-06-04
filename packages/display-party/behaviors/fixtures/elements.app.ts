@@ -17,5 +17,10 @@ export default function () {
           h3.config
             .dataAttribute("title")
         })
+        .input(el => {
+          el.config.dataAttribute("focused")
+          el.config.autofocus(true)
+          el.config.disabled(false)
+        })
     })
 }

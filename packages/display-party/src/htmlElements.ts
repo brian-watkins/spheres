@@ -4,20 +4,20 @@ import { StoreMessage } from "state-party";
 export interface GlobalAttributes {
     accesskey(value: string): this;
     autocapitalize(value: string): this;
-    autofocus(value: string): this;
+    autofocus(value: boolean): this;
     contenteditable(value: string): this;
     dir(value: string): this;
     draggable(value: string): this;
     enterkeyhint(value: string): this;
     hidden(value: string): this;
     id(value: string): this;
-    inert(value: string): this;
+    inert(value: boolean): this;
     inputmode(value: string): this;
     is(value: string): this;
     itemid(value: string): this;
     itemprop(value: string): this;
     itemref(value: string): this;
-    itemscope(value: string): this;
+    itemscope(value: boolean): this;
     itemtype(value: string): this;
     lang(value: string): this;
     nonce(value: string): this;
@@ -240,11 +240,11 @@ export interface AreaElementAttributes extends SpecialAttributes, GlobalAttribut
 }
 
 export interface AudioElementAttributes extends SpecialAttributes, GlobalAttributes {
-    autoplay(value: string): AudioElementAttributes;
-    controls(value: string): AudioElementAttributes;
+    autoplay(value: boolean): AudioElementAttributes;
+    controls(value: boolean): AudioElementAttributes;
     crossorigin(value: string): AudioElementAttributes;
-    loop(value: string): AudioElementAttributes;
-    muted(value: string): AudioElementAttributes;
+    loop(value: boolean): AudioElementAttributes;
+    muted(value: boolean): AudioElementAttributes;
     preload(value: string): AudioElementAttributes;
     src(value: string): AudioElementAttributes;
 }
@@ -278,12 +278,12 @@ export interface BrElementAttributes extends SpecialAttributes, GlobalAttributes
 }
 
 export interface ButtonElementAttributes extends SpecialAttributes, GlobalAttributes {
-    disabled(isDisabled: boolean): ButtonElementAttributes;
+    disabled(value: boolean): ButtonElementAttributes;
     form(value: string): ButtonElementAttributes;
     formaction(value: string): ButtonElementAttributes;
     formenctype(value: string): ButtonElementAttributes;
     formmethod(value: string): ButtonElementAttributes;
-    formnovalidate(value: string): ButtonElementAttributes;
+    formnovalidate(value: boolean): ButtonElementAttributes;
     formtarget(value: string): ButtonElementAttributes;
     name(value: string): ButtonElementAttributes;
     popovertarget(value: string): ButtonElementAttributes;
@@ -329,11 +329,11 @@ export interface DelElementAttributes extends SpecialAttributes, GlobalAttribute
 }
 
 export interface DetailsElementAttributes extends SpecialAttributes, GlobalAttributes {
-    open(value: string): DetailsElementAttributes;
+    open(value: boolean): DetailsElementAttributes;
 }
 
 export interface DialogElementAttributes extends SpecialAttributes, GlobalAttributes {
-    open(value: string): DialogElementAttributes;
+    open(value: boolean): DialogElementAttributes;
 }
 
 export interface DirElementAttributes extends SpecialAttributes, GlobalAttributes {
@@ -356,7 +356,7 @@ export interface EmbedElementAttributes extends SpecialAttributes, GlobalAttribu
 }
 
 export interface FieldsetElementAttributes extends SpecialAttributes, GlobalAttributes {
-    disabled(isDisabled: boolean): FieldsetElementAttributes;
+    disabled(value: boolean): FieldsetElementAttributes;
     form(value: string): FieldsetElementAttributes;
     name(value: string): FieldsetElementAttributes;
 }
@@ -375,7 +375,7 @@ export interface FormElementAttributes extends SpecialAttributes, GlobalAttribut
     enctype(value: string): FormElementAttributes;
     method(value: string): FormElementAttributes;
     name(value: string): FormElementAttributes;
-    novalidate(value: string): FormElementAttributes;
+    novalidate(value: boolean): FormElementAttributes;
     target(value: string): FormElementAttributes;
 }
 
@@ -438,7 +438,7 @@ export interface HtmlElementAttributes extends SpecialAttributes, GlobalAttribut
 export interface IframeElementAttributes extends SpecialAttributes, GlobalAttributes {
     align(value: string): IframeElementAttributes;
     allow(value: string): IframeElementAttributes;
-    allowfullscreen(value: string): IframeElementAttributes;
+    allowfullscreen(value: boolean): IframeElementAttributes;
     allowpaymentrequest(value: string): IframeElementAttributes;
     allowusermedia(value: string): IframeElementAttributes;
     frameborder(value: string): IframeElementAttributes;
@@ -465,7 +465,7 @@ export interface ImgElementAttributes extends SpecialAttributes, GlobalAttribute
     fetchpriority(value: string): ImgElementAttributes;
     height(value: string): ImgElementAttributes;
     hspace(value: string): ImgElementAttributes;
-    ismap(value: string): ImgElementAttributes;
+    ismap(value: boolean): ImgElementAttributes;
     loading(value: string): ImgElementAttributes;
     longdesc(value: string): ImgElementAttributes;
     name(value: string): ImgElementAttributes;
@@ -483,30 +483,30 @@ export interface InputElementAttributes extends SpecialAttributes, GlobalAttribu
     align(value: string): InputElementAttributes;
     alt(value: string): InputElementAttributes;
     autocomplete(value: string): InputElementAttributes;
-    checked(value: string): InputElementAttributes;
+    checked(value: boolean): InputElementAttributes;
     dirname(value: string): InputElementAttributes;
-    disabled(isDisabled: boolean): InputElementAttributes;
+    disabled(value: boolean): InputElementAttributes;
     form(value: string): InputElementAttributes;
     formaction(value: string): InputElementAttributes;
     formenctype(value: string): InputElementAttributes;
     formmethod(value: string): InputElementAttributes;
-    formnovalidate(value: string): InputElementAttributes;
+    formnovalidate(value: boolean): InputElementAttributes;
     formtarget(value: string): InputElementAttributes;
     height(value: string): InputElementAttributes;
-    ismap(value: string): InputElementAttributes;
+    ismap(value: boolean): InputElementAttributes;
     list(value: string): InputElementAttributes;
     max(value: string): InputElementAttributes;
     maxlength(value: string): InputElementAttributes;
     min(value: string): InputElementAttributes;
     minlength(value: string): InputElementAttributes;
-    multiple(value: string): InputElementAttributes;
+    multiple(value: boolean): InputElementAttributes;
     name(value: string): InputElementAttributes;
     pattern(value: string): InputElementAttributes;
     placeholder(value: string): InputElementAttributes;
     popovertarget(value: string): InputElementAttributes;
     popovertargetaction(value: string): InputElementAttributes;
-    readonly(value: string): InputElementAttributes;
-    required(value: string): InputElementAttributes;
+    readonly(value: boolean): InputElementAttributes;
+    required(value: boolean): InputElementAttributes;
     size(value: string): InputElementAttributes;
     src(value: string): InputElementAttributes;
     step(value: string): InputElementAttributes;
@@ -545,7 +545,7 @@ export interface LinkElementAttributes extends SpecialAttributes, GlobalAttribut
     charset(value: string): LinkElementAttributes;
     color(value: string): LinkElementAttributes;
     crossorigin(value: string): LinkElementAttributes;
-    disabled(isDisabled: boolean): LinkElementAttributes;
+    disabled(value: boolean): LinkElementAttributes;
     fetchpriority(value: string): LinkElementAttributes;
     href(value: string): LinkElementAttributes;
     hreflang(value: string): LinkElementAttributes;
@@ -610,20 +610,20 @@ export interface ObjectElementAttributes extends SpecialAttributes, GlobalAttrib
 
 export interface OlElementAttributes extends SpecialAttributes, GlobalAttributes {
     compact(value: string): OlElementAttributes;
-    reversed(value: string): OlElementAttributes;
+    reversed(value: boolean): OlElementAttributes;
     start(value: string): OlElementAttributes;
     type(value: string): OlElementAttributes;
 }
 
 export interface OptgroupElementAttributes extends SpecialAttributes, GlobalAttributes {
-    disabled(isDisabled: boolean): OptgroupElementAttributes;
+    disabled(value: boolean): OptgroupElementAttributes;
     label(value: string): OptgroupElementAttributes;
 }
 
 export interface OptionElementAttributes extends SpecialAttributes, GlobalAttributes {
-    disabled(isDisabled: boolean): OptionElementAttributes;
+    disabled(value: boolean): OptionElementAttributes;
     label(value: string): OptionElementAttributes;
-    selected(value: string): OptionElementAttributes;
+    selected(value: boolean): OptionElementAttributes;
     value(value: string): OptionElementAttributes;
 }
 
@@ -658,15 +658,15 @@ export interface QElementAttributes extends SpecialAttributes, GlobalAttributes 
 }
 
 export interface ScriptElementAttributes extends SpecialAttributes, GlobalAttributes {
-    async(value: string): ScriptElementAttributes;
+    async(value: boolean): ScriptElementAttributes;
     blocking(value: string): ScriptElementAttributes;
     charset(value: string): ScriptElementAttributes;
     crossorigin(value: string): ScriptElementAttributes;
-    defer(value: string): ScriptElementAttributes;
+    defer(value: boolean): ScriptElementAttributes;
     fetchpriority(value: string): ScriptElementAttributes;
     integrity(value: string): ScriptElementAttributes;
     language(value: string): ScriptElementAttributes;
-    nomodule(value: string): ScriptElementAttributes;
+    nomodule(value: boolean): ScriptElementAttributes;
     referrerpolicy(value: string): ScriptElementAttributes;
     src(value: string): ScriptElementAttributes;
     type(value: string): ScriptElementAttributes;
@@ -674,11 +674,11 @@ export interface ScriptElementAttributes extends SpecialAttributes, GlobalAttrib
 
 export interface SelectElementAttributes extends SpecialAttributes, GlobalAttributes {
     autocomplete(value: string): SelectElementAttributes;
-    disabled(isDisabled: boolean): SelectElementAttributes;
+    disabled(value: boolean): SelectElementAttributes;
     form(value: string): SelectElementAttributes;
-    multiple(value: string): SelectElementAttributes;
+    multiple(value: boolean): SelectElementAttributes;
     name(value: string): SelectElementAttributes;
-    required(value: string): SelectElementAttributes;
+    required(value: boolean): SelectElementAttributes;
     size(value: string): SelectElementAttributes;
 }
 
@@ -742,14 +742,14 @@ export interface TextareaElementAttributes extends SpecialAttributes, GlobalAttr
     autocomplete(value: string): TextareaElementAttributes;
     cols(value: string): TextareaElementAttributes;
     dirname(value: string): TextareaElementAttributes;
-    disabled(isDisabled: boolean): TextareaElementAttributes;
+    disabled(value: boolean): TextareaElementAttributes;
     form(value: string): TextareaElementAttributes;
     maxlength(value: string): TextareaElementAttributes;
     minlength(value: string): TextareaElementAttributes;
     name(value: string): TextareaElementAttributes;
     placeholder(value: string): TextareaElementAttributes;
-    readonly(value: string): TextareaElementAttributes;
-    required(value: string): TextareaElementAttributes;
+    readonly(value: boolean): TextareaElementAttributes;
+    required(value: boolean): TextareaElementAttributes;
     rows(value: string): TextareaElementAttributes;
     wrap(value: string): TextareaElementAttributes;
 }
@@ -798,7 +798,7 @@ export interface TrElementAttributes extends SpecialAttributes, GlobalAttributes
 }
 
 export interface TrackElementAttributes extends SpecialAttributes, GlobalAttributes {
-    default(value: string): TrackElementAttributes;
+    default(value: boolean): TrackElementAttributes;
     kind(value: string): TrackElementAttributes;
     label(value: string): TrackElementAttributes;
     src(value: string): TrackElementAttributes;
@@ -811,15 +811,41 @@ export interface UlElementAttributes extends SpecialAttributes, GlobalAttributes
 }
 
 export interface VideoElementAttributes extends SpecialAttributes, GlobalAttributes {
-    autoplay(value: string): VideoElementAttributes;
-    controls(value: string): VideoElementAttributes;
+    autoplay(value: boolean): VideoElementAttributes;
+    controls(value: boolean): VideoElementAttributes;
     crossorigin(value: string): VideoElementAttributes;
     height(value: string): VideoElementAttributes;
-    loop(value: string): VideoElementAttributes;
-    muted(value: string): VideoElementAttributes;
-    playsinline(value: string): VideoElementAttributes;
+    loop(value: boolean): VideoElementAttributes;
+    muted(value: boolean): VideoElementAttributes;
+    playsinline(value: boolean): VideoElementAttributes;
     poster(value: string): VideoElementAttributes;
     preload(value: string): VideoElementAttributes;
     src(value: string): VideoElementAttributes;
     width(value: string): VideoElementAttributes;
 }
+
+export const booleanAttributes: Set<string> = new Set();
+booleanAttributes.add("allowfullscreen")
+booleanAttributes.add("async")
+booleanAttributes.add("autofocus")
+booleanAttributes.add("autoplay")
+booleanAttributes.add("checked")
+booleanAttributes.add("controls")
+booleanAttributes.add("default")
+booleanAttributes.add("defer")
+booleanAttributes.add("disabled")
+booleanAttributes.add("formnovalidate")
+booleanAttributes.add("inert")
+booleanAttributes.add("ismap")
+booleanAttributes.add("itemscope")
+booleanAttributes.add("loop")
+booleanAttributes.add("multiple")
+booleanAttributes.add("muted")
+booleanAttributes.add("nomodule")
+booleanAttributes.add("novalidate")
+booleanAttributes.add("open")
+booleanAttributes.add("playsinline")
+booleanAttributes.add("readonly")
+booleanAttributes.add("required")
+booleanAttributes.add("reversed")
+booleanAttributes.add("selected")

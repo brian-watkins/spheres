@@ -1,6 +1,7 @@
-import { MethodSignatureStructure, OptionalKind, ParameterDeclarationStructure, Project } from "ts-morph"
+import { MethodSignatureStructure, OptionalKind, ParameterDeclarationStructure, Project, VariableDeclarationKind } from "ts-morph"
 import { htmlElementAttributes } from "html-element-attributes"
 import { htmlEventAttributes } from "html-event-attributes"
+import { booleanAttributes } from "./booleanAttributes"
 
 const project = new Project({
   tsConfigFilePath: "./tsconfig.json",
@@ -16,7 +17,7 @@ htmlElementsFile.addImportDeclarations([
       "SpecialElements",
       "SpecialAttributes"
     ],
-    moduleSpecifier: "./viewBuilder.js"
+    moduleSpecifier: "./view.js"
   },
   {
     namedImports: [
@@ -33,16 +34,11 @@ const globalAttibutesInterface = htmlElementsFile.addInterface({
   isExported: true
 })
 
+const globalAttribute = buildAttributeProperty("this")
+
 for (const attribute of htmlElementAttributes['*']) {
   if (attribute === "class") continue
-
-  globalAttibutesInterface.addMethod({
-    name: attribute,
-    returnType: "this",
-    parameters: [
-      { name: "value", type: "string" }
-    ]
-  })
+  globalAttibutesInterface.addMethod(globalAttribute(attribute))
 }
 
 // Events apply to all elements
@@ -84,7 +80,7 @@ for (const tag of Object.keys(htmlElementAttributes)) {
 
   htmlElementsFile.addInterface({
     name: attributesName(tag),
-    methods: htmlElementAttributes[tag].map(buildAttributeProperty(tag)),
+    methods: htmlElementAttributes[tag].map(buildAttributeProperty(attributesName(tag))),
     extends: [
       "SpecialAttributes",
       "GlobalAttributes"
@@ -105,14 +101,30 @@ for (const tag of Object.keys(htmlElementAttributes)) {
   })
 }
 
+// Boolean Attributes Set
+
+htmlElementsFile.addVariableStatement({
+  declarationKind: VariableDeclarationKind.Const,
+  declarations: [
+    {
+      name: "booleanAttributes",
+      type: "Set<string>",
+      initializer: "new Set()"
+    }
+  ],
+  isExported: true
+})
+
+htmlElementsFile.addStatements(booleanAttributes.map(attr => `booleanAttributes.add("${attr}")`))
+
 project.save()
 
-function buildAttributeProperty(tag: string): (attribute: string) => OptionalKind<MethodSignatureStructure> {
+function buildAttributeProperty(returnType: string): (attribute: string) => OptionalKind<MethodSignatureStructure> {
   return (attribute) => {
     let parameters: Array<OptionalKind<ParameterDeclarationStructure>> = []
-    if (attribute === "disabled") {
+    if (booleanAttributes.includes(attribute)) {
       parameters = [
-        { name: "isDisabled", type: "boolean" }
+        { name: "value", type: "boolean" }
       ]
     } else {
       parameters = [
@@ -122,7 +134,7 @@ function buildAttributeProperty(tag: string): (attribute: string) => OptionalKin
 
     return {
       name: toCamel(attribute),
-      returnType: attributesName(tag),
+      returnType,
       parameters
     }
   }

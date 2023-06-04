@@ -1,5 +1,5 @@
 import { attributesModule, Attrs, Classes, classModule, eventListenersModule, Hooks, init, Module, On, Props, propsModule, VNode } from "snabbdom";
-import { value, GetState, State, Store, StoreMessage } from "state-party";
+import { value, GetState, Store, StoreMessage } from "state-party";
 
 // Tailored from Snabbdom VNode
 export interface VirtualNode {
@@ -175,11 +175,7 @@ export function makeFragment(children: Array<VirtualNode>): VirtualNode {
   return makeVirtualNode(undefined, [], children)
 }
 
-export interface StatefulVirtualNodeOptions {
-  key?: string | State<any>
-}
-
-export function makeStatefulVirtualNode(tag: string, options: StatefulVirtualNodeOptions, generator: (get: GetState) => VirtualNode): VirtualNode {
+export function makeStatefulVirtualNode(tag: string, generator: (get: GetState) => VirtualNode): VirtualNode {
   return {
     sel: tag,
     data: {
@@ -221,6 +217,6 @@ export function makeStatefulVirtualNode(tag: string, options: StatefulVirtualNod
     children: undefined,
     elm: undefined,
     text: undefined,
-    key: options.key?.toString()
+    key: undefined
   }
 }

@@ -3,6 +3,19 @@ import { EventHandler, Attribute, CssClasses, CssClassname, VirtualNode, Virtual
 import { ViewElements } from "./htmlElements.js"
 import { createStringRenderer } from "./render.js"
 
+// Renderers
+
+export function renderToDOM(store: Store, element: Element, view: View): Element {
+  const render = createDOMRenderer(store)
+  return render(element, view[toVirtualNode]())
+}
+
+export function renderToString(store: Store, view: View): Promise<string> {
+  const render = createStringRenderer(store)
+  return render(view[toVirtualNode]())
+}
+
+// Attributes
 
 const getVirtualNodeAttributes = Symbol("getAllAttributes")
 
@@ -84,31 +97,14 @@ function makeElementConfig<A>(): A {
   }) as A
 }
 
-export type ViewGenerator = () => View
-
-export function renderToDOM(store: Store, element: Element, view: View): Element {
-  const render = createDOMRenderer(store)
-  return render(element, view[toVirtualNode]())
-}
-
-export function renderToString(store: Store, view: View): Promise<string> {
-  const render = createStringRenderer(store)
-  return render(view[toVirtualNode]())
-}
+// View
 
 const toVirtualNode = Symbol("toVirtualNode")
 const getVirtualNodes = Symbol("getVirtualNodes")
 
 export interface View extends ViewElements {
   [toVirtualNode](): VirtualNode
-}
-
-interface ElementChildren extends ViewElements {
   [getVirtualNodes](): Array<VirtualNode>
-}
-
-export interface WithStateOptions {
-  key?: string | State<any>
 }
 
 export interface SpecialElements {
@@ -118,7 +114,7 @@ export interface SpecialElements {
 }
 
 class BaseElementCollection implements SpecialElements {
-  nodes: Array<VirtualNode> = []
+  private nodes: Array<VirtualNode> = []
 
   text(value: string): this {
     this.nodes.push(makeVirtualTextNode(value))
@@ -131,7 +127,7 @@ class BaseElementCollection implements SpecialElements {
   }
 
   withState(definition: (get: GetState) => View): this {
-    const node = makeStatefulVirtualNode("view-with-state", {}, (get) => definition(get)[toVirtualNode]())
+    const node = makeStatefulVirtualNode("view-with-state", (get) => definition(get)[toVirtualNode]())
     this.nodes.push(node)
 
     return this
@@ -142,6 +138,18 @@ class BaseElementCollection implements SpecialElements {
     builder?.(element)
     this.nodes.push(element[toVirtualNode]())
   }
+
+  [toVirtualNode](): VirtualNode {
+    if (this.nodes.length == 1) {
+      return this.nodes[0]
+    } else {
+      return makeFragment(this.nodes)
+    }
+  }
+
+  [getVirtualNodes](): Array<VirtualNode> {
+    return this.nodes
+  }
 }
 
 export function view(): View {
@@ -149,14 +157,6 @@ export function view(): View {
     get: (target, prop, receiver) => {
       if (Reflect.has(target, prop)) {
         return Reflect.get(target, prop, receiver)
-      } else if (prop === toVirtualNode) {
-        return () => {
-          if (target.nodes.length == 1) {
-            return target.nodes[0]
-          } else {
-            return makeFragment(target.nodes)
-          }
-        }
       } else {
         return (builder: <A extends SpecialAttributes>(element: ViewElement<A>) => void) => {
           target.addElement(prop as string, builder)
@@ -167,27 +167,9 @@ export function view(): View {
   }) as unknown as View
 }
 
-function elementChildren(): ElementChildren {
-  return new Proxy(new BaseElementCollection(), {
-    get: (target, prop, receiver) => {
-      if (Reflect.has(target, prop)) {
-        return Reflect.get(target, prop, receiver)
-      } else if (prop === getVirtualNodes) {
-        return () => target.nodes
-      } else {
-        return (builder: <A extends SpecialAttributes>(element: ViewElement<A>) => void) => {
-          target.addElement(prop as string, builder)
-          return receiver
-        }
-      }
-    }
-  }) as unknown as ElementChildren
-}
-
-
 export class ViewElement<A extends SpecialAttributes> {
   config = makeElementConfig<A>()
-  private children = elementChildren()
+  private children = view()
 
   constructor(private tag?: string) { }
 
@@ -198,8 +180,4 @@ export class ViewElement<A extends SpecialAttributes> {
   [toVirtualNode](): VirtualNode {
     return makeVirtualNode(this.tag, this.config[getVirtualNodeAttributes](), this.children[getVirtualNodes]())
   }
-}
-
-export function inputValue(event: Event): string {
-  return (<HTMLInputElement>event.target).value
 }

@@ -22,7 +22,8 @@
     "packages/display-party"
   ],
   "devDependencies": {
-    "@changesets/cli": "^2.26.1"
+    "@changesets/cli": "^2.26.1",
+    "aria-attributes": "^2.0.1"
   },
   "volta": {
     "node": "18.16.0"

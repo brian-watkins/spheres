@@ -26,7 +26,7 @@ export function renderToDOM(store: Store, element: Element, view: View): RenderR
           while (renderResult.root.hasChildNodes()) {
             renderResult.root.lastChild?.remove()
           }
-          break    
+          break
       }
     }
   }
@@ -53,7 +53,13 @@ class AttributesCollection implements SpecialAttributes {
   attributes: Array<VirtualNodeAttribute> = []
 
   addAttribute(name: string, value: string) {
-    this.attributes.push(new Attribute(name, value))
+    let attribute: Attribute
+    if (name.startsWith("aria")) {
+      attribute = new Attribute(`aria-${name.substring(4).toLowerCase()}`, value)
+    } else {
+      attribute = new Attribute(name, value)
+    }
+    this.attributes.push(attribute)
   }
 
   property(name: string, value: string): this {
@@ -107,17 +113,15 @@ function makeElementConfig<A>(): A {
           target.addEventHandler(eventName, handler)
           return receiver
         }
+      } else if (booleanAttributes.has(prop)) {
+        return (value: boolean) => {
+          target.booleanAttribute(prop, value)
+          return receiver
+        }
       } else {
-        if (booleanAttributes.has(prop)) {
-          return (value: boolean) => {
-            target.booleanAttribute(prop, value)
-            return receiver
-          }
-        } else {
-          return (value: string) => {
-            target.addAttribute(prop, value)
-            return receiver
-          }
+        return (value: string) => {
+          target.addAttribute(prop, value)
+          return receiver
         }
       }
     }

@@ -1,7 +1,59 @@
 import { ViewElement, SpecialElements, SpecialAttributes } from "./view.js";
 import { StoreMessage } from "state-party";
 
-export interface GlobalAttributes {
+export interface AriaAttributes {
+    ariaActivedescendant(value: string): this;
+    ariaAtomic(value: string): this;
+    ariaAutocomplete(value: string): this;
+    ariaBusy(value: string): this;
+    ariaChecked(value: string): this;
+    ariaColcount(value: string): this;
+    ariaColindex(value: string): this;
+    ariaColspan(value: string): this;
+    ariaControls(value: string): this;
+    ariaCurrent(value: string): this;
+    ariaDescribedby(value: string): this;
+    ariaDetails(value: string): this;
+    ariaDisabled(value: string): this;
+    ariaDropeffect(value: string): this;
+    ariaErrormessage(value: string): this;
+    ariaExpanded(value: string): this;
+    ariaFlowto(value: string): this;
+    ariaGrabbed(value: string): this;
+    ariaHaspopup(value: string): this;
+    ariaHidden(value: string): this;
+    ariaInvalid(value: string): this;
+    ariaKeyshortcuts(value: string): this;
+    ariaLabel(value: string): this;
+    ariaLabelledby(value: string): this;
+    ariaLevel(value: string): this;
+    ariaLive(value: string): this;
+    ariaModal(value: string): this;
+    ariaMultiline(value: string): this;
+    ariaMultiselectable(value: string): this;
+    ariaOrientation(value: string): this;
+    ariaOwns(value: string): this;
+    ariaPlaceholder(value: string): this;
+    ariaPosinset(value: string): this;
+    ariaPressed(value: string): this;
+    ariaReadonly(value: string): this;
+    ariaRelevant(value: string): this;
+    ariaRequired(value: string): this;
+    ariaRoledescription(value: string): this;
+    ariaRowcount(value: string): this;
+    ariaRowindex(value: string): this;
+    ariaRowspan(value: string): this;
+    ariaSelected(value: string): this;
+    ariaSetsize(value: string): this;
+    ariaSort(value: string): this;
+    ariaValuemax(value: string): this;
+    ariaValuemin(value: string): this;
+    ariaValuenow(value: string): this;
+    ariaValuetext(value: string): this;
+    role(value: string): this;
+}
+
+export interface GlobalAttributes extends AriaAttributes {
     accesskey(value: string): this;
     autocapitalize(value: string): this;
     autofocus(value: boolean): this;

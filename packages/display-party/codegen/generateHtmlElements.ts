@@ -2,6 +2,7 @@ import { MethodSignatureStructure, OptionalKind, ParameterDeclarationStructure, 
 import { htmlElementAttributes } from "html-element-attributes"
 import { htmlEventAttributes } from "html-event-attributes"
 import { htmlTagNames } from "html-tag-names"
+import { ariaAttributes } from "aria-attributes"
 import { booleanAttributes } from "./booleanAttributes"
 
 const project = new Project({
@@ -28,10 +29,26 @@ htmlElementsFile.addImportDeclarations([
   }
 ])
 
+// AriaAttributes interface
+
+const ariaAttributesInterface = htmlElementsFile.addInterface({
+  name: "AriaAttributes",
+  isExported: true
+})
+
+const ariaAttribute = buildAttributeProperty("this")
+
+for (const attribute of ariaAttributes) {
+  ariaAttributesInterface.addMethod(ariaAttribute(attribute))
+}
+
 // GlobalAttributes interface
 
 const globalAttibutesInterface = htmlElementsFile.addInterface({
   name: "GlobalAttributes",
+  extends: [
+    "AriaAttributes"
+  ],
   isExported: true
 })
 

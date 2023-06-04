@@ -22,5 +22,8 @@ export default function () {
           el.config.autofocus(true)
           el.config.disabled(false)
         })
+        .button(el => {
+          el.config.ariaLabel("submit")
+        })
     })
 }

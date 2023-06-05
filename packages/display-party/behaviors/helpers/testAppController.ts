@@ -4,15 +4,20 @@ import { fixStackTraceForPage } from "./stackTrace.js";
 import { TestAppDisplay } from "./testDisplay.js";
 
 export interface DisplayBehaviorOptions {
+  host: string
   debug: boolean
 }
 
 export function testAppContext(page: Page, options: DisplayBehaviorOptions): Context<TestAppController> {
   return {
     init: async () => {
-      if (options.debug) {
+      const testPageUrl = `${options.host}/packages/display-party/behaviors/index.html`
+      if (page.url() !== testPageUrl) {
+        await page.goto(testPageUrl)
+      } else if (options.debug) {
         await page.reload()
       }
+
       return new TestAppController(page)
     },
     teardown: async (controller) => {

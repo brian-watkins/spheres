@@ -1,19 +1,17 @@
-import { behavior, effect, example, fact, step } from "esbehavior";
+import { Context, behavior, effect, example, fact, step } from "esbehavior";
 import { arrayWith, equalTo, expect, is, stringContaining } from "great-expectations";
-import { ssrTestAppContext } from "./helpers/testServer.js";
-import { Browser } from "playwright";
+import { SSRTestAppContext } from "./helpers/testSSRServer.js";
 
-export default (browser: Browser, debug: boolean) => behavior("client activation of server rendered views", [
-  example(ssrTestAppContext(browser, debug))
+export default (context: Context<SSRTestAppContext>) => behavior("client activation of server rendered views", [
+  example(context)
     .description("rendered content before activating the island")
     .script({
       suppose: [
         fact("the app is loaded in the browser", async (context) => {
-          await context.server.start({
+          context.server.setContent({
             template: "../fixtures/ssrApp/renderOnly/template.html",
             view: "./behaviors/fixtures/ssrApp/basic/server.ts"
           })
-          await context.browser.start()
           await context.browser.loadApp()
         }),
       ],
@@ -24,16 +22,15 @@ export default (browser: Browser, debug: boolean) => behavior("client activation
         })
       ]
     }),
-  example(ssrTestAppContext(browser, debug))
+  example(context)
     .description("simple app with multiple islands sharing state, some of the same element")
     .script({
       suppose: [
         fact("the app is loaded in the browser", async (context) => {
-          await context.server.start({
+          context.server.setContent({
             template: "../fixtures/ssrApp/basic/template.html",
             view: "./behaviors/fixtures/ssrApp/basic/server.ts"
           })
-          await context.browser.start()
           await context.browser.loadApp()
         })
       ],
@@ -61,16 +58,15 @@ export default (browser: Browser, debug: boolean) => behavior("client activation
         })
       ]
     }),
-  example(ssrTestAppContext(browser, debug))
+  example(context)
     .description("simple app with multiple stores")
     .script({
       suppose: [
         fact("the app is loaded in the browser", async (context) => {
-          await context.server.start({
+          context.server.setContent({
             template: "../fixtures/ssrApp/multipleStores/template.html",
             view: "./behaviors/fixtures/ssrApp/multipleStores/server.ts"
           })
-          await context.browser.start()
           await context.browser.loadApp()
         })
       ],
@@ -99,16 +95,15 @@ export default (browser: Browser, debug: boolean) => behavior("client activation
         })
       ]
     }),
-  example(ssrTestAppContext(browser, debug))
+  example(context)
     .description("app with nested islands sharing state, some of the same element")
     .script({
       suppose: [
         fact("the app is loaded in the browser", async (context) => {
-          await context.server.start({
+          context.server.setContent({
             template: "../fixtures/ssrApp/nested/template.html",
             view: "./behaviors/fixtures/ssrApp/nested/server.ts"
           })
-          await context.browser.start()
           await context.browser.loadApp()
         })
       ],
@@ -136,16 +131,15 @@ export default (browser: Browser, debug: boolean) => behavior("client activation
         })
       ]
     }),
-  example(ssrTestAppContext(browser, debug))
+  example(context)
     .description("app with view fragments nested under the island")
     .script({
       suppose: [
         fact("the app is loaded in the browser", async (context) => {
-          await context.server.start({
+          context.server.setContent({
             template: "../fixtures/ssrApp/islandWithState/template.html",
             view: "./behaviors/fixtures/ssrApp/islandWithState/server.ts"
           })
-          await context.browser.start()
           await context.browser.loadApp()
         })
       ],

@@ -6,57 +6,36 @@ import { Server } from "http"
 import { ViteDevServer, createServer as createViteServer } from "vite"
 import tsConfigPaths from "vite-tsconfig-paths"
 import { Context } from 'esbehavior'
-import { Browser, BrowserContext, Page } from 'playwright'
+import { Page } from 'playwright'
 import { TestAppDisplay } from './testDisplay.js'
-import { fixStackTrace } from './stackTrace.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export interface SSRTestAppContext {
-  server: TestServer
+  server: TestSSRServer
   browser: TestBrowser
 }
 
-export function ssrTestAppContext(browser: Browser, debug: boolean): Context<SSRTestAppContext> {
+export function ssrTestAppContext(page: Page, ssrServer: TestSSRServer): Context<SSRTestAppContext> {
   return {
     init: () => {
       return {
-        server: new TestServer(),
-        browser: new TestBrowser(browser)
+        server: ssrServer,
+        browser: new TestBrowser(page)
       }
     },
-    teardown: async (context) => {
-      if (!debug) {
-        await context.browser.stop()
-        await context.server.stop()  
-      }
-    }
   }
 }
 
 class TestBrowser {
-  private context: BrowserContext | undefined
-  private page: Page | undefined
-
-  constructor(private browser: Browser) { }
-
-  async start(): Promise<void> {
-    this.context = await this.browser.newContext()
-    this.page = await this.context.newPage()
-    this.page.on("console", (message) => console.log(fixStackTrace("http://localhost:9899", message.text())))
-    this.page.on("pageerror", console.log)
-  }
+  constructor(private page: Page) { }
 
   get display(): TestAppDisplay {
     return new TestAppDisplay(this.page!)
   }
 
   async loadApp(): Promise<void> {
-    await this.page?.goto("http://localhost:9899/index.html")
-  }
-
-  async stop(): Promise<void> {
-    await this.context?.close()
+    await this.page.goto("http://localhost:9899/index.html")
   }
 }
 
@@ -65,17 +44,31 @@ export interface SsrAppOptions {
   view: string
 }
 
-class TestServer {
+export class TestSSRServer {
   private server: Server<any, any> | undefined
   private viteDevServer: ViteDevServer | undefined
+  private contentOptions: SsrAppOptions | undefined
 
-  async start(options: SsrAppOptions): Promise<void> {
+  setContent(options: SsrAppOptions) {
+    this.contentOptions = options
+  }
+
+  private get contentTemplate(): string {
+    return this.contentOptions?.template ?? ""
+  }
+
+  private get contentView(): string {
+    return this.contentOptions?.view ?? ""
+  }
+
+  async start(): Promise<void> {
     const app = express()
 
     this.viteDevServer = await createViteServer({
       server: {
         port: 9898,
-        middlewareMode: true
+        middlewareMode: true,
+        hmr: false
       },
       plugins: [
         tsConfigPaths()
@@ -90,13 +83,13 @@ class TestServer {
 
       try {
         let template = fs.readFileSync(
-          path.resolve(__dirname, options.template),
+          path.resolve(__dirname, this.contentTemplate),
           'utf-8',
         )
 
         template = await this.viteDevServer!.transformIndexHtml(url, template)
 
-        const viewRenderer = await this.viteDevServer!.ssrLoadModule(options.view)
+        const viewRenderer = await this.viteDevServer!.ssrLoadModule(this.contentView)
         const appHtml = await viewRenderer.default()
 
         const html = template.replace(`<!-- SSR-CONTENT -->`, appHtml)
@@ -113,9 +106,10 @@ class TestServer {
     this.server = app.listen(9899)
   }
 
-  async stop(): Promise<void> {
+  async close(): Promise<void> {
     return new Promise(resolve => {
       this.viteDevServer?.close().then(() => {
+        this.server?.closeAllConnections()
         this.server?.close(() => {
           resolve()
         })  

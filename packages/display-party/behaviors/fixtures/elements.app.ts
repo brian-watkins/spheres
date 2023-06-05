@@ -18,8 +18,8 @@ export default function () {
             .dataAttribute("title")
         })
         .input(el => {
-          el.config.dataAttribute("focused")
-          el.config.autofocus(true)
+          el.config.type("checkbox")
+          el.config.checked(true)
           el.config.disabled(false)
         })
         .button(el => {

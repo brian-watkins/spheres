@@ -16,9 +16,11 @@ export default (context: Context<TestAppController>) => behavior("View Elements"
         theElementExists("DIV#funny-id"),
         theElementHasText("DIV P.super-class", "This is text"),
         theElementExists("h3[data-title]"),
-        effect("an element with boolean attributes, autofocused and not disabled", async (context) => {
-          const isFocused = await context.display.select("input[data-focused]").isFocused()
-          expect(isFocused, is(equalTo(true)), "the element is focused")
+        effect("an element with boolean attributes, checked and not disabled", async (context) => {
+          const isChecked = await context.display.select("input[type='checkbox']").isChecked()
+          expect(isChecked, is(equalTo(true)), "the element is checked")
+          const isDisabled = await context.display.select("input[type='checkbox']").isDisabled()
+          expect(isDisabled, is(equalTo(false)), "the element is enabled")
         }),
         theElementExists("button[aria-label='submit']")
       ]

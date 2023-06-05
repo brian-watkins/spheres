@@ -85,8 +85,7 @@ class DisplayElement {
     return this.locator.first().isDisabled({ timeout: 200 })
   }
 
-  async isFocused(): Promise<boolean> {
-    return this.locator.first()
-      .evaluate((el => document.activeElement === el), undefined, { timeout: 200 })
+  async isChecked(): Promise<boolean> {
+    return this.locator.first().isChecked({ timeout: 200 })
   }
 }

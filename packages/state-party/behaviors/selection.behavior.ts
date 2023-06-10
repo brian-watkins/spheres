@@ -1,11 +1,11 @@
 import { ConfigurableExample, behavior, effect, example, fact, step } from "esbehavior";
 import { equalTo, expect, is } from "great-expectations";
-import { Selection, Container, selection, container } from "@src/index.js";
+import { Selection, Container, selection, container, write } from "@src/index.js";
 import { testStoreContext } from "./helpers/testStore.js";
 
 interface BasicSelectionContext {
   numberContainer: Container<number>,
-  incrementModThreeSelection: Selection<number, number>
+  incrementModThreeSelection: Selection
 }
 
 const basicSelection: ConfigurableExample =
@@ -15,8 +15,8 @@ const basicSelection: ConfigurableExample =
       suppose: [
         fact("there is a selection", (context) => {
           const numberContainer = container({ initialValue: 1 })
-          const incrementModThreeSelection = selection(numberContainer, ({ current }) => {
-            return (current + 1) % 3
+          const incrementModThreeSelection = selection((get) => {
+            return write(numberContainer, (get(numberContainer) + 1) % 3)
           })
           context.setTokens({
             numberContainer,
@@ -53,8 +53,8 @@ const lateSubscribeSelection: ConfigurableExample =
       suppose: [
         fact("there is a selection", (context) => {
           const numberContainer = container({ initialValue: 1 })
-          const incrementModThreeSelection = selection(numberContainer, ({ current }) => {
-            return (current + 1) % 3
+          const incrementModThreeSelection = selection((get) => {
+            return write(numberContainer, (get(numberContainer) + 1) % 3)
           })
           context.setTokens({
             numberContainer,
@@ -84,7 +84,7 @@ const lateSubscribeSelection: ConfigurableExample =
 
 interface SelectionWithInputContext {
   numberContainer: Container<number>
-  incrementSelection: Selection<number, number, number>
+  incrementSelection: Selection<number>
 }
 
 const selectionWithInput: ConfigurableExample =
@@ -94,8 +94,8 @@ const selectionWithInput: ConfigurableExample =
       suppose: [
         fact("there is a selection", (context) => {
           const numberContainer = container({ initialValue: 1 })
-          const incrementSelection = selection(numberContainer, ({ current }, value: number) => {
-            return current + value
+          const incrementSelection = selection((get, value: number) => {
+            return write(numberContainer, get(numberContainer) + value)
           })
           context.setTokens({
             numberContainer,
@@ -128,7 +128,7 @@ const selectionWithInput: ConfigurableExample =
 interface SelectionWithOtherStateContext {
   numberContainer: Container<number>
   anotherContainer: Container<number>
-  incrementSelection: Selection<number, number, number>
+  incrementSelection: Selection<number>
 }
 
 const selectionWithOtherState: ConfigurableExample =
@@ -139,8 +139,8 @@ const selectionWithOtherState: ConfigurableExample =
         fact("there is a selection", (context) => {
           const numberContainer = container({ initialValue: 1 })
           const anotherContainer = container({ initialValue: 7 })
-          const incrementSelection = selection(numberContainer, ({ get, current }, value: number) => {
-            return get(anotherContainer) + current + value
+          const incrementSelection = selection((get, value: number) => {
+            return write(numberContainer, get(anotherContainer) + get(numberContainer) + value)
           })
           context.setTokens({
             numberContainer,

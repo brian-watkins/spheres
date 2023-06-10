@@ -1,4 +1,4 @@
-import { Selection, Container, selection, container } from "@src/index.js";
+import { Selection, Container, selection, container, write } from "@src/index.js";
 import { ConfigurableExample, behavior, effect, example, fact, step } from "esbehavior";
 import { equalTo, expect, is } from "great-expectations";
 import { testStoreContext } from "helpers/testStore.js";
@@ -151,7 +151,7 @@ const queryDependency: ConfigurableExample =
 interface QuerySelectionContext {
   stringContainer: Container<string>,
   numberContainer: Container<number>,
-  incrementModThreeSelection: Selection<number, number>
+  incrementModThreeSelection: Selection
 }
 
 const queryFromSelection: ConfigurableExample =
@@ -167,8 +167,8 @@ const queryFromSelection: ConfigurableExample =
               return get(stringContainer).length + (next ?? current)
             }
           })
-          const incrementModThreeSelection = selection(numberContainer, ({ current }) => {
-            return (current + 1) % 3
+          const incrementModThreeSelection = selection((get) => {
+            return write(numberContainer, (get(numberContainer) + 1) % 3)
           })
           context.setTokens({
             stringContainer,

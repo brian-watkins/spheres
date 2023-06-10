@@ -1,9 +1,9 @@
 import { view } from "@src/index.js"
-import { GetState, container, selection, store } from "state-party"
+import { GetState, container, selection, store, write } from "state-party"
 
 const clickCount = container({ initialValue: 0 })
 
-const incrementCount = selection(clickCount, ({ current }) => current + 1)
+const incrementCount = selection(get => write(clickCount, get(clickCount) + 1))
 
 const clickCounterView = (get: GetState) => {
   return view()

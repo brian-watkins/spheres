@@ -38,7 +38,7 @@ export class TestStore<T> {
     this.store.useWriter(token, writer)
   }
 
-  storeSelection<T, M, A>(selection: Selection<T, M, A>, ...input: StoreArg<A>) {
+  storeSelection<A>(selection: Selection<A>, ...input: StoreArg<A>) {
     this.store.dispatch(store(selection, ...input))
   }
 

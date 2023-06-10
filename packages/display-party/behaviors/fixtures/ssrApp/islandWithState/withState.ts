@@ -1,6 +1,6 @@
 import { view } from "@src/index.js"
 import { clickCount, nameState } from "../state.js"
-import { GetState, selection, store } from "state-party"
+import { GetState, selection, store, write } from "state-party"
 
 export default view()
   .withState({
@@ -21,7 +21,7 @@ export default view()
     }
   })
 
-const incrementCount = selection(clickCount, ({ current }) => current + 1)
+const incrementCount = selection(get => write(clickCount, get(clickCount) + 1))
 
 function counterView() {
   return view()

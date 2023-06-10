@@ -23,11 +23,11 @@ const peopleView = (get: GetState) => {
 
 const localState = container({ initialValue: "" })
 
-const writePeople = selection(peopleState, ({ get }) => {
-  return [{
+const writePeople = selection((get) => {
+  return write(peopleState, [{
     name: get(localState),
     age: 104
-  }]
+  }])
 })
 
 function updateButton(): View {

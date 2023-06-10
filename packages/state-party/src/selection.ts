@@ -1,14 +1,17 @@
-import { BatchMessage, Container, Selection, SelectionActions, StoreMessage } from "./store.js";
+import { BatchMessage, Container, GetState, SelectMessage, Selection, StoreMessage, WriteMessage } from "./store.js";
 
-export function selection<T, M, Q = never>(container: Container<T, M>, definition: (actions: SelectionActions<T>, inputValue: Q) => M): Selection<T, M, Q> {
+export function selection<Q = never>(definition: (get: GetState, inputValue: Q) => StoreMessage<any>): Selection<Q> {
   return {
-    container,
     query: definition
   }
 }
 
-export function write<T, M = T>(container: Container<T, M>, value: M): StoreMessage<T, M> {
-  return store<T, M, any>(selection(container, (_, val: M) => val), value)
+export function write<T, M = T>(container: Container<T, M>, value: M): WriteMessage<T, M> {
+  return {
+    type: "write",
+    container,
+    value
+  }
 }
 
 export function batch(messages: Array<StoreMessage<any>>): BatchMessage {
@@ -20,7 +23,7 @@ export function batch(messages: Array<StoreMessage<any>>): BatchMessage {
 
 export type StoreArg<Q> = Q extends never ? [] : [Q]
 
-export function store<T, M, Q>(selection: Selection<T, M, Q>, ...input: StoreArg<Q>): StoreMessage<T, M> {
+export function store<Q = never>(selection: Selection<Q>, ...input: StoreArg<Q>): SelectMessage {
   return {
     type: "select",
     selection,

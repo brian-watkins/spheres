@@ -1,5 +1,5 @@
 import { View, view } from "@src/index.js";
-import { store, GetState, State, container, selection } from "state-party";
+import { store, GetState, State, container, selection, write } from "state-party";
 
 interface Person {
   name: string
@@ -26,18 +26,18 @@ const people = container({
   ]
 })
 
-const shiftPeopleSelection = selection(people, ({ current }) => {
+const shiftPeopleSelection = selection(get => {
+  const current = get(people)
   if (current.length === 0) {
-    return current
+    return write(people, current)
   }
 
-  return [ ...current.slice(1), current[0] ]
+  return write(people, [ ...current.slice(1), current[0] ])
 })
 
-const incrementTicker = selection(ticker, ({ current }) => {
-  return current + 1
+const incrementTicker = selection(get => {
+  return write(ticker, get(ticker) + 1)
 })
-
 
 const peopleView = (props: ReorderAppProps) => (get: GetState) => {
   const list = get(people)

@@ -9,6 +9,7 @@ import valueBehavior from "./value.behavior.js"
 import selectionBehavior from "./selection.behavior.js"
 import queryBehavior from "./query.behavior.js"
 import debugBehavior from "./debug.behavior.js"
+import batchBehavior from "batch.behavior.js"
 
 window.validateBehaviors = () => {
   return validate([
@@ -17,6 +18,7 @@ window.validateBehaviors = () => {
     stateProviderBehavior,
     stateWriterBehavior,
     selectionBehavior,
+    batchBehavior,
     queryBehavior,
     unsubscribeBehavior,
     updateContainerBehavior,

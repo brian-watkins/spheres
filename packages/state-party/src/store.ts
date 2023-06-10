@@ -39,11 +39,18 @@ export interface Selection<ContainerValue, ContainerMessage, SelectionArgument =
   readonly query: (actions: SelectionActions<ContainerValue>, input: SelectionArgument) => ContainerMessage
 }
 
-export interface StoreMessage<T, M = T> {
-  type: "store"
+export interface SelectMessage<T, M = T> {
+  type: "select"
   selection: Selection<T, M, any>
   input: any
 }
+
+export interface BatchMessage {
+  type: "batch"
+  messages: Array<StoreMessage<any>>
+}
+
+export type StoreMessage<T, M = T> = SelectMessage<T, M> | BatchMessage
 
 const registerState = Symbol("registerState")
 
@@ -223,11 +230,20 @@ export class Store {
   }
 
   dispatch<T, M>(message: StoreMessage<T, M>) {
-    const controller = this.getController(message.selection.container)
-    const result = message.selection.query({
-      get: (state) => this.getController(state).value,
-      current: controller.value
-    }, message.input)
-    controller.updateValue(result)
+    switch (message.type) {
+      case "select":
+        const controller = this.getController(message.selection.container)
+        const result = message.selection.query({
+          get: (state) => this.getController(state).value,
+          current: controller.value
+        }, message.input)
+        controller.updateValue(result)
+        break
+      case "batch":
+        for (const msg of message.messages) {
+          this.dispatch(msg)
+        }
+        break
+    }
   }
 }

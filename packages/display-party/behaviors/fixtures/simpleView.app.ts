@@ -43,7 +43,7 @@ export default function (): View {
     .div(el => {
       el.view
         .p(el => el.view.text("Here is some person"))
-        .withState(peopleView)
+        .withState({ view: peopleView })
         .hr()
         .input(el => el.config.onInput(event => write(localState, inputValue(event))))
         .withView(updateButton())

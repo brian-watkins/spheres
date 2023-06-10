@@ -1,5 +1,5 @@
 import { View, view } from "@src/index.js";
-import { selection, container, store, GetState, State } from "state-party";
+import { store, GetState, State, container, selection } from "state-party";
 
 interface Person {
   name: string
@@ -14,9 +14,9 @@ function person(name: string): Person {
 }
 
 const ticker = container({ initialValue: 1 })
-const coolPerson = container({ initialValue: person("Cool Dude") })
-const awesomePerson = container({ initialValue: person("Fundamentally Awesome") })
-const happyPerson = container({ initialValue: person("Happy Animal") })
+const coolPerson = container({ initialValue: person("Cool Dude"), name: "cool" })
+const awesomePerson = container({ initialValue: person("Fundamentally Awesome"), name: "awesome" })
+const happyPerson = container({ initialValue: person("Happy Animal"), name: "happy" })
 
 const people = container({
   initialValue: [
@@ -27,18 +27,19 @@ const people = container({
 })
 
 const shiftPeopleSelection = selection(people, ({ current }) => {
-  const first = current.shift()
-  if (!first) {
+  if (current.length === 0) {
     return current
   }
-  return [ ...current, first ]
+
+  return [ ...current.slice(1), current[0] ]
 })
 
 const incrementTicker = selection(ticker, ({ current }) => {
   return current + 1
 })
 
-const peopleView = (get: GetState) => {
+
+const peopleView = (props: ReorderAppProps) => (get: GetState) => {
   const list = get(people)
 
   return view()
@@ -64,31 +65,55 @@ const peopleView = (get: GetState) => {
         .hr()
         .ul(el => {
           for (const person of list) {
-            el.view.withView(personView(person))
+            if (props.keyOnState) {
+              el.view.withState({
+                key: person,
+                view: get => personViewWithoutKey(person, get)
+              })
+            } else {
+              el.view.withView(personViewWithKey(person))
+            }
           }
         })
     })
 }
 
-function personView(person: State<Person>): View {
+function personViewWithKey(person: State<Person>): View {
   return view()
     .li(el => {
       el.config.key(person)
       el.view
-        .withState(get => {
-          return view()
-            .h1(el => {
-              el.config.dataAttribute("person")
-              el.view.text(`${get(person).name} is ${get(person).age} years old: ${get(ticker)}`)
-            })
+        .withState({
+          view: get => {
+            return view()
+              .h1(el => {
+                el.config.dataAttribute("person")
+                el.view.text(`${get(person).name} is ${get(person).age} years old: ${get(ticker)}`)
+              })
+          }
         })
     })
 }
 
-export default function (): View {
+function personViewWithoutKey(person: State<Person>, get: GetState): View {
+  return view()
+    .li(el => {
+      el.view
+        .h1(el => {
+          el.config.dataAttribute("person")
+          el.view.text(`${get(person).name} is ${get(person).age} years old: ${get(ticker)}`)
+        })
+    })
+}
+
+export interface ReorderAppProps {
+  keyOnState: boolean
+}
+
+export default function (props: ReorderAppProps): View {
   return view()
     .div(el => {
       el.config.id("reorder-list")
-      el.view.withState(peopleView)
+      el.view.withState({ view: peopleView(props) })
     })
 }

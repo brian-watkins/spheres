@@ -25,7 +25,7 @@ export default function () {
     .div(div => {
       div.view
         .h1(h1 => h1.view.text("This is the click counter!"))
-        .withState(clickCounterView)
+        .withState({ view: clickCounterView })
     })
 }
 

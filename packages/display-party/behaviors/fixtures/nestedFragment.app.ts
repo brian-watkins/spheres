@@ -8,7 +8,7 @@ export default function(): View {
     .section(el => {
       el.view
         .h1(el => el.view.text("Hello!"))
-        .withState(fragmentView)
+        .withState({ view: fragmentView })
     })
     .hr()
     .input(el => {

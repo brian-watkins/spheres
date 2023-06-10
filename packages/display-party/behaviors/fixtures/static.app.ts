@@ -57,21 +57,25 @@ function nameView(get: GetState): View {
 export function appWithSimpleState(): View {
   return view()
     .div(el => {
-      el.view.withState(nameView)
+      el.view.withState({ view: nameView })
     })
 }
 
 export function appWithNestedState(): View {
   return view()
     .div(el => {
-      el.view.withState(get => {
-        const age = get(ageState)
-        if (age < 100) {
-          return view()
-            .withState(nameView)
-        } else {
-          return view()
-            .p(el => el.view.text("You are old!"))
+      el.view.withState({
+        view: get => {
+          const age = get(ageState)
+          if (age < 100) {
+            return view()
+              .withState({
+                view: nameView
+              })
+          } else {
+            return view()
+              .p(el => el.view.text("You are old!"))
+          }
         }
       })
     })
@@ -80,13 +84,17 @@ export function appWithNestedState(): View {
 export function appWithDeeplyNestedState(): View {
   return view()
     .div(el => {
-      el.view.withState(get => {
-        return view()
-          .div(el => {
-            el.view
-              .withState(nameView)
-              .p(el => el.view.text(`${get(ageState)} years!`))
-          })
+      el.view.withState({
+        view: get => {
+          return view()
+            .div(el => {
+              el.view
+                .withState({
+                  view: nameView
+                })
+                .p(el => el.view.text(`${get(ageState)} years!`))
+            })
+        }
       })
     })
 }

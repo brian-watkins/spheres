@@ -138,10 +138,15 @@ export interface View extends ViewElements {
   [getVirtualNodes](): Array<VirtualNode>
 }
 
+export interface StatefulConfig {
+  key?: string | number | State<any>
+  view: (get: GetState) => View
+}
+
 export interface SpecialElements {
   text(value: string): this
   withView(view: View): this
-  withState(generator: (get: GetState) => View): this
+  withState(config: StatefulConfig): this
 }
 
 class BaseElementCollection implements SpecialElements {
@@ -157,10 +162,14 @@ class BaseElementCollection implements SpecialElements {
     return this
   }
 
-  withState(definition: (get: GetState) => View): this {
-    const statefulNode = makeVirtualNode("view-with-state", [
-      new StatefulGenerator((get) => definition(get)[toVirtualNode]())
-    ], [])
+  withState(config: StatefulConfig): this {
+    let attrs: Array<VirtualNodeAttribute> = [
+      new StatefulGenerator((get) => config.view(get)[toVirtualNode]())
+    ]
+    if (config.key) {
+      attrs.push(new Key(`${config.key}`))
+    }
+    const statefulNode = makeVirtualNode("view-with-state", attrs, [])
     this.nodes.push(statefulNode)
 
     return this

@@ -23,108 +23,66 @@ interface VirtualNodeConfig {
 }
 
 export interface StoreContext {
-  // store?: Store
   generator: (get: GetState) => VirtualNode
   unsubscribe?: () => void
 }
 
-export class Property {
-  type: "property" = "property"
-
-  constructor(public key: string, public value: string) { }
-}
-
-export class Attribute {
-  type: "attribute" = "attribute"
-
-  constructor(public key: string, public value: string) { }
-}
-
-export class Key {
-  type: "key" = "key"
-
-  constructor(public key: string) { }
-}
-
-export type CssClassname = string
-
-export class CssClasses {
-  type: "css-classes" = "css-classes"
-
-  constructor(public classObject: { [key: CssClassname]: boolean }) { }
-}
-
-export class EventHandler {
-  type: "event" = "event"
-
-  constructor(public event: string, public generator: (evt: Event) => StoreMessage<any, any>) { }
-}
-
-export class StatefulGenerator {
-  type: "stateful" = "stateful"
-
-  constructor(public generator: (get: GetState) => VirtualNode) { }
-}
-
-export type VirtualNodeAttribute = Property | Attribute | EventHandler | CssClasses | Key | StatefulGenerator
-
-export function makeVirtualNodeConfig(attributes: Array<VirtualNodeAttribute>): VirtualNodeConfig {
-  const dict: any = {
+export class VirtualNodeConfiguration {
+  private config: VirtualNodeConfig = {
     props: {},
     attrs: {},
     class: {},
     on: {}
   }
-  for (const attr of attributes) {
-    switch (attr.type) {
-      case "property":
-        dict.props[attr.key] = attr.value
-        break
-      case "attribute":
-        dict.attrs[attr.key] = attr.value
-        break
-      case "css-classes":
-        dict.class = Object.assign(dict.class, attr.classObject)
-        break
-      case "event":
-        dict.on[attr.event] = function <E extends Event>(evt: E) {
-          evt.target?.dispatchEvent(new CustomEvent("displayMessage", {
-            bubbles: true,
-            cancelable: true,
-            detail: attr.generator(evt)
-          }))
-        }
-        break
-      case "key":
-        dict.key = attr.key
-        break
-      case "stateful":
-        dict.storeContext = {
-          generator: attr.generator
-        }
-        break
-      default:
-        exhaustiveMatchGuard(attr)
+
+  get data(): VirtualNodeConfig {
+    return this.config
+  }
+  
+  addProperty(name: string, value: string) {
+    this.config.props![name] = value
+  }
+  
+  addAttribute(name: string, value: string) {
+    this.config.attrs![name] = value
+  }
+
+  setKey(key: string) {
+    this.config.key = key
+  }
+
+  addClasses(classNames: Array<string>) {
+    const classObject = Object.fromEntries(classNames.map(name => [name, true]))
+    this.config.class = Object.assign(this.config.class!, classObject)
+  }
+
+  setEventHandler(event: string, handler: (evt: Event) => StoreMessage<any, any>) {
+    this.config.on![event] = function <E extends Event>(evt: E) {
+      evt.target?.dispatchEvent(new CustomEvent("displayMessage", {
+        bubbles: true,
+        cancelable: true,
+        detail: handler(evt)
+      }))
     }
   }
-  return dict
+
+  setStatefulGenerator(generator: (get: GetState) => VirtualNode) {
+    this.config.storeContext = {
+      generator
+    }
+  }
 }
 
-function exhaustiveMatchGuard(_: never) {
-  throw new Error("Should never get here!")
-}
-
-export function makeVirtualNode(tag: string | undefined, attributes: Array<VirtualNodeAttribute>, children: Array<VirtualNode>): VirtualNode {
+export function makeVirtualNode(tag: string | undefined, config: VirtualNodeConfiguration, children: Array<VirtualNode>): VirtualNode {
   // See Snabbdom src/h.ts and src/vnode.ts
   // We are not supporting SVG at the moment but otherwise this should work
-  const config = makeVirtualNodeConfig(attributes)
   return {
     sel: tag,
-    data: config,
+    data: config.data,
     children,
     text: undefined,
     elm: undefined,
-    key: config?.key
+    key: config.data.key
   }
 }
 
@@ -142,5 +100,5 @@ export function makeVirtualTextNode(text: string): VirtualNode {
 
 export function makeFragment(children: Array<VirtualNode>): VirtualNode {
   // following Snabbdom src/h.ts
-  return makeVirtualNode(undefined, [], children)
+  return makeVirtualNode(undefined, new VirtualNodeConfiguration(), children)
 }

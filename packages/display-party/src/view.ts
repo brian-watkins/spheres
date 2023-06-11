@@ -1,5 +1,5 @@
 import { GetState, State, Store, StoreMessage } from "state-party"
-import { EventHandler, Attribute, CssClasses, CssClassname, VirtualNode, VirtualNodeAttribute, makeFragment, makeVirtualNode, makeVirtualTextNode, Key, Property, StatefulGenerator } from "./vdom/virtualNode.js"
+import { VirtualNode, VirtualNodeConfiguration, makeFragment, makeVirtualNode, makeVirtualTextNode } from "./vdom/virtualNode.js"
 import { ViewElements, booleanAttributes } from "./htmlElements.js"
 import { createStringRenderer } from "./vdom/renderToString.js"
 import { createDOMRenderer } from "./vdom/renderToDom.js"
@@ -39,55 +39,48 @@ export function renderToString(store: Store, view: View): Promise<string> {
 
 // Attributes
 
-const getVirtualNodeAttributes = Symbol("getAllAttributes")
+const getVirtualNodeConfiguration = Symbol("getVirtualNodeConfiguration")
 
 export interface SpecialAttributes {
   key(value: string | number | State<any>): this
   classes(classes: Array<string>): this
   dataAttribute(name: string, value?: string): this
   property(name: string, value: string): this
-  [getVirtualNodeAttributes](): Array<VirtualNodeAttribute>
+  [getVirtualNodeConfiguration](): VirtualNodeConfiguration
 }
 
 class AttributesCollection implements SpecialAttributes {
-  attributes: Array<VirtualNodeAttribute> = []
+  private config: VirtualNodeConfiguration = new VirtualNodeConfiguration()
 
   addAttribute(name: string, value: string) {
-    let attribute: Attribute
     if (name.startsWith("aria")) {
-      attribute = new Attribute(`aria-${name.substring(4).toLowerCase()}`, value)
+      this.config.addAttribute(`aria-${name.substring(4).toLowerCase()}`, value)
     } else {
-      attribute = new Attribute(name, value)
+      this.config.addAttribute(name, value)
     }
-    this.attributes.push(attribute)
   }
 
   property(name: string, value: string): this {
-    this.attributes.push(new Property(name, value))
+    this.config.addProperty(name, value)
     return this
   }
 
   addEventHandler(name: string, handler: (evt: Event) => StoreMessage<any, any>) {
-    this.attributes.push(new EventHandler(name, handler))
+    this.config.setEventHandler(name, handler)
   }
 
   key(value: string | number | State<any, any>): this {
-    this.attributes.push(new Key(`${value}`))
+    this.config.setKey(`${value}`)
     return this
   }
 
   classes(classes: string[]): this {
-    const classObject: { [key: CssClassname]: boolean } = {}
-    for (const classname of classes) {
-      classObject[classname] = true
-    }
-
-    this.attributes.push(new CssClasses(classObject))
+    this.config.addClasses(classes)
     return this
   }
 
   dataAttribute(name: string, value: string = "true"): this {
-    this.attributes.push(new Attribute(`data-${name}`, value))
+    this.config.addAttribute(`data-${name}`, value)
     return this
   }
 
@@ -97,8 +90,8 @@ class AttributesCollection implements SpecialAttributes {
     }
   }
 
-  [getVirtualNodeAttributes](): VirtualNodeAttribute[] {
-    return this.attributes
+  [getVirtualNodeConfiguration](): VirtualNodeConfiguration {
+    return this.config
   }
 }
 
@@ -162,14 +155,13 @@ class BaseElementCollection implements SpecialElements {
     return this
   }
 
-  withState(config: StatefulConfig): this {
-    let attrs: Array<VirtualNodeAttribute> = [
-      new StatefulGenerator((get) => config.view(get)[toVirtualNode]())
-    ]
-    if (config.key) {
-      attrs.push(new Key(`${config.key}`))
+  withState(statefulConfig: StatefulConfig): this {
+    let config = new VirtualNodeConfiguration()
+    config.setStatefulGenerator((get) => statefulConfig.view(get)[toVirtualNode]())
+    if (statefulConfig.key) {
+      config.setKey(`${statefulConfig.key}`)
     }
-    const statefulNode = makeVirtualNode("view-with-state", attrs, [])
+    const statefulNode = makeVirtualNode("view-with-state", config, [])
     this.nodes.push(statefulNode)
 
     return this
@@ -220,6 +212,6 @@ export class ViewElement<A extends SpecialAttributes> {
   }
 
   [toVirtualNode](): VirtualNode {
-    return makeVirtualNode(this.tag, this.config[getVirtualNodeAttributes](), this.children[getVirtualNodes]())
+    return makeVirtualNode(this.tag, this.config[getVirtualNodeConfiguration](), this.children[getVirtualNodes]())
   }
 }

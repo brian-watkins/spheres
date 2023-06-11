@@ -10,6 +10,7 @@ import selectionBehavior from "./selection.behavior.js"
 import queryBehavior from "./query.behavior.js"
 import debugBehavior from "./debug.behavior.js"
 import batchBehavior from "batch.behavior.js"
+import storeQueryBehavior from "storeQuery.behavior.js"
 
 window.validateBehaviors = () => {
   return validate([
@@ -20,6 +21,7 @@ window.validateBehaviors = () => {
     selectionBehavior,
     batchBehavior,
     queryBehavior,
+    storeQueryBehavior,
     unsubscribeBehavior,
     updateContainerBehavior,
     valueBehavior,

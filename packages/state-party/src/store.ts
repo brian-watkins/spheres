@@ -193,6 +193,33 @@ export class Store {
     return this.getController(token).addSubscriber(update)
   }
 
+  query<M>(definition: (get: GetState) => M, update: (value: M) => void): () => void {
+    let dependencies = new WeakSet<State<any>>()
+    let unsubscribers: Set<() => void> | undefined = new Set()
+
+    const get = <S, N>(state: State<S, N>) => {
+      const controller = this.getController(state)
+      if (!dependencies.has(state)) {
+        dependencies.add(state)
+        const unsubscribe = controller.addDependent(() => {
+          update(definition(get))
+        })
+        unsubscribers?.add(unsubscribe)
+      }
+      return controller.value
+    }
+
+    update(definition(get))
+
+    return () => {
+      unsubscribers?.forEach(unsubscribe => {
+        unsubscribe()
+      })
+      unsubscribers?.clear()
+      unsubscribers = undefined
+    }
+  }
+
   useProvider(provider: Provider) {
     const set = <Q, M>(state: State<Q, M>, value: M) => {
       this.getController(state).publishValue(value)

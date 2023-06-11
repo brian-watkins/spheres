@@ -1,4 +1,4 @@
-import { Selection, Container, Provider, State, Store, Writer, store, write, StoreArg, StoreMessage, batch } from "@src/index.js"
+import { Selection, Container, Provider, State, Store, Writer, store, write, StoreArg, StoreMessage, batch, GetState } from "@src/index.js"
 import { Context } from "esbehavior"
 
 export function testStoreContext<T>(): Context<TestStore<T>> {
@@ -15,6 +15,15 @@ export class TestStore<T> {
 
   constructor() {
     this.store = new Store()
+  }
+
+  queryStore(query: (get: GetState) => any, name: string) {
+    this.values.set(name, [])
+    const unsubscribe = this.store.query(query, (updatedValue) => {
+      this.values.get(name)?.push(updatedValue)
+    })
+
+    this.unsubscribers.set(name, unsubscribe)
   }
 
   subscribeTo<S, N>(token: State<S, N>, name: string) {

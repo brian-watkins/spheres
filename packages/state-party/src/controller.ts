@@ -12,8 +12,12 @@ export class ContainerController<T, M = T> {
     this.writer = writer
   }
 
-  addDependent(notifier: (value: T) => void) {
+  addDependent(notifier: (value: T) => void): () => void {
     this.dependents.add(notifier)
+
+    return () => {
+      this.dependents.delete(notifier)
+    }
   }
 
   addSubscriber(notify: (value: T) => void): () => void {

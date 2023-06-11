@@ -1,6 +1,6 @@
 import { Module, VNode, attributesModule, classModule, eventListenersModule, init, propsModule } from "snabbdom"
 import { VirtualNode } from "./virtualNode.js"
-import { GetState, Store, value } from "state-party"
+import { GetState, Store } from "state-party"
 
 function renderModule(store: Store): Module {
   return {
@@ -8,13 +8,11 @@ function renderModule(store: Store): Module {
       const generator: ((get: GetState) => VirtualNode) | undefined = vnode.data!.storeContext?.generator
       if (generator === undefined) return
 
-      const token = value({ query: generator })
-      
       const patch = createPatch(store)
 
       let oldNode: VNode | Element = vnode.elm as Element
 
-      vnode.data!.storeContext.unsubscribe = store.subscribe(token, (updatedNode) => {
+      vnode.data!.storeContext.unsubscribe = store.query(generator, (updatedNode) => {
         oldNode = patch(oldNode, updatedNode)
         vnode.elm = oldNode.elm
       })

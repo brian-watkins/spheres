@@ -170,15 +170,7 @@ export class Store {
   private registry: WeakMap<State<any>, ContainerController<any, any>> = new WeakMap()
 
   private createState<T, M>(token: State<T, M>) {
-    const getOrCreateToken = <S, N>(stateToken: State<S, N>) => {
-      if (!this.registry.has(stateToken)) {
-        const controller = stateToken[registerState](getOrCreateToken)
-        this.registry.set(stateToken, controller)
-      }
-      return this.registry.get(stateToken)!
-    }
-
-    const controller = token[registerState](getOrCreateToken)
+    const controller = token[registerState](this.getController.bind(this))
     this.registry.set(token, controller)
   }
 

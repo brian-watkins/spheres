@@ -1,31 +1,52 @@
-import { Module, VNode, attributesModule, classModule, eventListenersModule, init, propsModule } from "snabbdom"
+import { VNode, attributesModule, classModule, eventListenersModule, init, propsModule } from "snabbdom"
 import { VirtualNode } from "./virtualNode.js"
 import { GetState, Store } from "state-party"
 
-function renderModule(store: Store): Module {
-  return {
-    create: (_, vnode) => {
-      const generator: ((get: GetState) => VirtualNode) | undefined = vnode.data!.storeContext?.generator
-      if (generator === undefined) return
+// function renderModule(store: Store): Module {
+//   return {
+//     create: (_, vnode) => {
+//       const generator: ((get: GetState) => VirtualNode) | undefined = vnode.data!.storeContext?.generator
+//       if (generator === undefined) return
 
-      const patch = createPatch(store)
+//       const patch = createPatch(store)
 
-      let oldNode: VNode | Element = vnode.elm as Element
+//       let oldNode: VNode | Element = vnode.elm as Element
 
-      vnode.data!.storeContext.unsubscribe = store.query(generator, (updatedNode) => {
-        oldNode = patch(oldNode, updatedNode)
-        vnode.elm = oldNode.elm
-      })
-    },
-    destroy: (vnode) => {
-      vnode.data!.storeContext?.unsubscribe?.()
-    }
-  }
-}
+//       vnode.data!.storeContext.unsubscribe = store.query(generator, (updatedNode) => {
+//         oldNode = patch(oldNode, updatedNode)
+//         vnode.elm = oldNode.elm
+//       })
+//     },
+//     destroy: (vnode) => {
+//       vnode.data!.storeContext?.unsubscribe?.()
+//     }
+//   }
+// }
 
 function createPatch(store: Store) {
-  return init([
-    renderModule(store),
+  // could potentially inline the render module here and
+  // just refer to the patch function within it, instead of creating
+  // a new one for every withState element
+  const patch = init([
+    // renderModule(store),
+    {
+      create: (_, vnode) => {
+        const generator: ((get: GetState) => VirtualNode) | undefined = vnode.data!.storeContext?.generator
+        if (generator === undefined) return
+  
+        // const patch = createPatch(store)
+  
+        let oldNode: VNode | Element = vnode.elm as Element
+  
+        vnode.data!.storeContext.unsubscribe = store.query(generator, (updatedNode) => {
+          oldNode = patch(oldNode, updatedNode)
+          vnode.elm = oldNode.elm
+        })
+      },
+      destroy: (vnode) => {
+        vnode.data!.storeContext?.unsubscribe?.()
+      }
+    },
     propsModule,
     attributesModule,
     classModule,
@@ -35,6 +56,8 @@ function createPatch(store: Store) {
       fragments: true
     }
   })
+
+  return patch
 }
 
 export interface ElementRoot {

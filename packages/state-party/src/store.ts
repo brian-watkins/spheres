@@ -40,7 +40,7 @@ export interface WriteMessage<T, M = T> {
   value: M
 }
 
-export interface Selection<SelectionArgument = never> {
+export interface Selection<SelectionArgument = undefined> {
   readonly query: (get: GetState, input: SelectionArgument) => StoreMessage<any>
 }
 

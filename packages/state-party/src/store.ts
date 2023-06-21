@@ -105,8 +105,8 @@ export class Container<T, M = T> extends State<T, M> {
   constructor(
     name: string,
     private initialValue: T,
-    private reducer: (message: M, current: T) => T,
-    private query?: (actions: QueryActions<T>, nextValue?: M) => M
+    private reducer: ((message: M, current: T) => T) | undefined,
+    private query: ((actions: QueryActions<T>, nextValue?: M) => M) | undefined
   ) {
     super(uniqueName(name))
   }
@@ -143,7 +143,7 @@ export class Container<T, M = T> extends State<T, M> {
 }
 
 export class Value<T, M = T> extends State<T, M> {
-  constructor(name: string, private derivation: (get: GetState, current: T | undefined) => M, private reducer: (message: M, current: T | undefined) => T) {
+  constructor(name: string, private derivation: (get: GetState, current: T | undefined) => M, private reducer: ((message: M, current: T | undefined) => T) | undefined) {
     super(uniqueName(name))
   }
 
@@ -162,7 +162,14 @@ export class Value<T, M = T> extends State<T, M> {
       return controller.value
     }
 
-    return new ContainerController(this.reducer(this.derivation(get, undefined), undefined), this.reducer)
+    let initialValue: T
+    if (this.reducer) {
+      initialValue = this.reducer(this.derivation(get, undefined), undefined)
+    } else {
+      initialValue = this.derivation(get, undefined) as unknown as T
+    }
+
+    return new ContainerController(initialValue, this.reducer)
   }
 }
 

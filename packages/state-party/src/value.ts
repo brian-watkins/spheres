@@ -7,7 +7,6 @@ export interface ValueInitializer<T, M> {
 }
 
 export function value<M, T = M>(initializer: ValueInitializer<T, M>): Value<T, M> {
-  const reducer = initializer.reducer ?? ((val: any) => val)
   const name = initializer.name ?? "value"
-  return new Value(name, initializer.query, reducer)
+  return new Value(name, initializer.query, initializer.reducer)
 }

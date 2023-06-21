@@ -9,6 +9,5 @@ export interface ContainerInitializer<T, M> {
 
 export function container<T, M = T>(initializer: ContainerInitializer<T, M>): Container<T, M> {
   const name = initializer.name ?? "container"
-  const reducer = initializer.reducer ?? ((val: any) => val)
-  return new Container(name, initializer.initialValue, reducer, initializer.query)
+  return new Container(name, initializer.initialValue, initializer.reducer, initializer.query)
 }

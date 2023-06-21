@@ -3,7 +3,7 @@ export class ContainerController<T, M = T> {
   private query: ((current: T, next: M) => M) | undefined
   private writer: ((value: M) => void) | undefined
 
-  constructor(private _value: T, private reducer: (message: M, current: T) => T) { }
+  constructor(private _value: T, private reducer: ((message: M, current: T) => T) | undefined) { }
 
   setWriter(writer: (value: M) => void) {
     this.writer = writer
@@ -27,7 +27,12 @@ export class ContainerController<T, M = T> {
   }
 
   publishValue(value: M) {
-    const updatedValue = this.reducer(value, this._value)
+    let updatedValue
+    if (this.reducer === undefined) {
+      updatedValue = value as unknown as T
+    } else {
+      updatedValue = this.reducer(value, this._value)
+    }
    
     if (Object.is(this._value, updatedValue)) return
    

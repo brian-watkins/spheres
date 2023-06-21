@@ -33,7 +33,9 @@ const writePeople = selection((get) => {
 function updateButton(): View {
   return view()
     .button(el => {
-      el.config.onClick(() => store(writePeople))
+      el.config.on({
+        click: () => store(writePeople)
+      })
       el.view.text("Click me!")
     })
 }
@@ -45,7 +47,9 @@ export default function (): View {
         .p(el => el.view.text("Here is some person"))
         .withState({ view: peopleView })
         .hr()
-        .input(el => el.config.onInput(event => write(localState, inputValue(event))))
+        .input(el => el.config.on({
+          input: event => write(localState, inputValue(event))
+        }))
         .withView(updateButton())
     })
 }

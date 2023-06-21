@@ -39,12 +39,16 @@ export default function(): View {
         .input(({config}) => {
           config
             .dataAttribute("name-input")
-            .onInput(evt => write(nameState, inputValue(evt)))
+            .on({
+              input: (evt) => write(nameState, inputValue(evt))
+            })
         })
         .input(({config}) => {
           config
             .dataAttribute("age-input")
-            .onInput(evt => write(ageState, Number(inputValue(evt))))
+            .on({
+              input: evt => write(ageState, Number(inputValue(evt)))
+            })
         })
     })
 }

@@ -32,7 +32,7 @@ export default function (): View {
         .input(el => {
           el.config
             .dataAttribute("number-input")
-            .onInput(evt => write(numberState, Number(inputValue(evt))))
+            .on({ input: evt => write(numberState, Number(inputValue(evt))) })
         })
     })
 }

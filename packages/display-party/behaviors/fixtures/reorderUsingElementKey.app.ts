@@ -51,14 +51,14 @@ const peopleView = (props: ReorderAppProps) => (get: GetState) => {
         .button(el => {
           el.config
             .dataAttribute("reorder")
-            .onClick(() => store(shiftPeopleSelection))
+            .on({ click: () => store(shiftPeopleSelection) })
           el.view
             .text("Reorder People")
         })
         .button(el => {
           el.config
             .dataAttribute("increment-ticker")
-            .onClick(() => store(incrementTicker))
+            .on({ click: () => store(incrementTicker) })
           el.view
             .text("Increment")
         })

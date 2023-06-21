@@ -10,7 +10,7 @@ const clickCounterView = (get: GetState) => {
     .div(div => {
       div.view
         .button(b => {
-          b.config.onClick(() => store(incrementCount))
+          b.config.on({ click: () => store(incrementCount) })
           b.view.text("Click me!")
         })
         .p(p => {

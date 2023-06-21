@@ -1,4 +1,4 @@
-import { MethodSignatureStructure, OptionalKind, ParameterDeclarationStructure, Project, VariableDeclarationKind } from "ts-morph"
+import { MethodSignatureStructure, OptionalKind, ParameterDeclarationStructure, Project, PropertySignatureStructure, VariableDeclarationKind } from "ts-morph"
 import { htmlElementAttributes } from "html-element-attributes"
 import { htmlEventAttributes } from "html-event-attributes"
 import { htmlTagNames } from "html-tag-names"
@@ -36,19 +36,20 @@ const ariaAttributesInterface = htmlElementsFile.addInterface({
   isExported: true
 })
 
-const ariaAttribute = buildAttributeProperty("this")
-
 for (const attribute of ariaAttributes) {
-  ariaAttributesInterface.addMethod(ariaAttribute(attribute))
+  if (attribute.startsWith("aria")) {
+    ariaAttributesInterface.addProperty({
+      name: toCamel(attribute.substring(5)),
+      type: "string",
+      hasQuestionToken: true
+    })
+  }
 }
 
 // GlobalAttributes interface
 
 const globalAttibutesInterface = htmlElementsFile.addInterface({
   name: "GlobalAttributes",
-  extends: [
-    "AriaAttributes"
-  ],
   isExported: true
 })
 
@@ -59,27 +60,23 @@ for (const attribute of htmlElementAttributes['*']) {
   globalAttibutesInterface.addMethod(globalAttribute(attribute))
 }
 
-// Events apply to all elements
+// add aria role property to global attributes
+globalAttibutesInterface.addMethod(buildAttributeProperty("this")("role"))
+
+// Events interface
+
+const eventsInterface = htmlElementsFile.addInterface({
+  name: "ElementEvents",
+  isExported: true
+})
 
 for (const event of htmlEventAttributes) {
-  globalAttibutesInterface.addMethod({
-    name: `on${capitalize(event.substring(2))}`,
-    returnType: "this",
-    typeParameters: [
-      {
-        name: "M",
-        constraint: (writer) => {
-          writer.write("StoreMessage<any>")
-        }
-      }
-    ],
-    parameters: [
-      {
-        name: "handler", type: (writer) => {
-          writer.write("<E extends Event>(evt: E) => M")
-        }
-      }
-    ]
+  eventsInterface.addProperty({
+    name: event.substring(2),
+    type: (writer) => {
+      writer.write("<E extends Event>(evt: E) => StoreMessage<any>")
+    },
+    hasQuestionToken: true
   })
 }
 

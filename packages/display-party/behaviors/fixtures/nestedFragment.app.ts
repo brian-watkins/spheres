@@ -14,7 +14,7 @@ export default function(): View {
     .input(el => {
       el.config
         .type("text")
-        .onInput(evt => write(nameContainer, inputValue(evt)))
+        .on({ input: evt => write(nameContainer, inputValue(evt)) })
     })
 }
 

@@ -1,6 +1,6 @@
-import { GetState, State, Store, StoreMessage } from "state-party"
+import { GetState, State, Store } from "state-party"
 import { VirtualNode, VirtualNodeConfiguration, makeFragment, makeVirtualNode, makeVirtualTextNode } from "./vdom/virtualNode.js"
-import { ViewElements, booleanAttributes } from "./htmlElements.js"
+import { AriaAttributes, ElementEvents, ViewElements, booleanAttributes } from "./htmlElements.js"
 import { createStringRenderer } from "./vdom/renderToString.js"
 import { createDOMRenderer } from "./vdom/renderToDom.js"
 
@@ -46,6 +46,8 @@ export interface SpecialAttributes {
   classes(classes: Array<string>): this
   dataAttribute(name: string, value?: string): this
   property(name: string, value: string): this
+  on(events: ElementEvents): this
+  aria(attributes: AriaAttributes): this
   [getVirtualNodeConfiguration]: VirtualNodeConfiguration
 }
 
@@ -63,32 +65,40 @@ function makeElementConfig<A>(): A {
             return receiver
           }
         case "key":
-          return function(value: string | number | State<any, any>) {
+          return function (value: string | number | State<any, any>) {
             config.setKey(`${value}`)
             return receiver
           }
         case "classes":
-          return function(classes: string[]) {
+          return function (classes: string[]) {
             config.addClasses(classes)
             return receiver
           }
         case "dataAttribute":
-          return function(name: string, value: string = "true") {
+          return function (name: string, value: string = "true") {
             config.addAttribute(`data-${name}`, value)
+            return receiver
+          }
+        case "aria":
+          return function (attributes: AriaAttributes) {
+            for (const [key, value] of Object.entries(attributes)) {
+              config.addAttribute(`aria-${key}`, value)
+            }
+            return receiver
+          }
+        case "on":
+          return function (events: ElementEvents) {
+            for (const [event, handler] of Object.entries(events)) {
+              config.setEventHandler(event, handler)
+            }
             return receiver
           }
         case getVirtualNodeConfiguration:
           return config
         default:
           const methodName = prop as string
-          if (methodName.startsWith("on")) {
-            return function(handler: <E extends Event>(evt: E) => StoreMessage<any>) {
-              const eventName = methodName.substring(2).toLowerCase()
-              config.setEventHandler(eventName, handler)
-              return receiver
-            }
-          } else if (booleanAttributes.has(methodName)) {
-            return function(isSelected: boolean) {
+          if (booleanAttributes.has(methodName)) {
+            return function (isSelected: boolean) {
               if (isSelected) {
                 config.addAttribute(methodName, methodName)
               }
@@ -96,13 +106,9 @@ function makeElementConfig<A>(): A {
             }
           } else {
             return function (value: string) {
-              if (methodName.startsWith("aria")) {
-                config.addAttribute(`aria-${methodName.substring(4).toLowerCase()}`, value)
-              } else {
-                config.addAttribute(methodName, value)
-              }
+              config.addAttribute(methodName, value)
               return receiver
-            }  
+            }
           }
       }
     }

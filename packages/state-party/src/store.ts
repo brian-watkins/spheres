@@ -271,8 +271,8 @@ export class Store {
         this.dispatch(result)
         break
       case "batch":
-        for (const msg of message.messages) {
-          this.dispatch(msg)
+        for (let i = 0; i < message.messages.length; i++) {
+          this.dispatch(message.messages[i])
         }
         break
     }

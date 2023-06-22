@@ -52,8 +52,9 @@ export class VirtualNodeConfiguration {
   }
 
   addClasses(classNames: Array<string>) {
-    const classObject = Object.fromEntries(classNames.map(name => [name, true]))
-    this.config.class = Object.assign(this.config.class!, classObject)
+    for (let i = 0; i < classNames.length; i++) {
+      this.config.class![classNames[i]] = true
+    }
   }
 
   setEventHandler(event: string, handler: (evt: Event) => StoreMessage<any, any>) {

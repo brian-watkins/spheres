@@ -81,14 +81,18 @@ function makeElementConfig<A>(): A {
           }
         case "aria":
           return function (attributes: AriaAttributes) {
-            for (const [key, value] of Object.entries(attributes)) {
+            const entries = Object.entries(attributes)
+            for (let i = 0; i < entries.length; i++) {
+              const [key, value] = entries[i]
               config.addAttribute(`aria-${key}`, value)
             }
             return receiver
           }
         case "on":
           return function (events: ElementEvents) {
-            for (const [event, handler] of Object.entries(events)) {
+            const entries = Object.entries(events)
+            for (let i = 0; i < entries.length; i++) {
+              const [event, handler] = entries[i]
               config.setEventHandler(event, handler)
             }
             return receiver

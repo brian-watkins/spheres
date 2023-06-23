@@ -36,7 +36,7 @@ export default behavior("debug name", [
         })
       ],
       observe: [
-        stateTokenHasNameBasedOn("container")
+        stateTokenHasNameBasedOn("\\d+")
       ]
     }),
   example(testStoreContext<SimpleTokenContext>())
@@ -67,7 +67,7 @@ export default behavior("debug name", [
         })
       ],
       observe: [
-        stateTokenHasNameBasedOn("value")
+        stateTokenHasNameBasedOn("\\d+")
       ]
     }),
   example(testStoreContext<SimpleTokenContext>())
@@ -91,12 +91,12 @@ export default behavior("debug name", [
 
 function stateTokenHasNameBasedOn(expectedName: string): Observation<TestStore<SimpleTokenContext>> {
   return effect("the state token's name is printed", (context) => {
-    expect(context.tokens.stringState.toString(), is(stringMatching(new RegExp(`^\\[${expectedName} \\d+\\]$`))))
+    expect(context.tokens.stringState.toString(), is(stringMatching(new RegExp(expectedName))))
   })
 }
 
 function metaStateTokenHasNameBasedOn(expectedName: string): Observation<TestStore<SimpleTokenContext>> {
   return effect("the meta state token's name is printed", (context) => {
-    expect(context.tokens.stringState.meta.toString(), is(stringMatching(new RegExp(`^meta\\[${expectedName} \\d+\\]$`))))
+    expect(context.tokens.stringState.meta.toString(), is(stringMatching(new RegExp(`^meta\\[${expectedName}\\]$`))))
   })
 }

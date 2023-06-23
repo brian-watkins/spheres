@@ -59,10 +59,15 @@ export type StoreMessage<T, M = T> = WriteMessage<T, M> | SelectMessage | BatchM
 
 const registerState = Symbol("registerState")
 
+let tokenId = 0
+
 export abstract class State<T, M = T> {
+  private name: string
   private _meta: MetaState<T, M> | undefined
   
-  constructor(private name: string) { }
+  constructor(name: string | undefined) {
+    this.name = name ?? `${tokenId++}`
+  }
 
   abstract [registerState](getOrCreate: <S, N>(state: State<S, N>) => ContainerController<S, N>): ContainerController<T, M>
 
@@ -80,7 +85,7 @@ export abstract class State<T, M = T> {
 
 export class MetaState<T, M> extends State<Meta<M>> {
   constructor(private token: State<T, M>) {
-    super(`meta${token.toString()}`)
+    super(`meta[${token.toString()}]`)
   }
 
   [registerState](getOrCreate: <S, N>(state: State<S, N>) => ContainerController<S, N>): ContainerController<Meta<M>> {
@@ -95,20 +100,14 @@ export class MetaState<T, M> extends State<Meta<M>> {
   }
 }
 
-let tokenIndex = 0
-
-function uniqueName(name: string): string {
-  return `[${name} ${tokenIndex++}]`
-}
-
 export class Container<T, M = T> extends State<T, M> {
   constructor(
-    name: string,
+    name: string | undefined,
     private initialValue: T,
     private reducer: ((message: M, current: T) => T) | undefined,
     private query: ((actions: QueryActions<T>, nextValue?: M) => M) | undefined
   ) {
-    super(uniqueName(name))
+    super(name)
   }
 
   [registerState](getOrCreate: <S, N>(state: State<S, N>) => ContainerController<S, N>): ContainerController<T, M> {
@@ -143,8 +142,8 @@ export class Container<T, M = T> extends State<T, M> {
 }
 
 export class Value<T, M = T> extends State<T, M> {
-  constructor(name: string, private derivation: (get: GetState, current: T | undefined) => M, private reducer: ((message: M, current: T | undefined) => T) | undefined) {
-    super(uniqueName(name))
+  constructor(name: string | undefined, private derivation: (get: GetState, current: T | undefined) => M, private reducer: ((message: M, current: T | undefined) => T) | undefined) {
+    super(name)
   }
 
   [registerState](getOrCreate: <S, N>(state: State<S, N>) => ContainerController<S, N>): ContainerController<T, M> {

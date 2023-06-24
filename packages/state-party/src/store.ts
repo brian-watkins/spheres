@@ -189,7 +189,7 @@ export class Store {
 
   query<M>(definition: (get: GetState) => M, update: (value: M) => void): () => void {
     let dependencies = new WeakSet<State<any>>()
-    let unsubscribers: Set<() => void> | undefined = new Set()
+    let unsubscribers: Array<() => void> = []
 
     const get = <S, N>(state: State<S, N>) => {
       const controller = this.getController(state)
@@ -198,7 +198,7 @@ export class Store {
         const unsubscribe = controller.addDependent(() => {
           update(definition(get))
         })
-        unsubscribers?.add(unsubscribe)
+        unsubscribers.push(unsubscribe)
       }
       return controller.value
     }
@@ -206,11 +206,10 @@ export class Store {
     update(definition(get))
 
     return () => {
-      unsubscribers?.forEach(unsubscribe => {
-        unsubscribe()
-      })
-      unsubscribers?.clear()
-      unsubscribers = undefined
+      for (let i = 0; i < unsubscribers.length; i++) {
+        unsubscribers[i]()
+      }
+      unsubscribers = []
     }
   }
 

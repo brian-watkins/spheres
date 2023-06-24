@@ -177,7 +177,7 @@ export class Store {
 
   private getController<T, M>(token: State<T, M>): ContainerController<T, M> {
     if (!this.registry.has(token)) {
-      const controller = token[registerState](this.getController.bind(this))
+      const controller = token[registerState]((state) => this.getController(state))
       this.registry.set(token, controller)
     }
     return this.registry.get(token)!

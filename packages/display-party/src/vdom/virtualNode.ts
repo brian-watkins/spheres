@@ -1,4 +1,4 @@
-import { Attrs, Classes, Hooks, On, Props, VNode } from "snabbdom";
+import { Attrs, Hooks, On, Props, VNode } from "snabbdom";
 import { GetState, Store, StoreMessage } from "state-party";
 
 // Tailored from Snabbdom VNode
@@ -15,7 +15,6 @@ export interface VirtualNode extends VNode {
 interface VirtualNodeConfig {
   props?: Props;
   attrs?: Attrs;
-  class?: Classes;
   on?: On;
   hook?: Hooks & { render?: (store: Store, vnode: VirtualNode) => Promise<VirtualNode> };
   key?: string;
@@ -31,7 +30,6 @@ export class VirtualNodeConfiguration {
   private config: VirtualNodeConfig = {
     props: {},
     attrs: {},
-    class: {},
     on: {}
   }
 
@@ -52,9 +50,7 @@ export class VirtualNodeConfiguration {
   }
 
   addClasses(classNames: Array<string>) {
-    for (let i = 0; i < classNames.length; i++) {
-      this.config.class![classNames[i]] = true
-    }
+    this.addAttribute("class", classNames.join(" "))
   }
 
   setEventHandler(event: string, handler: (evt: Event) => StoreMessage<any, any>) {

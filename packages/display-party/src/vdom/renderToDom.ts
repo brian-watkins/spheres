@@ -1,4 +1,4 @@
-import { VNode, attributesModule, classModule, eventListenersModule, init, propsModule } from "snabbdom"
+import { VNode, attributesModule, eventListenersModule, init, propsModule } from "snabbdom"
 import { VirtualNode } from "./virtualNode.js"
 import { GetState, Store } from "state-party"
 
@@ -22,7 +22,6 @@ function createPatch(store: Store) {
     },
     propsModule,
     attributesModule,
-    classModule,
     eventListenersModule,
   ], undefined, {
     experimental: {

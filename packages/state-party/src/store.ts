@@ -175,14 +175,10 @@ export class Value<T, M = T> extends State<T, M> {
 export class Store {
   private registry: WeakMap<State<any>, ContainerController<any, any>> = new WeakMap()
 
-  private createState<T, M>(token: State<T, M>) {
-    const controller = token[registerState](this.getController.bind(this))
-    this.registry.set(token, controller)
-  }
-
   private getController<T, M>(token: State<T, M>): ContainerController<T, M> {
     if (!this.registry.has(token)) {
-      this.createState(token)
+      const controller = token[registerState](this.getController.bind(this))
+      this.registry.set(token, controller)
     }
     return this.registry.get(token)!
   }

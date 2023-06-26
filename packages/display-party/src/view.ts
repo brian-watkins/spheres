@@ -1,5 +1,5 @@
 import { GetState, State, Store } from "state-party"
-import { VirtualNode, VirtualNodeConfiguration, makeFragment, makeVirtualNode, makeVirtualTextNode } from "./vdom/virtualNode.js"
+import { VirtualNode, VirtualNodeConfig, addAttribute, addClasses, addProperty, makeFragment, makeVirtualNode, makeVirtualTextNode, setEventHandler, setKey, setStatefulGenerator, virtualNodeConfig } from "./vdom/virtualNode.js"
 import { AriaAttributes, ElementEvents, ViewElements, booleanAttributes } from "./htmlElements.js"
 import { createStringRenderer } from "./vdom/renderToString.js"
 import { createDOMRenderer } from "./vdom/renderToDom.js"
@@ -39,7 +39,7 @@ export function renderToString(store: Store, view: View): Promise<string> {
 
 // Attributes
 
-const getVirtualNodeConfiguration = Symbol("getVirtualNodeConfiguration")
+const resetConfig = Symbol("reset-config")
 
 export interface SpecialAttributes {
   key(value: string | number | State<any>): this
@@ -48,85 +48,81 @@ export interface SpecialAttributes {
   property(name: string, value: string): this
   on(events: ElementEvents): this
   aria(attributes: AriaAttributes): this
-  [getVirtualNodeConfiguration]: VirtualNodeConfiguration
 }
 
-const configCore = {}
+class BasicConfig implements SpecialAttributes {
+  private config: VirtualNodeConfig = virtualNodeConfig()
 
-function makeElementConfig<A>(): A {
-  const config: VirtualNodeConfiguration = new VirtualNodeConfiguration()
+  key(value: string | number | State<any, any>) {
+    setKey(this.config, `${value}`)
+    return this
+  }
 
-  return new Proxy(configCore, {
-    get: (_, prop, receiver) => {
-      switch (prop) {
-        case "property":
-          return function (name: string, value: string) {
-            config.addProperty(name, value)
-            return receiver
-          }
-        case "key":
-          return function (value: string | number | State<any, any>) {
-            config.setKey(`${value}`)
-            return receiver
-          }
-        case "classes":
-          return function (classes: string[]) {
-            config.addClasses(classes)
-            return receiver
-          }
-        case "dataAttribute":
-          return function (name: string, value: string = "true") {
-            config.addAttribute(`data-${name}`, value)
-            return receiver
-          }
-        case "aria":
-          return function (attributes: AriaAttributes) {
-            const entries = Object.entries(attributes)
-            for (let i = 0; i < entries.length; i++) {
-              const [key, value] = entries[i]
-              config.addAttribute(`aria-${key}`, value)
-            }
-            return receiver
-          }
-        case "on":
-          return function (events: ElementEvents) {
-            const entries = Object.entries(events)
-            for (let i = 0; i < entries.length; i++) {
-              const [event, handler] = entries[i]
-              config.setEventHandler(event, handler)
-            }
-            return receiver
-          }
-        case getVirtualNodeConfiguration:
-          return config
-        default:
-          const methodName = prop as string
-          if (booleanAttributes.has(methodName)) {
-            return function (isSelected: boolean) {
-              if (isSelected) {
-                config.addAttribute(methodName, methodName)
-              }
-              return receiver
-            }
-          } else {
-            return function (value: string) {
-              config.addAttribute(methodName, value)
-              return receiver
-            }
-          }
+  property(name: string, value: string) {
+    addProperty(this.config, name, value)
+    return this
+  }
+
+  classes(classes: string[]) {
+    addClasses(this.config, classes)
+    return this
+  }
+
+  dataAttribute(name: string, value: string = "true") {
+    addAttribute(this.config, `data-${name}`, value)
+    return this
+  }
+
+  aria(attributes: AriaAttributes) {
+    const entries = Object.entries(attributes)
+    for (let i = 0; i < entries.length; i++) {
+      const [key, value] = entries[i]
+      addAttribute(this.config, `aria-${key}`, value)
+    }
+    return this
+  }
+
+  on(events: ElementEvents) {
+    const entries = Object.entries(events)
+    for (let i = 0; i < entries.length; i++) {
+      const [event, handler] = entries[i]
+      setEventHandler(this.config, event, handler)
+    }
+    return this
+  }
+
+  [resetConfig](config: VirtualNodeConfig) {
+    this.config = config
+  }
+}
+
+const MagicConfig = new Proxy({}, {
+  get: (_, prop, receiver) => {
+    const methodName = prop as string
+    if (booleanAttributes.has(methodName)) {
+      return function (isSelected: boolean) {
+        if (isSelected) {
+          addAttribute(receiver.config, methodName, methodName)
+        }
+        return receiver
+      }
+    } else {
+      return function (value: string) {
+        addAttribute(receiver.config, methodName, value)
+        return receiver
       }
     }
-  }) as A
-}
+  }
+})
+
+Object.setPrototypeOf(Object.getPrototypeOf(new BasicConfig()), MagicConfig)
 
 // View
 
 const toVirtualNode = Symbol("toVirtualNode")
-const getVirtualNodes = Symbol("getVirtualNodes")
 
 export interface View extends ViewElements {
   [toVirtualNode]: VirtualNode
-  [getVirtualNodes]: Array<VirtualNode>
 }
 
 export interface StatefulConfig {
@@ -140,65 +136,66 @@ export interface SpecialElements {
   withState(config: StatefulConfig): this
 }
 
-const coreView = {}
+const configBuilder = new BasicConfig()
 
-export function view(): View {
-  let nodes: Array<VirtualNode> = []
-
-  return new Proxy(coreView, {
-    get: (_, prop, receiver) => {
-      switch (prop) {
-        case "text":
-          return function (value: string) {
-            nodes.push(makeVirtualTextNode(value))
-            return receiver
-          }
-        case "withView":
-          return function (view: View) {
-            nodes.push(view[toVirtualNode])
-            return receiver
-          }
-        case "withState":
-          return function (statefulConfig: StatefulConfig) {
-            let config = new VirtualNodeConfiguration()
-            config.setStatefulGenerator((get) => statefulConfig.view(get)[toVirtualNode])
-            if (statefulConfig.key) {
-              config.setKey(`${statefulConfig.key}`)
-            }
-            nodes.push(makeVirtualNode("view-with-state", config, []))
-            return receiver
-          }
-        case toVirtualNode:
-          if (nodes.length == 1) {
-            return nodes[0]
-          } else {
-            return makeFragment(nodes)
-          }
-        case getVirtualNodes:
-          return nodes
-        default:
-          return function (builder?: <A extends SpecialAttributes>(element: ViewElement<A>) => void) {
-            const element = new ViewElement(prop as string)
-            builder?.(element)
-            nodes.push(element[toVirtualNode])
-            return receiver
-          }
-      }
-    }
-  }) as unknown as View
+export interface ViewElement<A extends SpecialAttributes> {
+  config: A
+  view: ViewElements
 }
 
-export class ViewElement<A extends SpecialAttributes> {
-  config = makeElementConfig<A>()
-  private children = view()
+const MagicElements = new Proxy({}, {
+  get: (_, prop, receiver) => {
+    return function (builder?: <A extends SpecialAttributes>(element: ViewElement<A>) => void) {
+      let storedNodes = receiver.nodes
+      let childNodes: Array<VirtualNode> = []
+      receiver.nodes = childNodes
+      const config = virtualNodeConfig()
+      configBuilder[resetConfig](config)
+      builder?.({
+        config: configBuilder,
+        view: receiver
+      })
+      storedNodes.push(makeVirtualNode(prop as string, config, childNodes))
+      receiver.nodes = storedNodes
+      return receiver
+    }
+  }
+})
 
-  constructor(private tag?: string) { }
+class BasicView implements SpecialElements {
+  private nodes: Array<VirtualNode> = []
 
-  get view(): ViewElements {
-    return this.children
+  text(value: string) {
+    this.nodes.push(makeVirtualTextNode(value))
+    return this
   }
 
-  get [toVirtualNode](): VirtualNode {
-    return makeVirtualNode(this.tag, this.config[getVirtualNodeConfiguration], this.children[getVirtualNodes])
+  withView(view: View) {
+    this.nodes.push(view[toVirtualNode])
+    return this
   }
+
+  withState(statefulConfig: StatefulConfig) {
+    let config = virtualNodeConfig()
+    setStatefulGenerator(config, (get) => statefulConfig.view(get)[toVirtualNode])
+    if (statefulConfig.key) {
+      setKey(config, `${statefulConfig.key}`)
+    }
+    this.nodes.push(makeVirtualNode("view-with-state", config, []))
+    return this
+  }
+
+  get [toVirtualNode]() {
+    if (this.nodes.length == 1) {
+      return this.nodes[0]
+    } else {
+      return makeFragment(this.nodes)
+    }
+  }
+}
+
+Object.setPrototypeOf(Object.getPrototypeOf(new BasicView()), MagicElements)
+
+export function view(): View {
+  return new BasicView() as unknown as View
 }

@@ -12,7 +12,7 @@ export interface VirtualNode extends VNode {
 }
 
 // Tailored from Snabbdom VNodeData
-interface VirtualNodeConfig {
+export interface VirtualNodeConfig {
   props?: Props;
   attrs?: Attrs;
   on?: On;
@@ -26,60 +26,56 @@ export interface StoreContext {
   unsubscribe?: () => void
 }
 
-export class VirtualNodeConfiguration {
-  private config: VirtualNodeConfig = {
+export function virtualNodeConfig(): VirtualNodeConfig {
+  return {
     props: {},
     attrs: {},
     on: {}
   }
+}
 
-  get data(): VirtualNodeConfig {
-    return this.config
-  }
-  
-  addProperty(name: string, value: string) {
-    this.config.props![name] = value
-  }
-  
-  addAttribute(name: string, value: string) {
-    this.config.attrs![name] = value
-  }
+export function addProperty(config: VirtualNodeConfig, name: string, value: string) {
+  config.props![name] = value
+}
 
-  setKey(key: string) {
-    this.config.key = key
-  }
+export function addAttribute(config: VirtualNodeConfig, name: string, value: string) {
+  config.attrs![name] = value
+}
 
-  addClasses(classNames: Array<string>) {
-    this.addAttribute("class", classNames.join(" "))
-  }
+export function setKey(config: VirtualNodeConfig, key: string) {
+  config.key = key
+}
 
-  setEventHandler(event: string, handler: (evt: Event) => StoreMessage<any, any>) {
-    this.config.on![event] = function <E extends Event>(evt: E) {
-      evt.target?.dispatchEvent(new CustomEvent("displayMessage", {
-        bubbles: true,
-        cancelable: true,
-        detail: handler(evt)
-      }))
-    }
-  }
+export function addClasses(config: VirtualNodeConfig, classNames: Array<string>) {
+  addAttribute(config, "class", classNames.join(" "))
+}
 
-  setStatefulGenerator(generator: (get: GetState) => VirtualNode) {
-    this.config.storeContext = {
-      generator
-    }
+export function setEventHandler(config: VirtualNodeConfig, event: string, handler: (evt: Event) => StoreMessage<any, any>) {
+  config.on![event] = function <E extends Event>(evt: E) {
+    evt.target?.dispatchEvent(new CustomEvent("displayMessage", {
+      bubbles: true,
+      cancelable: true,
+      detail: handler(evt)
+    }))
   }
 }
 
-export function makeVirtualNode(tag: string | undefined, config: VirtualNodeConfiguration, children: Array<VirtualNode>): VirtualNode {
+export function setStatefulGenerator(config: VirtualNodeConfig, generator: (get: GetState) => VirtualNode) {
+  config.storeContext = {
+    generator
+  }
+}
+
+export function makeVirtualNode(tag: string | undefined, config: VirtualNodeConfig, children: Array<VirtualNode>): VirtualNode {
   // See Snabbdom src/h.ts and src/vnode.ts
   // We are not supporting SVG at the moment but otherwise this should work
   return {
     sel: tag,
-    data: config.data,
+    data: config,
     children,
     text: undefined,
     elm: undefined,
-    key: config.data.key
+    key: config.key
   }
 }
 
@@ -97,5 +93,5 @@ export function makeVirtualTextNode(text: string): VirtualNode {
 
 export function makeFragment(children: Array<VirtualNode>): VirtualNode {
   // following Snabbdom src/h.ts
-  return makeVirtualNode(undefined, new VirtualNodeConfiguration(), children)
+  return makeVirtualNode(undefined, virtualNodeConfig(), children)
 }

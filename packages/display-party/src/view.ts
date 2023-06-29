@@ -181,7 +181,7 @@ class BasicView implements SpecialElements {
     if (statefulConfig.key) {
       setKey(config, `${statefulConfig.key}`)
     }
-    this.nodes.push(makeVirtualNode("view-with-state", config, []))
+    this.nodes.push(makeVirtualNode("vws", config, []))
     return this
   }
 

@@ -53,14 +53,12 @@ export function createDOMRenderer(store: Store): DOMRenderer {
     if (rootNode.elm instanceof DocumentFragment) {
       return {
         type: "fragment-root",
-        node: rootNode as VirtualNode,
         // @ts-ignore
         root: rootNode.elm.parent!
       }
     } else {
       return {
         type: "element-root",
-        node: rootNode as VirtualNode,
         root: rootNode.elm!
       }
     }

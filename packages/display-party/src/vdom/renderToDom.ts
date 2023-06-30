@@ -11,13 +11,10 @@ function createPatch(store: Store) {
   
         let oldNode: VNode | Element = vnode.elm as Element
   
-        vnode.data!.storeContext.unsubscribe = store.query(generator, (updatedNode) => {
+        store.query(generator, (updatedNode) => {
           oldNode = patch(oldNode, updatedNode)
           vnode.elm = oldNode.elm
         })
-      },
-      destroy: (vnode) => {
-        vnode.data!.storeContext?.unsubscribe?.()
       }
     },
     propsModule,

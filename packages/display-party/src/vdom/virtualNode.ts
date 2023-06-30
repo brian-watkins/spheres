@@ -23,7 +23,6 @@ export interface VirtualNodeConfig {
 
 export interface StoreContext {
   generator: (get: GetState) => VirtualNode
-  unsubscribe?: () => void
 }
 
 export function virtualNodeConfig(): VirtualNodeConfig {

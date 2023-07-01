@@ -9,11 +9,10 @@ function createPatch(store: Store) {
         const generator: ((get: GetState) => VirtualNode) | undefined = vnode.data!.storeContext?.generator
         if (generator === undefined) return
   
-        let oldNode: VNode | Element = vnode.elm as Element
-  
-        store.query(generator, (updatedNode) => {
-          oldNode = patch(oldNode, updatedNode)
-          vnode.elm = oldNode.elm
+        let current: VNode | Element = vnode
+        store.query(generator, (updated) => {
+          current = patch(current, updated)
+          vnode.elm = current.elm
         })
       }
     },

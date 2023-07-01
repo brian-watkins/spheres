@@ -1,16 +1,16 @@
 import { VNode, attributesModule, eventListenersModule, init, propsModule } from "snabbdom"
-import { VirtualNode } from "./virtualNode.js"
-import { GetState, Store } from "state-party"
+import { StoreContext, VirtualNode } from "./virtualNode.js"
+import { Store } from "state-party"
 
 function createPatch(store: Store) {
   const patch = init([
     {
       create: (_, vnode) => {
-        const generator: ((get: GetState) => VirtualNode) | undefined = vnode.data!.storeContext?.generator
-        if (generator === undefined) return
+        const storeContext: StoreContext = vnode.data!.storeContext
+        if (storeContext === undefined) return
   
         let current: VNode | Element = vnode
-        store.query(generator, (updated) => {
+        store.query(storeContext.generator, (updated) => {
           current = patch(current, updated)
           vnode.elm = current.elm
         })

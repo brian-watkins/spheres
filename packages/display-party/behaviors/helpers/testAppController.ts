@@ -43,6 +43,16 @@ export class TestAppController {
     }
   }
 
+  async loadLitApp<T>(appName: string, context?: T) {
+    try {
+      await this.page.evaluate(({ appName, context }) => {
+        return window.esdisplay_testApp.startLitApp(appName, context)
+      }, { appName, context })  
+    } catch (err: any) {
+      throw new Error(`Error loading ${appName}\n\n${fixStackTraceForPage(this.page, err.message)}`)
+    }
+  }
+
   async destroyApp() {
     await this.page.evaluate(() => window.esdisplay_testApp.destroyApp())
   }

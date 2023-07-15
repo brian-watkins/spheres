@@ -1,4 +1,4 @@
-import { Display } from "@src/index.js"
+import { Display, LitDisplay } from "@src/index.js"
 import { DOMChangeRecord, structureChangeRecord, textChangeRecord } from "./changeRecords.js"
 import { Store } from "state-party"
 
@@ -14,6 +14,21 @@ export class TestApp {
     const viewConfiguration = await import(`../fixtures/${name}.ts`)
     const view = viewConfiguration.default
     const appDisplay = new Display(store)
+
+    const testAppMountPoint = document.createElement("div")
+    testAppMountPoint.id = "test-display"
+    document.body.appendChild(testAppMountPoint)
+
+    this.unmountTestApp = appDisplay.mount(testAppMountPoint, view(context))
+  }
+
+  async startLitApp<T>(name: string, context?: T) {
+    const store = new Store()
+    this.changeRecords = []
+
+    const viewConfiguration = await import(`../fixtures/${name}.ts`)
+    const view = viewConfiguration.default
+    const appDisplay = new LitDisplay(store)
 
     const testAppMountPoint = document.createElement("div")
     testAppMountPoint.id = "test-display"

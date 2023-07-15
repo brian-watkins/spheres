@@ -1,7 +1,7 @@
-import { TestApp } from "./helpers/testApp.ts"
+// import { TestApp } from "./helpers/testApp.ts"
 
 export declare global {
   interface Window {
-    esdisplay_testApp: TestApp
+    esdisplay_testApp: any
   }
 }

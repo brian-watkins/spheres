@@ -15,6 +15,7 @@
   "author": "Brian Watkins",
   "license": "MIT",
   "dependencies": {
+    "lit-html": "^2.7.5",
     "snabbdom": "^3.5.1",
     "snabbdom-to-html": "^7.1.0",
     "state-party": "^1.0.0"

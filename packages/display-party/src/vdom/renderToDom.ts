@@ -1,6 +1,8 @@
-import { VNode, attributesModule, eventListenersModule, init, propsModule } from "snabbdom"
+import { VNode, attributesModule, eventListenersModule, init, propsModule, toVNode } from "snabbdom"
 import { StoreContext, VirtualNode } from "./virtualNode.js"
 import { Store } from "state-party"
+
+const templates: Map<string, VNode> = new Map()
 
 function createPatch(store: Store) {
   const patch = init([
@@ -8,8 +10,19 @@ function createPatch(store: Store) {
       create: (_, vnode) => {
         const storeContext: StoreContext = vnode.data!.storeContext
         if (storeContext === undefined) return
-  
-        let current: VNode | Element = vnode
+
+        let current: VNode | Element
+        if (storeContext.template) {
+          if (!templates.has(storeContext.template)) {
+            const template = document.getElementById(storeContext.template) as HTMLTemplateElement
+            const content = template.content.cloneNode(true)
+            templates.set(storeContext.template, toVNode(content))
+          }
+          current = templates.get(storeContext.template)!
+        } else {
+          current = vnode
+        }
+
         store.query(storeContext.generator, (updated) => {
           current = patch(current, updated)
           vnode.elm = current.elm

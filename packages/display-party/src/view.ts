@@ -128,6 +128,7 @@ export interface View extends ViewElements {
 export interface StatefulConfig {
   key?: string | number | State<any>
   view: (get: GetState) => View
+  template?: string
 }
 
 export interface SpecialElements {
@@ -177,7 +178,7 @@ class BasicView implements SpecialElements {
 
   withState(statefulConfig: StatefulConfig) {
     let config = virtualNodeConfig()
-    setStatefulGenerator(config, (get) => statefulConfig.view(get)[toVirtualNode])
+    setStatefulGenerator(config, (get) => statefulConfig.view(get)[toVirtualNode], statefulConfig.template)
     if (statefulConfig.key) {
       setKey(config, `${statefulConfig.key}`)
     }

@@ -23,6 +23,7 @@ export interface VirtualNodeConfig {
 
 export interface StoreContext {
   generator: (get: GetState) => VirtualNode
+  template?: string
 }
 
 export function virtualNodeConfig(): VirtualNodeConfig {
@@ -59,9 +60,10 @@ export function setEventHandler(config: VirtualNodeConfig, event: string, handle
   }
 }
 
-export function setStatefulGenerator(config: VirtualNodeConfig, generator: (get: GetState) => VirtualNode) {
+export function setStatefulGenerator(config: VirtualNodeConfig, generator: (get: GetState) => VirtualNode, template?: string) {
   config.storeContext = {
-    generator
+    generator,
+    template
   }
 }
 

@@ -41,6 +41,10 @@ class DisplayElementList {
     }
     return results
   }
+
+  async count(): Promise<number> {
+    return this.locator.count()
+  }
 }
 
 export interface TypingOptions {

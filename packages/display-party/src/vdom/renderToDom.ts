@@ -1,6 +1,7 @@
 import { VNode, attributesModule, eventListenersModule, init, propsModule } from "snabbdom"
-import { StoreContext, VirtualNode } from "./virtualNode.js"
+import { StoreContext } from "./virtualNode.js"
 import { Store } from "state-party"
+import { DOMRenderer } from "./render.js"
 
 function createPatch(store: Store) {
   const patch = init([
@@ -28,19 +29,19 @@ function createPatch(store: Store) {
   return patch
 }
 
-export interface ElementRoot {
-  type: "element-root"
-  root: Node
-}
+// export interface ElementRoot {
+//   type: "element-root"
+//   root: Node
+// }
 
-export interface FragmentRoot {
-  type: "fragment-root"
-  root: Node
-}
+// export interface FragmentRoot {
+//   type: "fragment-root"
+//   root: Node
+// }
 
-export type RenderedRoot = ElementRoot | FragmentRoot
+// export type RenderedRoot = ElementRoot | FragmentRoot
 
-export type DOMRenderer = (element: VNode | Element, node: VirtualNode) => RenderedRoot
+// export type DOMRenderer = (element: VNode | Element, node: VirtualNode) => RenderedRoot
 
 export function createDOMRenderer(store: Store): DOMRenderer {
   const patch = createPatch(store)

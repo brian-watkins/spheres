@@ -1,25 +1,70 @@
 import { Attrs, Hooks, On, Props, VNode } from "snabbdom";
 import { GetState, Store, StoreMessage } from "state-party";
 
+export enum NodeType {
+  TEXT = 3,
+  ELEMENT = 1,
+  FRAGMENT = 11,
+}
+
+export interface TextNode {
+  type: NodeType.TEXT
+  value: string
+  node: Node | undefined
+}
+
+export interface ElementNode {
+  type: NodeType.ELEMENT
+  is: string | undefined
+  tag: string
+  data: VirtualNodeConfig
+  children: Array<VirtualNode>
+  node: Node | undefined
+  key: string | undefined
+}
+
+export interface FragmentNode {
+  type: NodeType.FRAGMENT
+  data: VirtualNodeConfig
+  children: Array<VirtualNode>
+  node: Node | undefined
+}
+
+export type VirtualNode = TextNode | ElementNode | FragmentNode
+
 // Tailored from Snabbdom VNode
-export interface VirtualNode extends VNode {
-  sel: string | undefined;
-  data: VirtualNodeConfig | undefined;
-  children: Array<VirtualNode> | undefined;
-  elm: Node | undefined;
-  text: string | undefined;
-  key: string | undefined;
+// export interface VirtualNode {
+//   tag: string | undefined;
+//   type: NodeType
+//   data: VirtualNodeConfig | undefined;
+//   children: Array<VirtualNode> | undefined;
+//   elm: Node | undefined;
+//   text: string | undefined;
+//   key: string | undefined;
+// }
+
+declare type Listener<T> = (this: VNode, ev: T, vnode: VNode) => void;
+
+export interface VirtualNodeConfig {
+  props: Record<string, any>
+  attrs: Record<string, string>
+  on: {
+    [N in keyof HTMLElementEventMap]?: Listener<HTMLElementEventMap[N]> | Array<Listener<HTMLElementEventMap[N]>>;
+  } & {
+    [event: string]: Listener<any> | Array<Listener<any>>;
+  }
+  key?: string
 }
 
 // Tailored from Snabbdom VNodeData
-export interface VirtualNodeConfig {
-  props?: Props;
-  attrs?: Attrs;
-  on?: On;
-  hook?: Hooks & { render?: (store: Store, vnode: VirtualNode) => Promise<VirtualNode> };
-  key?: string;
-  storeContext?: StoreContext
-}
+// export interface VirtualNodeConfig {
+//   props?: Props;
+//   attrs?: Attrs;
+//   on?: On;
+//   hook?: Hooks & { render?: (store: Store, vnode: VirtualNode) => Promise<VirtualNode> };
+//   key?: string;
+//   storeContext?: StoreContext
+// }
 
 export interface StoreContext {
   generator: (get: GetState) => VirtualNode
@@ -60,37 +105,42 @@ export function setEventHandler(config: VirtualNodeConfig, event: string, handle
 }
 
 export function setStatefulGenerator(config: VirtualNodeConfig, generator: (get: GetState) => VirtualNode) {
-  config.storeContext = {
-    generator
-  }
+  // config.storeContext = {
+    // generator
+  // }
 }
 
-export function makeVirtualNode(tag: string | undefined, config: VirtualNodeConfig, children: Array<VirtualNode>): VirtualNode {
+export function makeVirtualElement(tag: string, config: VirtualNodeConfig, children: Array<VirtualNode>, node?: Node): VirtualNode {
   // See Snabbdom src/h.ts and src/vnode.ts
   // We are not supporting SVG at the moment but otherwise this should work
   return {
-    sel: tag,
+    type: NodeType.ELEMENT,
+    tag: tag,
+    is: config.attrs.is,
     data: config,
     children,
-    text: undefined,
-    elm: undefined,
-    key: config.key
+    key: config.key,
+    node
   }
 }
 
-export function makeVirtualTextNode(text: string): VirtualNode {
+export function makeVirtualTextNode(text: string, node?: Node): VirtualNode {
   // See Snabbdom src/h.ts and src/vnode.ts
+  // This can be a discriminated union now I think ...
   return {
-    sel: undefined,
-    data: undefined,
-    children: undefined,
-    text,
-    elm: undefined,
-    key: undefined
+    type: NodeType.TEXT,
+    value: text,
+    node
   }
 }
 
-export function makeFragment(children: Array<VirtualNode>): VirtualNode {
+export function makeVirtualFragment(children: Array<VirtualNode>): VirtualNode {
   // following Snabbdom src/h.ts
-  return makeVirtualNode(undefined, virtualNodeConfig(), children)
+  // return makeVirtualNode(undefined, virtualNodeConfig(), children)
+  return {
+    type: NodeType.FRAGMENT,
+    data: virtualNodeConfig(), // Do we need this?
+    children,
+    node: undefined
+  }
 }

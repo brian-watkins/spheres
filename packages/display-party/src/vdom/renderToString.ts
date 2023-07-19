@@ -2,8 +2,8 @@ import init from "snabbdom-to-html/init.js"
 import modules from "snabbdom-to-html/modules/index.js"
 import { GetState, Store, value } from "state-party";
 import { VirtualNode } from "./virtualNode.js";
+import { StringRenderer } from "./render.js";
 
-export type StringRenderer = (node: VirtualNode) => Promise<string>
 
 export function createStringRenderer(store: Store): StringRenderer {
   const toHTML = init([

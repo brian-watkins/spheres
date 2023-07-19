@@ -1,5 +1,5 @@
 import { GetState, State, Store } from "state-party"
-import { VirtualNode, VirtualNodeConfig, addAttribute, addClasses, addProperty, makeFragment, makeVirtualNode, makeVirtualTextNode, setEventHandler, setKey, setStatefulGenerator, virtualNodeConfig } from "./vdom/virtualNode.js"
+import { VirtualNode, VirtualNodeConfig, addAttribute, addClasses, addProperty, makeVirtualFragment, makeVirtualNode, makeVirtualTextNode, setEventHandler, setKey, setStatefulGenerator, virtualNodeConfig } from "./vdom/virtualNode.js"
 import { AriaAttributes, ElementEvents, ViewElements, booleanAttributes } from "./htmlElements.js"
 import { createStringRenderer } from "./vdom/renderToString.js"
 import { createDOMRenderer } from "./vdom/renderToDom.js"
@@ -189,7 +189,7 @@ class BasicView implements SpecialElements {
     if (this.nodes.length == 1) {
       return this.nodes[0]
     } else {
-      return makeFragment(this.nodes)
+      return makeVirtualFragment(this.nodes)
     }
   }
 }

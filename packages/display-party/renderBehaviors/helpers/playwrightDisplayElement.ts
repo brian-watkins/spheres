@@ -1,0 +1,14 @@
+import { Locator } from "playwright";
+
+export class PlaywrightDisplayElement {
+  constructor(private locator: Locator) { }
+
+  text(at: number): Promise<string> {
+    return this.locator.nth(at).innerText({ timeout: 200 })
+  }
+
+  async exists(_: number): Promise<boolean> {
+    const count = await this.locator.count()
+    return count > 0
+  }
+}

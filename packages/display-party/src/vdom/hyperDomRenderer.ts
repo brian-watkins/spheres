@@ -11,16 +11,23 @@ function createPatch(store: Store): PatchFunction {
   }
 }
 
-function virtualize(element: Node): VirtualNode {
+export function virtualize(element: Node): VirtualNode {
   if (element.nodeType === NodeType.TEXT) {
-    return makeVirtualTextNode(element.nodeValue!, element)
+    const virtual = makeVirtualTextNode(element.nodeValue!, element)
+    virtual.node = element
+    return virtual
   } else {
     let children: Array<VirtualNode> = []
     element.childNodes.forEach((child) => {
       children.push(virtualize(child))
     })
 
-    return makeVirtualElement(element.nodeName.toLowerCase(), virtualNodeConfig(), children, element)
+    // note that we are not getting the attributes here ... is that
+    // because we just use virtualize when mounting an element and we
+    // don't care? What about for rehydrating?
+    const virtual = makeVirtualElement(element.nodeName.toLowerCase(), virtualNodeConfig(), children, element)
+    virtual.node = element
+    return virtual
   }
 }
 
@@ -65,7 +72,9 @@ var createNode = (vnode: VirtualNode): Node => {
   }
 
   for (var i = 0; i < vnode.children.length; i++) {
-    node.appendChild(createNode(vnode.children[i]))
+    const childNode = createNode(vnode.children[i])
+    vnode.children[i].node = childNode
+    node.appendChild(childNode)
   }
 
   return node
@@ -109,7 +118,7 @@ const getKey = (vnode: VirtualNode | undefined) => {
 }
 
 // Could oldVNode be null or undefined? Yes
-const patch = (oldVNode: VirtualNode, newVNode: VirtualNode): VirtualNode => {
+export const patch = (oldVNode: VirtualNode, newVNode: VirtualNode): VirtualNode => {
   console.log("vnodes", oldVNode, newVNode)
   if (oldVNode === newVNode) {
     return oldVNode
@@ -129,6 +138,7 @@ const patch = (oldVNode: VirtualNode, newVNode: VirtualNode): VirtualNode => {
     return newVNode
   }
 
+
   // if this is a totally new node type
   if (oldVNode.type !== newVNode.type) {
     const newNode = createNode(newVNode)
@@ -140,14 +150,16 @@ const patch = (oldVNode: VirtualNode, newVNode: VirtualNode): VirtualNode => {
 
   if (oldVNode.type === NodeType.ELEMENT && newVNode.type === NodeType.ELEMENT) {
     if (oldVNode.tag !== newVNode.tag) {
+      // note this updates the node of the element ... but any
+      // child nodes are not updated with their nodes
       newVNode.node = parent.insertBefore(createNode(newVNode), node)
-      parent.removeChild(oldVNode.node!)
+      parent.removeChild(node)
       return newVNode
     } else {
       // handle the attributes (need to also do props and event handlers)
       for (var i in { ...oldVNode.data.attrs, ...newVNode.data.attrs }) {
         if (oldVNode.data.attrs[i] !== newVNode.data.attrs[i]) {
-          if (newVNode.data.attrs[i] == null) {
+          if (newVNode.data.attrs[i] === undefined) {
             (node as Element).removeAttribute(i)
           } else {
             (node as Element).setAttribute(i, newVNode.data.attrs[i])
@@ -220,14 +232,13 @@ const patch = (oldVNode: VirtualNode, newVNode: VirtualNode): VirtualNode => {
             ((oldVKid = oldVKids[oldHead]) && oldVKid.node) ?? null
           )
         }
-      }
       // } else if (newHead > newTail) {
       //   // then there are more old kids than new ones and we got through
       //   // everything so remove from the end of the list
       //   while (oldHead <= oldTail) {
       //     node.removeChild(oldVKids[oldHead++].node!)
       //   }
-      // } else {
+      } else {
         // let keyed = {} as any
         // let newKeyed = {} as any
 
@@ -239,7 +250,7 @@ const patch = (oldVNode: VirtualNode, newVNode: VirtualNode): VirtualNode => {
         // }
 
         // go through remaining new children and check keys
-        // while (newHead <= newTail) {
+        while (newHead <= newTail) {
           // oldKey = getKey((oldVKid = oldVKids[oldHead]))
           // newKey = getKey((newVKids[newHead] = newVKids[newHead]))
 
@@ -298,9 +309,9 @@ const patch = (oldVNode: VirtualNode, newVNode: VirtualNode): VirtualNode => {
                 // )
               // }
             // }
-            // newHead++
+            patch(oldVKids[oldHead++]!, newVKids[newHead++])
           // }
-        // }
+        }
 
         // this is maybe removing extra nodes at the end
         // while (oldHead <= oldTail) {
@@ -317,7 +328,7 @@ const patch = (oldVNode: VirtualNode, newVNode: VirtualNode): VirtualNode => {
             // node.removeChild(keyed[i].node)
           // }
         // }
-      // }
+      }
 
       newVNode.node = node
       return newVNode

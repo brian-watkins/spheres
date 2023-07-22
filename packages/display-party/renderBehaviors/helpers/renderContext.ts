@@ -1,31 +1,24 @@
-import { createDOMRenderer } from "@src/vdom/hyperDomRenderer.js"
-import { DOMRenderer } from "@src/vdom/render.js"
+import { patch, virtualize } from "@src/vdom/hyperDomRenderer.js"
 import { VirtualNode } from "@src/vdom/virtualNode.js"
 import { Context } from "esbehavior"
 
 export class RenderApp {
   private unmount: (() => void) | undefined
-  private render: DOMRenderer
-  private current: Node | undefined
-
-  constructor() {
-    this.render = createDOMRenderer()
-  }
+  private current: VirtualNode | undefined
 
   mount(vnode: VirtualNode) {
     const base = document.createElement("div")
     document.querySelector("#test-display")?.appendChild(base)
 
-    const renderResult = this.render(base, vnode)
-    this.current = renderResult.root
+    const renderResult = patch(virtualize(base), vnode)
+    this.current = renderResult
     this.unmount = () => {
-      renderResult.root.parentNode?.removeChild(renderResult.root)
+      this.current!.node?.parentNode?.removeChild(this.current!.node)
     }
   }
 
   patch(vnode: VirtualNode) {
-    const result = this.render(this.current!, vnode)
-    this.current = result.root
+    this.current = patch(this.current!, vnode)
   }
 
   destroy() {

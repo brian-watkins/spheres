@@ -29,9 +29,15 @@ page.on("console", (message) => {
 })
 page.on("pageerror", console.log)
 
-page.exposeBinding("_testDisplayElement", ({ page }, selector: string, at: number, method: keyof PlaywrightDisplayElement) => {
-  const element = new PlaywrightDisplayElement(page.locator(selector))
-  return element[method](at)
+page.exposeBinding("_testDisplayElement", async ({ page }, selector: string, at: number, method: keyof PlaywrightDisplayElement) => {
+  try {
+    const element = new PlaywrightDisplayElement(page.locator(selector))
+    const result = await element[method](at)  
+    return result
+  } catch (err) {
+    console.log("Error running method on display element", err)
+    throw err
+  }
 })
 page.exposeBinding("_testDisplayElementsCount", ({ page }, selector: string) => {
   return page.locator(selector).count()

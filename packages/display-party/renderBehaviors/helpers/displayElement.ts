@@ -14,8 +14,12 @@ export function selectElements(selector: string): DisplayElementList {
 export class DisplayElementList {
   constructor(private selector: string) { }
 
+  async count(): Promise<number> {
+    return window._testDisplayElementsCount(this.selector)
+  }
+
   async map<T>(handler: (element: DisplayElement) => Promise<T>): Promise<Array<T>> {
-    const count = await window._testDisplayElementsCount(this.selector)
+    const count = await this.count()
     const results: Array<T> = []
     for (let i = 0; i < count; i++) {
       const result = await handler(new DisplayElement(this.selector, i))

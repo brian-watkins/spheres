@@ -50,6 +50,7 @@ export function createDOMRenderer(): DOMRenderer {
   }
 }
 
+// I don't like it that this modified the input variable
 var createNode = (vnode: VirtualNode): Node => {
   let node: Node
   switch (vnode.type) {
@@ -77,6 +78,7 @@ var createNode = (vnode: VirtualNode): Node => {
     node.appendChild(childNode)
   }
 
+  // vnode.node = node
   return node
 }
 
@@ -121,6 +123,7 @@ const getKey = (vnode: VirtualNode | undefined) => {
 export const patch = (oldVNode: VirtualNode, newVNode: VirtualNode): VirtualNode => {
   console.log("vnodes", oldVNode, newVNode)
   if (oldVNode === newVNode) {
+    console.log("Equal??")
     return oldVNode
   }
 
@@ -133,6 +136,7 @@ export const patch = (oldVNode: VirtualNode, newVNode: VirtualNode): VirtualNode
     newVNode.type === NodeType.TEXT &&
     oldVNode.value !== newVNode.value!
   ) {
+    console.log("Patching text!")
     node.nodeValue = newVNode.value!
     newVNode.node = node
     return newVNode
@@ -142,8 +146,7 @@ export const patch = (oldVNode: VirtualNode, newVNode: VirtualNode): VirtualNode
   // if this is a totally new node type
   if (oldVNode.type !== newVNode.type) {
     const newNode = createNode(newVNode)
-    node = parent.insertBefore(newNode, node)
-    newVNode.node = newNode
+    newVNode.node = parent.insertBefore(newNode, node)
     parent.removeChild(oldVNode.node!)
     return newVNode
   }
@@ -221,16 +224,20 @@ export const patch = (oldVNode: VirtualNode, newVNode: VirtualNode): VirtualNode
         console.log("Old head tail", oldHead, oldTail)
       //   // then we got through everything old and we are adding new
       //   // children to the end?
+
         while (newHead <= newTail) {
           console.log("New head tail", newHead, newTail)
       //     // but in order for this to insert at the end then the
       //     // second arg to insertBefore needs to be null.
-          node.insertBefore(
-            createNode(
-              (newVKids[newHead] = newVKids[newHead++]),
-            ),
-            ((oldVKid = oldVKids[oldHead]) && oldVKid.node) ?? null
-          )
+          // node.insertBefore(
+            // createNode(
+              // (newVKids[newHead] = newVKids[newHead++]),
+            // ),
+            // ((oldVKid = oldVKids[oldHead]) && oldVKid.node) ?? null
+          // )
+          const newKid = newVKids[newHead]
+          newKid.node = node.insertBefore(createNode(newKid), null)
+          newHead++
         }
       // } else if (newHead > newTail) {
       //   // then there are more old kids than new ones and we got through

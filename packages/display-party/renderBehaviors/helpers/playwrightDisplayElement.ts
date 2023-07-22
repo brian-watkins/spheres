@@ -3,7 +3,7 @@ import { Locator } from "playwright";
 export class PlaywrightDisplayElement {
   constructor(private locator: Locator) { }
 
-  text(at: number): Promise<string> {
+  async text(at: number): Promise<string> {
     return this.locator.nth(at).innerText({ timeout: 200 })
   }
 

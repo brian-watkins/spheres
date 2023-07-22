@@ -1,4 +1,4 @@
-import { VirtualNodeConfig, addAttribute, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "@src/vdom/virtualNode.js";
+import { VirtualNode, VirtualNodeConfig, addAttribute, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "@src/vdom/virtualNode.js";
 import { behavior, effect, example, fact, step } from "esbehavior";
 import { equalTo, expect, resolvesTo } from "great-expectations";
 import { selectElement, selectElements } from "helpers/displayElement.js";
@@ -10,36 +10,24 @@ export default behavior("list patch", [
     .script({
       suppose: [
         fact("element with multiple children", (context) => {
-          const child1 = makeVirtualElement("div", childConfig(1), [
-            makeVirtualTextNode("child 1")
-          ])
-          const child2 = makeVirtualElement("div", childConfig(2), [
-            makeVirtualTextNode("child 2")
-          ])
-          const child3 = makeVirtualElement("div", childConfig(3), [
-            makeVirtualTextNode("child 3")
-          ])
           context.mount(makeVirtualElement("div", virtualNodeConfig(), [
-            child1,
-            child2,
-            child3
+            childElement(1),
+            childElement(2),
+            childElement(3)
           ]))
         })
       ],
       perform: [
         step("remove two of the children", (context) => {
-          const child1 = makeVirtualElement("div", childConfig(1), [
-            makeVirtualTextNode("child 1")
-          ])
           context.patch(makeVirtualElement("div", virtualNodeConfig(), [
-            child1,
+            childElement(1),
           ]))
         })
       ],
       observe: [
         effect("there is just one child", async () => {
-          await expect(selectElements("[data-child]").count(), resolvesTo(equalTo(1)))
-          await expect(selectElement("[data-child='1']").text(), resolvesTo(equalTo("child 1")))
+          await expectTotalChildren(1)
+          await expectChild(1)
         })
       ]
     }),
@@ -48,43 +36,77 @@ export default behavior("list patch", [
     .script({
       suppose: [
         fact("element with multiple children", (context) => {
-          const child1 = makeVirtualElement("div", childConfig(1), [
-            makeVirtualTextNode("child 1")
-          ])
-          const child2 = makeVirtualElement("div", childConfig(2), [
-            makeVirtualTextNode("child 2")
-          ])
-          const child3 = makeVirtualElement("div", childConfig(3), [
-            makeVirtualTextNode("child 3")
-          ])
           context.mount(makeVirtualElement("div", virtualNodeConfig(), [
-            child1,
-            child2,
-            child3
+            childElement(1),
+            childElement(2),
+            childElement(3)
           ]))
         })
       ],
       perform: [
         step("remove two of the children", (context) => {
-          const child1 = makeVirtualElement("div", childConfig(3), [
-            makeVirtualTextNode("child 3")
-          ])
           context.patch(makeVirtualElement("div", virtualNodeConfig(), [
-            child1,
+            childElement(3),
           ]))
         })
       ],
       observe: [
         effect("there is just one child", async () => {
-          await expect(selectElements("[data-child]").count(), resolvesTo(equalTo(1)))
-          await expect(selectElement("[data-child='3']").text(), resolvesTo(equalTo("child 3")))
+          await expectTotalChildren(1)
+          await expectChild(3)
         })
       ]
-    })
+    }),
+  (m) => m.pick() && example(renderContext())
+    .description("removing from throughout a list")
+    .script({
+      suppose: [
+        fact("element with multiple children", (context) => {
+          context.mount(makeVirtualElement("div", virtualNodeConfig(), [
+            childElement(1),
+            childElement(2),
+            childElement(3),
+            childElement(4),
+            childElement(5),
+          ]))
+        })
+      ],
+      perform: [
+        step("remove some of the children", (context) => {
+          context.patch(makeVirtualElement("div", virtualNodeConfig(), [
+            childElement(1),
+            childElement(3),
+            childElement(5)
+          ]))
+        })
+      ],
+      observe: [
+        effect("there remaining children are present", async () => {
+          await expectTotalChildren(3)
+          await expectChild(1)
+          await expectChild(3)
+          await expectChild(5)
+        })
+      ]
+    }),
 ])
 
 function childConfig(testId: number): VirtualNodeConfig {
   const config = virtualNodeConfig()
   addAttribute(config, "data-child", `${testId}`)
   return config
+}
+
+function childElement(testId: number): VirtualNode {
+  return makeVirtualElement("div", childConfig(testId), [
+    makeVirtualTextNode(`child ${testId}`)
+  ])
+}
+
+async function expectTotalChildren(total: number) {
+  await expect(selectElements("[data-child]").count(), resolvesTo(equalTo(total)))
+}
+
+async function expectChild(testId: number) {
+  await expect(selectElement(`[data-child='${testId}']`).text(), resolvesTo(equalTo(`child ${testId}`)))
 }

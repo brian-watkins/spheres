@@ -324,7 +324,7 @@ export const patch = (oldVNode: VirtualNode, newVNode: VirtualNode): VirtualNode
           // }
         }
 
-        // this is maybe removing extra nodes at the end
+        // this is removing extra nodes at the end
         while (oldHead <= oldTail) {
           // if (getKey((oldVKid = oldVKids[oldHead++])) == undefined) {
           oldVKid = oldVKids[oldHead++]

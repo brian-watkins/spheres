@@ -1,10 +1,9 @@
-import { VirtualNode, VirtualNodeConfig, addAttribute, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "@src/vdom/virtualNode.js";
+import { makeVirtualElement, virtualNodeConfig } from "@src/vdom/virtualNode.js";
 import { behavior, effect, example, fact, step } from "esbehavior";
-import { equalTo, expect, resolvesTo } from "great-expectations";
-import { selectElement, selectElements } from "helpers/displayElement.js";
-import { renderContext } from "helpers/renderContext.js";
+import { renderContext } from "./helpers/renderContext.js";
+import { childElement, expectChild, expectTotalChildren } from "helpers/index.js";
 
-export default behavior("list patch", [
+export default behavior("removing items from list", [
   example(renderContext())
     .description("removing from the end of a list")
     .script({
@@ -57,7 +56,7 @@ export default behavior("list patch", [
         })
       ]
     }),
-  (m) => m.pick() && example(renderContext())
+  example(renderContext())
     .description("removing from throughout a list")
     .script({
       suppose: [
@@ -91,22 +90,3 @@ export default behavior("list patch", [
     }),
 ])
 
-function childConfig(testId: number): VirtualNodeConfig {
-  const config = virtualNodeConfig()
-  addAttribute(config, "data-child", `${testId}`)
-  return config
-}
-
-function childElement(testId: number): VirtualNode {
-  return makeVirtualElement("div", childConfig(testId), [
-    makeVirtualTextNode(`child ${testId}`)
-  ])
-}
-
-async function expectTotalChildren(total: number) {
-  await expect(selectElements("[data-child]").count(), resolvesTo(equalTo(total)))
-}
-
-async function expectChild(testId: number) {
-  await expect(selectElement(`[data-child='${testId}']`).text(), resolvesTo(equalTo(`child ${testId}`)))
-}

@@ -184,6 +184,9 @@ export const patch = (oldVNode: VirtualNode, newVNode: VirtualNode): VirtualNode
       var oldTail = oldVKids.length - 1
       var newTail = newVKids.length - 1
 
+      console.log("Old head tail", oldHead, oldTail)
+      console.log("New head tail", newHead, newTail)
+
       // go through from head to tail and if the keys are the
       // same then I guess position is the same so just patch the node
       // until old or new runs out
@@ -221,7 +224,7 @@ export const patch = (oldVNode: VirtualNode, newVNode: VirtualNode): VirtualNode
       // }
 
       if (oldHead > oldTail) {
-        console.log("Old head tail", oldHead, oldTail)
+        // console.log("Old head tail", oldHead, oldTail)
       //   // then we got through everything old and we are adding new
       //   // children to the end?
 
@@ -240,11 +243,12 @@ export const patch = (oldVNode: VirtualNode, newVNode: VirtualNode): VirtualNode
           newHead++
         }
       // } else if (newHead > newTail) {
+        // console.log("new head tail", newHead, newTail)
       //   // then there are more old kids than new ones and we got through
       //   // everything so remove from the end of the list
-      //   while (oldHead <= oldTail) {
-      //     node.removeChild(oldVKids[oldHead++].node!)
-      //   }
+        // while (oldHead <= oldTail) {
+          // node.removeChild(oldVKids[oldHead++].node!)
+        // }
       } else {
         // let keyed = {} as any
         // let newKeyed = {} as any
@@ -321,11 +325,12 @@ export const patch = (oldVNode: VirtualNode, newVNode: VirtualNode): VirtualNode
         }
 
         // this is maybe removing extra nodes at the end
-        // while (oldHead <= oldTail) {
+        while (oldHead <= oldTail) {
           // if (getKey((oldVKid = oldVKids[oldHead++])) == undefined) {
-            // node.removeChild(oldVKid.node!)
+          oldVKid = oldVKids[oldHead++]
+          node.removeChild(oldVKid.node!)
           // }
-        // }
+        }
 
         // and this is removing extra nodes in the middle?
         // for (var i in keyed) {

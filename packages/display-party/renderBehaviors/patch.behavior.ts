@@ -1,6 +1,6 @@
 import { addAttribute, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "@src/vdom/virtualNode.js";
 import { behavior, effect, example, fact, step } from "esbehavior";
-import { equalTo, expect, is, resolvesTo } from "great-expectations";
+import { equalTo, expect, resolvesTo } from "great-expectations";
 import { selectElement, selectElementWithText, selectElements } from "helpers/displayElement.js";
 import { renderContext } from "helpers/renderContext.js";
 

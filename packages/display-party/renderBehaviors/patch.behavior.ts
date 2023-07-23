@@ -164,5 +164,53 @@ export default behavior("patch", [
             resolvesTo(equalTo("Your favorite sport is: banking")))
         })
       ]
+    }),
+  example(renderContext<Container<string>>())
+    .description("patch parent of stateful element")
+    .script({
+      suppose: [
+        fact("there is an element with a stateful child", (context) => {
+          context.setState(container({ initialValue: "swimming" }))
+          const statefulChild = makeStatefulElement(virtualNodeConfig(), (get) => {
+            const config = virtualNodeConfig()
+            addAttribute(config, "class", "funny")
+            return makeVirtualElement("div", config, [
+              makeVirtualTextNode(`Your favorite sport is: ${get(context.state)}`)
+            ])
+          })
+          const parentConfig = virtualNodeConfig()
+          addAttribute(parentConfig, "data-thing", "199")
+          context.mount(makeVirtualElement("div", parentConfig, [
+            statefulChild
+          ]))
+        })
+      ],
+      perform: [
+        step("the stateful element is patched", (context) => {
+          context.writeTo(context.state, "diving")
+        }),
+        step("the parent element is patched", (context) => {
+          const statefulChild = makeStatefulElement(virtualNodeConfig(), (get) => {
+            const config = virtualNodeConfig()
+            addAttribute(config, "class", "funny")
+            return makeVirtualElement("div", config, [
+              makeVirtualTextNode(`Your favorite sport is: ${get(context.state)}`)
+            ])
+          })
+          const parentConfig = virtualNodeConfig()
+          addAttribute(parentConfig, "data-thing", "801")
+          context.patch(makeVirtualElement("div", parentConfig, [
+            statefulChild
+          ]))
+        })
+      ],
+      observe: [
+        effect("the parent element is updated", async () => {
+          await expect(selectElement("[data-thing='801']").exists(), resolvesTo(equalTo(true)))
+        }),
+        effect("the child element is updated", async () => {
+          await expect(selectElement(".funny").text(), resolvesTo(equalTo("Your favorite sport is: diving")))
+        })
+      ]
     })
 ])

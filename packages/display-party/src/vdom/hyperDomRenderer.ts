@@ -57,6 +57,7 @@ var createNode = (store: Store, vnode: VirtualNode): Node => {
       return document.createTextNode(vnode.value)
     case NodeType.STATEFUL:
       let statefulNode: VirtualNode | null = null
+      console.log("CREATING STATEFUL NODE!")
       store.query(vnode.generator, (update) => {
         console.log("hello!!")
         // node = createNode(store, update)
@@ -120,7 +121,7 @@ var createNode = (store: Store, vnode: VirtualNode): Node => {
 // }
 
 const getKey = (vnode: VirtualNode | undefined) => {
-  if (vnode && vnode.type === NodeType.ELEMENT) {
+  if (vnode && (vnode.type === NodeType.ELEMENT || vnode.type === NodeType.STATEFUL)) {
     return vnode.key
   } else {
     return undefined
@@ -163,6 +164,11 @@ export const patch = (store: Store, oldVNode: VirtualNode | null, newVNode: Virt
     return newVNode
   }
 
+  if (oldVNode.type === NodeType.STATEFUL && newVNode.type === NodeType.STATEFUL) {
+    console.log("Ignoring stateful nodes")
+    return oldVNode
+  }
+
   if (oldVNode.type === NodeType.ELEMENT && newVNode.type === NodeType.ELEMENT) {
     if (oldVNode.tag !== newVNode.tag) {
       // note this updates the node of the element ... but any
@@ -183,18 +189,18 @@ export const patch = (store: Store, oldVNode: VirtualNode | null, newVNode: Virt
       }
 
       // need to handle children
-      // var oldKey
-      // var newKey
+      let oldKey
+      let newKey
       // var tmpVKid
-      var oldVKid
+      let oldVKid
 
-      var oldVKids = oldVNode.children
-      var newVKids = newVNode.children
+      let oldVKids = oldVNode.children
+      let newVKids = newVNode.children
 
-      var oldHead = 0
-      var newHead = 0
-      var oldTail = oldVKids.length - 1
-      var newTail = newVKids.length - 1
+      let oldHead = 0
+      let newHead = 0
+      let oldTail = oldVKids.length - 1
+      let newTail = newVKids.length - 1
 
       console.log("Old head tail", oldHead, oldTail)
       console.log("New head tail", newHead, newTail)
@@ -202,38 +208,46 @@ export const patch = (store: Store, oldVNode: VirtualNode | null, newVNode: Virt
       // go through from head to tail and if the keys are the
       // same then I guess position is the same so just patch the node
       // until old or new runs out
-      // while (newHead <= newTail && oldHead <= oldTail) {
-      //   // if there is no key or there are no old kids
-      //   // or the keys do not match then break
-      //   if (
-      //     (oldKey = getKey(oldVKids[oldHead])) == undefined ||
-      //     oldKey !== getKey(newVKids[newHead])
-      //   ) {
-      //     break
-      //   }
+      while (newHead <= newTail && oldHead <= oldTail) {
+        // if there is no key or there are no old kids
+        // or the keys do not match then break
+        if (
+          (oldKey = getKey(oldVKids[oldHead])) == undefined ||
+          oldKey !== getKey(newVKids[newHead])
+        ) {
+          console.log("Breaking because keys are not the same", oldKey, getKey(newVKids[newHead]))
+          break
+        }
 
-      //   // patch and try the next element
-      //   patch(
-      //     oldVKids[oldHead++],
-      //     newVKids[newHead++],
-      //   )
-      // }
+        // patch and try the next element
+        patch(
+          store,
+          oldVKids[oldHead++],
+          newVKids[newHead++],
+        )
+      }
 
+      // Not sure why we have this?
       // now newHead or oldHead is at the end so it would be false if you
       // got through the above. But if you break early then you could be here
-      // while (newHead <= newTail && oldHead <= oldTail) {
-      //   if (
-      //     (oldKey = getKey(oldVKids[oldTail])) == undefined ||
-      //     oldKey !== getKey(newVKids[newTail])
-      //   ) {
-      //     break
-      //   }
+      while (newHead <= newTail && oldHead <= oldTail) {
+        if (
+          (oldKey = getKey(oldVKids[oldTail])) == undefined ||
+          oldKey !== getKey(newVKids[newTail])
+        ) {
+          console.log("Breaking because keys are not the same 2", oldKey, getKey(newVKids[newHead]))
+          break
+        }
 
-      //   patch(
-      //     oldVKids[oldTail--],
-      //     newVKids[newTail--],
-      //   )
-      // }
+        patch(
+          store,
+          oldVKids[oldTail--],
+          newVKids[newTail--],
+        )
+      }
+
+      console.log("After end checks; Old head tail", oldHead, oldTail)
+      console.log("After end checks; New head tail", newHead, newTail)
 
       if (oldHead > oldTail) {
         // console.log("Old head tail", oldHead, oldTail)
@@ -263,19 +277,24 @@ export const patch = (store: Store, oldVNode: VirtualNode | null, newVNode: Virt
         // }
       } else {
         // let keyed = {} as any
-        // let newKeyed = {} as any
+        let newKeyed = {} as any
 
-        // map the old nodes by key (if defined)
+        // store the old nodes by key (if defined)
         // for (let i = oldHead; i <= oldTail; i++) {
         //   if ((oldKey = getKey(oldVKids[i])) != undefined) {
         //     keyed[oldKey] = oldVKids[i]
         //   }
         // }
 
+        // console.log("Keyed", keyed)
+
         // go through remaining new children and check keys
         while (newHead <= newTail) {
-          // oldKey = getKey((oldVKid = oldVKids[oldHead]))
+          oldKey = getKey((oldVKid = oldVKids[oldHead]))
           // newKey = getKey((newVKids[newHead] = newVKids[newHead]))
+          newKey = getKey(newVKids[newHead])
+
+          console.log("Checking keys", oldKey, newKey)
 
           // somehow seems to be checking if a keyed node
           // needs to be removed? but not sure
@@ -332,12 +351,14 @@ export const patch = (store: Store, oldVNode: VirtualNode | null, newVNode: Virt
           // )
           // }
           // }
+          console.log("Just patching ...")
           patch(store, oldVKids[oldHead++]!, newVKids[newHead++])
           // }
         }
 
         // this is removing extra nodes at the end
         while (oldHead <= oldTail) {
+          console.log("Removing extra node at the end")
           // if (getKey((oldVKid = oldVKids[oldHead++])) == undefined) {
           oldVKid = oldVKids[oldHead++]
           node.removeChild(oldVKid.node!)

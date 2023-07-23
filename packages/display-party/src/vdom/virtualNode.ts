@@ -5,6 +5,7 @@ export enum NodeType {
   TEXT = 3,
   ELEMENT = 1,
   FRAGMENT = 11,
+  STATEFUL = 15
 }
 
 export interface TextNode {
@@ -30,7 +31,14 @@ export interface FragmentNode {
   node: Node | undefined
 }
 
-export type VirtualNode = TextNode | ElementNode | FragmentNode
+export interface StatefulNode {
+  type: NodeType.STATEFUL
+  key: string | undefined
+  generator: (get: GetState) => VirtualNode
+  node: Node | undefined
+}
+
+export type VirtualNode = TextNode | ElementNode | FragmentNode | StatefulNode
 
 // Tailored from Snabbdom VNode
 // export interface VirtualNode {
@@ -104,13 +112,22 @@ export function setEventHandler(config: VirtualNodeConfig, event: string, handle
   }
 }
 
+export function makeStatefulElement(config: VirtualNodeConfig, generator: (get: GetState) => VirtualNode, node?: Node): VirtualNode {
+  return {
+    type: NodeType.STATEFUL,
+    key: config.key,
+    generator,
+    node
+  }
+}
+
 export function setStatefulGenerator(config: VirtualNodeConfig, generator: (get: GetState) => VirtualNode) {
   // config.storeContext = {
     // generator
   // }
 }
 
-export function makeVirtualElement(tag: string, config: VirtualNodeConfig, children: Array<VirtualNode>, node?: Node): VirtualNode {
+export function makeVirtualElement(tag: string, config: VirtualNodeConfig, children: Array<VirtualNode>, node?: Node): ElementNode {
   // See Snabbdom src/h.ts and src/vnode.ts
   // We are not supporting SVG at the moment but otherwise this should work
   return {
@@ -124,7 +141,7 @@ export function makeVirtualElement(tag: string, config: VirtualNodeConfig, child
   }
 }
 
-export function makeVirtualTextNode(text: string, node?: Node): VirtualNode {
+export function makeVirtualTextNode(text: string, node?: Node): TextNode {
   // See Snabbdom src/h.ts and src/vnode.ts
   // This can be a discriminated union now I think ...
   return {

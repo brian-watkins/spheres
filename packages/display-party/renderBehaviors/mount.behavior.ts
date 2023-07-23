@@ -1,8 +1,9 @@
 import { behavior, effect, example, fact } from "esbehavior"
 import { equalTo, expect, is, resolvesTo } from "great-expectations"
 import { selectElement, selectElementWithText, selectElements } from "helpers/displayElement.js"
-import { addAttribute, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "@src/vdom/virtualNode.js"
+import { addAttribute, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "@src/vdom/virtualNode.js"
 import { renderContext } from "helpers/renderContext.js"
+import { container } from "state-party"
 
 export default behavior("mount", [
   example(renderContext())
@@ -102,11 +103,71 @@ export default behavior("mount", [
         effect("the elements are rendered", async () => {
           const texts = await selectElements("p[class='text-slate-900']")
             .map(el => el.text())
-          
+
           expect(texts, is(equalTo([
             "This is some text.",
             "This is some more text."
           ])))
+        })
+      ]
+    }),
+  example(renderContext())
+    .description("mount a stateful view")
+    .script({
+      suppose: [
+        fact("a stateful view", (context) => {
+          const name = container({ initialValue: "Funny person" })
+          context.mount(makeStatefulElement(virtualNodeConfig(), (get) => {
+            const statefulConfig = virtualNodeConfig()
+            addAttribute(statefulConfig, "data-label", "stateful")
+            return makeVirtualElement("div", statefulConfig, [
+              makeVirtualTextNode(`${get(name)}, you are so stateful!`)
+            ])
+          }))
+        })
+      ],
+      observe: [
+        effect("it mounts the stateful element", async () => {
+          await expect(selectElement("[data-label='stateful']").text(),
+            resolvesTo(equalTo("Funny person, you are so stateful!")))
+        })
+      ]
+    }),
+  example(renderContext())
+    .description("mount nested stateful views")
+    .script({
+      suppose: [
+        fact("there are nested stateful views", (context) => {
+          const name = container({ initialValue: "Funny person" })
+          const sport = container({ initialValue: "bowling" })
+
+          const statefulChild = makeStatefulElement(virtualNodeConfig(), (get) => {
+            const config = virtualNodeConfig()
+            addAttribute(config, "class", "coolness")
+            return makeVirtualElement("div", config, [
+              makeVirtualTextNode(`Your favorite sport is: ${get(sport)}`)
+            ])
+          })
+
+          context.mount(makeStatefulElement(virtualNodeConfig(), (get) => {
+            const statefulConfig = virtualNodeConfig()
+            addAttribute(statefulConfig, "data-label", "stateful")
+            return makeVirtualElement("div", virtualNodeConfig(), [
+              makeVirtualElement("div", statefulConfig, [
+                makeVirtualTextNode(`${get(name)}, you are so stateful!`),
+              ]),
+              statefulChild
+            ])
+          }))
+        })
+      ],
+      observe: [
+        effect("it mounts the stateful element", async () => {
+          await expect(selectElement("[data-label='stateful']").text(),
+            resolvesTo(equalTo("Funny person, you are so stateful!")))
+        }),
+        effect("it mounts the nested stateful element", async () => {
+          await expect(selectElement(".coolness").text(), resolvesTo(equalTo("Your favorite sport is: bowling")))
         })
       ]
     })

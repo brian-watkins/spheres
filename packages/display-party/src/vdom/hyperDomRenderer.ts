@@ -31,10 +31,10 @@ export function virtualize(element: Node): VirtualNode {
   }
 }
 
-export function createDOMRenderer(): DOMRenderer {
+export function createDOMRenderer(store: Store): DOMRenderer {
   // const patch = createPatch(store)
   return (element, node) => {
-    const rootNode = patch(virtualize(element), node)
+    const rootNode = patch(store, virtualize(element), node)
     // if (rootNode.elm instanceof DocumentFragment) {
     //   return {
     //     type: "fragment-root",
@@ -50,12 +50,16 @@ export function createDOMRenderer(): DOMRenderer {
   }
 }
 
-// I don't like it that this modified the input variable
-var createNode = (vnode: VirtualNode): Node => {
+var createNode = (store: Store, vnode: VirtualNode): Node => {
   let node: Node
   switch (vnode.type) {
     case NodeType.TEXT:
       return document.createTextNode(vnode.value)
+    case NodeType.STATEFUL:
+      store.query(vnode.generator, (update) => {
+        node = createNode(store, update)
+      })
+      return node!
     case NodeType.ELEMENT:
       const element = document.createElement(vnode.tag, { is: vnode.is })
       const attrs = vnode.data.attrs
@@ -73,7 +77,7 @@ var createNode = (vnode: VirtualNode): Node => {
   }
 
   for (var i = 0; i < vnode.children.length; i++) {
-    const childNode = createNode(vnode.children[i])
+    const childNode = createNode(store, vnode.children[i])
     vnode.children[i].node = childNode
     node.appendChild(childNode)
   }
@@ -120,7 +124,7 @@ const getKey = (vnode: VirtualNode | undefined) => {
 }
 
 // Could oldVNode be null or undefined? Yes
-export const patch = (oldVNode: VirtualNode, newVNode: VirtualNode): VirtualNode => {
+export const patch = (store: Store, oldVNode: VirtualNode, newVNode: VirtualNode): VirtualNode => {
   console.log("vnodes", oldVNode, newVNode)
   if (oldVNode === newVNode) {
     console.log("Equal??")
@@ -145,7 +149,7 @@ export const patch = (oldVNode: VirtualNode, newVNode: VirtualNode): VirtualNode
 
   // if this is a totally new node type
   if (oldVNode.type !== newVNode.type) {
-    const newNode = createNode(newVNode)
+    const newNode = createNode(store, newVNode)
     newVNode.node = parent.insertBefore(newNode, node)
     parent.removeChild(oldVNode.node!)
     return newVNode
@@ -155,7 +159,7 @@ export const patch = (oldVNode: VirtualNode, newVNode: VirtualNode): VirtualNode
     if (oldVNode.tag !== newVNode.tag) {
       // note this updates the node of the element ... but any
       // child nodes are not updated with their nodes
-      newVNode.node = parent.insertBefore(createNode(newVNode), node)
+      newVNode.node = parent.insertBefore(createNode(store, newVNode), node)
       parent.removeChild(node)
       return newVNode
     } else {
@@ -239,7 +243,7 @@ export const patch = (oldVNode: VirtualNode, newVNode: VirtualNode): VirtualNode
             // ((oldVKid = oldVKids[oldHead]) && oldVKid.node) ?? null
           // )
           const newKid = newVKids[newHead]
-          newKid.node = node.insertBefore(createNode(newKid), null)
+          newKid.node = node.insertBefore(createNode(store, newKid), null)
           newHead++
         }
       // } else if (newHead > newTail) {
@@ -320,7 +324,7 @@ export const patch = (oldVNode: VirtualNode, newVNode: VirtualNode): VirtualNode
                 // )
               // }
             // }
-            patch(oldVKids[oldHead++]!, newVKids[newHead++])
+            patch(store, oldVKids[oldHead++]!, newVKids[newHead++])
           // }
         }
 

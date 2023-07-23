@@ -268,13 +268,13 @@ export const patch = (store: Store, oldVNode: VirtualNode | null, newVNode: Virt
           newKid.node = node.insertBefore(createNode(store, newKid), null)
           newHead++
         }
-        // } else if (newHead > newTail) {
-        // console.log("new head tail", newHead, newTail)
+      } else if (newHead > newTail) {
+        console.log("Removing nodes at the end", newHead, newTail)
         //   // then there are more old kids than new ones and we got through
         //   // everything so remove from the end of the list
-        // while (oldHead <= oldTail) {
-        // node.removeChild(oldVKids[oldHead++].node!)
-        // }
+        while (oldHead <= oldTail) {
+          node.removeChild(oldVKids[oldHead++].node!)
+        }
       } else {
         let keyed = {} as any
         let newKeyed = {} as any
@@ -311,8 +311,8 @@ export const patch = (store: Store, oldVNode: VirtualNode | null, newVNode: Virt
             // Maybe this would happen if you are adding new keyed nodes?
             // But the existing nodes were not keyed?
             // if (oldKey == null) {
-              // console.log("removing node because oldKey is null")
-              // node.removeChild(oldVKid.node!)
+            // console.log("removing node because oldKey is null")
+            // node.removeChild(oldVKid.node!)
             // }
             console.log("just skipping", oldHead)
             oldHead++
@@ -363,13 +363,13 @@ export const patch = (store: Store, oldVNode: VirtualNode | null, newVNode: Virt
                 newKeyed[newKey] = true
               } else {
                 console.log("hello")
-              //   // NEED to handle this case
-              //   // patch(
-              //   //   node,
-              //   //   oldVKid && oldVKid.node,
-              //   //   null,
-              //   //   newVKids[newHead],
-              //   // )
+                //   // NEED to handle this case
+                //   // patch(
+                //   //   node,
+                //   //   oldVKid && oldVKid.node,
+                //   //   null,
+                //   //   newVKids[newHead],
+                //   // )
               }
             }
             newHead++

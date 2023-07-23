@@ -59,7 +59,7 @@ var createNode = (store: Store, vnode: VirtualNode): Node => {
       let statefulNode: VirtualNode | null = null
       console.log("CREATING STATEFUL NODE!")
       store.query(vnode.generator, (update) => {
-        console.log("hello!!")
+        console.log("PATCHING STATEFUL NODE!!")
         // node = createNode(store, update)
         statefulNode = patch(store, statefulNode, update)
       })
@@ -290,6 +290,7 @@ export const patch = (store: Store, oldVNode: VirtualNode | null, newVNode: Virt
 
         // go through remaining new children and check keys
         while (newHead <= newTail) {
+          console.log("looping over new", newHead, newTail)
           // may need to set oldVKid here
           oldVKid = oldVKids[oldHead]
           oldKey = getKey(oldVKid)
@@ -324,8 +325,8 @@ export const patch = (store: Store, oldVNode: VirtualNode | null, newVNode: Virt
             console.log("A")
             if (oldKey == undefined) {
               if (oldVKid === undefined) {
-                console.log("No old kid, inserting new")
-                parent.insertBefore(createNode(store, newVNode), node)
+                console.log("No old kid, inserting new", newVNode)
+                node.insertBefore(createNode(store, newVKids[newHead]), null)
               } else {
                 patch(
                   store,
@@ -353,7 +354,8 @@ export const patch = (store: Store, oldVNode: VirtualNode | null, newVNode: Virt
               oldHead++
             } else {
               console.log("C")
-              if ((tmpVKid = keyed[newKey]) != null) {
+              tmpVKid = keyed[newKey]
+              if (tmpVKid != null) {
                 tmpVKid.node = node.insertBefore(tmpVKid.node, (oldVKid && oldVKid.node) ?? null)
                 patch(
                   store,
@@ -374,16 +376,12 @@ export const patch = (store: Store, oldVNode: VirtualNode | null, newVNode: Virt
             }
             newHead++
           }
-          // console.log("Just patching ...")
-          // patch(store, oldVKids[oldHead++]!, newVKids[newHead++])
-          // }
         }
 
         // this is removing extra nodes at the end
         while (oldHead <= oldTail) {
           console.log("Removing extra node at the end")
           if (getKey((oldVKid = oldVKids[oldHead++])) == undefined) {
-            // oldVKid = oldVKids[oldHead++]
             node.removeChild(oldVKid.node!)
           }
         }

@@ -1,8 +1,9 @@
-import { addAttribute, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "@src/vdom/virtualNode.js";
+import { addAttribute, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "@src/vdom/virtualNode.js";
 import { behavior, effect, example, fact, step } from "esbehavior";
 import { equalTo, expect, resolvesTo } from "great-expectations";
 import { selectElement, selectElementWithText, selectElements } from "helpers/displayElement.js";
 import { renderContext } from "helpers/renderContext.js";
+import { Container, container } from "state-party";
 
 export default behavior("patch", [
   example(renderContext())
@@ -131,6 +132,36 @@ export default behavior("patch", [
         effect("the attributes are updated", async () => {
           await expect(selectElements(".fun-stuff").count(), resolvesTo(equalTo(1)))
           await expect(selectElement("[data-stuff='84']").exists(), resolvesTo(equalTo(true)))
+        })
+      ]
+    }),
+  example(renderContext<Container<string>>())
+    .description("patch a stateful element")
+    .script({
+      suppose: [
+        fact("there is a stateful element", (context) => {
+          context.setState(container({ initialValue: "bowling" }))
+          const statefulChild = makeStatefulElement(virtualNodeConfig(), (get) => {
+            const config = virtualNodeConfig()
+            addAttribute(config, "class", "funny")
+            return makeVirtualElement("div", config, [
+              makeVirtualTextNode(`Your favorite sport is: ${get(context.state)}`)
+            ])
+          })
+          context.mount(makeVirtualElement("div", virtualNodeConfig(), [
+            statefulChild
+          ]))
+        })
+      ],
+      perform: [
+        step("the state is updated", (context) => {
+          context.writeTo(context.state, "banking")
+        })
+      ],
+      observe: [
+        effect("the element is updated", async () => {
+          await expect(selectElement(".funny").text(),
+            resolvesTo(equalTo("Your favorite sport is: banking")))
         })
       ]
     })

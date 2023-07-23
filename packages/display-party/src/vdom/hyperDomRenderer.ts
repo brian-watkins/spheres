@@ -56,10 +56,14 @@ var createNode = (store: Store, vnode: VirtualNode): Node => {
     case NodeType.TEXT:
       return document.createTextNode(vnode.value)
     case NodeType.STATEFUL:
+      let statefulNode: VirtualNode | null = null
       store.query(vnode.generator, (update) => {
-        node = createNode(store, update)
+        console.log("hello!!")
+        // node = createNode(store, update)
+        statefulNode = patch(store, statefulNode, update)
       })
-      return node!
+      console.log("Returning stateful node on create", statefulNode!.node)
+      return statefulNode!.node!
     case NodeType.ELEMENT:
       const element = document.createElement(vnode.tag, { is: vnode.is })
       const attrs = vnode.data.attrs
@@ -124,11 +128,16 @@ const getKey = (vnode: VirtualNode | undefined) => {
 }
 
 // Could oldVNode be null or undefined? Yes
-export const patch = (store: Store, oldVNode: VirtualNode, newVNode: VirtualNode): VirtualNode => {
+export const patch = (store: Store, oldVNode: VirtualNode | null, newVNode: VirtualNode): VirtualNode => {
   console.log("vnodes", oldVNode, newVNode)
   if (oldVNode === newVNode) {
     console.log("Equal??")
     return oldVNode
+  }
+
+  if (oldVNode === null) {
+    newVNode.node = createNode(store, newVNode)
+    return newVNode
   }
 
   let node = oldVNode.node!
@@ -146,12 +155,11 @@ export const patch = (store: Store, oldVNode: VirtualNode, newVNode: VirtualNode
     return newVNode
   }
 
-
   // if this is a totally new node type
   if (oldVNode.type !== newVNode.type) {
     const newNode = createNode(store, newVNode)
     newVNode.node = parent.insertBefore(newNode, node)
-    parent.removeChild(oldVNode.node!)
+    parent.removeChild(node)
     return newVNode
   }
 
@@ -229,29 +237,29 @@ export const patch = (store: Store, oldVNode: VirtualNode, newVNode: VirtualNode
 
       if (oldHead > oldTail) {
         // console.log("Old head tail", oldHead, oldTail)
-      //   // then we got through everything old and we are adding new
-      //   // children to the end?
+        //   // then we got through everything old and we are adding new
+        //   // children to the end?
 
         while (newHead <= newTail) {
           console.log("New head tail", newHead, newTail)
-      //     // but in order for this to insert at the end then the
-      //     // second arg to insertBefore needs to be null.
+          //     // but in order for this to insert at the end then the
+          //     // second arg to insertBefore needs to be null.
           // node.insertBefore(
-            // createNode(
-              // (newVKids[newHead] = newVKids[newHead++]),
-            // ),
-            // ((oldVKid = oldVKids[oldHead]) && oldVKid.node) ?? null
+          // createNode(
+          // (newVKids[newHead] = newVKids[newHead++]),
+          // ),
+          // ((oldVKid = oldVKids[oldHead]) && oldVKid.node) ?? null
           // )
           const newKid = newVKids[newHead]
           newKid.node = node.insertBefore(createNode(store, newKid), null)
           newHead++
         }
-      // } else if (newHead > newTail) {
+        // } else if (newHead > newTail) {
         // console.log("new head tail", newHead, newTail)
-      //   // then there are more old kids than new ones and we got through
-      //   // everything so remove from the end of the list
+        //   // then there are more old kids than new ones and we got through
+        //   // everything so remove from the end of the list
         // while (oldHead <= oldTail) {
-          // node.removeChild(oldVKids[oldHead++].node!)
+        // node.removeChild(oldVKids[oldHead++].node!)
         // }
       } else {
         // let keyed = {} as any
@@ -296,35 +304,35 @@ export const patch = (store: Store, oldVNode: VirtualNode, newVNode: VirtualNode
           //   }
           //   oldHead++
           // } else {
-            // if (oldKey === newKey) {
-              // then these are in the correct position
-              // so just patch
-              // patch(
-                // oldVKid,
-                // newVKids[newHead],
-              // )
-              // save that we have seen this key?
-              // newKeyed[newKey] = true
-              // oldHead++
-            // } else {
-              // if ((tmpVKid = keyed[newKey]) != null) {
-                // tmpVKid.node = node.insertBefore(tmpVKid.node, (oldVKid && oldVKid.node) ?? null)
-                // patch(
-                  // tmpVKid,
-                  // newVKids[newHead],
-                // )
-                // newKeyed[newKey] = true
-              // } else {
-                // NEED to handle this case
-                // patch(
-                //   node,
-                //   oldVKid && oldVKid.node,
-                //   null,
-                //   newVKids[newHead],
-                // )
-              // }
-            // }
-            patch(store, oldVKids[oldHead++]!, newVKids[newHead++])
+          // if (oldKey === newKey) {
+          // then these are in the correct position
+          // so just patch
+          // patch(
+          // oldVKid,
+          // newVKids[newHead],
+          // )
+          // save that we have seen this key?
+          // newKeyed[newKey] = true
+          // oldHead++
+          // } else {
+          // if ((tmpVKid = keyed[newKey]) != null) {
+          // tmpVKid.node = node.insertBefore(tmpVKid.node, (oldVKid && oldVKid.node) ?? null)
+          // patch(
+          // tmpVKid,
+          // newVKids[newHead],
+          // )
+          // newKeyed[newKey] = true
+          // } else {
+          // NEED to handle this case
+          // patch(
+          //   node,
+          //   oldVKid && oldVKid.node,
+          //   null,
+          //   newVKids[newHead],
+          // )
+          // }
+          // }
+          patch(store, oldVKids[oldHead++]!, newVKids[newHead++])
           // }
         }
 
@@ -338,11 +346,11 @@ export const patch = (store: Store, oldVNode: VirtualNode, newVNode: VirtualNode
 
         // and this is removing extra nodes in the middle?
         // for (var i in keyed) {
-          // like if there was a keyed child in the old node
-          // and we never encountered it in the new node
-          // if (newKeyed[i] == undefined) {
-            // node.removeChild(keyed[i].node)
-          // }
+        // like if there was a keyed child in the old node
+        // and we never encountered it in the new node
+        // if (newKeyed[i] == undefined) {
+        // node.removeChild(keyed[i].node)
+        // }
         // }
       }
 

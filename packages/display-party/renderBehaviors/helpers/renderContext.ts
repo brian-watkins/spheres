@@ -1,12 +1,25 @@
 import { patch, virtualize } from "@src/vdom/hyperDomRenderer.js"
 import { VirtualNode } from "@src/vdom/virtualNode.js"
 import { Context } from "esbehavior"
-import { Store } from "state-party"
+import { Container, Store, write } from "state-party"
 
-export class RenderApp {
+export class RenderApp<T> {
   private unmount: (() => void) | undefined
   private current: VirtualNode | undefined
   private store: Store = new Store()
+  private _state: T | undefined
+
+  setState(state: T) {
+    this._state = state
+  }
+
+  get state(): T {
+    return this._state!
+  }
+
+  writeTo<S, M = S>(token: Container<S, M>, value: M) {
+    this.store.dispatch(write(token, value))
+  }
 
   mount(vnode: VirtualNode) {
     const base = document.createElement("div")
@@ -28,7 +41,7 @@ export class RenderApp {
   }
 }
 
-export function renderContext(): Context<RenderApp> {
+export function renderContext<T = undefined>(): Context<RenderApp<T>> {
   return {
     init: () => {
       window._testPatchApp?.destroy()

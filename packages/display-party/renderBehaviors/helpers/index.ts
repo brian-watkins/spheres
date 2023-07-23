@@ -37,3 +37,7 @@ export async function expectChild(testId: number) {
 export async function expectStatefulChild(testId: number) {
   await expect(selectElement(`[data-stateful-child='${testId}']`).text(), resolvesTo(equalTo(`stateful child ${testId}`)))
 }
+
+export async function expectTotalStatefulChildren(total: number) {
+  await expect(selectElements(`[data-stateful-child]`).count(), resolvesTo(equalTo(total)))
+}

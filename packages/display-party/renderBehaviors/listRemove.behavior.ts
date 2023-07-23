@@ -1,7 +1,7 @@
 import { makeVirtualElement, virtualNodeConfig } from "@src/vdom/virtualNode.js";
 import { behavior, effect, example, fact, step } from "esbehavior";
 import { renderContext } from "./helpers/renderContext.js";
-import { childElement, expectChild, expectStatefulChild, expectTotalChildren, statefulChildElement } from "helpers/index.js";
+import { childElement, expectChild, expectStatefulChild, expectTotalChildren, expectTotalStatefulChildren, statefulChildElement } from "helpers/index.js";
 
 export default behavior("removing items from list", [
   example(renderContext())
@@ -89,7 +89,7 @@ export default behavior("removing items from list", [
       ]
     }),
   example(renderContext())
-    .description("remove stateful element with key")
+    .description("remove stateful element with key in middle of list")
     .script({
       suppose: [
         fact("there are some stateful elements in a list", (context) => {
@@ -112,8 +112,41 @@ export default behavior("removing items from list", [
         effect("the other stateful elements remain", async () => {
           await expectStatefulChild(1)
           await expectStatefulChild(3)
+          await expectTotalStatefulChildren(2)
         })
       ]
-    })
+    }),
+  example(renderContext())
+    .description("remove stateful elements with key throughout list")
+    .script({
+      suppose: [
+        fact("there are some stateful elements in a list", (context) => {
+          context.mount(makeVirtualElement("div", virtualNodeConfig(), [
+            statefulChildElement(1),
+            statefulChildElement(2),
+            statefulChildElement(3),
+            statefulChildElement(4),
+            statefulChildElement(5),
+          ]))
+        })
+      ],
+      perform: [
+        step("patch to remove the middle element", (context) => {
+          context.patch(makeVirtualElement("div", virtualNodeConfig(), [
+            statefulChildElement(1),
+            statefulChildElement(3),
+            statefulChildElement(5),
+          ]))
+        })
+      ],
+      observe: [
+        effect("the other stateful elements remain", async () => {
+          await expectStatefulChild(1)
+          await expectStatefulChild(3)
+          await expectStatefulChild(5)
+          await expectTotalStatefulChildren(3)
+        })
+      ]
+    }),
 ])
 

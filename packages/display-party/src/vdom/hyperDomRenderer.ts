@@ -353,16 +353,16 @@ export const patch = (store: Store, oldVNode: VirtualNode | null, newVNode: Virt
               oldHead++
             } else {
               console.log("C")
-              // if ((tmpVKid = keyed[newKey]) != null) {
-              //   tmpVKid.node = node.insertBefore(tmpVKid.node, (oldVKid && oldVKid.node) ?? null)
-              //   patch(
-              //     store,
-              //     tmpVKid,
-              //     newVKids[newHead],
-              //   )
-              //   newKeyed[newKey] = true
-              // } else {
-              //   console.log("hello")
+              if ((tmpVKid = keyed[newKey]) != null) {
+                tmpVKid.node = node.insertBefore(tmpVKid.node, (oldVKid && oldVKid.node) ?? null)
+                patch(
+                  store,
+                  tmpVKid,
+                  newVKids[newHead],
+                )
+                newKeyed[newKey] = true
+              } else {
+                console.log("hello")
               //   // NEED to handle this case
               //   // patch(
               //   //   node,
@@ -370,7 +370,7 @@ export const patch = (store: Store, oldVNode: VirtualNode | null, newVNode: Virt
               //   //   null,
               //   //   newVKids[newHead],
               //   // )
-              // }
+              }
             }
             newHead++
           }

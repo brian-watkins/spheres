@@ -311,11 +311,13 @@ export const patch = (store: Store, oldVNode: VirtualNode | null, newVNode: Virt
           ) {
             // Maybe this would happen if you are adding new keyed nodes?
             // But the existing nodes were not keyed?
-            // if (oldKey == null) {
-            // console.log("removing node because oldKey is null")
-            // node.removeChild(oldVKid.node!)
-            // }
-            console.log("just skipping", oldHead)
+            if (oldKey == null) {
+              // This can happen because text nodes are interspersed and
+              // being removed
+              console.log("**** removing node because oldKey is null")
+              node.removeChild(oldVKid.node!)
+            }
+            console.log("just skipping", oldHead, oldKey)
             oldHead++
             continue
           }
@@ -372,6 +374,7 @@ export const patch = (store: Store, oldVNode: VirtualNode | null, newVNode: Virt
                 //   //   null,
                 //   //   newVKids[newHead],
                 //   // )
+                node.insertBefore(createNode(store, newVKids[newHead]), (oldVKid && oldVKid.node) ?? null)
               }
             }
             newHead++

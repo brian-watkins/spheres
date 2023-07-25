@@ -2,7 +2,7 @@ import { makeVirtualElement, virtualNodeConfig } from "@src/vdom/virtualNode.js"
 import { behavior, effect, example, fact, step } from "esbehavior";
 import { equalTo, expect, is } from "great-expectations";
 import { selectElements } from "helpers/displayElement.js";
-import { childElement, expectChild, expectTotalChildren, statefulChildElement } from "helpers/index.js";
+import { childElement, statefulChildElement } from "helpers/index.js";
 import { renderContext } from "helpers/renderContext.js";
 
 export default behavior("insert items into list", [

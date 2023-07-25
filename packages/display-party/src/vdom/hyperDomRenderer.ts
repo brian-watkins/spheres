@@ -71,6 +71,16 @@ var createNode = (store: Store, vnode: VirtualNode): Node => {
       for (const attr in attrs) {
         element.setAttribute(attr, attrs[attr])
       }
+      let k: keyof HTMLElementEventMap
+      for (k in vnode.data.on) {
+        const handler: any = vnode.data.on[k]
+        element.addEventListener(k, handler)
+      }
+      // looks like in hyperapp there's only one event listener and
+      // you just attach it to the node or remove it with the appropriate
+      // event type. And somehow maybe it calls the event handler function
+      // on the virtual node? not sure ...
+
       // need to create any properties and event listeners too
       node = element
       break

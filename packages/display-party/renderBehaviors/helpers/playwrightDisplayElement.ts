@@ -11,4 +11,8 @@ export class PlaywrightDisplayElement {
     const count = await this.locator.count()
     return count > 0
   }
+
+  async click(at: number): Promise<void> {
+    await this.locator.nth(at).click({ timeout: 200 })
+  }
 }

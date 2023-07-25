@@ -51,16 +51,17 @@ export type VirtualNode = TextNode | ElementNode | FragmentNode | StatefulNode
 //   key: string | undefined;
 // }
 
-declare type Listener<T> = (this: VNode, ev: T, vnode: VNode) => void;
+declare type Listener<N extends keyof HTMLElementEventMap> = (ev: HTMLElementEventMap[N]) => any;
 
 export interface VirtualNodeConfig {
   props: Record<string, any>
   attrs: Record<string, string>
-  on: {
-    [N in keyof HTMLElementEventMap]?: Listener<HTMLElementEventMap[N]> | Array<Listener<HTMLElementEventMap[N]>>;
-  } & {
-    [event: string]: Listener<any> | Array<Listener<any>>;
-  }
+  // on: {
+  //   [N in keyof HTMLElementEventMap]?: Listener<HTMLElementEventMap[N]> | Array<Listener<HTMLElementEventMap[N]>>;
+  // } & {
+  //   [event: string]: Listener<any> | Array<Listener<any>>;
+  // }
+  on: { [N in keyof HTMLElementEventMap]?: Listener<N> }
   key?: string
 }
 
@@ -102,14 +103,16 @@ export function addClasses(config: VirtualNodeConfig, classNames: Array<string>)
   addAttribute(config, "class", classNames.join(" "))
 }
 
-export function setEventHandler(config: VirtualNodeConfig, event: string, handler: (evt: Event) => StoreMessage<any, any>) {
-  config.on![event] = function <E extends Event>(evt: E) {
-    evt.target?.dispatchEvent(new CustomEvent("displayMessage", {
-      bubbles: true,
-      cancelable: true,
-      detail: handler(evt)
-    }))
-  }
+export function setEventHandler<N extends keyof HTMLElementEventMap>(config: VirtualNodeConfig, event: N, handler: (evt: HTMLElementEventMap[N]) => StoreMessage<any, any>) {
+  config.on = Object.assign(config.on, {
+    [event]: (evt: HTMLElementEventMap[N]) => {
+      evt.target?.dispatchEvent(new CustomEvent("displayMessage", {
+        bubbles: true,
+        cancelable: true,
+        detail: handler(evt)
+      }))
+    }
+  })
 }
 
 export function makeStatefulElement(config: VirtualNodeConfig, generator: (get: GetState) => VirtualNode, node?: Node): VirtualNode {
@@ -123,7 +126,7 @@ export function makeStatefulElement(config: VirtualNodeConfig, generator: (get: 
 
 export function setStatefulGenerator(config: VirtualNodeConfig, generator: (get: GetState) => VirtualNode) {
   // config.storeContext = {
-    // generator
+  // generator
   // }
 }
 

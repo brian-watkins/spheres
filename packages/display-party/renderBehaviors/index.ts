@@ -4,6 +4,7 @@ import patchBehavior from "patch.behavior.js"
 import listReorderBehavior from "listReorder.behavior.js"
 import listRemoveBehavior from "listRemove.behavior.js"
 import listInsertBehavior from "listInsert.behavior.js"
+import eventBehavior from "event.behavior.js"
 
 window.validateBehaviors = () => {
   return validate([
@@ -11,6 +12,7 @@ window.validateBehaviors = () => {
     patchBehavior,
     listInsertBehavior,
     listRemoveBehavior,
-    listReorderBehavior
+    listReorderBehavior,
+    eventBehavior
   ], { failFast: true })
 }

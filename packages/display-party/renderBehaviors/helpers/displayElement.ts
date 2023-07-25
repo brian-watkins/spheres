@@ -39,4 +39,8 @@ export class DisplayElement {
   exists(): Promise<boolean> {
     return window._testDisplayElement(this.selector, this.index, "exists")
   }
+
+  click(): Promise<void> {
+    return window._testDisplayElement(this.selector, this.index, "click")
+  }
 }

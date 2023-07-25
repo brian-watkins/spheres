@@ -32,7 +32,7 @@ export default behavior("reorder list", [
         })
       ],
       observe: [
-        effect("the elements are in the expected order", async (context) => {
+        effect("the elements are in the expected order", async () => {
           const texts = await selectElements("[data-child]").map(el => el.text())
           expect(texts, is(equalTo([
             "child 5",
@@ -70,7 +70,7 @@ export default behavior("reorder list", [
         })
       ],
       observe: [
-        effect("the elements are in the expected order", async (context) => {
+        effect("the elements are in the expected order", async () => {
           const texts = await selectElements("[data-stateful-child]").map(el => el.text())
           expect(texts, is(equalTo([
             "stateful child 5",

@@ -1,7 +1,7 @@
 import { patch, virtualize } from "@src/vdom/hyperDomRenderer.js"
 import { VirtualNode } from "@src/vdom/virtualNode.js"
 import { Context } from "esbehavior"
-import { Container, Store, write } from "state-party"
+import { Container, Store, StoreMessage, write } from "state-party"
 
 export class RenderApp<T> {
   private unmount: (() => void) | undefined
@@ -27,6 +27,12 @@ export class RenderApp<T> {
 
     const renderResult = patch(this.store, virtualize(base), vnode)
     this.current = renderResult
+
+    this.current.node?.addEventListener("displayMessage", (evt: Event) => {
+      const displayMessageEvent = evt as CustomEvent<StoreMessage<any>>
+      this.store.dispatch(displayMessageEvent.detail)
+    })
+
     this.unmount = () => {
       this.current!.node?.parentNode?.removeChild(this.current!.node)
     }

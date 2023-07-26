@@ -134,6 +134,55 @@ export default behavior("patch", [
           await expect(selectElement("[data-stuff='84']").exists(), resolvesTo(equalTo(true)))
         })
       ]
+    }).andThen({
+      perform: [
+        step("patch again but leave text unchanged", (context) => {
+          const updatedConfig = virtualNodeConfig()
+          addAttribute(updatedConfig, "class", "cool-stuff highlighted")
+
+          const child = makeVirtualElement("div", virtualNodeConfig(), [
+            makeVirtualElement("p", updatedConfig, [
+              makeVirtualTextNode("Hello again!")
+            ])
+          ])
+
+          const config = virtualNodeConfig()
+          addAttribute(config, "data-stuff", "84")
+          context.patch(makeVirtualElement("div", config, [
+            child
+          ]))
+        })
+      ],
+      observe: [
+        effect("the class is updated", async () => {
+          await expect(selectElement(".cool-stuff").exists(), resolvesTo(equalTo(true)))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("patch the text again", (context) => {
+          const updatedConfig = virtualNodeConfig()
+          addAttribute(updatedConfig, "class", "cool-stuff highlighted")
+
+          const child = makeVirtualElement("div", virtualNodeConfig(), [
+            makeVirtualElement("p", updatedConfig, [
+              makeVirtualTextNode("Hello again?!")
+            ])
+          ])
+
+          const config = virtualNodeConfig()
+          addAttribute(config, "data-stuff", "84")
+          context.patch(makeVirtualElement("div", config, [
+            child
+          ]))
+        })
+      ],
+      observe: [
+        effect("the text is updated", async () => {
+          await expect(selectElement("p.highlighted").text(),
+            resolvesTo(equalTo("Hello again?!")))
+        }),
+      ]
     }),
   example(renderContext<Container<string>>())
     .description("patch a stateful element")

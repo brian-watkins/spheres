@@ -434,10 +434,6 @@ export const patch = (store: Store, oldVNode: VirtualNode | null, newVNode: Virt
     }
   }
 
-  // otherwise we're dealing with text that's the same ... need to set the node
-  // on the new vnode *** SHOULD HAVE A TEST FOR THIS
   newVNode.node = node
   return newVNode
-
-  // return oldVNode
 }

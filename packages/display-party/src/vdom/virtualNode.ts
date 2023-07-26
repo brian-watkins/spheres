@@ -51,7 +51,7 @@ export type VirtualNode = TextNode | ElementNode | FragmentNode | StatefulNode
 //   key: string | undefined;
 // }
 
-declare type Listener<N extends keyof HTMLElementEventMap> = (ev: HTMLElementEventMap[N]) => any;
+declare type Listener = (ev: Event) => any;
 
 export interface VirtualNodeConfig {
   props: Record<string, any>
@@ -61,7 +61,7 @@ export interface VirtualNodeConfig {
   // } & {
   //   [event: string]: Listener<any> | Array<Listener<any>>;
   // }
-  on: { [N in keyof HTMLElementEventMap]?: Listener<N> }
+  on: { [N in keyof HTMLElementEventMap]?: Listener }
   key?: string
 }
 

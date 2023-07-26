@@ -147,6 +147,7 @@ export const patch = (store: Store, oldVNode: VirtualNode | null, newVNode: Virt
   }
 
   if (oldVNode === null) {
+    // note this is modifying the input variable
     newVNode.node = createNode(store, newVNode)
     return newVNode
   }
@@ -162,6 +163,7 @@ export const patch = (store: Store, oldVNode: VirtualNode | null, newVNode: Virt
   ) {
     console.log("Patching text!")
     node.nodeValue = newVNode.value!
+    // note modifying the input variable
     newVNode.node = node
     return newVNode
   }
@@ -175,8 +177,11 @@ export const patch = (store: Store, oldVNode: VirtualNode | null, newVNode: Virt
   }
 
   if (oldVNode.type === NodeType.STATEFUL && newVNode.type === NodeType.STATEFUL) {
-    console.log("Ignoring stateful nodes")
-    return oldVNode
+    console.log("Ignoring stateful nodes", oldVNode)
+    // note: modifying the input variable *** CONSIDER A TEST FOR THIS?!
+    newVNode.node = oldVNode.node
+    return newVNode
+    // return oldVNode
   }
 
   if (oldVNode.type === NodeType.ELEMENT && newVNode.type === NodeType.ELEMENT) {
@@ -188,13 +193,25 @@ export const patch = (store: Store, oldVNode: VirtualNode | null, newVNode: Virt
       return newVNode
     } else {
       // handle the attributes (need to also do props and event handlers)
-      for (var i in { ...oldVNode.data.attrs, ...newVNode.data.attrs }) {
+      for (let i in { ...oldVNode.data.attrs, ...newVNode.data.attrs }) {
         if (oldVNode.data.attrs[i] !== newVNode.data.attrs[i]) {
           if (newVNode.data.attrs[i] === undefined) {
             (node as Element).removeAttribute(i)
           } else {
             (node as Element).setAttribute(i, newVNode.data.attrs[i])
           }
+        }
+      }
+
+      // handle events
+      let i: keyof HTMLElementEventMap
+      console.log("*** EVENTS", oldVNode.data.on, newVNode.data.on)
+      for (i in { ...oldVNode.data.on, ...newVNode.data.on }) {
+        console.log("*** Checking EVENT", i)
+        if (newVNode.data.on[i] === undefined) {
+          oldVNode.node?.removeEventListener(i, oldVNode.data.on[i]!)
+        } else if (oldVNode.data.on[i] === undefined) {
+          oldVNode.node?.addEventListener(i, newVNode.data.on[i]!)
         }
       }
 
@@ -400,7 +417,7 @@ export const patch = (store: Store, oldVNode: VirtualNode | null, newVNode: Virt
         }
 
         // and this is removing extra nodes in the middle?
-        for (var i in keyed) {
+        for (let i in keyed) {
           console.log("Checking key", i)
           // like if there was a keyed child in the old node
           // and we never encountered it in the new node
@@ -411,10 +428,16 @@ export const patch = (store: Store, oldVNode: VirtualNode | null, newVNode: Virt
         }
       }
 
+      console.log("Returning new vnode")
       newVNode.node = node
       return newVNode
     }
   }
 
-  return oldVNode
+  // otherwise we're dealing with text that's the same ... need to set the node
+  // on the new vnode *** SHOULD HAVE A TEST FOR THIS
+  newVNode.node = node
+  return newVNode
+
+  // return oldVNode
 }

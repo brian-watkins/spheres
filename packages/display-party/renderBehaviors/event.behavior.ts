@@ -47,5 +47,66 @@ export default behavior("event handlers", [
             resolvesTo(equalTo("You clicked the button 3 times!")))
         })
       ]
+    }).andThen({
+      perform: [
+        step("the element is patched to remove the event handler", (context) => {
+          const button = makeVirtualElement("button", virtualNodeConfig(), [
+            makeVirtualTextNode("Click me!")
+          ])
+          const message = makeStatefulElement(virtualNodeConfig(), (get) => {
+            const messageConfig = virtualNodeConfig()
+            addAttribute(messageConfig, "data-message", "true")
+            return makeVirtualElement("p", messageConfig, [
+              makeVirtualTextNode(`You clicked the button ${get(context.state)} times!`)
+            ])
+          })
+          context.patch(makeVirtualElement("div", virtualNodeConfig(), [
+            message,
+            button
+          ]))
+        }),
+        step("the button is clicked some more times", async () => {
+          await selectElement("button").click()
+          await selectElement("button").click()
+        })
+      ],
+      observe: [
+        effect("the click counter does not change", async () => {
+          await expect(selectElement("[data-message]").text(),
+            resolvesTo(equalTo("You clicked the button 3 times!")))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the element is patched to add the event handler back", (context) => {
+          const config = virtualNodeConfig()
+          setEventHandler(config, "click", () => {
+            return store(selection((get) => write(context.state, get(context.state) + 1)))
+          })
+          const button = makeVirtualElement("button", config, [
+            makeVirtualTextNode("Click me!")
+          ])
+          const message = makeStatefulElement(virtualNodeConfig(), (get) => {
+            const messageConfig = virtualNodeConfig()
+            addAttribute(messageConfig, "data-message", "true")
+            return makeVirtualElement("p", messageConfig, [
+              makeVirtualTextNode(`You clicked the button ${get(context.state)} times!`)
+            ])
+          })
+          context.patch(makeVirtualElement("div", virtualNodeConfig(), [
+            message,
+            button
+          ]))
+        }),
+        step("the button is clicked some more times", async () => {
+          await selectElement("button").click()
+        })
+      ],
+      observe: [
+        effect("the click counter updates", async () => {
+          await expect(selectElement("[data-message]").text(),
+            resolvesTo(equalTo("You clicked the button 4 times!")))
+        })
+      ]
     })
-])
+  ])

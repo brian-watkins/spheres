@@ -50,7 +50,7 @@ export function createDOMRenderer(store: Store): DOMRenderer {
   }
 }
 
-var createNode = (store: Store, vnode: VirtualNode): Node => {
+const createNode = (store: Store, vnode: VirtualNode): Node => {
   let node: Node
   switch (vnode.type) {
     case NodeType.TEXT:
@@ -58,9 +58,8 @@ var createNode = (store: Store, vnode: VirtualNode): Node => {
     case NodeType.STATEFUL:
       let statefulNode: VirtualNode | null = null
       console.log("CREATING STATEFUL NODE!")
-      store.query(vnode.generator, (update) => {
+      vnode.unsubscribe = store.query(vnode.generator, (update) => {
         console.log("PATCHING STATEFUL NODE!!")
-        // node = createNode(store, update)
         statefulNode = patch(store, statefulNode, update)
       })
       console.log("Returning stateful node on create", statefulNode!.node)
@@ -99,6 +98,22 @@ var createNode = (store: Store, vnode: VirtualNode): Node => {
 
   // vnode.node = node
   return node
+}
+
+const alertRemoval = (vnode: VirtualNode) => {
+  if (vnode.type === NodeType.STATEFUL) {
+    console.log("Unsubscribing stateful node!")
+    vnode.unsubscribe?.()
+  } else if (vnode.type === NodeType.ELEMENT) {
+    for (const child of vnode.children) {
+      alertRemoval(child)
+    }
+  }
+}
+
+const removeNode = (parent: Node, vnode: VirtualNode) => {
+  alertRemoval(vnode)
+  parent.removeChild(vnode.node!)
 }
 
 // const patchProperty = ()
@@ -172,7 +187,8 @@ export const patch = (store: Store, oldVNode: VirtualNode | null, newVNode: Virt
   if (oldVNode.type !== newVNode.type) {
     const newNode = createNode(store, newVNode)
     newVNode.node = parent.insertBefore(newNode, node)
-    parent.removeChild(node)
+    // parent.removeChild(node)
+    removeNode(parent, oldVNode)
     return newVNode
   }
 
@@ -189,7 +205,10 @@ export const patch = (store: Store, oldVNode: VirtualNode | null, newVNode: Virt
       // note this updates the node of the element ... but any
       // child nodes are not updated with their nodes
       newVNode.node = parent.insertBefore(createNode(store, newVNode), node)
-      parent.removeChild(node)
+      // Note that this removes the node and all its children ... but if one
+      // of those is stateful then we need to tell it to unsubscribe ...
+      // parent.removeChild(node)
+      removeNode(parent, oldVNode)
       return newVNode
     } else {
       // handle the attributes (need to also do props and event handlers)
@@ -300,7 +319,8 @@ export const patch = (store: Store, oldVNode: VirtualNode | null, newVNode: Virt
         //   // then there are more old kids than new ones and we got through
         //   // everything so remove from the end of the list
         while (oldHead <= oldTail) {
-          node.removeChild(oldVKids[oldHead++].node!)
+          // node.removeChild(oldVKids[oldHead++].node!)
+          removeNode(node, oldVKids[oldHead++])
         }
       } else {
         let keyed = {} as any
@@ -342,7 +362,8 @@ export const patch = (store: Store, oldVNode: VirtualNode | null, newVNode: Virt
               // This can happen because text nodes are interspersed and
               // being removed
               console.log("**** removing node because oldKey is null")
-              node.removeChild(oldVKid.node!)
+              // node.removeChild(oldVKid.node!)
+              removeNode(node, oldVKid)
             }
             console.log("just skipping", oldHead, oldKey)
             oldHead++
@@ -412,7 +433,8 @@ export const patch = (store: Store, oldVNode: VirtualNode | null, newVNode: Virt
         while (oldHead <= oldTail) {
           console.log("Removing extra node at the end")
           if (getKey((oldVKid = oldVKids[oldHead++])) == undefined) {
-            node.removeChild(oldVKid.node!)
+            // node.removeChild(oldVKid.node!)
+            removeNode(node, oldVKid)
           }
         }
 
@@ -423,14 +445,11 @@ export const patch = (store: Store, oldVNode: VirtualNode | null, newVNode: Virt
           // and we never encountered it in the new node
           if (newKeyed[i] == undefined) {
             console.log("Removing keyed node")
-            node.removeChild(keyed[i].node)
+            // node.removeChild(keyed[i].node)
+            removeNode(node, keyed[i])
           }
         }
       }
-
-      console.log("Returning new vnode")
-      newVNode.node = node
-      return newVNode
     }
   }
 

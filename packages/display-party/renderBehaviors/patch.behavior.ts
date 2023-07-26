@@ -215,6 +215,54 @@ export default behavior("patch", [
       ]
     }),
   example(renderContext<Container<string>>())
+    .description("patch a stateful element root node to a different type")
+    .script({
+      suppose: [
+        fact("there is a stateful element", (context) => {
+          context.setState(container({ initialValue: "bowling" }))
+          const statefulChild = makeStatefulElement(virtualNodeConfig(), (get) => {
+            if (get(context.state) === "bowling") {
+              const config = virtualNodeConfig()
+              addAttribute(config, "class", "funny")
+              return makeVirtualElement("div", config, [
+                makeVirtualTextNode(`Your favorite sport is: ${get(context.state)}`)
+              ])
+            } else {
+              return makeVirtualTextNode("You like weird sports!")
+            }
+          })
+          context.mount(makeVirtualElement("div", virtualNodeConfig(), [
+            statefulChild
+          ]))
+        })
+      ],
+      perform: [
+        step("the state is updated", (context) => {
+          context.writeTo(context.state, "jet ski")
+        })
+      ],
+      observe: [
+        effect("the element is updated", async () => {
+          await expect(selectElementWithText("You like weird sports!").exists(), resolvesTo(equalTo(true)))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the state updates again", (context) => {
+          context.writeTo(context.state, "bowling")
+        })
+      ],
+      observe: [
+        effect("the previous node has been removed", async () => {
+          await expect(selectElementWithText("You like weird sports!").exists(), resolvesTo(equalTo(false)))
+        }),
+        effect("the element is updated", async () => {
+          await expect(selectElement(".funny").text(),
+            resolvesTo(equalTo("Your favorite sport is: bowling")))
+        })
+      ]
+    }),
+  example(renderContext<Container<string>>())
     .description("patch parent of stateful element")
     .script({
       suppose: [

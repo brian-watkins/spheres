@@ -36,6 +36,7 @@ export interface StatefulNode {
   key: string | undefined
   generator: (get: GetState) => VirtualNode
   node: Node | undefined
+  unsubscribe?: () => void
 }
 
 export type VirtualNode = TextNode | ElementNode | FragmentNode | StatefulNode

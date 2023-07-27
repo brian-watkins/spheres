@@ -1,8 +1,8 @@
 import { GetState, State, Store } from "state-party"
-import { VirtualNode, VirtualNodeConfig, addAttribute, addClasses, addProperty, makeVirtualFragment, makeVirtualNode, makeVirtualTextNode, setEventHandler, setKey, setStatefulGenerator, virtualNodeConfig } from "./vdom/virtualNode.js"
+import { VirtualNode, VirtualNodeConfig, addAttribute, addClasses, addProperty, makeStatefulElement, makeVirtualElement, makeVirtualFragment, makeVirtualTextNode, setEventHandler, setKey, virtualNodeConfig } from "./vdom/virtualNode.js"
 import { AriaAttributes, ElementEvents, ViewElements, booleanAttributes } from "./htmlElements.js"
 import { createStringRenderer } from "./vdom/renderToString.js"
-import { createDOMRenderer } from "./vdom/renderToDom.js"
+import { createDOMRenderer } from "./vdom/hyperDomRenderer.js"
 
 // Renderers
 
@@ -86,7 +86,7 @@ class BasicConfig implements SpecialAttributes {
     const entries = Object.entries(events)
     for (let i = 0; i < entries.length; i++) {
       const [event, handler] = entries[i]
-      setEventHandler(this.config, event, handler)
+      setEventHandler(this.config, event as keyof HTMLElementEventMap, handler)
     }
     return this
   }
@@ -155,7 +155,7 @@ const MagicElements = new Proxy({}, {
         config: configBuilder,
         view: receiver
       })
-      storedNodes.push(makeVirtualNode(prop as string, config, childNodes))
+      storedNodes.push(makeVirtualElement(prop as string, config, childNodes))
       receiver.nodes = storedNodes
       return receiver
     }
@@ -176,13 +176,17 @@ class BasicView implements SpecialElements {
   }
 
   withState(statefulConfig: StatefulConfig) {
+    // makeStatefulElement()
     let config = virtualNodeConfig()
-    setStatefulGenerator(config, (get) => statefulConfig.view(get)[toVirtualNode])
+    // setStatefulGenerator(config, (get) => statefulConfig.view(get)[toVirtualNode])
     if (statefulConfig.key) {
       setKey(config, `${statefulConfig.key}`)
     }
-    this.nodes.push(makeVirtualNode("vws", config, []))
+    const element = makeStatefulElement(config, (get) => statefulConfig.view(get)[toVirtualNode])
+    this.nodes.push(element)
     return this
+    // this.nodes.push(makeVirtualNode("vws", config, []))
+    // return this
   }
 
   get [toVirtualNode]() {

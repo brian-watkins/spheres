@@ -2,14 +2,6 @@ import { Store } from "state-party";
 import { DOMRenderer } from "./render.js";
 import { NodeType, VirtualNode, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "./virtualNode.js";
 
-type PatchFunction = (current: VirtualNode, updated: VirtualNode) => VirtualNode
-
-
-function createPatch(store: Store): PatchFunction {
-  return (current, updated) => {
-    return updated
-  }
-}
 
 export function virtualize(element: Node): VirtualNode {
   if (element.nodeType === NodeType.TEXT) {
@@ -376,7 +368,7 @@ export const patch = (store: Store, oldVNode: VirtualNode | null, newVNode: Virt
             if (oldKey == undefined) {
               if (oldVKid === undefined) {
                 console.log("No old kid, inserting new", newVNode)
-                node.insertBefore(createNode(store, newVKids[newHead]), null)
+                newVKids[newHead].node = node.insertBefore(createNode(store, newVKids[newHead]), null)
               } else {
                 patch(
                   store,
@@ -422,7 +414,7 @@ export const patch = (store: Store, oldVNode: VirtualNode | null, newVNode: Virt
                 //   //   null,
                 //   //   newVKids[newHead],
                 //   // )
-                node.insertBefore(createNode(store, newVKids[newHead]), (oldVKid && oldVKid.node) ?? null)
+                newVKids[newHead].node = node.insertBefore(createNode(store, newVKids[newHead]), (oldVKid && oldVKid.node) ?? null)
               }
             }
             newHead++

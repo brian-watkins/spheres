@@ -40,6 +40,34 @@ export default behavior("insert items into list", [
           ])))
         })
       ]
+    }).andThen({
+      perform: [
+        step("more elements are inserted at the end", (context) => {
+          context.patch(makeVirtualElement("div", virtualNodeConfig(), [
+            childElement(1),
+            childElement(2),
+            childElement(3),
+            childElement(4),
+            childElement(5),
+            childElement(6),
+            childElement(7),
+          ]))
+        })
+      ],
+      observe: [
+        effect("the elements are all in the list", async () => {
+          const texts = await selectElements("[data-child]").map(el => el.text())
+          expect(texts, is(equalTo([
+            "child 1",
+            "child 2",
+            "child 3",
+            "child 4",
+            "child 5",
+            "child 6",
+            "child 7",
+          ])))
+        })
+      ]
     }),
   example(renderContext())
     .description("insert at beginning")

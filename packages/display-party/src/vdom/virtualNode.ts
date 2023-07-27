@@ -1,5 +1,5 @@
-import { Attrs, Hooks, On, Props, VNode } from "snabbdom";
-import { GetState, Store, StoreMessage } from "state-party";
+// import { Attrs, Hooks, On, Props, VNode } from "snabbdom";
+import { GetState, StoreMessage } from "state-party";
 
 export enum NodeType {
   TEXT = 3,
@@ -125,11 +125,11 @@ export function makeStatefulElement(config: VirtualNodeConfig, generator: (get: 
   }
 }
 
-export function setStatefulGenerator(config: VirtualNodeConfig, generator: (get: GetState) => VirtualNode) {
-  // config.storeContext = {
-  // generator
-  // }
-}
+// export function setStatefulGenerator(config: VirtualNodeConfig, generator: (get: GetState) => VirtualNode) {
+//   // config.storeContext = {
+//   // generator
+//   // }
+// }
 
 export function makeVirtualElement(tag: string, config: VirtualNodeConfig, children: Array<VirtualNode>, node?: Node): ElementNode {
   // See Snabbdom src/h.ts and src/vnode.ts

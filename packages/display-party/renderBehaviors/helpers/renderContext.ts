@@ -1,5 +1,5 @@
 import { patch, virtualize } from "@src/vdom/hyperDomRenderer.js"
-import { VirtualNode } from "@src/vdom/virtualNode.js"
+import { NodeType, VirtualNode } from "@src/vdom/virtualNode.js"
 import { Context } from "esbehavior"
 import { Container, Store, StoreMessage, write } from "state-party"
 
@@ -34,7 +34,14 @@ export class RenderApp<T> {
     })
 
     this.unmount = () => {
-      this.current!.node?.parentNode?.removeChild(this.current!.node)
+      if (this.current?.type === NodeType.FRAGMENT) {
+        const parent = this.current.children[0].node!.parentNode!
+        while (parent.hasChildNodes()) {
+          parent.removeChild(parent.firstChild!)
+        }
+      } else {
+        this.current!.node?.parentNode?.removeChild(this.current!.node)
+      }
     }
   }
 

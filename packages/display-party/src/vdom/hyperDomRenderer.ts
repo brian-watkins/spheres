@@ -1,6 +1,6 @@
 import { Store } from "state-party";
 import { DOMRenderer } from "./render.js";
-import { NodeType, VirtualNode, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "./virtualNode.js";
+import { ElementNode, FragmentNode, NodeType, VirtualNode, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "./virtualNode.js";
 
 
 export function virtualize(element: Node): VirtualNode {
@@ -24,21 +24,19 @@ export function virtualize(element: Node): VirtualNode {
 }
 
 export function createDOMRenderer(store: Store): DOMRenderer {
-  // const patch = createPatch(store)
   return (element, node) => {
     const rootNode = patch(store, virtualize(element), node)
-    // if (rootNode.elm instanceof DocumentFragment) {
-    //   return {
-    //     type: "fragment-root",
-    //     // @ts-ignore
-    //     root: rootNode.elm.parent!
-    //   }
-    // } else {
-    return {
-      type: "element-root",
-      root: rootNode.node!
+    if (rootNode.type === NodeType.FRAGMENT) {
+      return {
+        type: "fragment-root",
+        root: fragmentParent(rootNode)
+      }
+    } else {
+      return {
+        type: "element-root",
+        root: rootNode.node!
+      }
     }
-    // }
   }
 }
 
@@ -83,8 +81,11 @@ const createNode = (store: Store, vnode: VirtualNode): Node => {
   }
 
   for (var i = 0; i < vnode.children.length; i++) {
-    const childNode = createNode(store, vnode.children[i])
-    vnode.children[i].node = childNode
+    const child = vnode.children[i]
+    console.log("Creating child", child)
+    const childNode = createNode(store, child)
+    child.node = childNode
+    console.log("Child node type", child.type, childNode.nodeType)
     node.appendChild(childNode)
   }
 
@@ -178,9 +179,18 @@ export const patch = (store: Store, oldVNode: VirtualNode | null, newVNode: Virt
   // if this is a totally new node type
   if (oldVNode.type !== newVNode.type) {
     const newNode = createNode(store, newVNode)
-    newVNode.node = parent.insertBefore(newNode, node)
-    // parent.removeChild(node)
-    removeNode(parent, oldVNode)
+    if (oldVNode.type === NodeType.FRAGMENT) {
+      const fragParent = fragmentParent(oldVNode)
+      newVNode.node = fragParent.insertBefore(newNode, firstChild(oldVNode) ?? null)
+      // need to remove all the fragment nodes ...
+      for (let i = 0; i < oldVNode.children.length; i++) {
+        removeNode(fragParent, oldVNode.children[i])
+      }
+    } else {
+      newVNode.node = parent.insertBefore(newNode, node)
+      removeNode(parent, oldVNode)
+    }
+
     return newVNode
   }
 
@@ -192,10 +202,18 @@ export const patch = (store: Store, oldVNode: VirtualNode | null, newVNode: Virt
     // return oldVNode
   }
 
+  // maybe here if both are fragments we just call patchChildren
+  // and for element we check the tag and if it's the same then we call patchChildren
+  if (oldVNode.type === NodeType.FRAGMENT && newVNode.type === NodeType.FRAGMENT) {
+    console.log("Patching fragments!")
+    patchChildren(store, fragmentParent(oldVNode), lastChild(oldVNode)?.nextSibling ?? null, oldVNode, newVNode)
+  }
+
   if (oldVNode.type === NodeType.ELEMENT && newVNode.type === NodeType.ELEMENT) {
     if (oldVNode.tag !== newVNode.tag) {
       // note this updates the node of the element ... but any
       // child nodes are not updated with their nodes
+      console.log("Creating new node with different element tag", oldVNode.tag, newVNode.tag)
       newVNode.node = parent.insertBefore(createNode(store, newVNode), node)
       // Note that this removes the node and all its children ... but if one
       // of those is stateful then we need to tell it to unsubscribe ...
@@ -226,225 +244,256 @@ export const patch = (store: Store, oldVNode: VirtualNode | null, newVNode: Virt
         }
       }
 
-      // need to handle children
-      let oldKey
-      let newKey
-      var tmpVKid
-      let oldVKid
-
-      let oldVKids = oldVNode.children
-      let newVKids = newVNode.children
-
-      let oldHead = 0
-      let newHead = 0
-      let oldTail = oldVKids.length - 1
-      let newTail = newVKids.length - 1
-
-      console.log("Old head tail", oldHead, oldTail)
-      console.log("New head tail", newHead, newTail)
-
-      // go through from head to tail and if the keys are the
-      // same then I guess position is the same so just patch the node
-      // until old or new runs out
-      while (newHead <= newTail && oldHead <= oldTail) {
-        // if there is no key or there are no old kids
-        // or the keys do not match then break
-        if (
-          (oldKey = getKey(oldVKids[oldHead])) == undefined ||
-          oldKey !== getKey(newVKids[newHead])
-        ) {
-          console.log("Breaking because keys are not the same", oldKey, getKey(newVKids[newHead]))
-          break
-        }
-
-        // patch and try the next element
-        patch(
-          store,
-          oldVKids[oldHead++],
-          newVKids[newHead++],
-        )
-      }
-
-      // Not sure why we have this?
-      // now newHead or oldHead is at the end so it would be false if you
-      // got through the above. But if you break early then you could be here
-      while (newHead <= newTail && oldHead <= oldTail) {
-        if (
-          (oldKey = getKey(oldVKids[oldTail])) == undefined ||
-          oldKey !== getKey(newVKids[newTail])
-        ) {
-          console.log("Breaking because keys are not the same 2", oldKey, getKey(newVKids[newHead]))
-          break
-        }
-
-        patch(
-          store,
-          oldVKids[oldTail--],
-          newVKids[newTail--],
-        )
-      }
-
-      console.log("After end checks; Old head tail", oldHead, oldTail)
-      console.log("After end checks; New head tail", newHead, newTail)
-
-      if (oldHead > oldTail) {
-        // console.log("Old head tail", oldHead, oldTail)
-        //   // then we got through everything old and we are adding new
-        //   // children to the end?
-
-        while (newHead <= newTail) {
-          console.log("New head tail", newHead, newTail)
-          //     // but in order for this to insert at the end then the
-          //     // second arg to insertBefore needs to be null.
-          // node.insertBefore(
-          // createNode(
-          // (newVKids[newHead] = newVKids[newHead++]),
-          // ),
-          // ((oldVKid = oldVKids[oldHead]) && oldVKid.node) ?? null
-          // )
-          const newKid = newVKids[newHead]
-          newKid.node = node.insertBefore(createNode(store, newKid), null)
-          newHead++
-        }
-      } else if (newHead > newTail) {
-        console.log("Removing nodes at the end", newHead, newTail)
-        //   // then there are more old kids than new ones and we got through
-        //   // everything so remove from the end of the list
-        while (oldHead <= oldTail) {
-          // node.removeChild(oldVKids[oldHead++].node!)
-          removeNode(node, oldVKids[oldHead++])
-        }
-      } else {
-        let keyed = {} as any
-        let newKeyed = {} as any
-
-        // store the old nodes by key (if defined)
-        for (let i = oldHead; i <= oldTail; i++) {
-          if ((oldKey = getKey(oldVKids[i])) != undefined) {
-            keyed[oldKey] = oldVKids[i]
-          }
-        }
-
-        console.log("Keyed", keyed)
-
-        // go through remaining new children and check keys
-        while (newHead <= newTail) {
-          console.log("looping over new", newHead, newTail)
-          // may need to set oldVKid here
-          oldVKid = oldVKids[oldHead]
-          oldKey = getKey(oldVKid)
-          // newKey = getKey((newVKids[newHead] = newVKids[newHead]))
-          newKey = getKey(newVKids[newHead])
-
-          console.log("Checking keys", oldKey, newKey)
-
-          // somehow seems to be checking if a keyed node
-          // needs to be removed? but not sure
-          // the newKeyed[oldKey] thing might be a check to see if we've
-          // already seen that keyed node in the list, if so, then we've already
-          // added it (a new version of it) and should remove the old node? 
-          if (
-            //   // note oldKey seems like it could be null according to below conditional ...
-            newKeyed[oldKey!] ||
-            (newKey != null && newKey === getKey(oldVKids[oldHead + 1]))
-          ) {
-            // Maybe this would happen if you are adding new keyed nodes?
-            // But the existing nodes were not keyed?
-            if (oldKey == null) {
-              // This can happen because text nodes are interspersed and
-              // being removed
-              console.log("**** removing node because oldKey is null")
-              // node.removeChild(oldVKid.node!)
-              removeNode(node, oldVKid)
-            }
-            console.log("just skipping", oldHead, oldKey)
-            oldHead++
-            continue
-          }
-
-          // there's a check here in case you are the root element? 
-          if (newKey == undefined) {
-            console.log("A")
-            if (oldKey == undefined) {
-              if (oldVKid === undefined) {
-                console.log("No old kid, inserting new", newVNode)
-                newVKids[newHead].node = node.insertBefore(createNode(store, newVKids[newHead]), null)
-              } else {
-                patch(
-                  store,
-                  oldVKid,
-                  newVKids[newHead],
-                )
-                console.log("Done with patch")
-              }
-              newHead++
-            }
-            oldHead++
-          } else {
-            console.log("B")
-            if (oldKey === newKey) {
-              console.log("Keys are the same")
-              // then these are in the correct position
-              // so just patch
-              patch(
-                store,
-                oldVKid,
-                newVKids[newHead],
-              )
-              // save that we have seen this key?
-              newKeyed[newKey] = true
-              oldHead++
-            } else {
-              console.log("C")
-              tmpVKid = keyed[newKey]
-              if (tmpVKid != null) {
-                tmpVKid.node = node.insertBefore(tmpVKid.node, (oldVKid && oldVKid.node) ?? null)
-                patch(
-                  store,
-                  tmpVKid,
-                  newVKids[newHead],
-                )
-                newKeyed[newKey] = true
-              } else {
-                console.log("hello")
-                //   // NEED to handle this case
-                //   // patch(
-                //   //   node,
-                //   //   oldVKid && oldVKid.node,
-                //   //   null,
-                //   //   newVKids[newHead],
-                //   // )
-                newVKids[newHead].node = node.insertBefore(createNode(store, newVKids[newHead]), (oldVKid && oldVKid.node) ?? null)
-              }
-            }
-            newHead++
-          }
-        }
-
-        // this is removing extra nodes at the end
-        while (oldHead <= oldTail) {
-          console.log("Removing extra node at the end")
-          if (getKey((oldVKid = oldVKids[oldHead++])) == undefined) {
-            // node.removeChild(oldVKid.node!)
-            removeNode(node, oldVKid)
-          }
-        }
-
-        // and this is removing extra nodes in the middle?
-        for (let i in keyed) {
-          console.log("Checking key", i)
-          // like if there was a keyed child in the old node
-          // and we never encountered it in the new node
-          if (newKeyed[i] == undefined) {
-            console.log("Removing keyed node")
-            // node.removeChild(keyed[i].node)
-            removeNode(node, keyed[i])
-          }
-        }
-      }
+      patchChildren(store, node, null, oldVNode, newVNode)
     }
   }
 
   newVNode.node = node
   return newVNode
+}
+
+function fragmentParent(fragment: FragmentNode): Node {
+  return fragment.children[0].node?.parentNode!
+}
+
+function firstChild(fragment: FragmentNode): Node | undefined {
+  // what if there are no children in the fragment?
+  return fragment.children[0].node
+}
+
+function lastChild(fragment: FragmentNode): Node | undefined {
+  return fragment.children[fragment.children.length - 1].node
+}
+
+function patchChildren(store: Store, parentNode: Node, nextSibling: Node | null, oldVNode: ElementNode | FragmentNode, newVNode: ElementNode | FragmentNode) {
+  console.log("Patching children")
+  // need to handle children
+  let oldKey
+  let newKey
+  var tmpVKid
+  let oldVKid
+
+  let oldVKids = oldVNode.children
+  let newVKids = newVNode.children
+
+  let oldHead = 0
+  let newHead = 0
+  let oldTail = oldVKids.length - 1
+  let newTail = newVKids.length - 1
+
+  console.log("Old head tail", oldHead, oldTail)
+  console.log("New head tail", newHead, newTail)
+
+  // go through from head to tail and if the keys are the
+  // same then I guess position is the same so just patch the node
+  // until old or new runs out
+  while (newHead <= newTail && oldHead <= oldTail) {
+    // if there is no key or there are no old kids
+    // or the keys do not match then break
+    if (
+      (oldKey = getKey(oldVKids[oldHead])) == undefined ||
+      oldKey !== getKey(newVKids[newHead])
+    ) {
+      console.log("Breaking because keys are not the same", oldKey, getKey(newVKids[newHead]))
+      break
+    }
+
+    // patch and try the next element
+    patch(
+      store,
+      oldVKids[oldHead++],
+      newVKids[newHead++],
+    )
+  }
+
+  // Not sure why we have this?
+  // now newHead or oldHead is at the end so it would be false if you
+  // got through the above. But if you break early then you could be here
+  while (newHead <= newTail && oldHead <= oldTail) {
+    if (
+      (oldKey = getKey(oldVKids[oldTail])) == undefined ||
+      oldKey !== getKey(newVKids[newTail])
+    ) {
+      console.log("Breaking because keys are not the same 2", oldKey, getKey(newVKids[newHead]))
+      break
+    }
+
+    patch(
+      store,
+      oldVKids[oldTail--],
+      newVKids[newTail--],
+    )
+  }
+
+  console.log("After end checks; Old head tail", oldHead, oldTail)
+  console.log("After end checks; New head tail", newHead, newTail)
+
+  if (oldHead > oldTail) {
+    // console.log("Old head tail", oldHead, oldTail)
+    //   // then we got through everything old and we are adding new
+    //   // children to the end?
+
+    while (newHead <= newTail) {
+      console.log("New head tail", newHead, newTail)
+      //     // but in order for this to insert at the end then the
+      //     // second arg to insertBefore needs to be null.
+      // node.insertBefore(
+      // createNode(
+      // (newVKids[newHead] = newVKids[newHead++]),
+      // ),
+      // ((oldVKid = oldVKids[oldHead]) && oldVKid.node) ?? null
+      // )
+      const newKid = newVKids[newHead]
+      newKid.node = parentNode.insertBefore(createNode(store, newKid), null)
+      newHead++
+    }
+  } else if (newHead > newTail) {
+    console.log("Removing nodes at the end", newHead, newTail)
+    //   // then there are more old kids than new ones and we got through
+    //   // everything so remove from the end of the list
+    while (oldHead <= oldTail) {
+      // node.removeChild(oldVKids[oldHead++].node!)
+      removeNode(parentNode, oldVKids[oldHead++])
+    }
+  } else {
+    let keyed = {} as any
+    let newKeyed = {} as any
+
+    // store the old nodes by key (if defined)
+    for (let i = oldHead; i <= oldTail; i++) {
+      if ((oldKey = getKey(oldVKids[i])) != undefined) {
+        keyed[oldKey] = oldVKids[i]
+      }
+    }
+
+    console.log("Keyed", keyed)
+
+    // go through remaining new children and check keys
+    while (newHead <= newTail) {
+      console.log("looping over new", newHead, newTail)
+      // may need to set oldVKid here
+      oldVKid = oldVKids[oldHead]
+      oldKey = getKey(oldVKid)
+      // newKey = getKey((newVKids[newHead] = newVKids[newHead]))
+      newKey = getKey(newVKids[newHead])
+
+      console.log("Checking keys", oldKey, newKey)
+
+      // somehow seems to be checking if a keyed node
+      // needs to be removed? but not sure
+      // the newKeyed[oldKey] thing might be a check to see if we've
+      // already seen that keyed node in the list, if so, then we've already
+      // added it (a new version of it) and should remove the old node? 
+      if (
+        //   // note oldKey seems like it could be null according to below conditional ...
+        newKeyed[oldKey!] ||
+        (newKey != null && newKey === getKey(oldVKids[oldHead + 1]))
+      ) {
+        // Maybe this would happen if you are adding new keyed nodes?
+        // But the existing nodes were not keyed?
+        if (oldKey == null) {
+          // This can happen because text nodes are interspersed and
+          // being removed
+          console.log("**** removing node because oldKey is null")
+          // node.removeChild(oldVKid.node!)
+          removeNode(parentNode, oldVKid)
+        }
+        console.log("just skipping", oldHead, oldKey)
+        oldHead++
+        continue
+      }
+
+      // there's a check here in case you are the root element? 
+      if (newKey == undefined) {
+        console.log("A")
+        if (oldKey == undefined) {
+          if (oldVKid === undefined) {
+            console.log("Hello", parentNode)
+            console.log("No old kid, inserting new", oldVNode.type, newVKids[newHead])
+            // this is adding at the 'end' of the parent. But it could be a document
+            // fragment.
+            // We know the last child, so we want to insert after that
+            // but I don't think we can use the index since we could have
+            // changed that already during the patch due to deleting a child from
+            // the fragment. but maybe we can just use next sibling?
+            // BUT the problem is we don't necessarily know that the virtual parent
+            // is a Fragment ... Maybe we need to pass in the VirtualElement parent
+            // instead of a parent node?
+            // Actually oldVNode and NewVNode should be virtual fragments in this case
+            // const nextSibling = oldVNode.type === NodeType.FRAGMENT ? lastChild(oldVNode)!.nextSibling : null
+            newVKids[newHead].node = parentNode.insertBefore(createNode(store, newVKids[newHead]), nextSibling)
+          } else {
+            patch(
+              store,
+              oldVKid,
+              newVKids[newHead],
+            )
+            console.log("Done with patch")
+          }
+          newHead++
+        }
+        oldHead++
+      } else {
+        console.log("B")
+        if (oldKey === newKey) {
+          console.log("Keys are the same")
+          // then these are in the correct position
+          // so just patch
+          patch(
+            store,
+            oldVKid,
+            newVKids[newHead],
+          )
+          // save that we have seen this key?
+          newKeyed[newKey] = true
+          oldHead++
+        } else {
+          console.log("C")
+          tmpVKid = keyed[newKey]
+          if (tmpVKid != null) {
+            tmpVKid.node = parentNode.insertBefore(tmpVKid.node, (oldVKid && oldVKid.node) ?? null)
+            patch(
+              store,
+              tmpVKid,
+              newVKids[newHead],
+            )
+            newKeyed[newKey] = true
+          } else {
+            console.log("hello")
+            //   // NEED to handle this case
+            //   // patch(
+            //   //   node,
+            //   //   oldVKid && oldVKid.node,
+            //   //   null,
+            //   //   newVKids[newHead],
+            //   // )
+            newVKids[newHead].node = parentNode.insertBefore(createNode(store, newVKids[newHead]), (oldVKid && oldVKid.node) ?? null)
+          }
+        }
+        newHead++
+      }
+    }
+
+    // this is removing extra nodes at the end
+    while (oldHead <= oldTail) {
+      console.log("Removing extra node at the end")
+      if (getKey((oldVKid = oldVKids[oldHead++])) == undefined) {
+        // node.removeChild(oldVKid.node!)
+        removeNode(parentNode, oldVKid)
+      }
+    }
+
+    // and this is removing extra nodes in the middle?
+    for (let i in keyed) {
+      console.log("Checking key", i)
+      // like if there was a keyed child in the old node
+      // and we never encountered it in the new node
+      if (newKeyed[i] == undefined) {
+        console.log("Removing keyed node")
+        // node.removeChild(keyed[i].node)
+        removeNode(parentNode, keyed[i])
+      }
+    }
+
+  }
 }

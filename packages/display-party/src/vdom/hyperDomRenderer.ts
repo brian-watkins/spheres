@@ -109,6 +109,12 @@ const removeNode = (parent: Node, vnode: VirtualNode) => {
   parent.removeChild(vnode.node!)
 }
 
+const removeFragment = (parent: Node, fragment: FragmentNode) => {
+  for (let i = 0; i < fragment.children.length; i++) {
+    removeNode(parent, fragment.children[i])
+  }
+}
+
 // const patchProperty = ()
 
 // var patchPropertyHH = (node, key, oldValue, newValue, listener, isSvg) => {
@@ -183,9 +189,7 @@ export const patch = (store: Store, oldVNode: VirtualNode | null, newVNode: Virt
       const fragParent = fragmentParent(oldVNode)
       newVNode.node = fragParent.insertBefore(newNode, firstChild(oldVNode) ?? null)
       // need to remove all the fragment nodes ...
-      for (let i = 0; i < oldVNode.children.length; i++) {
-        removeNode(fragParent, oldVNode.children[i])
-      }
+      removeFragment(fragParent, oldVNode)
     } else {
       newVNode.node = parent.insertBefore(newNode, node)
       removeNode(parent, oldVNode)
@@ -482,7 +486,12 @@ function patchChildren(store: Store, parentNode: Node, nextSibling: Node | null,
       console.log("Removing extra node at the end")
       if (getKey((oldVKid = oldVKids[oldHead++])) == undefined) {
         // node.removeChild(oldVKid.node!)
-        removeNode(parentNode, oldVKid)
+        if (oldVKid.type === NodeType.FRAGMENT) {
+          removeFragment(parentNode, oldVKid)
+        } else {
+          removeNode(parentNode, oldVKid)
+        }
+        
       }
     }
 

@@ -101,14 +101,7 @@ export default behavior("fragment", [
       ],
       observe: [
         effect("the items are present", async () => {
-          await expect(selectElements("li").map(el => el.text()), resolvesTo(equalTo([
-            "Item 0",
-            "Item 1",
-            "Item 2",
-            "Item 3",
-            "Item 4",
-            "Item 5",
-          ])))
+          await expectItems([ 0, 1, 2, 3, 4, 5 ])
         })
       ]
     }).andThen({
@@ -131,16 +124,7 @@ export default behavior("fragment", [
       ],
       observe: [
         effect("the fragment elements are updated", async () => {
-          await expect(selectElements("li").map(el => el.text()), resolvesTo(equalTo([
-            "Item 0",
-            "Item 1",
-            "Item 8",
-            "Item 7",
-            "Item 9",
-            "Item 10",
-            "Item 4",
-            "Item 5",
-          ])))
+          await expectItems([ 0, 1, 8, 7, 9, 10, 4, 5 ])
         })
       ]
     }).andThen({
@@ -166,19 +150,7 @@ export default behavior("fragment", [
       ],
       observe: [
         effect("the fragment elements are updated", async () => {
-          await expect(selectElements("li").map(el => el.text()), resolvesTo(equalTo([
-            "Item 0",
-            "Item 18",
-            "Item 21",
-            "Item 1",
-            "Item 8",
-            "Item 7",
-            "Item 9",
-            "Item 10",
-            "Item 17",
-            "Item 4",
-            "Item 5",
-          ])))
+          await expectItems([ 0, 18, 21, 1, 8, 7, 9, 10, 17, 4, 5 ])
         })
       ]
     }),
@@ -204,10 +176,7 @@ export default behavior("fragment", [
       ],
       observe: [
         effect("it displays the items", async () => {
-          await expect(selectElements("li").map(el => el.text()), resolvesTo(equalTo([
-            "Item 0",
-            "Item 1",
-          ])))
+          await expectItems([ 0, 1 ])
         })
       ]
     }).andThen({
@@ -218,16 +187,7 @@ export default behavior("fragment", [
       ],
       observe: [
         effect("it displays the items", async () => {
-          await expect(selectElements("li").map(el => el.text()), resolvesTo(equalTo([
-            "Item 0",
-            "Item 1",
-            "Item 2",
-            "Item 3",
-            "Item 4",
-            "Item 5",
-            "Item 6",
-            "Item 7",
-          ])))
+          await expectItems([ 0, 1, 2, 3, 4, 5, 6, 7 ])
         })
       ]
     }),
@@ -259,16 +219,7 @@ export default behavior("fragment", [
       ],
       observe: [
         effect("the list items are displayed", async () => {
-          await expect(selectElements("li").map(el => el.text()), resolvesTo(equalTo([
-            "Item 7",
-            "Item 8",
-            "Item 4",
-            "Item 1",
-            "Item 2",
-            "Item 3",
-            "Item 5",
-            "Item 6",
-          ])))
+          await expectItems([ 7, 8, 4, 1, 2, 3, 5, 6 ])
         })
       ]
     }).andThen({
@@ -298,17 +249,7 @@ export default behavior("fragment", [
       ],
       observe: [
         effect("the nested fragment is updated", async () => {
-          await expect(selectElements("li").map(el => el.text()), resolvesTo(equalTo([
-            "Item 7",
-            "Item 8",
-            "Item 1",
-            "Item 21",
-            "Item 22",
-            "Item 3",
-            "Item 5",
-            "Item 6",
-            "Item 9",
-          ])))
+          await expectItems([ 7, 8, 1, 21, 22, 3, 5, 6, 9 ])
         })
       ]
     }),
@@ -326,10 +267,7 @@ export default behavior("fragment", [
       ],
       observe: [
         effect("it renders the other elements", async () => {
-          await expect(selectElements("li").map(el => el.text()), resolvesTo(equalTo([
-            "Item 0",
-            "Item 1",
-          ])))
+          await expectItems([ 0, 1 ])
         })
       ]
     }).andThen({
@@ -348,13 +286,48 @@ export default behavior("fragment", [
       ],
       observe: [
         effect("it renders the other elements", async () => {
-          await expect(selectElements("li").map(el => el.text()), resolvesTo(equalTo([
-            "Item 0",
-            "Item 6",
-            "Item 7",
-            "Item 8",
-            "Item 1",
-          ])))
+          await expectItems([ 0, 6, 7, 8, 1 ])
+        })
+      ]
+    }),
+  example(renderContext())
+    .description("adding and removing fragment at end of list")
+    .script({
+      suppose: [
+        fact("there is no fragment", (context) => {
+          context.mount(makeVirtualElement("ol", virtualNodeConfig(), [
+            listItem(0)
+          ]))
+        })
+      ],
+      perform: [
+        step("the fragment is added to the end of the list", (context) => {
+          context.patch(makeVirtualElement("ol", virtualNodeConfig(), [
+            listItem(0),
+            makeVirtualFragment([
+              listItem(1),
+              listItem(2),
+              listItem(3),
+            ])
+          ]))
+        })
+      ],
+      observe: [
+        effect("the fragment is displayed", async () => {
+          await expectItems([ 0, 1, 2, 3 ])
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the fragment is removed", (context) => {
+          context.patch(makeVirtualElement("ol", virtualNodeConfig(), [
+            listItem(0)
+          ]))
+        })
+      ],
+      observe: [
+        effect("the fragment is not longer displayed", async () => {
+          await expectItems([ 0 ])
         })
       ]
     })
@@ -364,4 +337,9 @@ function listItem(testId: number): VirtualNode {
   return makeVirtualElement("li", virtualNodeConfig(), [
     makeVirtualTextNode(`Item ${testId}`)
   ])
+}
+
+async function expectItems(items: Array<number>) {
+  await expect(selectElements("li").map(el => el.text()),
+    resolvesTo(equalTo(items.map(id => `Item ${id}`))))
 }

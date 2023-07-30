@@ -311,6 +311,52 @@ export default behavior("fragment", [
           ])))
         })
       ]
+    }),
+  example(renderContext())
+    .description("fragment with no children")
+    .script({
+      suppose: [
+        fact("there is a fragment with no children", (context) => {
+          context.mount(makeVirtualElement("ol", virtualNodeConfig(), [
+            listItem(0),
+            makeVirtualFragment([]),
+            listItem(1)
+          ]))
+        })
+      ],
+      observe: [
+        effect("it renders the other elements", async () => {
+          await expect(selectElements("li").map(el => el.text()), resolvesTo(equalTo([
+            "Item 0",
+            "Item 1",
+          ])))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("items are added to the fragment", (context) => {
+          context.patch(makeVirtualElement("ol", virtualNodeConfig(), [
+            listItem(0),
+            makeVirtualFragment([
+              listItem(6),
+              listItem(7),
+              listItem(8),
+            ]),
+            listItem(1)
+          ]))
+        })
+      ],
+      observe: [
+        effect("it renders the other elements", async () => {
+          await expect(selectElements("li").map(el => el.text()), resolvesTo(equalTo([
+            "Item 0",
+            "Item 6",
+            "Item 7",
+            "Item 8",
+            "Item 1",
+          ])))
+        })
+      ]
     })
 ])
 

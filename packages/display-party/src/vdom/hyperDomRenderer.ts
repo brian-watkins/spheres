@@ -371,6 +371,18 @@ function patchChildren(store: Store, parentNode: Node, nextSibling: Node | null,
     // go through remaining new children and check keys
     while (newHead <= newTail) {
       console.log("looping over new", newHead, newTail)
+
+      // if the fragment is empty
+      const oldKid = oldVKids[oldHead]
+      if (oldKid !== undefined) {
+        if (oldKid.type === NodeType.FRAGMENT) {
+          if (oldKid.children.length === 0) {
+            console.log("SKIPPING EMPTY DOC FRAGMENT")
+            oldHead++
+          }
+        }
+      }
+
       // may need to set oldVKid here
       oldVKid = oldVKids[oldHead]
       oldKey = getKey(oldVKid)
@@ -408,19 +420,10 @@ function patchChildren(store: Store, parentNode: Node, nextSibling: Node | null,
         console.log("A")
         if (oldKey == undefined) {
           if (oldVKid === undefined) {
-            console.log("Hello", parentNode)
             console.log("No old kid, inserting new", oldVNode.type, newVKids[newHead])
             // this is adding at the 'end' of the parent. But it could be a document
             // fragment.
-            // We know the last child, so we want to insert after that
-            // but I don't think we can use the index since we could have
-            // changed that already during the patch due to deleting a child from
-            // the fragment. but maybe we can just use next sibling?
-            // BUT the problem is we don't necessarily know that the virtual parent
-            // is a Fragment ... Maybe we need to pass in the VirtualElement parent
-            // instead of a parent node?
-            // Actually oldVNode and NewVNode should be virtual fragments in this case
-            // const nextSibling = oldVNode.type === NodeType.FRAGMENT ? lastChild(oldVNode)!.nextSibling : null
+            // so we insert at the nextSibling passed in
             newVKids[newHead].node = parentNode.insertBefore(createNode(store, newVKids[newHead]), nextSibling)
           } else {
             patch(

@@ -4,7 +4,6 @@ import { GetState, StoreMessage } from "state-party";
 export enum NodeType {
   TEXT = 3,
   ELEMENT = 1,
-  FRAGMENT = 11,
   STATEFUL = 15
 }
 
@@ -24,13 +23,6 @@ export interface ElementNode {
   key: string | undefined
 }
 
-export interface FragmentNode {
-  type: NodeType.FRAGMENT
-  data: VirtualNodeConfig
-  children: Array<VirtualNode>
-  node: Node | undefined
-}
-
 export interface StatefulNode {
   type: NodeType.STATEFUL
   key: string | undefined
@@ -39,7 +31,7 @@ export interface StatefulNode {
   unsubscribe?: () => void
 }
 
-export type VirtualNode = TextNode | ElementNode | FragmentNode | StatefulNode
+export type VirtualNode = TextNode | ElementNode | StatefulNode
 
 // Tailored from Snabbdom VNode
 // export interface VirtualNode {
@@ -155,13 +147,13 @@ export function makeVirtualTextNode(text: string, node?: Node): TextNode {
   }
 }
 
-export function makeVirtualFragment(children: Array<VirtualNode>): VirtualNode {
-  // following Snabbdom src/h.ts
-  // return makeVirtualNode(undefined, virtualNodeConfig(), children)
-  return {
-    type: NodeType.FRAGMENT,
-    data: virtualNodeConfig(), // Do we need this?
-    children,
-    node: undefined
-  }
-}
+// export function makeVirtualFragment(children: Array<VirtualNode>): VirtualNode {
+//   // following Snabbdom src/h.ts
+//   // return makeVirtualNode(undefined, virtualNodeConfig(), children)
+//   return {
+//     type: NodeType.FRAGMENT,
+//     data: virtualNodeConfig(), // Do we need this?
+//     children,
+//     node: undefined
+//   }
+// }

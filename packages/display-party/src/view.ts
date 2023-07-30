@@ -1,6 +1,6 @@
 import { GetState, State, Store } from "state-party"
-import { VirtualNode, VirtualNodeConfig, addAttribute, addClasses, addProperty, makeStatefulElement, makeVirtualElement, makeVirtualFragment, makeVirtualTextNode, setEventHandler, setKey, virtualNodeConfig } from "./vdom/virtualNode.js"
-import { AriaAttributes, ElementEvents, ViewElements, booleanAttributes } from "./htmlElements.js"
+import { VirtualNode, VirtualNodeConfig, addAttribute, addClasses, addProperty, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, setEventHandler, setKey, virtualNodeConfig } from "./vdom/virtualNode.js"
+import { ViewBuilder, AriaAttributes, ElementEvents, booleanAttributes, ViewElements } from "./htmlElements.js"
 import { createStringRenderer } from "./vdom/renderToString.js"
 import { createDOMRenderer } from "./vdom/hyperDomRenderer.js"
 
@@ -121,7 +121,7 @@ Object.setPrototypeOf(Object.getPrototypeOf(new BasicConfig()), MagicConfig)
 
 const toVirtualNode = Symbol("toVirtualNode")
 
-export interface View extends ViewElements {
+export interface View {
   [toVirtualNode]: VirtualNode
 }
 
@@ -136,11 +136,17 @@ export interface SpecialElements {
   withState(config: StatefulConfig): this
 }
 
+export interface SpecialElementBuilder {
+  text(value: string): View
+  withView(view: View): View
+  withState(config: StatefulConfig): View
+}
+
 const configBuilder = new BasicConfig()
 
 export interface ViewElement<A extends SpecialAttributes> {
   config: A
-  view: ViewElements
+  children: ViewElements
 }
 
 const MagicElements = new Proxy({}, {
@@ -153,7 +159,7 @@ const MagicElements = new Proxy({}, {
       configBuilder[resetConfig](config)
       builder?.({
         config: configBuilder,
-        view: receiver
+        children: receiver
       })
       storedNodes.push(makeVirtualElement(prop as string, config, childNodes))
       receiver.nodes = storedNodes
@@ -162,16 +168,18 @@ const MagicElements = new Proxy({}, {
   }
 })
 
-class BasicView implements SpecialElements {
+class BasicView implements SpecialElements, SpecialElementBuilder {
   private nodes: Array<VirtualNode> = []
 
   text(value: string) {
     this.nodes.push(makeVirtualTextNode(value))
+    // this.node = makeVirtualTextNode(value)
     return this
   }
 
   withView(view: View) {
     this.nodes.push(view[toVirtualNode])
+    // this.node = view[toVirtualNode]
     return this
   }
 
@@ -184,22 +192,24 @@ class BasicView implements SpecialElements {
     }
     const element = makeStatefulElement(config, (get) => statefulConfig.view(get)[toVirtualNode])
     this.nodes.push(element)
+
     return this
     // this.nodes.push(makeVirtualNode("vws", config, []))
     // return this
   }
 
   get [toVirtualNode]() {
-    if (this.nodes.length == 1) {
+    // return this.node
+    // if (this.nodes.length == 1) {
       return this.nodes[0]
-    } else {
-      return makeVirtualFragment(this.nodes)
-    }
+    // } else {
+    //   return makeVirtualFragment(this.nodes)
+    // }
   }
 }
 
 Object.setPrototypeOf(Object.getPrototypeOf(new BasicView()), MagicElements)
 
-export function view(): View {
-  return new BasicView() as unknown as View
+export function view(): ViewBuilder {
+  return new BasicView() as unknown as ViewBuilder
 }

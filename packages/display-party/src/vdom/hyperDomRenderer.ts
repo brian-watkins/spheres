@@ -75,9 +75,9 @@ const createNode = (store: Store, vnode: VirtualNode): Node => {
       // need to create any properties and event listeners too
       node = element
       break
-    case NodeType.FRAGMENT:
-      node = document.createDocumentFragment()
-      break
+    // case NodeType.FRAGMENT:
+    //   node = document.createDocumentFragment()
+    //   break
     // : (isSvg = isSvg || vdom.tag === "svg")
     // ? document.createElementNS(SVG_NS, vdom.tag, props.is && props)
   }

@@ -15,8 +15,10 @@ const htmlElementsFile = project.createSourceFile("./src/htmlElements.ts", undef
 htmlElementsFile.addImportDeclarations([
   {
     namedImports: [
+      "View",
       "ViewElement",
       "SpecialElements",
+      "SpecialElementBuilder",
       "SpecialAttributes"
     ],
     moduleSpecifier: "./view.js"
@@ -80,6 +82,31 @@ for (const event of htmlEventAttributes) {
   })
 }
 
+// ViewBuilder interface
+
+const viewBuilderInterface = htmlElementsFile.addInterface({
+  name: "ViewBuilder",
+  extends: [
+    "SpecialElementBuilder"
+  ],
+  isExported: true
+})
+
+for (const tag of htmlTagNames) {
+  const methodSignature = viewBuilderInterface.addMethod({
+    name: tag,
+    returnType: "View"
+  })
+
+  methodSignature.addParameter({
+    name: "builder?",
+    type: (writer) => {
+      writer.write(`(element: ViewElement<${attributesName(tag)}>) => void`)
+    }
+  })
+}
+
+
 // ViewElements interface
 
 const viewElementsInterface = htmlElementsFile.addInterface({
@@ -89,6 +116,22 @@ const viewElementsInterface = htmlElementsFile.addInterface({
   ],
   isExported: true
 })
+
+for (const tag of htmlTagNames) {
+  const methodSignature = viewElementsInterface.addMethod({
+    name: tag,
+    returnType: "this"
+  })
+
+  methodSignature.addParameter({
+    name: "builder?",
+    type: (writer) => {
+      writer.write(`(element: ViewElement<${attributesName(tag)}>) => void`)
+    }
+  })
+}
+
+// Attribute Interfaces
 
 for (const tag of htmlTagNames) {
   const elementAttributes = htmlElementAttributes[tag] ?? []
@@ -101,18 +144,6 @@ for (const tag of htmlTagNames) {
       "GlobalAttributes"
     ],
     isExported: true
-  })
-
-  const methodSignature = viewElementsInterface.addMethod({
-    name: tag,
-    returnType: "this"
-  })
-
-  methodSignature.addParameter({
-    name: "builder?",
-    type: (writer) => {
-      writer.write(`(element: ViewElement<${attributesName(tag)}>) => void`)
-    }
   })
 }
 

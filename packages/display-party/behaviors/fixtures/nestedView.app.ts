@@ -9,7 +9,7 @@ const ageView = (get: GetState) => {
   return view()
     .p(el => {
       el.config.dataAttribute("age")
-      el.view.text(`My age is ${get(ageState)}`)
+      el.children.text(`My age is ${get(ageState)}`)
     })
 }
 
@@ -18,12 +18,12 @@ const nameView = (get: GetState) => {
 
   return view()
     .div(el => {
-      el.view.p(el => {
+      el.children.p(el => {
         el.config.dataAttribute("name")
-        el.view.text(`My name is: ${name}`)
+        el.children.text(`My name is: ${name}`)
       })
       if (name !== "AGELESS PERSON") {
-        el.view.withState({ view: ageView })
+        el.children.withState({ view: ageView })
       }
     })
 }
@@ -32,8 +32,8 @@ const nameView = (get: GetState) => {
 export default function(): View {
   return view()
     .div(el => {
-      el.view
-        .h1(el => el.view.text("This is only a test!"))
+      el.children
+        .h1(el => el.children.text("This is only a test!"))
         .withState({ view: nameView })
         .hr()
         .input(({config}) => {

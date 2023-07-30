@@ -13,9 +13,9 @@ const peopleView = (get: GetState) => {
   return view()
     .ul(el => {
       for (const person of people) {
-        el.view.li(el => {
+        el.children.li(el => {
           el.config.dataAttribute("person")
-          el.view.text(`${person.name} - ${person.age}`)
+          el.children.text(`${person.name} - ${person.age}`)
         })
       }
     })
@@ -36,15 +36,15 @@ function updateButton(): View {
       el.config.on({
         click: () => store(writePeople)
       })
-      el.view.text("Click me!")
+      el.children.text("Click me!")
     })
 }
 
 export default function (): View {
   return view()
     .div(el => {
-      el.view
-        .p(el => el.view.text("Here is some person"))
+      el.children
+        .p(el => el.children.text("Here is some person"))
         .withState({ view: peopleView })
         .hr()
         .input(el => el.config.on({

@@ -53,6 +53,8 @@ export default behavior("reorder list", [
             statefulChildElement(1),
             statefulChildElement(2),
             statefulChildElement(3),
+            statefulChildElement(8),
+            statefulChildElement(9),
             statefulChildElement(4),
             statefulChildElement(5),
           ]))
@@ -61,11 +63,13 @@ export default behavior("reorder list", [
       perform: [
         step("the list is reordered", (context) => {
           context.patch(makeVirtualElement("div", virtualNodeConfig(), [
-            statefulChildElement(5),
             statefulChildElement(1),
-            statefulChildElement(2),
-            statefulChildElement(3),
             statefulChildElement(4),
+            statefulChildElement(3),
+            statefulChildElement(8),
+            statefulChildElement(9),
+            statefulChildElement(2),
+            statefulChildElement(5),
           ]))
         })
       ],
@@ -73,11 +77,13 @@ export default behavior("reorder list", [
         effect("the elements are in the expected order", async () => {
           const texts = await selectElements("[data-stateful-child]").map(el => el.text())
           expect(texts, is(equalTo([
-            "stateful child 5",
             "stateful child 1",
-            "stateful child 2",
-            "stateful child 3",
             "stateful child 4",
+            "stateful child 3",
+            "stateful child 8",
+            "stateful child 9",
+            "stateful child 2",
+            "stateful child 5",
           ])))
         })
       ]

@@ -193,5 +193,35 @@ export default behavior("removing items from list", [
         })
       ]
     }),
+  example(renderContext())
+    .description("Remove all keyed elements")
+    .script({
+      suppose: [
+        fact("there are keyed elements", (context) => {
+          context.mount(makeVirtualElement("div", virtualNodeConfig(), [
+            statefulChildElement(1),
+            statefulChildElement(2),
+            statefulChildElement(3)
+          ]))
+        })
+      ],
+      perform: [
+        step("reorder the elements", (context) => {
+          context.patch(makeVirtualElement("div", virtualNodeConfig(), [
+            statefulChildElement(1),
+            statefulChildElement(3),
+            statefulChildElement(2)
+          ]))
+        }),
+        step("remove all the elements", (context) => {
+          context.patch(makeVirtualElement("div", virtualNodeConfig(), []))
+        })
+      ],
+      observe: [
+        effect("there are no keyed elements", async () => {
+          await expectTotalStatefulChildren(0)
+        })
+      ]
+    })
 ])
 

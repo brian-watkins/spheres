@@ -1,7 +1,7 @@
 import { behavior, effect, example, fact } from "esbehavior"
 import { equalTo, expect, is, resolvesTo } from "great-expectations"
 import { selectElement, selectElementWithText, selectElements } from "helpers/displayElement.js"
-import { addAttribute, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "@src/vdom/virtualNode.js"
+import { addAttribute, addProperty, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "@src/vdom/virtualNode.js"
 import { renderContext } from "helpers/renderContext.js"
 import { container } from "state-party"
 
@@ -77,6 +77,22 @@ export default behavior("mount", [
             selectElement("div[data-things='14']").text(),
             resolvesTo(equalTo("Radical stuff!"))
           )
+        })
+      ]
+    }),
+  example(renderContext())
+    .description("mount an element with inner HTML")
+    .script({
+      suppose: [
+        fact("there is an element with inner html content", (context) => {
+          const config = virtualNodeConfig()
+          addProperty(config, "innerHTML", "<p data-fun-stuff=\"yo\">This is some text!</p>")
+          context.mount(makeVirtualElement("div", config, []))
+        })
+      ],
+      observe: [
+        effect("the element is displayed", async () => {
+          await expect(selectElement("[data-fun-stuff='yo']").text(), resolvesTo(equalTo("This is some text!")))
         })
       ]
     }),

@@ -1,4 +1,4 @@
-import { addAttribute, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "@src/vdom/virtualNode.js";
+import { addAttribute, addProperty, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "@src/vdom/virtualNode.js";
 import { behavior, effect, example, fact, step } from "esbehavior";
 import { equalTo, expect, resolvesTo } from "great-expectations";
 import { selectElement, selectElementWithText, selectElements } from "helpers/displayElement.js";
@@ -55,6 +55,54 @@ export default behavior("patch", [
 
           await expect(selectElement("[data-other-stuff='22']").exists(),
             resolvesTo(equalTo(false)))
+        })
+      ]
+    }),
+  example(renderContext())
+    .description("element with innerHTML is patched")
+    .script({
+      suppose: [
+        fact("there is an element with innerHTML", (context) => {
+          const config = virtualNodeConfig()
+          addProperty(config, "innerHTML", "<p data-fun-stuff=\"yo\">This is some text!</p>")
+          context.mount(makeVirtualElement("div", config, []))
+        })
+      ],
+      perform: [
+        step("the element is patched", (context) => {
+          const config = virtualNodeConfig()
+          addProperty(config, "innerHTML", "<p data-fun-stuff=\"yo?\">This is some cooler text!</p>")
+          context.patch(makeVirtualElement("div", config, []))
+        })
+      ],
+      observe: [
+        effect("the patched element is displayed", async () => {
+          await expect(selectElement("[data-fun-stuff='yo?']").text(), resolvesTo(equalTo("This is some cooler text!")))
+        })
+      ]
+    }),
+  example(renderContext())
+    .description("an elemnet with children is replaced with innerHTML")
+    .script({
+      suppose: [
+        fact("there is an element with children", (context) => {
+          context.mount(makeVirtualElement("div", virtualNodeConfig(), [
+            makeVirtualElement("h1", virtualNodeConfig(), [
+              makeVirtualTextNode("My title!")
+            ])
+          ]))
+        })
+      ],
+      perform: [
+        step("the element children are replaced with innerHTML", (context) => {
+          const config = virtualNodeConfig()
+          addProperty(config, "innerHTML", "<h3>A Better title!</h3>")
+          context.patch(makeVirtualElement("div", config, []))
+        })
+      ],
+      observe: [
+        effect("the element is updated", async () => {
+          await expect(selectElement("h3").text(), resolvesTo(equalTo("A Better title!")))
         })
       ]
     }),

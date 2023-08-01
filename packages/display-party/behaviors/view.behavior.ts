@@ -38,6 +38,23 @@ const simpleViewBehavior = (context: Context<TestAppController>): ConfigurableEx
       ]
     })
 
+const innerHTMLViewBehavior = (context: Context<TestAppController>): ConfigurableExample =>
+  example(context)
+    .description("view with innerHTML element")
+    .script({
+      suppose: [
+        fact("a view with innerHTML is displayed", async (controller) => {
+          await controller.loadApp("innerHtml.app")
+        })
+      ],
+      observe: [
+        effect("it displays the inner html content", async (controller) => {
+          const content = await controller.display.select("h3").text()
+          expect(content, is(equalTo("Hello!!!")))
+        })
+      ]
+    })
+
 const nestedViewsBehavior = (context: Context<TestAppController>): ConfigurableExample =>
   example(context)
     .description("nested views")
@@ -121,5 +138,6 @@ const nestedViewsBehavior = (context: Context<TestAppController>): ConfigurableE
 
 export default (context: Context<TestAppController>) => behavior("view", [
   simpleViewBehavior(context),
+  innerHTMLViewBehavior(context),
   nestedViewsBehavior(context),
 ])

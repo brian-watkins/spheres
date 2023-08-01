@@ -1,4 +1,3 @@
-// import { Attrs, Hooks, On, Props, VNode } from "snabbdom";
 import { GetState, StoreMessage } from "state-party";
 
 export enum NodeType {
@@ -33,40 +32,14 @@ export interface StatefulNode {
 
 export type VirtualNode = TextNode | ElementNode | StatefulNode
 
-// Tailored from Snabbdom VNode
-// export interface VirtualNode {
-//   tag: string | undefined;
-//   type: NodeType
-//   data: VirtualNodeConfig | undefined;
-//   children: Array<VirtualNode> | undefined;
-//   elm: Node | undefined;
-//   text: string | undefined;
-//   key: string | undefined;
-// }
-
 declare type Listener = (ev: Event) => any;
 
 export interface VirtualNodeConfig {
   props: Record<string, any>
   attrs: Record<string, string>
-  // on: {
-  //   [N in keyof HTMLElementEventMap]?: Listener<HTMLElementEventMap[N]> | Array<Listener<HTMLElementEventMap[N]>>;
-  // } & {
-  //   [event: string]: Listener<any> | Array<Listener<any>>;
-  // }
   on: { [N in keyof HTMLElementEventMap]?: Listener }
   key?: string
 }
-
-// Tailored from Snabbdom VNodeData
-// export interface VirtualNodeConfig {
-//   props?: Props;
-//   attrs?: Attrs;
-//   on?: On;
-//   hook?: Hooks & { render?: (store: Store, vnode: VirtualNode) => Promise<VirtualNode> };
-//   key?: string;
-//   storeContext?: StoreContext
-// }
 
 export interface StoreContext {
   generator: (get: GetState) => VirtualNode
@@ -117,15 +90,7 @@ export function makeStatefulElement(config: VirtualNodeConfig, generator: (get: 
   }
 }
 
-// export function setStatefulGenerator(config: VirtualNodeConfig, generator: (get: GetState) => VirtualNode) {
-//   // config.storeContext = {
-//   // generator
-//   // }
-// }
-
 export function makeVirtualElement(tag: string, config: VirtualNodeConfig, children: Array<VirtualNode>, node?: Node): ElementNode {
-  // See Snabbdom src/h.ts and src/vnode.ts
-  // We are not supporting SVG at the moment but otherwise this should work
   return {
     type: NodeType.ELEMENT,
     tag: tag,
@@ -138,22 +103,9 @@ export function makeVirtualElement(tag: string, config: VirtualNodeConfig, child
 }
 
 export function makeVirtualTextNode(text: string, node?: Node): TextNode {
-  // See Snabbdom src/h.ts and src/vnode.ts
-  // This can be a discriminated union now I think ...
   return {
     type: NodeType.TEXT,
     value: text,
     node
   }
 }
-
-// export function makeVirtualFragment(children: Array<VirtualNode>): VirtualNode {
-//   // following Snabbdom src/h.ts
-//   // return makeVirtualNode(undefined, virtualNodeConfig(), children)
-//   return {
-//     type: NodeType.FRAGMENT,
-//     data: virtualNodeConfig(), // Do we need this?
-//     children,
-//     node: undefined
-//   }
-// }

@@ -279,7 +279,8 @@ export const patch = (store: Store, oldVNode: VirtualNode | null, newVNode: Virt
       }
       break
     case NodeType.ELEMENT:
-      if (oldVNode.tag !== (newVNode as ElementNode).tag) {
+      const newElement = newVNode as ElementNode
+      if (oldVNode.tag !== newElement.tag) {
         // just replace, don't diff
         newVNode.node = parent.insertBefore(createNode(store, newVNode), node)
         removeNode(parent, oldVNode)
@@ -287,7 +288,11 @@ export const patch = (store: Store, oldVNode: VirtualNode | null, newVNode: Virt
       } else {
         patchAttributes(oldVNode, newVNode as ElementNode)
         patchEvents(oldVNode, newVNode as ElementNode)
-        patchChildren(store, oldVNode, newVNode as ElementNode)
+        if (newElement.data.props.innerHTML) {
+          (node as Element).innerHTML = newElement.data.props.innerHTML
+        } else {
+          patchChildren(store, oldVNode, newElement)
+        }
       }
   }
 

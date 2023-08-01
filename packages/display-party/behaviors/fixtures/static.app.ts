@@ -8,12 +8,15 @@ interface StaticViewProps {
 
 export function staticApp(props: StaticViewProps): View {
   return view()
-    .h1(el => {
-      el.view.text(`Hello "${props.name}"!`)
-    })
-    .hr()
-    .p(el => {
-      el.view.text(`You are supposedly ${props.age} years old.`)
+    .div(el => {
+      el.children
+        .h1(el => {
+          el.children.text(`Hello "${props.name}"!`)
+        })
+        .hr()
+        .p(el => {
+          el.children.text(`You are supposedly ${props.age} years old.`)
+        })
     })
 }
 
@@ -21,15 +24,15 @@ export function appWithPropertiesAndAttributes(props: StaticViewProps): View {
   return view()
     .div(el => {
       el.config.id("element-1")
-      el.view
+      el.children
         .div(el => {
           el.config
-            .dataAttribute("person", props.name)
             .classes([
               "my-class",
               "another-class"
             ])
-          el.view.text(`${props.age} years old`)
+            .dataAttribute("person", props.name)
+          el.children.text(`${props.age} years old`)
         })
     })
 }
@@ -37,9 +40,9 @@ export function appWithPropertiesAndAttributes(props: StaticViewProps): View {
 export function appWithDataAttributesNoValue(props: StaticViewProps): View {
   return view()
     .div(el => {
-      el.view.div(el => {
+      el.children.div(el => {
         el.config.dataAttribute("is-person")
-        el.view.text(`${props.age} years old`)
+        el.children.text(`${props.age} years old`)
       })
     })
 }
@@ -50,21 +53,21 @@ const ageState = container({ initialValue: 98 })
 function nameView(get: GetState): View {
   return view()
     .h2(el => {
-      el.view.text(get(nameState))
+      el.children.text(get(nameState))
     })
 }
 
 export function appWithSimpleState(): View {
   return view()
     .div(el => {
-      el.view.withState({ view: nameView })
+      el.children.withState({ view: nameView })
     })
 }
 
 export function appWithNestedState(): View {
   return view()
     .div(el => {
-      el.view.withState({
+      el.children.withState({
         view: get => {
           const age = get(ageState)
           if (age < 100) {
@@ -74,7 +77,7 @@ export function appWithNestedState(): View {
               })
           } else {
             return view()
-              .p(el => el.view.text("You are old!"))
+              .p(el => el.children.text("You are old!"))
           }
         }
       })
@@ -84,15 +87,15 @@ export function appWithNestedState(): View {
 export function appWithDeeplyNestedState(): View {
   return view()
     .div(el => {
-      el.view.withState({
+      el.children.withState({
         view: get => {
           return view()
             .div(el => {
-              el.view
+              el.children
                 .withState({
                   view: nameView
                 })
-                .p(el => el.view.text(`${get(ageState)} years!`))
+                .p(el => el.children.text(`${get(ageState)} years!`))
             })
         }
       })
@@ -102,9 +105,9 @@ export function appWithDeeplyNestedState(): View {
 export function appWithInnerHTML(): View {
   return view()
     .div(el => {
-      el.view
+      el.children
         .div(el => {
-          el.config.property("innerHTML", "<h1>HELLO!!!</h1>")
+          el.config.innerHTML("<h1>HELLO!!!</h1>")
         })
     })
 }

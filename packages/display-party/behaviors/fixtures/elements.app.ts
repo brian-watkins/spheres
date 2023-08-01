@@ -5,12 +5,12 @@ export default function () {
     .div(div => {
       div.config
         .id("funny-id")
-      div.view
+      div.children
         .p(p => {
           p.config
             .classes(["super-class"])
             .dataAttribute("blah")
-          p.view
+          p.children
             .text("This is text")
         })
         .h3(h3 => {

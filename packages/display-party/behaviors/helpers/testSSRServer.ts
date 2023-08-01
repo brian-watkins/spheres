@@ -90,7 +90,7 @@ export class TestSSRServer {
         template = await this.viteDevServer!.transformIndexHtml(url, template)
 
         const viewRenderer = await this.viteDevServer!.ssrLoadModule(this.contentView)
-        const appHtml = await viewRenderer.default()
+        const appHtml = viewRenderer.default()
 
         const html = template.replace(`<!-- SSR-CONTENT -->`, appHtml)
 

@@ -44,34 +44,34 @@ const peopleView = (props: ReorderAppProps) => (get: GetState) => {
 
   return view()
     .div(el => {
-      el.view
+      el.children
         .h1(el => {
-          el.view.text(`There are ${list.length} people!`)
+          el.children.text(`There are ${list.length} people!`)
         })
         .button(el => {
           el.config
             .dataAttribute("reorder")
             .on({ click: () => store(shiftPeopleSelection) })
-          el.view
+          el.children
             .text("Reorder People")
         })
         .button(el => {
           el.config
             .dataAttribute("increment-ticker")
             .on({ click: () => store(incrementTicker) })
-          el.view
+          el.children
             .text("Increment")
         })
         .hr()
         .ul(el => {
           for (const person of list) {
             if (props.keyOnState) {
-              el.view.withState({
+              el.children.withState({
                 key: person,
                 view: get => personViewWithoutKey(person, get)
               })
             } else {
-              el.view.withView(personViewWithKey(person))
+              el.children.withView(personViewWithKey(person))
             }
           }
         })
@@ -82,13 +82,13 @@ function personViewWithKey(person: State<Person>): View {
   return view()
     .li(el => {
       el.config.key(person)
-      el.view
+      el.children
         .withState({
           view: get => {
             return view()
               .h1(el => {
                 el.config.dataAttribute("person")
-                el.view.text(`${get(person).name} is ${get(person).age} years old: ${get(ticker)}`)
+                el.children.text(`${get(person).name} is ${get(person).age} years old: ${get(ticker)}`)
               })
           }
         })
@@ -98,10 +98,10 @@ function personViewWithKey(person: State<Person>): View {
 function personViewWithoutKey(person: State<Person>, get: GetState): View {
   return view()
     .li(el => {
-      el.view
+      el.children
         .h1(el => {
           el.config.dataAttribute("person")
-          el.view.text(`${get(person).name} is ${get(person).age} years old: ${get(ticker)}`)
+          el.children.text(`${get(person).name} is ${get(person).age} years old: ${get(ticker)}`)
         })
     })
 }
@@ -114,6 +114,6 @@ export default function (props: ReorderAppProps): View {
   return view()
     .div(el => {
       el.config.id("reorder-list")
-      el.view.withState({ view: peopleView(props) })
+      el.children.withState({ view: peopleView(props) })
     })
 }

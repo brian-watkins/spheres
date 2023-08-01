@@ -32,7 +32,7 @@ export function renderToDOM(store: Store, element: Element, view: View): RenderR
   }
 }
 
-export function renderToString(store: Store, view: View): Promise<string> {
+export function renderToString(store: Store, view: View): string {
   const render = createStringRenderer(store)
   return render(view[toVirtualNode])
 }
@@ -45,7 +45,7 @@ export interface SpecialAttributes {
   key(value: string | number | State<any>): this
   classes(classes: Array<string>): this
   dataAttribute(name: string, value?: string): this
-  property(name: string, value: string): this
+  innerHTML(html: string): this
   on(events: ElementEvents): this
   aria(attributes: AriaAttributes): this
 }
@@ -58,8 +58,8 @@ class BasicConfig implements SpecialAttributes {
     return this
   }
 
-  property(name: string, value: string) {
-    addProperty(this.config, name, value)
+  innerHTML(html: string): this {
+    addProperty(this.config, "innerHTML", html)
     return this
   }
 

@@ -9,8 +9,8 @@ export default view()
       return view()
         .div(el => {
           el.config.id("super-island")
-          el.view
-            .h1(el => el.view.text(`This is for ${get(nameState)}!`))
+          el.children
+            .h1(el => el.children.text(`This is for ${get(nameState)}!`))
             .withView(counterIsland)
             .hr()
             .withView(tallyIsland)

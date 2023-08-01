@@ -8,9 +8,9 @@ export default view()
       return view()
         .div(el => {
           el.config.id("nested-state-island")
-          el.view
+          el.children
             .h1(el => {
-              el.view.text(`This is ${get(nameState)}'s stuff!`)
+              el.children.text(`This is ${get(nameState)}'s stuff!`)
             })
             .withState({ view: counterView })
             .hr()
@@ -26,10 +26,10 @@ const incrementCount = selection(get => write(clickCount, get(clickCount) + 1))
 function counterView() {
   return view()
     .div(el => {
-      el.view
+      el.children
         .button(el => {
           el.config.on({ click: () => store(incrementCount) })
-          el.view.text("Click me!")
+          el.children.text("Click me!")
         })
     })
 }
@@ -38,6 +38,6 @@ function tallyView(get: GetState) {
   return view()
     .p(el => {
       el.config.dataAttribute("click-count")
-      el.view.text(`You've clicked the button ${get(clickCount)} times!`)
+      el.children.text(`You've clicked the button ${get(clickCount)} times!`)
     })
 }

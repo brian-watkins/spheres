@@ -8,11 +8,11 @@ export default view()
   .div(el => {
     el.config
       .id("counter")
-    el.view
+    el.children
       .button(el => {
         el.config
           .on({ click: () => store(incrementCount) })
-        el.view
+        el.children
           .text("Click me!")
       })
   })

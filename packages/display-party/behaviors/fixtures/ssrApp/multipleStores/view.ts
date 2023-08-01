@@ -5,8 +5,8 @@ import tallyIsland from "../islands/tally.js"
 export default function (): View {
   return view()
     .div(el => {
-      el.view
-        .h1(el => el.view.text("This is a click counter!"))
+      el.children
+        .h1(el => el.children.text("This is a click counter!"))
         .withView(counterIsland)
         .withView(tallyIsland)
     })

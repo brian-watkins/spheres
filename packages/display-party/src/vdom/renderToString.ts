@@ -1,50 +1,51 @@
-import init from "snabbdom-to-html/init.js"
-import modules from "snabbdom-to-html/modules/index.js"
-import { GetState, Store, value } from "state-party";
-import { VirtualNode } from "./virtualNode.js";
+import { Store } from "state-party";
 import { StringRenderer } from "./render.js";
+import { ElementNode, NodeType, StatefulNode, TextNode, VirtualNode } from "./virtualNode.js";
 
 
 export function createStringRenderer(store: Store): StringRenderer {
-  const toHTML = init([
-    modules.attributes,
-    modules.class,
-    modules.props,
-  ])
-
-  return async (node) => {
-    const tree = await realizeVirtualTree(store, node)
-    return toHTML(tree)
+  return (node: VirtualNode) => {
+    return stringifyVirtualNode(store, node)
   }
 }
 
-async function realizeVirtualTree(store: Store, node: VirtualNode): Promise<VirtualNode> {
-  let tree = node
-
-  if (node.data?.storeContext) {
-    tree = await getStatefulTree(store, node.data!.storeContext!.generator)
-    return await realizeVirtualTree(store, tree)
+function stringifyVirtualNode(store: Store, node: VirtualNode): string {
+  switch (node.type) {
+    case NodeType.ELEMENT:
+      return stringifyElement(store, node)
+    case NodeType.TEXT:
+      return stringifyTextNode(node)
+    case NodeType.STATEFUL:
+      return stringifyStatefulNode(store, node)
   }
-
-  if (tree.children && tree.children.length > 0) {
-    let treeChildren: Array<VirtualNode> = []
-    for (const child of tree.children ?? []) {
-      const treeChild = await realizeVirtualTree(store, child)
-      treeChildren.push(treeChild)
-    }
-    tree.children = treeChildren
-  }
-
-  return tree
 }
 
-async function getStatefulTree(store: Store, generator: (get: GetState) => VirtualNode): Promise<VirtualNode> {
-  const token = value({ query: generator })
+function stringifyTextNode(node: TextNode): string {
+  // probably should escape stuff here to avoid security problems
+  return node.value.replace(/"/g, "&quot;")
+}
 
-  return new Promise((resolve) => {
-    const unsubscribe = store.subscribe(token, (node) => {
-      resolve(node)
-      unsubscribe()
-    })
+function stringifyElement(store: Store, node: ElementNode): string {
+  const attrs = Object.keys(node.data.attrs).map(key => ` ${key}="${node.data.attrs[key]}"`).join("")
+
+  if (node.data.props.innerHTML) {
+    return `<${node.tag}${attrs}>${node.data.props.innerHTML}</${node.tag}>`
+  }
+
+  if (node.children.length === 0) {
+    return `<${node.tag}${attrs} />`
+  }
+
+  const children = node.children.map(child => stringifyVirtualNode(store, child))
+
+  return `<${node.tag}${attrs}>${children.join("")}</${node.tag}>`
+}
+
+function stringifyStatefulNode(store: Store, node: StatefulNode): string {
+  let statefulNode: VirtualNode
+  const unsubscribe = store.query(node.generator, (update) => {
+    statefulNode = update
   })
+  unsubscribe()
+  return stringifyVirtualNode(store, statefulNode!)
 }

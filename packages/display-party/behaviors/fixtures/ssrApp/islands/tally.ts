@@ -8,7 +8,7 @@ export default view()
         .p(el => {
           el.config
             .dataAttribute("click-count")
-          el.view
+          el.children
             .text(`You've clicked the button ${get(clickCount)} times!`)
         })
     }

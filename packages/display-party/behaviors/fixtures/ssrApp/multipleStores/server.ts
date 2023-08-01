@@ -11,14 +11,14 @@ export default function() {
 function theView() {
   return view()
     .div(el => {
-      el.view
+      el.children
         .div(el => {
           el.config.id("fragment-a")
-          el.view.withView(viewGenerator())
+          el.children.withView(viewGenerator())
         })
         .div(el => {
           el.config.id("fragment-b")
-          el.view.withView(viewGenerator())
+          el.children.withView(viewGenerator())
         })
     })
 }

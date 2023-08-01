@@ -1,4 +1,4 @@
-import { patch, virtualize } from "@src/vdom/hyperDomRenderer.js"
+import { patch, virtualize } from "@src/vdom/renderToDom.js"
 import { VirtualNode } from "@src/vdom/virtualNode.js"
 import { Context } from "esbehavior"
 import { Container, Store, StoreMessage, write } from "state-party"

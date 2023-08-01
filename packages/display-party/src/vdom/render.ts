@@ -5,12 +5,7 @@ export interface ElementRoot {
   root: Node
 }
 
-export interface FragmentRoot {
-  type: "fragment-root"
-  root: Node
-}
-
-export type RenderedRoot = ElementRoot | FragmentRoot
+export type RenderedRoot = ElementRoot
 
 export type DOMRenderer = (element: Node, node: VirtualNode) => RenderedRoot
 

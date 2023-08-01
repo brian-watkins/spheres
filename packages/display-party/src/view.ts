@@ -2,7 +2,7 @@ import { GetState, State, Store } from "state-party"
 import { VirtualNode, VirtualNodeConfig, addAttribute, addClasses, addProperty, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, setEventHandler, setKey, virtualNodeConfig } from "./vdom/virtualNode.js"
 import { ViewBuilder, AriaAttributes, ElementEvents, booleanAttributes, ViewElements } from "./htmlElements.js"
 import { createStringRenderer } from "./vdom/renderToString.js"
-import { createDOMRenderer } from "./vdom/hyperDomRenderer.js"
+import { createDOMRenderer } from "./vdom/renderToDom.js"
 
 // Renderers
 
@@ -18,16 +18,7 @@ export function renderToDOM(store: Store, element: Element, view: View): RenderR
   return {
     root: renderResult.root,
     unmount: () => {
-      switch (renderResult.type) {
-        case "element-root":
-          renderResult.root.parentNode?.removeChild(renderResult.root)
-          break
-        case "fragment-root":
-          while (renderResult.root.hasChildNodes()) {
-            renderResult.root.lastChild?.remove()
-          }
-          break
-      }
+      renderResult.root.parentNode?.removeChild(renderResult.root)
     }
   }
 }
@@ -173,20 +164,16 @@ class BasicView implements SpecialElements, SpecialElementBuilder {
 
   text(value: string) {
     this.nodes.push(makeVirtualTextNode(value))
-    // this.node = makeVirtualTextNode(value)
     return this
   }
 
   withView(view: View) {
     this.nodes.push(view[toVirtualNode])
-    // this.node = view[toVirtualNode]
     return this
   }
 
   withState(statefulConfig: StatefulConfig) {
-    // makeStatefulElement()
     let config = virtualNodeConfig()
-    // setStatefulGenerator(config, (get) => statefulConfig.view(get)[toVirtualNode])
     if (statefulConfig.key) {
       setKey(config, `${statefulConfig.key}`)
     }
@@ -194,17 +181,10 @@ class BasicView implements SpecialElements, SpecialElementBuilder {
     this.nodes.push(element)
 
     return this
-    // this.nodes.push(makeVirtualNode("vws", config, []))
-    // return this
   }
 
   get [toVirtualNode]() {
-    // return this.node
-    // if (this.nodes.length == 1) {
-      return this.nodes[0]
-    // } else {
-    //   return makeVirtualFragment(this.nodes)
-    // }
+    return this.nodes[0]
   }
 }
 

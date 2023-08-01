@@ -4,9 +4,9 @@ import withStateIsland from "./withState.js"
 export default function (): View {
   return view()
     .div(el => {
-      el.view
+      el.children
         .h1(el => {
-          el.view.text("THis is the click counter!")
+          el.children.text("THis is the click counter!")
         })
         .withView(withStateIsland)
     })

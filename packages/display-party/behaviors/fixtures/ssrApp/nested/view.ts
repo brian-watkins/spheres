@@ -4,8 +4,8 @@ import superIsland from "./nestedIsland.js"
 export default function(): View {
   return view()
     .div(el => {
-      el.view
-        .h1(el => el.view.text("This is the click counter!"))
+      el.children
+        .h1(el => el.children.text("This is the click counter!"))
         .withView(superIsland)
     })
 }

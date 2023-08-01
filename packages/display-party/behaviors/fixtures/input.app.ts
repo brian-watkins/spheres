@@ -7,7 +7,7 @@ export interface InputAppProps {
 export default function(context: InputAppProps): View {
   return view()
     .div(el => {
-      el.view
+      el.children
         .input(el => {
           el.config
             .dataAttribute("with-default")

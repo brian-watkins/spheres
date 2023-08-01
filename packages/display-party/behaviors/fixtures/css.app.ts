@@ -12,7 +12,7 @@ const funView = (get: GetState) => {
           "zoom",
           get(numberState) % 2 == 0 ? "even" : "odd"
         ])
-      el.view
+      el.children
         .text("This is some cool stuff!")
     })
 }
@@ -20,11 +20,11 @@ const funView = (get: GetState) => {
 export default function (): View {
   return view()
     .div(el => {
-      el.view
+      el.children
         .h1(el => {
           el.config
             .classes([ "super-title" ])
-          el.view
+          el.children
             .text("This is only a test!")
         })
         .withState({ view: funView })

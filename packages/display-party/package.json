@@ -9,14 +9,14 @@
     "generate:htmlElements": "tsx ./codegen/generateHtmlElements.ts",
     "build": "rm -rf ./dist && tsc --build",
     "clean": "rm -rf ./dist && rm -rf ./tsconfig.tsbuildinfo",
-    "test": "npm run build && ts-node --esm --swc ./behaviors/runner.ts",
+    "test": "npm run test:render && npm run test:integration",
+    "test:integration": "npm run build && ts-node --esm --swc ./behaviors/runner.ts",
+    "test:render": "ts-node --esm --swc ./renderBehaviors/runner.ts",
     "test:tsx": "tsx ./behaviors/runner.ts"
   },
   "author": "Brian Watkins",
   "license": "MIT",
   "dependencies": {
-    "snabbdom": "^3.5.1",
-    "snabbdom-to-html": "^7.1.0",
     "state-party": "^1.0.0"
   },
   "devDependencies": {

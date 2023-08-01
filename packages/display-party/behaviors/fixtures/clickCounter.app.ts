@@ -8,14 +8,14 @@ const incrementCount = selection(get => write(clickCount, get(clickCount) + 1))
 const clickCounterView = (get: GetState) => {
   return view()
     .div(div => {
-      div.view
+      div.children
         .button(b => {
           b.config.on({ click: () => store(incrementCount) })
-          b.view.text("Click me!")
+          b.children.text("Click me!")
         })
         .p(p => {
           p.config.dataAttribute("click-count")
-          p.view.text(`You've click the button ${get(clickCount)} times!`)
+          p.children.text(`You've click the button ${get(clickCount)} times!`)
         })
     })
 }
@@ -23,8 +23,8 @@ const clickCounterView = (get: GetState) => {
 export default function () {
   return view()
     .div(div => {
-      div.view
-        .h1(h1 => h1.view.text("This is the click counter!"))
+      div.children
+        .h1(h1 => h1.children.text("This is the click counter!"))
         .withState({ view: clickCounterView })
     })
 }

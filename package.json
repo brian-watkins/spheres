@@ -19,7 +19,8 @@
   },
   "workspaces": [
     "packages/state-party",
-    "packages/display-party"
+    "packages/display-party",
+    "examples/counter"
   ],
   "devDependencies": {
     "@changesets/cli": "^2.26.1"

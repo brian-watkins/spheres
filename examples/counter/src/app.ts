@@ -1,8 +1,12 @@
 import { View, view } from "display-party";
-import { GetState, container, selection, store, write } from "state-party";
+import { GetState, container, write } from "state-party";
 
-const clickCount = container({ initialValue: 0 })
-const incrementCount = selection(get => write(clickCount, get(clickCount) + 1))
+const clickCount = container({
+  initialValue: 0,
+  reducer: (_: string, current) => {
+    return current + 1
+  }
+})
 
 export function counter(): View {
   return view().main(el => {
@@ -12,7 +16,7 @@ export function counter(): View {
       })
       .button(el => {
         el.config.on({
-          click: () => store(incrementCount)
+          click: () => write(clickCount, "increment")
         })
         el.children.text("Count!")
       })

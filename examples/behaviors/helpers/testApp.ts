@@ -12,9 +12,9 @@ export class TestApp {
 
   constructor(private host: string, private browser: Browser) { }
 
-  async renderApp(): Promise<void> {
+  async renderApp(name: string): Promise<void> {
     this.page = await this.getPage()
-    await this.page.goto(`${this.host}/examples/counter/behaviors/testApp.html`)
+    await this.page.goto(`${this.host}/examples/behaviors/${name}/index.html`)
   }
 
   private async getPage(): Promise<Page> {

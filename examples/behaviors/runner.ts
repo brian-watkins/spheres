@@ -2,13 +2,14 @@ import { createServer } from "vite"
 import { chromium } from "playwright"
 import tsConfigPaths from "vite-tsconfig-paths"
 import { validate } from "esbehavior"
-import counterBehavior from "./counter.behavior.js"
+import counterBehavior from "./counter/counter.behavior.js"
 import { testApp } from "./helpers/testApp.js"
+import converterBehavior from "./converter/converter.behavior.js"
 
 const serverPort = 5957
 
 const server = await createServer({
-  root: "../../",
+  root: "../",
   server: {
     port: serverPort
   },
@@ -26,7 +27,8 @@ const browser = await chromium.launch({
 const testContext = testApp(`http://localhost:${serverPort}`, browser)
 
 const summary = await validate([
-  counterBehavior(testContext)
+  counterBehavior(testContext),
+  converterBehavior(testContext)
 ], { failFast: true })
 
 if (summary.invalid > 0 || summary.skipped > 0) {

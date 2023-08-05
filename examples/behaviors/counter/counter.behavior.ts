@@ -1,6 +1,6 @@
 import { Context, behavior, effect, example, fact, step } from "esbehavior";
 import { equalTo, expect, is } from "great-expectations"
-import { TestApp } from "./helpers/testApp.js";
+import { TestApp } from "../helpers/testApp.js";
 
 export default (context: Context<TestApp>) => behavior("counter", [
   example(context)
@@ -8,7 +8,7 @@ export default (context: Context<TestApp>) => behavior("counter", [
     .script({
       suppose: [
         fact("the counter app is displayed", async (context) => {
-          await context.renderApp()
+          await context.renderApp("counter")
         })
       ],
       observe: [

@@ -90,12 +90,32 @@ function getKey(vnode: VirtualNode | undefined) {
 
 function patchAttributes(oldVNode: ElementNode, newVNode: ElementNode) {
   for (let i in { ...oldVNode.data.attrs, ...newVNode.data.attrs }) {
-    if (oldVNode.data.attrs[i] !== newVNode.data.attrs[i]) {
-      if (newVNode.data.attrs[i] === undefined) {
-        (oldVNode.node as Element).removeAttribute(i)
-      } else {
-        (oldVNode.node as Element).setAttribute(i, newVNode.data.attrs[i])
-      }
+    if (i === "value") {
+      patchAttributeAsProperty(i, oldVNode, newVNode)
+    } else {
+      patchAttribute(i, oldVNode, newVNode)
+    }
+  }
+}
+
+function patchAttribute(key: string, oldVNode: ElementNode, newVNode: ElementNode) {
+  const newValue = newVNode.data.attrs[key]
+  if (oldVNode.data.attrs[key] !== newValue) {
+    if (newValue === undefined) {
+      (oldVNode.node as Element).removeAttribute(key)
+    } else {
+      (oldVNode.node as Element).setAttribute(key, newValue)
+    }
+  }
+}
+
+function patchAttributeAsProperty(key: string, oldVNode: ElementNode, newVNode: ElementNode) {
+  const newValue = newVNode.data.attrs[key]
+  if (oldVNode.data.attrs[key] !== newValue) {
+    if (newValue === undefined) {
+      (oldVNode.node as HTMLInputElement).value = ""
+    } else {
+      (oldVNode.node as HTMLInputElement).value = newValue
     }
   }
 }

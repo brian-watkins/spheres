@@ -36,6 +36,14 @@ export class DisplayElement {
     return window._testDisplayElement(this.selector, this.index, "text")
   }
 
+  inputValue(): Promise<string> {
+    return window._testDisplayElement(this.selector, this.index, "inputValue")
+  }
+
+  type(text: string): Promise<void> {
+    return window._testDisplayElement(this.selector, this.index, "type", text)
+  }
+
   exists(): Promise<boolean> {
     return window._testDisplayElement(this.selector, this.index, "exists")
   }

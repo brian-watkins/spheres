@@ -29,10 +29,10 @@ page.on("console", (message) => {
 })
 page.on("pageerror", console.log)
 
-page.exposeBinding("_testDisplayElement", async ({ page }, selector: string, at: number, method: keyof PlaywrightDisplayElement) => {
+page.exposeBinding("_testDisplayElement", async ({ page }, selector: string, at: number, method: keyof PlaywrightDisplayElement, arg?: any) => {
   try {
     const element = new PlaywrightDisplayElement(page.locator(selector))
-    const result = await element[method](at)  
+    const result = await element[method](at, arg)
     return result
   } catch (err) {
     console.log("Error running method on display element", err)

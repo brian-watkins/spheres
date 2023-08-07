@@ -59,6 +59,54 @@ export default behavior("patch", [
       ]
     }),
   example(renderContext())
+    .description("the input value is patched")
+    .script({
+      suppose: [
+        fact("an input element is mounted with no value", (context) => {
+          const config = virtualNodeConfig()
+          addAttribute(config, "type", "text")
+          context.mount(makeVirtualElement("input", config, []))
+        })
+      ],
+      perform: [
+        step("a value is typed into the field", async () => {
+          await selectElement("input").type("22")
+        })
+      ],
+      observe: [
+        effect("the input value reflects the typed value", async () => {
+          await expect(selectElement("input").inputValue(), resolvesTo(equalTo("22")))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the input value is patched", (context) => {
+          const config = virtualNodeConfig()
+          addAttribute(config, "type", "text")
+          addAttribute(config, "value", "23")
+          context.patch(makeVirtualElement("input", config, []))
+        })
+      ],
+      observe: [
+        effect("the input value reflects the patched value", async () => {
+          await expect(selectElement("input").inputValue(), resolvesTo(equalTo("23")))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the input value is removed via patch", (context) => {
+          const config = virtualNodeConfig()
+          addAttribute(config, "type", "text")
+          context.patch(makeVirtualElement("input", config, []))
+        })
+      ],
+      observe: [
+        effect("the input value is the empty string", async () => {
+          await expect(selectElement("input").inputValue(), resolvesTo(equalTo("")))
+        })
+      ]
+    }),
+  example(renderContext())
     .description("element with innerHTML is patched")
     .script({
       suppose: [

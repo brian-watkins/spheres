@@ -41,7 +41,7 @@ class TestDisplay {
   }
 }
 
-class DisplayElement {
+export class DisplayElement {
   constructor(private locator: Locator) { }
 
   async click(): Promise<void> {
@@ -51,8 +51,17 @@ class DisplayElement {
   async text(): Promise<string> {
     return this.locator.first().innerText({ timeout: 200 })
   }
-}
 
-// function fixStackTrace(host: line: string): string {
-//   return line.replace(`http://localhost:${serverPort}`, '')
-// }
+  async classNames(): Promise<string> {
+    const value = await this.locator.first().getAttribute("class", { timeout: 200 })
+    return value ?? ""
+  }
+
+  async inputValue(): Promise<string> {
+    return this.locator.first().inputValue({ timeout: 200 })
+  }
+
+  async type(text: string): Promise<void> {
+    await this.locator.first().fill(text, { timeout: 200 })
+  }
+}

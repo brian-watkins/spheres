@@ -145,9 +145,9 @@ interface ThrowingWriter {
   container: Container<string>
 }
 
-const writerThrows: ConfigurableExample =
+const writerThrowsSync: ConfigurableExample =
   example(testStoreContext<ThrowingWriter>())
-    .description("writer throws an error")
+    .description("writer throws an error immediately")
     .script({
       suppose: [
         fact("there is a container with a writer", (context) => {
@@ -183,6 +183,56 @@ const writerThrows: ConfigurableExample =
         effect("the meta subscriber receives the error", (context) => {
           expect(context.valuesForSubscriber("meta-sub"), is(arrayWith([
             errorMessage("try to save this!", "Whoops?!?")
+          ])))
+        })
+      ]
+    })
+
+const writerThrowsAsync: ConfigurableExample =
+  example(testStoreContext<ContainerWithWriterContext>())
+    .description("writer throws an error async")
+    .script({
+      suppose: [
+        fact("there is a container with a writer", (context) => {
+          const containerState = container({ initialValue: "hello" })
+          const writer = new TestWriter<string>()
+          writer.setHandler(async (value, actions, waitFor) => {
+            actions.pending(value)
+            await waitFor()
+          })
+          context.useWriter(containerState, writer)
+
+          context.setTokens({
+            container: containerState,
+            writer
+          })
+        }),
+        fact("there is a subscriber", (context) => {
+          context.subscribeTo(context.tokens.container, "sub-one")
+        }),
+        fact("there is a meta subscriber", (context) => {
+          context.subscribeTo(context.tokens.container.meta, "meta-sub")
+        })
+      ],
+      perform: [
+        step("a value is written to the container, triggering the writer", (context) => {
+          context.writeTo(context.tokens.container, "try to save this!")
+        }),
+        step("the writer throws an error", (context) => {
+          context.tokens.writer.rejectWith!("I failed!")
+        })
+      ],
+      observe: [
+        effect("the subscriber does not update", (context) => {
+          expect(context.valuesForSubscriber("sub-one"), is(equalTo([
+            "hello"
+          ])))
+        }),
+        effect("the meta subscriber receives the error", (context) => {
+          expect(context.valuesForSubscriber("meta-sub"), is(arrayWith([
+            okMessage(),
+            pendingMessage("try to save this!"),
+            errorMessage("try to save this!", "I failed!")
           ])))
         })
       ]
@@ -431,7 +481,8 @@ const currentValueWriter: ConfigurableExample =
 export default behavior("Writer", [
   containerWithSimpleWriter,
   errorWriter,
-  writerThrows,
+  writerThrowsSync,
+  writerThrowsAsync,
   pendingWriter,
   writerThatUsesOtherState,
   reducerContainerWriter,

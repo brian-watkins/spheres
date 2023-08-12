@@ -22,7 +22,7 @@ export interface WriterActions<T, M, E> {
 }
 
 export interface Writer<T, M = T, E = unknown> {
-  write(message: M, actions: WriterActions<T, M, E>): void
+  write(message: M, actions: WriterActions<T, M, E>): Promise<void>
 }
 
 export interface QueryActions<T> {
@@ -65,7 +65,7 @@ let tokenId = 0
 export abstract class State<T, M = T> {
   private name: string
   private _meta: MetaState<T, M, any> | undefined
-  
+
   constructor(name: string | undefined) {
     this.name = name ?? `${tokenId++}`
   }
@@ -93,7 +93,7 @@ export class MetaState<T, M, E = unknown> extends State<Meta<M, E>> {
     const tokenController = getOrCreate(this.token)
 
     const controller = new ContainerController<Meta<M, E>>(ok(), (val) => val)
-    
+
     tokenController.setMeta(controller)
 
     return controller
@@ -256,25 +256,23 @@ export class Store {
     const controller = this.getController(token)
 
     controller.setWriter((value) => {
-      try {
-        writer.write(value, {
-          get: (state) => {
-            return this.getController(state).value
-          },
-          ok: (value) => {
-            controller.publishValue(value)
-          },
-          pending: (message) => {
-            this.getController(token.meta).publishValue(pending(message))
-          },
-          error: (message, reason) => {
-            this.getController(token.meta).publishValue(error(message, reason))
-          },
-          current: controller.value
-        })
-      } catch (err) {
-        this.getController(token.meta).writeValue(error(value, err))
-      }
+      writer.write(value, {
+        get: (state) => {
+          return this.getController(state).value
+        },
+        ok: (value) => {
+          controller.publishValue(value)
+        },
+        pending: (message) => {
+          this.getController(token.meta).publishValue(pending(message))
+        },
+        error: (message, reason) => {
+          this.getController(token.meta).publishValue(error(message, reason))
+        },
+        current: controller.value
+      }).catch((err) => {
+        this.getController(token.meta).publishValue(error(value, err))
+      })
     })
   }
 

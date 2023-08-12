@@ -8,7 +8,7 @@ export function testStoreContext<T>(): Context<TestStore<T>> {
 }
 
 export class TestStore<T> {
-  private store: Store
+  public store: Store
   private _tokens: T | undefined
   private values: Map<string, Array<any>> = new Map()
   private unsubscribers: Map<string, () => void> = new Map()

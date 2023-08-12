@@ -99,8 +99,11 @@ const errorWriter: ConfigurableExample =
           const writer = new TestWriter<string>()
           writer.setHandler(async (value, actions, waitFor) => {
             actions.pending(value)
-            const error = await waitFor()
-            actions.error(error)
+            try {
+              await waitFor()
+            } catch (reason: any) {
+              actions.error(value, reason)
+            }
           })
           context.useWriter(containerState, writer)
 
@@ -118,7 +121,7 @@ const errorWriter: ConfigurableExample =
           context.writeTo(context.tokens.container, "try to save this!")
         }),
         step("the write fails", (context) => {
-          context.tokens.writer.resolveWith?.("error!")
+          context.tokens.writer.rejectWith?.(288)
         }),
         step("a listener subscribes to the meta state", (context) => {
           context.subscribeTo(context.tokens.container.meta, "meta-sub")
@@ -132,7 +135,54 @@ const errorWriter: ConfigurableExample =
         }),
         effect("the meta subscriber receives the error", (context) => {
           expect(context.valuesForSubscriber("meta-sub"), is(arrayWith([
-            errorMessage("error!")
+            errorMessage("try to save this!", 288)
+          ])))
+        })
+      ]
+    })
+
+interface ThrowingWriter {
+  container: Container<string>
+}
+
+const writerThrows: ConfigurableExample =
+  example(testStoreContext<ThrowingWriter>())
+    .description("writer throws an error")
+    .script({
+      suppose: [
+        fact("there is a container with a writer", (context) => {
+          const containerState = container({ initialValue: "hello" })
+          context.store.useWriter(containerState, {
+            write: () => {
+              throw "Whoops?!?"
+            }
+          })
+
+          context.setTokens({
+            container: containerState,
+          })
+        }),
+        fact("there is a subscriber", (context) => {
+          context.subscribeTo(context.tokens.container, "sub-one")
+        })
+      ],
+      perform: [
+        step("a value is written to the container, triggering the error", (context) => {
+          context.writeTo(context.tokens.container, "try to save this!")
+        }),
+        step("a listener subscribes to the meta state", (context) => {
+          context.subscribeTo(context.tokens.container.meta, "meta-sub")
+        })
+      ],
+      observe: [
+        effect("the subscriber does not update", (context) => {
+          expect(context.valuesForSubscriber("sub-one"), is(equalTo([
+            "hello"
+          ])))
+        }),
+        effect("the meta subscriber receives the error", (context) => {
+          expect(context.valuesForSubscriber("meta-sub"), is(arrayWith([
+            errorMessage("try to save this!", "Whoops?!?")
           ])))
         })
       ]
@@ -381,6 +431,7 @@ const currentValueWriter: ConfigurableExample =
 export default behavior("Writer", [
   containerWithSimpleWriter,
   errorWriter,
+  writerThrows,
   pendingWriter,
   writerThatUsesOtherState,
   reducerContainerWriter,

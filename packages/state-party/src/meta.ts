@@ -7,12 +7,13 @@ export interface OkMessage {
   type: "ok"
 }
 
-export interface ErrorMessage<M> {
+export interface ErrorMessage<M, E> {
   type: "error"
-  message: M
+  message: M | undefined
+  reason: E
 }
 
-export type Meta<M> =  OkMessage | PendingMessage<M> | ErrorMessage<M>
+export type Meta<M, E> =  OkMessage | PendingMessage<M> | ErrorMessage<M, E>
 
 export function ok(): OkMessage {
   return {
@@ -27,9 +28,10 @@ export function pending<M>(message: M): PendingMessage<M> {
   }
 }
 
-export function error<M>(message: M): ErrorMessage<M> {
+export function error<M, E>(message: M | undefined, reason: E): ErrorMessage<M, E> {
   return {
     type: "error",
-    message
+    message,
+    reason
   }
 }

@@ -1,7 +1,8 @@
 import { ContainerController } from "./controller.js"
+import { StoreError } from "./error.js"
 import { Meta, error, ok, pending } from "./meta.js"
 
-export type GetState = <S, N>(state: State<S, N>) => S
+export type GetState = <S, N = S>(state: State<S, N>) => S
 
 export interface ProviderActions {
   get: GetState
@@ -12,16 +13,16 @@ export interface Provider {
   provide(actions: ProviderActions): void
 }
 
-export interface WriterActions<T, M> {
+export interface WriterActions<T, M, E> {
   get: GetState
   ok(value: M): void
   pending(value: M): void
-  error(value: M): void
+  error(value: M, reason: E): void
   current: T
 }
 
-export interface Writer<T, M = T> {
-  write(message: M, actions: WriterActions<T, M>): void
+export interface Writer<T, M = T, E = unknown> {
+  write(message: M, actions: WriterActions<T, M, E>): void
 }
 
 export interface QueryActions<T> {
@@ -63,7 +64,7 @@ let tokenId = 0
 
 export abstract class State<T, M = T> {
   private name: string
-  private _meta: MetaState<T, M> | undefined
+  private _meta: MetaState<T, M, any> | undefined
   
   constructor(name: string | undefined) {
     this.name = name ?? `${tokenId++}`
@@ -71,7 +72,7 @@ export abstract class State<T, M = T> {
 
   abstract [registerState](getOrCreate: <S, N>(state: State<S, N>) => ContainerController<S, N>): ContainerController<T, M>
 
-  get meta(): MetaState<T, M> {
+  get meta(): MetaState<T, M, any> {
     if (!this._meta) {
       this._meta = new MetaState(this)
     }
@@ -83,15 +84,15 @@ export abstract class State<T, M = T> {
   }
 }
 
-export class MetaState<T, M> extends State<Meta<M>> {
+export class MetaState<T, M, E = unknown> extends State<Meta<M, E>> {
   constructor(private token: State<T, M>) {
     super(`meta[${token.toString()}]`)
   }
 
-  [registerState](getOrCreate: <S, N>(state: State<S, N>) => ContainerController<S, N>): ContainerController<Meta<M>> {
+  [registerState](getOrCreate: <S, N>(state: State<S, N>) => ContainerController<S, N>): ContainerController<Meta<M, E>> {
     const tokenController = getOrCreate(this.token)
 
-    const controller = new ContainerController<Meta<M>>(ok(), (val) => val)
+    const controller = new ContainerController<Meta<M, E>>(ok(), (val) => val)
     tokenController.addDependent(() => {
       controller.writeValue(ok())
     })
@@ -124,7 +125,11 @@ export class Container<T, M = T> extends State<T, M> {
       if (!queryDependencies.has(state)) {
         queryDependencies.add(state)
         controller.addDependent(() => {
-          containerController.writeValue(this.query!({ get, current: containerController.value }))
+          try {
+            containerController.writeValue(this.query!({ get, current: containerController.value }))
+          } catch (err) {
+            getOrCreate(this.meta).writeValue(error(undefined, err))
+          }
         })
       }
 
@@ -135,7 +140,14 @@ export class Container<T, M = T> extends State<T, M> {
       return this.query!({ get, current }, next)
     })
 
-    containerController.writeValue(this.query({ get, current: this.initialValue }))
+    try {
+      containerController.writeValue(this.query({ get, current: this.initialValue }))
+    } catch (err: any) {
+      queueMicrotask(() => {
+        getOrCreate(this.meta).writeValue(error(undefined, err))
+      })
+    }
+    
 
     return containerController
   }
@@ -155,7 +167,11 @@ export class Value<T, M = T> extends State<T, M> {
         dependencies.add(state)
         controller.addDependent(() => {
           const derivedController = getOrCreate(this)
-          derivedController.publishValue(this.derivation(get, derivedController.value))
+          try {
+            derivedController.publishValue(this.derivation(get, derivedController.value))
+          } catch (err) {
+            getOrCreate(this.meta).writeValue(error(undefined, err))
+          }
         })
       }
       return controller.value
@@ -165,7 +181,13 @@ export class Value<T, M = T> extends State<T, M> {
     if (this.reducer) {
       initialValue = this.reducer(this.derivation(get, undefined), undefined)
     } else {
-      initialValue = this.derivation(get, undefined) as unknown as T
+      try {
+        initialValue = this.derivation(get, undefined) as unknown as T
+      } catch (err) {
+        const e = new StoreError(`Unable to initialize value: ${this.toString()}`)
+        e.cause = err
+        throw e
+      }
     }
 
     return new ContainerController(initialValue, this.reducer)
@@ -232,32 +254,40 @@ export class Store {
     provider.provide({ get, set })
   }
 
-  useWriter<T, M>(token: State<T, M>, writer: Writer<T, M>) {
+  useWriter<T, M, E = unknown>(token: State<T, M>, writer: Writer<T, M, E>) {
     const controller = this.getController(token)
 
     controller.setWriter((value) => {
-      writer.write(value, {
-        get: (state) => {
-          return this.getController(state).value
-        },
-        ok: (value) => {
-          controller.publishValue(value)
-        },
-        pending: (message) => {
-          this.getController(token.meta).publishValue(pending(message))
-        },
-        error: (message) => {
-          this.getController(token.meta).publishValue(error(message))
-        },
-        current: controller.value
-      })
+      try {
+        writer.write(value, {
+          get: (state) => {
+            return this.getController(state).value
+          },
+          ok: (value) => {
+            controller.publishValue(value)
+          },
+          pending: (message) => {
+            this.getController(token.meta).publishValue(pending(message))
+          },
+          error: (message, reason) => {
+            this.getController(token.meta).publishValue(error(message, reason))
+          },
+          current: controller.value
+        })
+      } catch (err) {
+        this.getController(token.meta).writeValue(error(value, err))
+      }
     })
   }
 
   dispatch(message: StoreMessage<any>) {
     switch (message.type) {
       case "write":
-        this.getController(message.container).updateValue(message.value)
+        try {
+          this.getController(message.container).updateValue(message.value)
+        } catch (err) {
+          this.getController(message.container.meta).writeValue(error(message.value, err))
+        }
         break
       case "select":
         const get: GetState = (state) => this.getController(state).value

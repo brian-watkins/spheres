@@ -424,6 +424,26 @@ const valueQueryDependencyError: ConfigurableExample =
           ])))
         })
       ]
+    }).andThen({
+      perform: [
+        step("the error goes away and the value is recalculated with the same value", (context) => {
+          context.writeTo(context.tokens.dependency, 97)
+        })
+      ],
+      observe: [
+        effect("the container remains the same, since the value has not changed", (context) => {
+          expect(context.valuesForSubscriber("sub-one"), is(equalTo([
+            "91"
+          ])))
+        }),
+        effect("the meta value updates with ok", (context) => {
+          expect(context.valuesForSubscriber("meta-sub-one"), is(arrayWith([
+            okMessage(),
+            errorMessage(undefined, "Error processing dependency 8!!"),
+            okMessage()
+          ])))
+        })
+      ]
     })
 
 export default behavior("meta container", [

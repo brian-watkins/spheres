@@ -93,9 +93,8 @@ export class MetaState<T, M, E = unknown> extends State<Meta<M, E>> {
     const tokenController = getOrCreate(this.token)
 
     const controller = new ContainerController<Meta<M, E>>(ok(), (val) => val)
-    tokenController.addDependent(() => {
-      controller.writeValue(ok())
-    })
+    
+    tokenController.setMeta(controller)
 
     return controller
   }
@@ -147,7 +146,6 @@ export class Container<T, M = T> extends State<T, M> {
         getOrCreate(this.meta).writeValue(error(undefined, err))
       })
     }
-    
 
     return containerController
   }

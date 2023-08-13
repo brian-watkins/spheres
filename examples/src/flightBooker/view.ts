@@ -1,6 +1,6 @@
 import { View, view } from "display-party";
 import { GetState, store, write } from "state-party";
-import { FlightTypes, allowReturnDate, bookFlight, bookingAllowed, flightType, formatDate, returnDate, startDate } from "./state.js";
+import { FlightTypes, allowReturnDate, bookFlight, bookingAllowed, flightType, returnDate, returnDateIsValid, startDate, startDateIsValid } from "./state.js";
 
 export function flightBooker(): View {
   return view().main(el => {
@@ -65,8 +65,8 @@ function startDateInput(get: GetState): View {
     .input(el => {
       el.config
         .dataAttribute("start-date")
-        .classes(textInputClasses(get(startDate).isValid))
-        .value(formatDate(get(startDate)))
+        .classes(textInputClasses(get(startDateIsValid)))
+        .value(get(startDate))
         .on({ input: (evt) => write(startDate, (evt as any).target.value) })
     })
 }
@@ -76,8 +76,8 @@ function returnDateInput(get: GetState): View {
     .input(el => {
       el.config
         .dataAttribute("return-date")
-        .classes(textInputClasses(get(returnDate).isValid))
-        .value(formatDate(get(returnDate)))
+        .classes(textInputClasses(get(returnDateIsValid)))
+        .value(get(returnDate))
         .disabled(!get(allowReturnDate))
         .on({ input: (evt) => write(returnDate, (evt as any).target.value) })
     })

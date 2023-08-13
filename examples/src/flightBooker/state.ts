@@ -8,14 +8,20 @@ export enum FlightTypes {
   RETURN = "return flight"
 }
 
-export const startDate = container<DateTime, string>({
-  initialValue: DateTime.now(),
-  reducer: (value) => DateTime.fromFormat(value, DATE_FORMAT)
+export const startDate = container({
+  initialValue: formatDate(DateTime.now())
 })
 
-export const returnDate = container<DateTime, string>({
-  initialValue: DateTime.now(),
-  reducer: (value) => DateTime.fromFormat(value, DATE_FORMAT)
+export const startDateIsValid = value({
+  query: (get) => toDateTime(get(startDate)).isValid
+})
+
+export const returnDate = container({
+  initialValue: formatDate(DateTime.now())
+})
+
+export const returnDateIsValid = value({
+  query: (get) => toDateTime(get(returnDate)).isValid
 })
 
 export const flightType = container({
@@ -30,8 +36,8 @@ export const allowReturnDate = value({
 
 export const bookingAllowed = value({
   query: (get) => {
-    const startDateValue = get(startDate)
-    const returnDateValue = get(returnDate)
+    const startDateValue = toDateTime(get(startDate))
+    const returnDateValue = toDateTime(get(returnDate))
 
     if (!startDateValue.isValid || !returnDateValue.isValid) {
       return false
@@ -52,16 +58,20 @@ export const bookingAllowed = value({
 export const bookFlight = selection((get) => {
   switch (get(flightType)) {
     case FlightTypes.ONE_WAY:
-      alert(`You have booked a one-way flight on ${formatDate(get(startDate))}.`)
+      alert(`You have booked a one-way flight on ${get(startDate)}.`)
       break
     case FlightTypes.RETURN:
-      alert(`You have booked a flight on ${formatDate(get(startDate))} with a return flight on ${formatDate(get(returnDate))}.`)
+      alert(`You have booked a flight on ${get(startDate)} with a return flight on ${get(returnDate)}.`)
       break
   }
 
   return batch([])
 })
 
-export function formatDate(date: DateTime): string {
+function toDateTime(dateString: string): DateTime {
+  return DateTime.fromFormat(dateString, DATE_FORMAT)
+}
+
+function formatDate(date: DateTime): string {
   return date.toFormat(DATE_FORMAT)
 }

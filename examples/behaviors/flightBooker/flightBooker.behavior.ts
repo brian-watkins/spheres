@@ -170,7 +170,10 @@ export default (context: Context<TestApp>) => behavior("Flight Booker", [
       ],
       observe: [
         theBookingButtonIsDisabled(),
-        theInputFieldIsInvalid("start date", startDateInput)
+        theInputFieldIsInvalid("start date", startDateInput),
+        effect("the start date contains the bad date", async (context) => {
+          await expect(startDateInput(context).inputValue(), resolvesTo("blah"))
+        })
       ]
     }),
 
@@ -192,7 +195,10 @@ export default (context: Context<TestApp>) => behavior("Flight Booker", [
       ],
       observe: [
         theBookingButtonIsDisabled(),
-        theInputFieldIsInvalid("return date", returnDateInput)
+        theInputFieldIsInvalid("return date", returnDateInput),
+        effect("the return date contains the bad date", async (context) => {
+          await expect(returnDateInput(context).inputValue(), resolvesTo("blerg"))
+        })
       ]
     })
 

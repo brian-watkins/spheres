@@ -130,7 +130,7 @@ export default behavior("patch", [
       ]
     }),
   example(renderContext())
-    .description("an elemnet with children is replaced with innerHTML")
+    .description("an element with children is replaced with innerHTML")
     .script({
       suppose: [
         fact("there is an element with children", (context) => {

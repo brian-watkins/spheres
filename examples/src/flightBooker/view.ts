@@ -63,13 +63,9 @@ function bookFlightButton(get: GetState): View {
 function startDateInput(get: GetState): View {
   return view()
     .input(el => {
-      let classNames = textInputClasses()
-      if (!get(startDate).isValid) {
-        classNames = classNames.concat(invalidDateInputClasses())
-      }
       el.config
         .dataAttribute("start-date")
-        .classes(classNames)
+        .classes(textInputClasses(get(startDate).isValid))
         .value(formatDate(get(startDate)))
         .on({ input: (evt) => write(startDate, (evt as any).target.value) })
     })
@@ -78,21 +74,17 @@ function startDateInput(get: GetState): View {
 function returnDateInput(get: GetState): View {
   return view()
     .input(el => {
-      let classNames = textInputClasses()
-      if (!get(returnDate).isValid) {
-        classNames = classNames.concat(invalidDateInputClasses())
-      }
       el.config
         .dataAttribute("return-date")
-        .classes(classNames)
+        .classes(textInputClasses(get(returnDate).isValid))
         .value(formatDate(get(returnDate)))
         .disabled(!get(allowReturnDate))
         .on({ input: (evt) => write(returnDate, (evt as any).target.value) })
     })
 }
 
-function textInputClasses(): Array<string> {
-  return [
+function textInputClasses(isValid: boolean): Array<string> {
+  let classes = [
     "border-2",
     "border-sky-600",
     "text-slate-600",
@@ -100,10 +92,10 @@ function textInputClasses(): Array<string> {
     "disabled:text-slate-400",
     "p-1",
   ]
-}
 
-function invalidDateInputClasses(): Array<string> {
-  return [
-    "bg-fuchsia-400"
-  ]
+  if (!isValid) {
+    classes.push("bg-fuchsia-400")
+  }
+
+  return classes
 }

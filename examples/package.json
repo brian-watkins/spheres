@@ -10,7 +10,7 @@
     "@types/luxon": "^3.3.1",
     "autoprefixer": "^10.4.14",
     "esbehavior": "^4.0.1",
-    "great-expectations": "^1.4.0",
+    "great-expectations": "^1.5.1",
     "playwright": "^1.36.2",
     "postcss": "^8.4.27",
     "tailwindcss": "^3.3.3",

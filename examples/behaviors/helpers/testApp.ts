@@ -9,11 +9,13 @@ export function testApp(host: string, browser: Browser): Context<TestApp> {
 
 export class TestApp {
   private page: Page | undefined
+  private testDisplay: TestDisplay | undefined
 
   constructor(private host: string, private browser: Browser) { }
 
   async renderApp(name: string): Promise<void> {
     this.page = await this.getPage()
+    this.testDisplay = new TestDisplay(this.page)
     await this.page.goto(`${this.host}/examples/behaviors/${name}/index.html`)
   }
 
@@ -29,12 +31,23 @@ export class TestApp {
   }
 
   get display(): TestDisplay {
-    return new TestDisplay(this.page!)
+    return this.testDisplay!
   }
 }
 
+class TestAlert {
+  constructor(public readonly message: string) { }
+}
+
 class TestDisplay {
-  constructor(private page: Page) { }
+  public lastAlert: TestAlert | undefined
+
+  constructor(private page: Page) {
+    page.on("dialog", async (dialog) => {
+      this.lastAlert = new TestAlert(dialog.message())
+      await dialog.dismiss()
+    })
+  }
 
   selectElement(selector: string): DisplayElement {
     return new DisplayElement(this.page.locator(selector))
@@ -63,5 +76,13 @@ export class DisplayElement {
 
   async type(text: string): Promise<void> {
     await this.locator.first().fill(text, { timeout: 200 })
+  }
+
+  async select(option: string): Promise<void> {
+    await this.locator.first().selectOption(option, { timeout: 200 })
+  }
+
+  async isDisabled(): Promise<boolean> {
+    return this.locator.first().isDisabled({ timeout: 200 })
   }
 }

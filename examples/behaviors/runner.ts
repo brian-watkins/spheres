@@ -5,6 +5,7 @@ import { validate } from "esbehavior"
 import counterBehavior from "./counter/counter.behavior.js"
 import { testApp } from "./helpers/testApp.js"
 import converterBehavior from "./converter/converter.behavior.js"
+import flightBookerBehavior from "./flightBooker/flightBooker.behavior.js"
 
 const serverPort = 5957
 
@@ -28,7 +29,8 @@ const testContext = testApp(`http://localhost:${serverPort}`, browser)
 
 const summary = await validate([
   counterBehavior(testContext),
-  converterBehavior(testContext)
+  converterBehavior(testContext),
+  flightBookerBehavior(testContext)
 ], { failFast: true })
 
 if (summary.invalid > 0 || summary.skipped > 0) {

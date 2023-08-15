@@ -21,6 +21,9 @@ export class TestApp {
 
   private async getPage(): Promise<Page> {
     const page = await this.browser.newPage()
+    await page.addInitScript({
+      path: "../node_modules/sinon/pkg/sinon.js"
+    })
     page.on("console", (message) => {
       const text = message.text()
       if (text.startsWith("[vite]")) return
@@ -49,6 +52,10 @@ class TestDisplay {
     })
   }
 
+  tick(millis: number): Promise<void> {
+    return this.page.evaluate((millis) => { window.__testClock.tick(millis) }, millis)
+  }
+
   selectElement(selector: string): DisplayElement {
     return new DisplayElement(this.page.locator(selector))
   }
@@ -63,6 +70,11 @@ export class DisplayElement {
 
   async text(): Promise<string> {
     return this.locator.first().innerText({ timeout: 200 })
+  }
+
+  async attribute(name: string): Promise<string> {
+    const attr = await this.locator.first().getAttribute(name, { timeout: 200 })
+    return attr ?? ""
   }
 
   async classNames(): Promise<string> {
@@ -80,6 +92,10 @@ export class DisplayElement {
 
   async select(option: string): Promise<void> {
     await this.locator.first().selectOption(option, { timeout: 200 })
+  }
+
+  async setValue(value: string): Promise<void> {
+    await this.locator.first().fill(value, { timeout: 200 })
   }
 
   async isDisabled(): Promise<boolean> {

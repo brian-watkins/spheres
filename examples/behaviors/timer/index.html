@@ -1,0 +1,19 @@
+<html>
+
+<head>
+  <title>Timer!</title>
+  <link rel="icon" href="data:,">
+  <script src="/node_modules/source-map-support/browser-source-map-support.js"></script>
+  <script>sourceMapSupport.install()</script>
+  <script type="module">
+    window.__testClock = sinon.useFakeTimers()
+  </script>
+  <script type="module" src="./index.ts"></script>
+</head>
+
+<body>
+  <h1>Timer</h1>
+  <div id="test-display"></div>
+</body>
+
+</html>

@@ -13,19 +13,22 @@ export const percentComplete = value({
 
 const timerId = container<any | undefined>({ initialValue: undefined })
 
+const timerShouldRun = value({
+  query: (get) => get(duration) > 0 && get(elapsedTime) < (get(duration) * 1000)
+})
+
 export const timerProvider: Provider = {
-  provide: ({get, set}) => {
-    const timerDuration = get(duration) * 1000
-    if (get(elapsedTime) >= timerDuration) {
+  provide: ({ get, set }) => {
+    const timerIsRunning = get(timerId) !== undefined
+
+    if (timerIsRunning && !get(timerShouldRun)) {
       clearInterval(get(timerId))
       set(timerId, undefined)
-    } else if (get(timerId) === undefined) {
-      if (timerDuration > 0) {
-        const intervalId = setInterval(() => {
-          set(elapsedTime, get(elapsedTime) + 100)
-        }, 100)
-        set(timerId, intervalId)
-      }  
+    } else if (!timerIsRunning && get(timerShouldRun)) {
+      const intervalId = setInterval(() => {
+        set(elapsedTime, get(elapsedTime) + 100)
+      }, 100)
+      set(timerId, intervalId)
     }
   }
 }

@@ -1,8 +1,7 @@
-import { Clock } from "@sinonjs/fake-timers"
-import { TestApp } from "./helpers/testApp.ts"
+import { TestRepeater } from "../timer/testRepeater.ts"
 
 export declare global {
   interface Window {
-    __testClock: Clock
+    __testRepeater: TestRepeater
   }
 }

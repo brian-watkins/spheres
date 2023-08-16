@@ -21,9 +21,6 @@ export class TestApp {
 
   private async getPage(): Promise<Page> {
     const page = await this.browser.newPage()
-    await page.addInitScript({
-      path: "../node_modules/sinon/pkg/sinon.js"
-    })
     page.on("console", (message) => {
       const text = message.text()
       if (text.startsWith("[vite]")) return
@@ -53,7 +50,7 @@ class TestDisplay {
   }
 
   tick(millis: number): Promise<void> {
-    return this.page.evaluate((millis) => { window.__testClock.tick(millis) }, millis)
+    return this.page.evaluate((millis) => { window.__testRepeater.runFor(millis) }, millis)
   }
 
   selectElement(selector: string): DisplayElement {

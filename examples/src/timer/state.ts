@@ -17,18 +17,27 @@ const timerShouldRun = value({
   query: (get) => get(duration) > 0 && get(elapsedTime) < (get(duration) * 1000)
 })
 
-export const timerProvider: Provider = {
-  provide: ({ get, set }) => {
-    const timerIsRunning = get(timerId) !== undefined
+export type RepeaterId = any
 
-    if (timerIsRunning && !get(timerShouldRun)) {
-      clearInterval(get(timerId))
-      set(timerId, undefined)
-    } else if (!timerIsRunning && get(timerShouldRun)) {
-      const intervalId = setInterval(() => {
-        set(elapsedTime, get(elapsedTime) + 100)
-      }, 100)
-      set(timerId, intervalId)
+export interface Repeater {
+  repeatEvery(run: () => void, millis: number): RepeaterId
+  cancel(systemTimerId: RepeaterId): void
+}
+
+export const timerProvider = (repeater: Repeater): Provider => {
+  return {
+    provide: ({ get, set }) => {
+      const timerIsRunning = get(timerId) !== undefined
+
+      if (timerIsRunning && !get(timerShouldRun)) {
+        repeater.cancel(get(timerId))
+        set(timerId, undefined)
+      } else if (!timerIsRunning && get(timerShouldRun)) {
+        const intervalId = repeater.repeatEvery(() => {
+          set(elapsedTime, get(elapsedTime) + 100)
+        }, 100)
+        set(timerId, intervalId)
+      }
     }
   }
 }

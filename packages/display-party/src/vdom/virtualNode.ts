@@ -1,4 +1,4 @@
-import { GetState, StoreMessage } from "state-party";
+import { Container, GetState, StoreMessage } from "state-party";
 
 export enum NodeType {
   TEXT = 3,
@@ -34,6 +34,11 @@ export type VirtualNode = TextNode | ElementNode | StatefulNode
 
 declare type Listener = (ev: Event) => any;
 
+// Maybe here we want to have some properties specific to having a bound
+// container? Like a way to store the event handler (so we can remove it later),
+// a reference to the container itself, and potentially later an attribute name
+// to bind to? And we need to be able to store the unsubscribe function too on the query
+// 
 export interface VirtualNodeConfig {
   props: Record<string, any>
   attrs: Record<string, string>
@@ -53,7 +58,7 @@ export function virtualNodeConfig(): VirtualNodeConfig {
   }
 }
 
-export function addProperty(config: VirtualNodeConfig, name: string, value: string) {
+export function addProperty(config: VirtualNodeConfig, name: string, value: any) {
   config.props![name] = value
 }
 
@@ -79,6 +84,11 @@ export function setEventHandler<N extends keyof HTMLElementEventMap>(config: Vir
       }))
     }
   })
+}
+
+export function bindToContainer(config: VirtualNodeConfig, container: Container<any, string>) {
+  // what do we do exactly?
+
 }
 
 export function makeStatefulElement(config: VirtualNodeConfig, generator: (get: GetState) => VirtualNode, node?: Node): VirtualNode {

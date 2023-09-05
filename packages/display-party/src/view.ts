@@ -1,5 +1,5 @@
-import { GetState, State, Store } from "state-party"
-import { VirtualNode, VirtualNodeConfig, addAttribute, addClasses, addProperty, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, setEventHandler, setKey, virtualNodeConfig } from "./vdom/virtualNode.js"
+import { Container, GetState, State, Store } from "state-party"
+import { VirtualNode, VirtualNodeConfig, addAttribute, addClasses, addProperty, bindToContainer, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, setEventHandler, setKey, virtualNodeConfig } from "./vdom/virtualNode.js"
 import { ViewBuilder, AriaAttributes, ElementEvents, booleanAttributes, ViewElements } from "./htmlElements.js"
 import { createStringRenderer } from "./vdom/renderToString.js"
 import { createDOMRenderer } from "./vdom/renderToDom.js"
@@ -39,6 +39,7 @@ export interface SpecialAttributes {
   innerHTML(html: string): this
   on(events: ElementEvents): this
   aria(attributes: AriaAttributes): this
+  bind(container: Container<string>): this
 }
 
 class BasicConfig implements SpecialAttributes {
@@ -79,6 +80,30 @@ class BasicConfig implements SpecialAttributes {
       const [event, handler] = entries[i]
       setEventHandler(this.config, event as keyof HTMLElementEventMap, handler)
     }
+    return this
+  }
+
+  bind(container: Container<string>) {
+    // for two-way binding on an input element. We just let the HTML element
+    // hold the value and we update the state. But what if the state changes
+    // independently of the user input?
+    // Now the element needs to be stateful ... and it could already be
+    // stateful or it might not; we don't really know from this perspective ...
+    // but we do know we are ONLY updating the value here -- does that help?
+    // If we had the store, we could add a query such that when container
+    // updates then we set the value? but then we've got two ways to update things
+    // namely by patching the dom via a diff and (potentially) by doing this
+    // one-off update of the value property
+    // Maybe it's that if you use bind somehow *this input element* itself becomes
+    // a stateful view automatically?
+    // addProperty(this.config, "container", container)
+    bindToContainer(this.config, container)
+
+    // setEventHandler(this.config, "input", (evt: Event) => {
+      // fix this typing if we know this is an input element ...
+      // return write(container, (evt as any).target.value)
+    // })
+
     return this
   }
 

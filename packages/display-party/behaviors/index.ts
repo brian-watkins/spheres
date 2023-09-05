@@ -10,6 +10,7 @@ import renderBehavior from "./render.behavior.js";
 import viewBehavior from "./view.behavior.js";
 import clientActivationBehavior from "./clientActivation.behavior.js";
 import { TestSSRServer, ssrTestAppContext } from "./helpers/testSSRServer.js";
+import bindBehavior from "./bind.behavior.js";
 
 export async function validateBehaviors(page: Page, ssrServer: TestSSRServer, options: DisplayBehaviorOptions): Promise<Summary> {
   const appContext = testAppContext(page, options)
@@ -20,6 +21,7 @@ export async function validateBehaviors(page: Page, ssrServer: TestSSRServer, op
     viewBehavior(appContext),
     cssBehavior(appContext),
     eventBehavior(appContext),
+    bindBehavior(appContext),
     inputPropertiesBehavior(appContext),
     dynamicViewStateBehavior(appContext),
     renderBehavior,

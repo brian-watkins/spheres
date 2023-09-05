@@ -12,7 +12,7 @@ export class PlaywrightDisplayElement {
   }
 
   async type(at: number, text: string): Promise<void> {
-    return this.locator.nth(at).type(text, { timeout: 200 })
+    return this.locator.nth(at).fill(text, { timeout: 200 })
   }
 
   async exists(_: number): Promise<boolean> {

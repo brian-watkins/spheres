@@ -354,6 +354,8 @@ const deferredDependency: ConfigurableExample =
       ]
     })
 
+// Should we wrap any errors here in a StoreError?
+
 export default behavior("state provider", [
   simpleProvidedValue,
   providedValueWithDerivedKey,

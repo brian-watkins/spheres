@@ -1,4 +1,4 @@
-import { Store } from "state-party";
+import { Store, write } from "state-party";
 import { DOMRenderer } from "./render.js";
 import { ElementNode, NodeType, TextNode, VirtualNode, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "./virtualNode.js";
 
@@ -58,6 +58,22 @@ const createNode = (store: Store, vnode: VirtualNode): Node => {
     element.addEventListener(k, handler)
   }
 
+  // Probably need a test to show that if there were another input
+  // event handler explicitly set it would also still be run
+  if (vnode.data.props.container && vnode.tag === "input") {
+    console.log("establishing query for bound container value!")
+    const container = vnode.data.props.container
+    store.query((get) => get(container), (value: string) => {
+      console.log(`updating value to ${value}`);
+      (element as HTMLInputElement).value = value
+    })
+    vnode.data.props.hello = "hello!"
+    vnode.data.props.inputListener = (evt: Event) => {
+      store.dispatch(write(container, (evt.target as HTMLInputElement).value))
+    }
+    element.addEventListener("input", vnode.data.props.inputListener)
+  }
+
   for (var i = 0; i < vnode.children.length; i++) {
     vnode.children[i].node = element.appendChild(createNode(store, vnode.children[i]))
   }
@@ -91,6 +107,7 @@ function getKey(vnode: VirtualNode | undefined) {
 function patchAttributes(oldVNode: ElementNode, newVNode: ElementNode) {
   for (let i in { ...oldVNode.data.attrs, ...newVNode.data.attrs }) {
     if (i === "value") {
+      console.log("Patching value attr as property")
       patchAttributeAsProperty(i, oldVNode, newVNode)
     } else {
       patchAttribute(i, oldVNode, newVNode)
@@ -111,6 +128,7 @@ function patchAttribute(key: string, oldVNode: ElementNode, newVNode: ElementNod
 
 function patchAttributeAsProperty(key: string, oldVNode: ElementNode, newVNode: ElementNode) {
   const newValue = newVNode.data.attrs[key]
+  console.log("patching old, new", oldVNode.data.attrs[key], newValue)
   if (oldVNode.data.attrs[key] !== newValue) {
     if (newValue === undefined) {
       (oldVNode.node as HTMLInputElement).value = ""
@@ -123,6 +141,7 @@ function patchAttributeAsProperty(key: string, oldVNode: ElementNode, newVNode: 
 function patchEvents(oldVNode: ElementNode, newVNode: ElementNode) {
   let i: keyof HTMLElementEventMap
   for (i in { ...oldVNode.data.on, ...newVNode.data.on }) {
+    // What if the function changes though?
     if (newVNode.data.on[i] === undefined) {
       oldVNode.node!.removeEventListener(i, oldVNode.data.on[i]!)
     } else if (oldVNode.data.on[i] === undefined) {
@@ -298,6 +317,7 @@ export const patch = (store: Store, oldVNode: VirtualNode | null, newVNode: Virt
         node.nodeValue = (newVNode as TextNode).value
       }
       break
+    // this could be Element || BoundElement 
     case NodeType.ELEMENT:
       const newElement = newVNode as ElementNode
       if (oldVNode.tag !== newElement.tag) {
@@ -312,6 +332,31 @@ export const patch = (store: Store, oldVNode: VirtualNode | null, newVNode: Virt
           (node as Element).innerHTML = newElement.data.props.innerHTML
         } else {
           patchChildren(store, oldVNode, newElement)
+        }
+        // patchContainer
+        if (newElement.data.props.container) {
+          if (oldVNode.data.props.container !== newElement.data.props.container) {
+            console.log("establishing query for patched bound container value!")
+            const inputNode = node as HTMLInputElement
+            const container = newElement.data.props.container
+            // probably need to somehow unsubscribe from the old query ...
+            store.query((get) => get(container), (value: string) => {
+              console.log(`updating value to ${value}`);
+              inputNode.value = value
+            })
+            // we need to remove the old event listener for continer updates, right?
+            // we could write a test for that -- we did!
+            console.log("Existing listener", oldVNode.data.props)
+            inputNode.removeEventListener("input", oldVNode.data.props.inputListener)
+            // but this isn't storing the /new/ event listener like it should
+            inputNode.addEventListener("input", (evt) => {
+              store.dispatch(write(container, (evt as any).target.value))
+            })
+          } else {
+            // we need to keep passing around the input listener since the
+            // patched vnode doesn't have it set on there
+            newElement.data.props.inputListener = oldVNode.data.props.inputListener
+          }
         }
       }
   }

@@ -8,6 +8,7 @@ export class RenderApp<T> {
   private current: VirtualNode | undefined
   private store: Store = new Store()
   private _state: T | undefined
+  private subscriptions: Map<string, Array<any>> = new Map()
 
   setState(state: T) {
     this._state = state
@@ -21,12 +22,25 @@ export class RenderApp<T> {
     this.store.dispatch(write(token, value))
   }
 
+  subscribeTo(token: Container<any>, name: string) {
+    this.subscriptions.set(name, [])
+    this.store.subscribe(token, (value) => {
+      this.subscriptions.get(name)?.push(value)
+    })
+  }
+
+  valuesForSubscriber(name: string): Array<any> {
+    return this.subscriptions.get(name) ?? []
+  }
+
   mount(vnode: VirtualNode) {
     const base = document.createElement("div")
     document.querySelector("#test-display")?.appendChild(base)
 
     const renderResult = patch(this.store, virtualize(base), vnode)
     this.current = renderResult
+
+    console.log("current", JSON.stringify(this.current))
 
     this.current.node?.addEventListener("displayMessage", (evt: Event) => {
       const displayMessageEvent = evt as CustomEvent<StoreMessage<any>>

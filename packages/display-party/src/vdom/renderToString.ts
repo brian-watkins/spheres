@@ -43,8 +43,8 @@ function stringifyElement(store: Store, node: ElementNode): string {
 
 function stringifyStatefulNode(store: Store, node: StatefulNode): string {
   let statefulNode: VirtualNode
-  const unsubscribe = store.query(node.generator, (update) => {
-    statefulNode = update
+  const unsubscribe = store.query((get) => {
+    statefulNode = node.generator(get)
   })
   unsubscribe()
   return stringifyVirtualNode(store, statefulNode!)

@@ -39,8 +39,8 @@ const createNode = (store: Store, vnode: VirtualNode): Node => {
 
   if (vnode.type === NodeType.STATEFUL) {
     let statefulNode: VirtualNode | null = null
-    vnode.unsubscribe = store.query(vnode.generator, (update) => {
-      statefulNode = patch(store, statefulNode, update)
+    vnode.unsubscribe = store.query((get) => {
+      statefulNode = patch(store, statefulNode, vnode.generator(get))
     })
     return statefulNode!.node!
   }

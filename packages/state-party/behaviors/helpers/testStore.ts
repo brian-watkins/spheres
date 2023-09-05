@@ -19,8 +19,8 @@ export class TestStore<T> {
 
   queryStore(query: (get: GetState) => any, name: string) {
     this.values.set(name, [])
-    const unsubscribe = this.store.query(query, (updatedValue) => {
-      this.values.get(name)?.push(updatedValue)
+    const unsubscribe = this.store.query((get) => {
+      this.values.get(name)?.push(query(get))
     })
 
     this.unsubscribers.set(name, unsubscribe)
@@ -28,8 +28,8 @@ export class TestStore<T> {
 
   subscribeTo<S, N>(token: State<S, N>, name: string) {
     this.values.set(name, [])
-    const unsubscribe = this.store.subscribe(token, (updatedValue) => {
-      this.values.get(name)?.push(updatedValue)
+    const unsubscribe = this.store.query((get) => {
+      this.values.get(name)?.push(get(token))
     })
 
     this.unsubscribers.set(name, unsubscribe)

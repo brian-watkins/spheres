@@ -203,11 +203,7 @@ export class Store {
     return this.registry.get(token)!
   }
 
-  subscribe<T, M>(token: State<T, M>, update: (value: T) => void): () => void {
-    return this.getController(token).addSubscriber(update)
-  }
-
-  query<M>(definition: (get: GetState) => M, update: (value: M) => void): () => void {
+  query(definition: (get: GetState) => void): () => void {
     let dependencies = new WeakSet<State<any>>()
     let unsubscribers: Array<() => void> = []
 
@@ -216,14 +212,14 @@ export class Store {
       if (!dependencies.has(state)) {
         dependencies.add(state)
         const unsubscribe = controller.addDependent(() => {
-          update(definition(get))
+          definition(get)
         })
         unsubscribers.push(unsubscribe)
       }
       return controller.value
     }
 
-    update(definition(get))
+    definition(get)
 
     return () => {
       for (let i = 0; i < unsubscribers.length; i++) {

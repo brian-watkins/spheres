@@ -9,6 +9,7 @@ import inputPropertiesBehavior from "./inputProperties.behavior.js";
 import renderBehavior from "./render.behavior.js";
 import viewBehavior from "./view.behavior.js";
 import clientActivationBehavior from "./clientActivation.behavior.js";
+import reactiveBehavior from "./reactive.behavior.js";
 import { TestSSRServer, ssrTestAppContext } from "./helpers/testSSRServer.js";
 
 export async function validateBehaviors(page: Page, ssrServer: TestSSRServer, options: DisplayBehaviorOptions): Promise<Summary> {
@@ -17,6 +18,7 @@ export async function validateBehaviors(page: Page, ssrServer: TestSSRServer, op
 
   return validate([
     elementBehavior(appContext),
+    reactiveBehavior(appContext),
     viewBehavior(appContext),
     cssBehavior(appContext),
     eventBehavior(appContext),

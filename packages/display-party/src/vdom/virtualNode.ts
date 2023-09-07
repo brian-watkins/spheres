@@ -3,13 +3,21 @@ import { GetState, StoreMessage } from "state-party";
 export enum NodeType {
   TEXT = 3,
   ELEMENT = 1,
-  STATEFUL = 15
+  STATEFUL = 15,
+  REACTIVE_TEXT = 16
 }
 
 export interface TextNode {
   type: NodeType.TEXT
   value: string
   node: Node | undefined
+}
+
+export interface ReactiveTextNode {
+  type: NodeType.REACTIVE_TEXT
+  generator: (get: GetState) => string
+  node: Node | undefined
+  unsubscribe?: () => void
 }
 
 export interface ElementNode {
@@ -30,7 +38,7 @@ export interface StatefulNode {
   unsubscribe?: () => void
 }
 
-export type VirtualNode = TextNode | ElementNode | StatefulNode
+export type VirtualNode = TextNode | ReactiveTextNode | ElementNode | StatefulNode
 
 declare type Listener = (ev: Event) => any;
 
@@ -106,6 +114,14 @@ export function makeVirtualTextNode(text: string, node?: Node): TextNode {
   return {
     type: NodeType.TEXT,
     value: text,
+    node
+  }
+}
+
+export function makeReactiveTextNode(generator: (get: GetState) => string, node?: Node): ReactiveTextNode {
+  return {
+    type: NodeType.REACTIVE_TEXT,
+    generator,
     node
   }
 }

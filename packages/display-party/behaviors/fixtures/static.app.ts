@@ -102,6 +102,13 @@ export function appWithDeeplyNestedState(): View {
     })
 }
 
+export function appWithReactiveText(): View {
+  return view()
+    .div(el => {
+      el.children.text((get) => `${get(ageState)} years old!`)
+    })
+}
+
 export function appWithInnerHTML(): View {
   return view()
     .div(el => {

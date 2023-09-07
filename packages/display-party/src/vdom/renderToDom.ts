@@ -37,6 +37,15 @@ const createNode = (store: Store, vnode: VirtualNode): Node => {
     return document.createTextNode(vnode.value)
   }
 
+  if (vnode.type === NodeType.REACTIVE_TEXT) {
+    const node = document.createTextNode("")
+    vnode.unsubscribe = store.query((get) => {
+      node.nodeValue = vnode.generator(get)
+    })
+
+    return node
+  }
+
   if (vnode.type === NodeType.STATEFUL) {
     let statefulNode: VirtualNode | null = null
     vnode.unsubscribe = store.query((get) => {
@@ -66,7 +75,7 @@ const createNode = (store: Store, vnode: VirtualNode): Node => {
 }
 
 const alertRemoval = (vnode: VirtualNode) => {
-  if (vnode.type === NodeType.STATEFUL) {
+  if (vnode.type === NodeType.STATEFUL || vnode.type === NodeType.REACTIVE_TEXT) {
     vnode.unsubscribe?.()
   } else if (vnode.type === NodeType.ELEMENT) {
     for (const child of vnode.children) {

@@ -1,6 +1,6 @@
 import { Store } from "state-party";
 import { StringRenderer } from "./render.js";
-import { ElementNode, NodeType, StatefulNode, TextNode, VirtualNode } from "./virtualNode.js";
+import { ElementNode, NodeType, ReactiveTextNode, StatefulNode, TextNode, VirtualNode } from "./virtualNode.js";
 
 
 export function createStringRenderer(store: Store): StringRenderer {
@@ -15,6 +15,8 @@ function stringifyVirtualNode(store: Store, node: VirtualNode): string {
       return stringifyElement(store, node)
     case NodeType.TEXT:
       return stringifyTextNode(node)
+    case NodeType.REACTIVE_TEXT:
+      return stringifyReactiveText(store, node)
     case NodeType.STATEFUL:
       return stringifyStatefulNode(store, node)
   }
@@ -48,4 +50,17 @@ function stringifyStatefulNode(store: Store, node: StatefulNode): string {
   })
   unsubscribe()
   return stringifyVirtualNode(store, statefulNode!)
+}
+
+function stringifyReactiveText(store: Store, node: ReactiveTextNode): string {
+  let textNode: TextNode
+  const unsubscribe = store.query((get) => {
+    textNode = {
+      type: NodeType.TEXT,
+      value: node.generator(get),
+      node: undefined
+    }
+  })
+  unsubscribe()
+  return stringifyTextNode(textNode!)
 }

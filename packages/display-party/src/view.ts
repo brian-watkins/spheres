@@ -1,5 +1,5 @@
 import { GetState, State, Store } from "state-party"
-import { VirtualNode, VirtualNodeConfig, addAttribute, addClasses, addProperty, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, setEventHandler, setKey, virtualNodeConfig } from "./vdom/virtualNode.js"
+import { VirtualNode, VirtualNodeConfig, addAttribute, addClasses, addProperty, makeReactiveTextNode, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, setEventHandler, setKey, virtualNodeConfig } from "./vdom/virtualNode.js"
 import { ViewBuilder, AriaAttributes, ElementEvents, booleanAttributes, ViewElements } from "./htmlElements.js"
 import { createStringRenderer } from "./vdom/renderToString.js"
 import { createDOMRenderer } from "./vdom/renderToDom.js"
@@ -122,7 +122,7 @@ export interface StatefulConfig {
 }
 
 export interface SpecialElements {
-  text(value: string): this
+  text(value: string | ((get: GetState) => string)): this
   withView(view: View): this
   withState(config: StatefulConfig): this
 }
@@ -162,8 +162,12 @@ const MagicElements = new Proxy({}, {
 class BasicView implements SpecialElements, SpecialElementBuilder {
   private nodes: Array<VirtualNode> = []
 
-  text(value: string) {
-    this.nodes.push(makeVirtualTextNode(value))
+  text(value: string | ((get: GetState) => string)) {
+    if (typeof value === "function") {
+      this.nodes.push(makeReactiveTextNode(value))
+    } else {
+      this.nodes.push(makeVirtualTextNode(value))
+    }
     return this
   }
 

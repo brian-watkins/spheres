@@ -1,7 +1,7 @@
 import { renderToString, View } from "../src/index.js";
 import { behavior, effect, example, Example } from "esbehavior";
 import { equalTo, expect, is } from "great-expectations";
-import { appWithDataAttributesNoValue, appWithDeeplyNestedState, appWithInnerHTML, appWithNestedState, appWithPropertiesAndAttributes, appWithSimpleState, staticApp } from "./fixtures/static.app.js";
+import { appWithDataAttributesNoValue, appWithDeeplyNestedState, appWithInnerHTML, appWithNestedState, appWithPropertiesAndAttributes, appWithReactiveText, appWithSimpleState, staticApp } from "./fixtures/static.app.js";
 import { Store } from "state-party"
 
 export default behavior("Render view to HTML", [
@@ -28,6 +28,10 @@ export default behavior("Render view to HTML", [
   renderTest("render view with deeply nested stateful views", (renderer) => {
     const actual = renderer.renderView(appWithDeeplyNestedState())
     expect(actual, is(equalTo(`<div><div><h2>Cool Person!</h2><p>98 years!</p></div></div>`)))
+  }),
+  renderTest("render view with reactive text", (renderer) => {
+    const actual = renderer.renderView(appWithReactiveText())
+    expect(actual, is(equalTo("<div>98 years old!</div>")))
   }),
   renderTest("render view with innerHTML property", (renderer) => {
     const actual = renderer.renderView(appWithInnerHTML())

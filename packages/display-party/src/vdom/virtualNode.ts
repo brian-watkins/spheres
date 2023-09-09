@@ -1,4 +1,4 @@
-import { GetState, StoreMessage } from "state-party";
+import { GetState, Stateful, StoreMessage } from "state-party";
 
 export enum NodeType {
   TEXT = 3,
@@ -15,7 +15,7 @@ export interface TextNode {
 
 export interface ReactiveTextNode {
   type: NodeType.REACTIVE_TEXT
-  generator: (get: GetState) => string
+  generator: Stateful<string>
   node: Node | undefined
   unsubscribe?: () => void
 }
@@ -26,7 +26,7 @@ export interface ElementNode {
   tag: string
   data: VirtualNodeConfig
   children: Array<VirtualNode>
-  node: Node | undefined
+  node: Element | undefined
   key: string | undefined
 }
 
@@ -42,9 +42,15 @@ export type VirtualNode = TextNode | ReactiveTextNode | ElementNode | StatefulNo
 
 declare type Listener = (ev: Event) => any;
 
+export interface StatefulAttribute {
+  generator: Stateful<string>
+  unsubscribe?: () => void
+}
+
 export interface VirtualNodeConfig {
   props: Record<string, any>
   attrs: Record<string, string>
+  stateful: Record<string, StatefulAttribute>
   on: { [N in keyof HTMLElementEventMap]?: Listener }
   key?: string
 }
@@ -57,6 +63,7 @@ export function virtualNodeConfig(): VirtualNodeConfig {
   return {
     props: {},
     attrs: {},
+    stateful: {},
     on: {}
   }
 }
@@ -75,6 +82,16 @@ export function setKey(config: VirtualNodeConfig, key: string) {
 
 export function addClasses(config: VirtualNodeConfig, classNames: Array<string>) {
   addAttribute(config, "class", classNames.join(" "))
+}
+
+export function addStatefulAttribute(config: VirtualNodeConfig, name: string, generator: Stateful<string>) {
+  config.stateful![name] = {
+    generator
+  }
+}
+
+export function addStatefulClasses(config: VirtualNodeConfig, generator: Stateful<Array<string>>) {
+  addStatefulAttribute(config, "class", (get) => generator(get).join(" "))
 }
 
 export function setEventHandler<N extends keyof HTMLElementEventMap>(config: VirtualNodeConfig, event: N, handler: (evt: HTMLElementEventMap[N]) => StoreMessage<any, any>) {
@@ -98,7 +115,7 @@ export function makeStatefulElement(config: VirtualNodeConfig, generator: (get: 
   }
 }
 
-export function makeVirtualElement(tag: string, config: VirtualNodeConfig, children: Array<VirtualNode>, node?: Node): ElementNode {
+export function makeVirtualElement(tag: string, config: VirtualNodeConfig, children: Array<VirtualNode>, node?: Element): ElementNode {
   return {
     type: NodeType.ELEMENT,
     tag: tag,

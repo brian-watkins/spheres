@@ -36,6 +36,10 @@ export class DisplayElement {
     return window._testDisplayElement(this.selector, this.index, "text")
   }
 
+  attribute(name: string): Promise<string> {
+    return window._testDisplayElement(this.selector, this.index, "attribute", name)
+  }
+
   inputValue(): Promise<string> {
     return window._testDisplayElement(this.selector, this.index, "inputValue")
   }

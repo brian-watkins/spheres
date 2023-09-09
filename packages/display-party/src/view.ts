@@ -1,5 +1,5 @@
-import { GetState, State, Store } from "state-party"
-import { VirtualNode, VirtualNodeConfig, addAttribute, addClasses, addProperty, makeReactiveTextNode, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, setEventHandler, setKey, virtualNodeConfig } from "./vdom/virtualNode.js"
+import { GetState, State, Stateful, Store } from "state-party"
+import { VirtualNode, VirtualNodeConfig, addAttribute, addClasses, addProperty, addStatefulClasses, makeReactiveTextNode, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, setEventHandler, setKey, virtualNodeConfig } from "./vdom/virtualNode.js"
 import { ViewBuilder, AriaAttributes, ElementEvents, booleanAttributes, ViewElements } from "./htmlElements.js"
 import { createStringRenderer } from "./vdom/renderToString.js"
 import { createDOMRenderer } from "./vdom/renderToDom.js"
@@ -34,7 +34,7 @@ const resetConfig = Symbol("reset-config")
 
 export interface SpecialAttributes {
   key(value: string | number | State<any>): this
-  classes(classes: Array<string>): this
+  classes(classes: Array<string> | Stateful<Array<string>>): this
   dataAttribute(name: string, value?: string): this
   innerHTML(html: string): this
   on(events: ElementEvents): this
@@ -54,8 +54,12 @@ class BasicConfig implements SpecialAttributes {
     return this
   }
 
-  classes(classes: string[]) {
-    addClasses(this.config, classes)
+  classes(classes: string[] | Stateful<Array<string>>) {
+    if (typeof classes === "function") {
+      addStatefulClasses(this.config, classes)
+    } else {
+      addClasses(this.config, classes)
+    }
     return this
   }
 
@@ -122,7 +126,7 @@ export interface StatefulConfig {
 }
 
 export interface SpecialElements {
-  text(value: string | ((get: GetState) => string)): this
+  text(value: string | Stateful<string>): this
   withView(view: View): this
   withState(config: StatefulConfig): this
 }

@@ -16,8 +16,8 @@ export function virtualize(element: Node): VirtualNode {
     // note that we are not getting the attributes here ... is that
     // because we just use virtualize when mounting an element and we
     // don't care? What about for rehydrating?
-    const virtual = makeVirtualElement(element.nodeName.toLowerCase(), virtualNodeConfig(), children, element)
-    virtual.node = element
+    const virtual = makeVirtualElement(element.nodeName.toLowerCase(), virtualNodeConfig(), children, element as Element)
+    virtual.node = element as Element
     return virtual
   }
 }
@@ -59,6 +59,13 @@ const createNode = (store: Store, vnode: VirtualNode): Node => {
   const attrs = vnode.data.attrs
   for (const attr in attrs) {
     element.setAttribute(attr, attrs[attr])
+  }
+
+  const statefulAttrs = vnode.data.stateful
+  for (const attr in statefulAttrs) {
+    statefulAttrs[attr].unsubscribe = store.query((get) => {
+      element.setAttribute(attr, statefulAttrs[attr].generator(get))
+    })
   }
 
   let k: keyof HTMLElementEventMap
@@ -107,13 +114,26 @@ function patchAttributes(oldVNode: ElementNode, newVNode: ElementNode) {
   }
 }
 
+function patchStatefulAttributes(store: Store, oldVNode: ElementNode, newVNode: ElementNode) {
+  for (let key in { ...oldVNode.data.stateful, ...newVNode.data.stateful }) {
+    if (newVNode.data.stateful[key] === undefined) {
+      oldVNode.data.stateful[key].unsubscribe!()
+      oldVNode.node!.removeAttribute(key)
+    } else if (oldVNode.data.stateful[key] === undefined) {
+      newVNode.data.stateful[key].unsubscribe = store.query((get) => {
+        oldVNode.node!.setAttribute(key, newVNode.data.stateful[key].generator(get))
+      })
+    }
+  }
+}
+
 function patchAttribute(key: string, oldVNode: ElementNode, newVNode: ElementNode) {
   const newValue = newVNode.data.attrs[key]
   if (oldVNode.data.attrs[key] !== newValue) {
     if (newValue === undefined) {
-      (oldVNode.node as Element).removeAttribute(key)
+      oldVNode.node!.removeAttribute(key)
     } else {
-      (oldVNode.node as Element).setAttribute(key, newValue)
+      oldVNode.node!.setAttribute(key, newValue)
     }
   }
 }
@@ -316,6 +336,7 @@ export const patch = (store: Store, oldVNode: VirtualNode | null, newVNode: Virt
         return newVNode
       } else {
         patchAttributes(oldVNode, newVNode as ElementNode)
+        patchStatefulAttributes(store, oldVNode, newVNode as ElementNode)
         patchEvents(oldVNode, newVNode as ElementNode)
         if (newElement.data.props.innerHTML) {
           (node as Element).innerHTML = newElement.data.props.innerHTML

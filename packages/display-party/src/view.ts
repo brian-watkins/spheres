@@ -84,6 +84,12 @@ class BasicConfig implements SpecialAttributes {
     return this
   }
 
+  value(val: string) {
+    addProperty(this.config, "value", val)
+    addAttribute(this.config, "value", val)
+    return this
+  }
+
   [resetConfig](config: VirtualNodeConfig) {
     this.config = config
   }

@@ -83,7 +83,7 @@ export default behavior("patch", [
         step("the input value is patched", (context) => {
           const config = virtualNodeConfig()
           addAttribute(config, "type", "text")
-          addAttribute(config, "value", "23")
+          addProperty(config, "value", "23")
           context.patch(makeVirtualElement("input", config, []))
         })
       ],

@@ -106,11 +106,29 @@ function getKey(vnode: VirtualNode | undefined) {
 }
 
 function patchAttributes(oldVNode: ElementNode, newVNode: ElementNode) {
-  for (let i in { ...oldVNode.data.attrs, ...newVNode.data.attrs }) {
-    if (i === "value") {
-      patchAttributeAsProperty(i, oldVNode, newVNode)
-    } else {
-      patchAttribute(i, oldVNode, newVNode)
+  for (let key in { ...oldVNode.data.attrs, ...newVNode.data.attrs }) {
+    const newValue = newVNode.data.attrs[key]
+    if (oldVNode.data.attrs[key] !== newValue) {
+      if (newValue === undefined) {
+        oldVNode.node!.removeAttribute(key)
+      } else {
+        oldVNode.node!.setAttribute(key, newValue)
+      }
+    }
+  }
+}
+
+function patchProperties(oldVNode: ElementNode, newVNode: ElementNode) {
+  const oldProps = oldVNode.data.props ?? {}
+  const newProps = newVNode.data.props ?? {}
+  for (let key in { ...oldProps, ...newProps }) {
+    const newValue = newProps[key]
+    if (oldProps[key] !== newValue) {
+      if (newValue === undefined) {
+        (oldVNode.node as any)[key] = ""
+      } else {
+        (oldVNode.node as any)[key] = newValue
+      }
     }
   }
 }
@@ -127,28 +145,6 @@ function patchStatefulAttributes(store: Store, oldVNode: ElementNode, newVNode: 
       stateful.unsubscribe = store.query((get) => {
         oldVNode.node!.setAttribute(key, stateful.generator(get))
       })
-    }
-  }
-}
-
-function patchAttribute(key: string, oldVNode: ElementNode, newVNode: ElementNode) {
-  const newValue = newVNode.data.attrs[key]
-  if (oldVNode.data.attrs[key] !== newValue) {
-    if (newValue === undefined) {
-      oldVNode.node!.removeAttribute(key)
-    } else {
-      oldVNode.node!.setAttribute(key, newValue)
-    }
-  }
-}
-
-function patchAttributeAsProperty(key: string, oldVNode: ElementNode, newVNode: ElementNode) {
-  const newValue = newVNode.data.attrs[key]
-  if (oldVNode.data.attrs[key] !== newValue) {
-    if (newValue === undefined) {
-      (oldVNode.node as HTMLInputElement).value = ""
-    } else {
-      (oldVNode.node as HTMLInputElement).value = newValue
     }
   }
 }
@@ -341,9 +337,16 @@ export const patch = (store: Store, oldVNode: VirtualNode | null, newVNode: Virt
         removeNode(parent, oldVNode)
         return newVNode
       } else {
-        patchAttributes(oldVNode, newVNode as ElementNode)
-        patchStatefulAttributes(store, oldVNode, newVNode as ElementNode)
-        patchEvents(oldVNode, newVNode as ElementNode)
+        patchAttributes(oldVNode, newElement)
+        if (oldVNode.data.stateful || newElement.data.stateful) {
+          patchStatefulAttributes(store, oldVNode, newElement)
+        }
+        if (oldVNode.data.props || newElement.data.props) {
+          patchProperties(oldVNode, newVNode as ElementNode)
+        }
+        if (oldVNode.data.on || newElement.data.on) {
+          patchEvents(oldVNode, newVNode as ElementNode)
+        }
         if (newElement.data.props?.innerHTML) {
           (node as Element).innerHTML = newElement.data.props.innerHTML
         } else {

@@ -22,17 +22,17 @@ export interface ReactiveTextNode {
 
 export interface ElementNode {
   type: NodeType.ELEMENT
-  is: string | undefined
+  is?: string
   tag: string
   data: VirtualNodeConfig
   children: Array<VirtualNode>
   node: Element | undefined
-  key: string | undefined
+  key?: string
 }
 
 export interface StatefulNode {
   type: NodeType.STATEFUL
-  key: string | undefined
+  key?: string
   generator: (get: GetState) => VirtualNode
   node: Node | undefined
   unsubscribe?: () => void
@@ -48,10 +48,10 @@ export interface StatefulAttribute {
 }
 
 export interface VirtualNodeConfig {
-  props: Record<string, any>
+  props?: Record<string, any>
   attrs: Record<string, string>
-  stateful: Record<string, StatefulAttribute>
-  on: { [N in keyof HTMLElementEventMap]?: Listener }
+  stateful?: Record<string, StatefulAttribute>
+  on?: { [N in keyof HTMLElementEventMap]?: Listener }
   key?: string
 }
 
@@ -61,19 +61,17 @@ export interface StoreContext {
 
 export function virtualNodeConfig(): VirtualNodeConfig {
   return {
-    props: {},
-    attrs: {},
-    stateful: {},
-    on: {}
+    attrs: {}
   }
 }
 
 export function addProperty(config: VirtualNodeConfig, name: string, value: string) {
-  config.props![name] = value
+  if (!config.props) { config.props = {} }
+  config.props[name] = value
 }
 
 export function addAttribute(config: VirtualNodeConfig, name: string, value: string) {
-  config.attrs![name] = value
+  config.attrs[name] = value
 }
 
 export function setKey(config: VirtualNodeConfig, key: string) {
@@ -85,7 +83,8 @@ export function addClasses(config: VirtualNodeConfig, classNames: Array<string>)
 }
 
 export function addStatefulAttribute(config: VirtualNodeConfig, name: string, generator: Stateful<string>) {
-  config.stateful![name] = {
+  if (!config.stateful) { config.stateful = {} }
+  config.stateful[name] = {
     generator
   }
 }
@@ -95,36 +94,49 @@ export function addStatefulClasses(config: VirtualNodeConfig, generator: Statefu
 }
 
 export function setEventHandler<N extends keyof HTMLElementEventMap>(config: VirtualNodeConfig, event: N, handler: (evt: HTMLElementEventMap[N]) => StoreMessage<any, any>) {
-  config.on = Object.assign(config.on, {
-    [event]: (evt: HTMLElementEventMap[N]) => {
-      evt.target?.dispatchEvent(new CustomEvent("displayMessage", {
-        bubbles: true,
-        cancelable: true,
-        detail: handler(evt)
-      }))
-    }
-  })
+  if (!config.on) { config.on = {} }
+
+  config.on[event] = (evt: any) => {
+    evt.target?.dispatchEvent(new CustomEvent("displayMessage", {
+      bubbles: true,
+      cancelable: true,
+      detail: handler(evt)
+    }))
+  }
 }
 
 export function makeStatefulElement(config: VirtualNodeConfig, generator: (get: GetState) => VirtualNode, node?: Node): VirtualNode {
-  return {
+  const element: StatefulNode = {
     type: NodeType.STATEFUL,
-    key: config.key,
     generator,
     node
   }
+
+  if (config.key) {
+    element.key = config.key
+  }
+
+  return element
 }
 
 export function makeVirtualElement(tag: string, config: VirtualNodeConfig, children: Array<VirtualNode>, node?: Element): ElementNode {
-  return {
+  const element: ElementNode = {
     type: NodeType.ELEMENT,
     tag: tag,
-    is: config.attrs.is,
     data: config,
     children,
-    key: config.key,
     node
   }
+
+  if (config.key) {
+    element.key = config.key
+  }
+
+  if (config.attrs.is) {
+    element.is = config.attrs.is
+  }
+
+  return element
 }
 
 export function makeVirtualTextNode(text: string, node?: Node): TextNode {

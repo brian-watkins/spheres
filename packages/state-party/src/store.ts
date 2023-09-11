@@ -197,11 +197,12 @@ export class Store {
   private registry: WeakMap<State<any>, ContainerController<any, any>> = new WeakMap()
 
   private getController<T, M>(token: State<T, M>): ContainerController<T, M> {
-    if (!this.registry.has(token)) {
-      const controller = token[registerState]((state) => this.getController(state))
+    let controller = this.registry.get(token)
+    if (controller === undefined) {
+      controller = token[registerState]((state) => this.getController(state))
       this.registry.set(token, controller)
     }
-    return this.registry.get(token)!
+    return controller
   }
 
   query(definition: (get: GetState) => void): () => void {

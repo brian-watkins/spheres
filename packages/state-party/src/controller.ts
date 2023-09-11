@@ -24,15 +24,6 @@ export class ContainerController<T, M = T> {
     }
   }
 
-  addSubscriber(notify: (value: T) => void): () => void {
-    notify(this._value)
-    this.dependents.add(notify)
-
-    return () => {
-      this.dependents.delete(notify)
-    }
-  }
-
   publishValue(value: M) {
     let updatedValue
     if (this.reducer === undefined) {

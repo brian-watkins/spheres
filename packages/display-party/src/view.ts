@@ -69,19 +69,17 @@ class BasicConfig implements SpecialAttributes {
   }
 
   aria(attributes: AriaAttributes) {
-    const entries = Object.entries(attributes)
-    for (let i = 0; i < entries.length; i++) {
-      const [key, value] = entries[i]
-      addAttribute(this.config, `aria-${key}`, value)
+    for (let name in attributes) {
+      //@ts-ignore
+      addAttribute(this.config, `aria-${name}`, attributes[name])
     }
     return this
   }
 
   on(events: ElementEvents) {
-    const entries = Object.entries(events)
-    for (let i = 0; i < entries.length; i++) {
-      const [event, handler] = entries[i]
-      setEventHandler(this.config, event as keyof HTMLElementEventMap, handler)
+    for (let name in events) {
+      //@ts-ignore
+      setEventHandler(this.config, name, events[name])
     }
     return this
   }

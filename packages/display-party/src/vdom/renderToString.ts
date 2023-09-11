@@ -30,7 +30,7 @@ function stringifyTextNode(node: TextNode): string {
 function stringifyElement(store: Store, node: ElementNode): string {
   const attrs = Object.keys(node.data.attrs).map(key => ` ${key}="${node.data.attrs[key]}"`).join("")
 
-  if (node.data.props.innerHTML) {
+  if (node.data.props?.innerHTML) {
     return `<${node.tag}${attrs}>${node.data.props.innerHTML}</${node.tag}>`
   }
 

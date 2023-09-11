@@ -63,14 +63,15 @@ const createNode = (store: Store, vnode: VirtualNode): Node => {
 
   const statefulAttrs = vnode.data.stateful
   for (const attr in statefulAttrs) {
-    statefulAttrs[attr].unsubscribe = store.query((get) => {
-      element.setAttribute(attr, statefulAttrs[attr].generator(get))
+    const stateful = statefulAttrs[attr]
+    stateful.unsubscribe = store.query((get) => {
+      element.setAttribute(attr, stateful.generator(get))
     })
   }
 
   let k: keyof HTMLElementEventMap
   for (k in vnode.data.on) {
-    const handler: any = vnode.data.on[k]
+    const handler: any = vnode.data.on![k]
     element.addEventListener(k, handler)
   }
 
@@ -115,13 +116,16 @@ function patchAttributes(oldVNode: ElementNode, newVNode: ElementNode) {
 }
 
 function patchStatefulAttributes(store: Store, oldVNode: ElementNode, newVNode: ElementNode) {
+  const oldAttr = oldVNode.data.stateful ?? {}
+  const newAttr = newVNode.data.stateful ?? {}
   for (let key in { ...oldVNode.data.stateful, ...newVNode.data.stateful }) {
-    if (newVNode.data.stateful[key] === undefined) {
-      oldVNode.data.stateful[key].unsubscribe!()
+    if (newAttr[key] === undefined) {
+      oldAttr![key].unsubscribe!()
       oldVNode.node!.removeAttribute(key)
-    } else if (oldVNode.data.stateful[key] === undefined) {
-      newVNode.data.stateful[key].unsubscribe = store.query((get) => {
-        oldVNode.node!.setAttribute(key, newVNode.data.stateful[key].generator(get))
+    } else if (oldAttr[key] === undefined) {
+      const stateful = newAttr![key]
+      stateful.unsubscribe = store.query((get) => {
+        oldVNode.node!.setAttribute(key, stateful.generator(get))
       })
     }
   }
@@ -151,11 +155,13 @@ function patchAttributeAsProperty(key: string, oldVNode: ElementNode, newVNode: 
 
 function patchEvents(oldVNode: ElementNode, newVNode: ElementNode) {
   let i: keyof HTMLElementEventMap
-  for (i in { ...oldVNode.data.on, ...newVNode.data.on }) {
-    if (newVNode.data.on[i] === undefined) {
-      oldVNode.node!.removeEventListener(i, oldVNode.data.on[i]!)
-    } else if (oldVNode.data.on[i] === undefined) {
-      oldVNode.node!.addEventListener(i, newVNode.data.on[i]!)
+  const oldEvents = oldVNode.data.on ?? {}
+  const newEvents = newVNode.data.on ?? {}
+  for (i in { ...oldEvents, ...newEvents }) {
+    if (newEvents[i] === undefined) {
+      oldVNode.node!.removeEventListener(i, oldEvents![i]!)
+    } else if (oldEvents[i] === undefined) {
+      oldVNode.node!.addEventListener(i, newEvents![i]!)
     }
   }
 }
@@ -338,7 +344,7 @@ export const patch = (store: Store, oldVNode: VirtualNode | null, newVNode: Virt
         patchAttributes(oldVNode, newVNode as ElementNode)
         patchStatefulAttributes(store, oldVNode, newVNode as ElementNode)
         patchEvents(oldVNode, newVNode as ElementNode)
-        if (newElement.data.props.innerHTML) {
+        if (newElement.data.props?.innerHTML) {
           (node as Element).innerHTML = newElement.data.props.innerHTML
         } else {
           patchChildren(store, oldVNode, newElement)

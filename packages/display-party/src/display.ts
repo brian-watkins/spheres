@@ -10,8 +10,7 @@ export class Display {
 
   constructor(private store: Store) {
     this.listener = (evt: Event) => {
-      const displayMessageEvent = evt as CustomEvent<StoreMessage<any>>
-      this.store.dispatch(displayMessageEvent.detail)
+      this.store.dispatch((evt as CustomEvent<StoreMessage<any>>).detail)
     }
   }
 

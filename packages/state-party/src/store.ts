@@ -60,6 +60,7 @@ export interface BatchMessage {
 export type StoreMessage<T, M = T> = WriteMessage<T, M> | SelectMessage | BatchMessage
 
 const registerState = Symbol("registerState")
+const getController = Symbol("getController")
 
 let tokenId = 0
 
@@ -71,7 +72,7 @@ export abstract class State<T, M = T> {
     this.name = name ?? `${tokenId++}`
   }
 
-  abstract [registerState](getOrCreate: <S, N>(state: State<S, N>) => ContainerController<S, N>): ContainerController<T, M>
+  abstract [registerState](store: Store): ContainerController<T, M>
 
   get meta(): MetaState<T, M, any> {
     if (!this._meta) {
@@ -90,8 +91,8 @@ export class MetaState<T, M, E = unknown> extends State<Meta<M, E>> {
     super(`meta[${token.toString()}]`)
   }
 
-  [registerState](getOrCreate: <S, N>(state: State<S, N>) => ContainerController<S, N>): ContainerController<Meta<M, E>> {
-    const tokenController = getOrCreate(this.token)
+  [registerState](store: Store): ContainerController<Meta<M, E>> {
+    const tokenController = store[getController](this.token)
 
     const controller = new ContainerController<Meta<M, E>>(ok(), (val) => val)
 
@@ -111,7 +112,7 @@ export class Container<T, M = T> extends State<T, M> {
     super(name)
   }
 
-  [registerState](getOrCreate: <S, N>(state: State<S, N>) => ContainerController<S, N>): ContainerController<T, M> {
+  [registerState](store: Store): ContainerController<T, M> {
     const containerController = new ContainerController(this.initialValue, this.reducer)
 
     if (!this.query) {
@@ -121,14 +122,14 @@ export class Container<T, M = T> extends State<T, M> {
     const queryDependencies = new WeakSet<State<any>>()
 
     const get = <S, N>(state: State<S, N>) => {
-      const controller = getOrCreate(state)
+      const controller = store[getController](state)
       if (!queryDependencies.has(state)) {
         queryDependencies.add(state)
         controller.addDependent(() => {
           try {
             containerController.writeValue(this.query!({ get, current: containerController.value }))
           } catch (err) {
-            getOrCreate(this.meta).writeValue(error(undefined, err))
+            store[getController](this.meta).writeValue(error(undefined, err))
           }
         })
       }
@@ -144,7 +145,7 @@ export class Container<T, M = T> extends State<T, M> {
       containerController.writeValue(this.query({ get, current: this.initialValue }))
     } catch (err: any) {
       queueMicrotask(() => {
-        getOrCreate(this.meta).writeValue(error(undefined, err))
+        store[getController](this.meta).writeValue(error(undefined, err))
       })
     }
 
@@ -157,19 +158,19 @@ export class Value<T, M = T> extends State<T, M> {
     super(name)
   }
 
-  [registerState](getOrCreate: <S, N>(state: State<S, N>) => ContainerController<S, N>): ContainerController<T, M> {
+  [registerState](store: Store): ContainerController<T, M> {
     let dependencies = new WeakSet<State<any>>()
 
     const get = <S, N>(state: State<S, N>) => {
-      const controller = getOrCreate(state)
+      const controller = store[getController](state)
       if (!dependencies.has(state)) {
         dependencies.add(state)
         controller.addDependent(() => {
-          const derivedController = getOrCreate(this)
+          const derivedController = store[getController](this)
           try {
             derivedController.publishValue(this.derivation(get, derivedController.value))
           } catch (err) {
-            getOrCreate(this.meta).writeValue(error(undefined, err))
+            store[getController](this.meta).writeValue(error(undefined, err))
           }
         })
       }
@@ -194,12 +195,12 @@ export class Value<T, M = T> extends State<T, M> {
 }
 
 export class Store {
-  private registry: WeakMap<State<any>, ContainerController<any, any>> = new WeakMap()
+  private registry: WeakMap<State<any>, ContainerController<any, any>> = new WeakMap();
 
-  private getController<T, M>(token: State<T, M>): ContainerController<T, M> {
+  [getController]<T, M>(token: State<T, M>): ContainerController<T, M> {
     let controller = this.registry.get(token)
     if (controller === undefined) {
-      controller = token[registerState]((state) => this.getController(state))
+      controller = token[registerState](this)
       this.registry.set(token, controller)
     }
     return controller
@@ -210,7 +211,7 @@ export class Store {
     let unsubscribers: Array<() => void> = []
 
     const get = <S, N>(state: State<S, N>) => {
-      const controller = this.getController(state)
+      const controller = this[getController](state)
       if (!dependencies.has(state)) {
         dependencies.add(state)
         const unsubscribe = controller.addDependent(() => {
@@ -233,12 +234,12 @@ export class Store {
 
   useProvider(provider: Provider) {
     const set = <Q, M>(state: State<Q, M>, value: M) => {
-      this.getController(state).publishValue(value)
+      this[getController](state).publishValue(value)
     }
 
     const queryDependencies = new WeakSet<State<any>>()
     const get = <S, N>(state: State<S, N>) => {
-      const controller = this.getController(state)
+      const controller = this[getController](state)
       if (!queryDependencies.has(state)) {
         queryDependencies.add(state)
         controller.addDependent(() => provider.provide({ get, set }))
@@ -251,25 +252,25 @@ export class Store {
   }
 
   useWriter<T, M, E = unknown>(token: State<T, M>, writer: Writer<T, M, E>) {
-    const controller = this.getController(token)
+    const controller = this[getController](token)
 
     controller.setWriter((value) => {
       writer.write(value, {
         get: (state) => {
-          return this.getController(state).value
+          return this[getController](state).value
         },
         ok: (value) => {
           controller.publishValue(value)
         },
         pending: (message) => {
-          this.getController(token.meta).publishValue(pending(message))
+          this[getController](token.meta).publishValue(pending(message))
         },
         error: (message, reason) => {
-          this.getController(token.meta).publishValue(error(message, reason))
+          this[getController](token.meta).publishValue(error(message, reason))
         },
         current: controller.value
       }).catch((err) => {
-        this.getController(token.meta).publishValue(error(value, err))
+        this[getController](token.meta).publishValue(error(value, err))
       })
     })
   }
@@ -278,13 +279,13 @@ export class Store {
     switch (message.type) {
       case "write":
         try {
-          this.getController(message.container).updateValue(message.value)
+          this[getController](message.container).updateValue(message.value)
         } catch (err) {
-          this.getController(message.container.meta).writeValue(error(message.value, err))
+          this[getController](message.container.meta).writeValue(error(message.value, err))
         }
         break
       case "select":
-        const get: GetState = (state) => this.getController(state).value
+        const get: GetState = (state) => this[getController](state).value
         const result = message.selection.query(get, message.input)
         this.dispatch(result)
         break

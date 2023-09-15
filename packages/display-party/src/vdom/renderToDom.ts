@@ -54,7 +54,9 @@ const createNode = (store: Store, vnode: VirtualNode): Node => {
     return statefulNode!.node!
   }
 
-  const element = document.createElement(vnode.tag, { is: vnode.is })
+  const element = vnode.is ?
+    document.createElement(vnode.tag, { is: vnode.is }) :
+    document.createElement(vnode.tag)
 
   const attrs = vnode.data.attrs
   for (const attr in attrs) {

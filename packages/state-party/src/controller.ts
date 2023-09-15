@@ -37,7 +37,9 @@ export class ContainerController<T, M = T> {
     if (Object.is(this._value, updatedValue)) return
    
     this._value = updatedValue
-    this.dependents.forEach(notify => notify(this._value))
+    for (const notify of this.dependents) {
+      notify(this._value)
+    }
   }
 
   writeValue(value: M) {

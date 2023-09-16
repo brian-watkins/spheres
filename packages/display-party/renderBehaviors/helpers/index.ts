@@ -16,7 +16,7 @@ export function childElement(testId: number): VirtualNode {
 
 export function statefulChildElement(testId: number): VirtualNode {
   const statefulConfig = virtualNodeConfig()
-  setKey(statefulConfig, `${testId}`)
+  setKey(statefulConfig, testId)
   return makeStatefulElement(statefulConfig, () => {
     const config = virtualNodeConfig()
     addAttribute(config, "data-stateful-child", `${testId}`)

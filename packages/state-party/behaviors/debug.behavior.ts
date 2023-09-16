@@ -1,7 +1,7 @@
 import { State, container, value } from "@src/index.js";
-import { Observation, behavior, effect, example, fact } from "esbehavior";
-import { expect, is, stringMatching } from "great-expectations";
-import { TestStore, testStoreContext } from "helpers/testStore.js";
+import { behavior, effect, example, fact } from "esbehavior";
+import { expect, is } from "great-expectations";
+import { testStoreContext } from "helpers/testStore.js";
 
 interface SimpleTokenContext {
   stringState: State<string>
@@ -22,7 +22,9 @@ export default behavior("debug name", [
         })
       ],
       observe: [
-        stateTokenHasNameBasedOn("my-container")
+        effect("the state token's name is printed", (context) => {
+          expect(context.tokens.stringState.toString(), is("my-container"))
+        })
       ]
     }),
   example(testStoreContext<SimpleTokenContext>())
@@ -36,7 +38,9 @@ export default behavior("debug name", [
         })
       ],
       observe: [
-        stateTokenHasNameBasedOn("\\d+")
+        effect("the default token name is printed", (context) => {
+          expect(context.tokens.stringState.toString(), is("State"))
+        })
       ]
     }),
   example(testStoreContext<SimpleTokenContext>())
@@ -53,7 +57,9 @@ export default behavior("debug name", [
         })
       ],
       observe: [
-        stateTokenHasNameBasedOn("funny-value")
+        effect("the state token's name is printed", (context) => {
+          expect(context.tokens.stringState.toString(), is("funny-value"))
+        })
       ]
     }),
   example(testStoreContext<SimpleTokenContext>())
@@ -67,7 +73,9 @@ export default behavior("debug name", [
         })
       ],
       observe: [
-        stateTokenHasNameBasedOn("\\d+")
+        effect("the state token's name is printed", (context) => {
+          expect(context.tokens.stringState.toString(), is("State"))
+        })
       ]
     }),
   example(testStoreContext<SimpleTokenContext>())
@@ -84,19 +92,9 @@ export default behavior("debug name", [
         })
       ],
       observe: [
-        metaStateTokenHasNameBasedOn("super-state")
+        effect("the meta state token's name is printed", (context) => {
+          expect(context.tokens.stringState.meta.toString(), is("meta[super-state]"))
+        })
       ]
     })
 ])
-
-function stateTokenHasNameBasedOn(expectedName: string): Observation<TestStore<SimpleTokenContext>> {
-  return effect("the state token's name is printed", (context) => {
-    expect(context.tokens.stringState.toString(), is(stringMatching(new RegExp(expectedName))))
-  })
-}
-
-function metaStateTokenHasNameBasedOn(expectedName: string): Observation<TestStore<SimpleTokenContext>> {
-  return effect("the meta state token's name is printed", (context) => {
-    expect(context.tokens.stringState.meta.toString(), is(stringMatching(new RegExp(`^meta\\[${expectedName}\\]$`))))
-  })
-}

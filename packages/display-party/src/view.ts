@@ -1,5 +1,5 @@
 import { GetState, State, Stateful, Store } from "state-party"
-import { VirtualNode, VirtualNodeConfig, addAttribute, addClasses, addProperty, addStatefulClasses, makeReactiveTextNode, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, setEventHandler, setKey, virtualNodeConfig } from "./vdom/virtualNode.js"
+import { VirtualNode, VirtualNodeConfig, VirtualNodeKey, addAttribute, addClasses, addProperty, addStatefulAttribute, addStatefulClasses, makeReactiveTextNode, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, setEventHandler, setKey, virtualNodeConfig } from "./vdom/virtualNode.js"
 import { ViewBuilder, AriaAttributes, ElementEvents, booleanAttributes, ViewElements } from "./htmlElements.js"
 import { createStringRenderer } from "./vdom/renderToString.js"
 import { createDOMRenderer } from "./vdom/renderToDom.js"
@@ -44,8 +44,8 @@ export interface SpecialAttributes {
 class BasicConfig implements SpecialAttributes {
   private config: VirtualNodeConfig = virtualNodeConfig()
 
-  key(value: string | number | State<any, any>) {
-    setKey(this.config, `${value}`)
+  key(value: VirtualNodeKey) {
+    setKey(this.config, value)
     return this
   }
 
@@ -187,7 +187,7 @@ class BasicView implements SpecialElements, SpecialElementBuilder {
   withState(statefulConfig: StatefulConfig) {
     let config = virtualNodeConfig()
     if (statefulConfig.key) {
-      setKey(config, `${statefulConfig.key}`)
+      setKey(config, statefulConfig.key)
     }
     const element = makeStatefulElement(config, (get) => statefulConfig.view(get)[toVirtualNode])
     this.nodes.push(element)

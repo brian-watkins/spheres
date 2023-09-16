@@ -81,7 +81,8 @@ const peopleView = (props: ReorderAppProps) => (get: GetState) => {
 function personViewWithKey(person: State<Person>): View {
   return view()
     .li(el => {
-      el.config.key(person)
+      el.config
+        .key(person)
       el.children
         .withState({
           view: get => {

@@ -1,6 +1,6 @@
 import { Store } from "state-party";
 import { DOMRenderer } from "./render.js";
-import { ElementNode, NodeType, TextNode, VirtualNode, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "./virtualNode.js";
+import { ElementNode, NodeType, TextNode, VirtualNode, VirtualNodeKey, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "./virtualNode.js";
 
 export function virtualize(element: Node): VirtualNode {
   if (element.nodeType === NodeType.TEXT) {
@@ -217,14 +217,14 @@ function patchChildren(store: Store, oldVNode: ElementNode, newVNode: ElementNod
     return
   }
 
-  const keyed = {} as any
-  const newKeyed = {} as any
+  const keyed = new Map<VirtualNodeKey, VirtualNode>()
+  const newKeyed = new Set<VirtualNodeKey>()
 
   // store the old nodes by key (if defined)
   for (let i = oldHead; i <= oldTail; i++) {
     const oldKey = getKey(oldVKids[i])
     if (oldKey !== undefined) {
-      keyed[oldKey] = oldVKids[i]
+      keyed.set(oldKey, oldVKids[i])
     }
   }
 
@@ -237,10 +237,10 @@ function patchChildren(store: Store, oldVNode: ElementNode, newVNode: ElementNod
     // This kind of seems just like an optimization for list reordering
     // Check if we need to skip or remove the old node
     if (
-      newKeyed[oldKey!] ||
+      newKeyed.has(oldKey!) ||
       (newKey !== undefined && newKey === getKey(oldVKids[oldHead + 1]))
     ) {
-      if (oldKey == null) {
+      if (oldKey === undefined) {
         removeNode(parent, oldVKid)
       }
       oldHead++
@@ -267,16 +267,16 @@ function patchChildren(store: Store, oldVNode: ElementNode, newVNode: ElementNod
         // then these are in the correct position so just patch
         // Note that patching sets the node on the newVKid
         patch(store, oldVKid, newVKid)
-        newKeyed[newKey] = true
+        newKeyed.add(newKey)
         oldHead++
       } else {
-        const tmpVKid = keyed[newKey]
-        if (tmpVKid != null) {
+        const tmpVKid = keyed.get(newKey)
+        if (tmpVKid !== undefined) {
           // we're reordering keyed elements -- first move the element to the right place
-          tmpVKid.node = parent.insertBefore(tmpVKid.node, (oldVKid && oldVKid.node) ?? null)
+          tmpVKid.node = parent.insertBefore(tmpVKid.node!, (oldVKid && oldVKid.node) ?? null)
           // then patch it -- Note that patching sets the node on the newVKid
           patch(store, tmpVKid, newVKid)
-          newKeyed[newKey] = true
+          newKeyed.add(newKey)
         } else {
           // we're adding a new keyed element
           newVKid.node = parent.insertBefore(createNode(store, newVKid), (oldVKid && oldVKid.node) ?? null)
@@ -297,9 +297,9 @@ function patchChildren(store: Store, oldVNode: ElementNode, newVNode: ElementNod
   // and this is removing extra nodes
   // if there was a keyed child in the old node
   // and we never encountered it in the new node
-  for (let i in keyed) {
-    if (newKeyed[i] === undefined) {
-      removeNode(parent, keyed[i])
+  for (const i of keyed.keys()) {
+    if (!newKeyed.has(i)) {
+      removeNode(parent, keyed.get(i)!)
     }
   }
 }

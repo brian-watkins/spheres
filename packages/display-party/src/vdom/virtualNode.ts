@@ -1,4 +1,4 @@
-import { GetState, Stateful, StoreMessage } from "state-party";
+import { GetState, State, Stateful, StoreMessage } from "state-party";
 
 export enum NodeType {
   TEXT = 3,
@@ -20,6 +20,8 @@ export interface ReactiveTextNode {
   unsubscribe?: () => void
 }
 
+export type VirtualNodeKey = string | number | State<any>
+
 export interface ElementNode {
   type: NodeType.ELEMENT
   is?: string
@@ -27,12 +29,12 @@ export interface ElementNode {
   data: VirtualNodeConfig
   children: Array<VirtualNode>
   node: Element | undefined
-  key?: string
+  key?: VirtualNodeKey
 }
 
 export interface StatefulNode {
   type: NodeType.STATEFUL
-  key?: string
+  key?: VirtualNodeKey
   generator: (get: GetState) => VirtualNode
   node: Node | undefined
   unsubscribe?: () => void
@@ -52,7 +54,7 @@ export interface VirtualNodeConfig {
   attrs: Record<string, string>
   stateful?: Record<string, StatefulAttribute>
   on?: { [N in keyof HTMLElementEventMap]?: Listener }
-  key?: string
+  key?: VirtualNodeKey
 }
 
 export interface StoreContext {
@@ -74,7 +76,7 @@ export function addAttribute(config: VirtualNodeConfig, name: string, value: str
   config.attrs[name] = value
 }
 
-export function setKey(config: VirtualNodeConfig, key: string) {
+export function setKey(config: VirtualNodeConfig, key: VirtualNodeKey) {
   config.key = key
 }
 

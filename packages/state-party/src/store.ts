@@ -62,15 +62,10 @@ export type StoreMessage<T, M = T> = WriteMessage<T, M> | SelectMessage | BatchM
 const registerState = Symbol("registerState")
 const getController = Symbol("getController")
 
-let tokenId = 0
-
 export abstract class State<T, M = T> {
-  private name: string
   private _meta: MetaState<T, M, any> | undefined
 
-  constructor(name: string | undefined) {
-    this.name = name ?? `${tokenId++}`
-  }
+  constructor(private name: string | undefined) {}
 
   abstract [registerState](store: Store): ContainerController<T, M>
 
@@ -82,7 +77,7 @@ export abstract class State<T, M = T> {
   }
 
   toString() {
-    return this.name
+    return this.name ?? "State"
   }
 }
 

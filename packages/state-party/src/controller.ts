@@ -1,7 +1,11 @@
 import { Meta, ok } from "./meta.js"
 
+export interface StateListener {
+  update(): void
+}
+
 export class ContainerController<T, M = T> {
-  private dependents: Set<((value: T) => void)> = new Set()
+  private listeners: Set<StateListener> = new Set()
   private query: ((current: T, next: M) => M) | undefined
   private writer: ((value: M) => void) | undefined
   private metaController: ContainerController<Meta<M, any>> | undefined
@@ -16,12 +20,12 @@ export class ContainerController<T, M = T> {
     this.metaController = controller
   }
 
-  addDependent(notifier: (value: T) => void): () => void {
-    this.dependents.add(notifier)
+  addListener(listener: StateListener) {
+    this.listeners.add(listener)
+  }
 
-    return () => {
-      this.dependents.delete(notifier)
-    }
+  removeListener(listener: StateListener) {
+    this.listeners.delete(listener)
   }
 
   publishValue(value: M) {
@@ -37,8 +41,9 @@ export class ContainerController<T, M = T> {
     if (Object.is(this._value, updatedValue)) return
    
     this._value = updatedValue
-    for (const notify of this.dependents) {
-      notify(this._value)
+
+    for (const listener of this.listeners) {
+      listener.update()
     }
   }
 

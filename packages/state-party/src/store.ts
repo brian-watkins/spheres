@@ -1,9 +1,9 @@
-import { ContainerController } from "./controller.js"
+import { ContainerController, StateListener } from "./controller.js"
 import { StoreError } from "./error.js"
 import { Meta, error, ok, pending } from "./meta.js"
 
 export type GetState = <S, N = S>(state: State<S, N>) => S
-export type Stateful<T> = (get: GetState) => T
+export type Stateful<T> = (get: GetState) => T | null
 
 export interface ProviderActions {
   get: GetState
@@ -65,7 +65,7 @@ const getController = Symbol("getController")
 export abstract class State<T, M = T> {
   private _meta: MetaState<T, M, any> | undefined
 
-  constructor(private name: string | undefined) {}
+  constructor(private name: string | undefined) { }
 
   abstract [registerState](store: Store): ContainerController<T, M>
 
@@ -97,6 +97,34 @@ export class MetaState<T, M, E = unknown> extends State<Meta<M, E>> {
   }
 }
 
+export interface QueryHandle {
+  unsubscribe(): void
+}
+
+abstract class AbstractReactiveQuery implements StateListener, QueryHandle {
+  private dependencies: Set<State<any>> = new Set()
+
+  constructor(protected store: Store) { }
+
+  protected getValue<S, N>(state: State<S, N>): S {
+    const controller = this.store[getController](state)
+    if (!this.dependencies.has(state)) {
+      this.dependencies.add(state)
+      controller.addListener(this)
+    }
+    return controller.value
+  }
+
+  abstract update(): void
+
+  unsubscribe(): void {
+    for (const dep of this.dependencies) {
+      this.store[getController](dep).removeListener(this)
+    }
+    this.dependencies.clear()
+  }
+}
+
 export class Container<T, M = T> extends State<T, M> {
   constructor(
     name: string | undefined,
@@ -114,30 +142,14 @@ export class Container<T, M = T> extends State<T, M> {
       return containerController
     }
 
-    const queryDependencies = new WeakSet<State<any>>()
-
-    const get = <S, N>(state: State<S, N>) => {
-      const controller = store[getController](state)
-      if (!queryDependencies.has(state)) {
-        queryDependencies.add(state)
-        controller.addDependent(() => {
-          try {
-            containerController.writeValue(this.query!({ get, current: containerController.value }))
-          } catch (err) {
-            store[getController](this.meta).writeValue(error(undefined, err))
-          }
-        })
-      }
-
-      return controller.value
-    }
+    const reactiveQuery = new ReactiveContainerQuery(store, this, this.query)
 
     containerController.setQuery((current, next) => {
-      return this.query!({ get, current }, next)
+      return reactiveQuery.run(current, next)
     })
 
     try {
-      containerController.writeValue(this.query({ get, current: this.initialValue }))
+      containerController.writeValue(reactiveQuery.run(this.initialValue, undefined))
     } catch (err: any) {
       queueMicrotask(() => {
         store[getController](this.meta).writeValue(error(undefined, err))
@@ -148,36 +160,40 @@ export class Container<T, M = T> extends State<T, M> {
   }
 }
 
+class ReactiveContainerQuery<T, M> extends AbstractReactiveQuery {
+  constructor(store: Store, private state: State<T, M>, private query: ((actions: QueryActions<T>, nextValue?: M) => M)) {
+    super(store)
+  }
+
+  update(): void {
+    try {
+      const containerController = this.store[getController](this.state)
+      containerController.writeValue(this.run(containerController.value, undefined))
+    } catch (err) {
+      this.store[getController](this.state.meta).writeValue(error(undefined, err))
+    }
+  }
+
+  run(currentValue: T, nextValue: M | undefined): M {
+    return this.query({ get: (state) => this.getValue(state), current: currentValue }, nextValue)
+  }
+}
+
 export class Value<T, M = T> extends State<T, M> {
   constructor(name: string | undefined, private derivation: (get: GetState, current: T | undefined) => M, private reducer: ((message: M, current: T | undefined) => T) | undefined) {
     super(name)
   }
 
   [registerState](store: Store): ContainerController<T, M> {
-    let dependencies = new WeakSet<State<any>>()
-
-    const get = <S, N>(state: State<S, N>) => {
-      const controller = store[getController](state)
-      if (!dependencies.has(state)) {
-        dependencies.add(state)
-        controller.addDependent(() => {
-          const derivedController = store[getController](this)
-          try {
-            derivedController.publishValue(this.derivation(get, derivedController.value))
-          } catch (err) {
-            store[getController](this.meta).writeValue(error(undefined, err))
-          }
-        })
-      }
-      return controller.value
-    }
+    // How is this not getting garbage collected?
+    const reactiveQuery = new ReactiveValue(store, this, this.derivation)
 
     let initialValue: T
     if (this.reducer) {
-      initialValue = this.reducer(this.derivation(get, undefined), undefined)
+      initialValue = this.reducer(reactiveQuery.run(undefined), undefined)
     } else {
       try {
-        initialValue = this.derivation(get, undefined) as unknown as T
+        initialValue = reactiveQuery.run(undefined) as unknown as T
       } catch (err) {
         const e = new StoreError(`Unable to initialize value: ${this.toString()}`)
         e.cause = err
@@ -186,6 +202,52 @@ export class Value<T, M = T> extends State<T, M> {
     }
 
     return new ContainerController(initialValue, this.reducer)
+  }
+}
+
+class ReactiveValue<T, M> extends AbstractReactiveQuery {
+  constructor(store: Store, private state: State<any>, private definition: (get: GetState, current: T | undefined) => M) {
+    super(store)
+  }
+
+  update(): void {
+    const derivedController = this.store[getController](this.state)
+    try {
+      derivedController.publishValue(this.run(derivedController.value))
+    } catch (err) {
+      this.store[getController](this.state.meta).writeValue(error(undefined, err))
+    }
+  }
+
+  run(currentValue: T | undefined): M {
+    return this.definition((state) => this.getValue(state), currentValue)
+  }
+}
+
+class ReactiveQuery extends AbstractReactiveQuery {
+  constructor(store: Store, private definition: (get: GetState) => void) {
+    super(store)
+  }
+
+  update() {
+    this.definition((state) => this.getValue(state))
+  }
+}
+
+class ReactiveProvider extends AbstractReactiveQuery {
+  constructor(store: Store, private provider: Provider) {
+    super(store)
+  }
+
+  setValue<Q, M>(state: State<Q, M>, value: M) {
+    this.store[getController](state).publishValue(value)
+  }
+
+  update(): void {
+    this.provider.provide({
+      get: (state) => this.getValue(state),
+      set: (state, value) => this.setValue(state, value)
+    })
   }
 }
 
@@ -201,49 +263,15 @@ export class Store {
     return controller
   }
 
-  query(definition: (get: GetState) => void): () => void {
-    let dependencies = new WeakSet<State<any>>()
-    let unsubscribers: Array<() => void> = []
-
-    const get = <S, N>(state: State<S, N>) => {
-      const controller = this[getController](state)
-      if (!dependencies.has(state)) {
-        dependencies.add(state)
-        const unsubscribe = controller.addDependent(() => {
-          definition(get)
-        })
-        unsubscribers.push(unsubscribe)
-      }
-      return controller.value
-    }
-
-    definition(get)
-
-    return () => {
-      for (let i = 0; i < unsubscribers.length; i++) {
-        unsubscribers[i]()
-      }
-      unsubscribers = []
-    }
+  query(definition: (get: GetState) => void): QueryHandle {
+    const query = new ReactiveQuery(this, definition)
+    query.update()
+    return query
   }
 
   useProvider(provider: Provider) {
-    const set = <Q, M>(state: State<Q, M>, value: M) => {
-      this[getController](state).publishValue(value)
-    }
-
-    const queryDependencies = new WeakSet<State<any>>()
-    const get = <S, N>(state: State<S, N>) => {
-      const controller = this[getController](state)
-      if (!queryDependencies.has(state)) {
-        queryDependencies.add(state)
-        controller.addDependent(() => provider.provide({ get, set }))
-      }
-
-      return controller.value
-    }
-
-    provider.provide({ get, set })
+    const reactiveProvider = new ReactiveProvider(this, provider)
+    reactiveProvider.update()
   }
 
   useWriter<T, M, E = unknown>(token: State<T, M>, writer: Writer<T, M, E>) {

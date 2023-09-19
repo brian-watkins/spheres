@@ -1,4 +1,4 @@
-import { Selection, Container, Provider, State, Store, Writer, store, write, StoreArg, StoreMessage, batch, GetState } from "@src/index.js"
+import { Selection, Container, Provider, State, Store, Writer, store, write, StoreArg, StoreMessage, batch, GetState, QueryHandle } from "@src/index.js"
 import { Context } from "esbehavior"
 
 export function testStoreContext<T>(): Context<TestStore<T>> {
@@ -11,7 +11,7 @@ export class TestStore<T> {
   public store: Store
   private _tokens: T | undefined
   private values: Map<string, Array<any>> = new Map()
-  private unsubscribers: Map<string, () => void> = new Map()
+  private queries: Map<string, QueryHandle> = new Map()
 
   constructor() {
     this.store = new Store()
@@ -23,7 +23,7 @@ export class TestStore<T> {
       this.values.get(name)?.push(query(get))
     })
 
-    this.unsubscribers.set(name, unsubscribe)
+    this.queries.set(name, unsubscribe)
   }
 
   subscribeTo<S, N>(token: State<S, N>, name: string) {
@@ -32,11 +32,11 @@ export class TestStore<T> {
       this.values.get(name)?.push(get(token))
     })
 
-    this.unsubscribers.set(name, unsubscribe)
+    this.queries.set(name, unsubscribe)
   }
 
   unsubscribe(name: string) {
-    this.unsubscribers.get(name)?.()
+    this.queries.get(name)?.unsubscribe()
   }
 
   useProvider(provider: Provider) {

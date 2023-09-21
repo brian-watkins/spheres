@@ -26,6 +26,10 @@ export interface Writer<T, M = T, E = unknown> {
   write(message: M, actions: WriterActions<T, M, E>): Promise<void>
 }
 
+export interface StoreQuery {
+  run(get: GetState): void
+}
+
 export interface QueryActions<T> {
   get: GetState,
   current: T
@@ -185,7 +189,6 @@ export class Value<T, M = T> extends State<T, M> {
   }
 
   [registerState](store: Store): ContainerController<T, M> {
-    // How is this not getting garbage collected?
     const reactiveQuery = new ReactiveValue(store, this, this.derivation)
 
     let initialValue: T
@@ -225,12 +228,12 @@ class ReactiveValue<T, M> extends AbstractReactiveQuery {
 }
 
 class ReactiveQuery extends AbstractReactiveQuery {
-  constructor(store: Store, private definition: (get: GetState) => void) {
+  constructor(store: Store, private query: StoreQuery) {
     super(store)
   }
 
   update() {
-    this.definition((state) => this.getValue(state))
+    this.query.run((state) => this.getValue(state))
   }
 }
 
@@ -263,10 +266,10 @@ export class Store {
     return controller
   }
 
-  query(definition: (get: GetState) => void): QueryHandle {
-    const query = new ReactiveQuery(this, definition)
-    query.update()
-    return query
+  useQuery(query: StoreQuery): QueryHandle {
+    const reactiveQuery = new ReactiveQuery(this, query)
+    reactiveQuery.update()
+    return reactiveQuery
   }
 
   useProvider(provider: Provider) {

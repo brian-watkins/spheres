@@ -1,4 +1,4 @@
-import { Store } from "state-party";
+import { GetState, StoreQuery, Stateful, Store } from "state-party";
 import { DOMRenderer } from "./render.js";
 import { ElementNode, NodeType, TextNode, VirtualNode, VirtualNodeKey, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "./virtualNode.js";
 
@@ -32,6 +32,37 @@ export function createDOMRenderer(store: Store): DOMRenderer {
   }
 }
 
+class StatefulElementQuery implements StoreQuery {
+  current: VirtualNode | null = null
+
+  constructor(private store: Store, private generator: (get: GetState) => VirtualNode) { }
+
+  run(get: GetState): void {
+    this.current = patch(this.store, this.current, this.generator(get))
+  }
+}
+
+class StatefulAttributeQuery implements StoreQuery {
+  constructor(private element: Element, private attribute: string, private generator: Stateful<string>) { }
+
+  run(get: GetState): void {
+    const val = this.generator(get)
+    if (val) {
+      this.element.setAttribute(this.attribute, val)
+    } else {
+      this.element.removeAttribute(this.attribute)
+    }
+  }
+}
+
+class ReactiveTextQuery implements StoreQuery {
+  constructor(private node: Node, private generator: Stateful<string>) { }
+
+  run(get: GetState): void {
+    this.node.nodeValue = this.generator(get)
+  }
+}
+
 const createNode = (store: Store, vnode: VirtualNode): Node => {
   if (vnode.type === NodeType.TEXT) {
     return document.createTextNode(vnode.value)
@@ -39,19 +70,15 @@ const createNode = (store: Store, vnode: VirtualNode): Node => {
 
   if (vnode.type === NodeType.REACTIVE_TEXT) {
     const node = document.createTextNode("")
-    vnode.unsubscribe = store.query((get) => {
-      node.nodeValue = vnode.generator(get)
-    })
+    vnode.query = store.useQuery(new ReactiveTextQuery(node, vnode.generator))
 
     return node
   }
 
   if (vnode.type === NodeType.STATEFUL) {
-    let statefulNode: VirtualNode | null = null
-    vnode.unsubscribe = store.query((get) => {
-      statefulNode = patch(store, statefulNode, vnode.generator(get))
-    })
-    return statefulNode!.node!
+    const query = new StatefulElementQuery(store, vnode.generator)
+    vnode.query = store.useQuery(query)
+    return query.current!.node!
   }
 
   const element = vnode.is ?
@@ -66,9 +93,7 @@ const createNode = (store: Store, vnode: VirtualNode): Node => {
   const statefulAttrs = vnode.data.stateful
   for (const attr in statefulAttrs) {
     const stateful = statefulAttrs[attr]
-    stateful.unsubscribe = store.query((get) => {
-      element.setAttribute(attr, stateful.generator(get))
-    })
+    stateful.query = store.useQuery(new StatefulAttributeQuery(element, attr, stateful.generator))
   }
 
   let k: keyof HTMLElementEventMap
@@ -86,7 +111,7 @@ const createNode = (store: Store, vnode: VirtualNode): Node => {
 
 const alertRemoval = (vnode: VirtualNode) => {
   if (vnode.type === NodeType.STATEFUL || vnode.type === NodeType.REACTIVE_TEXT) {
-    vnode.unsubscribe?.()
+    vnode.query?.unsubscribe()
   } else if (vnode.type === NodeType.ELEMENT) {
     for (const child of vnode.children) {
       alertRemoval(child)
@@ -140,13 +165,11 @@ function patchStatefulAttributes(store: Store, oldVNode: ElementNode, newVNode: 
   const newAttr = newVNode.data.stateful ?? {}
   for (let key in { ...oldVNode.data.stateful, ...newVNode.data.stateful }) {
     if (newAttr[key] === undefined) {
-      oldAttr![key].unsubscribe!()
+      oldAttr![key].query?.unsubscribe()
       oldVNode.node!.removeAttribute(key)
     } else if (oldAttr[key] === undefined) {
       const stateful = newAttr![key]
-      stateful.unsubscribe = store.query((get) => {
-        oldVNode.node!.setAttribute(key, stateful.generator(get))
-      })
+      stateful.query = store.useQuery(new StatefulAttributeQuery(oldVNode.node!, key, stateful.generator))
     }
   }
 }
@@ -349,9 +372,7 @@ export const patch = (store: Store, oldVNode: VirtualNode | null, newVNode: Virt
         if (oldVNode.data.on || newElement.data.on) {
           patchEvents(oldVNode, newVNode as ElementNode)
         }
-        if (newElement.data.props?.innerHTML) {
-          (node as Element).innerHTML = newElement.data.props.innerHTML
-        } else {
+        if (!newElement.data.props?.innerHTML) {
           patchChildren(store, oldVNode, newElement)
         }
       }

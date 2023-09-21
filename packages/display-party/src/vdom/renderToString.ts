@@ -45,22 +45,27 @@ function stringifyElement(store: Store, node: ElementNode): string {
 
 function stringifyStatefulNode(store: Store, node: StatefulNode): string {
   let statefulNode: VirtualNode
-  const unsubscribe = store.query((get) => {
+  const query = store.useQuery({
+    run: (get) => {
     statefulNode = node.generator(get)
+    }
   })
-  unsubscribe()
+  query.unsubscribe()
   return stringifyVirtualNode(store, statefulNode!)
 }
 
 function stringifyReactiveText(store: Store, node: ReactiveTextNode): string {
-  let textNode: TextNode
-  const unsubscribe = store.query((get) => {
-    textNode = {
-      type: NodeType.TEXT,
-      value: node.generator(get),
-      node: undefined
+  let textValue: string | null = null
+  const query = store.useQuery({
+    run: (get) => {
+      textValue = node.generator(get)
     }
   })
-  unsubscribe()
-  return stringifyTextNode(textNode!)
+
+  query.unsubscribe()
+  return stringifyTextNode({
+    type: NodeType.TEXT,
+    value: textValue ?? "",
+    node: undefined 
+  })
 }

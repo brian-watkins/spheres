@@ -36,7 +36,7 @@ export class DisplayElement {
     return window._testDisplayElement(this.selector, this.index, "text")
   }
 
-  attribute(name: string): Promise<string> {
+  attribute(name: string): Promise<string | undefined> {
     return window._testDisplayElement(this.selector, this.index, "attribute", name)
   }
 

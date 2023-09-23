@@ -172,7 +172,7 @@ export default behavior("unsubscribe", [
       observe: [
         effect("the removed attribute is not present", async () => {
           const classAttributes = await selectElement("[data-activity='fishing']").attribute("class")
-          expect(classAttributes, is(""))
+          expect(classAttributes, is<string | undefined>(undefined))
         }),
         effect("the query is only updated for the remaining attribute", (context) => {
           expect(context.state.queryCounts["dataAttribute"], is(2))
@@ -252,7 +252,7 @@ export default behavior("unsubscribe", [
       observe: [
         effect("the removed attribute is not present", async () => {
           const classAttributes = await selectElement(".gardening-style").attribute("data-activity")
-          expect(classAttributes, is(""))
+          expect(classAttributes, is<string | undefined>(undefined))
         }),
         effect("the query is only updated for the remaining attribute", (context) => {
           expect(context.state.queryCounts["dataAttribute"], is(1))

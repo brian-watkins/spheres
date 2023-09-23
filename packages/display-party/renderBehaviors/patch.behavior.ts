@@ -1,6 +1,6 @@
-import { addAttribute, addProperty, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "@src/vdom/virtualNode.js";
+import { addAttribute, addProperty, addStatefulAttribute, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "@src/vdom/virtualNode.js";
 import { behavior, effect, example, fact, step } from "esbehavior";
-import { equalTo, expect, resolvesTo } from "great-expectations";
+import { assignedWith, equalTo, expect, is, resolvesTo } from "great-expectations";
 import { selectElement, selectElementWithText, selectElements } from "helpers/displayElement.js";
 import { renderContext } from "helpers/renderContext.js";
 import { Container, container } from "state-party";
@@ -403,6 +403,71 @@ export default behavior("patch", [
         }),
         effect("the child element is updated", async () => {
           await expect(selectElement(".funny").text(), resolvesTo(equalTo("Your favorite sport is: diving")))
+        })
+      ]
+    }),
+  example(renderContext<Container<string | undefined>>())
+    .description("patch stateful attribute")
+    .script({
+      suppose: [
+        fact("there is an element with a stateful attribute", (context) => {
+          context.setState(container<string | undefined>({ initialValue: "hello" }))
+          const config = virtualNodeConfig()
+          addAttribute(config, "id", "reactiveDiv")
+          addStatefulAttribute(config, "data-message", (get) => get(context.state))
+          context.mount(makeVirtualElement("div", config, [
+            makeVirtualTextNode("This is cool!")
+          ]))
+        })
+      ],
+      observe: [
+        effect("the attribute is rendered with the initial value", async () => {
+          await expect(selectElement("#reactiveDiv").attribute("data-message"), resolvesTo(assignedWith(equalTo("hello"))))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the container is updated to another string", (context) => {
+          context.writeTo(context.state, "something else!")
+        })
+      ],
+      observe: [
+        effect("the attribute value is updated", async () => {
+          await expect(selectElement("#reactiveDiv").attribute("data-message"), resolvesTo(assignedWith(equalTo("something else!"))))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the container is updated to null", (context) => {
+          context.writeTo(context.state, undefined)
+        })
+      ],
+      observe: [
+        effect("the attribute is removed", async () => {
+          const attributeValue = await selectElement("#reactiveDiv").attribute("data-message")
+          expect(attributeValue, is(equalTo<string | undefined>(undefined)))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the container is updated to another string", (context) => {
+          context.writeTo(context.state, "I'm back!")
+        })
+      ],
+      observe: [
+        effect("the attribute is updated with the value", async () => {
+          await expect(selectElement("#reactiveDiv").attribute("data-message"), resolvesTo(assignedWith(equalTo("I'm back!"))))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the container is updated to a falsey value", (context) => {
+          context.writeTo(context.state, "")
+        })
+      ],
+      observe: [
+        effect("the attribute is updated with the value", async () => {
+          await expect(selectElement("#reactiveDiv").attribute("data-message"), resolvesTo(assignedWith(equalTo(""))))
         })
       ]
     })

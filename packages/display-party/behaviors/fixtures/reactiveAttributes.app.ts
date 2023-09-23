@@ -13,6 +13,7 @@ export default function (): View {
           el.config
             .id("title")
             .class((get) => get(clicks) % 2 === 0 ? "on" : "off")
+            .dataAttribute("click-counter", (get) => `${get(clicks)}`)
 
           el.children
             .text("Hello!")

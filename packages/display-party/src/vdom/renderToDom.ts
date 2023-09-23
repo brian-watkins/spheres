@@ -47,10 +47,10 @@ class StatefulAttributeQuery implements StoreQuery {
 
   run(get: GetState): void {
     const val = this.generator(get)
-    if (val) {
-      this.element.setAttribute(this.attribute, val)
-    } else {
+    if (val === undefined) {
       this.element.removeAttribute(this.attribute)
+    } else {
+      this.element.setAttribute(this.attribute, val)
     }
   }
 }
@@ -59,7 +59,7 @@ class ReactiveTextQuery implements StoreQuery {
   constructor(private node: Node, private generator: Stateful<string>) { }
 
   run(get: GetState): void {
-    this.node.nodeValue = this.generator(get)
+    this.node.nodeValue = this.generator(get) ?? null
   }
 }
 

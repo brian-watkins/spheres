@@ -57,7 +57,7 @@ function stringifyStatefulNode(store: Store, node: StatefulNode): string {
 }
 
 function stringifyReactiveText(store: Store, node: ReactiveTextNode): string {
-  let textValue: string | null = null
+  let textValue: string | undefined = undefined
   const query = store.useQuery({
     run: (get) => {
       textValue = node.generator(get)

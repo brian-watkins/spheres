@@ -91,6 +91,36 @@ export default (context: Context<TestAppController>) => behavior("reactive eleme
           expect(isDisabled, is(equalTo(true)), "the element is disabled")
         })
       ]
+    }),
+
+  example(context)
+    .description("reactive data attribute")
+    .script({
+      suppose: [
+        fact("there is a view with reactive data attributes", async (controller) => {
+          controller.loadApp("reactiveAttributes.app")
+        })
+      ],
+      observe: [
+        effect("the data attribute has the default value", async (controller) => {
+          const dataValue = await controller.display.select("#title").attribute("data-click-counter")
+          expect(dataValue, is(assignedWith(equalTo("0"))))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("click the button", async (controller) => {
+          await controller.display.select("button[data-action='increment']").click()
+          await controller.display.select("button[data-action='increment']").click()
+          await controller.display.select("button[data-action='increment']").click()
+        })
+      ],
+      observe: [
+        effect("the data attribute is updated", async (controller) => {
+          const dataValue = await controller.display.select("#title").attribute("data-click-counter")
+          expect(dataValue, is(assignedWith(equalTo("3"))))
+        })
+      ]
     })
   
 ])

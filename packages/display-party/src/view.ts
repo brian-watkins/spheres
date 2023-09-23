@@ -33,7 +33,7 @@ export function renderToString(store: Store, view: View): string {
 const resetConfig = Symbol("reset-config")
 
 export interface SpecialAttributes {
-  dataAttribute(name: string, value?: string): this
+  dataAttribute(name: string, value?: string | Stateful<string>): this
   innerHTML(html: string): this
   on(events: ElementEvents): this
   aria(attributes: AriaAttributes): this
@@ -47,8 +47,13 @@ class BasicConfig implements SpecialAttributes {
     return this
   }
 
-  dataAttribute(name: string, value: string = "true") {
-    addAttribute(this.config, `data-${name}`, value)
+  dataAttribute(name: string, value: string | Stateful<string> = "true") {
+    if (typeof value === "function") {
+      addStatefulAttribute(this.config, `data-${name}`, value)
+    } else {
+      addAttribute(this.config, `data-${name}`, value)
+    }
+
     return this
   }
 
@@ -85,7 +90,7 @@ const MagicConfig = new Proxy({}, {
     if (booleanAttributes.has(methodName)) {
       return function (isSelected: boolean | Stateful<boolean>) {
         if (typeof isSelected === "function") {
-          addStatefulAttribute(receiver.config, methodName, (get) => isSelected(get) ? methodName : null)
+          addStatefulAttribute(receiver.config, methodName, (get) => isSelected(get) ? methodName : undefined)
         } else {
           if (isSelected) {
             addAttribute(receiver.config, methodName, methodName)

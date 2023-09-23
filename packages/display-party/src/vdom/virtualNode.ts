@@ -88,19 +88,11 @@ export function setKey(config: VirtualNodeConfig, key: VirtualNodeKey) {
   config.key = key
 }
 
-export function addClasses(config: VirtualNodeConfig, classNames: Array<string>) {
-  addAttribute(config, "class", classNames.join(" "))
-}
-
 export function addStatefulAttribute(config: VirtualNodeConfig, name: string, generator: Stateful<string>) {
   if (!config.stateful) { config.stateful = {} }
   config.stateful[name] = {
     generator
   }
-}
-
-export function addStatefulClasses(config: VirtualNodeConfig, generator: Stateful<Array<string>>) {
-  addStatefulAttribute(config, "class", (get) => generator(get)?.join(" ") ?? null)
 }
 
 export function setEventHandler<N extends keyof HTMLElementEventMap>(config: VirtualNodeConfig, event: N, handler: (evt: HTMLElementEventMap[N]) => StoreMessage<any, any>) {

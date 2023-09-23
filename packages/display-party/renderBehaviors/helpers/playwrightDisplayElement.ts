@@ -7,9 +7,9 @@ export class PlaywrightDisplayElement {
     return this.locator.nth(at).innerText({ timeout: 200 })
   }
 
-  async attribute(at: number, name: string): Promise<string> {
+  async attribute(at: number, name: string): Promise<string | undefined> {
     const value = await this.locator.nth(at).getAttribute(name, { timeout: 200 })
-    return value ?? ""
+    return value === null ? undefined : value
   }
 
   async inputValue(at: number): Promise<string> {

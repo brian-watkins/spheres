@@ -1,7 +1,7 @@
 import { behavior, effect, example, fact, step } from "esbehavior"
 import { renderContext } from "./helpers/renderContext.js";
 import { makeVirtualElement, virtualNodeConfig } from "@src/vdom/virtualNode.js";
-import { childElement, statefulChildElement } from "helpers/index.js";
+import { blockChildElement, childElement, statefulChildElement } from "helpers/index.js";
 import { selectElements } from "helpers/displayElement.js";
 import { equalTo, expect, is } from "great-expectations";
 
@@ -40,6 +40,44 @@ export default behavior("reorder list", [
             "child 3",
             "child 2",
             "child 1",
+          ])))
+        })
+      ]
+    }),
+  example(renderContext())
+    .description("reorder block elements")
+    .script({
+      suppose: [
+        fact("there are block elements in a list", (context) => {
+          context.mount(makeVirtualElement("div", virtualNodeConfig(), [
+            blockChildElement(1),
+            blockChildElement(2),
+            blockChildElement(3),
+            blockChildElement(4),
+            blockChildElement(5),
+          ]))
+        })
+      ],
+      perform: [
+        step("the list is reordered", (context) => {
+          context.patch(makeVirtualElement("div", virtualNodeConfig(), [
+            blockChildElement(2),
+            blockChildElement(4),
+            blockChildElement(1),
+            blockChildElement(5),
+            blockChildElement(3),
+          ]))
+        })
+      ],
+      observe: [
+        effect("the elements are in the expected order", async () => {
+          const texts = await selectElements("[data-block-child]").map(el => el.text())
+          expect(texts, is(equalTo([
+            "block child 2",
+            "block child 4",
+            "block child 1",
+            "block child 5",
+            "block child 3",
           ])))
         })
       ]

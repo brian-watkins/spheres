@@ -1,5 +1,5 @@
 import { GetState, State, Stateful, Store } from "state-party"
-import { VirtualNode, VirtualNodeConfig, VirtualNodeKey, addAttribute, addClasses, addProperty, addStatefulAttribute, addStatefulClasses, makeReactiveTextNode, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, setEventHandler, setKey, virtualNodeConfig } from "./vdom/virtualNode.js"
+import { VirtualNode, VirtualNodeConfig, VirtualNodeKey, addAttribute, addClasses, addProperty, addStatefulAttribute, addStatefulClasses, makeBlockElement, makeReactiveTextNode, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, setEventHandler, setKey, virtualNodeConfig } from "./vdom/virtualNode.js"
 import { ViewBuilder, AriaAttributes, ElementEvents, booleanAttributes, ViewElements } from "./htmlElements.js"
 import { createStringRenderer } from "./vdom/renderToString.js"
 import { createDOMRenderer } from "./vdom/renderToDom.js"
@@ -129,16 +129,24 @@ export interface StatefulConfig {
   view: (get: GetState) => View
 }
 
+// Need a better name here
+export interface ViewConfig {
+  view: () => View
+  key?: string | number | State<any>
+}
+
 export interface SpecialElements {
   text(value: string | Stateful<string>): this
   withView(view: View): this
   withState(config: StatefulConfig): this
+  append(config: ViewConfig): this
 }
 
 export interface SpecialElementBuilder {
   text(value: string): View
   withView(view: View): View
   withState(config: StatefulConfig): View
+  append(config: ViewConfig): View
 }
 
 const configBuilder = new BasicConfig()
@@ -190,6 +198,17 @@ class BasicView implements SpecialElements, SpecialElementBuilder {
       setKey(config, statefulConfig.key)
     }
     const element = makeStatefulElement(config, (get) => statefulConfig.view(get)[toVirtualNode])
+    this.nodes.push(element)
+
+    return this
+  }
+
+  append(viewConfig: ViewConfig) {
+    let config = virtualNodeConfig()
+    if (viewConfig.key) {
+      setKey(config, viewConfig.key)
+    }
+    const element = makeBlockElement(config, () => viewConfig.view()[toVirtualNode])
     this.nodes.push(element)
 
     return this

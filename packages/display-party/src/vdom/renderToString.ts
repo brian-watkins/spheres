@@ -19,6 +19,8 @@ function stringifyVirtualNode(store: Store, node: VirtualNode): string {
       return stringifyReactiveText(store, node)
     case NodeType.STATEFUL:
       return stringifyStatefulNode(store, node)
+    case NodeType.BLOCK:
+      return stringifyVirtualNode(store, node.generator())
   }
 }
 

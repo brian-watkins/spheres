@@ -102,6 +102,20 @@ export function appWithDeeplyNestedState(): View {
     })
 }
 
+export function appWithBlock(): View {
+  return view()
+    .append({
+      view: () => {
+        return view().div(({ children }) => {
+          children
+            .h1(({ children }) => {
+              children.text("Hello!")
+            })
+        })
+      }
+    })
+}
+
 export function appWithReactiveText(): View {
   return view()
     .div(el => {

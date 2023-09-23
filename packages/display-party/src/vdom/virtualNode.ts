@@ -4,7 +4,8 @@ export enum NodeType {
   TEXT = 3,
   ELEMENT = 1,
   STATEFUL = 15,
-  REACTIVE_TEXT = 16
+  REACTIVE_TEXT = 16,
+  BLOCK = 17
 }
 
 export interface TextNode {
@@ -40,7 +41,14 @@ export interface StatefulNode {
   query?: QueryHandle
 }
 
-export type VirtualNode = TextNode | ReactiveTextNode | ElementNode | StatefulNode
+export interface BlockNode {
+  type: NodeType.BLOCK
+  key?: VirtualNodeKey
+  generator: () => VirtualNode
+  node: Node | undefined
+}
+
+export type VirtualNode = TextNode | ReactiveTextNode | ElementNode | StatefulNode | BlockNode
 
 declare type Listener = (ev: Event) => any;
 
@@ -119,6 +127,20 @@ export function makeStatefulElement(config: VirtualNodeConfig, generator: (get: 
   }
 
   return element
+}
+
+export function makeBlockElement(config: VirtualNodeConfig, generator: () => VirtualNode, node?: Element): VirtualNode {
+  const block: BlockNode = {
+    type: NodeType.BLOCK,
+    generator,
+    node
+  }
+
+  if (config.key) {
+    block.key = config.key
+  }
+
+  return block
 }
 
 export function makeVirtualElement(tag: string, config: VirtualNodeConfig, children: Array<VirtualNode>, node?: Element): ElementNode {

@@ -65,13 +65,21 @@ const peopleView = (props: ReorderAppProps) => (get: GetState) => {
         .hr()
         .ul(el => {
           for (const person of list) {
-            if (props.keyOnState) {
-              el.children.withState({
-                key: person,
-                view: get => personViewWithoutKey(person, get)
-              })
-            } else {
-              el.children.withView(personViewWithKey(person))
+            switch (props.keyOnState) {
+              case "stateful":
+                el.children.withState({
+                  key: person,
+                  view: get => personViewWithoutKey(person, get)
+                })
+                break
+              case "element":
+                el.children.withView(personViewWithKey(person))
+                break
+              case "block":
+                el.children.append({
+                  view: () => personViewWithStatefulText(person),
+                  key: person
+                })
             }
           }
         })
@@ -107,8 +115,19 @@ function personViewWithoutKey(person: State<Person>, get: GetState): View {
     })
 }
 
+function personViewWithStatefulText(person: State<Person>): View {
+  return view()
+    .li(el => {
+      el.children
+        .h1(el => {
+          el.config.dataAttribute("person")
+          el.children.text((get) => `${get(person).name} is ${get(person).age} years old: ${get(ticker)}`)
+        })
+    })
+}
+
 export interface ReorderAppProps {
-  keyOnState: boolean
+  keyOnState: "element" | "stateful" | "block"
 }
 
 export default function (props: ReorderAppProps): View {

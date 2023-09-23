@@ -81,6 +81,10 @@ const createNode = (store: Store, vnode: VirtualNode): Node => {
     return query.current!.node!
   }
 
+  if (vnode.type === NodeType.BLOCK) {
+    return createNode(store, vnode.generator())
+  }
+
   const element = vnode.is ?
     document.createElement(vnode.tag, { is: vnode.is }) :
     document.createElement(vnode.tag)
@@ -125,7 +129,7 @@ const removeNode = (parent: Node, vnode: VirtualNode) => {
 }
 
 function getKey(vnode: VirtualNode | undefined) {
-  if (vnode && (vnode.type === NodeType.ELEMENT || vnode.type === NodeType.STATEFUL)) {
+  if (vnode && (vnode.type === NodeType.ELEMENT || vnode.type === NodeType.STATEFUL || vnode.type === NodeType.BLOCK)) {
     return vnode.key
   } else {
     return undefined

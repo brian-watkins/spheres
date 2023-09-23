@@ -6,7 +6,6 @@ import { ReorderAppProps } from "./fixtures/reorderUsingElementKey.app.js";
 
 export default (context: Context<TestAppController>) =>
   behavior("keyed list", [
-    exampleGenerator(context, "key on element", "reorderUsingElementKey.app", { keyOnState: "element" }),
     exampleGenerator(context, "key on stateful view", "reorderUsingElementKey.app", { keyOnState: "stateful" }),
     exampleGenerator(context, "key on block", "reorderUsingElementKey.app", { keyOnState: "block" })
   ])

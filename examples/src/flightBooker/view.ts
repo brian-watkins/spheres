@@ -12,16 +12,10 @@ export function flightBooker(): View {
         "w-96"
       ])
     el.children
-      .withView(flightTypeSelect())
-      .withState({
-        view: startDateInput
-      })
-      .withState({
-        view: returnDateInput
-      })
-      .withState({
-        view: bookFlightButton
-      })
+      .view(flightTypeSelect)
+      .view(startDateInput)
+      .view(returnDateInput)
+      .view(bookFlightButton)
   })
 }
 

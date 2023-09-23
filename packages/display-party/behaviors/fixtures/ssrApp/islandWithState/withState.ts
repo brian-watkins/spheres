@@ -3,22 +3,20 @@ import { clickCount, nameState } from "../state.js"
 import { GetState, selection, store, write } from "state-party"
 
 export default view()
-  .withState({
-    view: get => {
-      return view()
-        .div(el => {
-          el.config.id("nested-state-island")
-          el.children
-            .h1(el => {
-              el.children.text(`This is ${get(nameState)}'s stuff!`)
-            })
-            .withState({ view: counterView })
-            .hr()
-            .withState({ view: tallyView })
-            .hr()
-            .withState({ view: tallyView })
-        })
-    }
+  .view(get => {
+    return view()
+      .div(el => {
+        el.config.id("nested-state-island")
+        el.children
+          .h1(el => {
+            el.children.text(`This is ${get(nameState)}'s stuff!`)
+          })
+          .view(counterView)
+          .hr()
+          .view(tallyView)
+          .hr()
+          .view(tallyView)
+      })
   })
 
 const incrementCount = selection(get => write(clickCount, get(clickCount) + 1))

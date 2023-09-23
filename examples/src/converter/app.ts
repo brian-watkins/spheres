@@ -12,9 +12,7 @@ export function converter(): View {
             el.config.for("celsius")
             el.children.text("Celsius")
           })
-          .withState({
-            view: celsiusInput
-          })
+          .view(celsiusInput)
       })
       .div(el => {
         el.children
@@ -22,9 +20,7 @@ export function converter(): View {
             el.config.for("farenheit")
             el.children.text("Farenheit")
           })
-          .withState({
-            view: farenheitInput
-          })
+          .view(farenheitInput)
       })
   })
 }

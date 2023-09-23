@@ -1,5 +1,5 @@
 import { GetState, State, Stateful, Store } from "state-party"
-import { VirtualNode, VirtualNodeConfig, VirtualNodeKey, addAttribute, addClasses, addProperty, addStatefulAttribute, addStatefulClasses, makeBlockElement, makeReactiveTextNode, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, setEventHandler, setKey, virtualNodeConfig } from "./vdom/virtualNode.js"
+import { VirtualNode, VirtualNodeConfig, addAttribute, addClasses, addProperty, addStatefulAttribute, addStatefulClasses, makeBlockElement, makeReactiveTextNode, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, setEventHandler, setKey, virtualNodeConfig } from "./vdom/virtualNode.js"
 import { ViewBuilder, AriaAttributes, ElementEvents, booleanAttributes, ViewElements } from "./htmlElements.js"
 import { createStringRenderer } from "./vdom/renderToString.js"
 import { createDOMRenderer } from "./vdom/renderToDom.js"
@@ -33,7 +33,6 @@ export function renderToString(store: Store, view: View): string {
 const resetConfig = Symbol("reset-config")
 
 export interface SpecialAttributes {
-  key(value: string | number | State<any>): this
   classes(classes: Array<string> | Stateful<Array<string>>): this
   dataAttribute(name: string, value?: string): this
   innerHTML(html: string): this
@@ -44,13 +43,11 @@ export interface SpecialAttributes {
 class BasicConfig implements SpecialAttributes {
   private config: VirtualNodeConfig = virtualNodeConfig()
 
-  key(value: VirtualNodeKey) {
-    setKey(this.config, value)
+  innerHTML(html: string): this {
+    addProperty(this.config, "innerHTML", html)
     return this
   }
 
-  innerHTML(html: string): this {
-    addProperty(this.config, "innerHTML", html)
     return this
   }
 
@@ -124,29 +121,18 @@ export interface View {
   [toVirtualNode]: VirtualNode
 }
 
-export interface StatefulConfig {
-  key?: string | number | State<any>
-  view: (get: GetState) => View
-}
-
-// Need a better name here
-export interface ViewConfig {
-  view: () => View
+export interface ViewOptions {
   key?: string | number | State<any>
 }
 
 export interface SpecialElements {
   text(value: string | Stateful<string>): this
-  withView(view: View): this
-  withState(config: StatefulConfig): this
-  append(config: ViewConfig): this
+  view(definition: (() => View) | ((get: GetState) => View), options?: ViewOptions): this
 }
 
 export interface SpecialElementBuilder {
   text(value: string): View
-  withView(view: View): View
-  withState(config: StatefulConfig): View
-  append(config: ViewConfig): View
+  view(definition: (() => View) | ((get: GetState) => View), options?: ViewOptions): View
 }
 
 const configBuilder = new BasicConfig()
@@ -187,28 +173,16 @@ class BasicView implements SpecialElements, SpecialElementBuilder {
     return this
   }
 
-  withView(view: View) {
-    this.nodes.push(view[toVirtualNode])
-    return this
-  }
-
-  withState(statefulConfig: StatefulConfig) {
+  view(definition: (() => View) | ((get: GetState) => View), options?: ViewOptions) {
     let config = virtualNodeConfig()
-    if (statefulConfig.key) {
-      setKey(config, statefulConfig.key)
+    if (options?.key) {
+      setKey(config, options.key)
     }
-    const element = makeStatefulElement(config, (get) => statefulConfig.view(get)[toVirtualNode])
-    this.nodes.push(element)
 
-    return this
-  }
-
-  append(viewConfig: ViewConfig) {
-    let config = virtualNodeConfig()
-    if (viewConfig.key) {
-      setKey(config, viewConfig.key)
-    }
-    const element = makeBlockElement(config, () => viewConfig.view()[toVirtualNode])
+    const element = definition.length === 0 ?
+      //@ts-ignore
+      makeBlockElement(config, () => definition()[toVirtualNode]) :
+      makeStatefulElement(config, (get) => definition(get)[toVirtualNode])
     this.nodes.push(element)
 
     return this

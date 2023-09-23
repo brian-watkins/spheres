@@ -7,11 +7,11 @@ export default function (): View {
     .div(el => {
       el.children
         .h1(el => el.children.text("This is the click counter!"))
-        .withView(counterIsland)
+        .view(() => counterIsland)
         .hr()
-        .withView(tallyIsland)
+        .view(() => tallyIsland)
         .hr()
-        .withView(tallyIsland)
+        .view(() => tallyIsland)
     })
 }
 

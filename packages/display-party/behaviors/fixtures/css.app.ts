@@ -27,7 +27,7 @@ export default function (): View {
           el.children
             .text("This is only a test!")
         })
-        .withState({ view: funView })
+        .view(funView)
         .hr()
         .input(el => {
           el.config

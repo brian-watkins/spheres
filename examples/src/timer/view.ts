@@ -19,13 +19,9 @@ export function timer(): View {
         ])
         el.children
           .text("Elapsed Time")
-          .withState({
-            view: progressMeterView
-          })
+          .view(progressMeter)
       })
-      .withState({
-        view: elapsedTimeView
-      })
+      .view(elapsedTimeLabel)
       .label(el => {
         el.config.classes([
           "mt-4",
@@ -70,7 +66,7 @@ export function timer(): View {
   })
 }
 
-function elapsedTimeView(get: GetState): View {
+function elapsedTimeLabel(): View {
   return view()
     .div(el => {
       el.config
@@ -80,11 +76,11 @@ function elapsedTimeView(get: GetState): View {
           "text-right"
         ])
       el.children
-        .text(formatTime(get(elapsedTime)))
+        .text((get) => formatTime(get(elapsedTime)))
     })
 }
 
-function progressMeterView(get: GetState): View {
+function progressMeter(get: GetState): View {
   return view()
     .progress(el => {
       el.config

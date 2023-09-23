@@ -45,11 +45,11 @@ export default function (): View {
     .div(el => {
       el.children
         .p(el => el.children.text("Here is some person"))
-        .withState({ view: peopleView })
+        .view(peopleView)
         .hr()
         .input(el => el.config.on({
           input: event => write(localState, inputValue(event))
         }))
-        .withView(updateButton())
+        .view(updateButton)
     })
 }

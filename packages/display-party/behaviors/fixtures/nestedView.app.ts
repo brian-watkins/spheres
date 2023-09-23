@@ -23,7 +23,7 @@ const nameView = (get: GetState) => {
         el.children.text(`My name is: ${name}`)
       })
       if (name !== "AGELESS PERSON") {
-        el.children.withState({ view: ageView })
+        el.children.view(ageView)
       }
     })
 }
@@ -34,7 +34,7 @@ export default function(): View {
     .div(el => {
       el.children
         .h1(el => el.children.text("This is only a test!"))
-        .withState({ view: nameView })
+        .view(nameView)
         .hr()
         .input(({config}) => {
           config

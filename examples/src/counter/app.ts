@@ -1,18 +1,17 @@
 import { View, view } from "display-party";
-import { GetState, container, write } from "state-party";
+import { container, write } from "state-party";
 
 const clickCount = container({
   initialValue: 0,
-  reducer: (_: string, current) => {
-    return current + 1
-  }
+  reducer: (_: string, current) => current + 1
 })
 
 export function counter(): View {
   return view().main(el => {
     el.children
-      .withState({
-        view: counterLabel
+      .p(el => {
+        el.config.dataAttribute("counter-text")
+        el.children.text((get) => `Clicks: ${get(clickCount)}`)
       })
       .button(el => {
         el.config.on({
@@ -20,12 +19,5 @@ export function counter(): View {
         })
         el.children.text("Count!")
       })
-  })
-}
-
-function counterLabel(get: GetState): View {
-  return view().p(el => {
-    el.config.dataAttribute("counter-text")
-    el.children.text(`Clicks: ${get(clickCount)}`)
   })
 }

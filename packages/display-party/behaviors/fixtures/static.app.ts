@@ -60,25 +60,21 @@ function nameView(get: GetState): View {
 export function appWithSimpleState(): View {
   return view()
     .div(el => {
-      el.children.withState({ view: nameView })
+      el.children.view(nameView)
     })
 }
 
 export function appWithNestedState(): View {
   return view()
     .div(el => {
-      el.children.withState({
-        view: get => {
-          const age = get(ageState)
-          if (age < 100) {
-            return view()
-              .withState({
-                view: nameView
-              })
-          } else {
-            return view()
-              .p(el => el.children.text("You are old!"))
-          }
+      el.children.view(get => {
+        const age = get(ageState)
+        if (age < 100) {
+          return view()
+            .view(nameView)
+        } else {
+          return view()
+            .p(el => el.children.text("You are old!"))
         }
       })
     })
@@ -87,32 +83,26 @@ export function appWithNestedState(): View {
 export function appWithDeeplyNestedState(): View {
   return view()
     .div(el => {
-      el.children.withState({
-        view: get => {
-          return view()
-            .div(el => {
-              el.children
-                .withState({
-                  view: nameView
-                })
-                .p(el => el.children.text(`${get(ageState)} years!`))
-            })
-        }
+      el.children.view(get => {
+        return view()
+          .div(el => {
+            el.children
+              .view(nameView)
+              .p(el => el.children.text(`${get(ageState)} years!`))
+          })
       })
     })
 }
 
 export function appWithBlock(): View {
   return view()
-    .append({
-      view: () => {
-        return view().div(({ children }) => {
-          children
-            .h1(({ children }) => {
-              children.text("Hello!")
-            })
-        })
-      }
+    .view(() => {
+      return view().div(({ children }) => {
+        children
+          .h1(({ children }) => {
+            children.text("Hello!")
+          })
+      })
     })
 }
 

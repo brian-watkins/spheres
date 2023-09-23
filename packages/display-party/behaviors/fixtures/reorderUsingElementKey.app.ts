@@ -32,7 +32,7 @@ const shiftPeopleSelection = selection(get => {
     return write(people, current)
   }
 
-  return write(people, [ ...current.slice(1), current[0] ])
+  return write(people, [...current.slice(1), current[0]])
 })
 
 const incrementTicker = selection(get => {
@@ -67,38 +67,15 @@ const peopleView = (props: ReorderAppProps) => (get: GetState) => {
           for (const person of list) {
             switch (props.keyOnState) {
               case "stateful":
-                el.children.withState({
-                  key: person,
-                  view: get => personViewWithoutKey(person, get)
+                el.children.view(get => personViewWithoutKey(person, get), {
+                  key: person
                 })
                 break
-              case "element":
-                el.children.withView(personViewWithKey(person))
-                break
               case "block":
-                el.children.append({
-                  view: () => personViewWithStatefulText(person),
+                el.children.view(() => personViewWithStatefulText(person), {
                   key: person
                 })
             }
-          }
-        })
-    })
-}
-
-function personViewWithKey(person: State<Person>): View {
-  return view()
-    .li(el => {
-      el.config
-        .key(person)
-      el.children
-        .withState({
-          view: get => {
-            return view()
-              .h1(el => {
-                el.config.dataAttribute("person")
-                el.children.text(`${get(person).name} is ${get(person).age} years old: ${get(ticker)}`)
-              })
           }
         })
     })
@@ -127,13 +104,13 @@ function personViewWithStatefulText(person: State<Person>): View {
 }
 
 export interface ReorderAppProps {
-  keyOnState: "element" | "stateful" | "block"
+  keyOnState: "stateful" | "block"
 }
 
 export default function (props: ReorderAppProps): View {
   return view()
     .div(el => {
       el.config.id("reorder-list")
-      el.children.withState({ view: peopleView(props) })
+      el.children.view(peopleView(props))
     })
 }

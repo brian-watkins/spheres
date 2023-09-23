@@ -8,7 +8,7 @@ export default function (): View {
         .h1(el => {
           el.children.text("THis is the click counter!")
         })
-        .withView(withStateIsland)
+        .view(() => withStateIsland)
     })
 }
 

@@ -8,7 +8,7 @@ export default function () {
       div.children
         .p(p => {
           p.config
-            .classes(["super-class"])
+            .class("super-class")
             .dataAttribute("blah")
           p.children
             .text("This is text")
@@ -18,9 +18,10 @@ export default function () {
             .dataAttribute("title")
         })
         .input(el => {
-          el.config.type("checkbox")
-          el.config.checked(true)
-          el.config.disabled(false)
+          el.config
+            .type("checkbox")
+            .checked(true)
+            .disabled(false)
         })
         .button(el => {
           el.config.aria({ label: "submit" })

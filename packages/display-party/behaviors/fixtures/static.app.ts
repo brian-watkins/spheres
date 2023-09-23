@@ -27,10 +27,7 @@ export function appWithPropertiesAndAttributes(props: StaticViewProps): View {
       el.children
         .div(el => {
           el.config
-            .classes([
-              "my-class",
-              "another-class"
-            ])
+            .class("my-class another-class")
             .dataAttribute("person", props.name)
           el.children.text(`${props.age} years old`)
         })

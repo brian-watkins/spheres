@@ -1,5 +1,5 @@
 import { GetState, State, Stateful, Store } from "state-party"
-import { VirtualNode, VirtualNodeConfig, addAttribute, addClasses, addProperty, addStatefulAttribute, addStatefulClasses, makeBlockElement, makeReactiveTextNode, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, setEventHandler, setKey, virtualNodeConfig } from "./vdom/virtualNode.js"
+import { VirtualNode, VirtualNodeConfig, addAttribute, addProperty, addStatefulAttribute, makeBlockElement, makeReactiveTextNode, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, setEventHandler, setKey, virtualNodeConfig } from "./vdom/virtualNode.js"
 import { ViewBuilder, AriaAttributes, ElementEvents, booleanAttributes, ViewElements } from "./htmlElements.js"
 import { createStringRenderer } from "./vdom/renderToString.js"
 import { createDOMRenderer } from "./vdom/renderToDom.js"
@@ -33,7 +33,6 @@ export function renderToString(store: Store, view: View): string {
 const resetConfig = Symbol("reset-config")
 
 export interface SpecialAttributes {
-  classes(classes: Array<string> | Stateful<Array<string>>): this
   dataAttribute(name: string, value?: string): this
   innerHTML(html: string): this
   on(events: ElementEvents): this
@@ -45,18 +44,6 @@ class BasicConfig implements SpecialAttributes {
 
   innerHTML(html: string): this {
     addProperty(this.config, "innerHTML", html)
-    return this
-  }
-
-    return this
-  }
-
-  classes(classes: string[] | Stateful<Array<string>>) {
-    if (typeof classes === "function") {
-      addStatefulClasses(this.config, classes)
-    } else {
-      addClasses(this.config, classes)
-    }
     return this
   }
 
@@ -96,15 +83,23 @@ const MagicConfig = new Proxy({}, {
   get: (_, prop, receiver) => {
     const methodName = prop as string
     if (booleanAttributes.has(methodName)) {
-      return function (isSelected: boolean) {
-        if (isSelected) {
-          addAttribute(receiver.config, methodName, methodName)
+      return function (isSelected: boolean | Stateful<boolean>) {
+        if (typeof isSelected === "function") {
+          addStatefulAttribute(receiver.config, methodName, (get) => isSelected(get) ? methodName : null)
+        } else {
+          if (isSelected) {
+            addAttribute(receiver.config, methodName, methodName)
+          }
         }
         return receiver
       }
     } else {
-      return function (value: string) {
-        addAttribute(receiver.config, methodName, value)
+      return function (value: string | Stateful<string>) {
+        if (typeof value === "function") {
+          addStatefulAttribute(receiver.config, methodName, value)
+        } else {
+          addAttribute(receiver.config, methodName, value)
+        }
         return receiver
       }
     }

@@ -25,7 +25,8 @@ htmlElementsFile.addImportDeclarations([
   },
   {
     namedImports: [
-      "StoreMessage"
+      "StoreMessage",
+      "Stateful"
     ],
     moduleSpecifier: "state-party"
   }
@@ -58,7 +59,6 @@ const globalAttibutesInterface = htmlElementsFile.addInterface({
 const globalAttribute = buildAttributeProperty("this")
 
 for (const attribute of htmlElementAttributes['*']) {
-  if (attribute === "class") continue
   globalAttibutesInterface.addMethod(globalAttribute(attribute))
 }
 
@@ -170,11 +170,11 @@ function buildAttributeProperty(returnType: string): (attribute: string) => Opti
     let parameters: Array<OptionalKind<ParameterDeclarationStructure>> = []
     if (booleanAttributes.includes(attribute)) {
       parameters = [
-        { name: "value", type: "boolean" }
+        { name: "value", type: "boolean | Stateful<boolean>" }
       ]
     } else {
       parameters = [
-        { name: "value", type: "string" }
+        { name: "value", type: "string | Stateful<string>" }
       ]
     }
 

@@ -1,5 +1,5 @@
 import { View, ViewElement, SpecialElements, SpecialElementBuilder, SpecialAttributes } from "./view.js";
-import { StoreMessage } from "state-party";
+import { StoreMessage, Stateful } from "state-party";
 
 export interface AriaAttributes {
     activedescendant?: string;
@@ -53,33 +53,34 @@ export interface AriaAttributes {
 }
 
 export interface GlobalAttributes {
-    accesskey(value: string): this;
-    autocapitalize(value: string): this;
-    autofocus(value: boolean): this;
-    contenteditable(value: string): this;
-    dir(value: string): this;
-    draggable(value: string): this;
-    enterkeyhint(value: string): this;
-    hidden(value: string): this;
-    id(value: string): this;
-    inert(value: boolean): this;
-    inputmode(value: string): this;
-    is(value: string): this;
-    itemid(value: string): this;
-    itemprop(value: string): this;
-    itemref(value: string): this;
-    itemscope(value: boolean): this;
-    itemtype(value: string): this;
-    lang(value: string): this;
-    nonce(value: string): this;
-    popover(value: string): this;
-    slot(value: string): this;
-    spellcheck(value: string): this;
-    style(value: string): this;
-    tabindex(value: string): this;
-    title(value: string): this;
-    translate(value: string): this;
-    role(value: string): this;
+    accesskey(value: string | Stateful<string>): this;
+    autocapitalize(value: string | Stateful<string>): this;
+    autofocus(value: boolean | Stateful<boolean>): this;
+    class(value: string | Stateful<string>): this;
+    contenteditable(value: string | Stateful<string>): this;
+    dir(value: string | Stateful<string>): this;
+    draggable(value: string | Stateful<string>): this;
+    enterkeyhint(value: string | Stateful<string>): this;
+    hidden(value: string | Stateful<string>): this;
+    id(value: string | Stateful<string>): this;
+    inert(value: boolean | Stateful<boolean>): this;
+    inputmode(value: string | Stateful<string>): this;
+    is(value: string | Stateful<string>): this;
+    itemid(value: string | Stateful<string>): this;
+    itemprop(value: string | Stateful<string>): this;
+    itemref(value: string | Stateful<string>): this;
+    itemscope(value: boolean | Stateful<boolean>): this;
+    itemtype(value: string | Stateful<string>): this;
+    lang(value: string | Stateful<string>): this;
+    nonce(value: string | Stateful<string>): this;
+    popover(value: string | Stateful<string>): this;
+    slot(value: string | Stateful<string>): this;
+    spellcheck(value: string | Stateful<string>): this;
+    style(value: string | Stateful<string>): this;
+    tabindex(value: string | Stateful<string>): this;
+    title(value: string | Stateful<string>): this;
+    translate(value: string | Stateful<string>): this;
+    role(value: string | Stateful<string>): this;
 }
 
 export interface ElementEvents {
@@ -475,19 +476,19 @@ export interface ViewElements extends SpecialElements {
 }
 
 export interface AElementAttributes extends SpecialAttributes, GlobalAttributes {
-    charset(value: string): AElementAttributes;
-    coords(value: string): AElementAttributes;
-    download(value: string): AElementAttributes;
-    href(value: string): AElementAttributes;
-    hreflang(value: string): AElementAttributes;
-    name(value: string): AElementAttributes;
-    ping(value: string): AElementAttributes;
-    referrerpolicy(value: string): AElementAttributes;
-    rel(value: string): AElementAttributes;
-    rev(value: string): AElementAttributes;
-    shape(value: string): AElementAttributes;
-    target(value: string): AElementAttributes;
-    type(value: string): AElementAttributes;
+    charset(value: string | Stateful<string>): AElementAttributes;
+    coords(value: string | Stateful<string>): AElementAttributes;
+    download(value: string | Stateful<string>): AElementAttributes;
+    href(value: string | Stateful<string>): AElementAttributes;
+    hreflang(value: string | Stateful<string>): AElementAttributes;
+    name(value: string | Stateful<string>): AElementAttributes;
+    ping(value: string | Stateful<string>): AElementAttributes;
+    referrerpolicy(value: string | Stateful<string>): AElementAttributes;
+    rel(value: string | Stateful<string>): AElementAttributes;
+    rev(value: string | Stateful<string>): AElementAttributes;
+    shape(value: string | Stateful<string>): AElementAttributes;
+    target(value: string | Stateful<string>): AElementAttributes;
+    type(value: string | Stateful<string>): AElementAttributes;
 }
 
 export interface AbbrElementAttributes extends SpecialAttributes, GlobalAttributes {
@@ -500,32 +501,32 @@ export interface AddressElementAttributes extends SpecialAttributes, GlobalAttri
 }
 
 export interface AppletElementAttributes extends SpecialAttributes, GlobalAttributes {
-    align(value: string): AppletElementAttributes;
-    alt(value: string): AppletElementAttributes;
-    archive(value: string): AppletElementAttributes;
-    code(value: string): AppletElementAttributes;
-    codebase(value: string): AppletElementAttributes;
-    height(value: string): AppletElementAttributes;
-    hspace(value: string): AppletElementAttributes;
-    name(value: string): AppletElementAttributes;
-    object(value: string): AppletElementAttributes;
-    vspace(value: string): AppletElementAttributes;
-    width(value: string): AppletElementAttributes;
+    align(value: string | Stateful<string>): AppletElementAttributes;
+    alt(value: string | Stateful<string>): AppletElementAttributes;
+    archive(value: string | Stateful<string>): AppletElementAttributes;
+    code(value: string | Stateful<string>): AppletElementAttributes;
+    codebase(value: string | Stateful<string>): AppletElementAttributes;
+    height(value: string | Stateful<string>): AppletElementAttributes;
+    hspace(value: string | Stateful<string>): AppletElementAttributes;
+    name(value: string | Stateful<string>): AppletElementAttributes;
+    object(value: string | Stateful<string>): AppletElementAttributes;
+    vspace(value: string | Stateful<string>): AppletElementAttributes;
+    width(value: string | Stateful<string>): AppletElementAttributes;
 }
 
 export interface AreaElementAttributes extends SpecialAttributes, GlobalAttributes {
-    alt(value: string): AreaElementAttributes;
-    coords(value: string): AreaElementAttributes;
-    download(value: string): AreaElementAttributes;
-    href(value: string): AreaElementAttributes;
-    hreflang(value: string): AreaElementAttributes;
-    nohref(value: string): AreaElementAttributes;
-    ping(value: string): AreaElementAttributes;
-    referrerpolicy(value: string): AreaElementAttributes;
-    rel(value: string): AreaElementAttributes;
-    shape(value: string): AreaElementAttributes;
-    target(value: string): AreaElementAttributes;
-    type(value: string): AreaElementAttributes;
+    alt(value: string | Stateful<string>): AreaElementAttributes;
+    coords(value: string | Stateful<string>): AreaElementAttributes;
+    download(value: string | Stateful<string>): AreaElementAttributes;
+    href(value: string | Stateful<string>): AreaElementAttributes;
+    hreflang(value: string | Stateful<string>): AreaElementAttributes;
+    nohref(value: string | Stateful<string>): AreaElementAttributes;
+    ping(value: string | Stateful<string>): AreaElementAttributes;
+    referrerpolicy(value: string | Stateful<string>): AreaElementAttributes;
+    rel(value: string | Stateful<string>): AreaElementAttributes;
+    shape(value: string | Stateful<string>): AreaElementAttributes;
+    target(value: string | Stateful<string>): AreaElementAttributes;
+    type(value: string | Stateful<string>): AreaElementAttributes;
 }
 
 export interface ArticleElementAttributes extends SpecialAttributes, GlobalAttributes {
@@ -535,27 +536,27 @@ export interface AsideElementAttributes extends SpecialAttributes, GlobalAttribu
 }
 
 export interface AudioElementAttributes extends SpecialAttributes, GlobalAttributes {
-    autoplay(value: boolean): AudioElementAttributes;
-    controls(value: boolean): AudioElementAttributes;
-    crossorigin(value: string): AudioElementAttributes;
-    loop(value: boolean): AudioElementAttributes;
-    muted(value: boolean): AudioElementAttributes;
-    preload(value: string): AudioElementAttributes;
-    src(value: string): AudioElementAttributes;
+    autoplay(value: boolean | Stateful<boolean>): AudioElementAttributes;
+    controls(value: boolean | Stateful<boolean>): AudioElementAttributes;
+    crossorigin(value: string | Stateful<string>): AudioElementAttributes;
+    loop(value: boolean | Stateful<boolean>): AudioElementAttributes;
+    muted(value: boolean | Stateful<boolean>): AudioElementAttributes;
+    preload(value: string | Stateful<string>): AudioElementAttributes;
+    src(value: string | Stateful<string>): AudioElementAttributes;
 }
 
 export interface BElementAttributes extends SpecialAttributes, GlobalAttributes {
 }
 
 export interface BaseElementAttributes extends SpecialAttributes, GlobalAttributes {
-    href(value: string): BaseElementAttributes;
-    target(value: string): BaseElementAttributes;
+    href(value: string | Stateful<string>): BaseElementAttributes;
+    target(value: string | Stateful<string>): BaseElementAttributes;
 }
 
 export interface BasefontElementAttributes extends SpecialAttributes, GlobalAttributes {
-    color(value: string): BasefontElementAttributes;
-    face(value: string): BasefontElementAttributes;
-    size(value: string): BasefontElementAttributes;
+    color(value: string | Stateful<string>): BasefontElementAttributes;
+    face(value: string | Stateful<string>): BasefontElementAttributes;
+    size(value: string | Stateful<string>): BasefontElementAttributes;
 }
 
 export interface BdiElementAttributes extends SpecialAttributes, GlobalAttributes {
@@ -574,44 +575,44 @@ export interface BlinkElementAttributes extends SpecialAttributes, GlobalAttribu
 }
 
 export interface BlockquoteElementAttributes extends SpecialAttributes, GlobalAttributes {
-    cite(value: string): BlockquoteElementAttributes;
+    cite(value: string | Stateful<string>): BlockquoteElementAttributes;
 }
 
 export interface BodyElementAttributes extends SpecialAttributes, GlobalAttributes {
-    alink(value: string): BodyElementAttributes;
-    background(value: string): BodyElementAttributes;
-    bgcolor(value: string): BodyElementAttributes;
-    link(value: string): BodyElementAttributes;
-    text(value: string): BodyElementAttributes;
-    vlink(value: string): BodyElementAttributes;
+    alink(value: string | Stateful<string>): BodyElementAttributes;
+    background(value: string | Stateful<string>): BodyElementAttributes;
+    bgcolor(value: string | Stateful<string>): BodyElementAttributes;
+    link(value: string | Stateful<string>): BodyElementAttributes;
+    text(value: string | Stateful<string>): BodyElementAttributes;
+    vlink(value: string | Stateful<string>): BodyElementAttributes;
 }
 
 export interface BrElementAttributes extends SpecialAttributes, GlobalAttributes {
-    clear(value: string): BrElementAttributes;
+    clear(value: string | Stateful<string>): BrElementAttributes;
 }
 
 export interface ButtonElementAttributes extends SpecialAttributes, GlobalAttributes {
-    disabled(value: boolean): ButtonElementAttributes;
-    form(value: string): ButtonElementAttributes;
-    formaction(value: string): ButtonElementAttributes;
-    formenctype(value: string): ButtonElementAttributes;
-    formmethod(value: string): ButtonElementAttributes;
-    formnovalidate(value: boolean): ButtonElementAttributes;
-    formtarget(value: string): ButtonElementAttributes;
-    name(value: string): ButtonElementAttributes;
-    popovertarget(value: string): ButtonElementAttributes;
-    popovertargetaction(value: string): ButtonElementAttributes;
-    type(value: string): ButtonElementAttributes;
-    value(value: string): ButtonElementAttributes;
+    disabled(value: boolean | Stateful<boolean>): ButtonElementAttributes;
+    form(value: string | Stateful<string>): ButtonElementAttributes;
+    formaction(value: string | Stateful<string>): ButtonElementAttributes;
+    formenctype(value: string | Stateful<string>): ButtonElementAttributes;
+    formmethod(value: string | Stateful<string>): ButtonElementAttributes;
+    formnovalidate(value: boolean | Stateful<boolean>): ButtonElementAttributes;
+    formtarget(value: string | Stateful<string>): ButtonElementAttributes;
+    name(value: string | Stateful<string>): ButtonElementAttributes;
+    popovertarget(value: string | Stateful<string>): ButtonElementAttributes;
+    popovertargetaction(value: string | Stateful<string>): ButtonElementAttributes;
+    type(value: string | Stateful<string>): ButtonElementAttributes;
+    value(value: string | Stateful<string>): ButtonElementAttributes;
 }
 
 export interface CanvasElementAttributes extends SpecialAttributes, GlobalAttributes {
-    height(value: string): CanvasElementAttributes;
-    width(value: string): CanvasElementAttributes;
+    height(value: string | Stateful<string>): CanvasElementAttributes;
+    width(value: string | Stateful<string>): CanvasElementAttributes;
 }
 
 export interface CaptionElementAttributes extends SpecialAttributes, GlobalAttributes {
-    align(value: string): CaptionElementAttributes;
+    align(value: string | Stateful<string>): CaptionElementAttributes;
 }
 
 export interface CenterElementAttributes extends SpecialAttributes, GlobalAttributes {
@@ -624,21 +625,21 @@ export interface CodeElementAttributes extends SpecialAttributes, GlobalAttribut
 }
 
 export interface ColElementAttributes extends SpecialAttributes, GlobalAttributes {
-    align(value: string): ColElementAttributes;
-    char(value: string): ColElementAttributes;
-    charoff(value: string): ColElementAttributes;
-    span(value: string): ColElementAttributes;
-    valign(value: string): ColElementAttributes;
-    width(value: string): ColElementAttributes;
+    align(value: string | Stateful<string>): ColElementAttributes;
+    char(value: string | Stateful<string>): ColElementAttributes;
+    charoff(value: string | Stateful<string>): ColElementAttributes;
+    span(value: string | Stateful<string>): ColElementAttributes;
+    valign(value: string | Stateful<string>): ColElementAttributes;
+    width(value: string | Stateful<string>): ColElementAttributes;
 }
 
 export interface ColgroupElementAttributes extends SpecialAttributes, GlobalAttributes {
-    align(value: string): ColgroupElementAttributes;
-    char(value: string): ColgroupElementAttributes;
-    charoff(value: string): ColgroupElementAttributes;
-    span(value: string): ColgroupElementAttributes;
-    valign(value: string): ColgroupElementAttributes;
-    width(value: string): ColgroupElementAttributes;
+    align(value: string | Stateful<string>): ColgroupElementAttributes;
+    char(value: string | Stateful<string>): ColgroupElementAttributes;
+    charoff(value: string | Stateful<string>): ColgroupElementAttributes;
+    span(value: string | Stateful<string>): ColgroupElementAttributes;
+    valign(value: string | Stateful<string>): ColgroupElementAttributes;
+    width(value: string | Stateful<string>): ColgroupElementAttributes;
 }
 
 export interface CommandElementAttributes extends SpecialAttributes, GlobalAttributes {
@@ -648,7 +649,7 @@ export interface ContentElementAttributes extends SpecialAttributes, GlobalAttri
 }
 
 export interface DataElementAttributes extends SpecialAttributes, GlobalAttributes {
-    value(value: string): DataElementAttributes;
+    value(value: string | Stateful<string>): DataElementAttributes;
 }
 
 export interface DatalistElementAttributes extends SpecialAttributes, GlobalAttributes {
@@ -658,31 +659,31 @@ export interface DdElementAttributes extends SpecialAttributes, GlobalAttributes
 }
 
 export interface DelElementAttributes extends SpecialAttributes, GlobalAttributes {
-    cite(value: string): DelElementAttributes;
-    datetime(value: string): DelElementAttributes;
+    cite(value: string | Stateful<string>): DelElementAttributes;
+    datetime(value: string | Stateful<string>): DelElementAttributes;
 }
 
 export interface DetailsElementAttributes extends SpecialAttributes, GlobalAttributes {
-    open(value: boolean): DetailsElementAttributes;
+    open(value: boolean | Stateful<boolean>): DetailsElementAttributes;
 }
 
 export interface DfnElementAttributes extends SpecialAttributes, GlobalAttributes {
 }
 
 export interface DialogElementAttributes extends SpecialAttributes, GlobalAttributes {
-    open(value: boolean): DialogElementAttributes;
+    open(value: boolean | Stateful<boolean>): DialogElementAttributes;
 }
 
 export interface DirElementAttributes extends SpecialAttributes, GlobalAttributes {
-    compact(value: string): DirElementAttributes;
+    compact(value: string | Stateful<string>): DirElementAttributes;
 }
 
 export interface DivElementAttributes extends SpecialAttributes, GlobalAttributes {
-    align(value: string): DivElementAttributes;
+    align(value: string | Stateful<string>): DivElementAttributes;
 }
 
 export interface DlElementAttributes extends SpecialAttributes, GlobalAttributes {
-    compact(value: string): DlElementAttributes;
+    compact(value: string | Stateful<string>): DlElementAttributes;
 }
 
 export interface DtElementAttributes extends SpecialAttributes, GlobalAttributes {
@@ -695,16 +696,16 @@ export interface EmElementAttributes extends SpecialAttributes, GlobalAttributes
 }
 
 export interface EmbedElementAttributes extends SpecialAttributes, GlobalAttributes {
-    height(value: string): EmbedElementAttributes;
-    src(value: string): EmbedElementAttributes;
-    type(value: string): EmbedElementAttributes;
-    width(value: string): EmbedElementAttributes;
+    height(value: string | Stateful<string>): EmbedElementAttributes;
+    src(value: string | Stateful<string>): EmbedElementAttributes;
+    type(value: string | Stateful<string>): EmbedElementAttributes;
+    width(value: string | Stateful<string>): EmbedElementAttributes;
 }
 
 export interface FieldsetElementAttributes extends SpecialAttributes, GlobalAttributes {
-    disabled(value: boolean): FieldsetElementAttributes;
-    form(value: string): FieldsetElementAttributes;
-    name(value: string): FieldsetElementAttributes;
+    disabled(value: boolean | Stateful<boolean>): FieldsetElementAttributes;
+    form(value: string | Stateful<string>): FieldsetElementAttributes;
+    name(value: string | Stateful<string>): FieldsetElementAttributes;
 }
 
 export interface FigcaptionElementAttributes extends SpecialAttributes, GlobalAttributes {
@@ -714,68 +715,68 @@ export interface FigureElementAttributes extends SpecialAttributes, GlobalAttrib
 }
 
 export interface FontElementAttributes extends SpecialAttributes, GlobalAttributes {
-    color(value: string): FontElementAttributes;
-    face(value: string): FontElementAttributes;
-    size(value: string): FontElementAttributes;
+    color(value: string | Stateful<string>): FontElementAttributes;
+    face(value: string | Stateful<string>): FontElementAttributes;
+    size(value: string | Stateful<string>): FontElementAttributes;
 }
 
 export interface FooterElementAttributes extends SpecialAttributes, GlobalAttributes {
 }
 
 export interface FormElementAttributes extends SpecialAttributes, GlobalAttributes {
-    accept(value: string): FormElementAttributes;
-    acceptCharset(value: string): FormElementAttributes;
-    action(value: string): FormElementAttributes;
-    autocomplete(value: string): FormElementAttributes;
-    enctype(value: string): FormElementAttributes;
-    method(value: string): FormElementAttributes;
-    name(value: string): FormElementAttributes;
-    novalidate(value: boolean): FormElementAttributes;
-    target(value: string): FormElementAttributes;
+    accept(value: string | Stateful<string>): FormElementAttributes;
+    acceptCharset(value: string | Stateful<string>): FormElementAttributes;
+    action(value: string | Stateful<string>): FormElementAttributes;
+    autocomplete(value: string | Stateful<string>): FormElementAttributes;
+    enctype(value: string | Stateful<string>): FormElementAttributes;
+    method(value: string | Stateful<string>): FormElementAttributes;
+    name(value: string | Stateful<string>): FormElementAttributes;
+    novalidate(value: boolean | Stateful<boolean>): FormElementAttributes;
+    target(value: string | Stateful<string>): FormElementAttributes;
 }
 
 export interface FrameElementAttributes extends SpecialAttributes, GlobalAttributes {
-    frameborder(value: string): FrameElementAttributes;
-    longdesc(value: string): FrameElementAttributes;
-    marginheight(value: string): FrameElementAttributes;
-    marginwidth(value: string): FrameElementAttributes;
-    name(value: string): FrameElementAttributes;
-    noresize(value: string): FrameElementAttributes;
-    scrolling(value: string): FrameElementAttributes;
-    src(value: string): FrameElementAttributes;
+    frameborder(value: string | Stateful<string>): FrameElementAttributes;
+    longdesc(value: string | Stateful<string>): FrameElementAttributes;
+    marginheight(value: string | Stateful<string>): FrameElementAttributes;
+    marginwidth(value: string | Stateful<string>): FrameElementAttributes;
+    name(value: string | Stateful<string>): FrameElementAttributes;
+    noresize(value: string | Stateful<string>): FrameElementAttributes;
+    scrolling(value: string | Stateful<string>): FrameElementAttributes;
+    src(value: string | Stateful<string>): FrameElementAttributes;
 }
 
 export interface FramesetElementAttributes extends SpecialAttributes, GlobalAttributes {
-    cols(value: string): FramesetElementAttributes;
-    rows(value: string): FramesetElementAttributes;
+    cols(value: string | Stateful<string>): FramesetElementAttributes;
+    rows(value: string | Stateful<string>): FramesetElementAttributes;
 }
 
 export interface H1ElementAttributes extends SpecialAttributes, GlobalAttributes {
-    align(value: string): H1ElementAttributes;
+    align(value: string | Stateful<string>): H1ElementAttributes;
 }
 
 export interface H2ElementAttributes extends SpecialAttributes, GlobalAttributes {
-    align(value: string): H2ElementAttributes;
+    align(value: string | Stateful<string>): H2ElementAttributes;
 }
 
 export interface H3ElementAttributes extends SpecialAttributes, GlobalAttributes {
-    align(value: string): H3ElementAttributes;
+    align(value: string | Stateful<string>): H3ElementAttributes;
 }
 
 export interface H4ElementAttributes extends SpecialAttributes, GlobalAttributes {
-    align(value: string): H4ElementAttributes;
+    align(value: string | Stateful<string>): H4ElementAttributes;
 }
 
 export interface H5ElementAttributes extends SpecialAttributes, GlobalAttributes {
-    align(value: string): H5ElementAttributes;
+    align(value: string | Stateful<string>): H5ElementAttributes;
 }
 
 export interface H6ElementAttributes extends SpecialAttributes, GlobalAttributes {
-    align(value: string): H6ElementAttributes;
+    align(value: string | Stateful<string>): H6ElementAttributes;
 }
 
 export interface HeadElementAttributes extends SpecialAttributes, GlobalAttributes {
-    profile(value: string): HeadElementAttributes;
+    profile(value: string | Stateful<string>): HeadElementAttributes;
 }
 
 export interface HeaderElementAttributes extends SpecialAttributes, GlobalAttributes {
@@ -785,111 +786,111 @@ export interface HgroupElementAttributes extends SpecialAttributes, GlobalAttrib
 }
 
 export interface HrElementAttributes extends SpecialAttributes, GlobalAttributes {
-    align(value: string): HrElementAttributes;
-    noshade(value: string): HrElementAttributes;
-    size(value: string): HrElementAttributes;
-    width(value: string): HrElementAttributes;
+    align(value: string | Stateful<string>): HrElementAttributes;
+    noshade(value: string | Stateful<string>): HrElementAttributes;
+    size(value: string | Stateful<string>): HrElementAttributes;
+    width(value: string | Stateful<string>): HrElementAttributes;
 }
 
 export interface HtmlElementAttributes extends SpecialAttributes, GlobalAttributes {
-    manifest(value: string): HtmlElementAttributes;
-    version(value: string): HtmlElementAttributes;
+    manifest(value: string | Stateful<string>): HtmlElementAttributes;
+    version(value: string | Stateful<string>): HtmlElementAttributes;
 }
 
 export interface IElementAttributes extends SpecialAttributes, GlobalAttributes {
 }
 
 export interface IframeElementAttributes extends SpecialAttributes, GlobalAttributes {
-    align(value: string): IframeElementAttributes;
-    allow(value: string): IframeElementAttributes;
-    allowfullscreen(value: boolean): IframeElementAttributes;
-    allowpaymentrequest(value: string): IframeElementAttributes;
-    allowusermedia(value: string): IframeElementAttributes;
-    frameborder(value: string): IframeElementAttributes;
-    height(value: string): IframeElementAttributes;
-    loading(value: string): IframeElementAttributes;
-    longdesc(value: string): IframeElementAttributes;
-    marginheight(value: string): IframeElementAttributes;
-    marginwidth(value: string): IframeElementAttributes;
-    name(value: string): IframeElementAttributes;
-    referrerpolicy(value: string): IframeElementAttributes;
-    sandbox(value: string): IframeElementAttributes;
-    scrolling(value: string): IframeElementAttributes;
-    src(value: string): IframeElementAttributes;
-    srcdoc(value: string): IframeElementAttributes;
-    width(value: string): IframeElementAttributes;
+    align(value: string | Stateful<string>): IframeElementAttributes;
+    allow(value: string | Stateful<string>): IframeElementAttributes;
+    allowfullscreen(value: boolean | Stateful<boolean>): IframeElementAttributes;
+    allowpaymentrequest(value: string | Stateful<string>): IframeElementAttributes;
+    allowusermedia(value: string | Stateful<string>): IframeElementAttributes;
+    frameborder(value: string | Stateful<string>): IframeElementAttributes;
+    height(value: string | Stateful<string>): IframeElementAttributes;
+    loading(value: string | Stateful<string>): IframeElementAttributes;
+    longdesc(value: string | Stateful<string>): IframeElementAttributes;
+    marginheight(value: string | Stateful<string>): IframeElementAttributes;
+    marginwidth(value: string | Stateful<string>): IframeElementAttributes;
+    name(value: string | Stateful<string>): IframeElementAttributes;
+    referrerpolicy(value: string | Stateful<string>): IframeElementAttributes;
+    sandbox(value: string | Stateful<string>): IframeElementAttributes;
+    scrolling(value: string | Stateful<string>): IframeElementAttributes;
+    src(value: string | Stateful<string>): IframeElementAttributes;
+    srcdoc(value: string | Stateful<string>): IframeElementAttributes;
+    width(value: string | Stateful<string>): IframeElementAttributes;
 }
 
 export interface ImageElementAttributes extends SpecialAttributes, GlobalAttributes {
 }
 
 export interface ImgElementAttributes extends SpecialAttributes, GlobalAttributes {
-    align(value: string): ImgElementAttributes;
-    alt(value: string): ImgElementAttributes;
-    border(value: string): ImgElementAttributes;
-    crossorigin(value: string): ImgElementAttributes;
-    decoding(value: string): ImgElementAttributes;
-    fetchpriority(value: string): ImgElementAttributes;
-    height(value: string): ImgElementAttributes;
-    hspace(value: string): ImgElementAttributes;
-    ismap(value: boolean): ImgElementAttributes;
-    loading(value: string): ImgElementAttributes;
-    longdesc(value: string): ImgElementAttributes;
-    name(value: string): ImgElementAttributes;
-    referrerpolicy(value: string): ImgElementAttributes;
-    sizes(value: string): ImgElementAttributes;
-    src(value: string): ImgElementAttributes;
-    srcset(value: string): ImgElementAttributes;
-    usemap(value: string): ImgElementAttributes;
-    vspace(value: string): ImgElementAttributes;
-    width(value: string): ImgElementAttributes;
+    align(value: string | Stateful<string>): ImgElementAttributes;
+    alt(value: string | Stateful<string>): ImgElementAttributes;
+    border(value: string | Stateful<string>): ImgElementAttributes;
+    crossorigin(value: string | Stateful<string>): ImgElementAttributes;
+    decoding(value: string | Stateful<string>): ImgElementAttributes;
+    fetchpriority(value: string | Stateful<string>): ImgElementAttributes;
+    height(value: string | Stateful<string>): ImgElementAttributes;
+    hspace(value: string | Stateful<string>): ImgElementAttributes;
+    ismap(value: boolean | Stateful<boolean>): ImgElementAttributes;
+    loading(value: string | Stateful<string>): ImgElementAttributes;
+    longdesc(value: string | Stateful<string>): ImgElementAttributes;
+    name(value: string | Stateful<string>): ImgElementAttributes;
+    referrerpolicy(value: string | Stateful<string>): ImgElementAttributes;
+    sizes(value: string | Stateful<string>): ImgElementAttributes;
+    src(value: string | Stateful<string>): ImgElementAttributes;
+    srcset(value: string | Stateful<string>): ImgElementAttributes;
+    usemap(value: string | Stateful<string>): ImgElementAttributes;
+    vspace(value: string | Stateful<string>): ImgElementAttributes;
+    width(value: string | Stateful<string>): ImgElementAttributes;
 }
 
 export interface InputElementAttributes extends SpecialAttributes, GlobalAttributes {
-    accept(value: string): InputElementAttributes;
-    align(value: string): InputElementAttributes;
-    alt(value: string): InputElementAttributes;
-    autocomplete(value: string): InputElementAttributes;
-    checked(value: boolean): InputElementAttributes;
-    dirname(value: string): InputElementAttributes;
-    disabled(value: boolean): InputElementAttributes;
-    form(value: string): InputElementAttributes;
-    formaction(value: string): InputElementAttributes;
-    formenctype(value: string): InputElementAttributes;
-    formmethod(value: string): InputElementAttributes;
-    formnovalidate(value: boolean): InputElementAttributes;
-    formtarget(value: string): InputElementAttributes;
-    height(value: string): InputElementAttributes;
-    ismap(value: boolean): InputElementAttributes;
-    list(value: string): InputElementAttributes;
-    max(value: string): InputElementAttributes;
-    maxlength(value: string): InputElementAttributes;
-    min(value: string): InputElementAttributes;
-    minlength(value: string): InputElementAttributes;
-    multiple(value: boolean): InputElementAttributes;
-    name(value: string): InputElementAttributes;
-    pattern(value: string): InputElementAttributes;
-    placeholder(value: string): InputElementAttributes;
-    popovertarget(value: string): InputElementAttributes;
-    popovertargetaction(value: string): InputElementAttributes;
-    readonly(value: boolean): InputElementAttributes;
-    required(value: boolean): InputElementAttributes;
-    size(value: string): InputElementAttributes;
-    src(value: string): InputElementAttributes;
-    step(value: string): InputElementAttributes;
-    type(value: string): InputElementAttributes;
-    usemap(value: string): InputElementAttributes;
-    value(value: string): InputElementAttributes;
-    width(value: string): InputElementAttributes;
+    accept(value: string | Stateful<string>): InputElementAttributes;
+    align(value: string | Stateful<string>): InputElementAttributes;
+    alt(value: string | Stateful<string>): InputElementAttributes;
+    autocomplete(value: string | Stateful<string>): InputElementAttributes;
+    checked(value: boolean | Stateful<boolean>): InputElementAttributes;
+    dirname(value: string | Stateful<string>): InputElementAttributes;
+    disabled(value: boolean | Stateful<boolean>): InputElementAttributes;
+    form(value: string | Stateful<string>): InputElementAttributes;
+    formaction(value: string | Stateful<string>): InputElementAttributes;
+    formenctype(value: string | Stateful<string>): InputElementAttributes;
+    formmethod(value: string | Stateful<string>): InputElementAttributes;
+    formnovalidate(value: boolean | Stateful<boolean>): InputElementAttributes;
+    formtarget(value: string | Stateful<string>): InputElementAttributes;
+    height(value: string | Stateful<string>): InputElementAttributes;
+    ismap(value: boolean | Stateful<boolean>): InputElementAttributes;
+    list(value: string | Stateful<string>): InputElementAttributes;
+    max(value: string | Stateful<string>): InputElementAttributes;
+    maxlength(value: string | Stateful<string>): InputElementAttributes;
+    min(value: string | Stateful<string>): InputElementAttributes;
+    minlength(value: string | Stateful<string>): InputElementAttributes;
+    multiple(value: boolean | Stateful<boolean>): InputElementAttributes;
+    name(value: string | Stateful<string>): InputElementAttributes;
+    pattern(value: string | Stateful<string>): InputElementAttributes;
+    placeholder(value: string | Stateful<string>): InputElementAttributes;
+    popovertarget(value: string | Stateful<string>): InputElementAttributes;
+    popovertargetaction(value: string | Stateful<string>): InputElementAttributes;
+    readonly(value: boolean | Stateful<boolean>): InputElementAttributes;
+    required(value: boolean | Stateful<boolean>): InputElementAttributes;
+    size(value: string | Stateful<string>): InputElementAttributes;
+    src(value: string | Stateful<string>): InputElementAttributes;
+    step(value: string | Stateful<string>): InputElementAttributes;
+    type(value: string | Stateful<string>): InputElementAttributes;
+    usemap(value: string | Stateful<string>): InputElementAttributes;
+    value(value: string | Stateful<string>): InputElementAttributes;
+    width(value: string | Stateful<string>): InputElementAttributes;
 }
 
 export interface InsElementAttributes extends SpecialAttributes, GlobalAttributes {
-    cite(value: string): InsElementAttributes;
-    datetime(value: string): InsElementAttributes;
+    cite(value: string | Stateful<string>): InsElementAttributes;
+    datetime(value: string | Stateful<string>): InsElementAttributes;
 }
 
 export interface IsindexElementAttributes extends SpecialAttributes, GlobalAttributes {
-    prompt(value: string): IsindexElementAttributes;
+    prompt(value: string | Stateful<string>): IsindexElementAttributes;
 }
 
 export interface KbdElementAttributes extends SpecialAttributes, GlobalAttributes {
@@ -899,39 +900,39 @@ export interface KeygenElementAttributes extends SpecialAttributes, GlobalAttrib
 }
 
 export interface LabelElementAttributes extends SpecialAttributes, GlobalAttributes {
-    for(value: string): LabelElementAttributes;
-    form(value: string): LabelElementAttributes;
+    for(value: string | Stateful<string>): LabelElementAttributes;
+    form(value: string | Stateful<string>): LabelElementAttributes;
 }
 
 export interface LegendElementAttributes extends SpecialAttributes, GlobalAttributes {
-    align(value: string): LegendElementAttributes;
+    align(value: string | Stateful<string>): LegendElementAttributes;
 }
 
 export interface LiElementAttributes extends SpecialAttributes, GlobalAttributes {
-    type(value: string): LiElementAttributes;
-    value(value: string): LiElementAttributes;
+    type(value: string | Stateful<string>): LiElementAttributes;
+    value(value: string | Stateful<string>): LiElementAttributes;
 }
 
 export interface LinkElementAttributes extends SpecialAttributes, GlobalAttributes {
-    as(value: string): LinkElementAttributes;
-    blocking(value: string): LinkElementAttributes;
-    charset(value: string): LinkElementAttributes;
-    color(value: string): LinkElementAttributes;
-    crossorigin(value: string): LinkElementAttributes;
-    disabled(value: boolean): LinkElementAttributes;
-    fetchpriority(value: string): LinkElementAttributes;
-    href(value: string): LinkElementAttributes;
-    hreflang(value: string): LinkElementAttributes;
-    imagesizes(value: string): LinkElementAttributes;
-    imagesrcset(value: string): LinkElementAttributes;
-    integrity(value: string): LinkElementAttributes;
-    media(value: string): LinkElementAttributes;
-    referrerpolicy(value: string): LinkElementAttributes;
-    rel(value: string): LinkElementAttributes;
-    rev(value: string): LinkElementAttributes;
-    sizes(value: string): LinkElementAttributes;
-    target(value: string): LinkElementAttributes;
-    type(value: string): LinkElementAttributes;
+    as(value: string | Stateful<string>): LinkElementAttributes;
+    blocking(value: string | Stateful<string>): LinkElementAttributes;
+    charset(value: string | Stateful<string>): LinkElementAttributes;
+    color(value: string | Stateful<string>): LinkElementAttributes;
+    crossorigin(value: string | Stateful<string>): LinkElementAttributes;
+    disabled(value: boolean | Stateful<boolean>): LinkElementAttributes;
+    fetchpriority(value: string | Stateful<string>): LinkElementAttributes;
+    href(value: string | Stateful<string>): LinkElementAttributes;
+    hreflang(value: string | Stateful<string>): LinkElementAttributes;
+    imagesizes(value: string | Stateful<string>): LinkElementAttributes;
+    imagesrcset(value: string | Stateful<string>): LinkElementAttributes;
+    integrity(value: string | Stateful<string>): LinkElementAttributes;
+    media(value: string | Stateful<string>): LinkElementAttributes;
+    referrerpolicy(value: string | Stateful<string>): LinkElementAttributes;
+    rel(value: string | Stateful<string>): LinkElementAttributes;
+    rev(value: string | Stateful<string>): LinkElementAttributes;
+    sizes(value: string | Stateful<string>): LinkElementAttributes;
+    target(value: string | Stateful<string>): LinkElementAttributes;
+    type(value: string | Stateful<string>): LinkElementAttributes;
 }
 
 export interface ListingElementAttributes extends SpecialAttributes, GlobalAttributes {
@@ -941,7 +942,7 @@ export interface MainElementAttributes extends SpecialAttributes, GlobalAttribut
 }
 
 export interface MapElementAttributes extends SpecialAttributes, GlobalAttributes {
-    name(value: string): MapElementAttributes;
+    name(value: string | Stateful<string>): MapElementAttributes;
 }
 
 export interface MarkElementAttributes extends SpecialAttributes, GlobalAttributes {
@@ -954,28 +955,28 @@ export interface MathElementAttributes extends SpecialAttributes, GlobalAttribut
 }
 
 export interface MenuElementAttributes extends SpecialAttributes, GlobalAttributes {
-    compact(value: string): MenuElementAttributes;
+    compact(value: string | Stateful<string>): MenuElementAttributes;
 }
 
 export interface MenuitemElementAttributes extends SpecialAttributes, GlobalAttributes {
 }
 
 export interface MetaElementAttributes extends SpecialAttributes, GlobalAttributes {
-    charset(value: string): MetaElementAttributes;
-    content(value: string): MetaElementAttributes;
-    httpEquiv(value: string): MetaElementAttributes;
-    media(value: string): MetaElementAttributes;
-    name(value: string): MetaElementAttributes;
-    scheme(value: string): MetaElementAttributes;
+    charset(value: string | Stateful<string>): MetaElementAttributes;
+    content(value: string | Stateful<string>): MetaElementAttributes;
+    httpEquiv(value: string | Stateful<string>): MetaElementAttributes;
+    media(value: string | Stateful<string>): MetaElementAttributes;
+    name(value: string | Stateful<string>): MetaElementAttributes;
+    scheme(value: string | Stateful<string>): MetaElementAttributes;
 }
 
 export interface MeterElementAttributes extends SpecialAttributes, GlobalAttributes {
-    high(value: string): MeterElementAttributes;
-    low(value: string): MeterElementAttributes;
-    max(value: string): MeterElementAttributes;
-    min(value: string): MeterElementAttributes;
-    optimum(value: string): MeterElementAttributes;
-    value(value: string): MeterElementAttributes;
+    high(value: string | Stateful<string>): MeterElementAttributes;
+    low(value: string | Stateful<string>): MeterElementAttributes;
+    max(value: string | Stateful<string>): MeterElementAttributes;
+    min(value: string | Stateful<string>): MeterElementAttributes;
+    optimum(value: string | Stateful<string>): MeterElementAttributes;
+    value(value: string | Stateful<string>): MeterElementAttributes;
 }
 
 export interface MulticolElementAttributes extends SpecialAttributes, GlobalAttributes {
@@ -1000,60 +1001,60 @@ export interface NoscriptElementAttributes extends SpecialAttributes, GlobalAttr
 }
 
 export interface ObjectElementAttributes extends SpecialAttributes, GlobalAttributes {
-    align(value: string): ObjectElementAttributes;
-    archive(value: string): ObjectElementAttributes;
-    border(value: string): ObjectElementAttributes;
-    classid(value: string): ObjectElementAttributes;
-    codebase(value: string): ObjectElementAttributes;
-    codetype(value: string): ObjectElementAttributes;
-    data(value: string): ObjectElementAttributes;
-    declare(value: string): ObjectElementAttributes;
-    form(value: string): ObjectElementAttributes;
-    height(value: string): ObjectElementAttributes;
-    hspace(value: string): ObjectElementAttributes;
-    name(value: string): ObjectElementAttributes;
-    standby(value: string): ObjectElementAttributes;
-    type(value: string): ObjectElementAttributes;
-    typemustmatch(value: string): ObjectElementAttributes;
-    usemap(value: string): ObjectElementAttributes;
-    vspace(value: string): ObjectElementAttributes;
-    width(value: string): ObjectElementAttributes;
+    align(value: string | Stateful<string>): ObjectElementAttributes;
+    archive(value: string | Stateful<string>): ObjectElementAttributes;
+    border(value: string | Stateful<string>): ObjectElementAttributes;
+    classid(value: string | Stateful<string>): ObjectElementAttributes;
+    codebase(value: string | Stateful<string>): ObjectElementAttributes;
+    codetype(value: string | Stateful<string>): ObjectElementAttributes;
+    data(value: string | Stateful<string>): ObjectElementAttributes;
+    declare(value: string | Stateful<string>): ObjectElementAttributes;
+    form(value: string | Stateful<string>): ObjectElementAttributes;
+    height(value: string | Stateful<string>): ObjectElementAttributes;
+    hspace(value: string | Stateful<string>): ObjectElementAttributes;
+    name(value: string | Stateful<string>): ObjectElementAttributes;
+    standby(value: string | Stateful<string>): ObjectElementAttributes;
+    type(value: string | Stateful<string>): ObjectElementAttributes;
+    typemustmatch(value: string | Stateful<string>): ObjectElementAttributes;
+    usemap(value: string | Stateful<string>): ObjectElementAttributes;
+    vspace(value: string | Stateful<string>): ObjectElementAttributes;
+    width(value: string | Stateful<string>): ObjectElementAttributes;
 }
 
 export interface OlElementAttributes extends SpecialAttributes, GlobalAttributes {
-    compact(value: string): OlElementAttributes;
-    reversed(value: boolean): OlElementAttributes;
-    start(value: string): OlElementAttributes;
-    type(value: string): OlElementAttributes;
+    compact(value: string | Stateful<string>): OlElementAttributes;
+    reversed(value: boolean | Stateful<boolean>): OlElementAttributes;
+    start(value: string | Stateful<string>): OlElementAttributes;
+    type(value: string | Stateful<string>): OlElementAttributes;
 }
 
 export interface OptgroupElementAttributes extends SpecialAttributes, GlobalAttributes {
-    disabled(value: boolean): OptgroupElementAttributes;
-    label(value: string): OptgroupElementAttributes;
+    disabled(value: boolean | Stateful<boolean>): OptgroupElementAttributes;
+    label(value: string | Stateful<string>): OptgroupElementAttributes;
 }
 
 export interface OptionElementAttributes extends SpecialAttributes, GlobalAttributes {
-    disabled(value: boolean): OptionElementAttributes;
-    label(value: string): OptionElementAttributes;
-    selected(value: boolean): OptionElementAttributes;
-    value(value: string): OptionElementAttributes;
+    disabled(value: boolean | Stateful<boolean>): OptionElementAttributes;
+    label(value: string | Stateful<string>): OptionElementAttributes;
+    selected(value: boolean | Stateful<boolean>): OptionElementAttributes;
+    value(value: string | Stateful<string>): OptionElementAttributes;
 }
 
 export interface OutputElementAttributes extends SpecialAttributes, GlobalAttributes {
-    for(value: string): OutputElementAttributes;
-    form(value: string): OutputElementAttributes;
-    name(value: string): OutputElementAttributes;
+    for(value: string | Stateful<string>): OutputElementAttributes;
+    form(value: string | Stateful<string>): OutputElementAttributes;
+    name(value: string | Stateful<string>): OutputElementAttributes;
 }
 
 export interface PElementAttributes extends SpecialAttributes, GlobalAttributes {
-    align(value: string): PElementAttributes;
+    align(value: string | Stateful<string>): PElementAttributes;
 }
 
 export interface ParamElementAttributes extends SpecialAttributes, GlobalAttributes {
-    name(value: string): ParamElementAttributes;
-    type(value: string): ParamElementAttributes;
-    value(value: string): ParamElementAttributes;
-    valuetype(value: string): ParamElementAttributes;
+    name(value: string | Stateful<string>): ParamElementAttributes;
+    type(value: string | Stateful<string>): ParamElementAttributes;
+    value(value: string | Stateful<string>): ParamElementAttributes;
+    valuetype(value: string | Stateful<string>): ParamElementAttributes;
 }
 
 export interface PictureElementAttributes extends SpecialAttributes, GlobalAttributes {
@@ -1063,16 +1064,16 @@ export interface PlaintextElementAttributes extends SpecialAttributes, GlobalAtt
 }
 
 export interface PreElementAttributes extends SpecialAttributes, GlobalAttributes {
-    width(value: string): PreElementAttributes;
+    width(value: string | Stateful<string>): PreElementAttributes;
 }
 
 export interface ProgressElementAttributes extends SpecialAttributes, GlobalAttributes {
-    max(value: string): ProgressElementAttributes;
-    value(value: string): ProgressElementAttributes;
+    max(value: string | Stateful<string>): ProgressElementAttributes;
+    value(value: string | Stateful<string>): ProgressElementAttributes;
 }
 
 export interface QElementAttributes extends SpecialAttributes, GlobalAttributes {
-    cite(value: string): QElementAttributes;
+    cite(value: string | Stateful<string>): QElementAttributes;
 }
 
 export interface RbElementAttributes extends SpecialAttributes, GlobalAttributes {
@@ -1100,18 +1101,18 @@ export interface SampElementAttributes extends SpecialAttributes, GlobalAttribut
 }
 
 export interface ScriptElementAttributes extends SpecialAttributes, GlobalAttributes {
-    async(value: boolean): ScriptElementAttributes;
-    blocking(value: string): ScriptElementAttributes;
-    charset(value: string): ScriptElementAttributes;
-    crossorigin(value: string): ScriptElementAttributes;
-    defer(value: boolean): ScriptElementAttributes;
-    fetchpriority(value: string): ScriptElementAttributes;
-    integrity(value: string): ScriptElementAttributes;
-    language(value: string): ScriptElementAttributes;
-    nomodule(value: boolean): ScriptElementAttributes;
-    referrerpolicy(value: string): ScriptElementAttributes;
-    src(value: string): ScriptElementAttributes;
-    type(value: string): ScriptElementAttributes;
+    async(value: boolean | Stateful<boolean>): ScriptElementAttributes;
+    blocking(value: string | Stateful<string>): ScriptElementAttributes;
+    charset(value: string | Stateful<string>): ScriptElementAttributes;
+    crossorigin(value: string | Stateful<string>): ScriptElementAttributes;
+    defer(value: boolean | Stateful<boolean>): ScriptElementAttributes;
+    fetchpriority(value: string | Stateful<string>): ScriptElementAttributes;
+    integrity(value: string | Stateful<string>): ScriptElementAttributes;
+    language(value: string | Stateful<string>): ScriptElementAttributes;
+    nomodule(value: boolean | Stateful<boolean>): ScriptElementAttributes;
+    referrerpolicy(value: string | Stateful<string>): ScriptElementAttributes;
+    src(value: string | Stateful<string>): ScriptElementAttributes;
+    type(value: string | Stateful<string>): ScriptElementAttributes;
 }
 
 export interface SearchElementAttributes extends SpecialAttributes, GlobalAttributes {
@@ -1121,33 +1122,33 @@ export interface SectionElementAttributes extends SpecialAttributes, GlobalAttri
 }
 
 export interface SelectElementAttributes extends SpecialAttributes, GlobalAttributes {
-    autocomplete(value: string): SelectElementAttributes;
-    disabled(value: boolean): SelectElementAttributes;
-    form(value: string): SelectElementAttributes;
-    multiple(value: boolean): SelectElementAttributes;
-    name(value: string): SelectElementAttributes;
-    required(value: boolean): SelectElementAttributes;
-    size(value: string): SelectElementAttributes;
+    autocomplete(value: string | Stateful<string>): SelectElementAttributes;
+    disabled(value: boolean | Stateful<boolean>): SelectElementAttributes;
+    form(value: string | Stateful<string>): SelectElementAttributes;
+    multiple(value: boolean | Stateful<boolean>): SelectElementAttributes;
+    name(value: string | Stateful<string>): SelectElementAttributes;
+    required(value: boolean | Stateful<boolean>): SelectElementAttributes;
+    size(value: string | Stateful<string>): SelectElementAttributes;
 }
 
 export interface ShadowElementAttributes extends SpecialAttributes, GlobalAttributes {
 }
 
 export interface SlotElementAttributes extends SpecialAttributes, GlobalAttributes {
-    name(value: string): SlotElementAttributes;
+    name(value: string | Stateful<string>): SlotElementAttributes;
 }
 
 export interface SmallElementAttributes extends SpecialAttributes, GlobalAttributes {
 }
 
 export interface SourceElementAttributes extends SpecialAttributes, GlobalAttributes {
-    height(value: string): SourceElementAttributes;
-    media(value: string): SourceElementAttributes;
-    sizes(value: string): SourceElementAttributes;
-    src(value: string): SourceElementAttributes;
-    srcset(value: string): SourceElementAttributes;
-    type(value: string): SourceElementAttributes;
-    width(value: string): SourceElementAttributes;
+    height(value: string | Stateful<string>): SourceElementAttributes;
+    media(value: string | Stateful<string>): SourceElementAttributes;
+    sizes(value: string | Stateful<string>): SourceElementAttributes;
+    src(value: string | Stateful<string>): SourceElementAttributes;
+    srcset(value: string | Stateful<string>): SourceElementAttributes;
+    type(value: string | Stateful<string>): SourceElementAttributes;
+    width(value: string | Stateful<string>): SourceElementAttributes;
 }
 
 export interface SpacerElementAttributes extends SpecialAttributes, GlobalAttributes {
@@ -1163,9 +1164,9 @@ export interface StrongElementAttributes extends SpecialAttributes, GlobalAttrib
 }
 
 export interface StyleElementAttributes extends SpecialAttributes, GlobalAttributes {
-    blocking(value: string): StyleElementAttributes;
-    media(value: string): StyleElementAttributes;
-    type(value: string): StyleElementAttributes;
+    blocking(value: string | Stateful<string>): StyleElementAttributes;
+    media(value: string | Stateful<string>): StyleElementAttributes;
+    type(value: string | Stateful<string>): StyleElementAttributes;
 }
 
 export interface SubElementAttributes extends SpecialAttributes, GlobalAttributes {
@@ -1181,112 +1182,112 @@ export interface SvgElementAttributes extends SpecialAttributes, GlobalAttribute
 }
 
 export interface TableElementAttributes extends SpecialAttributes, GlobalAttributes {
-    align(value: string): TableElementAttributes;
-    bgcolor(value: string): TableElementAttributes;
-    border(value: string): TableElementAttributes;
-    cellpadding(value: string): TableElementAttributes;
-    cellspacing(value: string): TableElementAttributes;
-    frame(value: string): TableElementAttributes;
-    rules(value: string): TableElementAttributes;
-    summary(value: string): TableElementAttributes;
-    width(value: string): TableElementAttributes;
+    align(value: string | Stateful<string>): TableElementAttributes;
+    bgcolor(value: string | Stateful<string>): TableElementAttributes;
+    border(value: string | Stateful<string>): TableElementAttributes;
+    cellpadding(value: string | Stateful<string>): TableElementAttributes;
+    cellspacing(value: string | Stateful<string>): TableElementAttributes;
+    frame(value: string | Stateful<string>): TableElementAttributes;
+    rules(value: string | Stateful<string>): TableElementAttributes;
+    summary(value: string | Stateful<string>): TableElementAttributes;
+    width(value: string | Stateful<string>): TableElementAttributes;
 }
 
 export interface TbodyElementAttributes extends SpecialAttributes, GlobalAttributes {
-    align(value: string): TbodyElementAttributes;
-    char(value: string): TbodyElementAttributes;
-    charoff(value: string): TbodyElementAttributes;
-    valign(value: string): TbodyElementAttributes;
+    align(value: string | Stateful<string>): TbodyElementAttributes;
+    char(value: string | Stateful<string>): TbodyElementAttributes;
+    charoff(value: string | Stateful<string>): TbodyElementAttributes;
+    valign(value: string | Stateful<string>): TbodyElementAttributes;
 }
 
 export interface TdElementAttributes extends SpecialAttributes, GlobalAttributes {
-    abbr(value: string): TdElementAttributes;
-    align(value: string): TdElementAttributes;
-    axis(value: string): TdElementAttributes;
-    bgcolor(value: string): TdElementAttributes;
-    char(value: string): TdElementAttributes;
-    charoff(value: string): TdElementAttributes;
-    colspan(value: string): TdElementAttributes;
-    headers(value: string): TdElementAttributes;
-    height(value: string): TdElementAttributes;
-    nowrap(value: string): TdElementAttributes;
-    rowspan(value: string): TdElementAttributes;
-    scope(value: string): TdElementAttributes;
-    valign(value: string): TdElementAttributes;
-    width(value: string): TdElementAttributes;
+    abbr(value: string | Stateful<string>): TdElementAttributes;
+    align(value: string | Stateful<string>): TdElementAttributes;
+    axis(value: string | Stateful<string>): TdElementAttributes;
+    bgcolor(value: string | Stateful<string>): TdElementAttributes;
+    char(value: string | Stateful<string>): TdElementAttributes;
+    charoff(value: string | Stateful<string>): TdElementAttributes;
+    colspan(value: string | Stateful<string>): TdElementAttributes;
+    headers(value: string | Stateful<string>): TdElementAttributes;
+    height(value: string | Stateful<string>): TdElementAttributes;
+    nowrap(value: string | Stateful<string>): TdElementAttributes;
+    rowspan(value: string | Stateful<string>): TdElementAttributes;
+    scope(value: string | Stateful<string>): TdElementAttributes;
+    valign(value: string | Stateful<string>): TdElementAttributes;
+    width(value: string | Stateful<string>): TdElementAttributes;
 }
 
 export interface TemplateElementAttributes extends SpecialAttributes, GlobalAttributes {
 }
 
 export interface TextareaElementAttributes extends SpecialAttributes, GlobalAttributes {
-    autocomplete(value: string): TextareaElementAttributes;
-    cols(value: string): TextareaElementAttributes;
-    dirname(value: string): TextareaElementAttributes;
-    disabled(value: boolean): TextareaElementAttributes;
-    form(value: string): TextareaElementAttributes;
-    maxlength(value: string): TextareaElementAttributes;
-    minlength(value: string): TextareaElementAttributes;
-    name(value: string): TextareaElementAttributes;
-    placeholder(value: string): TextareaElementAttributes;
-    readonly(value: boolean): TextareaElementAttributes;
-    required(value: boolean): TextareaElementAttributes;
-    rows(value: string): TextareaElementAttributes;
-    wrap(value: string): TextareaElementAttributes;
+    autocomplete(value: string | Stateful<string>): TextareaElementAttributes;
+    cols(value: string | Stateful<string>): TextareaElementAttributes;
+    dirname(value: string | Stateful<string>): TextareaElementAttributes;
+    disabled(value: boolean | Stateful<boolean>): TextareaElementAttributes;
+    form(value: string | Stateful<string>): TextareaElementAttributes;
+    maxlength(value: string | Stateful<string>): TextareaElementAttributes;
+    minlength(value: string | Stateful<string>): TextareaElementAttributes;
+    name(value: string | Stateful<string>): TextareaElementAttributes;
+    placeholder(value: string | Stateful<string>): TextareaElementAttributes;
+    readonly(value: boolean | Stateful<boolean>): TextareaElementAttributes;
+    required(value: boolean | Stateful<boolean>): TextareaElementAttributes;
+    rows(value: string | Stateful<string>): TextareaElementAttributes;
+    wrap(value: string | Stateful<string>): TextareaElementAttributes;
 }
 
 export interface TfootElementAttributes extends SpecialAttributes, GlobalAttributes {
-    align(value: string): TfootElementAttributes;
-    char(value: string): TfootElementAttributes;
-    charoff(value: string): TfootElementAttributes;
-    valign(value: string): TfootElementAttributes;
+    align(value: string | Stateful<string>): TfootElementAttributes;
+    char(value: string | Stateful<string>): TfootElementAttributes;
+    charoff(value: string | Stateful<string>): TfootElementAttributes;
+    valign(value: string | Stateful<string>): TfootElementAttributes;
 }
 
 export interface ThElementAttributes extends SpecialAttributes, GlobalAttributes {
-    abbr(value: string): ThElementAttributes;
-    align(value: string): ThElementAttributes;
-    axis(value: string): ThElementAttributes;
-    bgcolor(value: string): ThElementAttributes;
-    char(value: string): ThElementAttributes;
-    charoff(value: string): ThElementAttributes;
-    colspan(value: string): ThElementAttributes;
-    headers(value: string): ThElementAttributes;
-    height(value: string): ThElementAttributes;
-    nowrap(value: string): ThElementAttributes;
-    rowspan(value: string): ThElementAttributes;
-    scope(value: string): ThElementAttributes;
-    valign(value: string): ThElementAttributes;
-    width(value: string): ThElementAttributes;
+    abbr(value: string | Stateful<string>): ThElementAttributes;
+    align(value: string | Stateful<string>): ThElementAttributes;
+    axis(value: string | Stateful<string>): ThElementAttributes;
+    bgcolor(value: string | Stateful<string>): ThElementAttributes;
+    char(value: string | Stateful<string>): ThElementAttributes;
+    charoff(value: string | Stateful<string>): ThElementAttributes;
+    colspan(value: string | Stateful<string>): ThElementAttributes;
+    headers(value: string | Stateful<string>): ThElementAttributes;
+    height(value: string | Stateful<string>): ThElementAttributes;
+    nowrap(value: string | Stateful<string>): ThElementAttributes;
+    rowspan(value: string | Stateful<string>): ThElementAttributes;
+    scope(value: string | Stateful<string>): ThElementAttributes;
+    valign(value: string | Stateful<string>): ThElementAttributes;
+    width(value: string | Stateful<string>): ThElementAttributes;
 }
 
 export interface TheadElementAttributes extends SpecialAttributes, GlobalAttributes {
-    align(value: string): TheadElementAttributes;
-    char(value: string): TheadElementAttributes;
-    charoff(value: string): TheadElementAttributes;
-    valign(value: string): TheadElementAttributes;
+    align(value: string | Stateful<string>): TheadElementAttributes;
+    char(value: string | Stateful<string>): TheadElementAttributes;
+    charoff(value: string | Stateful<string>): TheadElementAttributes;
+    valign(value: string | Stateful<string>): TheadElementAttributes;
 }
 
 export interface TimeElementAttributes extends SpecialAttributes, GlobalAttributes {
-    datetime(value: string): TimeElementAttributes;
+    datetime(value: string | Stateful<string>): TimeElementAttributes;
 }
 
 export interface TitleElementAttributes extends SpecialAttributes, GlobalAttributes {
 }
 
 export interface TrElementAttributes extends SpecialAttributes, GlobalAttributes {
-    align(value: string): TrElementAttributes;
-    bgcolor(value: string): TrElementAttributes;
-    char(value: string): TrElementAttributes;
-    charoff(value: string): TrElementAttributes;
-    valign(value: string): TrElementAttributes;
+    align(value: string | Stateful<string>): TrElementAttributes;
+    bgcolor(value: string | Stateful<string>): TrElementAttributes;
+    char(value: string | Stateful<string>): TrElementAttributes;
+    charoff(value: string | Stateful<string>): TrElementAttributes;
+    valign(value: string | Stateful<string>): TrElementAttributes;
 }
 
 export interface TrackElementAttributes extends SpecialAttributes, GlobalAttributes {
-    default(value: boolean): TrackElementAttributes;
-    kind(value: string): TrackElementAttributes;
-    label(value: string): TrackElementAttributes;
-    src(value: string): TrackElementAttributes;
-    srclang(value: string): TrackElementAttributes;
+    default(value: boolean | Stateful<boolean>): TrackElementAttributes;
+    kind(value: string | Stateful<string>): TrackElementAttributes;
+    label(value: string | Stateful<string>): TrackElementAttributes;
+    src(value: string | Stateful<string>): TrackElementAttributes;
+    srclang(value: string | Stateful<string>): TrackElementAttributes;
 }
 
 export interface TtElementAttributes extends SpecialAttributes, GlobalAttributes {
@@ -1296,25 +1297,25 @@ export interface UElementAttributes extends SpecialAttributes, GlobalAttributes 
 }
 
 export interface UlElementAttributes extends SpecialAttributes, GlobalAttributes {
-    compact(value: string): UlElementAttributes;
-    type(value: string): UlElementAttributes;
+    compact(value: string | Stateful<string>): UlElementAttributes;
+    type(value: string | Stateful<string>): UlElementAttributes;
 }
 
 export interface VarElementAttributes extends SpecialAttributes, GlobalAttributes {
 }
 
 export interface VideoElementAttributes extends SpecialAttributes, GlobalAttributes {
-    autoplay(value: boolean): VideoElementAttributes;
-    controls(value: boolean): VideoElementAttributes;
-    crossorigin(value: string): VideoElementAttributes;
-    height(value: string): VideoElementAttributes;
-    loop(value: boolean): VideoElementAttributes;
-    muted(value: boolean): VideoElementAttributes;
-    playsinline(value: boolean): VideoElementAttributes;
-    poster(value: string): VideoElementAttributes;
-    preload(value: string): VideoElementAttributes;
-    src(value: string): VideoElementAttributes;
-    width(value: string): VideoElementAttributes;
+    autoplay(value: boolean | Stateful<boolean>): VideoElementAttributes;
+    controls(value: boolean | Stateful<boolean>): VideoElementAttributes;
+    crossorigin(value: string | Stateful<string>): VideoElementAttributes;
+    height(value: string | Stateful<string>): VideoElementAttributes;
+    loop(value: boolean | Stateful<boolean>): VideoElementAttributes;
+    muted(value: boolean | Stateful<boolean>): VideoElementAttributes;
+    playsinline(value: boolean | Stateful<boolean>): VideoElementAttributes;
+    poster(value: string | Stateful<string>): VideoElementAttributes;
+    preload(value: string | Stateful<string>): VideoElementAttributes;
+    src(value: string | Stateful<string>): VideoElementAttributes;
+    width(value: string | Stateful<string>): VideoElementAttributes;
 }
 
 export interface WbrElementAttributes extends SpecialAttributes, GlobalAttributes {

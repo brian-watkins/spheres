@@ -1,6 +1,7 @@
 import { View, view } from "display-party";
-import { GetState, store } from "state-party";
+import { GetState, Meta, store } from "state-party";
 import { celsiusInvalid, celsiusTemperature, farenheitInvalid, farenheitTemperature, temperatureUpdate } from "./state.js";
+import { names } from "../helpers/helpers.js";
 
 
 export function converter(): View {
@@ -27,40 +28,40 @@ export function converter(): View {
 
 function celsiusInput(get: GetState): View {
   return view().input(el => {
-    let classNames = textInputClasses()
-
-    if (get(celsiusInvalid)) {
-      classNames = classNames.concat(invalidInputClasses())
-    } else if (get(celsiusTemperature.meta).type === "error") {
-      classNames = classNames.concat(errorInputClasses())
-    }
-
     el.config
       .id("celsius")
       .type("text")
       .value(get(celsiusTemperature))
       .on({ input: (evt) => store(temperatureUpdate, { celsius: (evt as any).target.value }) })
-      .classes(classNames)
+      .class((get) => inputStyling(get(celsiusInvalid), isError(get(celsiusTemperature.meta))))
   })
 }
 
 function farenheitInput(get: GetState): View {
   return view().input(el => {
-    let classNames = textInputClasses()
-
-    if (get(farenheitInvalid)) {
-      classNames = classNames.concat(invalidInputClasses())
-    } else if (get(farenheitTemperature.meta).type === "error") {
-      classNames = classNames.concat(errorInputClasses())
-    }
-
     el.config
       .id("farenheit")
       .type("text")
       .value(get(farenheitTemperature))
       .on({ input: (evt) => store(temperatureUpdate, { farenheit: (evt as any).target.value }) })
-      .classes(classNames)
+      .class((get) => inputStyling(get(farenheitInvalid), isError(get(farenheitTemperature.meta))))
   })
+}
+
+function inputStyling(isInvalid: boolean, isError: boolean): string {
+  let classNames = textInputClasses()
+
+  if (isInvalid) {
+    classNames = classNames.concat(invalidInputClasses())
+  } else if (isError) {
+    classNames = classNames.concat(errorInputClasses())
+  }
+
+  return names(classNames)
+}
+
+function isError(meta: Meta<any, any>): boolean {
+  return meta.type === "error"
 }
 
 function invalidInputClasses(): Array<string> {

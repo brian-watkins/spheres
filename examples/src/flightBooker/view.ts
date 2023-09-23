@@ -1,16 +1,17 @@
 import { View, view } from "display-party";
 import { GetState, store, write } from "state-party";
 import { FlightTypes, allowReturnDate, bookFlight, bookingAllowed, flightType, returnDate, returnDateIsValid, startDate, startDateIsValid } from "./state.js";
+import { names } from "../helpers/helpers.js";
 
 export function flightBooker(): View {
   return view().main(el => {
     el.config
-      .classes([
+      .class(names([
         "flex",
         "flex-col",
         "gap-2",
         "w-96"
-      ])
+      ]))
     el.children
       .view(flightTypeSelect)
       .view(startDateInput)
@@ -33,11 +34,11 @@ function flightTypeSelect(): View {
     })
 }
 
-function bookFlightButton(get: GetState): View {
+function bookFlightButton(): View {
   return view()
     .button(el => {
       el.config
-        .classes([
+        .class(names([
           "bg-sky-600",
           "text-slate-100",
           "font-bold",
@@ -46,9 +47,9 @@ function bookFlightButton(get: GetState): View {
           "py-4",
           "disabled:bg-slate-400",
           "hover:bg-sky-800"
-        ])
+        ]))
         .on({ click: () => store(bookFlight) })
-        .disabled(!get(bookingAllowed))
+        .disabled((get) => !get(bookingAllowed))
       el.children
         .text("Book Flight!")
     })
@@ -59,7 +60,7 @@ function startDateInput(get: GetState): View {
     .input(el => {
       el.config
         .dataAttribute("start-date")
-        .classes(textInputClasses(get(startDateIsValid)))
+        .class((get) => textInputClasses(get(startDateIsValid)))
         .value(get(startDate))
         .on({ input: (evt) => write(startDate, (evt as any).target.value) })
     })
@@ -70,14 +71,14 @@ function returnDateInput(get: GetState): View {
     .input(el => {
       el.config
         .dataAttribute("return-date")
-        .classes(textInputClasses(get(returnDateIsValid)))
+        .class((get) => textInputClasses(get(returnDateIsValid)))
         .value(get(returnDate))
-        .disabled(!get(allowReturnDate))
+        .disabled((get) => !get(allowReturnDate))
         .on({ input: (evt) => write(returnDate, (evt as any).target.value) })
     })
 }
 
-function textInputClasses(isValid: boolean): Array<string> {
+function textInputClasses(isValid: boolean): string {
   let classes = [
     "border-2",
     "border-sky-600",
@@ -91,5 +92,5 @@ function textInputClasses(isValid: boolean): Array<string> {
     classes.push("bg-fuchsia-400")
   }
 
-  return classes
+  return classes.join(" ")
 }

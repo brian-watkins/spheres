@@ -72,7 +72,7 @@ class ReactiveTextQuery implements StoreQuery {
   }
 }
 
-const createNode = (store: Store, vnode: VirtualNode): Node => {
+function createNode(store: Store, vnode: VirtualNode): Node {
   if (vnode.type === NodeType.TEXT) {
     return document.createTextNode(vnode.value)
   }
@@ -134,17 +134,23 @@ const createNode = (store: Store, vnode: VirtualNode): Node => {
   return element
 }
 
-const alertRemoval = (vnode: VirtualNode) => {
+function alertRemoval(vnode: VirtualNode) {
   if (vnode.type === NodeType.STATEFUL || vnode.type === NodeType.REACTIVE_TEXT) {
     vnode.query?.unsubscribe()
   } else if (vnode.type === NodeType.ELEMENT) {
+    for (const attr in vnode.data.statefulAttrs) {
+      vnode.data.statefulAttrs[attr].query?.unsubscribe()
+    }
+    for (const prop in vnode.data.statefulProps) {
+      vnode.data.statefulProps[prop].query?.unsubscribe()
+    }
     for (const child of vnode.children) {
       alertRemoval(child)
     }
   }
 }
 
-const removeNode = (parent: Node, vnode: VirtualNode) => {
+function removeNode(parent: Node, vnode: VirtualNode) {
   alertRemoval(vnode)
   parent.removeChild(vnode.node!)
 }
@@ -372,7 +378,7 @@ function patchChildren(store: Store, oldVNode: ElementNode, newVNode: ElementNod
 // in hyperapp https://github.com/jorgebucaran/hyperapp
 //
 
-export const patch = (store: Store, oldVNode: VirtualNode | null, newVNode: VirtualNode): VirtualNode => {
+export function patch(store: Store, oldVNode: VirtualNode | null, newVNode: VirtualNode): VirtualNode {
   if (oldVNode === null) {
     newVNode.node = createNode(store, newVNode)
     return newVNode

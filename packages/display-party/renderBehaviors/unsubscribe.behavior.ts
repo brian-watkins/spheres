@@ -2,8 +2,8 @@ import { behavior, effect, example, fact, step } from "esbehavior";
 import { renderContext } from "./helpers/renderContext.js";
 import { addAttribute, addStatefulAttribute, addStatefulProperty, makeReactiveTextNode, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "@src/vdom/virtualNode.js";
 import { Container, container } from "state-party";
-import { selectElement } from "helpers/displayElement.js";
-import { expect, is, resolvesTo } from "great-expectations";
+import { selectElement, selectElementWithText } from "helpers/displayElement.js";
+import { assignedWith, equalTo, expect, is, resolvesTo } from "great-expectations";
 
 interface UnsubscribeContext {
   queryCount: number
@@ -115,7 +115,7 @@ export default behavior("unsubscribe", [
     .description("remove stateful attributes")
     .script({
       suppose: [
-        fact("there is an element with reactive text", (context) => {
+        fact("there is an element with stateful attributes", (context) => {
           context.setState({
             queryCounts: {
               classAttribute: 0,
@@ -176,6 +176,60 @@ export default behavior("unsubscribe", [
         }),
         effect("the query is only updated for the remaining attribute", (context) => {
           expect(context.state.queryCounts["dataAttribute"], is(2))
+          expect(context.state.queryCounts["classAttribute"], is(1))
+        })
+      ]
+    }),
+
+  example(renderContext<MultipleUnsubscribeContext>())
+    .description("remove nested stateful attributes")
+    .script({
+      suppose: [
+        fact("there is an element with nested stateful attribute", (context) => {
+          context.setState({
+            queryCounts: {
+              classAttribute: 0,
+            },
+            container: container({ initialValue: "driving" })
+          })
+          const config = virtualNodeConfig()
+          addStatefulAttribute(config, "class", (get) => {
+            context.state.queryCounts["classAttribute"]++
+            return `${get(context.state.container)}-style`
+          })
+
+          context.mount(makeVirtualElement("main", virtualNodeConfig(), [
+            makeVirtualElement("section", virtualNodeConfig(), [
+              makeVirtualElement("div", config, [
+                makeVirtualTextNode("my activity description")
+              ])
+            ])
+          ]))
+        })
+      ],
+      observe: [
+        effect("the attribute is set with the initial value", async () => {
+          await expect(selectElementWithText("my activity description").attribute("class"), resolvesTo(assignedWith(equalTo("driving-style"))))
+        }),
+        effect("the query was called once", (context) => {
+          expect(context.state.queryCounts["classAttribute"], is(1))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the nested attribute is removed when the element is patched", (context) => {
+          context.patch(makeVirtualElement("main", virtualNodeConfig(), []))
+        }),
+        step("the container is updated", (context) => {
+          context.writeTo(context.state.container, "running")
+        })
+      ],
+      observe: [
+        effect("the removed element is not present", async () => {
+          const elementExists = await selectElementWithText("my activity description").exists()
+          expect(elementExists, is(false))
+        }),
+        effect("the query is not updated for the removed stateful attribute", (context) => {
           expect(context.state.queryCounts["classAttribute"], is(1))
         })
       ]
@@ -326,6 +380,59 @@ export default behavior("unsubscribe", [
         }),
         effect("the query is only updated for the remaining attribute", (context) => {
           expect(context.state.queryCounts["funnyProp"], is(2))
+          expect(context.state.queryCounts["valueProp"], is(1))
+        })
+      ]
+    }),
+
+  example(renderContext<MultipleUnsubscribeContext>())
+    .description("remove nested stateful properties")
+    .script({
+      suppose: [
+        fact("there is an element with nested reactive property", (context) => {
+          context.setState({
+            queryCounts: {
+              valueProp: 0
+            },
+            container: container({ initialValue: "apples" })
+          })
+          const config = virtualNodeConfig()
+          addAttribute(config, "type", "text")
+
+          addStatefulProperty(config, "value", (get) => {
+            context.state.queryCounts["valueProp"]++
+            return get(context.state.container)
+          })
+
+          context.mount(makeVirtualElement("div", virtualNodeConfig(), [
+            makeVirtualElement("form", virtualNodeConfig(), [
+              makeVirtualElement("input", config, [])
+            ])
+          ]))
+        })
+      ],
+      observe: [
+        effect("the input property is set with the initial value", async () => {
+          await expect(selectElement("input").inputValue(), resolvesTo("apples"))
+        }),
+        effect("the query was called once", (context) => {
+          expect(context.state.queryCounts["valueProp"], is(1))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the nested property is removed when the element is patched", (context) => {
+          context.patch(makeVirtualElement("div", virtualNodeConfig(), []))
+        }),
+        step("the container is updated", (context) => {
+          context.writeTo(context.state.container, "pears")
+        })
+      ],
+      observe: [
+        effect("the removed element is not present", async () => {
+          await expect(selectElement("input").exists(), resolvesTo(false))
+        }),
+        effect("the query is not updated", (context) => {
           expect(context.state.queryCounts["valueProp"], is(1))
         })
       ]

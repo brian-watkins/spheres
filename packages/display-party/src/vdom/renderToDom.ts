@@ -415,7 +415,7 @@ export const patch = (store: Store, oldVNode: VirtualNode | null, newVNode: Virt
         if (oldVNode.data.on || newElement.data.on) {
           patchEvents(oldVNode, newElement)
         }
-        if (!newElement.data.props?.innerHTML) {
+        if (!newElement.data.props?.innerHTML && !newElement.data.statefulProps?.innerHTML) {
           patchChildren(store, oldVNode, newElement)
         }
       }

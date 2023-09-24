@@ -34,15 +34,20 @@ const resetConfig = Symbol("reset-config")
 
 export interface SpecialAttributes {
   dataAttribute(name: string, value?: string | Stateful<string>): this
-  innerHTML(html: string): this
+  innerHTML(html: string | Stateful<string>): this
   on(events: ElementEvents): this
 }
 
 class BasicConfig implements SpecialAttributes {
   protected config: VirtualNodeConfig = virtualNodeConfig()
 
-  innerHTML(html: string): this {
-    addProperty(this.config, "innerHTML", html)
+  innerHTML(html: string | Stateful<string>): this {
+    if (typeof html === "function") {
+      addStatefulProperty(this.config, "innerHTML", html)
+    } else {
+      addProperty(this.config, "innerHTML", html)
+    }
+
     return this
   }
 

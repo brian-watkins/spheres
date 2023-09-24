@@ -1,5 +1,5 @@
 import { behavior, ConfigurableExample, Context, effect, example, fact, step } from "esbehavior";
-import { equalTo, expect, is, stringContaining } from "great-expectations";
+import { equalTo, expect, is, resolvesTo, stringContaining } from "great-expectations";
 import { TestAppController } from "./helpers/testAppController.js";
 
 
@@ -51,6 +51,33 @@ const innerHTMLViewBehavior = (context: Context<TestAppController>): Configurabl
         effect("it displays the inner html content", async (controller) => {
           const content = await controller.display.select("h3").text()
           expect(content, is(equalTo("Hello!!!")))
+        })
+      ]
+    })
+
+const reactiveInnerHTMLViewBehavior = (context: Context<TestAppController>): ConfigurableExample =>
+  example(context)
+    .description("view with reactive innerHTML on element")
+    .script({
+      suppose: [
+        fact("there is a view with reactive innerHTML", async (controller) => {
+          await controller.loadApp("reactiveInnerHtml.app")
+        })
+      ],
+      observe: [
+        effect("it displays the initial content", async (controller) => {
+          await expect(controller.display.select("h1").text(), resolvesTo("Hello!"))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the content is updated", async (controller) => {
+          await controller.display.select("input").type("<p>Some <b>bold</b> text!</p>")
+        })
+      ],
+      observe: [
+        effect("it displays the updated content", async (controller) => {
+          await expect(controller.display.select("p b").text(), resolvesTo("bold"))
         })
       ]
     })
@@ -139,5 +166,6 @@ const nestedViewsBehavior = (context: Context<TestAppController>): ConfigurableE
 export default (context: Context<TestAppController>) => behavior("view", [
   simpleViewBehavior(context),
   innerHTMLViewBehavior(context),
+  reactiveInnerHTMLViewBehavior(context),
   nestedViewsBehavior(context),
 ])

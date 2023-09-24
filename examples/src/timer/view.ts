@@ -1,5 +1,5 @@
 import { View, view } from "display-party";
-import { GetState, write } from "state-party";
+import { write } from "state-party";
 import { duration, elapsedTime, percentComplete } from "./state.js";
 import { names } from "../helpers/helpers.js";
 
@@ -81,7 +81,7 @@ function elapsedTimeLabel(): View {
     })
 }
 
-function progressMeter(get: GetState): View {
+function progressMeter(): View {
   return view()
     .progress(el => {
       el.config
@@ -94,7 +94,7 @@ function progressMeter(get: GetState): View {
           "[&::-webkit-progress-value]:bg-violet-400",
           "[&::-moz-progress-bar]:bg-violet-400"
         ]))
-        .value(get(percentComplete))
+        .value((get) => get(percentComplete))
     })
 }
 

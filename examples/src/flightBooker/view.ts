@@ -1,5 +1,5 @@
 import { View, view } from "display-party";
-import { GetState, store, write } from "state-party";
+import { store, write } from "state-party";
 import { FlightTypes, allowReturnDate, bookFlight, bookingAllowed, flightType, returnDate, returnDateIsValid, startDate, startDateIsValid } from "./state.js";
 import { names } from "../helpers/helpers.js";
 
@@ -55,24 +55,24 @@ function bookFlightButton(): View {
     })
 }
 
-function startDateInput(get: GetState): View {
+function startDateInput(): View {
   return view()
     .input(el => {
       el.config
         .dataAttribute("start-date")
         .class((get) => textInputClasses(get(startDateIsValid)))
-        .value(get(startDate))
+        .value((get) => get(startDate))
         .on({ input: (evt) => write(startDate, (evt as any).target.value) })
     })
 }
 
-function returnDateInput(get: GetState): View {
+function returnDateInput(): View {
   return view()
     .input(el => {
       el.config
         .dataAttribute("return-date")
         .class((get) => textInputClasses(get(returnDateIsValid)))
-        .value(get(returnDate))
+        .value((get) => get(returnDate))
         .disabled((get) => !get(allowReturnDate))
         .on({ input: (evt) => write(returnDate, (evt as any).target.value) })
     })

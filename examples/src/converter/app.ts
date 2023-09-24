@@ -1,5 +1,5 @@
 import { View, view } from "display-party";
-import { GetState, Meta, store } from "state-party";
+import { Meta, store } from "state-party";
 import { celsiusInvalid, celsiusTemperature, farenheitInvalid, farenheitTemperature, temperatureUpdate } from "./state.js";
 import { names } from "../helpers/helpers.js";
 
@@ -26,23 +26,23 @@ export function converter(): View {
   })
 }
 
-function celsiusInput(get: GetState): View {
+function celsiusInput(): View {
   return view().input(el => {
     el.config
       .id("celsius")
       .type("text")
-      .value(get(celsiusTemperature))
+      .value((get) => get(celsiusTemperature))
       .on({ input: (evt) => store(temperatureUpdate, { celsius: (evt as any).target.value }) })
       .class((get) => inputStyling(get(celsiusInvalid), isError(get(celsiusTemperature.meta))))
   })
 }
 
-function farenheitInput(get: GetState): View {
+function farenheitInput(): View {
   return view().input(el => {
     el.config
       .id("farenheit")
       .type("text")
-      .value(get(farenheitTemperature))
+      .value((get) => get(farenheitTemperature))
       .on({ input: (evt) => store(temperatureUpdate, { farenheit: (evt as any).target.value }) })
       .class((get) => inputStyling(get(farenheitInvalid), isError(get(farenheitTemperature.meta))))
   })

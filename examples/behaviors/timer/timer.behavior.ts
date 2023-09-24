@@ -51,7 +51,7 @@ export default (context: Context<TestApp>) => behavior("timer", [
       ],
       observe: [
         itShowsElapsedTime("2.0s", "the timer stops when the duration is reached"),
-        itShowsPercentComplete("1", "the progress meter is filled")
+        itShowsPercentComplete("1.00", "the progress meter is filled")
       ]
     }),
 
@@ -69,7 +69,7 @@ export default (context: Context<TestApp>) => behavior("timer", [
       ],
       observe: [
         itShowsElapsedTime("1.2s"),
-        itShowsPercentComplete("1")
+        itShowsPercentComplete("1.00")
       ]
     }).andThen({
       perform: [
@@ -78,7 +78,7 @@ export default (context: Context<TestApp>) => behavior("timer", [
       ],
       observe: [
         itShowsElapsedTime("1.5s"),
-        itShowsPercentComplete("0.5")
+        itShowsPercentComplete("0.50")
       ]
     }),
 
@@ -96,7 +96,7 @@ export default (context: Context<TestApp>) => behavior("timer", [
       ],
       observe: [
         itShowsElapsedTime("0.6s"),
-        itShowsPercentComplete("0.2")
+        itShowsPercentComplete("0.20")
       ]
     }),
 
@@ -114,7 +114,7 @@ export default (context: Context<TestApp>) => behavior("timer", [
       ],
       observe: [
         itShowsElapsedTime("0.3s"),
-        itShowsPercentComplete("0.3")
+        itShowsPercentComplete("0.30")
       ]
     })
 

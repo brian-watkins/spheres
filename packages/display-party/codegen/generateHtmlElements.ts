@@ -32,22 +32,6 @@ htmlElementsFile.addImportDeclarations([
   }
 ])
 
-// AriaAttributes interface
-
-const ariaAttributesInterface = htmlElementsFile.addInterface({
-  name: "AriaAttributes",
-  isExported: true
-})
-
-for (const attribute of ariaAttributes) {
-  if (attribute.startsWith("aria")) {
-    ariaAttributesInterface.addProperty({
-      name: toCamel(attribute.substring(5)),
-      type: "string",
-      hasQuestionToken: true
-    })
-  }
-}
 
 // GlobalAttributes interface
 
@@ -58,12 +42,18 @@ const globalAttibutesInterface = htmlElementsFile.addInterface({
 
 const globalAttribute = buildAttributeProperty("this")
 
+for (const attribute of ariaAttributes) {
+  if (attribute.startsWith("aria")) {
+    globalAttibutesInterface.addMethod(globalAttribute(`aria${capitalize(attribute.substring(5))}`))
+  } else {
+    globalAttibutesInterface.addMethod(globalAttribute(attribute))
+  }
+}
+
 for (const attribute of htmlElementAttributes['*']) {
   globalAttibutesInterface.addMethod(globalAttribute(attribute))
 }
 
-// add aria role property to global attributes
-globalAttibutesInterface.addMethod(buildAttributeProperty("this")("role"))
 
 // Events interface
 
@@ -146,6 +136,27 @@ for (const tag of htmlTagNames) {
     isExported: true
   })
 }
+
+// Aria method names
+
+htmlElementsFile.addVariableStatement({
+  declarationKind: VariableDeclarationKind.Const,
+  declarations: [
+    {
+      name: "ariaMethodNames",
+      type: "Map<string, string>",
+      initializer: "new Map()"
+    }
+  ],
+  isExported: true
+})
+
+htmlElementsFile.addStatements(ariaAttributes.filter((attribute) => {
+  return attribute.startsWith("aria")
+}).map((name) => {
+  return `ariaMethodNames.set('aria${capitalize(name.substring(5))}','${name}')`
+}))
+
 
 // Boolean Attributes Set
 

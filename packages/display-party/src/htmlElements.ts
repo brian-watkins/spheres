@@ -1,58 +1,56 @@
 import { View, ViewElement, SpecialElements, SpecialElementBuilder, SpecialAttributes } from "./view.js";
 import { StoreMessage, Stateful } from "state-party";
 
-export interface AriaAttributes {
-    activedescendant?: string;
-    atomic?: string;
-    autocomplete?: string;
-    busy?: string;
-    checked?: string;
-    colcount?: string;
-    colindex?: string;
-    colspan?: string;
-    controls?: string;
-    current?: string;
-    describedby?: string;
-    details?: string;
-    disabled?: string;
-    dropeffect?: string;
-    errormessage?: string;
-    expanded?: string;
-    flowto?: string;
-    grabbed?: string;
-    haspopup?: string;
-    hidden?: string;
-    invalid?: string;
-    keyshortcuts?: string;
-    label?: string;
-    labelledby?: string;
-    level?: string;
-    live?: string;
-    modal?: string;
-    multiline?: string;
-    multiselectable?: string;
-    orientation?: string;
-    owns?: string;
-    placeholder?: string;
-    posinset?: string;
-    pressed?: string;
-    readonly?: string;
-    relevant?: string;
-    required?: string;
-    roledescription?: string;
-    rowcount?: string;
-    rowindex?: string;
-    rowspan?: string;
-    selected?: string;
-    setsize?: string;
-    sort?: string;
-    valuemax?: string;
-    valuemin?: string;
-    valuenow?: string;
-    valuetext?: string;
-}
-
 export interface GlobalAttributes {
+    ariaActivedescendant(value: string | Stateful<string>): this;
+    ariaAtomic(value: string | Stateful<string>): this;
+    ariaAutocomplete(value: string | Stateful<string>): this;
+    ariaBusy(value: string | Stateful<string>): this;
+    ariaChecked(value: string | Stateful<string>): this;
+    ariaColcount(value: string | Stateful<string>): this;
+    ariaColindex(value: string | Stateful<string>): this;
+    ariaColspan(value: string | Stateful<string>): this;
+    ariaControls(value: string | Stateful<string>): this;
+    ariaCurrent(value: string | Stateful<string>): this;
+    ariaDescribedby(value: string | Stateful<string>): this;
+    ariaDetails(value: string | Stateful<string>): this;
+    ariaDisabled(value: string | Stateful<string>): this;
+    ariaDropeffect(value: string | Stateful<string>): this;
+    ariaErrormessage(value: string | Stateful<string>): this;
+    ariaExpanded(value: string | Stateful<string>): this;
+    ariaFlowto(value: string | Stateful<string>): this;
+    ariaGrabbed(value: string | Stateful<string>): this;
+    ariaHaspopup(value: string | Stateful<string>): this;
+    ariaHidden(value: string | Stateful<string>): this;
+    ariaInvalid(value: string | Stateful<string>): this;
+    ariaKeyshortcuts(value: string | Stateful<string>): this;
+    ariaLabel(value: string | Stateful<string>): this;
+    ariaLabelledby(value: string | Stateful<string>): this;
+    ariaLevel(value: string | Stateful<string>): this;
+    ariaLive(value: string | Stateful<string>): this;
+    ariaModal(value: string | Stateful<string>): this;
+    ariaMultiline(value: string | Stateful<string>): this;
+    ariaMultiselectable(value: string | Stateful<string>): this;
+    ariaOrientation(value: string | Stateful<string>): this;
+    ariaOwns(value: string | Stateful<string>): this;
+    ariaPlaceholder(value: string | Stateful<string>): this;
+    ariaPosinset(value: string | Stateful<string>): this;
+    ariaPressed(value: string | Stateful<string>): this;
+    ariaReadonly(value: string | Stateful<string>): this;
+    ariaRelevant(value: string | Stateful<string>): this;
+    ariaRequired(value: string | Stateful<string>): this;
+    ariaRoledescription(value: string | Stateful<string>): this;
+    ariaRowcount(value: string | Stateful<string>): this;
+    ariaRowindex(value: string | Stateful<string>): this;
+    ariaRowspan(value: string | Stateful<string>): this;
+    ariaSelected(value: string | Stateful<string>): this;
+    ariaSetsize(value: string | Stateful<string>): this;
+    ariaSort(value: string | Stateful<string>): this;
+    ariaValuemax(value: string | Stateful<string>): this;
+    ariaValuemin(value: string | Stateful<string>): this;
+    ariaValuenow(value: string | Stateful<string>): this;
+    ariaValuetext(value: string | Stateful<string>): this;
+    role(value: string | Stateful<string>): this;
     accesskey(value: string | Stateful<string>): this;
     autocapitalize(value: string | Stateful<string>): this;
     autofocus(value: boolean | Stateful<boolean>): this;
@@ -80,7 +78,6 @@ export interface GlobalAttributes {
     tabindex(value: string | Stateful<string>): this;
     title(value: string | Stateful<string>): this;
     translate(value: string | Stateful<string>): this;
-    role(value: string | Stateful<string>): this;
 }
 
 export interface ElementEvents {
@@ -1323,6 +1320,56 @@ export interface WbrElementAttributes extends SpecialAttributes, GlobalAttribute
 
 export interface XmpElementAttributes extends SpecialAttributes, GlobalAttributes {
 }
+
+export const ariaMethodNames: Map<string, string> = new Map();
+ariaMethodNames.set('ariaActivedescendant','aria-activedescendant')
+ariaMethodNames.set('ariaAtomic','aria-atomic')
+ariaMethodNames.set('ariaAutocomplete','aria-autocomplete')
+ariaMethodNames.set('ariaBusy','aria-busy')
+ariaMethodNames.set('ariaChecked','aria-checked')
+ariaMethodNames.set('ariaColcount','aria-colcount')
+ariaMethodNames.set('ariaColindex','aria-colindex')
+ariaMethodNames.set('ariaColspan','aria-colspan')
+ariaMethodNames.set('ariaControls','aria-controls')
+ariaMethodNames.set('ariaCurrent','aria-current')
+ariaMethodNames.set('ariaDescribedby','aria-describedby')
+ariaMethodNames.set('ariaDetails','aria-details')
+ariaMethodNames.set('ariaDisabled','aria-disabled')
+ariaMethodNames.set('ariaDropeffect','aria-dropeffect')
+ariaMethodNames.set('ariaErrormessage','aria-errormessage')
+ariaMethodNames.set('ariaExpanded','aria-expanded')
+ariaMethodNames.set('ariaFlowto','aria-flowto')
+ariaMethodNames.set('ariaGrabbed','aria-grabbed')
+ariaMethodNames.set('ariaHaspopup','aria-haspopup')
+ariaMethodNames.set('ariaHidden','aria-hidden')
+ariaMethodNames.set('ariaInvalid','aria-invalid')
+ariaMethodNames.set('ariaKeyshortcuts','aria-keyshortcuts')
+ariaMethodNames.set('ariaLabel','aria-label')
+ariaMethodNames.set('ariaLabelledby','aria-labelledby')
+ariaMethodNames.set('ariaLevel','aria-level')
+ariaMethodNames.set('ariaLive','aria-live')
+ariaMethodNames.set('ariaModal','aria-modal')
+ariaMethodNames.set('ariaMultiline','aria-multiline')
+ariaMethodNames.set('ariaMultiselectable','aria-multiselectable')
+ariaMethodNames.set('ariaOrientation','aria-orientation')
+ariaMethodNames.set('ariaOwns','aria-owns')
+ariaMethodNames.set('ariaPlaceholder','aria-placeholder')
+ariaMethodNames.set('ariaPosinset','aria-posinset')
+ariaMethodNames.set('ariaPressed','aria-pressed')
+ariaMethodNames.set('ariaReadonly','aria-readonly')
+ariaMethodNames.set('ariaRelevant','aria-relevant')
+ariaMethodNames.set('ariaRequired','aria-required')
+ariaMethodNames.set('ariaRoledescription','aria-roledescription')
+ariaMethodNames.set('ariaRowcount','aria-rowcount')
+ariaMethodNames.set('ariaRowindex','aria-rowindex')
+ariaMethodNames.set('ariaRowspan','aria-rowspan')
+ariaMethodNames.set('ariaSelected','aria-selected')
+ariaMethodNames.set('ariaSetsize','aria-setsize')
+ariaMethodNames.set('ariaSort','aria-sort')
+ariaMethodNames.set('ariaValuemax','aria-valuemax')
+ariaMethodNames.set('ariaValuemin','aria-valuemin')
+ariaMethodNames.set('ariaValuenow','aria-valuenow')
+ariaMethodNames.set('ariaValuetext','aria-valuetext')
 
 export const booleanAttributes: Set<string> = new Set();
 booleanAttributes.add("allowfullscreen")

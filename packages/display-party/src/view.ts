@@ -1,6 +1,6 @@
 import { GetState, State, Stateful, Store } from "state-party"
 import { VirtualNode, VirtualNodeConfig, addAttribute, addProperty, addStatefulAttribute, makeBlockElement, makeReactiveTextNode, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, setEventHandler, setKey, virtualNodeConfig } from "./vdom/virtualNode.js"
-import { ViewBuilder, AriaAttributes, ElementEvents, booleanAttributes, ViewElements } from "./htmlElements.js"
+import { ViewBuilder, ElementEvents, booleanAttributes, ViewElements, ariaMethodNames } from "./htmlElements.js"
 import { createStringRenderer } from "./vdom/renderToString.js"
 import { createDOMRenderer } from "./vdom/renderToDom.js"
 
@@ -36,7 +36,6 @@ export interface SpecialAttributes {
   dataAttribute(name: string, value?: string | Stateful<string>): this
   innerHTML(html: string): this
   on(events: ElementEvents): this
-  aria(attributes: AriaAttributes): this
 }
 
 class BasicConfig implements SpecialAttributes {
@@ -54,14 +53,6 @@ class BasicConfig implements SpecialAttributes {
       addAttribute(this.config, `data-${name}`, value)
     }
 
-    return this
-  }
-
-  aria(attributes: AriaAttributes) {
-    for (let name in attributes) {
-      //@ts-ignore
-      addAttribute(this.config, `aria-${name}`, attributes[name])
-    }
     return this
   }
 
@@ -84,16 +75,25 @@ class BasicConfig implements SpecialAttributes {
   }
 }
 
+function attributeName(methodName: string): string {
+  const name = ariaMethodNames.get(methodName)
+  if (name) {
+    return name
+  } else {
+    return methodName
+  }
+}
+
 const MagicConfig = new Proxy({}, {
   get: (_, prop, receiver) => {
-    const methodName = prop as string
-    if (booleanAttributes.has(methodName)) {
+    const attribute = attributeName(prop as string)
+    if (booleanAttributes.has(attribute)) {
       return function (isSelected: boolean | Stateful<boolean>) {
         if (typeof isSelected === "function") {
-          addStatefulAttribute(receiver.config, methodName, (get) => isSelected(get) ? methodName : undefined)
+          addStatefulAttribute(receiver.config, attribute, (get) => isSelected(get) ? attribute : undefined)
         } else {
           if (isSelected) {
-            addAttribute(receiver.config, methodName, methodName)
+            addAttribute(receiver.config, attribute, attribute)
           }
         }
         return receiver
@@ -101,9 +101,9 @@ const MagicConfig = new Proxy({}, {
     } else {
       return function (value: string | Stateful<string>) {
         if (typeof value === "function") {
-          addStatefulAttribute(receiver.config, methodName, value)
+          addStatefulAttribute(receiver.config, attribute, value)
         } else {
-          addAttribute(receiver.config, methodName, value)
+          addAttribute(receiver.config, attribute, value)
         }
         return receiver
       }

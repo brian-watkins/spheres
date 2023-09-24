@@ -24,7 +24,7 @@ export default function () {
             .disabled(false)
         })
         .button(el => {
-          el.config.aria({ label: "submit" })
+          el.config.ariaLabel("submit")
         })
     })
 }

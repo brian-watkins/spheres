@@ -52,15 +52,16 @@ export type VirtualNode = TextNode | ReactiveTextNode | ElementNode | StatefulNo
 
 declare type Listener = (ev: Event) => any;
 
-export interface StatefulAttribute {
+export interface StatefulValue {
   generator: Stateful<string>
   query?: QueryHandle
 }
 
 export interface VirtualNodeConfig {
   props?: Record<string, any>
+  statefulProps?: Record<string, StatefulValue>
   attrs: Record<string, string>
-  stateful?: Record<string, StatefulAttribute>
+  statefulAttrs?: Record<string, StatefulValue>
   on?: { [N in keyof HTMLElementEventMap]?: Listener }
   key?: VirtualNodeKey
 }
@@ -80,6 +81,13 @@ export function addProperty(config: VirtualNodeConfig, name: string, value: stri
   config.props[name] = value
 }
 
+export function addStatefulProperty(config: VirtualNodeConfig, name: string, generator: Stateful<string>) {
+  if (!config.statefulProps) { config.statefulProps = {} }
+  config.statefulProps[name] = {
+    generator
+  }
+}
+
 export function addAttribute(config: VirtualNodeConfig, name: string, value: string) {
   config.attrs[name] = value
 }
@@ -89,8 +97,8 @@ export function setKey(config: VirtualNodeConfig, key: VirtualNodeKey) {
 }
 
 export function addStatefulAttribute(config: VirtualNodeConfig, name: string, generator: Stateful<string>) {
-  if (!config.stateful) { config.stateful = {} }
-  config.stateful[name] = {
+  if (!config.statefulAttrs) { config.statefulAttrs = {} }
+  config.statefulAttrs[name] = {
     generator
   }
 }

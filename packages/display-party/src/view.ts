@@ -1,6 +1,6 @@
 import { GetState, State, Stateful, Store } from "state-party"
-import { VirtualNode, VirtualNodeConfig, addAttribute, addProperty, addStatefulAttribute, makeBlockElement, makeReactiveTextNode, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, setEventHandler, setKey, virtualNodeConfig } from "./vdom/virtualNode.js"
-import { ViewBuilder, ElementEvents, booleanAttributes, ViewElements, ariaMethodNames } from "./htmlElements.js"
+import { VirtualNode, VirtualNodeConfig, addAttribute, addProperty, addStatefulAttribute, addStatefulProperty, makeBlockElement, makeReactiveTextNode, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, setEventHandler, setKey, virtualNodeConfig } from "./vdom/virtualNode.js"
+import { ViewBuilder, ElementEvents, booleanAttributes, ViewElements, ariaMethodNames, InputElementAttributes } from "./htmlElements.js"
 import { createStringRenderer } from "./vdom/renderToString.js"
 import { createDOMRenderer } from "./vdom/renderToDom.js"
 
@@ -39,7 +39,7 @@ export interface SpecialAttributes {
 }
 
 class BasicConfig implements SpecialAttributes {
-  private config: VirtualNodeConfig = virtualNodeConfig()
+  protected config: VirtualNodeConfig = virtualNodeConfig()
 
   innerHTML(html: string): this {
     addProperty(this.config, "innerHTML", html)
@@ -64,14 +64,20 @@ class BasicConfig implements SpecialAttributes {
     return this
   }
 
-  value(val: string) {
-    addProperty(this.config, "value", val)
-    addAttribute(this.config, "value", val)
-    return this
-  }
-
   [resetConfig](config: VirtualNodeConfig) {
     this.config = config
+  }
+}
+
+class InputElementConfig extends BasicConfig {
+  value(val: string | Stateful<string>) {
+    if (typeof val === "function") {
+      addStatefulProperty(this.config, "value", val)
+    } else {
+      addProperty(this.config, "value", val)
+    }
+
+    return this
   }
 }
 
@@ -136,6 +142,7 @@ export interface SpecialElementBuilder {
 }
 
 const configBuilder = new BasicConfig()
+const inputConfigBuilder = new InputElementConfig()
 
 export interface ViewElement<A extends SpecialAttributes> {
   config: A
@@ -185,6 +192,21 @@ class BasicView implements SpecialElements, SpecialElementBuilder {
       makeStatefulElement(config, (get) => definition(get)[toVirtualNode])
     this.nodes.push(element)
 
+    return this
+  }
+
+  input(builder?: (element: ViewElement<InputElementAttributes>) => void) {
+    let storedNodes = this.nodes
+    let childNodes: Array<VirtualNode> = []
+    this.nodes = childNodes
+    const config = virtualNodeConfig()
+    inputConfigBuilder[resetConfig](config)
+    builder?.({
+      config: inputConfigBuilder as unknown as InputElementAttributes,
+      children: this as unknown as ViewElements
+    })
+    storedNodes.push(makeVirtualElement("input", config, childNodes))
+    this.nodes = storedNodes
     return this
   }
 

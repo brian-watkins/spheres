@@ -63,6 +63,10 @@ class DisplayElement {
     return this.locator.first().innerText({ timeout: 200 })
   }
 
+  async inputValue(): Promise<string> {
+    return this.locator.first().inputValue({ timeout: 200 })
+  }
+
   async classes(): Promise<Array<string>> {
     const attr = await this.locator.first().getAttribute("class", { timeout: 200 })
     return attr ? attr.split(" ") : []

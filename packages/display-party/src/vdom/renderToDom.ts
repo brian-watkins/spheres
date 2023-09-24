@@ -55,6 +55,15 @@ class StatefulAttributeQuery implements StoreQuery {
   }
 }
 
+class StatefulPropertyQuery implements StoreQuery {
+  constructor(private element: Element, private property: string, private generator: Stateful<string>) { }
+
+  run(get: GetState): void {
+    // @ts-ignore
+    this.element[this.property] = this.generator(get) ?? ""
+  }
+}
+
 class ReactiveTextQuery implements StoreQuery {
   constructor(private node: Node, private generator: Stateful<string>) { }
 
@@ -94,10 +103,22 @@ const createNode = (store: Store, vnode: VirtualNode): Node => {
     element.setAttribute(attr, attrs[attr])
   }
 
-  const statefulAttrs = vnode.data.stateful
+  const statefulAttrs = vnode.data.statefulAttrs
   for (const attr in statefulAttrs) {
     const stateful = statefulAttrs[attr]
     stateful.query = store.useQuery(new StatefulAttributeQuery(element, attr, stateful.generator))
+  }
+
+  const props = vnode.data.props
+  for (const prop in props) {
+    //@ts-ignore
+    element[prop] = props[prop]
+  }
+
+  const statefulProps = vnode.data.statefulProps
+  for (const prop in statefulProps) {
+    const stateful = statefulProps[prop]
+    stateful.query = store.useQuery(new StatefulPropertyQuery(element, prop, stateful.generator))
   }
 
   let k: keyof HTMLElementEventMap
@@ -164,12 +185,27 @@ function patchProperties(oldVNode: ElementNode, newVNode: ElementNode) {
   }
 }
 
+function patchStatefulProperties(store: Store, oldVNode: ElementNode, newVNode: ElementNode) {
+  const oldProps = oldVNode.data.statefulProps ?? {}
+  const newProps = newVNode.data.statefulProps ?? {}
+  for (let key in { ...oldProps, ...newProps }) {
+    if (newProps[key] === undefined) {
+      oldProps[key].query?.unsubscribe()
+      //@ts-ignore
+      oldVNode.node![key] = ""
+    } else if (oldProps[key] === undefined) {
+      const stateful = newProps[key]
+      stateful.query = store.useQuery(new StatefulPropertyQuery(oldVNode.node!, key, stateful.generator))
+    }
+  }
+}
+
 function patchStatefulAttributes(store: Store, oldVNode: ElementNode, newVNode: ElementNode) {
-  const oldAttr = oldVNode.data.stateful ?? {}
-  const newAttr = newVNode.data.stateful ?? {}
-  for (let key in { ...oldVNode.data.stateful, ...newVNode.data.stateful }) {
+  const oldAttr = oldVNode.data.statefulAttrs ?? {}
+  const newAttr = newVNode.data.statefulAttrs ?? {}
+  for (let key in { ...oldAttr, ...newAttr }) {
     if (newAttr[key] === undefined) {
-      oldAttr![key].query?.unsubscribe()
+      oldAttr[key].query?.unsubscribe()
       oldVNode.node!.removeAttribute(key)
     } else if (oldAttr[key] === undefined) {
       const stateful = newAttr![key]
@@ -367,14 +403,17 @@ export const patch = (store: Store, oldVNode: VirtualNode | null, newVNode: Virt
         return newVNode
       } else {
         patchAttributes(oldVNode, newElement)
-        if (oldVNode.data.stateful || newElement.data.stateful) {
+        if (oldVNode.data.statefulAttrs || newElement.data.statefulAttrs) {
           patchStatefulAttributes(store, oldVNode, newElement)
         }
         if (oldVNode.data.props || newElement.data.props) {
-          patchProperties(oldVNode, newVNode as ElementNode)
+          patchProperties(oldVNode, newElement)
+        }
+        if (oldVNode.data.statefulProps || newElement.data.statefulProps) {
+          patchStatefulProperties(store, oldVNode, newElement)
         }
         if (oldVNode.data.on || newElement.data.on) {
-          patchEvents(oldVNode, newVNode as ElementNode)
+          patchEvents(oldVNode, newElement)
         }
         if (!newElement.data.props?.innerHTML) {
           patchChildren(store, oldVNode, newElement)

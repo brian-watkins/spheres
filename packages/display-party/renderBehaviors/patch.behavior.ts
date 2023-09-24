@@ -1,4 +1,4 @@
-import { addAttribute, addProperty, addStatefulAttribute, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "@src/vdom/virtualNode.js";
+import { addAttribute, addProperty, addStatefulAttribute, addStatefulProperty, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "@src/vdom/virtualNode.js";
 import { behavior, effect, example, fact, step } from "esbehavior";
 import { assignedWith, equalTo, expect, is, resolvesTo } from "great-expectations";
 import { selectElement, selectElementWithText, selectElements } from "helpers/displayElement.js";
@@ -470,5 +470,71 @@ export default behavior("patch", [
           await expect(selectElement("#reactiveDiv").attribute("data-message"), resolvesTo(assignedWith(equalTo(""))))
         })
       ]
-    })
+    }),
+
+  example(renderContext<Container<string | undefined>>())
+    .description("patch stateful property")
+    .script({
+      suppose: [
+        fact("there is an element with a stateful property", (context) => {
+          context.setState(container<string | undefined>({ initialValue: "hello" }))
+          const config = virtualNodeConfig()
+          addAttribute(config, "type", "text")
+          addStatefulProperty(config, "value", (get) => get(context.state))
+          context.mount(makeVirtualElement("div", virtualNodeConfig(), [
+            makeVirtualElement("input", config, [])
+          ]))
+        })
+      ],
+      observe: [
+        effect("the element is rendered with the initial value", async () => {
+          await expect(selectElement("input").inputValue(), resolvesTo("hello"))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the container is updated to another string", (context) => {
+          context.writeTo(context.state, "something else!")
+        })
+      ],
+      observe: [
+        effect("the property value is updated", async () => {
+          await expect(selectElement("input").inputValue(), resolvesTo("something else!"))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the container is updated to undefined", (context) => {
+          context.writeTo(context.state, undefined)
+        })
+      ],
+      observe: [
+        effect("the property is set to the empty string", async () => {
+          const attributeValue = await selectElement("input").inputValue()
+          expect(attributeValue, is(equalTo("")))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the container is updated to another string", (context) => {
+          context.writeTo(context.state, "I'm back!")
+        })
+      ],
+      observe: [
+        effect("the input is updated with the value", async () => {
+          await expect(selectElement("input").inputValue(), resolvesTo("I'm back!"))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the container is updated to a falsey value", (context) => {
+          context.writeTo(context.state, "")
+        })
+      ],
+      observe: [
+        effect("the property is updated with the value", async () => {
+          await expect(selectElement("input").inputValue(), resolvesTo(""))
+        })
+      ]
+    }),
 ])

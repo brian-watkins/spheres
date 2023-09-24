@@ -1,6 +1,6 @@
 import { behavior, effect, example, fact, step } from "esbehavior";
 import { renderContext } from "./helpers/renderContext.js";
-import { addAttribute, addStatefulAttribute, makeReactiveTextNode, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "@src/vdom/virtualNode.js";
+import { addAttribute, addStatefulAttribute, addStatefulProperty, makeReactiveTextNode, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "@src/vdom/virtualNode.js";
 import { Container, container } from "state-party";
 import { selectElement } from "helpers/displayElement.js";
 import { expect, is, resolvesTo } from "great-expectations";
@@ -259,6 +259,160 @@ export default behavior("unsubscribe", [
           expect(context.state.queryCounts["classAttribute"], is(2))
         })
       ]
+    }),
+
+  example(renderContext<MultipleUnsubscribeContext>())
+    .description("remove stateful properties")
+    .script({
+      suppose: [
+        fact("there is an element with reactive property", (context) => {
+          context.setState({
+            queryCounts: {
+              valueProp: 0,
+              funnyProp: 0
+            },
+            container: container({ initialValue: "magic" })
+          })
+          const config = virtualNodeConfig()
+          addAttribute(config, "type", "text")
+
+          addStatefulProperty(config, "value", (get) => {
+            context.state.queryCounts["valueProp"]++
+            return get(context.state.container)
+          })
+
+          addStatefulProperty(config, "funnyStuff", (get) => {
+            context.state.queryCounts["funnyProp"]++
+            return `funny-${get(context.state.container)}`
+          })
+
+          context.mount(makeVirtualElement("div", virtualNodeConfig(), [
+            makeVirtualElement("input", config, [])
+          ]))
+        })
+      ],
+      observe: [
+        effect("the input property is set with the initial value", async () => {
+          await expect(selectElement("input").inputValue(), resolvesTo("magic"))
+        }),
+        effect("the query was called once for each property", (context) => {
+          expect(context.state.queryCounts["valueProp"], is(1))
+          expect(context.state.queryCounts["funnyProp"], is(1))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("one property is removed when the element is patched", (context) => {
+          const config = virtualNodeConfig()
+          addAttribute(config, "type", "text")
+
+          addStatefulProperty(config, "funnyStuff", (get) => {
+            context.state.queryCounts["funnyProp"]++
+            return `funny-${get(context.state.container)}`
+          })
+
+          context.patch(makeVirtualElement("div", virtualNodeConfig(), [
+            makeVirtualElement("input", config, [])
+          ]))
+        }),
+        step("the container is updated", (context) => {
+          context.writeTo(context.state.container, "dancing")
+        })
+      ],
+      observe: [
+        effect("the removed attribute is not present", async () => {
+          const inputValue = await selectElement("input").inputValue()
+          expect(inputValue, is(""))
+        }),
+        effect("the query is only updated for the remaining attribute", (context) => {
+          expect(context.state.queryCounts["funnyProp"], is(2))
+          expect(context.state.queryCounts["valueProp"], is(1))
+        })
+      ]
+    }),
+
+  example(renderContext<MultipleUnsubscribeContext>())
+    .description("adding stateful properties")
+    .script({
+      suppose: [
+        fact("there is an element with a reactive property", (context) => {
+          context.setState({
+            queryCounts: {
+              valueProp: 0,
+              funnyProp: 0
+            },
+            container: container({ initialValue: "magic" })
+          })
+          const config = virtualNodeConfig()
+          addAttribute(config, "type", "text")
+
+          addStatefulProperty(config, "funnyStuff", (get) => {
+            context.state.queryCounts["funnyProp"]++
+            return `funny-${get(context.state.container)}`
+          })
+
+          context.mount(makeVirtualElement("div", virtualNodeConfig(), [
+            makeVirtualElement("input", config, [])
+          ]))
+        })
+      ],
+      observe: [
+        effect("the input value is initially empty", async () => {
+          await expect(selectElement("input").inputValue(), resolvesTo(""))
+        }),
+        effect("the query was called once for the registered property", (context) => {
+          expect(context.state.queryCounts["valueProp"], is(0))
+          expect(context.state.queryCounts["funnyProp"], is(1))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("one property is added when the element is patched", (context) => {
+          const config = virtualNodeConfig()
+          addAttribute(config, "type", "text")
+
+          addStatefulProperty(config, "value", (get) => {
+            context.state.queryCounts["valueProp"]++
+            return get(context.state.container)
+          })
+
+          addStatefulProperty(config, "funnyStuff", (get) => {
+            context.state.queryCounts["funnyProp"]++
+            return `funny-${get(context.state.container)}`
+          })
+
+          context.patch(makeVirtualElement("div", virtualNodeConfig(), [
+            makeVirtualElement("input", config, [])
+          ]))
+        })
+      ],
+      observe: [
+        effect("the input value is set to the new value", async () => {
+          await expect(selectElement("input").inputValue(), resolvesTo("magic"))
+        }),
+
+        effect("the query is only updated for the added attribute", (context) => {
+          expect(context.state.queryCounts["funnyProp"], is(1))
+          expect(context.state.queryCounts["valueProp"], is(1))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the container is updated", (context) => {
+          context.writeTo(context.state.container, "sailing")
+        })
+      ],
+      observe: [
+        effect("the input value is set to the new value", async () => {
+          await expect(selectElement("input").inputValue(), resolvesTo("sailing"))
+        }),
+
+        effect("the query is only updated for the added attribute", (context) => {
+          expect(context.state.queryCounts["funnyProp"], is(2))
+          expect(context.state.queryCounts["valueProp"], is(2))
+        })
+      ]
     })
+
 
 ])

@@ -5,7 +5,6 @@ import listReorderBehavior from "listReorder.behavior.js"
 import listRemoveBehavior from "listRemove.behavior.js"
 import listInsertBehavior from "listInsert.behavior.js"
 import eventBehavior from "event.behavior.js"
-import unsubscribeBehavior from "unsubscribe.behavior.js"
 
 window.validateBehaviors = () => {
   return validate([
@@ -14,7 +13,6 @@ window.validateBehaviors = () => {
     listInsertBehavior,
     listRemoveBehavior,
     listReorderBehavior,
-    eventBehavior,
-    unsubscribeBehavior
+    eventBehavior
   ], { failFast: true })
 }

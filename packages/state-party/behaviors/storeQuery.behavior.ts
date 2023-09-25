@@ -105,57 +105,7 @@ const queryWithHiddenDependencies: ConfigurableExample =
       ]
     })
 
-const unsubscribeFromQuery: ConfigurableExample =
-  example(testStoreContext<BasicQueryContext>())
-    .description("unsubscribe from store query")
-    .script({
-      suppose: [
-        fact("there are some containers", (context) => {
-          context.setTokens({
-            stringContainer: container({ initialValue: "hello" }),
-            numberContainer: container({ initialValue: 7 })
-          })
-        }),
-        fact("a subscriber registers a query involving the state", (context) => {
-          context.queryStore((get) => {
-            return `1) ${get(context.tokens.stringContainer)} => ${get(context.tokens.numberContainer)}`
-          }, "sub-one")
-        }),
-        fact("another subscriber registers a query with the same state", (context) => {
-          context.queryStore((get) => {
-            return `2) ${get(context.tokens.stringContainer)} => ${get(context.tokens.numberContainer)}`
-          }, "sub-two")
-        })
-      ],
-      perform: [
-        step("the first subscriber unsubscribes", (context) => {
-          context.unsubscribe("sub-one")
-        }),
-        step("the state is updated to trigger the query", (context) => {
-          context.writeTo(context.tokens.numberContainer, 34)
-        }),
-        step("the other state is updated to trigger the query", (context) => {
-          context.writeTo(context.tokens.stringContainer, "fun")
-        })
-      ],
-      observe: [
-        effect("the first subscriber only gets the initial query value", (context) => {
-          expect(context.valuesForSubscriber("sub-one"), is(equalTo([
-            "1) hello => 7"
-          ])))
-        }),
-        effect("the second subscriber gets the initial query value and the update", (context) => {
-          expect(context.valuesForSubscriber("sub-two"), is(equalTo([
-            "2) hello => 7",
-            "2) hello => 34",
-            "2) fun => 34"
-          ])))
-        })
-      ]
-    })
-
 export default behavior("store query", [
   basicQuery,
   queryWithHiddenDependencies,
-  unsubscribeFromQuery
 ])

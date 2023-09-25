@@ -47,27 +47,25 @@ function stringifyElement(store: Store, node: ElementNode): string {
 
 function stringifyStatefulNode(store: Store, node: StatefulNode): string {
   let statefulNode: VirtualNode
-  const query = store.useQuery({
+  store.useQuery({
     run: (get) => {
-    statefulNode = node.generator(get)
+      statefulNode = node.generator(get)
     }
   })
-  query.unsubscribe()
   return stringifyVirtualNode(store, statefulNode!)
 }
 
 function stringifyReactiveText(store: Store, node: ReactiveTextNode): string {
   let textValue: string | undefined = undefined
-  const query = store.useQuery({
+  store.useQuery({
     run: (get) => {
       textValue = node.generator(get)
     }
   })
 
-  query.unsubscribe()
   return stringifyTextNode({
     type: NodeType.TEXT,
     value: textValue ?? "",
-    node: undefined 
+    node: undefined
   })
 }

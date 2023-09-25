@@ -2,7 +2,6 @@ import { validate } from "esbehavior"
 import stateProviderBehavior from "./stateProvider.behavior.js"
 import stateWriterBehavior from "./stateWriter.behavior.js"
 import stateBehavior from "./state.behavior.js"
-import unsubscribeBehavior from "./unsubscribe.behavior.js"
 import updateContainerBehavior from "./updateContainer.behavior.js"
 import metaBehavior from "./meta.behavior.js"
 import valueBehavior from "./value.behavior.js"
@@ -22,7 +21,6 @@ window.validateBehaviors = () => {
     batchBehavior,
     queryBehavior,
     storeQueryBehavior,
-    unsubscribeBehavior,
     updateContainerBehavior,
     valueBehavior,
     debugBehavior

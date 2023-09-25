@@ -101,12 +101,8 @@ export class MetaState<T, M, E = unknown> extends State<Meta<M, E>> {
   }
 }
 
-export interface QueryHandle {
-  unsubscribe(): void
-}
-
-abstract class AbstractReactiveQuery implements StateListener, QueryHandle {
-  private dependencies: Set<State<any>> = new Set()
+abstract class AbstractReactiveQuery implements StateListener {
+  private dependencies: WeakSet<State<any>> = new WeakSet()
 
   constructor(protected store: Store) { }
 
@@ -120,13 +116,6 @@ abstract class AbstractReactiveQuery implements StateListener, QueryHandle {
   }
 
   abstract update(): void
-
-  unsubscribe(): void {
-    for (const dep of this.dependencies) {
-      this.store[getController](dep).removeListener(this)
-    }
-    this.dependencies.clear()
-  }
 }
 
 export class Container<T, M = T> extends State<T, M> {
@@ -266,10 +255,9 @@ export class Store {
     return controller
   }
 
-  useQuery(query: StoreQuery): QueryHandle {
+  useQuery(query: StoreQuery) {
     const reactiveQuery = new ReactiveQuery(this, query)
     reactiveQuery.update()
-    return reactiveQuery
   }
 
   useProvider(provider: Provider) {

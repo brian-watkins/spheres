@@ -1,4 +1,4 @@
-import { GetState, StoreQuery, Stateful, Store, QueryHandle } from "state-party";
+import { GetState, StoreQuery, Stateful, Store } from "state-party";
 import { DOMRenderer } from "./render.js";
 import { ElementNode, NodeType, TextNode, VirtualNode, VirtualNodeKey, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "./virtualNode.js";
 
@@ -79,29 +79,19 @@ function createNode(store: Store, vnode: VirtualNode): Node {
 
   if (vnode.type === NodeType.REACTIVE_TEXT) {
     const node = document.createTextNode("")
-    vnode.query = store.useQuery(new ReactiveTextQuery(node, vnode.generator))
+    store.useQuery(new ReactiveTextQuery(node, vnode.generator))
 
     return node
   }
 
   if (vnode.type === NodeType.STATEFUL) {
     const query = new StatefulElementQuery(store, vnode.generator)
-    vnode.query = store.useQuery(query)
+    store.useQuery(query)
     return query.current!.node!
   }
 
   if (vnode.type === NodeType.BLOCK) {
-    const tree = vnode.generator()
-    const node = createNode(store, tree)
-    const queries = getQueries(tree)
-
-    vnode.unsubscribe = () => {
-      for (const q of queries) {
-        q.unsubscribe()
-      }
-    }
-
-    return node
+    return createNode(store, vnode.generator())
   }
 
   const element = vnode.is ?
@@ -116,7 +106,7 @@ function createNode(store: Store, vnode: VirtualNode): Node {
   const statefulAttrs = vnode.data.statefulAttrs
   for (const attr in statefulAttrs) {
     const stateful = statefulAttrs[attr]
-    stateful.query = store.useQuery(new StatefulAttributeQuery(element, attr, stateful.generator))
+    store.useQuery(new StatefulAttributeQuery(element, attr, stateful.generator))
   }
 
   const props = vnode.data.props
@@ -128,7 +118,7 @@ function createNode(store: Store, vnode: VirtualNode): Node {
   const statefulProps = vnode.data.statefulProps
   for (const prop in statefulProps) {
     const stateful = statefulProps[prop]
-    stateful.query = store.useQuery(new StatefulPropertyQuery(element, prop, stateful.generator))
+    store.useQuery(new StatefulPropertyQuery(element, prop, stateful.generator))
   }
 
   let k: keyof HTMLElementEventMap
@@ -144,57 +134,7 @@ function createNode(store: Store, vnode: VirtualNode): Node {
   return element
 }
 
-function getQueries(tree: VirtualNode): Set<QueryHandle> {
-  const set = new Set<QueryHandle>()
-  switch (tree.type) {
-    case NodeType.STATEFUL:
-    case NodeType.REACTIVE_TEXT:
-      set.add(tree.query!)
-      break
-    case NodeType.ELEMENT:
-      for (let attr in tree.data.statefulAttrs) {
-        set.add(tree.data.statefulAttrs[attr].query!)
-      }
-      for (let prop in tree.data.statefulProps) {
-        set.add(tree.data.statefulProps[prop].query!)
-      }
-      tree.children.forEach(child => {
-        for (const q of getQueries(child)) {
-          set.add(q)
-        }
-      })
-      break
-  }
-  return set
-}
-
-function alertRemoval(vnode: VirtualNode) {
-  switch (vnode.type) {
-    case NodeType.STATEFUL:
-    case NodeType.REACTIVE_TEXT:
-      vnode.query?.unsubscribe()
-      // note we are already saving the tree for stateful node somewhere
-      // so we could iterate over the children here
-      break
-    case NodeType.BLOCK:
-      vnode.unsubscribe?.()
-      break
-    case NodeType.ELEMENT:
-      for (const attr in vnode.data.statefulAttrs) {
-        vnode.data.statefulAttrs[attr].query?.unsubscribe()
-      }
-      for (const prop in vnode.data.statefulProps) {
-        vnode.data.statefulProps[prop].query?.unsubscribe()
-      }
-      for (const child of vnode.children) {
-        alertRemoval(child)
-      }
-      break
-  }
-}
-
 function removeNode(parent: Node, vnode: VirtualNode) {
-  alertRemoval(vnode)
   parent.removeChild(vnode.node!)
 }
 
@@ -239,12 +179,11 @@ function patchStatefulProperties(store: Store, oldVNode: ElementNode, newVNode: 
   const newProps = newVNode.data.statefulProps ?? {}
   for (let key in { ...oldProps, ...newProps }) {
     if (newProps[key] === undefined) {
-      oldProps[key].query?.unsubscribe()
       //@ts-ignore
       oldVNode.node![key] = ""
     } else if (oldProps[key] === undefined) {
       const stateful = newProps[key]
-      stateful.query = store.useQuery(new StatefulPropertyQuery(oldVNode.node!, key, stateful.generator))
+      store.useQuery(new StatefulPropertyQuery(oldVNode.node!, key, stateful.generator))
     }
   }
 }
@@ -254,11 +193,19 @@ function patchStatefulAttributes(store: Store, oldVNode: ElementNode, newVNode: 
   const newAttr = newVNode.data.statefulAttrs ?? {}
   for (let key in { ...oldAttr, ...newAttr }) {
     if (newAttr[key] === undefined) {
-      oldAttr[key].query?.unsubscribe()
+      // seems like this could potentially cause a problem -- if for example we patch
+      // so that the attribute is no longer there, but then the container updates again
+      // and it sets the attribute, which will add it back.
+      // For attrubute queries we might need to hold a WeakRef to the element
+      // and then actually store the query on the vnode. And if we are to remove it
+      // then we set it to null to deallocate it. Or we might need to do something
+      // strong like 'disable' the query, in case it takes a while to be garbage collected
+      // We could do this by setting the WeakRef element to undefined or something
+
       oldVNode.node!.removeAttribute(key)
     } else if (oldAttr[key] === undefined) {
       const stateful = newAttr![key]
-      stateful.query = store.useQuery(new StatefulAttributeQuery(oldVNode.node!, key, stateful.generator))
+      store.useQuery(new StatefulAttributeQuery(oldVNode.node!, key, stateful.generator))
     }
   }
 }

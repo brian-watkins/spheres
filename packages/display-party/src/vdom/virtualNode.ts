@@ -1,4 +1,4 @@
-import { GetState, QueryHandle, State, Stateful, StoreMessage } from "state-party";
+import { GetState, State, Stateful, StoreMessage } from "state-party";
 
 export enum NodeType {
   TEXT = 3,
@@ -18,7 +18,6 @@ export interface ReactiveTextNode {
   type: NodeType.REACTIVE_TEXT
   generator: Stateful<string>
   node: Node | undefined
-  query?: QueryHandle
 }
 
 export type VirtualNodeKey = string | number | State<any>
@@ -38,7 +37,6 @@ export interface StatefulNode {
   key?: VirtualNodeKey
   generator: (get: GetState) => VirtualNode
   node: Node | undefined
-  query?: QueryHandle
 }
 
 export interface BlockNode {
@@ -55,7 +53,6 @@ declare type Listener = (ev: Event) => any;
 
 export interface StatefulValue {
   generator: Stateful<string>
-  query?: QueryHandle
 }
 
 export interface VirtualNodeConfig {

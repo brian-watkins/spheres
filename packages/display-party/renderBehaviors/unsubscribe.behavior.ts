@@ -1,6 +1,6 @@
 import { behavior, effect, example, fact, step } from "esbehavior";
 import { renderContext } from "./helpers/renderContext.js";
-import { addAttribute, addStatefulAttribute, addStatefulProperty, makeReactiveTextNode, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "@src/vdom/virtualNode.js";
+import { addAttribute, addStatefulAttribute, addStatefulProperty, makeBlockElement, makeReactiveTextNode, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "@src/vdom/virtualNode.js";
 import { Container, container } from "state-party";
 import { selectElement, selectElementWithText } from "helpers/displayElement.js";
 import { assignedWith, equalTo, expect, is, resolvesTo } from "great-expectations";
@@ -519,7 +519,63 @@ export default behavior("unsubscribe", [
           expect(context.state.queryCounts["valueProp"], is(2))
         })
       ]
-    })
+    }),
+
+  example(renderContext<MultipleUnsubscribeContext>())
+    .description("remove blocked elements with stateful properties")
+    .script({
+      suppose: [
+        fact("there is a block element with nested reactive property", (context) => {
+          context.setState({
+            queryCounts: {
+              valueProp: 0
+            },
+            container: container({ initialValue: "piano" })
+          })
+          const config = virtualNodeConfig()
+          addAttribute(config, "type", "text")
+
+          addStatefulProperty(config, "value", (get) => {
+            context.state.queryCounts["valueProp"]++
+            return get(context.state.container)
+          })
+
+          context.mount(makeVirtualElement("div", virtualNodeConfig(), [
+            makeBlockElement(virtualNodeConfig(), () => {
+              return makeVirtualElement("form", virtualNodeConfig(), [
+                makeVirtualElement("input", config, [])
+              ])
+            })
+          ]))
+        })
+      ],
+      observe: [
+        effect("the input property is set with the initial value", async () => {
+          await expect(selectElement("input").inputValue(), resolvesTo("piano"))
+        }),
+        effect("the query was called once", (context) => {
+          expect(context.state.queryCounts["valueProp"], is(1))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the block element is removed when the element is patched", (context) => {
+          context.patch(makeVirtualElement("div", virtualNodeConfig(), []))
+        }),
+        step("the container is updated", (context) => {
+          context.writeTo(context.state.container, "drums")
+        })
+      ],
+      observe: [
+        effect("the removed element is not present", async () => {
+          await expect(selectElement("input").exists(), resolvesTo(false))
+        }),
+        effect("the query is not updated", (context) => {
+          expect(context.state.queryCounts["valueProp"], is(1))
+        })
+      ]
+    }),
+
 
 
 ])

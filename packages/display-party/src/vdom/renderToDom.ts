@@ -1,4 +1,4 @@
-import { GetState, StoreQuery, Stateful, Store } from "state-party";
+import { GetState, StoreQuery, Stateful, Store, QueryHandle } from "state-party";
 import { DOMRenderer } from "./render.js";
 import { ElementNode, NodeType, TextNode, VirtualNode, VirtualNodeKey, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "./virtualNode.js";
 
@@ -91,7 +91,17 @@ function createNode(store: Store, vnode: VirtualNode): Node {
   }
 
   if (vnode.type === NodeType.BLOCK) {
-    return createNode(store, vnode.generator())
+    const tree = vnode.generator()
+    const node = createNode(store, tree)
+    const queries = getQueries(tree)
+
+    vnode.unsubscribe = () => {
+      for (const q of queries) {
+        q.unsubscribe()
+      }
+    }
+
+    return node
   }
 
   const element = vnode.is ?
@@ -134,19 +144,52 @@ function createNode(store: Store, vnode: VirtualNode): Node {
   return element
 }
 
+function getQueries(tree: VirtualNode): Set<QueryHandle> {
+  const set = new Set<QueryHandle>()
+  switch (tree.type) {
+    case NodeType.STATEFUL:
+    case NodeType.REACTIVE_TEXT:
+      set.add(tree.query!)
+      break
+    case NodeType.ELEMENT:
+      for (let attr in tree.data.statefulAttrs) {
+        set.add(tree.data.statefulAttrs[attr].query!)
+      }
+      for (let prop in tree.data.statefulProps) {
+        set.add(tree.data.statefulProps[prop].query!)
+      }
+      tree.children.forEach(child => {
+        for (const q of getQueries(child)) {
+          set.add(q)
+        }
+      })
+      break
+  }
+  return set
+}
+
 function alertRemoval(vnode: VirtualNode) {
-  if (vnode.type === NodeType.STATEFUL || vnode.type === NodeType.REACTIVE_TEXT) {
-    vnode.query?.unsubscribe()
-  } else if (vnode.type === NodeType.ELEMENT) {
-    for (const attr in vnode.data.statefulAttrs) {
-      vnode.data.statefulAttrs[attr].query?.unsubscribe()
-    }
-    for (const prop in vnode.data.statefulProps) {
-      vnode.data.statefulProps[prop].query?.unsubscribe()
-    }
-    for (const child of vnode.children) {
-      alertRemoval(child)
-    }
+  switch (vnode.type) {
+    case NodeType.STATEFUL:
+    case NodeType.REACTIVE_TEXT:
+      vnode.query?.unsubscribe()
+      // note we are already saving the tree for stateful node somewhere
+      // so we could iterate over the children here
+      break
+    case NodeType.BLOCK:
+      vnode.unsubscribe?.()
+      break
+    case NodeType.ELEMENT:
+      for (const attr in vnode.data.statefulAttrs) {
+        vnode.data.statefulAttrs[attr].query?.unsubscribe()
+      }
+      for (const prop in vnode.data.statefulProps) {
+        vnode.data.statefulProps[prop].query?.unsubscribe()
+      }
+      for (const child of vnode.children) {
+        alertRemoval(child)
+      }
+      break
   }
 }
 

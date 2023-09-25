@@ -45,6 +45,7 @@ export interface BlockNode {
   type: NodeType.BLOCK
   key?: VirtualNodeKey
   generator: () => VirtualNode
+  unsubscribe?: () => void
   node: Node | undefined
 }
 

@@ -16,7 +16,7 @@ export default function(): View {
         })
         .button(el => {
           el.config
-            .on({ click: () => store(incrementValue) })
+            .on("click", () => store(incrementValue))
         })
     })
 }

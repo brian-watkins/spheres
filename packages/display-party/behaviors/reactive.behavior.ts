@@ -1,9 +1,9 @@
 import { Context, behavior, effect, example, fact, step } from "esbehavior";
-import { assignedWith, equalTo, expect, is, stringContaining } from "great-expectations";
+import { assignedWith, equalTo, expect, is, resolvesTo, stringContaining } from "great-expectations";
 import { TestAppController } from "helpers/testAppController.js";
 
 export default (context: Context<TestAppController>) => behavior("reactive elements", [
-  
+
   example(context)
     .description("reactive text")
     .script({
@@ -94,6 +94,32 @@ export default (context: Context<TestAppController>) => behavior("reactive eleme
     }),
 
   example(context)
+    .description("reactive aria attribute")
+    .script({
+      suppose: [
+        fact("there is a view with reactive aria attributes", async (controller) => {
+          await controller.loadApp("reactiveAttributes.app")
+        })
+      ],
+      observe: [
+        effect("the attribute has the initial value", async (controller) => {
+          await expect(controller.display.select("input").attribute("aria-disabled"), resolvesTo(assignedWith(equalTo("false"))))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("click the button to disable", async (controller) => {
+          await controller.display.select("button[data-action='disable']").click()
+        })
+      ],
+      observe: [
+        effect("the attribute value is updated", async (controller) => {
+          await expect(controller.display.select("input").attribute("aria-disabled"), resolvesTo(assignedWith(equalTo("true"))))
+        })
+      ]
+    }),
+
+  example(context)
     .description("reactive data attribute")
     .script({
       suppose: [
@@ -122,5 +148,5 @@ export default (context: Context<TestAppController>) => behavior("reactive eleme
         })
       ]
     })
-  
+
 ])

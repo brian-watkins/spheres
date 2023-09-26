@@ -11,7 +11,7 @@ export default view()
     el.children
       .button(el => {
         el.config
-          .on({ click: () => store(incrementCount) })
+          .on("click", () => store(incrementCount))
         el.children
           .text("Click me!")
       })

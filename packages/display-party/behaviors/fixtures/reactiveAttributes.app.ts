@@ -23,17 +23,18 @@ export default function (): View {
             .type("checkbox")
             .checked((get) => !get(isDisabled))
             .disabled((get) => get(isDisabled))
+            .aria("disabled", (get) => `${get(isDisabled)}`)
         })
         .button(el => {
           el.config
             .dataAttribute("action", "increment")
-            .on({ click: () => store(incrementClicks) })
+            .on("click", () => store(incrementClicks))
           el.children.text("Click to increment!")
         })
         .button(el => {
           el.config
             .dataAttribute("action", "disable")
-            .on({ click: () => write(isDisabled, true) })
+            .on("click", () => write(isDisabled, true))
           el.children.text("Click to disable!")
         })
     })

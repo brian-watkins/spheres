@@ -1,6 +1,5 @@
 import { MethodSignatureStructure, OptionalKind, ParameterDeclarationStructure, Project, PropertySignatureStructure, VariableDeclarationKind } from "ts-morph"
 import { htmlElementAttributes } from "html-element-attributes"
-import { htmlEventAttributes } from "html-event-attributes"
 import { htmlTagNames } from "html-tag-names"
 import { ariaAttributes } from "aria-attributes"
 import { booleanAttributes } from "./booleanAttributes"
@@ -25,7 +24,6 @@ htmlElementsFile.addImportDeclarations([
   },
   {
     namedImports: [
-      "StoreMessage",
       "Stateful"
     ],
     moduleSpecifier: "state-party"
@@ -42,35 +40,13 @@ const globalAttibutesInterface = htmlElementsFile.addInterface({
 
 const globalAttribute = buildAttributeProperty("this")
 
-for (const attribute of ariaAttributes) {
-  if (attribute.startsWith("aria")) {
-    globalAttibutesInterface.addMethod(globalAttribute(`aria${capitalize(attribute.substring(5))}`))
-  } else {
-    globalAttibutesInterface.addMethod(globalAttribute(attribute))
-  }
-}
-
 for (const attribute of htmlElementAttributes['*']) {
   globalAttibutesInterface.addMethod(globalAttribute(attribute))
 }
 
+// add aria role property to global attributes
+globalAttibutesInterface.addMethod(buildAttributeProperty("this")("role"))
 
-// Events interface
-
-const eventsInterface = htmlElementsFile.addInterface({
-  name: "ElementEvents",
-  isExported: true
-})
-
-for (const event of htmlEventAttributes) {
-  eventsInterface.addProperty({
-    name: event.substring(2),
-    type: (writer) => {
-      writer.write("<E extends Event>(evt: E) => StoreMessage<any>")
-    },
-    hasQuestionToken: true
-  })
-}
 
 // ViewBuilder interface
 
@@ -121,6 +97,7 @@ for (const tag of htmlTagNames) {
   })
 }
 
+
 // Attribute Interfaces
 
 for (const tag of htmlTagNames) {
@@ -137,25 +114,14 @@ for (const tag of htmlTagNames) {
   })
 }
 
-// Aria method names
 
-htmlElementsFile.addVariableStatement({
-  declarationKind: VariableDeclarationKind.Const,
-  declarations: [
-    {
-      name: "ariaMethodNames",
-      type: "Map<string, string>",
-      initializer: "new Map()"
-    }
-  ],
+// AriaAttribute Type
+
+htmlElementsFile.addTypeAlias({
+  name: "AriaAttribute",
+  type: ariaAttributes.map(attr => `"${attr.substring(5)}"`).join(" | "),
   isExported: true
 })
-
-htmlElementsFile.addStatements(ariaAttributes.filter((attribute) => {
-  return attribute.startsWith("aria")
-}).map((name) => {
-  return `ariaMethodNames.set('aria${capitalize(name.substring(5))}','${name}')`
-}))
 
 
 // Boolean Attributes Set

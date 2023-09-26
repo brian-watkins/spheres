@@ -1,6 +1,6 @@
-import { GetState, State, Stateful, Store } from "state-party"
+import { GetState, State, Stateful, Store, StoreMessage } from "state-party"
 import { VirtualNode, VirtualNodeConfig, addAttribute, addProperty, addStatefulAttribute, addStatefulProperty, makeBlockElement, makeReactiveTextNode, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, setEventHandler, setKey, virtualNodeConfig } from "./vdom/virtualNode.js"
-import { ViewBuilder, ElementEvents, booleanAttributes, ViewElements, ariaMethodNames, InputElementAttributes } from "./htmlElements.js"
+import { ViewBuilder, booleanAttributes, ViewElements, InputElementAttributes, AriaAttribute } from "./htmlElements.js"
 import { createStringRenderer } from "./vdom/renderToString.js"
 import { createDOMRenderer } from "./vdom/renderToDom.js"
 
@@ -35,7 +35,8 @@ const resetConfig = Symbol("reset-config")
 export interface SpecialAttributes {
   dataAttribute(name: string, value?: string | Stateful<string>): this
   innerHTML(html: string | Stateful<string>): this
-  on(events: ElementEvents): this
+  aria(name: AriaAttribute, value: string | Stateful<string>): this
+  on(event: keyof HTMLElementEventMap, handler: <E extends Event>(evt: E) => StoreMessage<any>): this
 }
 
 class BasicConfig implements SpecialAttributes {
@@ -61,11 +62,18 @@ class BasicConfig implements SpecialAttributes {
     return this
   }
 
-  on(events: ElementEvents) {
-    for (let name in events) {
-      //@ts-ignore
-      setEventHandler(this.config, name, events[name])
+  aria(name: string, value: string | Stateful<string>) {
+    if (typeof value === "function") {
+      addStatefulAttribute(this.config, `aria-${name}`, value)
+    } else {
+      addAttribute(this.config, `aria-${name}`, value)
     }
+
+    return this
+  }
+
+  on(event: keyof HTMLElementEventMap, handler: <E extends Event>(evt: E) => StoreMessage<any>) {
+    setEventHandler(this.config, event, handler)
     return this
   }
 
@@ -86,18 +94,9 @@ class InputElementConfig extends BasicConfig {
   }
 }
 
-function attributeName(methodName: string): string {
-  const name = ariaMethodNames.get(methodName)
-  if (name) {
-    return name
-  } else {
-    return methodName
-  }
-}
-
 const MagicConfig = new Proxy({}, {
   get: (_, prop, receiver) => {
-    const attribute = attributeName(prop as string)
+    const attribute = prop as string
     if (booleanAttributes.has(attribute)) {
       return function (isSelected: boolean | Stateful<boolean>) {
         if (typeof isSelected === "function") {

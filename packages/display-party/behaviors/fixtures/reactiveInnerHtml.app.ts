@@ -10,7 +10,7 @@ export default function(): View {
         .input(el => {
           el.config
             .type("text")
-            .on({ input: (evt) => write(htmlContent, (evt.target! as HTMLInputElement).value) })
+            .on("input", (evt) => write(htmlContent, (evt.target! as HTMLInputElement).value))
         })
         .div(el => {
           el.config

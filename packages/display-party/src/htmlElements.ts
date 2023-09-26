@@ -1,56 +1,7 @@
 import { View, ViewElement, SpecialElements, SpecialElementBuilder, SpecialAttributes } from "./view.js";
-import { StoreMessage, Stateful } from "state-party";
+import { Stateful } from "state-party";
 
 export interface GlobalAttributes {
-    ariaActivedescendant(value: string | Stateful<string>): this;
-    ariaAtomic(value: string | Stateful<string>): this;
-    ariaAutocomplete(value: string | Stateful<string>): this;
-    ariaBusy(value: string | Stateful<string>): this;
-    ariaChecked(value: string | Stateful<string>): this;
-    ariaColcount(value: string | Stateful<string>): this;
-    ariaColindex(value: string | Stateful<string>): this;
-    ariaColspan(value: string | Stateful<string>): this;
-    ariaControls(value: string | Stateful<string>): this;
-    ariaCurrent(value: string | Stateful<string>): this;
-    ariaDescribedby(value: string | Stateful<string>): this;
-    ariaDetails(value: string | Stateful<string>): this;
-    ariaDisabled(value: string | Stateful<string>): this;
-    ariaDropeffect(value: string | Stateful<string>): this;
-    ariaErrormessage(value: string | Stateful<string>): this;
-    ariaExpanded(value: string | Stateful<string>): this;
-    ariaFlowto(value: string | Stateful<string>): this;
-    ariaGrabbed(value: string | Stateful<string>): this;
-    ariaHaspopup(value: string | Stateful<string>): this;
-    ariaHidden(value: string | Stateful<string>): this;
-    ariaInvalid(value: string | Stateful<string>): this;
-    ariaKeyshortcuts(value: string | Stateful<string>): this;
-    ariaLabel(value: string | Stateful<string>): this;
-    ariaLabelledby(value: string | Stateful<string>): this;
-    ariaLevel(value: string | Stateful<string>): this;
-    ariaLive(value: string | Stateful<string>): this;
-    ariaModal(value: string | Stateful<string>): this;
-    ariaMultiline(value: string | Stateful<string>): this;
-    ariaMultiselectable(value: string | Stateful<string>): this;
-    ariaOrientation(value: string | Stateful<string>): this;
-    ariaOwns(value: string | Stateful<string>): this;
-    ariaPlaceholder(value: string | Stateful<string>): this;
-    ariaPosinset(value: string | Stateful<string>): this;
-    ariaPressed(value: string | Stateful<string>): this;
-    ariaReadonly(value: string | Stateful<string>): this;
-    ariaRelevant(value: string | Stateful<string>): this;
-    ariaRequired(value: string | Stateful<string>): this;
-    ariaRoledescription(value: string | Stateful<string>): this;
-    ariaRowcount(value: string | Stateful<string>): this;
-    ariaRowindex(value: string | Stateful<string>): this;
-    ariaRowspan(value: string | Stateful<string>): this;
-    ariaSelected(value: string | Stateful<string>): this;
-    ariaSetsize(value: string | Stateful<string>): this;
-    ariaSort(value: string | Stateful<string>): this;
-    ariaValuemax(value: string | Stateful<string>): this;
-    ariaValuemin(value: string | Stateful<string>): this;
-    ariaValuenow(value: string | Stateful<string>): this;
-    ariaValuetext(value: string | Stateful<string>): this;
-    role(value: string | Stateful<string>): this;
     accesskey(value: string | Stateful<string>): this;
     autocapitalize(value: string | Stateful<string>): this;
     autofocus(value: boolean | Stateful<boolean>): this;
@@ -78,94 +29,7 @@ export interface GlobalAttributes {
     tabindex(value: string | Stateful<string>): this;
     title(value: string | Stateful<string>): this;
     translate(value: string | Stateful<string>): this;
-}
-
-export interface ElementEvents {
-    abort?: <E extends Event>(evt: E) => StoreMessage<any>;
-    afterprint?: <E extends Event>(evt: E) => StoreMessage<any>;
-    auxclick?: <E extends Event>(evt: E) => StoreMessage<any>;
-    beforematch?: <E extends Event>(evt: E) => StoreMessage<any>;
-    beforeprint?: <E extends Event>(evt: E) => StoreMessage<any>;
-    beforeunload?: <E extends Event>(evt: E) => StoreMessage<any>;
-    blur?: <E extends Event>(evt: E) => StoreMessage<any>;
-    cancel?: <E extends Event>(evt: E) => StoreMessage<any>;
-    canplay?: <E extends Event>(evt: E) => StoreMessage<any>;
-    canplaythrough?: <E extends Event>(evt: E) => StoreMessage<any>;
-    change?: <E extends Event>(evt: E) => StoreMessage<any>;
-    click?: <E extends Event>(evt: E) => StoreMessage<any>;
-    close?: <E extends Event>(evt: E) => StoreMessage<any>;
-    contextlost?: <E extends Event>(evt: E) => StoreMessage<any>;
-    contextmenu?: <E extends Event>(evt: E) => StoreMessage<any>;
-    contextrestored?: <E extends Event>(evt: E) => StoreMessage<any>;
-    copy?: <E extends Event>(evt: E) => StoreMessage<any>;
-    cuechange?: <E extends Event>(evt: E) => StoreMessage<any>;
-    cut?: <E extends Event>(evt: E) => StoreMessage<any>;
-    dblclick?: <E extends Event>(evt: E) => StoreMessage<any>;
-    drag?: <E extends Event>(evt: E) => StoreMessage<any>;
-    dragend?: <E extends Event>(evt: E) => StoreMessage<any>;
-    dragenter?: <E extends Event>(evt: E) => StoreMessage<any>;
-    dragleave?: <E extends Event>(evt: E) => StoreMessage<any>;
-    dragover?: <E extends Event>(evt: E) => StoreMessage<any>;
-    dragstart?: <E extends Event>(evt: E) => StoreMessage<any>;
-    drop?: <E extends Event>(evt: E) => StoreMessage<any>;
-    durationchange?: <E extends Event>(evt: E) => StoreMessage<any>;
-    emptied?: <E extends Event>(evt: E) => StoreMessage<any>;
-    ended?: <E extends Event>(evt: E) => StoreMessage<any>;
-    error?: <E extends Event>(evt: E) => StoreMessage<any>;
-    focus?: <E extends Event>(evt: E) => StoreMessage<any>;
-    formdata?: <E extends Event>(evt: E) => StoreMessage<any>;
-    hashchange?: <E extends Event>(evt: E) => StoreMessage<any>;
-    input?: <E extends Event>(evt: E) => StoreMessage<any>;
-    invalid?: <E extends Event>(evt: E) => StoreMessage<any>;
-    keydown?: <E extends Event>(evt: E) => StoreMessage<any>;
-    keypress?: <E extends Event>(evt: E) => StoreMessage<any>;
-    keyup?: <E extends Event>(evt: E) => StoreMessage<any>;
-    languagechange?: <E extends Event>(evt: E) => StoreMessage<any>;
-    load?: <E extends Event>(evt: E) => StoreMessage<any>;
-    loadeddata?: <E extends Event>(evt: E) => StoreMessage<any>;
-    loadedmetadata?: <E extends Event>(evt: E) => StoreMessage<any>;
-    loadstart?: <E extends Event>(evt: E) => StoreMessage<any>;
-    message?: <E extends Event>(evt: E) => StoreMessage<any>;
-    messageerror?: <E extends Event>(evt: E) => StoreMessage<any>;
-    mousedown?: <E extends Event>(evt: E) => StoreMessage<any>;
-    mouseenter?: <E extends Event>(evt: E) => StoreMessage<any>;
-    mouseleave?: <E extends Event>(evt: E) => StoreMessage<any>;
-    mousemove?: <E extends Event>(evt: E) => StoreMessage<any>;
-    mouseout?: <E extends Event>(evt: E) => StoreMessage<any>;
-    mouseover?: <E extends Event>(evt: E) => StoreMessage<any>;
-    mouseup?: <E extends Event>(evt: E) => StoreMessage<any>;
-    offline?: <E extends Event>(evt: E) => StoreMessage<any>;
-    online?: <E extends Event>(evt: E) => StoreMessage<any>;
-    pagehide?: <E extends Event>(evt: E) => StoreMessage<any>;
-    pageshow?: <E extends Event>(evt: E) => StoreMessage<any>;
-    paste?: <E extends Event>(evt: E) => StoreMessage<any>;
-    pause?: <E extends Event>(evt: E) => StoreMessage<any>;
-    play?: <E extends Event>(evt: E) => StoreMessage<any>;
-    playing?: <E extends Event>(evt: E) => StoreMessage<any>;
-    popstate?: <E extends Event>(evt: E) => StoreMessage<any>;
-    progress?: <E extends Event>(evt: E) => StoreMessage<any>;
-    ratechange?: <E extends Event>(evt: E) => StoreMessage<any>;
-    rejectionhandled?: <E extends Event>(evt: E) => StoreMessage<any>;
-    reset?: <E extends Event>(evt: E) => StoreMessage<any>;
-    resize?: <E extends Event>(evt: E) => StoreMessage<any>;
-    scroll?: <E extends Event>(evt: E) => StoreMessage<any>;
-    scrollend?: <E extends Event>(evt: E) => StoreMessage<any>;
-    securitypolicyviolation?: <E extends Event>(evt: E) => StoreMessage<any>;
-    seeked?: <E extends Event>(evt: E) => StoreMessage<any>;
-    seeking?: <E extends Event>(evt: E) => StoreMessage<any>;
-    select?: <E extends Event>(evt: E) => StoreMessage<any>;
-    slotchange?: <E extends Event>(evt: E) => StoreMessage<any>;
-    stalled?: <E extends Event>(evt: E) => StoreMessage<any>;
-    storage?: <E extends Event>(evt: E) => StoreMessage<any>;
-    submit?: <E extends Event>(evt: E) => StoreMessage<any>;
-    suspend?: <E extends Event>(evt: E) => StoreMessage<any>;
-    timeupdate?: <E extends Event>(evt: E) => StoreMessage<any>;
-    toggle?: <E extends Event>(evt: E) => StoreMessage<any>;
-    unhandledrejection?: <E extends Event>(evt: E) => StoreMessage<any>;
-    unload?: <E extends Event>(evt: E) => StoreMessage<any>;
-    volumechange?: <E extends Event>(evt: E) => StoreMessage<any>;
-    waiting?: <E extends Event>(evt: E) => StoreMessage<any>;
-    wheel?: <E extends Event>(evt: E) => StoreMessage<any>;
+    role(value: string | Stateful<string>): this;
 }
 
 export interface ViewBuilder extends SpecialElementBuilder {
@@ -1321,55 +1185,7 @@ export interface WbrElementAttributes extends SpecialAttributes, GlobalAttribute
 export interface XmpElementAttributes extends SpecialAttributes, GlobalAttributes {
 }
 
-export const ariaMethodNames: Map<string, string> = new Map();
-ariaMethodNames.set('ariaActivedescendant','aria-activedescendant')
-ariaMethodNames.set('ariaAtomic','aria-atomic')
-ariaMethodNames.set('ariaAutocomplete','aria-autocomplete')
-ariaMethodNames.set('ariaBusy','aria-busy')
-ariaMethodNames.set('ariaChecked','aria-checked')
-ariaMethodNames.set('ariaColcount','aria-colcount')
-ariaMethodNames.set('ariaColindex','aria-colindex')
-ariaMethodNames.set('ariaColspan','aria-colspan')
-ariaMethodNames.set('ariaControls','aria-controls')
-ariaMethodNames.set('ariaCurrent','aria-current')
-ariaMethodNames.set('ariaDescribedby','aria-describedby')
-ariaMethodNames.set('ariaDetails','aria-details')
-ariaMethodNames.set('ariaDisabled','aria-disabled')
-ariaMethodNames.set('ariaDropeffect','aria-dropeffect')
-ariaMethodNames.set('ariaErrormessage','aria-errormessage')
-ariaMethodNames.set('ariaExpanded','aria-expanded')
-ariaMethodNames.set('ariaFlowto','aria-flowto')
-ariaMethodNames.set('ariaGrabbed','aria-grabbed')
-ariaMethodNames.set('ariaHaspopup','aria-haspopup')
-ariaMethodNames.set('ariaHidden','aria-hidden')
-ariaMethodNames.set('ariaInvalid','aria-invalid')
-ariaMethodNames.set('ariaKeyshortcuts','aria-keyshortcuts')
-ariaMethodNames.set('ariaLabel','aria-label')
-ariaMethodNames.set('ariaLabelledby','aria-labelledby')
-ariaMethodNames.set('ariaLevel','aria-level')
-ariaMethodNames.set('ariaLive','aria-live')
-ariaMethodNames.set('ariaModal','aria-modal')
-ariaMethodNames.set('ariaMultiline','aria-multiline')
-ariaMethodNames.set('ariaMultiselectable','aria-multiselectable')
-ariaMethodNames.set('ariaOrientation','aria-orientation')
-ariaMethodNames.set('ariaOwns','aria-owns')
-ariaMethodNames.set('ariaPlaceholder','aria-placeholder')
-ariaMethodNames.set('ariaPosinset','aria-posinset')
-ariaMethodNames.set('ariaPressed','aria-pressed')
-ariaMethodNames.set('ariaReadonly','aria-readonly')
-ariaMethodNames.set('ariaRelevant','aria-relevant')
-ariaMethodNames.set('ariaRequired','aria-required')
-ariaMethodNames.set('ariaRoledescription','aria-roledescription')
-ariaMethodNames.set('ariaRowcount','aria-rowcount')
-ariaMethodNames.set('ariaRowindex','aria-rowindex')
-ariaMethodNames.set('ariaRowspan','aria-rowspan')
-ariaMethodNames.set('ariaSelected','aria-selected')
-ariaMethodNames.set('ariaSetsize','aria-setsize')
-ariaMethodNames.set('ariaSort','aria-sort')
-ariaMethodNames.set('ariaValuemax','aria-valuemax')
-ariaMethodNames.set('ariaValuemin','aria-valuemin')
-ariaMethodNames.set('ariaValuenow','aria-valuenow')
-ariaMethodNames.set('ariaValuetext','aria-valuetext')
+export type AriaAttribute = "activedescendant" | "atomic" | "autocomplete" | "busy" | "checked" | "colcount" | "colindex" | "colspan" | "controls" | "current" | "describedby" | "details" | "disabled" | "dropeffect" | "errormessage" | "expanded" | "flowto" | "grabbed" | "haspopup" | "hidden" | "invalid" | "keyshortcuts" | "label" | "labelledby" | "level" | "live" | "modal" | "multiline" | "multiselectable" | "orientation" | "owns" | "placeholder" | "posinset" | "pressed" | "readonly" | "relevant" | "required" | "roledescription" | "rowcount" | "rowindex" | "rowspan" | "selected" | "setsize" | "sort" | "valuemax" | "valuemin" | "valuenow" | "valuetext" | "";
 
 export const booleanAttributes: Set<string> = new Set();
 booleanAttributes.add("allowfullscreen")

@@ -26,7 +26,7 @@ function counterView() {
     .div(el => {
       el.children
         .button(el => {
-          el.config.on({ click: () => store(incrementCount) })
+          el.config.on("click", () => store(incrementCount))
           el.children.text("Click me!")
         })
     })

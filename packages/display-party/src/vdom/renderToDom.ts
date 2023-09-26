@@ -73,65 +73,64 @@ class ReactiveTextQuery implements StoreQuery {
 }
 
 function createNode(store: Store, vnode: VirtualNode): Node {
-  if (vnode.type === NodeType.TEXT) {
-    return document.createTextNode(vnode.value)
+  switch (vnode.type) {
+
+    case NodeType.TEXT:
+      return document.createTextNode(vnode.value)
+
+    case NodeType.REACTIVE_TEXT:
+      const node = document.createTextNode("")
+      store.useQuery(new ReactiveTextQuery(node, vnode.generator))
+      return node
+
+    case NodeType.STATEFUL:
+      const query = new StatefulElementQuery(store, vnode.generator)
+      store.useQuery(query)
+      return query.current!.node!
+
+    case NodeType.BLOCK:
+      return createNode(store, vnode.generator())
+
+    default:
+      const element = vnode.is ?
+        document.createElement(vnode.tag, { is: vnode.is }) :
+        document.createElement(vnode.tag)
+
+      const attrs = vnode.data.attrs
+      for (const attr in attrs) {
+        element.setAttribute(attr, attrs[attr])
+      }
+
+      const statefulAttrs = vnode.data.statefulAttrs
+      for (const attr in statefulAttrs) {
+        const stateful = statefulAttrs[attr]
+        store.useQuery(new StatefulAttributeQuery(element, attr, stateful.generator))
+      }
+
+      const props = vnode.data.props
+      for (const prop in props) {
+        //@ts-ignore
+        element[prop] = props[prop]
+      }
+
+      const statefulProps = vnode.data.statefulProps
+      for (const prop in statefulProps) {
+        const stateful = statefulProps[prop]
+        store.useQuery(new StatefulPropertyQuery(element, prop, stateful.generator))
+      }
+
+      let k: keyof HTMLElementEventMap
+      for (k in vnode.data.on) {
+        const handler: any = vnode.data.on![k]
+        element.addEventListener(k, handler)
+      }
+
+      for (var i = 0; i < vnode.children.length; i++) {
+        vnode.children[i].node = element.appendChild(createNode(store, vnode.children[i]))
+      }
+
+      return element
   }
-
-  if (vnode.type === NodeType.REACTIVE_TEXT) {
-    const node = document.createTextNode("")
-    store.useQuery(new ReactiveTextQuery(node, vnode.generator))
-
-    return node
-  }
-
-  if (vnode.type === NodeType.STATEFUL) {
-    const query = new StatefulElementQuery(store, vnode.generator)
-    store.useQuery(query)
-    return query.current!.node!
-  }
-
-  if (vnode.type === NodeType.BLOCK) {
-    return createNode(store, vnode.generator())
-  }
-
-  const element = vnode.is ?
-    document.createElement(vnode.tag, { is: vnode.is }) :
-    document.createElement(vnode.tag)
-
-  const attrs = vnode.data.attrs
-  for (const attr in attrs) {
-    element.setAttribute(attr, attrs[attr])
-  }
-
-  const statefulAttrs = vnode.data.statefulAttrs
-  for (const attr in statefulAttrs) {
-    const stateful = statefulAttrs[attr]
-    store.useQuery(new StatefulAttributeQuery(element, attr, stateful.generator))
-  }
-
-  const props = vnode.data.props
-  for (const prop in props) {
-    //@ts-ignore
-    element[prop] = props[prop]
-  }
-
-  const statefulProps = vnode.data.statefulProps
-  for (const prop in statefulProps) {
-    const stateful = statefulProps[prop]
-    store.useQuery(new StatefulPropertyQuery(element, prop, stateful.generator))
-  }
-
-  let k: keyof HTMLElementEventMap
-  for (k in vnode.data.on) {
-    const handler: any = vnode.data.on![k]
-    element.addEventListener(k, handler)
-  }
-
-  for (var i = 0; i < vnode.children.length; i++) {
-    vnode.children[i].node = element.appendChild(createNode(store, vnode.children[i]))
-  }
-
-  return element
 }
 
 function removeNode(parent: Node, vnode: VirtualNode) {

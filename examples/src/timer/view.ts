@@ -43,7 +43,7 @@ export function timer(): View {
               .max("15")
               .step("1")
               .value("0")
-              .on({ input: (evt) => write(duration, Number((evt as any).target.value)) })
+              .on("input", (evt) => write(duration, Number((evt as any).target.value)))
           })
       })
       .button(el => {
@@ -60,7 +60,7 @@ export function timer(): View {
             "disabled:bg-slate-400",
             "hover:bg-sky-800"
           ]))
-          .on({ click: () => write(elapsedTime, 0) })
+          .on("click", () => write(elapsedTime, 0))
         el.children
           .text("Reset")
       })

@@ -23,7 +23,7 @@ export function flightBooker(): View {
 function flightTypeSelect(): View {
   return view()
     .select(el => {
-      el.config.on({ change: (evt) => write(flightType, (evt as any).target.value) })
+      el.config.on("change", (evt) => write(flightType, (evt as any).target.value))
       el.children
         .option(el => {
           el.children.text(FlightTypes.ONE_WAY)
@@ -48,7 +48,7 @@ function bookFlightButton(): View {
           "disabled:bg-slate-400",
           "hover:bg-sky-800"
         ]))
-        .on({ click: () => store(bookFlight) })
+        .on("click", () => store(bookFlight))
         .disabled((get) => !get(bookingAllowed))
       el.children
         .text("Book Flight!")
@@ -62,7 +62,7 @@ function startDateInput(): View {
         .dataAttribute("start-date")
         .class((get) => textInputClasses(get(startDateIsValid)))
         .value((get) => get(startDate))
-        .on({ input: (evt) => write(startDate, (evt as any).target.value) })
+        .on("input", (evt) => write(startDate, (evt as any).target.value))
     })
 }
 
@@ -74,7 +74,7 @@ function returnDateInput(): View {
         .class((get) => textInputClasses(get(returnDateIsValid)))
         .value((get) => get(returnDate))
         .disabled((get) => !get(allowReturnDate))
-        .on({ input: (evt) => write(returnDate, (evt as any).target.value) })
+        .on("input", (evt) => write(returnDate, (evt as any).target.value))
     })
 }
 

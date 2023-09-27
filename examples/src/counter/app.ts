@@ -14,9 +14,7 @@ export function counter(): View {
         el.children.text((get) => `Clicks: ${get(clickCount)}`)
       })
       .button(el => {
-        el.config.on({
-          click: () => write(clickCount, "increment")
-        })
+        el.config.on("click", () => write(clickCount, "increment"))
         el.children.text("Count!")
       })
   })

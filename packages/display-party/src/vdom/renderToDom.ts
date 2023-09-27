@@ -1,4 +1,4 @@
-import { GetState, StoreQuery, Stateful, Store } from "state-party";
+import { GetState, Effect, Stateful, Store } from "state-party";
 import { DOMRenderer } from "./render.js";
 import { ElementNode, NodeType, TextNode, VirtualNode, VirtualNodeKey, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "./virtualNode.js";
 
@@ -32,7 +32,7 @@ export function createDOMRenderer(store: Store): DOMRenderer {
   }
 }
 
-class StatefulElementQuery implements StoreQuery {
+class PatchElementEffect implements Effect {
   current: VirtualNode | null = null
 
   constructor(private store: Store, private generator: (get: GetState) => VirtualNode) { }
@@ -42,7 +42,7 @@ class StatefulElementQuery implements StoreQuery {
   }
 }
 
-class StatefulAttributeQuery implements StoreQuery {
+class UpdateAttributeEffect implements Effect {
   constructor(private element: Element, private attribute: string, private generator: Stateful<string>) { }
 
   run(get: GetState): void {
@@ -55,7 +55,7 @@ class StatefulAttributeQuery implements StoreQuery {
   }
 }
 
-class StatefulPropertyQuery implements StoreQuery {
+class UpdatePropertyEffect implements Effect {
   constructor(private element: Element, private property: string, private generator: Stateful<string>) { }
 
   run(get: GetState): void {
@@ -64,7 +64,7 @@ class StatefulPropertyQuery implements StoreQuery {
   }
 }
 
-class ReactiveTextQuery implements StoreQuery {
+class UpdateTextEffect implements Effect {
   constructor(private node: Node, private generator: Stateful<string>) { }
 
   run(get: GetState): void {
@@ -78,14 +78,14 @@ function createNode(store: Store, vnode: VirtualNode): Node {
     case NodeType.TEXT:
       return document.createTextNode(vnode.value)
 
-    case NodeType.REACTIVE_TEXT:
+    case NodeType.STATEFUL_TEXT:
       const node = document.createTextNode("")
-      store.useQuery(new ReactiveTextQuery(node, vnode.generator))
+      store.useEffect(new UpdateTextEffect(node, vnode.generator))
       return node
 
     case NodeType.STATEFUL:
-      const query = new StatefulElementQuery(store, vnode.generator)
-      store.useQuery(query)
+      const query = new PatchElementEffect(store, vnode.generator)
+      store.useEffect(query)
       return query.current!.node!
 
     case NodeType.BLOCK:
@@ -104,7 +104,7 @@ function createNode(store: Store, vnode: VirtualNode): Node {
       const statefulAttrs = vnode.data.statefulAttrs
       for (const attr in statefulAttrs) {
         const stateful = statefulAttrs[attr]
-        stateful.query = store.useQuery(new StatefulAttributeQuery(element, attr, stateful.generator))
+        stateful.effect = store.useEffect(new UpdateAttributeEffect(element, attr, stateful.generator))
       }
 
       const props = vnode.data.props
@@ -116,7 +116,7 @@ function createNode(store: Store, vnode: VirtualNode): Node {
       const statefulProps = vnode.data.statefulProps
       for (const prop in statefulProps) {
         const stateful = statefulProps[prop]
-        stateful.query = store.useQuery(new StatefulPropertyQuery(element, prop, stateful.generator))
+        stateful.effect = store.useEffect(new UpdatePropertyEffect(element, prop, stateful.generator))
       }
 
       const events = vnode.data.on
@@ -179,12 +179,12 @@ function patchStatefulProperties(store: Store, oldVNode: ElementNode, newVNode: 
   const newProps = newVNode.data.statefulProps ?? {}
   for (let key in { ...oldProps, ...newProps }) {
     if (newProps[key] === undefined) {
-      oldProps[key].query?.unsubscribe()
+      oldProps[key].effect?.unsubscribe()
       //@ts-ignore
       oldVNode.node![key] = ""
     } else if (oldProps[key] === undefined) {
       const stateful = newProps[key]
-      stateful.query = store.useQuery(new StatefulPropertyQuery(oldVNode.node!, key, stateful.generator))
+      stateful.effect = store.useEffect(new UpdatePropertyEffect(oldVNode.node!, key, stateful.generator))
     }
   }
 }
@@ -194,11 +194,11 @@ function patchStatefulAttributes(store: Store, oldVNode: ElementNode, newVNode: 
   const newAttr = newVNode.data.statefulAttrs ?? {}
   for (let key in { ...oldAttr, ...newAttr }) {
     if (newAttr[key] === undefined) {
-      oldAttr[key].query?.unsubscribe()
+      oldAttr[key].effect?.unsubscribe()
       oldVNode.node!.removeAttribute(key)
     } else if (oldAttr[key] === undefined) {
       const stateful = newAttr![key]
-      stateful.query = store.useQuery(new StatefulAttributeQuery(oldVNode.node!, key, stateful.generator))
+      stateful.effect = store.useEffect(new UpdateAttributeEffect(oldVNode.node!, key, stateful.generator))
     }
   }
 }

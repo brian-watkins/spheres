@@ -26,7 +26,7 @@ export interface Writer<T, M = T, E = unknown> {
   write(message: M, actions: WriterActions<T, M, E>): Promise<void>
 }
 
-export interface StoreQuery {
+export interface Effect {
   run(get: GetState): void
 }
 
@@ -216,21 +216,21 @@ class ReactiveValue<T, M> extends AbstractReactiveQuery {
   }
 }
 
-export interface QueryHandle {
+export interface EffectHandle {
   unsubscribe(): void
 }
 
-class ReactiveQuery extends AbstractReactiveQuery implements QueryHandle {
-  constructor(store: Store, private query: StoreQuery) {
+class ReactiveEffect extends AbstractReactiveQuery implements EffectHandle {
+  constructor(store: Store, private effect: Effect) {
     super(store)
   }
 
   update() {
-    this.query.run((state) => this.getValue(state))
+    this.effect.run((state) => this.getValue(state))
   }
 
   unsubscribe() {
-    this.query = {
+    this.effect = {
       run: () => {
         // do nothing
       }
@@ -267,10 +267,10 @@ export class Store {
     return controller
   }
 
-  useQuery(query: StoreQuery): QueryHandle {
-    const reactiveQuery = new ReactiveQuery(this, query)
-    reactiveQuery.update()
-    return reactiveQuery
+  useEffect(effect: Effect): EffectHandle {
+    const reactiveEffect = new ReactiveEffect(this, effect)
+    reactiveEffect.update()
+    return reactiveEffect
   }
 
   useProvider(provider: Provider) {

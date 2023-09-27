@@ -1,4 +1,4 @@
-import { Selection, Container, Provider, State, Store, Writer, store, write, StoreArg, StoreMessage, batch, GetState, StoreQuery } from "@src/index.js"
+import { Selection, Container, Provider, State, Store, Writer, store, write, StoreArg, StoreMessage, batch, GetState, Effect } from "@src/index.js"
 import { Context } from "esbehavior"
 
 export function testStoreContext<T>(): Context<TestStore<T>> {
@@ -7,7 +7,7 @@ export function testStoreContext<T>(): Context<TestStore<T>> {
   }
 }
 
-class StoreValuesQuery implements StoreQuery {
+class StoreValuesEffect implements Effect {
   values: Array<any> = []
 
   constructor(private definition: (get: GetState) => any) { }
@@ -20,22 +20,22 @@ class StoreValuesQuery implements StoreQuery {
 export class TestStore<T> {
   public store: Store
   private _tokens: T | undefined
-  private values: Map<string, StoreValuesQuery> = new Map()
+  private values: Map<string, StoreValuesEffect> = new Map()
 
   constructor() {
     this.store = new Store()
   }
 
-  queryStore(definition: (get: GetState) => any, name: string) {
-    const query = new StoreValuesQuery(definition)
-    this.values.set(name, query)
-    this.store.useQuery(query)
+  registerEffect(definition: (get: GetState) => any, name: string) {
+    const effect = new StoreValuesEffect(definition)
+    this.values.set(name, effect)
+    this.store.useEffect(effect)
   }
 
   subscribeTo<S, N>(token: State<S, N>, name: string) {
-    const query = new StoreValuesQuery((get) => get(token))
+    const query = new StoreValuesEffect((get) => get(token))
     this.values.set(name, query)
-    this.store.useQuery(query)
+    this.store.useEffect(query)
   }
 
   useProvider(provider: Provider) {

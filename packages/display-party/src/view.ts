@@ -1,5 +1,5 @@
 import { GetState, State, Stateful, Store, StoreMessage } from "state-party"
-import { VirtualNode, VirtualNodeConfig, addAttribute, addProperty, addStatefulAttribute, addStatefulProperty, makeBlockElement, makeReactiveTextNode, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, setEventHandler, setKey, virtualNodeConfig } from "./vdom/virtualNode.js"
+import { VirtualNode, VirtualNodeConfig, addAttribute, addProperty, addStatefulAttribute, addStatefulProperty, makeBlockElement, makeStatefulTextNode, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, setEventHandler, setKey, virtualNodeConfig } from "./vdom/virtualNode.js"
 import { ViewBuilder, booleanAttributes, ViewElements, InputElementAttributes, AriaAttribute } from "./htmlElements.js"
 import { createStringRenderer } from "./vdom/renderToString.js"
 import { createDOMRenderer } from "./vdom/renderToDom.js"
@@ -177,7 +177,7 @@ class BasicView implements SpecialElements, SpecialElementBuilder {
 
   text(value: string | ((get: GetState) => string)) {
     if (typeof value === "function") {
-      this.nodes.push(makeReactiveTextNode(value))
+      this.nodes.push(makeStatefulTextNode(value))
     } else {
       this.nodes.push(makeVirtualTextNode(value))
     }

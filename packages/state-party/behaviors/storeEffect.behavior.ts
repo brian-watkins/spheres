@@ -8,9 +8,9 @@ interface BasicQueryContext {
   numberContainer: Container<number>
 }
 
-const basicQuery: ConfigurableExample =
+const basicEffect: ConfigurableExample =
   example(testStoreContext<BasicQueryContext>())
-    .description("subscribe to a query")
+    .description("create an effect")
     .script({
       suppose: [
         fact("there are some containers", (context) => {
@@ -19,14 +19,14 @@ const basicQuery: ConfigurableExample =
             numberContainer: container({ initialValue: 7 })
           })
         }),
-        fact("a subscriber registers a query involving the state", (context) => {
-          context.queryStore((get) => {
+        fact("a subscriber registers an effect involving the state", (context) => {
+          context.registerEffect((get) => {
             return `${get(context.tokens.stringContainer)} ==> ${get(context.tokens.numberContainer)} times!`
           }, "sub-one")
         })
       ],
       observe: [
-        effect("the subscriber gets the initial value of the query", (context) => {
+        effect("the effect gets the initial value", (context) => {
           expect(context.valuesForSubscriber("sub-one"), is(equalTo([
             "hello ==> 7 times!"
           ])))
@@ -42,7 +42,7 @@ const basicQuery: ConfigurableExample =
         })
       ],
       observe: [
-        effect("the subscriber gets the updated value on each change", (context) => {
+        effect("the effect gets the updated value on each change", (context) => {
           expect(context.valuesForSubscriber("sub-one"), is(equalTo([
             "hello ==> 7 times!",
             "Yo! ==> 7 times!",
@@ -52,9 +52,9 @@ const basicQuery: ConfigurableExample =
       ]
     })
 
-const queryWithHiddenDependencies: ConfigurableExample =
+const effectWithHiddenDependencies: ConfigurableExample =
   example(testStoreContext<BasicQueryContext>())
-    .description("query with hidden dependents")
+    .description("effect with hidden dependents")
     .script({
       suppose: [
         fact("there are some containers", (context) => {
@@ -63,8 +63,8 @@ const queryWithHiddenDependencies: ConfigurableExample =
             numberContainer: container({ initialValue: 7 })
           })
         }),
-        fact("a subscriber registers a query involving the state", (context) => {
-          context.queryStore((get) => {
+        fact("a subscriber registers an effect involving the state", (context) => {
+          context.registerEffect((get) => {
             if (get(context.tokens.stringContainer) === "reveal!") {
               return `The secret number is: ${get(context.tokens.numberContainer)}`
             } else {
@@ -105,7 +105,7 @@ const queryWithHiddenDependencies: ConfigurableExample =
       ]
     })
 
-export default behavior("store query", [
-  basicQuery,
-  queryWithHiddenDependencies,
+export default behavior("effect", [
+  basicEffect,
+  effectWithHiddenDependencies,
 ])

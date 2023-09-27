@@ -1,4 +1,4 @@
-import { GetState, State, Stateful, StoreMessage } from "state-party";
+import { GetState, QueryHandle, State, Stateful, StoreMessage } from "state-party";
 
 export enum NodeType {
   TEXT = 3,
@@ -53,6 +53,7 @@ declare type Listener = (ev: Event) => any;
 
 export interface StatefulValue {
   generator: Stateful<string>
+  query?: QueryHandle
 }
 
 export interface VirtualNodeConfig {

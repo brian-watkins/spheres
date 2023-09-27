@@ -216,13 +216,25 @@ class ReactiveValue<T, M> extends AbstractReactiveQuery {
   }
 }
 
-class ReactiveQuery extends AbstractReactiveQuery {
+export interface QueryHandle {
+  unsubscribe(): void
+}
+
+class ReactiveQuery extends AbstractReactiveQuery implements QueryHandle {
   constructor(store: Store, private query: StoreQuery) {
     super(store)
   }
 
   update() {
     this.query.run((state) => this.getValue(state))
+  }
+
+  unsubscribe() {
+    this.query = {
+      run: () => {
+        // do nothing
+      }
+    }
   }
 }
 
@@ -255,9 +267,10 @@ export class Store {
     return controller
   }
 
-  useQuery(query: StoreQuery) {
+  useQuery(query: StoreQuery): QueryHandle {
     const reactiveQuery = new ReactiveQuery(this, query)
     reactiveQuery.update()
+    return reactiveQuery
   }
 
   useProvider(provider: Provider) {

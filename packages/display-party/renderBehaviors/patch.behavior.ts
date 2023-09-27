@@ -406,6 +406,7 @@ export default behavior("patch", [
         })
       ]
     }),
+
   example(renderContext<Container<string | undefined>>())
     .description("patch stateful attribute")
     .script({
@@ -438,7 +439,7 @@ export default behavior("patch", [
       ]
     }).andThen({
       perform: [
-        step("the container is updated to null", (context) => {
+        step("the container is updated to undefined", (context) => {
           context.writeTo(context.state, undefined)
         })
       ],
@@ -468,6 +469,50 @@ export default behavior("patch", [
       observe: [
         effect("the attribute is updated with the value", async () => {
           await expect(selectElement("#reactiveDiv").attribute("data-message"), resolvesTo(assignedWith(equalTo(""))))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the element is patched to remove the stateful attribue", (context) => {
+          const config = virtualNodeConfig()
+          addAttribute(config, "id", "reactiveDiv")
+          context.patch(makeVirtualElement("div", config, [
+            makeVirtualTextNode("This is cool!")
+          ]))
+        })
+      ],
+      observe: [
+        effect("the attribute is removed", async () => {
+          const attributeValue = await selectElement("#reactiveDiv").attribute("data-message")
+          expect(attributeValue, is(equalTo<string | undefined>(undefined)))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the container is updated to a differnt value", (context) => {
+          context.writeTo(context.state, "Where am I?")
+        })
+      ],
+      observe: [
+        effect("the attribute is still not present", async () => {
+          const attributeValue = await selectElement("#reactiveDiv").attribute("data-message")
+          expect(attributeValue, is(equalTo<string | undefined>(undefined)))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the element is patched to add back the stateful attribute", (context) => {
+          const config = virtualNodeConfig()
+          addAttribute(config, "id", "reactiveDiv")
+          addStatefulAttribute(config, "data-message", (get) => get(context.state))
+          context.patch(makeVirtualElement("div", config, [
+            makeVirtualTextNode("This is cool!")
+          ]))
+        })
+      ],
+      observe: [
+        effect("the attribute has the latest value", async () => {
+          await expect(selectElement("#reactiveDiv").attribute("data-message"), resolvesTo(assignedWith(equalTo("Where am I?"))))
         })
       ]
     }),
@@ -536,5 +581,65 @@ export default behavior("patch", [
           await expect(selectElement("input").inputValue(), resolvesTo(""))
         })
       ]
-    }),
+    }).andThen({
+      perform: [
+        step("the element is patched to remove the property", (context) => {
+          const config = virtualNodeConfig()
+          addAttribute(config, "type", "text")
+          context.patch(makeVirtualElement("div", virtualNodeConfig(), [
+            makeVirtualElement("input", config, [])
+          ]))
+        })
+      ],
+      observe: [
+        effect("the property is set to the empty string", async () => {
+          await expect(selectElement("input").inputValue(), resolvesTo(""))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the container is updated to a different value", (context) => {
+          context.writeTo(context.state, "a different value")
+        })
+      ],
+      observe: [
+        effect("the property does not update", async () => {
+          await expect(selectElement("input").inputValue(), resolvesTo(""))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the element is patched to add back the stateful property", (context) => {
+          const config = virtualNodeConfig()
+          addAttribute(config, "type", "text")
+          addStatefulProperty(config, "value", (get) => get(context.state))
+          context.patch(makeVirtualElement("div", virtualNodeConfig(), [
+            makeVirtualElement("input", config, [])
+          ]))
+        })
+      ],
+      observe: [
+        effect("the property has the latest value", async () => {
+          await expect(selectElement("input").inputValue(), resolvesTo("a different value"))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the property is removed again", (context) => {
+          const config = virtualNodeConfig()
+          addAttribute(config, "type", "text")
+          context.patch(makeVirtualElement("div", virtualNodeConfig(), [
+            makeVirtualElement("input", config, [])
+          ]))
+        }),
+        step("the container is updated", (context) => {
+          context.writeTo(context.state, "another different value!!")
+        })
+      ],
+      observe: [
+        effect("the property does not update", async () => {
+          await expect(selectElement("input").inputValue(), resolvesTo(""))
+        })
+      ]
+    })
 ])

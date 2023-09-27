@@ -1,7 +1,7 @@
 import { View, view } from "display-party";
 import { store, write } from "state-party";
 import { FlightTypes, allowReturnDate, bookFlight, bookingAllowed, flightType, returnDate, returnDateIsValid, startDate, startDateIsValid } from "./state.js";
-import { names } from "../helpers/helpers.js";
+import { names, useValue } from "../helpers/helpers.js";
 
 export function flightBooker(): View {
   return view().main(el => {
@@ -23,7 +23,7 @@ export function flightBooker(): View {
 function flightTypeSelect(): View {
   return view()
     .select(el => {
-      el.config.on("change", (evt) => write(flightType, (evt as any).target.value))
+      el.config.on("change", useValue((value) => write(flightType, value)))
       el.children
         .option(el => {
           el.children.text(FlightTypes.ONE_WAY)
@@ -62,7 +62,7 @@ function startDateInput(): View {
         .dataAttribute("start-date")
         .class((get) => textInputClasses(get(startDateIsValid)))
         .value((get) => get(startDate))
-        .on("input", (evt) => write(startDate, (evt as any).target.value))
+        .on("input", useValue((value) => write(startDate, value)))
     })
 }
 
@@ -74,7 +74,7 @@ function returnDateInput(): View {
         .class((get) => textInputClasses(get(returnDateIsValid)))
         .value((get) => get(returnDate))
         .disabled((get) => !get(allowReturnDate))
-        .on("input", (evt) => write(returnDate, (evt as any).target.value))
+        .on("input", useValue((value) => write(returnDate, value)))
     })
 }
 

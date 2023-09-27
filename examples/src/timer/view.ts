@@ -1,7 +1,7 @@
 import { View, view } from "display-party";
 import { write } from "state-party";
 import { duration, elapsedTime, percentComplete } from "./state.js";
-import { names } from "../helpers/helpers.js";
+import { names, useValue } from "../helpers/helpers.js";
 
 export function timer(): View {
   return view().section(el => {
@@ -43,7 +43,7 @@ export function timer(): View {
               .max("15")
               .step("1")
               .value("0")
-              .on("input", (evt) => write(duration, Number((evt as any).target.value)))
+              .on("input", useValue((value) => write(duration, Number(value))))
           })
       })
       .button(el => {

@@ -1,7 +1,7 @@
 import { View, view } from "display-party";
 import { Meta, store } from "state-party";
 import { celsiusInvalid, celsiusTemperature, farenheitInvalid, farenheitTemperature, temperatureUpdate } from "./state.js";
-import { names } from "../helpers/helpers.js";
+import { names, useValue } from "../helpers/helpers.js";
 
 
 export function converter(): View {
@@ -32,7 +32,7 @@ function celsiusInput(): View {
       .id("celsius")
       .type("text")
       .value((get) => get(celsiusTemperature))
-      .on("input", (evt) => store(temperatureUpdate, { celsius: (evt as any).target.value }))
+      .on("input", useValue((value) => store(temperatureUpdate, { celsius: value })))
       .class((get) => inputStyling(get(celsiusInvalid), isError(get(celsiusTemperature.meta))))
   })
 }
@@ -43,7 +43,7 @@ function farenheitInput(): View {
       .id("farenheit")
       .type("text")
       .value((get) => get(farenheitTemperature))
-      .on("input", (evt) => store(temperatureUpdate, { farenheit: (evt as any).target.value }))
+      .on("input", useValue((value) => store(temperatureUpdate, { farenheit: value })))
       .class((get) => inputStyling(get(farenheitInvalid), isError(get(farenheitTemperature.meta))))
   })
 }

@@ -7,6 +7,7 @@ import { testApp } from "./helpers/testApp.js"
 import converterBehavior from "./converter/converter.behavior.js"
 import flightBookerBehavior from "./flightBooker/flightBooker.behavior.js"
 import timerBehavior from "./timer/timer.behavior.js"
+import crudBehavior from "./crud/crud.behavior.js"
 
 const serverPort = 5957
 
@@ -32,7 +33,8 @@ const summary = await validate([
   counterBehavior(testContext),
   converterBehavior(testContext),
   flightBookerBehavior(testContext),
-  timerBehavior(testContext)
+  timerBehavior(testContext),
+  ...crudBehavior(testContext)
 ], { failFast: true })
 
 if (summary.invalid > 0 || summary.skipped > 0) {

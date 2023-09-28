@@ -8,7 +8,7 @@ export function testApp(host: string, browser: Browser): Context<TestApp> {
 }
 
 export class TestApp {
-  private page: Page | undefined
+  page: Page | undefined
   private testDisplay: TestDisplay | undefined
 
   constructor(private host: string, private browser: Browser) { }
@@ -39,7 +39,7 @@ class TestAlert {
   constructor(public readonly message: string) { }
 }
 
-class TestDisplay {
+export class TestDisplay {
   public lastAlert: TestAlert | undefined
 
   constructor(private page: Page) {

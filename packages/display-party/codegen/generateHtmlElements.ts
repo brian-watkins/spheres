@@ -1,8 +1,9 @@
-import { MethodSignatureStructure, OptionalKind, ParameterDeclarationStructure, Project, PropertySignatureStructure, VariableDeclarationKind } from "ts-morph"
+import { MethodSignatureStructure, OptionalKind, ParameterDeclarationStructure, Project, VariableDeclarationKind } from "ts-morph"
 import { htmlElementAttributes } from "html-element-attributes"
 import { htmlTagNames } from "html-tag-names"
 import { ariaAttributes } from "aria-attributes"
 import { booleanAttributes } from "./booleanAttributes"
+import { toCamel } from "./helpers"
 
 const project = new Project({
   tsConfigFilePath: "./tsconfig.json",
@@ -15,12 +16,24 @@ htmlElementsFile.addImportDeclarations([
   {
     namedImports: [
       "View",
-      "ViewElement",
+      "ConfigurableElement",
       "SpecialElements",
       "SpecialElementBuilder",
-      "SpecialAttributes"
     ],
     moduleSpecifier: "./view.js"
+  },
+  {
+    namedImports: [
+      "SpecialAttributes"
+    ],
+    moduleSpecifier: "./viewConfig.js"
+  },
+  {
+    namedImports: [
+      "SVGElements",
+      "SvgElementAttributes",
+    ],
+    moduleSpecifier: "./svgElements.js"
   },
   {
     namedImports: [
@@ -34,7 +47,7 @@ htmlElementsFile.addImportDeclarations([
 // GlobalAttributes interface
 
 const globalAttibutesInterface = htmlElementsFile.addInterface({
-  name: "GlobalAttributes",
+  name: "GlobalHTMLAttributes",
   isExported: true
 })
 
@@ -51,7 +64,7 @@ globalAttibutesInterface.addMethod(buildAttributeProperty("this")("role"))
 // ViewBuilder interface
 
 const viewBuilderInterface = htmlElementsFile.addInterface({
-  name: "ViewBuilder",
+  name: "HTMLBuilder",
   extends: [
     "SpecialElementBuilder"
   ],
@@ -64,19 +77,28 @@ for (const tag of htmlTagNames) {
     returnType: "View"
   })
 
-  methodSignature.addParameter({
-    name: "builder?",
-    type: (writer) => {
-      writer.write(`(element: ViewElement<${attributesName(tag)}>) => void`)
-    }
-  })
+  if (tag === "svg") {
+    methodSignature.addParameter({
+      name: "builder?",
+      type: (writer) => {
+        writer.write(`(element: ConfigurableElement<SvgElementAttributes, SVGElements>) => void`)
+      }
+    })
+  } else {
+    methodSignature.addParameter({
+      name: "builder?",
+      type: (writer) => {
+        writer.write(`(element: ConfigurableElement<${attributesName(tag)}, HTMLElements>) => void`)
+      }
+    })
+  }
 }
 
 
 // ViewElements interface
 
 const viewElementsInterface = htmlElementsFile.addInterface({
-  name: "ViewElements",
+  name: "HTMLElements",
   extends: [
     "SpecialElements"
   ],
@@ -89,18 +111,31 @@ for (const tag of htmlTagNames) {
     returnType: "this"
   })
 
-  methodSignature.addParameter({
-    name: "builder?",
-    type: (writer) => {
-      writer.write(`(element: ViewElement<${attributesName(tag)}>) => void`)
-    }
-  })
+  if (tag === "svg") {
+    methodSignature.addParameter({
+      name: "builder?",
+      type: (writer) => {
+        writer.write(`(element: ConfigurableElement<SvgElementAttributes, SVGElements>) => void`)
+      }
+    })
+  } else {
+    methodSignature.addParameter({
+      name: "builder?",
+      type: (writer) => {
+        writer.write(`(element: ConfigurableElement<${attributesName(tag)}, HTMLElements>) => void`)
+      }
+    })
+  }
 }
 
 
 // Attribute Interfaces
 
 for (const tag of htmlTagNames) {
+  if (tag === "svg") {
+    continue
+  }
+
   const elementAttributes = htmlElementAttributes[tag] ?? []
 
   htmlElementsFile.addInterface({
@@ -108,7 +143,7 @@ for (const tag of htmlTagNames) {
     methods: elementAttributes.map(buildAttributeProperty(attributesName(tag))),
     extends: [
       "SpecialAttributes",
-      "GlobalAttributes"
+      "GlobalHTMLAttributes"
     ],
     isExported: true
   })
@@ -167,13 +202,3 @@ function attributesName(tag: string): string {
   return `${toCamel(tag, true)}ElementAttributes`
 }
 
-function toCamel(word: string, capitalizeFirst: boolean = false): string {
-  return word
-    .split("-")
-    .map((word, i) => capitalizeFirst || i > 0 ? capitalize(word) : word)
-    .join("")
-}
-
-function capitalize(word: string): string {
-  return word.charAt(0).toUpperCase() + word.substring(1)
-}

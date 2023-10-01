@@ -1,11 +1,11 @@
-import { View, view } from "@src/index.js"
+import { View, htmlView } from "@src/index.js"
 
 export interface InputAppProps {
   defaultInputValue: string
 }
 
 export default function(context: InputAppProps): View {
-  return view()
+  return htmlView()
     .div(el => {
       el.children
         .input(el => {

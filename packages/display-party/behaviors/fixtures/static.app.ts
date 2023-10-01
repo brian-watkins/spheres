@@ -1,4 +1,4 @@
-import { view, View } from "../../src/index.js";
+import { htmlView, View } from "../../src/index.js";
 import { container, GetState } from "state-party";
 
 interface StaticViewProps {
@@ -7,21 +7,21 @@ interface StaticViewProps {
 }
 
 export function staticApp(props: StaticViewProps): View {
-  return view()
+  return htmlView()
     .div(el => {
       el.children
         .h1(el => {
-          el.children.text(`Hello "${props.name}"!`)
+          el.children.textNode(`Hello "${props.name}"!`)
         })
         .hr()
         .p(el => {
-          el.children.text(`You are supposedly ${props.age} years old.`)
+          el.children.textNode(`You are supposedly ${props.age} years old.`)
         })
     })
 }
 
 export function appWithPropertiesAndAttributes(props: StaticViewProps): View {
-  return view()
+  return htmlView()
     .div(el => {
       el.config.id("element-1")
       el.children
@@ -29,17 +29,17 @@ export function appWithPropertiesAndAttributes(props: StaticViewProps): View {
           el.config
             .class("my-class another-class")
             .dataAttribute("person", props.name)
-          el.children.text(`${props.age} years old`)
+          el.children.textNode(`${props.age} years old`)
         })
     })
 }
 
 export function appWithDataAttributesNoValue(props: StaticViewProps): View {
-  return view()
+  return htmlView()
     .div(el => {
       el.children.div(el => {
         el.config.dataAttribute("is-person")
-        el.children.text(`${props.age} years old`)
+        el.children.textNode(`${props.age} years old`)
       })
     })
 }
@@ -48,70 +48,70 @@ const nameState = container({ initialValue: "Cool Person!" })
 const ageState = container({ initialValue: 98 })
 
 function nameView(get: GetState): View {
-  return view()
+  return htmlView()
     .h2(el => {
-      el.children.text(get(nameState))
+      el.children.textNode(get(nameState))
     })
 }
 
 export function appWithSimpleState(): View {
-  return view()
+  return htmlView()
     .div(el => {
-      el.children.view(nameView)
+      el.children.andThen(nameView)
     })
 }
 
 export function appWithNestedState(): View {
-  return view()
+  return htmlView()
     .div(el => {
-      el.children.view(get => {
+      el.children.andThen(get => {
         const age = get(ageState)
         if (age < 100) {
-          return view()
-            .view(nameView)
+          return htmlView()
+            .andThen(nameView)
         } else {
-          return view()
-            .p(el => el.children.text("You are old!"))
+          return htmlView()
+            .p(el => el.children.textNode("You are old!"))
         }
       })
     })
 }
 
 export function appWithDeeplyNestedState(): View {
-  return view()
+  return htmlView()
     .div(el => {
-      el.children.view(get => {
-        return view()
+      el.children.andThen(get => {
+        return htmlView()
           .div(el => {
             el.children
-              .view(nameView)
-              .p(el => el.children.text(`${get(ageState)} years!`))
+              .andThen(nameView)
+              .p(el => el.children.textNode(`${get(ageState)} years!`))
           })
       })
     })
 }
 
 export function appWithBlock(): View {
-  return view()
-    .view(() => {
-      return view().div(({ children }) => {
+  return htmlView()
+    .andThen(() => {
+      return htmlView().div(({ children }) => {
         children
           .h1(({ children }) => {
-            children.text("Hello!")
+            children.textNode("Hello!")
           })
       })
     })
 }
 
 export function appWithReactiveText(): View {
-  return view()
+  return htmlView()
     .div(el => {
-      el.children.text((get) => `${get(ageState)} years old!`)
+      el.children.textNode((get) => `${get(ageState)} years old!`)
     })
 }
 
 export function appWithInnerHTML(): View {
-  return view()
+  return htmlView()
     .div(el => {
       el.children
         .div(el => {

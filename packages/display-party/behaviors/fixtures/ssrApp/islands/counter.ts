@@ -1,10 +1,10 @@
-import { view } from "@src/index.js"
+import { htmlView } from "@src/index.js"
 import { clickCount } from "../state.js"
 import { selection, store, write } from "state-party"
 
 const incrementCount = selection(get => write(clickCount, get(clickCount) + 1))
 
-export default view()
+export default htmlView()
   .div(el => {
     el.config
       .id("counter")
@@ -13,6 +13,6 @@ export default view()
         el.config
           .on("click", () => store(incrementCount))
         el.children
-          .text("Click me!")
+          .textNode("Click me!")
       })
   })

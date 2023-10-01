@@ -1,6 +1,6 @@
-import { view, View } from "../../src/index.js";
+import { htmlView, View } from "../../src/index.js";
 
 export default function(): View {
-  return view()
+  return htmlView()
     .div(el => el.config.innerHTML("<h3>Hello!!!</h3>"))
 }

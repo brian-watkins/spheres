@@ -92,8 +92,8 @@ function createNode(store: Store, vnode: VirtualNode): Node {
       return createNode(store, vnode.generator())
 
     default:
-      const element = vnode.is ?
-        document.createElement(vnode.tag, { is: vnode.is }) :
+      const element = vnode.data.namespace ?
+        document.createElementNS(vnode.data.namespace, vnode.tag) :
         document.createElement(vnode.tag)
 
       const attrs = vnode.data.attrs

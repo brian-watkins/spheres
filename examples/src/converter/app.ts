@@ -1,33 +1,33 @@
-import { View, view } from "display-party";
 import { Meta, store } from "state-party";
 import { celsiusInvalid, celsiusTemperature, farenheitInvalid, farenheitTemperature, temperatureUpdate } from "./state.js";
 import { names, useValue } from "../helpers/helpers.js";
+import { View, htmlView } from "display-party";
 
 
 export function converter(): View {
-  return view().main(el => {
+  return htmlView().main(el => {
     el.children
       .div(el => {
         el.children
           .label(el => {
             el.config.for("celsius")
-            el.children.text("Celsius")
+            el.children.textNode("Celsius")
           })
-          .view(celsiusInput)
+          .andThen(celsiusInput)
       })
       .div(el => {
         el.children
           .label(el => {
             el.config.for("farenheit")
-            el.children.text("Farenheit")
+            el.children.textNode("Farenheit")
           })
-          .view(farenheitInput)
+          .andThen(farenheitInput)
       })
   })
 }
 
 function celsiusInput(): View {
-  return view().input(el => {
+  return htmlView().input(el => {
     el.config
       .id("celsius")
       .type("text")
@@ -38,7 +38,7 @@ function celsiusInput(): View {
 }
 
 function farenheitInput(): View {
-  return view().input(el => {
+  return htmlView().input(el => {
     el.config
       .id("farenheit")
       .type("text")

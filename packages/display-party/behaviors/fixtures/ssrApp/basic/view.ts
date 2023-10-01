@@ -1,17 +1,17 @@
-import { View, view } from "@src/index.js"
+import { View, htmlView } from "@src/index.js"
 import counterIsland from "../islands/counter.js"
 import tallyIsland from "../islands/tally.js"
 
 export default function (): View {
-  return view()
+  return htmlView()
     .div(el => {
       el.children
-        .h1(el => el.children.text("This is the click counter!"))
-        .view(() => counterIsland)
+        .h1(el => el.children.textNode("This is the click counter!"))
+        .andThen(() => counterIsland)
         .hr()
-        .view(() => tallyIsland)
+        .andThen(() => tallyIsland)
         .hr()
-        .view(() => tallyIsland)
+        .andThen(() => tallyIsland)
     })
 }
 

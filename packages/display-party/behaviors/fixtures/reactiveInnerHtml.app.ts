@@ -1,10 +1,10 @@
-import { View, view } from "@src/index.js";
+import { View, htmlView } from "@src/index.js";
 import { container, write } from "state-party";
 
 const htmlContent = container({ initialValue: "<h1>Hello!</h1>" })
 
 export default function(): View {
-  return view()
+  return htmlView()
     .main(el => {
       el.children
         .input(el => {

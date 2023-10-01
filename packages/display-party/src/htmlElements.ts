@@ -1,7 +1,9 @@
-import { View, ViewElement, SpecialElements, SpecialElementBuilder, SpecialAttributes } from "./view.js";
+import { View, ConfigurableElement, SpecialElements, SpecialElementBuilder } from "./view.js";
+import { SpecialAttributes } from "./viewConfig.js";
+import { SVGElements, SvgElementAttributes } from "./svgElements.js";
 import { Stateful } from "state-party";
 
-export interface GlobalAttributes {
+export interface GlobalHTMLAttributes {
     accesskey(value: string | Stateful<string>): this;
     autocapitalize(value: string | Stateful<string>): this;
     autofocus(value: boolean | Stateful<boolean>): this;
@@ -32,311 +34,311 @@ export interface GlobalAttributes {
     role(value: string | Stateful<string>): this;
 }
 
-export interface ViewBuilder extends SpecialElementBuilder {
-    a(builder?: (element: ViewElement<AElementAttributes>) => void): View;
-    abbr(builder?: (element: ViewElement<AbbrElementAttributes>) => void): View;
-    acronym(builder?: (element: ViewElement<AcronymElementAttributes>) => void): View;
-    address(builder?: (element: ViewElement<AddressElementAttributes>) => void): View;
-    applet(builder?: (element: ViewElement<AppletElementAttributes>) => void): View;
-    area(builder?: (element: ViewElement<AreaElementAttributes>) => void): View;
-    article(builder?: (element: ViewElement<ArticleElementAttributes>) => void): View;
-    aside(builder?: (element: ViewElement<AsideElementAttributes>) => void): View;
-    audio(builder?: (element: ViewElement<AudioElementAttributes>) => void): View;
-    b(builder?: (element: ViewElement<BElementAttributes>) => void): View;
-    base(builder?: (element: ViewElement<BaseElementAttributes>) => void): View;
-    basefont(builder?: (element: ViewElement<BasefontElementAttributes>) => void): View;
-    bdi(builder?: (element: ViewElement<BdiElementAttributes>) => void): View;
-    bdo(builder?: (element: ViewElement<BdoElementAttributes>) => void): View;
-    bgsound(builder?: (element: ViewElement<BgsoundElementAttributes>) => void): View;
-    big(builder?: (element: ViewElement<BigElementAttributes>) => void): View;
-    blink(builder?: (element: ViewElement<BlinkElementAttributes>) => void): View;
-    blockquote(builder?: (element: ViewElement<BlockquoteElementAttributes>) => void): View;
-    body(builder?: (element: ViewElement<BodyElementAttributes>) => void): View;
-    br(builder?: (element: ViewElement<BrElementAttributes>) => void): View;
-    button(builder?: (element: ViewElement<ButtonElementAttributes>) => void): View;
-    canvas(builder?: (element: ViewElement<CanvasElementAttributes>) => void): View;
-    caption(builder?: (element: ViewElement<CaptionElementAttributes>) => void): View;
-    center(builder?: (element: ViewElement<CenterElementAttributes>) => void): View;
-    cite(builder?: (element: ViewElement<CiteElementAttributes>) => void): View;
-    code(builder?: (element: ViewElement<CodeElementAttributes>) => void): View;
-    col(builder?: (element: ViewElement<ColElementAttributes>) => void): View;
-    colgroup(builder?: (element: ViewElement<ColgroupElementAttributes>) => void): View;
-    command(builder?: (element: ViewElement<CommandElementAttributes>) => void): View;
-    content(builder?: (element: ViewElement<ContentElementAttributes>) => void): View;
-    data(builder?: (element: ViewElement<DataElementAttributes>) => void): View;
-    datalist(builder?: (element: ViewElement<DatalistElementAttributes>) => void): View;
-    dd(builder?: (element: ViewElement<DdElementAttributes>) => void): View;
-    del(builder?: (element: ViewElement<DelElementAttributes>) => void): View;
-    details(builder?: (element: ViewElement<DetailsElementAttributes>) => void): View;
-    dfn(builder?: (element: ViewElement<DfnElementAttributes>) => void): View;
-    dialog(builder?: (element: ViewElement<DialogElementAttributes>) => void): View;
-    dir(builder?: (element: ViewElement<DirElementAttributes>) => void): View;
-    div(builder?: (element: ViewElement<DivElementAttributes>) => void): View;
-    dl(builder?: (element: ViewElement<DlElementAttributes>) => void): View;
-    dt(builder?: (element: ViewElement<DtElementAttributes>) => void): View;
-    element(builder?: (element: ViewElement<ElementElementAttributes>) => void): View;
-    em(builder?: (element: ViewElement<EmElementAttributes>) => void): View;
-    embed(builder?: (element: ViewElement<EmbedElementAttributes>) => void): View;
-    fieldset(builder?: (element: ViewElement<FieldsetElementAttributes>) => void): View;
-    figcaption(builder?: (element: ViewElement<FigcaptionElementAttributes>) => void): View;
-    figure(builder?: (element: ViewElement<FigureElementAttributes>) => void): View;
-    font(builder?: (element: ViewElement<FontElementAttributes>) => void): View;
-    footer(builder?: (element: ViewElement<FooterElementAttributes>) => void): View;
-    form(builder?: (element: ViewElement<FormElementAttributes>) => void): View;
-    frame(builder?: (element: ViewElement<FrameElementAttributes>) => void): View;
-    frameset(builder?: (element: ViewElement<FramesetElementAttributes>) => void): View;
-    h1(builder?: (element: ViewElement<H1ElementAttributes>) => void): View;
-    h2(builder?: (element: ViewElement<H2ElementAttributes>) => void): View;
-    h3(builder?: (element: ViewElement<H3ElementAttributes>) => void): View;
-    h4(builder?: (element: ViewElement<H4ElementAttributes>) => void): View;
-    h5(builder?: (element: ViewElement<H5ElementAttributes>) => void): View;
-    h6(builder?: (element: ViewElement<H6ElementAttributes>) => void): View;
-    head(builder?: (element: ViewElement<HeadElementAttributes>) => void): View;
-    header(builder?: (element: ViewElement<HeaderElementAttributes>) => void): View;
-    hgroup(builder?: (element: ViewElement<HgroupElementAttributes>) => void): View;
-    hr(builder?: (element: ViewElement<HrElementAttributes>) => void): View;
-    html(builder?: (element: ViewElement<HtmlElementAttributes>) => void): View;
-    i(builder?: (element: ViewElement<IElementAttributes>) => void): View;
-    iframe(builder?: (element: ViewElement<IframeElementAttributes>) => void): View;
-    image(builder?: (element: ViewElement<ImageElementAttributes>) => void): View;
-    img(builder?: (element: ViewElement<ImgElementAttributes>) => void): View;
-    input(builder?: (element: ViewElement<InputElementAttributes>) => void): View;
-    ins(builder?: (element: ViewElement<InsElementAttributes>) => void): View;
-    isindex(builder?: (element: ViewElement<IsindexElementAttributes>) => void): View;
-    kbd(builder?: (element: ViewElement<KbdElementAttributes>) => void): View;
-    keygen(builder?: (element: ViewElement<KeygenElementAttributes>) => void): View;
-    label(builder?: (element: ViewElement<LabelElementAttributes>) => void): View;
-    legend(builder?: (element: ViewElement<LegendElementAttributes>) => void): View;
-    li(builder?: (element: ViewElement<LiElementAttributes>) => void): View;
-    link(builder?: (element: ViewElement<LinkElementAttributes>) => void): View;
-    listing(builder?: (element: ViewElement<ListingElementAttributes>) => void): View;
-    main(builder?: (element: ViewElement<MainElementAttributes>) => void): View;
-    map(builder?: (element: ViewElement<MapElementAttributes>) => void): View;
-    mark(builder?: (element: ViewElement<MarkElementAttributes>) => void): View;
-    marquee(builder?: (element: ViewElement<MarqueeElementAttributes>) => void): View;
-    math(builder?: (element: ViewElement<MathElementAttributes>) => void): View;
-    menu(builder?: (element: ViewElement<MenuElementAttributes>) => void): View;
-    menuitem(builder?: (element: ViewElement<MenuitemElementAttributes>) => void): View;
-    meta(builder?: (element: ViewElement<MetaElementAttributes>) => void): View;
-    meter(builder?: (element: ViewElement<MeterElementAttributes>) => void): View;
-    multicol(builder?: (element: ViewElement<MulticolElementAttributes>) => void): View;
-    nav(builder?: (element: ViewElement<NavElementAttributes>) => void): View;
-    nextid(builder?: (element: ViewElement<NextidElementAttributes>) => void): View;
-    nobr(builder?: (element: ViewElement<NobrElementAttributes>) => void): View;
-    noembed(builder?: (element: ViewElement<NoembedElementAttributes>) => void): View;
-    noframes(builder?: (element: ViewElement<NoframesElementAttributes>) => void): View;
-    noscript(builder?: (element: ViewElement<NoscriptElementAttributes>) => void): View;
-    object(builder?: (element: ViewElement<ObjectElementAttributes>) => void): View;
-    ol(builder?: (element: ViewElement<OlElementAttributes>) => void): View;
-    optgroup(builder?: (element: ViewElement<OptgroupElementAttributes>) => void): View;
-    option(builder?: (element: ViewElement<OptionElementAttributes>) => void): View;
-    output(builder?: (element: ViewElement<OutputElementAttributes>) => void): View;
-    p(builder?: (element: ViewElement<PElementAttributes>) => void): View;
-    param(builder?: (element: ViewElement<ParamElementAttributes>) => void): View;
-    picture(builder?: (element: ViewElement<PictureElementAttributes>) => void): View;
-    plaintext(builder?: (element: ViewElement<PlaintextElementAttributes>) => void): View;
-    pre(builder?: (element: ViewElement<PreElementAttributes>) => void): View;
-    progress(builder?: (element: ViewElement<ProgressElementAttributes>) => void): View;
-    q(builder?: (element: ViewElement<QElementAttributes>) => void): View;
-    rb(builder?: (element: ViewElement<RbElementAttributes>) => void): View;
-    rbc(builder?: (element: ViewElement<RbcElementAttributes>) => void): View;
-    rp(builder?: (element: ViewElement<RpElementAttributes>) => void): View;
-    rt(builder?: (element: ViewElement<RtElementAttributes>) => void): View;
-    rtc(builder?: (element: ViewElement<RtcElementAttributes>) => void): View;
-    ruby(builder?: (element: ViewElement<RubyElementAttributes>) => void): View;
-    s(builder?: (element: ViewElement<SElementAttributes>) => void): View;
-    samp(builder?: (element: ViewElement<SampElementAttributes>) => void): View;
-    script(builder?: (element: ViewElement<ScriptElementAttributes>) => void): View;
-    search(builder?: (element: ViewElement<SearchElementAttributes>) => void): View;
-    section(builder?: (element: ViewElement<SectionElementAttributes>) => void): View;
-    select(builder?: (element: ViewElement<SelectElementAttributes>) => void): View;
-    shadow(builder?: (element: ViewElement<ShadowElementAttributes>) => void): View;
-    slot(builder?: (element: ViewElement<SlotElementAttributes>) => void): View;
-    small(builder?: (element: ViewElement<SmallElementAttributes>) => void): View;
-    source(builder?: (element: ViewElement<SourceElementAttributes>) => void): View;
-    spacer(builder?: (element: ViewElement<SpacerElementAttributes>) => void): View;
-    span(builder?: (element: ViewElement<SpanElementAttributes>) => void): View;
-    strike(builder?: (element: ViewElement<StrikeElementAttributes>) => void): View;
-    strong(builder?: (element: ViewElement<StrongElementAttributes>) => void): View;
-    style(builder?: (element: ViewElement<StyleElementAttributes>) => void): View;
-    sub(builder?: (element: ViewElement<SubElementAttributes>) => void): View;
-    summary(builder?: (element: ViewElement<SummaryElementAttributes>) => void): View;
-    sup(builder?: (element: ViewElement<SupElementAttributes>) => void): View;
-    svg(builder?: (element: ViewElement<SvgElementAttributes>) => void): View;
-    table(builder?: (element: ViewElement<TableElementAttributes>) => void): View;
-    tbody(builder?: (element: ViewElement<TbodyElementAttributes>) => void): View;
-    td(builder?: (element: ViewElement<TdElementAttributes>) => void): View;
-    template(builder?: (element: ViewElement<TemplateElementAttributes>) => void): View;
-    textarea(builder?: (element: ViewElement<TextareaElementAttributes>) => void): View;
-    tfoot(builder?: (element: ViewElement<TfootElementAttributes>) => void): View;
-    th(builder?: (element: ViewElement<ThElementAttributes>) => void): View;
-    thead(builder?: (element: ViewElement<TheadElementAttributes>) => void): View;
-    time(builder?: (element: ViewElement<TimeElementAttributes>) => void): View;
-    title(builder?: (element: ViewElement<TitleElementAttributes>) => void): View;
-    tr(builder?: (element: ViewElement<TrElementAttributes>) => void): View;
-    track(builder?: (element: ViewElement<TrackElementAttributes>) => void): View;
-    tt(builder?: (element: ViewElement<TtElementAttributes>) => void): View;
-    u(builder?: (element: ViewElement<UElementAttributes>) => void): View;
-    ul(builder?: (element: ViewElement<UlElementAttributes>) => void): View;
-    var(builder?: (element: ViewElement<VarElementAttributes>) => void): View;
-    video(builder?: (element: ViewElement<VideoElementAttributes>) => void): View;
-    wbr(builder?: (element: ViewElement<WbrElementAttributes>) => void): View;
-    xmp(builder?: (element: ViewElement<XmpElementAttributes>) => void): View;
+export interface HTMLBuilder extends SpecialElementBuilder {
+    a(builder?: (element: ConfigurableElement<AElementAttributes, HTMLElements>) => void): View;
+    abbr(builder?: (element: ConfigurableElement<AbbrElementAttributes, HTMLElements>) => void): View;
+    acronym(builder?: (element: ConfigurableElement<AcronymElementAttributes, HTMLElements>) => void): View;
+    address(builder?: (element: ConfigurableElement<AddressElementAttributes, HTMLElements>) => void): View;
+    applet(builder?: (element: ConfigurableElement<AppletElementAttributes, HTMLElements>) => void): View;
+    area(builder?: (element: ConfigurableElement<AreaElementAttributes, HTMLElements>) => void): View;
+    article(builder?: (element: ConfigurableElement<ArticleElementAttributes, HTMLElements>) => void): View;
+    aside(builder?: (element: ConfigurableElement<AsideElementAttributes, HTMLElements>) => void): View;
+    audio(builder?: (element: ConfigurableElement<AudioElementAttributes, HTMLElements>) => void): View;
+    b(builder?: (element: ConfigurableElement<BElementAttributes, HTMLElements>) => void): View;
+    base(builder?: (element: ConfigurableElement<BaseElementAttributes, HTMLElements>) => void): View;
+    basefont(builder?: (element: ConfigurableElement<BasefontElementAttributes, HTMLElements>) => void): View;
+    bdi(builder?: (element: ConfigurableElement<BdiElementAttributes, HTMLElements>) => void): View;
+    bdo(builder?: (element: ConfigurableElement<BdoElementAttributes, HTMLElements>) => void): View;
+    bgsound(builder?: (element: ConfigurableElement<BgsoundElementAttributes, HTMLElements>) => void): View;
+    big(builder?: (element: ConfigurableElement<BigElementAttributes, HTMLElements>) => void): View;
+    blink(builder?: (element: ConfigurableElement<BlinkElementAttributes, HTMLElements>) => void): View;
+    blockquote(builder?: (element: ConfigurableElement<BlockquoteElementAttributes, HTMLElements>) => void): View;
+    body(builder?: (element: ConfigurableElement<BodyElementAttributes, HTMLElements>) => void): View;
+    br(builder?: (element: ConfigurableElement<BrElementAttributes, HTMLElements>) => void): View;
+    button(builder?: (element: ConfigurableElement<ButtonElementAttributes, HTMLElements>) => void): View;
+    canvas(builder?: (element: ConfigurableElement<CanvasElementAttributes, HTMLElements>) => void): View;
+    caption(builder?: (element: ConfigurableElement<CaptionElementAttributes, HTMLElements>) => void): View;
+    center(builder?: (element: ConfigurableElement<CenterElementAttributes, HTMLElements>) => void): View;
+    cite(builder?: (element: ConfigurableElement<CiteElementAttributes, HTMLElements>) => void): View;
+    code(builder?: (element: ConfigurableElement<CodeElementAttributes, HTMLElements>) => void): View;
+    col(builder?: (element: ConfigurableElement<ColElementAttributes, HTMLElements>) => void): View;
+    colgroup(builder?: (element: ConfigurableElement<ColgroupElementAttributes, HTMLElements>) => void): View;
+    command(builder?: (element: ConfigurableElement<CommandElementAttributes, HTMLElements>) => void): View;
+    content(builder?: (element: ConfigurableElement<ContentElementAttributes, HTMLElements>) => void): View;
+    data(builder?: (element: ConfigurableElement<DataElementAttributes, HTMLElements>) => void): View;
+    datalist(builder?: (element: ConfigurableElement<DatalistElementAttributes, HTMLElements>) => void): View;
+    dd(builder?: (element: ConfigurableElement<DdElementAttributes, HTMLElements>) => void): View;
+    del(builder?: (element: ConfigurableElement<DelElementAttributes, HTMLElements>) => void): View;
+    details(builder?: (element: ConfigurableElement<DetailsElementAttributes, HTMLElements>) => void): View;
+    dfn(builder?: (element: ConfigurableElement<DfnElementAttributes, HTMLElements>) => void): View;
+    dialog(builder?: (element: ConfigurableElement<DialogElementAttributes, HTMLElements>) => void): View;
+    dir(builder?: (element: ConfigurableElement<DirElementAttributes, HTMLElements>) => void): View;
+    div(builder?: (element: ConfigurableElement<DivElementAttributes, HTMLElements>) => void): View;
+    dl(builder?: (element: ConfigurableElement<DlElementAttributes, HTMLElements>) => void): View;
+    dt(builder?: (element: ConfigurableElement<DtElementAttributes, HTMLElements>) => void): View;
+    element(builder?: (element: ConfigurableElement<ElementElementAttributes, HTMLElements>) => void): View;
+    em(builder?: (element: ConfigurableElement<EmElementAttributes, HTMLElements>) => void): View;
+    embed(builder?: (element: ConfigurableElement<EmbedElementAttributes, HTMLElements>) => void): View;
+    fieldset(builder?: (element: ConfigurableElement<FieldsetElementAttributes, HTMLElements>) => void): View;
+    figcaption(builder?: (element: ConfigurableElement<FigcaptionElementAttributes, HTMLElements>) => void): View;
+    figure(builder?: (element: ConfigurableElement<FigureElementAttributes, HTMLElements>) => void): View;
+    font(builder?: (element: ConfigurableElement<FontElementAttributes, HTMLElements>) => void): View;
+    footer(builder?: (element: ConfigurableElement<FooterElementAttributes, HTMLElements>) => void): View;
+    form(builder?: (element: ConfigurableElement<FormElementAttributes, HTMLElements>) => void): View;
+    frame(builder?: (element: ConfigurableElement<FrameElementAttributes, HTMLElements>) => void): View;
+    frameset(builder?: (element: ConfigurableElement<FramesetElementAttributes, HTMLElements>) => void): View;
+    h1(builder?: (element: ConfigurableElement<H1ElementAttributes, HTMLElements>) => void): View;
+    h2(builder?: (element: ConfigurableElement<H2ElementAttributes, HTMLElements>) => void): View;
+    h3(builder?: (element: ConfigurableElement<H3ElementAttributes, HTMLElements>) => void): View;
+    h4(builder?: (element: ConfigurableElement<H4ElementAttributes, HTMLElements>) => void): View;
+    h5(builder?: (element: ConfigurableElement<H5ElementAttributes, HTMLElements>) => void): View;
+    h6(builder?: (element: ConfigurableElement<H6ElementAttributes, HTMLElements>) => void): View;
+    head(builder?: (element: ConfigurableElement<HeadElementAttributes, HTMLElements>) => void): View;
+    header(builder?: (element: ConfigurableElement<HeaderElementAttributes, HTMLElements>) => void): View;
+    hgroup(builder?: (element: ConfigurableElement<HgroupElementAttributes, HTMLElements>) => void): View;
+    hr(builder?: (element: ConfigurableElement<HrElementAttributes, HTMLElements>) => void): View;
+    html(builder?: (element: ConfigurableElement<HtmlElementAttributes, HTMLElements>) => void): View;
+    i(builder?: (element: ConfigurableElement<IElementAttributes, HTMLElements>) => void): View;
+    iframe(builder?: (element: ConfigurableElement<IframeElementAttributes, HTMLElements>) => void): View;
+    image(builder?: (element: ConfigurableElement<ImageElementAttributes, HTMLElements>) => void): View;
+    img(builder?: (element: ConfigurableElement<ImgElementAttributes, HTMLElements>) => void): View;
+    input(builder?: (element: ConfigurableElement<InputElementAttributes, HTMLElements>) => void): View;
+    ins(builder?: (element: ConfigurableElement<InsElementAttributes, HTMLElements>) => void): View;
+    isindex(builder?: (element: ConfigurableElement<IsindexElementAttributes, HTMLElements>) => void): View;
+    kbd(builder?: (element: ConfigurableElement<KbdElementAttributes, HTMLElements>) => void): View;
+    keygen(builder?: (element: ConfigurableElement<KeygenElementAttributes, HTMLElements>) => void): View;
+    label(builder?: (element: ConfigurableElement<LabelElementAttributes, HTMLElements>) => void): View;
+    legend(builder?: (element: ConfigurableElement<LegendElementAttributes, HTMLElements>) => void): View;
+    li(builder?: (element: ConfigurableElement<LiElementAttributes, HTMLElements>) => void): View;
+    link(builder?: (element: ConfigurableElement<LinkElementAttributes, HTMLElements>) => void): View;
+    listing(builder?: (element: ConfigurableElement<ListingElementAttributes, HTMLElements>) => void): View;
+    main(builder?: (element: ConfigurableElement<MainElementAttributes, HTMLElements>) => void): View;
+    map(builder?: (element: ConfigurableElement<MapElementAttributes, HTMLElements>) => void): View;
+    mark(builder?: (element: ConfigurableElement<MarkElementAttributes, HTMLElements>) => void): View;
+    marquee(builder?: (element: ConfigurableElement<MarqueeElementAttributes, HTMLElements>) => void): View;
+    math(builder?: (element: ConfigurableElement<MathElementAttributes, HTMLElements>) => void): View;
+    menu(builder?: (element: ConfigurableElement<MenuElementAttributes, HTMLElements>) => void): View;
+    menuitem(builder?: (element: ConfigurableElement<MenuitemElementAttributes, HTMLElements>) => void): View;
+    meta(builder?: (element: ConfigurableElement<MetaElementAttributes, HTMLElements>) => void): View;
+    meter(builder?: (element: ConfigurableElement<MeterElementAttributes, HTMLElements>) => void): View;
+    multicol(builder?: (element: ConfigurableElement<MulticolElementAttributes, HTMLElements>) => void): View;
+    nav(builder?: (element: ConfigurableElement<NavElementAttributes, HTMLElements>) => void): View;
+    nextid(builder?: (element: ConfigurableElement<NextidElementAttributes, HTMLElements>) => void): View;
+    nobr(builder?: (element: ConfigurableElement<NobrElementAttributes, HTMLElements>) => void): View;
+    noembed(builder?: (element: ConfigurableElement<NoembedElementAttributes, HTMLElements>) => void): View;
+    noframes(builder?: (element: ConfigurableElement<NoframesElementAttributes, HTMLElements>) => void): View;
+    noscript(builder?: (element: ConfigurableElement<NoscriptElementAttributes, HTMLElements>) => void): View;
+    object(builder?: (element: ConfigurableElement<ObjectElementAttributes, HTMLElements>) => void): View;
+    ol(builder?: (element: ConfigurableElement<OlElementAttributes, HTMLElements>) => void): View;
+    optgroup(builder?: (element: ConfigurableElement<OptgroupElementAttributes, HTMLElements>) => void): View;
+    option(builder?: (element: ConfigurableElement<OptionElementAttributes, HTMLElements>) => void): View;
+    output(builder?: (element: ConfigurableElement<OutputElementAttributes, HTMLElements>) => void): View;
+    p(builder?: (element: ConfigurableElement<PElementAttributes, HTMLElements>) => void): View;
+    param(builder?: (element: ConfigurableElement<ParamElementAttributes, HTMLElements>) => void): View;
+    picture(builder?: (element: ConfigurableElement<PictureElementAttributes, HTMLElements>) => void): View;
+    plaintext(builder?: (element: ConfigurableElement<PlaintextElementAttributes, HTMLElements>) => void): View;
+    pre(builder?: (element: ConfigurableElement<PreElementAttributes, HTMLElements>) => void): View;
+    progress(builder?: (element: ConfigurableElement<ProgressElementAttributes, HTMLElements>) => void): View;
+    q(builder?: (element: ConfigurableElement<QElementAttributes, HTMLElements>) => void): View;
+    rb(builder?: (element: ConfigurableElement<RbElementAttributes, HTMLElements>) => void): View;
+    rbc(builder?: (element: ConfigurableElement<RbcElementAttributes, HTMLElements>) => void): View;
+    rp(builder?: (element: ConfigurableElement<RpElementAttributes, HTMLElements>) => void): View;
+    rt(builder?: (element: ConfigurableElement<RtElementAttributes, HTMLElements>) => void): View;
+    rtc(builder?: (element: ConfigurableElement<RtcElementAttributes, HTMLElements>) => void): View;
+    ruby(builder?: (element: ConfigurableElement<RubyElementAttributes, HTMLElements>) => void): View;
+    s(builder?: (element: ConfigurableElement<SElementAttributes, HTMLElements>) => void): View;
+    samp(builder?: (element: ConfigurableElement<SampElementAttributes, HTMLElements>) => void): View;
+    script(builder?: (element: ConfigurableElement<ScriptElementAttributes, HTMLElements>) => void): View;
+    search(builder?: (element: ConfigurableElement<SearchElementAttributes, HTMLElements>) => void): View;
+    section(builder?: (element: ConfigurableElement<SectionElementAttributes, HTMLElements>) => void): View;
+    select(builder?: (element: ConfigurableElement<SelectElementAttributes, HTMLElements>) => void): View;
+    shadow(builder?: (element: ConfigurableElement<ShadowElementAttributes, HTMLElements>) => void): View;
+    slot(builder?: (element: ConfigurableElement<SlotElementAttributes, HTMLElements>) => void): View;
+    small(builder?: (element: ConfigurableElement<SmallElementAttributes, HTMLElements>) => void): View;
+    source(builder?: (element: ConfigurableElement<SourceElementAttributes, HTMLElements>) => void): View;
+    spacer(builder?: (element: ConfigurableElement<SpacerElementAttributes, HTMLElements>) => void): View;
+    span(builder?: (element: ConfigurableElement<SpanElementAttributes, HTMLElements>) => void): View;
+    strike(builder?: (element: ConfigurableElement<StrikeElementAttributes, HTMLElements>) => void): View;
+    strong(builder?: (element: ConfigurableElement<StrongElementAttributes, HTMLElements>) => void): View;
+    style(builder?: (element: ConfigurableElement<StyleElementAttributes, HTMLElements>) => void): View;
+    sub(builder?: (element: ConfigurableElement<SubElementAttributes, HTMLElements>) => void): View;
+    summary(builder?: (element: ConfigurableElement<SummaryElementAttributes, HTMLElements>) => void): View;
+    sup(builder?: (element: ConfigurableElement<SupElementAttributes, HTMLElements>) => void): View;
+    svg(builder?: (element: ConfigurableElement<SvgElementAttributes, SVGElements>) => void): View;
+    table(builder?: (element: ConfigurableElement<TableElementAttributes, HTMLElements>) => void): View;
+    tbody(builder?: (element: ConfigurableElement<TbodyElementAttributes, HTMLElements>) => void): View;
+    td(builder?: (element: ConfigurableElement<TdElementAttributes, HTMLElements>) => void): View;
+    template(builder?: (element: ConfigurableElement<TemplateElementAttributes, HTMLElements>) => void): View;
+    textarea(builder?: (element: ConfigurableElement<TextareaElementAttributes, HTMLElements>) => void): View;
+    tfoot(builder?: (element: ConfigurableElement<TfootElementAttributes, HTMLElements>) => void): View;
+    th(builder?: (element: ConfigurableElement<ThElementAttributes, HTMLElements>) => void): View;
+    thead(builder?: (element: ConfigurableElement<TheadElementAttributes, HTMLElements>) => void): View;
+    time(builder?: (element: ConfigurableElement<TimeElementAttributes, HTMLElements>) => void): View;
+    title(builder?: (element: ConfigurableElement<TitleElementAttributes, HTMLElements>) => void): View;
+    tr(builder?: (element: ConfigurableElement<TrElementAttributes, HTMLElements>) => void): View;
+    track(builder?: (element: ConfigurableElement<TrackElementAttributes, HTMLElements>) => void): View;
+    tt(builder?: (element: ConfigurableElement<TtElementAttributes, HTMLElements>) => void): View;
+    u(builder?: (element: ConfigurableElement<UElementAttributes, HTMLElements>) => void): View;
+    ul(builder?: (element: ConfigurableElement<UlElementAttributes, HTMLElements>) => void): View;
+    var(builder?: (element: ConfigurableElement<VarElementAttributes, HTMLElements>) => void): View;
+    video(builder?: (element: ConfigurableElement<VideoElementAttributes, HTMLElements>) => void): View;
+    wbr(builder?: (element: ConfigurableElement<WbrElementAttributes, HTMLElements>) => void): View;
+    xmp(builder?: (element: ConfigurableElement<XmpElementAttributes, HTMLElements>) => void): View;
 }
 
-export interface ViewElements extends SpecialElements {
-    a(builder?: (element: ViewElement<AElementAttributes>) => void): this;
-    abbr(builder?: (element: ViewElement<AbbrElementAttributes>) => void): this;
-    acronym(builder?: (element: ViewElement<AcronymElementAttributes>) => void): this;
-    address(builder?: (element: ViewElement<AddressElementAttributes>) => void): this;
-    applet(builder?: (element: ViewElement<AppletElementAttributes>) => void): this;
-    area(builder?: (element: ViewElement<AreaElementAttributes>) => void): this;
-    article(builder?: (element: ViewElement<ArticleElementAttributes>) => void): this;
-    aside(builder?: (element: ViewElement<AsideElementAttributes>) => void): this;
-    audio(builder?: (element: ViewElement<AudioElementAttributes>) => void): this;
-    b(builder?: (element: ViewElement<BElementAttributes>) => void): this;
-    base(builder?: (element: ViewElement<BaseElementAttributes>) => void): this;
-    basefont(builder?: (element: ViewElement<BasefontElementAttributes>) => void): this;
-    bdi(builder?: (element: ViewElement<BdiElementAttributes>) => void): this;
-    bdo(builder?: (element: ViewElement<BdoElementAttributes>) => void): this;
-    bgsound(builder?: (element: ViewElement<BgsoundElementAttributes>) => void): this;
-    big(builder?: (element: ViewElement<BigElementAttributes>) => void): this;
-    blink(builder?: (element: ViewElement<BlinkElementAttributes>) => void): this;
-    blockquote(builder?: (element: ViewElement<BlockquoteElementAttributes>) => void): this;
-    body(builder?: (element: ViewElement<BodyElementAttributes>) => void): this;
-    br(builder?: (element: ViewElement<BrElementAttributes>) => void): this;
-    button(builder?: (element: ViewElement<ButtonElementAttributes>) => void): this;
-    canvas(builder?: (element: ViewElement<CanvasElementAttributes>) => void): this;
-    caption(builder?: (element: ViewElement<CaptionElementAttributes>) => void): this;
-    center(builder?: (element: ViewElement<CenterElementAttributes>) => void): this;
-    cite(builder?: (element: ViewElement<CiteElementAttributes>) => void): this;
-    code(builder?: (element: ViewElement<CodeElementAttributes>) => void): this;
-    col(builder?: (element: ViewElement<ColElementAttributes>) => void): this;
-    colgroup(builder?: (element: ViewElement<ColgroupElementAttributes>) => void): this;
-    command(builder?: (element: ViewElement<CommandElementAttributes>) => void): this;
-    content(builder?: (element: ViewElement<ContentElementAttributes>) => void): this;
-    data(builder?: (element: ViewElement<DataElementAttributes>) => void): this;
-    datalist(builder?: (element: ViewElement<DatalistElementAttributes>) => void): this;
-    dd(builder?: (element: ViewElement<DdElementAttributes>) => void): this;
-    del(builder?: (element: ViewElement<DelElementAttributes>) => void): this;
-    details(builder?: (element: ViewElement<DetailsElementAttributes>) => void): this;
-    dfn(builder?: (element: ViewElement<DfnElementAttributes>) => void): this;
-    dialog(builder?: (element: ViewElement<DialogElementAttributes>) => void): this;
-    dir(builder?: (element: ViewElement<DirElementAttributes>) => void): this;
-    div(builder?: (element: ViewElement<DivElementAttributes>) => void): this;
-    dl(builder?: (element: ViewElement<DlElementAttributes>) => void): this;
-    dt(builder?: (element: ViewElement<DtElementAttributes>) => void): this;
-    element(builder?: (element: ViewElement<ElementElementAttributes>) => void): this;
-    em(builder?: (element: ViewElement<EmElementAttributes>) => void): this;
-    embed(builder?: (element: ViewElement<EmbedElementAttributes>) => void): this;
-    fieldset(builder?: (element: ViewElement<FieldsetElementAttributes>) => void): this;
-    figcaption(builder?: (element: ViewElement<FigcaptionElementAttributes>) => void): this;
-    figure(builder?: (element: ViewElement<FigureElementAttributes>) => void): this;
-    font(builder?: (element: ViewElement<FontElementAttributes>) => void): this;
-    footer(builder?: (element: ViewElement<FooterElementAttributes>) => void): this;
-    form(builder?: (element: ViewElement<FormElementAttributes>) => void): this;
-    frame(builder?: (element: ViewElement<FrameElementAttributes>) => void): this;
-    frameset(builder?: (element: ViewElement<FramesetElementAttributes>) => void): this;
-    h1(builder?: (element: ViewElement<H1ElementAttributes>) => void): this;
-    h2(builder?: (element: ViewElement<H2ElementAttributes>) => void): this;
-    h3(builder?: (element: ViewElement<H3ElementAttributes>) => void): this;
-    h4(builder?: (element: ViewElement<H4ElementAttributes>) => void): this;
-    h5(builder?: (element: ViewElement<H5ElementAttributes>) => void): this;
-    h6(builder?: (element: ViewElement<H6ElementAttributes>) => void): this;
-    head(builder?: (element: ViewElement<HeadElementAttributes>) => void): this;
-    header(builder?: (element: ViewElement<HeaderElementAttributes>) => void): this;
-    hgroup(builder?: (element: ViewElement<HgroupElementAttributes>) => void): this;
-    hr(builder?: (element: ViewElement<HrElementAttributes>) => void): this;
-    html(builder?: (element: ViewElement<HtmlElementAttributes>) => void): this;
-    i(builder?: (element: ViewElement<IElementAttributes>) => void): this;
-    iframe(builder?: (element: ViewElement<IframeElementAttributes>) => void): this;
-    image(builder?: (element: ViewElement<ImageElementAttributes>) => void): this;
-    img(builder?: (element: ViewElement<ImgElementAttributes>) => void): this;
-    input(builder?: (element: ViewElement<InputElementAttributes>) => void): this;
-    ins(builder?: (element: ViewElement<InsElementAttributes>) => void): this;
-    isindex(builder?: (element: ViewElement<IsindexElementAttributes>) => void): this;
-    kbd(builder?: (element: ViewElement<KbdElementAttributes>) => void): this;
-    keygen(builder?: (element: ViewElement<KeygenElementAttributes>) => void): this;
-    label(builder?: (element: ViewElement<LabelElementAttributes>) => void): this;
-    legend(builder?: (element: ViewElement<LegendElementAttributes>) => void): this;
-    li(builder?: (element: ViewElement<LiElementAttributes>) => void): this;
-    link(builder?: (element: ViewElement<LinkElementAttributes>) => void): this;
-    listing(builder?: (element: ViewElement<ListingElementAttributes>) => void): this;
-    main(builder?: (element: ViewElement<MainElementAttributes>) => void): this;
-    map(builder?: (element: ViewElement<MapElementAttributes>) => void): this;
-    mark(builder?: (element: ViewElement<MarkElementAttributes>) => void): this;
-    marquee(builder?: (element: ViewElement<MarqueeElementAttributes>) => void): this;
-    math(builder?: (element: ViewElement<MathElementAttributes>) => void): this;
-    menu(builder?: (element: ViewElement<MenuElementAttributes>) => void): this;
-    menuitem(builder?: (element: ViewElement<MenuitemElementAttributes>) => void): this;
-    meta(builder?: (element: ViewElement<MetaElementAttributes>) => void): this;
-    meter(builder?: (element: ViewElement<MeterElementAttributes>) => void): this;
-    multicol(builder?: (element: ViewElement<MulticolElementAttributes>) => void): this;
-    nav(builder?: (element: ViewElement<NavElementAttributes>) => void): this;
-    nextid(builder?: (element: ViewElement<NextidElementAttributes>) => void): this;
-    nobr(builder?: (element: ViewElement<NobrElementAttributes>) => void): this;
-    noembed(builder?: (element: ViewElement<NoembedElementAttributes>) => void): this;
-    noframes(builder?: (element: ViewElement<NoframesElementAttributes>) => void): this;
-    noscript(builder?: (element: ViewElement<NoscriptElementAttributes>) => void): this;
-    object(builder?: (element: ViewElement<ObjectElementAttributes>) => void): this;
-    ol(builder?: (element: ViewElement<OlElementAttributes>) => void): this;
-    optgroup(builder?: (element: ViewElement<OptgroupElementAttributes>) => void): this;
-    option(builder?: (element: ViewElement<OptionElementAttributes>) => void): this;
-    output(builder?: (element: ViewElement<OutputElementAttributes>) => void): this;
-    p(builder?: (element: ViewElement<PElementAttributes>) => void): this;
-    param(builder?: (element: ViewElement<ParamElementAttributes>) => void): this;
-    picture(builder?: (element: ViewElement<PictureElementAttributes>) => void): this;
-    plaintext(builder?: (element: ViewElement<PlaintextElementAttributes>) => void): this;
-    pre(builder?: (element: ViewElement<PreElementAttributes>) => void): this;
-    progress(builder?: (element: ViewElement<ProgressElementAttributes>) => void): this;
-    q(builder?: (element: ViewElement<QElementAttributes>) => void): this;
-    rb(builder?: (element: ViewElement<RbElementAttributes>) => void): this;
-    rbc(builder?: (element: ViewElement<RbcElementAttributes>) => void): this;
-    rp(builder?: (element: ViewElement<RpElementAttributes>) => void): this;
-    rt(builder?: (element: ViewElement<RtElementAttributes>) => void): this;
-    rtc(builder?: (element: ViewElement<RtcElementAttributes>) => void): this;
-    ruby(builder?: (element: ViewElement<RubyElementAttributes>) => void): this;
-    s(builder?: (element: ViewElement<SElementAttributes>) => void): this;
-    samp(builder?: (element: ViewElement<SampElementAttributes>) => void): this;
-    script(builder?: (element: ViewElement<ScriptElementAttributes>) => void): this;
-    search(builder?: (element: ViewElement<SearchElementAttributes>) => void): this;
-    section(builder?: (element: ViewElement<SectionElementAttributes>) => void): this;
-    select(builder?: (element: ViewElement<SelectElementAttributes>) => void): this;
-    shadow(builder?: (element: ViewElement<ShadowElementAttributes>) => void): this;
-    slot(builder?: (element: ViewElement<SlotElementAttributes>) => void): this;
-    small(builder?: (element: ViewElement<SmallElementAttributes>) => void): this;
-    source(builder?: (element: ViewElement<SourceElementAttributes>) => void): this;
-    spacer(builder?: (element: ViewElement<SpacerElementAttributes>) => void): this;
-    span(builder?: (element: ViewElement<SpanElementAttributes>) => void): this;
-    strike(builder?: (element: ViewElement<StrikeElementAttributes>) => void): this;
-    strong(builder?: (element: ViewElement<StrongElementAttributes>) => void): this;
-    style(builder?: (element: ViewElement<StyleElementAttributes>) => void): this;
-    sub(builder?: (element: ViewElement<SubElementAttributes>) => void): this;
-    summary(builder?: (element: ViewElement<SummaryElementAttributes>) => void): this;
-    sup(builder?: (element: ViewElement<SupElementAttributes>) => void): this;
-    svg(builder?: (element: ViewElement<SvgElementAttributes>) => void): this;
-    table(builder?: (element: ViewElement<TableElementAttributes>) => void): this;
-    tbody(builder?: (element: ViewElement<TbodyElementAttributes>) => void): this;
-    td(builder?: (element: ViewElement<TdElementAttributes>) => void): this;
-    template(builder?: (element: ViewElement<TemplateElementAttributes>) => void): this;
-    textarea(builder?: (element: ViewElement<TextareaElementAttributes>) => void): this;
-    tfoot(builder?: (element: ViewElement<TfootElementAttributes>) => void): this;
-    th(builder?: (element: ViewElement<ThElementAttributes>) => void): this;
-    thead(builder?: (element: ViewElement<TheadElementAttributes>) => void): this;
-    time(builder?: (element: ViewElement<TimeElementAttributes>) => void): this;
-    title(builder?: (element: ViewElement<TitleElementAttributes>) => void): this;
-    tr(builder?: (element: ViewElement<TrElementAttributes>) => void): this;
-    track(builder?: (element: ViewElement<TrackElementAttributes>) => void): this;
-    tt(builder?: (element: ViewElement<TtElementAttributes>) => void): this;
-    u(builder?: (element: ViewElement<UElementAttributes>) => void): this;
-    ul(builder?: (element: ViewElement<UlElementAttributes>) => void): this;
-    var(builder?: (element: ViewElement<VarElementAttributes>) => void): this;
-    video(builder?: (element: ViewElement<VideoElementAttributes>) => void): this;
-    wbr(builder?: (element: ViewElement<WbrElementAttributes>) => void): this;
-    xmp(builder?: (element: ViewElement<XmpElementAttributes>) => void): this;
+export interface HTMLElements extends SpecialElements {
+    a(builder?: (element: ConfigurableElement<AElementAttributes, HTMLElements>) => void): this;
+    abbr(builder?: (element: ConfigurableElement<AbbrElementAttributes, HTMLElements>) => void): this;
+    acronym(builder?: (element: ConfigurableElement<AcronymElementAttributes, HTMLElements>) => void): this;
+    address(builder?: (element: ConfigurableElement<AddressElementAttributes, HTMLElements>) => void): this;
+    applet(builder?: (element: ConfigurableElement<AppletElementAttributes, HTMLElements>) => void): this;
+    area(builder?: (element: ConfigurableElement<AreaElementAttributes, HTMLElements>) => void): this;
+    article(builder?: (element: ConfigurableElement<ArticleElementAttributes, HTMLElements>) => void): this;
+    aside(builder?: (element: ConfigurableElement<AsideElementAttributes, HTMLElements>) => void): this;
+    audio(builder?: (element: ConfigurableElement<AudioElementAttributes, HTMLElements>) => void): this;
+    b(builder?: (element: ConfigurableElement<BElementAttributes, HTMLElements>) => void): this;
+    base(builder?: (element: ConfigurableElement<BaseElementAttributes, HTMLElements>) => void): this;
+    basefont(builder?: (element: ConfigurableElement<BasefontElementAttributes, HTMLElements>) => void): this;
+    bdi(builder?: (element: ConfigurableElement<BdiElementAttributes, HTMLElements>) => void): this;
+    bdo(builder?: (element: ConfigurableElement<BdoElementAttributes, HTMLElements>) => void): this;
+    bgsound(builder?: (element: ConfigurableElement<BgsoundElementAttributes, HTMLElements>) => void): this;
+    big(builder?: (element: ConfigurableElement<BigElementAttributes, HTMLElements>) => void): this;
+    blink(builder?: (element: ConfigurableElement<BlinkElementAttributes, HTMLElements>) => void): this;
+    blockquote(builder?: (element: ConfigurableElement<BlockquoteElementAttributes, HTMLElements>) => void): this;
+    body(builder?: (element: ConfigurableElement<BodyElementAttributes, HTMLElements>) => void): this;
+    br(builder?: (element: ConfigurableElement<BrElementAttributes, HTMLElements>) => void): this;
+    button(builder?: (element: ConfigurableElement<ButtonElementAttributes, HTMLElements>) => void): this;
+    canvas(builder?: (element: ConfigurableElement<CanvasElementAttributes, HTMLElements>) => void): this;
+    caption(builder?: (element: ConfigurableElement<CaptionElementAttributes, HTMLElements>) => void): this;
+    center(builder?: (element: ConfigurableElement<CenterElementAttributes, HTMLElements>) => void): this;
+    cite(builder?: (element: ConfigurableElement<CiteElementAttributes, HTMLElements>) => void): this;
+    code(builder?: (element: ConfigurableElement<CodeElementAttributes, HTMLElements>) => void): this;
+    col(builder?: (element: ConfigurableElement<ColElementAttributes, HTMLElements>) => void): this;
+    colgroup(builder?: (element: ConfigurableElement<ColgroupElementAttributes, HTMLElements>) => void): this;
+    command(builder?: (element: ConfigurableElement<CommandElementAttributes, HTMLElements>) => void): this;
+    content(builder?: (element: ConfigurableElement<ContentElementAttributes, HTMLElements>) => void): this;
+    data(builder?: (element: ConfigurableElement<DataElementAttributes, HTMLElements>) => void): this;
+    datalist(builder?: (element: ConfigurableElement<DatalistElementAttributes, HTMLElements>) => void): this;
+    dd(builder?: (element: ConfigurableElement<DdElementAttributes, HTMLElements>) => void): this;
+    del(builder?: (element: ConfigurableElement<DelElementAttributes, HTMLElements>) => void): this;
+    details(builder?: (element: ConfigurableElement<DetailsElementAttributes, HTMLElements>) => void): this;
+    dfn(builder?: (element: ConfigurableElement<DfnElementAttributes, HTMLElements>) => void): this;
+    dialog(builder?: (element: ConfigurableElement<DialogElementAttributes, HTMLElements>) => void): this;
+    dir(builder?: (element: ConfigurableElement<DirElementAttributes, HTMLElements>) => void): this;
+    div(builder?: (element: ConfigurableElement<DivElementAttributes, HTMLElements>) => void): this;
+    dl(builder?: (element: ConfigurableElement<DlElementAttributes, HTMLElements>) => void): this;
+    dt(builder?: (element: ConfigurableElement<DtElementAttributes, HTMLElements>) => void): this;
+    element(builder?: (element: ConfigurableElement<ElementElementAttributes, HTMLElements>) => void): this;
+    em(builder?: (element: ConfigurableElement<EmElementAttributes, HTMLElements>) => void): this;
+    embed(builder?: (element: ConfigurableElement<EmbedElementAttributes, HTMLElements>) => void): this;
+    fieldset(builder?: (element: ConfigurableElement<FieldsetElementAttributes, HTMLElements>) => void): this;
+    figcaption(builder?: (element: ConfigurableElement<FigcaptionElementAttributes, HTMLElements>) => void): this;
+    figure(builder?: (element: ConfigurableElement<FigureElementAttributes, HTMLElements>) => void): this;
+    font(builder?: (element: ConfigurableElement<FontElementAttributes, HTMLElements>) => void): this;
+    footer(builder?: (element: ConfigurableElement<FooterElementAttributes, HTMLElements>) => void): this;
+    form(builder?: (element: ConfigurableElement<FormElementAttributes, HTMLElements>) => void): this;
+    frame(builder?: (element: ConfigurableElement<FrameElementAttributes, HTMLElements>) => void): this;
+    frameset(builder?: (element: ConfigurableElement<FramesetElementAttributes, HTMLElements>) => void): this;
+    h1(builder?: (element: ConfigurableElement<H1ElementAttributes, HTMLElements>) => void): this;
+    h2(builder?: (element: ConfigurableElement<H2ElementAttributes, HTMLElements>) => void): this;
+    h3(builder?: (element: ConfigurableElement<H3ElementAttributes, HTMLElements>) => void): this;
+    h4(builder?: (element: ConfigurableElement<H4ElementAttributes, HTMLElements>) => void): this;
+    h5(builder?: (element: ConfigurableElement<H5ElementAttributes, HTMLElements>) => void): this;
+    h6(builder?: (element: ConfigurableElement<H6ElementAttributes, HTMLElements>) => void): this;
+    head(builder?: (element: ConfigurableElement<HeadElementAttributes, HTMLElements>) => void): this;
+    header(builder?: (element: ConfigurableElement<HeaderElementAttributes, HTMLElements>) => void): this;
+    hgroup(builder?: (element: ConfigurableElement<HgroupElementAttributes, HTMLElements>) => void): this;
+    hr(builder?: (element: ConfigurableElement<HrElementAttributes, HTMLElements>) => void): this;
+    html(builder?: (element: ConfigurableElement<HtmlElementAttributes, HTMLElements>) => void): this;
+    i(builder?: (element: ConfigurableElement<IElementAttributes, HTMLElements>) => void): this;
+    iframe(builder?: (element: ConfigurableElement<IframeElementAttributes, HTMLElements>) => void): this;
+    image(builder?: (element: ConfigurableElement<ImageElementAttributes, HTMLElements>) => void): this;
+    img(builder?: (element: ConfigurableElement<ImgElementAttributes, HTMLElements>) => void): this;
+    input(builder?: (element: ConfigurableElement<InputElementAttributes, HTMLElements>) => void): this;
+    ins(builder?: (element: ConfigurableElement<InsElementAttributes, HTMLElements>) => void): this;
+    isindex(builder?: (element: ConfigurableElement<IsindexElementAttributes, HTMLElements>) => void): this;
+    kbd(builder?: (element: ConfigurableElement<KbdElementAttributes, HTMLElements>) => void): this;
+    keygen(builder?: (element: ConfigurableElement<KeygenElementAttributes, HTMLElements>) => void): this;
+    label(builder?: (element: ConfigurableElement<LabelElementAttributes, HTMLElements>) => void): this;
+    legend(builder?: (element: ConfigurableElement<LegendElementAttributes, HTMLElements>) => void): this;
+    li(builder?: (element: ConfigurableElement<LiElementAttributes, HTMLElements>) => void): this;
+    link(builder?: (element: ConfigurableElement<LinkElementAttributes, HTMLElements>) => void): this;
+    listing(builder?: (element: ConfigurableElement<ListingElementAttributes, HTMLElements>) => void): this;
+    main(builder?: (element: ConfigurableElement<MainElementAttributes, HTMLElements>) => void): this;
+    map(builder?: (element: ConfigurableElement<MapElementAttributes, HTMLElements>) => void): this;
+    mark(builder?: (element: ConfigurableElement<MarkElementAttributes, HTMLElements>) => void): this;
+    marquee(builder?: (element: ConfigurableElement<MarqueeElementAttributes, HTMLElements>) => void): this;
+    math(builder?: (element: ConfigurableElement<MathElementAttributes, HTMLElements>) => void): this;
+    menu(builder?: (element: ConfigurableElement<MenuElementAttributes, HTMLElements>) => void): this;
+    menuitem(builder?: (element: ConfigurableElement<MenuitemElementAttributes, HTMLElements>) => void): this;
+    meta(builder?: (element: ConfigurableElement<MetaElementAttributes, HTMLElements>) => void): this;
+    meter(builder?: (element: ConfigurableElement<MeterElementAttributes, HTMLElements>) => void): this;
+    multicol(builder?: (element: ConfigurableElement<MulticolElementAttributes, HTMLElements>) => void): this;
+    nav(builder?: (element: ConfigurableElement<NavElementAttributes, HTMLElements>) => void): this;
+    nextid(builder?: (element: ConfigurableElement<NextidElementAttributes, HTMLElements>) => void): this;
+    nobr(builder?: (element: ConfigurableElement<NobrElementAttributes, HTMLElements>) => void): this;
+    noembed(builder?: (element: ConfigurableElement<NoembedElementAttributes, HTMLElements>) => void): this;
+    noframes(builder?: (element: ConfigurableElement<NoframesElementAttributes, HTMLElements>) => void): this;
+    noscript(builder?: (element: ConfigurableElement<NoscriptElementAttributes, HTMLElements>) => void): this;
+    object(builder?: (element: ConfigurableElement<ObjectElementAttributes, HTMLElements>) => void): this;
+    ol(builder?: (element: ConfigurableElement<OlElementAttributes, HTMLElements>) => void): this;
+    optgroup(builder?: (element: ConfigurableElement<OptgroupElementAttributes, HTMLElements>) => void): this;
+    option(builder?: (element: ConfigurableElement<OptionElementAttributes, HTMLElements>) => void): this;
+    output(builder?: (element: ConfigurableElement<OutputElementAttributes, HTMLElements>) => void): this;
+    p(builder?: (element: ConfigurableElement<PElementAttributes, HTMLElements>) => void): this;
+    param(builder?: (element: ConfigurableElement<ParamElementAttributes, HTMLElements>) => void): this;
+    picture(builder?: (element: ConfigurableElement<PictureElementAttributes, HTMLElements>) => void): this;
+    plaintext(builder?: (element: ConfigurableElement<PlaintextElementAttributes, HTMLElements>) => void): this;
+    pre(builder?: (element: ConfigurableElement<PreElementAttributes, HTMLElements>) => void): this;
+    progress(builder?: (element: ConfigurableElement<ProgressElementAttributes, HTMLElements>) => void): this;
+    q(builder?: (element: ConfigurableElement<QElementAttributes, HTMLElements>) => void): this;
+    rb(builder?: (element: ConfigurableElement<RbElementAttributes, HTMLElements>) => void): this;
+    rbc(builder?: (element: ConfigurableElement<RbcElementAttributes, HTMLElements>) => void): this;
+    rp(builder?: (element: ConfigurableElement<RpElementAttributes, HTMLElements>) => void): this;
+    rt(builder?: (element: ConfigurableElement<RtElementAttributes, HTMLElements>) => void): this;
+    rtc(builder?: (element: ConfigurableElement<RtcElementAttributes, HTMLElements>) => void): this;
+    ruby(builder?: (element: ConfigurableElement<RubyElementAttributes, HTMLElements>) => void): this;
+    s(builder?: (element: ConfigurableElement<SElementAttributes, HTMLElements>) => void): this;
+    samp(builder?: (element: ConfigurableElement<SampElementAttributes, HTMLElements>) => void): this;
+    script(builder?: (element: ConfigurableElement<ScriptElementAttributes, HTMLElements>) => void): this;
+    search(builder?: (element: ConfigurableElement<SearchElementAttributes, HTMLElements>) => void): this;
+    section(builder?: (element: ConfigurableElement<SectionElementAttributes, HTMLElements>) => void): this;
+    select(builder?: (element: ConfigurableElement<SelectElementAttributes, HTMLElements>) => void): this;
+    shadow(builder?: (element: ConfigurableElement<ShadowElementAttributes, HTMLElements>) => void): this;
+    slot(builder?: (element: ConfigurableElement<SlotElementAttributes, HTMLElements>) => void): this;
+    small(builder?: (element: ConfigurableElement<SmallElementAttributes, HTMLElements>) => void): this;
+    source(builder?: (element: ConfigurableElement<SourceElementAttributes, HTMLElements>) => void): this;
+    spacer(builder?: (element: ConfigurableElement<SpacerElementAttributes, HTMLElements>) => void): this;
+    span(builder?: (element: ConfigurableElement<SpanElementAttributes, HTMLElements>) => void): this;
+    strike(builder?: (element: ConfigurableElement<StrikeElementAttributes, HTMLElements>) => void): this;
+    strong(builder?: (element: ConfigurableElement<StrongElementAttributes, HTMLElements>) => void): this;
+    style(builder?: (element: ConfigurableElement<StyleElementAttributes, HTMLElements>) => void): this;
+    sub(builder?: (element: ConfigurableElement<SubElementAttributes, HTMLElements>) => void): this;
+    summary(builder?: (element: ConfigurableElement<SummaryElementAttributes, HTMLElements>) => void): this;
+    sup(builder?: (element: ConfigurableElement<SupElementAttributes, HTMLElements>) => void): this;
+    svg(builder?: (element: ConfigurableElement<SvgElementAttributes, SVGElements>) => void): this;
+    table(builder?: (element: ConfigurableElement<TableElementAttributes, HTMLElements>) => void): this;
+    tbody(builder?: (element: ConfigurableElement<TbodyElementAttributes, HTMLElements>) => void): this;
+    td(builder?: (element: ConfigurableElement<TdElementAttributes, HTMLElements>) => void): this;
+    template(builder?: (element: ConfigurableElement<TemplateElementAttributes, HTMLElements>) => void): this;
+    textarea(builder?: (element: ConfigurableElement<TextareaElementAttributes, HTMLElements>) => void): this;
+    tfoot(builder?: (element: ConfigurableElement<TfootElementAttributes, HTMLElements>) => void): this;
+    th(builder?: (element: ConfigurableElement<ThElementAttributes, HTMLElements>) => void): this;
+    thead(builder?: (element: ConfigurableElement<TheadElementAttributes, HTMLElements>) => void): this;
+    time(builder?: (element: ConfigurableElement<TimeElementAttributes, HTMLElements>) => void): this;
+    title(builder?: (element: ConfigurableElement<TitleElementAttributes, HTMLElements>) => void): this;
+    tr(builder?: (element: ConfigurableElement<TrElementAttributes, HTMLElements>) => void): this;
+    track(builder?: (element: ConfigurableElement<TrackElementAttributes, HTMLElements>) => void): this;
+    tt(builder?: (element: ConfigurableElement<TtElementAttributes, HTMLElements>) => void): this;
+    u(builder?: (element: ConfigurableElement<UElementAttributes, HTMLElements>) => void): this;
+    ul(builder?: (element: ConfigurableElement<UlElementAttributes, HTMLElements>) => void): this;
+    var(builder?: (element: ConfigurableElement<VarElementAttributes, HTMLElements>) => void): this;
+    video(builder?: (element: ConfigurableElement<VideoElementAttributes, HTMLElements>) => void): this;
+    wbr(builder?: (element: ConfigurableElement<WbrElementAttributes, HTMLElements>) => void): this;
+    xmp(builder?: (element: ConfigurableElement<XmpElementAttributes, HTMLElements>) => void): this;
 }
 
-export interface AElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface AElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     charset(value: string | Stateful<string>): AElementAttributes;
     coords(value: string | Stateful<string>): AElementAttributes;
     download(value: string | Stateful<string>): AElementAttributes;
@@ -352,16 +354,16 @@ export interface AElementAttributes extends SpecialAttributes, GlobalAttributes 
     type(value: string | Stateful<string>): AElementAttributes;
 }
 
-export interface AbbrElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface AbbrElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface AcronymElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface AcronymElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface AddressElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface AddressElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface AppletElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface AppletElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     align(value: string | Stateful<string>): AppletElementAttributes;
     alt(value: string | Stateful<string>): AppletElementAttributes;
     archive(value: string | Stateful<string>): AppletElementAttributes;
@@ -375,7 +377,7 @@ export interface AppletElementAttributes extends SpecialAttributes, GlobalAttrib
     width(value: string | Stateful<string>): AppletElementAttributes;
 }
 
-export interface AreaElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface AreaElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     alt(value: string | Stateful<string>): AreaElementAttributes;
     coords(value: string | Stateful<string>): AreaElementAttributes;
     download(value: string | Stateful<string>): AreaElementAttributes;
@@ -390,13 +392,13 @@ export interface AreaElementAttributes extends SpecialAttributes, GlobalAttribut
     type(value: string | Stateful<string>): AreaElementAttributes;
 }
 
-export interface ArticleElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface ArticleElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface AsideElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface AsideElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface AudioElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface AudioElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     autoplay(value: boolean | Stateful<boolean>): AudioElementAttributes;
     controls(value: boolean | Stateful<boolean>): AudioElementAttributes;
     crossorigin(value: string | Stateful<string>): AudioElementAttributes;
@@ -406,40 +408,40 @@ export interface AudioElementAttributes extends SpecialAttributes, GlobalAttribu
     src(value: string | Stateful<string>): AudioElementAttributes;
 }
 
-export interface BElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface BElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface BaseElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface BaseElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     href(value: string | Stateful<string>): BaseElementAttributes;
     target(value: string | Stateful<string>): BaseElementAttributes;
 }
 
-export interface BasefontElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface BasefontElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     color(value: string | Stateful<string>): BasefontElementAttributes;
     face(value: string | Stateful<string>): BasefontElementAttributes;
     size(value: string | Stateful<string>): BasefontElementAttributes;
 }
 
-export interface BdiElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface BdiElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface BdoElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface BdoElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface BgsoundElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface BgsoundElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface BigElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface BigElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface BlinkElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface BlinkElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface BlockquoteElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface BlockquoteElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     cite(value: string | Stateful<string>): BlockquoteElementAttributes;
 }
 
-export interface BodyElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface BodyElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     alink(value: string | Stateful<string>): BodyElementAttributes;
     background(value: string | Stateful<string>): BodyElementAttributes;
     bgcolor(value: string | Stateful<string>): BodyElementAttributes;
@@ -448,11 +450,11 @@ export interface BodyElementAttributes extends SpecialAttributes, GlobalAttribut
     vlink(value: string | Stateful<string>): BodyElementAttributes;
 }
 
-export interface BrElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface BrElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     clear(value: string | Stateful<string>): BrElementAttributes;
 }
 
-export interface ButtonElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface ButtonElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     disabled(value: boolean | Stateful<boolean>): ButtonElementAttributes;
     form(value: string | Stateful<string>): ButtonElementAttributes;
     formaction(value: string | Stateful<string>): ButtonElementAttributes;
@@ -467,25 +469,25 @@ export interface ButtonElementAttributes extends SpecialAttributes, GlobalAttrib
     value(value: string | Stateful<string>): ButtonElementAttributes;
 }
 
-export interface CanvasElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface CanvasElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     height(value: string | Stateful<string>): CanvasElementAttributes;
     width(value: string | Stateful<string>): CanvasElementAttributes;
 }
 
-export interface CaptionElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface CaptionElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     align(value: string | Stateful<string>): CaptionElementAttributes;
 }
 
-export interface CenterElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface CenterElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface CiteElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface CiteElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface CodeElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface CodeElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface ColElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface ColElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     align(value: string | Stateful<string>): ColElementAttributes;
     char(value: string | Stateful<string>): ColElementAttributes;
     charoff(value: string | Stateful<string>): ColElementAttributes;
@@ -494,7 +496,7 @@ export interface ColElementAttributes extends SpecialAttributes, GlobalAttribute
     width(value: string | Stateful<string>): ColElementAttributes;
 }
 
-export interface ColgroupElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface ColgroupElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     align(value: string | Stateful<string>): ColgroupElementAttributes;
     char(value: string | Stateful<string>): ColgroupElementAttributes;
     charoff(value: string | Stateful<string>): ColgroupElementAttributes;
@@ -503,88 +505,88 @@ export interface ColgroupElementAttributes extends SpecialAttributes, GlobalAttr
     width(value: string | Stateful<string>): ColgroupElementAttributes;
 }
 
-export interface CommandElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface CommandElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface ContentElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface ContentElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface DataElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface DataElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     value(value: string | Stateful<string>): DataElementAttributes;
 }
 
-export interface DatalistElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface DatalistElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface DdElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface DdElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface DelElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface DelElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     cite(value: string | Stateful<string>): DelElementAttributes;
     datetime(value: string | Stateful<string>): DelElementAttributes;
 }
 
-export interface DetailsElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface DetailsElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     open(value: boolean | Stateful<boolean>): DetailsElementAttributes;
 }
 
-export interface DfnElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface DfnElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface DialogElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface DialogElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     open(value: boolean | Stateful<boolean>): DialogElementAttributes;
 }
 
-export interface DirElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface DirElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     compact(value: string | Stateful<string>): DirElementAttributes;
 }
 
-export interface DivElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface DivElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     align(value: string | Stateful<string>): DivElementAttributes;
 }
 
-export interface DlElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface DlElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     compact(value: string | Stateful<string>): DlElementAttributes;
 }
 
-export interface DtElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface DtElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface ElementElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface ElementElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface EmElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface EmElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface EmbedElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface EmbedElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     height(value: string | Stateful<string>): EmbedElementAttributes;
     src(value: string | Stateful<string>): EmbedElementAttributes;
     type(value: string | Stateful<string>): EmbedElementAttributes;
     width(value: string | Stateful<string>): EmbedElementAttributes;
 }
 
-export interface FieldsetElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface FieldsetElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     disabled(value: boolean | Stateful<boolean>): FieldsetElementAttributes;
     form(value: string | Stateful<string>): FieldsetElementAttributes;
     name(value: string | Stateful<string>): FieldsetElementAttributes;
 }
 
-export interface FigcaptionElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface FigcaptionElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface FigureElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface FigureElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface FontElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface FontElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     color(value: string | Stateful<string>): FontElementAttributes;
     face(value: string | Stateful<string>): FontElementAttributes;
     size(value: string | Stateful<string>): FontElementAttributes;
 }
 
-export interface FooterElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface FooterElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface FormElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface FormElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     accept(value: string | Stateful<string>): FormElementAttributes;
     acceptCharset(value: string | Stateful<string>): FormElementAttributes;
     action(value: string | Stateful<string>): FormElementAttributes;
@@ -596,7 +598,7 @@ export interface FormElementAttributes extends SpecialAttributes, GlobalAttribut
     target(value: string | Stateful<string>): FormElementAttributes;
 }
 
-export interface FrameElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface FrameElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     frameborder(value: string | Stateful<string>): FrameElementAttributes;
     longdesc(value: string | Stateful<string>): FrameElementAttributes;
     marginheight(value: string | Stateful<string>): FrameElementAttributes;
@@ -607,61 +609,61 @@ export interface FrameElementAttributes extends SpecialAttributes, GlobalAttribu
     src(value: string | Stateful<string>): FrameElementAttributes;
 }
 
-export interface FramesetElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface FramesetElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     cols(value: string | Stateful<string>): FramesetElementAttributes;
     rows(value: string | Stateful<string>): FramesetElementAttributes;
 }
 
-export interface H1ElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface H1ElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     align(value: string | Stateful<string>): H1ElementAttributes;
 }
 
-export interface H2ElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface H2ElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     align(value: string | Stateful<string>): H2ElementAttributes;
 }
 
-export interface H3ElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface H3ElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     align(value: string | Stateful<string>): H3ElementAttributes;
 }
 
-export interface H4ElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface H4ElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     align(value: string | Stateful<string>): H4ElementAttributes;
 }
 
-export interface H5ElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface H5ElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     align(value: string | Stateful<string>): H5ElementAttributes;
 }
 
-export interface H6ElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface H6ElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     align(value: string | Stateful<string>): H6ElementAttributes;
 }
 
-export interface HeadElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface HeadElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     profile(value: string | Stateful<string>): HeadElementAttributes;
 }
 
-export interface HeaderElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface HeaderElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface HgroupElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface HgroupElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface HrElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface HrElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     align(value: string | Stateful<string>): HrElementAttributes;
     noshade(value: string | Stateful<string>): HrElementAttributes;
     size(value: string | Stateful<string>): HrElementAttributes;
     width(value: string | Stateful<string>): HrElementAttributes;
 }
 
-export interface HtmlElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface HtmlElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     manifest(value: string | Stateful<string>): HtmlElementAttributes;
     version(value: string | Stateful<string>): HtmlElementAttributes;
 }
 
-export interface IElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface IElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface IframeElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface IframeElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     align(value: string | Stateful<string>): IframeElementAttributes;
     allow(value: string | Stateful<string>): IframeElementAttributes;
     allowfullscreen(value: boolean | Stateful<boolean>): IframeElementAttributes;
@@ -682,10 +684,10 @@ export interface IframeElementAttributes extends SpecialAttributes, GlobalAttrib
     width(value: string | Stateful<string>): IframeElementAttributes;
 }
 
-export interface ImageElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface ImageElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface ImgElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface ImgElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     align(value: string | Stateful<string>): ImgElementAttributes;
     alt(value: string | Stateful<string>): ImgElementAttributes;
     border(value: string | Stateful<string>): ImgElementAttributes;
@@ -707,7 +709,7 @@ export interface ImgElementAttributes extends SpecialAttributes, GlobalAttribute
     width(value: string | Stateful<string>): ImgElementAttributes;
 }
 
-export interface InputElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface InputElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     accept(value: string | Stateful<string>): InputElementAttributes;
     align(value: string | Stateful<string>): InputElementAttributes;
     alt(value: string | Stateful<string>): InputElementAttributes;
@@ -745,36 +747,36 @@ export interface InputElementAttributes extends SpecialAttributes, GlobalAttribu
     width(value: string | Stateful<string>): InputElementAttributes;
 }
 
-export interface InsElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface InsElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     cite(value: string | Stateful<string>): InsElementAttributes;
     datetime(value: string | Stateful<string>): InsElementAttributes;
 }
 
-export interface IsindexElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface IsindexElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     prompt(value: string | Stateful<string>): IsindexElementAttributes;
 }
 
-export interface KbdElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface KbdElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface KeygenElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface KeygenElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface LabelElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface LabelElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     for(value: string | Stateful<string>): LabelElementAttributes;
     form(value: string | Stateful<string>): LabelElementAttributes;
 }
 
-export interface LegendElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface LegendElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     align(value: string | Stateful<string>): LegendElementAttributes;
 }
 
-export interface LiElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface LiElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     type(value: string | Stateful<string>): LiElementAttributes;
     value(value: string | Stateful<string>): LiElementAttributes;
 }
 
-export interface LinkElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface LinkElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     as(value: string | Stateful<string>): LinkElementAttributes;
     blocking(value: string | Stateful<string>): LinkElementAttributes;
     charset(value: string | Stateful<string>): LinkElementAttributes;
@@ -796,33 +798,33 @@ export interface LinkElementAttributes extends SpecialAttributes, GlobalAttribut
     type(value: string | Stateful<string>): LinkElementAttributes;
 }
 
-export interface ListingElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface ListingElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface MainElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface MainElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface MapElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface MapElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     name(value: string | Stateful<string>): MapElementAttributes;
 }
 
-export interface MarkElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface MarkElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface MarqueeElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface MarqueeElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface MathElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface MathElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface MenuElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface MenuElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     compact(value: string | Stateful<string>): MenuElementAttributes;
 }
 
-export interface MenuitemElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface MenuitemElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface MetaElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface MetaElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     charset(value: string | Stateful<string>): MetaElementAttributes;
     content(value: string | Stateful<string>): MetaElementAttributes;
     httpEquiv(value: string | Stateful<string>): MetaElementAttributes;
@@ -831,7 +833,7 @@ export interface MetaElementAttributes extends SpecialAttributes, GlobalAttribut
     scheme(value: string | Stateful<string>): MetaElementAttributes;
 }
 
-export interface MeterElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface MeterElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     high(value: string | Stateful<string>): MeterElementAttributes;
     low(value: string | Stateful<string>): MeterElementAttributes;
     max(value: string | Stateful<string>): MeterElementAttributes;
@@ -840,28 +842,28 @@ export interface MeterElementAttributes extends SpecialAttributes, GlobalAttribu
     value(value: string | Stateful<string>): MeterElementAttributes;
 }
 
-export interface MulticolElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface MulticolElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface NavElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface NavElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface NextidElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface NextidElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface NobrElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface NobrElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface NoembedElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface NoembedElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface NoframesElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface NoframesElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface NoscriptElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface NoscriptElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface ObjectElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface ObjectElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     align(value: string | Stateful<string>): ObjectElementAttributes;
     archive(value: string | Stateful<string>): ObjectElementAttributes;
     border(value: string | Stateful<string>): ObjectElementAttributes;
@@ -882,86 +884,86 @@ export interface ObjectElementAttributes extends SpecialAttributes, GlobalAttrib
     width(value: string | Stateful<string>): ObjectElementAttributes;
 }
 
-export interface OlElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface OlElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     compact(value: string | Stateful<string>): OlElementAttributes;
     reversed(value: boolean | Stateful<boolean>): OlElementAttributes;
     start(value: string | Stateful<string>): OlElementAttributes;
     type(value: string | Stateful<string>): OlElementAttributes;
 }
 
-export interface OptgroupElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface OptgroupElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     disabled(value: boolean | Stateful<boolean>): OptgroupElementAttributes;
     label(value: string | Stateful<string>): OptgroupElementAttributes;
 }
 
-export interface OptionElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface OptionElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     disabled(value: boolean | Stateful<boolean>): OptionElementAttributes;
     label(value: string | Stateful<string>): OptionElementAttributes;
     selected(value: boolean | Stateful<boolean>): OptionElementAttributes;
     value(value: string | Stateful<string>): OptionElementAttributes;
 }
 
-export interface OutputElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface OutputElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     for(value: string | Stateful<string>): OutputElementAttributes;
     form(value: string | Stateful<string>): OutputElementAttributes;
     name(value: string | Stateful<string>): OutputElementAttributes;
 }
 
-export interface PElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface PElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     align(value: string | Stateful<string>): PElementAttributes;
 }
 
-export interface ParamElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface ParamElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     name(value: string | Stateful<string>): ParamElementAttributes;
     type(value: string | Stateful<string>): ParamElementAttributes;
     value(value: string | Stateful<string>): ParamElementAttributes;
     valuetype(value: string | Stateful<string>): ParamElementAttributes;
 }
 
-export interface PictureElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface PictureElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface PlaintextElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface PlaintextElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface PreElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface PreElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     width(value: string | Stateful<string>): PreElementAttributes;
 }
 
-export interface ProgressElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface ProgressElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     max(value: string | Stateful<string>): ProgressElementAttributes;
     value(value: string | Stateful<string>): ProgressElementAttributes;
 }
 
-export interface QElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface QElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     cite(value: string | Stateful<string>): QElementAttributes;
 }
 
-export interface RbElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface RbElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface RbcElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface RbcElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface RpElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface RpElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface RtElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface RtElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface RtcElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface RtcElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface RubyElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface RubyElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface SElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface SElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface SampElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface SampElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface ScriptElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface ScriptElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     async(value: boolean | Stateful<boolean>): ScriptElementAttributes;
     blocking(value: string | Stateful<string>): ScriptElementAttributes;
     charset(value: string | Stateful<string>): ScriptElementAttributes;
@@ -976,13 +978,13 @@ export interface ScriptElementAttributes extends SpecialAttributes, GlobalAttrib
     type(value: string | Stateful<string>): ScriptElementAttributes;
 }
 
-export interface SearchElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface SearchElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface SectionElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface SectionElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface SelectElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface SelectElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     autocomplete(value: string | Stateful<string>): SelectElementAttributes;
     disabled(value: boolean | Stateful<boolean>): SelectElementAttributes;
     form(value: string | Stateful<string>): SelectElementAttributes;
@@ -992,17 +994,17 @@ export interface SelectElementAttributes extends SpecialAttributes, GlobalAttrib
     size(value: string | Stateful<string>): SelectElementAttributes;
 }
 
-export interface ShadowElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface ShadowElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface SlotElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface SlotElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     name(value: string | Stateful<string>): SlotElementAttributes;
 }
 
-export interface SmallElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface SmallElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface SourceElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface SourceElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     height(value: string | Stateful<string>): SourceElementAttributes;
     media(value: string | Stateful<string>): SourceElementAttributes;
     sizes(value: string | Stateful<string>): SourceElementAttributes;
@@ -1012,37 +1014,34 @@ export interface SourceElementAttributes extends SpecialAttributes, GlobalAttrib
     width(value: string | Stateful<string>): SourceElementAttributes;
 }
 
-export interface SpacerElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface SpacerElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface SpanElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface SpanElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface StrikeElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface StrikeElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface StrongElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface StrongElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface StyleElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface StyleElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     blocking(value: string | Stateful<string>): StyleElementAttributes;
     media(value: string | Stateful<string>): StyleElementAttributes;
     type(value: string | Stateful<string>): StyleElementAttributes;
 }
 
-export interface SubElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface SubElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface SummaryElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface SummaryElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface SupElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface SupElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface SvgElementAttributes extends SpecialAttributes, GlobalAttributes {
-}
-
-export interface TableElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface TableElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     align(value: string | Stateful<string>): TableElementAttributes;
     bgcolor(value: string | Stateful<string>): TableElementAttributes;
     border(value: string | Stateful<string>): TableElementAttributes;
@@ -1054,14 +1053,14 @@ export interface TableElementAttributes extends SpecialAttributes, GlobalAttribu
     width(value: string | Stateful<string>): TableElementAttributes;
 }
 
-export interface TbodyElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface TbodyElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     align(value: string | Stateful<string>): TbodyElementAttributes;
     char(value: string | Stateful<string>): TbodyElementAttributes;
     charoff(value: string | Stateful<string>): TbodyElementAttributes;
     valign(value: string | Stateful<string>): TbodyElementAttributes;
 }
 
-export interface TdElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface TdElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     abbr(value: string | Stateful<string>): TdElementAttributes;
     align(value: string | Stateful<string>): TdElementAttributes;
     axis(value: string | Stateful<string>): TdElementAttributes;
@@ -1078,10 +1077,10 @@ export interface TdElementAttributes extends SpecialAttributes, GlobalAttributes
     width(value: string | Stateful<string>): TdElementAttributes;
 }
 
-export interface TemplateElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface TemplateElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface TextareaElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface TextareaElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     autocomplete(value: string | Stateful<string>): TextareaElementAttributes;
     cols(value: string | Stateful<string>): TextareaElementAttributes;
     dirname(value: string | Stateful<string>): TextareaElementAttributes;
@@ -1097,14 +1096,14 @@ export interface TextareaElementAttributes extends SpecialAttributes, GlobalAttr
     wrap(value: string | Stateful<string>): TextareaElementAttributes;
 }
 
-export interface TfootElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface TfootElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     align(value: string | Stateful<string>): TfootElementAttributes;
     char(value: string | Stateful<string>): TfootElementAttributes;
     charoff(value: string | Stateful<string>): TfootElementAttributes;
     valign(value: string | Stateful<string>): TfootElementAttributes;
 }
 
-export interface ThElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface ThElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     abbr(value: string | Stateful<string>): ThElementAttributes;
     align(value: string | Stateful<string>): ThElementAttributes;
     axis(value: string | Stateful<string>): ThElementAttributes;
@@ -1121,21 +1120,21 @@ export interface ThElementAttributes extends SpecialAttributes, GlobalAttributes
     width(value: string | Stateful<string>): ThElementAttributes;
 }
 
-export interface TheadElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface TheadElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     align(value: string | Stateful<string>): TheadElementAttributes;
     char(value: string | Stateful<string>): TheadElementAttributes;
     charoff(value: string | Stateful<string>): TheadElementAttributes;
     valign(value: string | Stateful<string>): TheadElementAttributes;
 }
 
-export interface TimeElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface TimeElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     datetime(value: string | Stateful<string>): TimeElementAttributes;
 }
 
-export interface TitleElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface TitleElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface TrElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface TrElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     align(value: string | Stateful<string>): TrElementAttributes;
     bgcolor(value: string | Stateful<string>): TrElementAttributes;
     char(value: string | Stateful<string>): TrElementAttributes;
@@ -1143,7 +1142,7 @@ export interface TrElementAttributes extends SpecialAttributes, GlobalAttributes
     valign(value: string | Stateful<string>): TrElementAttributes;
 }
 
-export interface TrackElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface TrackElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     default(value: boolean | Stateful<boolean>): TrackElementAttributes;
     kind(value: string | Stateful<string>): TrackElementAttributes;
     label(value: string | Stateful<string>): TrackElementAttributes;
@@ -1151,21 +1150,21 @@ export interface TrackElementAttributes extends SpecialAttributes, GlobalAttribu
     srclang(value: string | Stateful<string>): TrackElementAttributes;
 }
 
-export interface TtElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface TtElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface UElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface UElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface UlElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface UlElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     compact(value: string | Stateful<string>): UlElementAttributes;
     type(value: string | Stateful<string>): UlElementAttributes;
 }
 
-export interface VarElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface VarElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface VideoElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface VideoElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
     autoplay(value: boolean | Stateful<boolean>): VideoElementAttributes;
     controls(value: boolean | Stateful<boolean>): VideoElementAttributes;
     crossorigin(value: string | Stateful<string>): VideoElementAttributes;
@@ -1179,10 +1178,10 @@ export interface VideoElementAttributes extends SpecialAttributes, GlobalAttribu
     width(value: string | Stateful<string>): VideoElementAttributes;
 }
 
-export interface WbrElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface WbrElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
-export interface XmpElementAttributes extends SpecialAttributes, GlobalAttributes {
+export interface XmpElementAttributes extends SpecialAttributes, GlobalHTMLAttributes {
 }
 
 export type AriaAttribute = "activedescendant" | "atomic" | "autocomplete" | "busy" | "checked" | "colcount" | "colindex" | "colspan" | "controls" | "current" | "describedby" | "details" | "disabled" | "dropeffect" | "errormessage" | "expanded" | "flowto" | "grabbed" | "haspopup" | "hidden" | "invalid" | "keyshortcuts" | "label" | "labelledby" | "level" | "live" | "modal" | "multiline" | "multiselectable" | "orientation" | "owns" | "placeholder" | "posinset" | "pressed" | "readonly" | "relevant" | "required" | "roledescription" | "rowcount" | "rowindex" | "rowspan" | "selected" | "setsize" | "sort" | "valuemax" | "valuemin" | "valuenow" | "valuetext" | "";

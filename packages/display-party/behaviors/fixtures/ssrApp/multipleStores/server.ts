@@ -1,6 +1,6 @@
 import { Store } from "state-party";
 import viewGenerator from "./view.js"
-import { renderToString, view } from "@src/index.js";
+import { renderToString, htmlView } from "@src/index.js";
 
 const store = new Store()
 
@@ -9,16 +9,16 @@ export default function() {
 }
 
 function theView() {
-  return view()
+  return htmlView()
     .div(el => {
       el.children
         .div(el => {
           el.config.id("fragment-a")
-          el.children.view(viewGenerator)
+          el.children.andThen(viewGenerator)
         })
         .div(el => {
           el.config.id("fragment-b")
-          el.children.view(viewGenerator)
+          el.children.andThen(viewGenerator)
         })
     })
 }

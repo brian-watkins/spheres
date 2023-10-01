@@ -1,4 +1,4 @@
-import { View, view } from "@src/index.js"
+import { View, htmlView } from "@src/index.js"
 import { container, selection, store, write } from "state-party"
 
 const inputValue = container({ initialValue: 17 })
@@ -6,7 +6,7 @@ const inputValue = container({ initialValue: 17 })
 const incrementValue = selection((get) => write(inputValue, get(inputValue) + 1))
 
 export default function(): View {
-  return view()
+  return htmlView()
     .main(({ children }) => {
       children
         .input(el => {

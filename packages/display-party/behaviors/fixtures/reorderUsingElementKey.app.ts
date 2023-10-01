@@ -1,4 +1,4 @@
-import { View, view } from "@src/index.js";
+import { View, htmlView } from "@src/index.js";
 import { store, GetState, State, container, selection, write } from "state-party";
 
 interface Person {
@@ -42,37 +42,37 @@ const incrementTicker = selection(get => {
 const peopleView = (props: ReorderAppProps) => (get: GetState) => {
   const list = get(people)
 
-  return view()
+  return htmlView()
     .div(el => {
       el.children
         .h1(el => {
-          el.children.text(`There are ${list.length} people!`)
+          el.children.textNode(`There are ${list.length} people!`)
         })
         .button(el => {
           el.config
             .dataAttribute("reorder")
             .on("click", () => store(shiftPeopleSelection))
           el.children
-            .text("Reorder People")
+            .textNode("Reorder People")
         })
         .button(el => {
           el.config
             .dataAttribute("increment-ticker")
             .on("click", () => store(incrementTicker))
           el.children
-            .text("Increment")
+            .textNode("Increment")
         })
         .hr()
         .ul(el => {
           for (const person of list) {
             switch (props.keyOnState) {
               case "stateful":
-                el.children.view(get => personViewWithoutKey(person, get), {
+                el.children.andThen(get => personViewWithoutKey(person, get), {
                   key: person
                 })
                 break
               case "block":
-                el.children.view(() => personViewWithStatefulText(person), {
+                el.children.andThen(() => personViewWithStatefultextNode(person), {
                   key: person
                 })
             }
@@ -82,23 +82,23 @@ const peopleView = (props: ReorderAppProps) => (get: GetState) => {
 }
 
 function personViewWithoutKey(person: State<Person>, get: GetState): View {
-  return view()
+  return htmlView()
     .li(el => {
       el.children
         .h1(el => {
           el.config.dataAttribute("person")
-          el.children.text(`${get(person).name} is ${get(person).age} years old: ${get(ticker)}`)
+          el.children.textNode(`${get(person).name} is ${get(person).age} years old: ${get(ticker)}`)
         })
     })
 }
 
-function personViewWithStatefulText(person: State<Person>): View {
-  return view()
+function personViewWithStatefultextNode(person: State<Person>): View {
+  return htmlView()
     .li(el => {
       el.children
         .h1(el => {
           el.config.dataAttribute("person")
-          el.children.text((get) => `${get(person).name} is ${get(person).age} years old: ${get(ticker)}`)
+          el.children.textNode((get) => `${get(person).name} is ${get(person).age} years old: ${get(ticker)}`)
         })
     })
 }
@@ -108,9 +108,9 @@ export interface ReorderAppProps {
 }
 
 export default function (props: ReorderAppProps): View {
-  return view()
+  return htmlView()
     .div(el => {
       el.config.id("reorder-list")
-      el.children.view(peopleView(props))
+      el.children.andThen(peopleView(props))
     })
 }

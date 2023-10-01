@@ -1,13 +1,13 @@
-import { view } from "@src/index.js"
+import { htmlView } from "@src/index.js"
 import { clickCount } from "../state.js"
 
-export default view()
-  .view(get => {
-    return view()
+export default htmlView()
+  .andThen(get => {
+    return htmlView()
       .p(el => {
         el.config
           .dataAttribute("click-count")
         el.children
-          .text(`You've clicked the button ${get(clickCount)} times!`)
+          .textNode(`You've clicked the button ${get(clickCount)} times!`)
       })
   })

@@ -60,7 +60,8 @@ class DisplayElement {
   }
 
   async text(): Promise<string> {
-    return this.locator.first().innerText({ timeout: 200 })
+    const text = await this.locator.first().textContent({ timeout: 200 })
+    return text ?? ""
   }
 
   async inputValue(): Promise<string> {

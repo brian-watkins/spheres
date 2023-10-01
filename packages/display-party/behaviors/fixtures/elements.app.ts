@@ -1,7 +1,7 @@
-import { view } from "@src/index.js"
+import { htmlView } from "@src/index.js"
 
 export default function () {
-  return view()
+  return htmlView()
     .div(div => {
       div.config
         .id("funny-id")
@@ -11,7 +11,7 @@ export default function () {
             .class("super-class")
             .dataAttribute("blah")
           p.children
-            .text("This is text")
+            .textNode("This is text")
         })
         .h3(h3 => {
           h3.config

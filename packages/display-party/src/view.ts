@@ -1,8 +1,10 @@
-import { GetState, State, Stateful, Store, StoreMessage } from "state-party"
-import { VirtualNode, VirtualNodeConfig, addAttribute, addProperty, addStatefulAttribute, addStatefulProperty, makeBlockElement, makeStatefulTextNode, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, setEventHandler, setKey, virtualNodeConfig } from "./vdom/virtualNode.js"
-import { ViewBuilder, booleanAttributes, ViewElements, InputElementAttributes, AriaAttribute } from "./htmlElements.js"
+import { GetState, State, Stateful, Store } from "state-party"
+import { VirtualNode, makeBlockElement, makeStatefulTextNode, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, setKey, virtualNodeConfig, addNamespace as setNamespace } from "./vdom/virtualNode.js"
+import { InputElementAttributes, HTMLElements, HTMLBuilder } from "./htmlElements.js"
 import { createStringRenderer } from "./vdom/renderToString.js"
 import { createDOMRenderer } from "./vdom/renderToDom.js"
+import { SVGBuilder, SVGElements, SvgElementAttributes } from "./svgElements.js"
+import { BasicElementConfig, InputElementConfig, SpecialAttributes } from "./viewConfig.js"
 
 // Renderers
 
@@ -28,100 +30,6 @@ export function renderToString(store: Store, view: View): string {
   return render(view[toVirtualNode])
 }
 
-// Attributes
-
-const resetConfig = Symbol("reset-config")
-
-export interface SpecialAttributes {
-  dataAttribute(name: string, value?: string | Stateful<string>): this
-  innerHTML(html: string | Stateful<string>): this
-  aria(name: AriaAttribute, value: string | Stateful<string>): this
-  on(event: keyof HTMLElementEventMap, handler: <E extends Event>(evt: E) => StoreMessage<any>): this
-}
-
-class BasicConfig implements SpecialAttributes {
-  protected config: VirtualNodeConfig = virtualNodeConfig()
-
-  innerHTML(html: string | Stateful<string>): this {
-    if (typeof html === "function") {
-      addStatefulProperty(this.config, "innerHTML", html)
-    } else {
-      addProperty(this.config, "innerHTML", html)
-    }
-
-    return this
-  }
-
-  dataAttribute(name: string, value: string | Stateful<string> = "true") {
-    if (typeof value === "function") {
-      addStatefulAttribute(this.config, `data-${name}`, value)
-    } else {
-      addAttribute(this.config, `data-${name}`, value)
-    }
-
-    return this
-  }
-
-  aria(name: string, value: string | Stateful<string>) {
-    if (typeof value === "function") {
-      addStatefulAttribute(this.config, `aria-${name}`, value)
-    } else {
-      addAttribute(this.config, `aria-${name}`, value)
-    }
-
-    return this
-  }
-
-  on(event: keyof HTMLElementEventMap, handler: <E extends Event>(evt: E) => StoreMessage<any>) {
-    setEventHandler(this.config, event, handler)
-    return this
-  }
-
-  [resetConfig](config: VirtualNodeConfig) {
-    this.config = config
-  }
-}
-
-class InputElementConfig extends BasicConfig {
-  value(val: string | Stateful<string>) {
-    if (typeof val === "function") {
-      addStatefulProperty(this.config, "value", val)
-    } else {
-      addProperty(this.config, "value", val)
-    }
-
-    return this
-  }
-}
-
-const MagicConfig = new Proxy({}, {
-  get: (_, prop, receiver) => {
-    const attribute = prop as string
-    if (booleanAttributes.has(attribute)) {
-      return function (isSelected: boolean | Stateful<boolean>) {
-        if (typeof isSelected === "function") {
-          addStatefulAttribute(receiver.config, attribute, (get) => isSelected(get) ? attribute : undefined)
-        } else {
-          if (isSelected) {
-            addAttribute(receiver.config, attribute, attribute)
-          }
-        }
-        return receiver
-      }
-    } else {
-      return function (value: string | Stateful<string>) {
-        if (typeof value === "function") {
-          addStatefulAttribute(receiver.config, attribute, value)
-        } else {
-          addAttribute(receiver.config, attribute, value)
-        }
-        return receiver
-      }
-    }
-  }
-})
-
-Object.setPrototypeOf(Object.getPrototypeOf(new BasicConfig()), MagicConfig)
 
 // View
 
@@ -136,55 +44,48 @@ export interface ViewOptions {
 }
 
 export interface SpecialElements {
-  text(value: string | Stateful<string>): this
-  view(definition: (() => View) | ((get: GetState) => View), options?: ViewOptions): this
+  textNode(value: string | Stateful<string>): this
+  andThen(definition: (() => View) | ((get: GetState) => View), options?: ViewOptions): this
 }
 
 export interface SpecialElementBuilder {
-  text(value: string): View
-  view(definition: (() => View) | ((get: GetState) => View), options?: ViewOptions): View
+  textNode(value: string | Stateful<string>): View
+  andThen(definition: (() => View) | ((get: GetState) => View), options?: ViewOptions): View
 }
 
-const configBuilder = new BasicConfig()
+const configBuilder = new BasicElementConfig()
 const inputConfigBuilder = new InputElementConfig()
 
-export interface ViewElement<A extends SpecialAttributes> {
+export interface ConfigurableElement<A extends SpecialAttributes, B> {
   config: A
-  children: ViewElements
+  children: B
 }
 
 const MagicElements = new Proxy({}, {
   get: (_, prop, receiver) => {
-    return function (builder?: <A extends SpecialAttributes>(element: ViewElement<A>) => void) {
-      let storedNodes = receiver.nodes
-      let childNodes: Array<VirtualNode> = []
-      receiver.nodes = childNodes
-      const config = virtualNodeConfig()
-      configBuilder[resetConfig](config)
-      builder?.({
-        config: configBuilder,
-        children: receiver
-      })
-      storedNodes.push(makeVirtualElement(prop as string, config, childNodes))
-      receiver.nodes = storedNodes
-      return receiver
+    return function (builder?: <A extends SpecialAttributes, B>(element: ConfigurableElement<A, B>) => void) {
+      return receiver.buildElement(prop as string, builder)
     }
   }
 })
 
-class BasicView implements SpecialElements, SpecialElementBuilder {
-  private nodes: Array<VirtualNode> = []
+class BasicView {
+  protected nodes: Array<VirtualNode> = []
 
-  text(value: string | ((get: GetState) => string)) {
+  storeNode(node: VirtualNode) {
+    this.nodes.push(node)
+  }
+
+  textNode(value: string | ((get: GetState) => string)) {
     if (typeof value === "function") {
-      this.nodes.push(makeStatefulTextNode(value))
+      this.storeNode(makeStatefulTextNode(value))
     } else {
-      this.nodes.push(makeVirtualTextNode(value))
+      this.storeNode(makeVirtualTextNode(value))
     }
     return this
   }
 
-  view(definition: (() => View) | ((get: GetState) => View), options?: ViewOptions) {
+  andThen(definition: (() => View) | ((get: GetState) => View), options?: ViewOptions) {
     let config = virtualNodeConfig()
     if (options?.key) {
       setKey(config, options.key)
@@ -194,33 +95,86 @@ class BasicView implements SpecialElements, SpecialElementBuilder {
       //@ts-ignore
       makeBlockElement(config, () => definition()[toVirtualNode]) :
       makeStatefulElement(config, (get) => definition(get)[toVirtualNode])
-    this.nodes.push(element)
+
+    this.storeNode(element)
 
     return this
   }
 
-  input(builder?: (element: ViewElement<InputElementAttributes>) => void) {
+  buildElement(tag: string, builder: (element: ConfigurableElement<any, any>) => void) {
     let storedNodes = this.nodes
     let childNodes: Array<VirtualNode> = []
     this.nodes = childNodes
     const config = virtualNodeConfig()
-    inputConfigBuilder[resetConfig](config)
+    configBuilder.resetConfig(config)
+    builder?.({
+      config: configBuilder,
+      children: this
+    })
+    storedNodes.push(makeVirtualElement(tag, config, childNodes))
+    this.nodes = storedNodes
+    return this
+  }
+
+  svg(builder?: (element: ConfigurableElement<SvgElementAttributes, SVGElements>) => void) {
+    const config = virtualNodeConfig()
+    setNamespace(config, "http://www.w3.org/2000/svg")
+    configBuilder.resetConfig(config)
+    const view = new SVGView()
+    builder?.({
+      config: configBuilder as unknown as SvgElementAttributes,
+      children: view as unknown as SVGElements
+    })
+    this.storeNode(makeVirtualElement("svg", config, view.nodes))
+    return this
+  }
+
+  input(builder?: (element: ConfigurableElement<InputElementAttributes, HTMLElements>) => void) {
+    let storedNodes = this.nodes
+    let childNodes: Array<VirtualNode> = []
+    this.nodes = childNodes
+    const config = virtualNodeConfig()
+    inputConfigBuilder.resetConfig(config)
     builder?.({
       config: inputConfigBuilder as unknown as InputElementAttributes,
-      children: this as unknown as ViewElements
+      children: this as unknown as HTMLElements
     })
     storedNodes.push(makeVirtualElement("input", config, childNodes))
     this.nodes = storedNodes
     return this
   }
 
-  get [toVirtualNode]() {
+  get [toVirtualNode](): VirtualNode {
     return this.nodes[0]
   }
 }
 
 Object.setPrototypeOf(Object.getPrototypeOf(new BasicView()), MagicElements)
 
-export function view(): ViewBuilder {
-  return new BasicView() as unknown as ViewBuilder
+// SVG
+
+class SVGView extends BasicView {
+  buildElement(tag: string, builder: (element: ConfigurableElement<any, SVGElements>) => void) {
+    let storedNodes = this.nodes
+    let childNodes: Array<VirtualNode> = []
+    this.nodes = childNodes
+    const config = virtualNodeConfig()
+    setNamespace(config, "http://www.w3.org/2000/svg")
+    configBuilder.resetConfig(config)
+    builder?.({
+      config: configBuilder,
+      children: this as unknown as SVGElements
+    })
+    storedNodes.push(makeVirtualElement(tag, config, childNodes))
+    this.nodes = storedNodes
+    return this
+  }
+}
+
+export function htmlView(): HTMLBuilder {
+  return new BasicView() as unknown as HTMLBuilder
+}
+
+export function svgView(): SVGBuilder {
+  return new SVGView() as unknown as SVGBuilder
 }

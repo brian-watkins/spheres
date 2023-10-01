@@ -1,40 +1,40 @@
 import { container, GetState, write } from "state-party"
-import { inputValue, View, view } from "@src/index.js"
+import { inputValue, View, htmlView } from "@src/index.js"
 
 const nameState = container({ initialValue: "hello" })
 
 const ageState = container({ initialValue: 27 })
 
 const ageView = (get: GetState) => {
-  return view()
+  return htmlView()
     .p(el => {
       el.config.dataAttribute("age")
-      el.children.text(`My age is ${get(ageState)}`)
+      el.children.textNode(`My age is ${get(ageState)}`)
     })
 }
 
 const nameView = (get: GetState) => {
   const name = get(nameState)
 
-  return view()
+  return htmlView()
     .div(el => {
       el.children.p(el => {
         el.config.dataAttribute("name")
-        el.children.text(`My name is: ${name}`)
+        el.children.textNode(`My name is: ${name}`)
       })
       if (name !== "AGELESS PERSON") {
-        el.children.view(ageView)
+        el.children.andThen(ageView)
       }
     })
 }
 
 
 export default function(): View {
-  return view()
+  return htmlView()
     .div(el => {
       el.children
-        .h1(el => el.children.text("This is only a test!"))
-        .view(nameView)
+        .h1(el => el.children.textNode("This is only a test!"))
+        .andThen(nameView)
         .hr()
         .input(({config}) => {
           config

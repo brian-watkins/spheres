@@ -1,10 +1,10 @@
-import { View, view } from "display-party";
+import { View, htmlView } from "display-party";
 import { store, write } from "state-party";
 import { FlightTypes, allowReturnDate, bookFlight, bookingAllowed, flightType, returnDate, returnDateIsValid, startDate, startDateIsValid } from "./state.js";
 import { names, useValue } from "../helpers/helpers.js";
 
 export function flightBooker(): View {
-  return view().main(el => {
+  return htmlView().main(el => {
     el.config
       .class(names([
         "flex",
@@ -13,29 +13,29 @@ export function flightBooker(): View {
         "w-96"
       ]))
     el.children
-      .view(flightTypeSelect)
-      .view(startDateInput)
-      .view(returnDateInput)
-      .view(bookFlightButton)
+      .andThen(flightTypeSelect)
+      .andThen(startDateInput)
+      .andThen(returnDateInput)
+      .andThen(bookFlightButton)
   })
 }
 
 function flightTypeSelect(): View {
-  return view()
+  return htmlView()
     .select(el => {
       el.config.on("change", useValue((value) => write(flightType, value)))
       el.children
         .option(el => {
-          el.children.text(FlightTypes.ONE_WAY)
+          el.children.textNode(FlightTypes.ONE_WAY)
         })
         .option(el => {
-          el.children.text(FlightTypes.RETURN)
+          el.children.textNode(FlightTypes.RETURN)
         })
     })
 }
 
 function bookFlightButton(): View {
-  return view()
+  return htmlView()
     .button(el => {
       el.config
         .class(names([
@@ -51,12 +51,12 @@ function bookFlightButton(): View {
         .on("click", () => store(bookFlight))
         .disabled((get) => !get(bookingAllowed))
       el.children
-        .text("Book Flight!")
+        .textNode("Book Flight!")
     })
 }
 
 function startDateInput(): View {
-  return view()
+  return htmlView()
     .input(el => {
       el.config
         .dataAttribute("start-date")
@@ -67,7 +67,7 @@ function startDateInput(): View {
 }
 
 function returnDateInput(): View {
-  return view()
+  return htmlView()
     .input(el => {
       el.config
         .dataAttribute("return-date")

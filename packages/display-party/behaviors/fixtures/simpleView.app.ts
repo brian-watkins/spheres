@@ -1,4 +1,4 @@
-import { View, inputValue, view } from "@src/index.js"
+import { View, inputValue, htmlView } from "@src/index.js"
 import { container, GetState, selection, store, write } from "state-party"
 
 const peopleState = container({
@@ -10,12 +10,12 @@ const peopleState = container({
 
 const peopleView = (get: GetState) => {
   const people = get(peopleState)
-  return view()
+  return htmlView()
     .ul(el => {
       for (const person of people) {
         el.children.li(el => {
           el.config.dataAttribute("person")
-          el.children.text(`${person.name} - ${person.age}`)
+          el.children.textNode(`${person.name} - ${person.age}`)
         })
       }
     })
@@ -31,21 +31,21 @@ const writePeople = selection((get) => {
 })
 
 function updateButton(): View {
-  return view()
+  return htmlView()
     .button(el => {
       el.config.on("click", () => store(writePeople))
-      el.children.text("Click me!")
+      el.children.textNode("Click me!")
     })
 }
 
 export default function (): View {
-  return view()
+  return htmlView()
     .div(el => {
       el.children
-        .p(el => el.children.text("Here is some person"))
-        .view(peopleView)
+        .p(el => el.children.textNode("Here is some person"))
+        .andThen(peopleView)
         .hr()
         .input(el => el.config.on("input", event => write(localState, inputValue(event))))
-        .view(updateButton)
+        .andThen(updateButton)
     })
 }

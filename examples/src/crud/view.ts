@@ -1,15 +1,15 @@
-import { InputElementAttributes, View, ViewElement, view } from "display-party";
+import { ConfigurableElement, HTMLElements, InputElementAttributes, View, htmlView } from "display-party";
 import { GetState, store, write } from "state-party";
 import { createRecord, deleteSelected, filterPrefix, filteredRecords, records, selectedRecord, updateSelected } from "./state.js";
 import { names, useValue } from "../helpers/helpers.js";
 
 export default function crud(): View {
-  return view()
+  return htmlView()
     .main(({ config, children }) => {
       config
         .class("m-4")
       children
-        .view(inputView("Filter:", ({ config }) => {
+        .andThen(inputView("Filter:", ({ config }) => {
           config
             .dataAttribute("filter-input")
             .on("input", useValue((val) => write(filterPrefix, val)))
@@ -22,8 +22,8 @@ export default function crud(): View {
               "my-4"
             ]))
           children
-            .view(recordsView)
-            .view(recordForm)
+            .andThen(recordsView)
+            .andThen(recordForm)
         })
         .div(({ config, children }) => {
           config
@@ -35,7 +35,7 @@ export default function crud(): View {
                 .form("record-form")
                 .type("submit")
                 .class(buttonClasses())
-              children.text("Create")
+              children.textNode("Create")
             })
             .button(({ config, children }) => {
               config
@@ -44,7 +44,7 @@ export default function crud(): View {
                 .type("submit")
                 .disabled((get) => get(selectedRecord) === -1)
                 .class(buttonClasses())
-              children.text("Update")
+              children.textNode("Update")
             })
             .button(({ config, children }) => {
               config
@@ -52,7 +52,7 @@ export default function crud(): View {
                 .disabled((get) => get(selectedRecord) === -1)
                 .on("click", () => store(deleteSelected))
                 .class(buttonClasses())
-              children.text("Delete")
+              children.textNode("Delete")
             })
 
         })
@@ -60,7 +60,7 @@ export default function crud(): View {
 }
 
 function recordForm(): View {
-  return view()
+  return htmlView()
     .form(({ config, children }) => {
       config
         .id("record-form")
@@ -80,12 +80,12 @@ function recordForm(): View {
           }
         })
       children
-        .view(inputView("First Name:", ({ config }) => {
+        .andThen(inputView("First Name:", ({ config }) => {
           config
             .name("firstName")
             .dataAttribute("first-name-input")
         }))
-        .view(inputView("Last Name:", ({ config }) => {
+        .andThen(inputView("Last Name:", ({ config }) => {
           config
             .name("lastName")
             .dataAttribute("last-name-input")
@@ -94,11 +94,11 @@ function recordForm(): View {
 
 }
 
-function inputView(label: string, builder: (el: ViewElement<InputElementAttributes>) => void): () => View {
-  return () => view()
+function inputView(label: string, builder: (el: ConfigurableElement<InputElementAttributes, HTMLElements>) => void): () => View {
+  return () => htmlView()
     .label(el => {
       el.children
-        .text(label)
+        .textNode(label)
         .input(el => {
           el.config
             .type("text")
@@ -113,20 +113,17 @@ function inputView(label: string, builder: (el: ViewElement<InputElementAttribut
 function recordsView(get: GetState): View {
   const data = get(filteredRecords)
 
-  return view()
+  return htmlView()
     .select(({ config, children }) => {
       config
         .size("5")
         .dataAttribute("records")
-        .on("change", (evt) => {
-          console.log("Got select event!")
-          return write(selectedRecord, parseInt((evt.target as HTMLOptionElement).value))
-        })
+        .on("change", useValue((value) => write(selectedRecord, parseInt(value))))
         .class(`${inputClasses()} w-64`)
 
       children.option(({ config, children }) => {
         config.value("-1")
-        children.text("")
+        children.textNode("")
       })
 
       for (const record of data) {
@@ -135,7 +132,7 @@ function recordsView(get: GetState): View {
             config
               .value(`${record.id}`)
             children
-              .text(`${record.lastName}, ${record.firstName}`)
+              .textNode(`${record.lastName}, ${record.firstName}`)
           })
       }
     })

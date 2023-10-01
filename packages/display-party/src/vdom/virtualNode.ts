@@ -61,6 +61,7 @@ export interface VirtualNodeConfig {
   statefulProps?: Record<string, StatefulValue>
   attrs: Record<string, string>
   statefulAttrs?: Record<string, StatefulValue>
+  namespace?: string
   on?: { [N in keyof HTMLElementEventMap]?: Listener }
   key?: VirtualNodeKey
 }
@@ -73,6 +74,10 @@ export function virtualNodeConfig(): VirtualNodeConfig {
   return {
     attrs: {}
   }
+}
+
+export function addNamespace(config: VirtualNodeConfig, namespace: string) {
+  config.namespace = namespace
 }
 
 export function addProperty(config: VirtualNodeConfig, name: string, value: string) {

@@ -7,6 +7,7 @@
   "type": "module",
   "scripts": {
     "generate:htmlElements": "tsx ./codegen/generateHtmlElements.ts",
+    "generate:svgElements": "tsx ./codegen/generateSVGElements.ts",
     "build": "rm -rf ./dist && tsc --build",
     "clean": "rm -rf ./dist && rm -rf ./tsconfig.tsbuildinfo",
     "test": "npm run test:render && npm run test:view",
@@ -30,6 +31,8 @@
     "html-tag-names": "^2.1.0",
     "playwright": "^1.29.2",
     "source-map-support": "^0.5.21",
+    "svg-element-attributes": "^2.0.1",
+    "svg-tag-names": "^3.0.1",
     "ts-morph": "^18.0.0",
     "ts-node": "^10.9.1",
     "tsx": "^3.12.7",

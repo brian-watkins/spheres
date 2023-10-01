@@ -1,41 +1,41 @@
-import { view } from "@src/index.js"
+import { htmlView } from "@src/index.js"
 import { clickCount, nameState } from "../state.js"
 import { GetState, selection, store, write } from "state-party"
 
-export default view()
-  .view(get => {
-    return view()
+export default htmlView()
+  .andThen(get => {
+    return htmlView()
       .div(el => {
         el.config.id("nested-state-island")
         el.children
           .h1(el => {
-            el.children.text(`This is ${get(nameState)}'s stuff!`)
+            el.children.textNode(`This is ${get(nameState)}'s stuff!`)
           })
-          .view(counterView)
+          .andThen(counterView)
           .hr()
-          .view(tallyView)
+          .andThen(tallyView)
           .hr()
-          .view(tallyView)
+          .andThen(tallyView)
       })
   })
 
 const incrementCount = selection(get => write(clickCount, get(clickCount) + 1))
 
 function counterView() {
-  return view()
+  return htmlView()
     .div(el => {
       el.children
         .button(el => {
           el.config.on("click", () => store(incrementCount))
-          el.children.text("Click me!")
+          el.children.textNode("Click me!")
         })
     })
 }
 
 function tallyView(get: GetState) {
-  return view()
+  return htmlView()
     .p(el => {
       el.config.dataAttribute("click-count")
-      el.children.text(`You've clicked the button ${get(clickCount)} times!`)
+      el.children.textNode(`You've clicked the button ${get(clickCount)} times!`)
     })
 }

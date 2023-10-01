@@ -1,14 +1,14 @@
-import { View, view } from "@src/index.js"
+import { View, htmlView } from "@src/index.js"
 import counterIsland from "../islands/counter.js"
 import tallyIsland from "../islands/tally.js"
 
 export default function (): View {
-  return view()
+  return htmlView()
     .div(el => {
       el.children
-        .h1(el => el.children.text("This is a click counter!"))
-        .view(() => counterIsland)
-        .view(() => tallyIsland)
+        .h1(el => el.children.textNode("This is a click counter!"))
+        .andThen(() => counterIsland)
+        .andThen(() => tallyIsland)
     })
 }
 

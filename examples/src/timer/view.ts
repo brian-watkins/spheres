@@ -1,10 +1,10 @@
-import { View, view } from "display-party";
+import { View, htmlView } from "display-party";
 import { write } from "state-party";
 import { duration, elapsedTime, percentComplete } from "./state.js";
 import { names, useValue } from "../helpers/helpers.js";
 
 export function timer(): View {
-  return view().section(el => {
+  return htmlView().section(el => {
     el.config
       .class(names([
         "flex",
@@ -19,10 +19,10 @@ export function timer(): View {
           "text-slate-800"
         ]))
         el.children
-          .text("Elapsed Time")
-          .view(progressMeter)
+          .textNode("Elapsed Time")
+          .andThen(progressMeter)
       })
-      .view(elapsedTimeLabel)
+      .andThen(elapsedTimeLabel)
       .label(el => {
         el.config.class(names([
           "mt-4",
@@ -30,7 +30,7 @@ export function timer(): View {
           "text-slate-800"
         ]))
         el.children
-          .text("Duration")
+          .textNode("Duration")
           .input(el => {
             el.config
               .class(names([
@@ -62,13 +62,13 @@ export function timer(): View {
           ]))
           .on("click", () => write(elapsedTime, 0))
         el.children
-          .text("Reset")
+          .textNode("Reset")
       })
   })
 }
 
 function elapsedTimeLabel(): View {
-  return view()
+  return htmlView()
     .div(el => {
       el.config
         .dataAttribute("elapsed-time")
@@ -77,12 +77,12 @@ function elapsedTimeLabel(): View {
           "text-right"
         ]))
       el.children
-        .text((get) => formatTime(get(elapsedTime)))
+        .textNode((get) => formatTime(get(elapsedTime)))
     })
 }
 
 function progressMeter(): View {
-  return view()
+  return htmlView()
     .progress(el => {
       el.config
         .class(names([

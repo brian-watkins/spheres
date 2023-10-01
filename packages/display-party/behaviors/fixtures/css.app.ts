@@ -1,30 +1,30 @@
 import { container, write } from "state-party"
-import { inputValue, View, view } from "@src/index.js"
+import { inputValue, View, htmlView } from "@src/index.js"
 
 const numberState = container({ initialValue: 17 })
 
 const funView = () => {
-  return view()
+  return htmlView()
     .div(el => {
       el.config
         .id("cool-stuff")
         .class((get) => `zoom ${get(numberState) % 2 == 0 ? "even" : "odd"}`)
       el.children
-        .text("This is some cool stuff!")
+        .textNode("This is some cool stuff!")
     })
 }
 
 export default function (): View {
-  return view()
+  return htmlView()
     .div(el => {
       el.children
         .h1(el => {
           el.config
             .class("super-title")
           el.children
-            .text("This is only a test!")
+            .textNode("This is only a test!")
         })
-        .view(funView)
+        .andThen(funView)
         .hr()
         .input(el => {
           el.config

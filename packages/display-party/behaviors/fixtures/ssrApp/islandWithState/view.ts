@@ -1,14 +1,14 @@
-import { View, view } from "@src/index.js";
+import { View, htmlView } from "@src/index.js";
 import withStateIsland from "./withState.js"
 
 export default function (): View {
-  return view()
+  return htmlView()
     .div(el => {
       el.children
         .h1(el => {
-          el.children.text("THis is the click counter!")
+          el.children.textNode("THis is the click counter!")
         })
-        .view(() => withStateIsland)
+        .andThen(() => withStateIsland)
     })
 }
 

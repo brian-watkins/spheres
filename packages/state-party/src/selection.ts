@@ -1,4 +1,4 @@
-import { BatchMessage, Container, GetState, SelectMessage, Selection, StoreMessage, WriteMessage } from "./store.js";
+import { BatchMessage, Container, GetState, RunMessage, SelectMessage, Selection, StoreMessage, WriteMessage } from "./store.js";
 
 export function selection<Q = undefined>(definition: (get: GetState, inputValue: Q) => StoreMessage<any>): Selection<Q> {
   return {
@@ -11,6 +11,13 @@ export function write<T, M = T>(container: Container<T, M>, value: M): WriteMess
     type: "write",
     container,
     value
+  }
+}
+
+export function run(effect: () => void): RunMessage {
+  return {
+    type: "run",
+    effect
   }
 }
 

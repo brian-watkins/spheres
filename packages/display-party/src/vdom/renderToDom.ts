@@ -207,11 +207,18 @@ function patchEvents(oldVNode: ElementNode, newVNode: ElementNode) {
   let i: keyof HTMLElementEventMap
   const oldEvents = oldVNode.data.on ?? {}
   const newEvents = newVNode.data.on ?? {}
+  // Note that patching events is only about removing old events and
+  // adding new ones ... it does not update existing events. Should it?
   for (i in { ...oldEvents, ...newEvents }) {
     if (newEvents[i] === undefined) {
       oldVNode.node!.removeEventListener(i, oldEvents![i]!)
     } else if (oldEvents[i] === undefined) {
       oldVNode.node!.addEventListener(i, newEvents![i]!)
+    // this is not good since creating the new vnode will always create a new function
+      // } else if (oldEvents[i] !== newEvents[i]) {
+      // console.log("Refreshing event!")
+      // oldVNode.node!.removeEventListener(i, oldEvents![i]!)
+      // oldVNode.node!.addEventListener(i, newEvents![i]!)
     }
   }
 }

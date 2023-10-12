@@ -8,6 +8,7 @@ import converterBehavior from "./converter/converter.behavior.js"
 import flightBookerBehavior from "./flightBooker/flightBooker.behavior.js"
 import timerBehavior from "./timer/timer.behavior.js"
 import crudBehavior from "./crud/crud.behavior.js"
+import circlesBehavior from "./circles/circles.behavior.js"
 
 const serverPort = 5957
 
@@ -18,7 +19,10 @@ const server = await createServer({
   },
   plugins: [
     tsConfigPaths()
-  ]
+  ],
+  css: {
+    postcss: "examples"
+  }
 })
 
 await server.listen()
@@ -34,7 +38,8 @@ const summary = await validate([
   converterBehavior(testContext),
   flightBookerBehavior(testContext),
   timerBehavior(testContext),
-  ...crudBehavior(testContext)
+  ...crudBehavior(testContext),
+  ...circlesBehavior(testContext)
 ], { failFast: true })
 
 if (summary.invalid > 0 || summary.skipped > 0) {

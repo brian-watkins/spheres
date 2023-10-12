@@ -42,7 +42,7 @@ class TestAlert {
 export class TestDisplay {
   public lastAlert: TestAlert | undefined
 
-  constructor(private page: Page) {
+  constructor(protected page: Page) {
     page.on("dialog", async (dialog) => {
       this.lastAlert = new TestAlert(dialog.message())
       await dialog.dismiss()
@@ -56,13 +56,49 @@ export class TestDisplay {
   selectElement(selector: string): DisplayElement {
     return new DisplayElement(this.page.locator(selector))
   }
+
+  selectElements(selector: string): DisplayElementList {
+    return new DisplayElementList(this.page.locator(selector))
+  }
+
+  selectElementWithText(text: string): DisplayElement {
+    return new DisplayElement(this.page.getByText(text))
+  }
+}
+
+export interface MousePosition {
+  x: number
+  y: number
+}
+
+export interface MouseMovement {
+  from: MousePosition,
+  to: MousePosition
+}
+
+export class DisplayElementList {
+  constructor (private locator: Locator) { }
+
+  count(): Promise<number> {
+    return this.locator.count()
+  }
 }
 
 export class DisplayElement {
   constructor(private locator: Locator) { }
 
-  async click(): Promise<void> {
-    await this.locator.first().click({ timeout: 200 })
+  async hover(position?: MousePosition): Promise<void> {
+    await this.locator.first().hover({ position, timeout: 200 })
+  }
+
+  async moveMouse(movement: MouseMovement): Promise<void> {
+    const box = await this.locator.boundingBox()
+    await this.locator.page().mouse.move(box!.x + movement.from.x, box!.y + movement.from.y)
+    await this.locator.page().mouse.move(box!.x + movement.to.x, box!.y + movement.to.y, { steps: 10 })
+  }
+
+  async click(position?: MousePosition): Promise<void> {
+    await this.locator.first().click({ position, timeout: 200 })
   }
 
   async text(): Promise<string> {
@@ -97,5 +133,14 @@ export class DisplayElement {
 
   async isDisabled(): Promise<boolean> {
     return this.locator.first().isDisabled({ timeout: 200 })
+  }
+
+  async isVisible(): Promise<boolean> {
+    return this.locator.first().isVisible()
+  }
+
+  async exists(): Promise<boolean> {
+    const matches = await this.locator.count()
+    return matches > 0
   }
 }

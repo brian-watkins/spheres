@@ -1,5 +1,5 @@
 import { View, htmlView, svgView } from "display-party";
-import { GetState, batch, write, run, store, container } from "state-party";
+import { GetState, batch, write, run, store, container, StoreMessage } from "state-party";
 import { CircleContainer, addCircleSelection, adjustRadius, adjustRadiusSelection, canRedo, canUndo, circleData, deselectCircle, redoSelection, selectCircle, undoSelection } from "./state";
 import { useValue } from "../helpers/helpers";
 
@@ -75,7 +75,7 @@ function circleView(circleContainer: CircleContainer) {
             return batch([
               write(dialog, {
                 circle: circleContainer,
-                originalRadius: get(circleContainer).radius,
+                originalRadius: circle.radius,
               }),
               write(showDiameterSlider, false),
               run(() => {
@@ -112,18 +112,11 @@ function optionsView(get: GetState): View {
   return htmlView()
     .dialog(({ config, children }) => {
       config
-        .on("click", (evt) => {
-          const target = evt.target as HTMLElement
-          if (target.tagName === "DIALOG") {
-            return run(() => (target as HTMLDialogElement).close())
-          } else {
-            return batch([])
-          }
-        })
+        .on("click", closeDialog)
         .on("close", () => {
           return store(adjustRadiusSelection, {
-            circle: get(dialog)!.circle,
-            originalRadius: get(dialog)!.originalRadius
+            circle: dialogData.circle,
+            originalRadius: dialogData.originalRadius
           })
         })
       children
@@ -134,20 +127,39 @@ function optionsView(get: GetState): View {
 
           if (get(showDiameterSlider)) {
             children
-              .textNode("Adjust diameter")
-              .input(({ config }) => {
-                config
-                  .name("radius")
-                  .type("range")
-                  .max("50")
-                  .step("1")
-                  .value(`${circle.radius}`)
-                  .on("input", useValue(value => write(dialogData.circle, adjustRadius(Number(value)))))
-              })
+              .andThen(adjustRadiusView(dialogData.circle))
           } else {
             children
               .textNode(`Adjust Diameter of circle at (${circle.center.x}, ${circle.center.y})`)
           }
         })
     })
+}
+
+function closeDialog(evt: Event): StoreMessage<any> {
+  const target = evt.target as HTMLElement
+  if (target.tagName === "DIALOG") {
+    return run(() => (target as HTMLDialogElement).close())
+  } else {
+    return batch([])
+  }
+}
+
+function adjustRadiusView(circleState: CircleContainer): () => View {
+  return () => {
+    return htmlView()
+      .div(({ children }) => {
+        children
+          .textNode("Adjust diameter")
+          .input(({ config }) => {
+            config
+              .name("radius")
+              .type("range")
+              .max("50")
+              .step("1")
+              .value(get => `${get(circleState).radius}`)
+              .on("input", useValue(value => write(circleState, adjustRadius(Number(value)))))
+          })
+      })
+  }
 }

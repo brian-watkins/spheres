@@ -214,11 +214,10 @@ function patchEvents(oldVNode: ElementNode, newVNode: ElementNode) {
       oldVNode.node!.removeEventListener(i, oldEvents![i]!)
     } else if (oldEvents[i] === undefined) {
       oldVNode.node!.addEventListener(i, newEvents![i]!)
-    // this is not good since creating the new vnode will always create a new function
-      // } else if (oldEvents[i] !== newEvents[i]) {
-      // console.log("Refreshing event!")
-      // oldVNode.node!.removeEventListener(i, oldEvents![i]!)
-      // oldVNode.node!.addEventListener(i, newEvents![i]!)
+    } else if (oldEvents[i] !== newEvents[i]) {
+      // this is not good since creating the new vnode will always create a new function
+      oldVNode.node!.removeEventListener(i, oldEvents![i]!)
+      oldVNode.node!.addEventListener(i, newEvents![i]!)
     }
   }
 }

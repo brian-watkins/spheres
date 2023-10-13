@@ -1,4 +1,4 @@
-import { Container, StoreMessage, batch, container, selection, value, write } from "state-party";
+import { Container, GetState, StoreMessage, batch, container, selection, value, write } from "state-party";
 
 export interface Coordinate {
   x: number
@@ -50,9 +50,9 @@ export type CircleMessage = CircleSelectionMessage | CircleAdjustRadiusMessage
 
 export type CircleContainer = Container<Circle, CircleMessage>
 
-function circleContainer(center: Coordinate, selected: boolean): CircleContainer {
+function circleContainer(center: Coordinate): CircleContainer {
   return container({
-    initialValue: { center, radius: 20, selected },
+    initialValue: { center, radius: 20, selected: true },
     name: `Circle at (${center.x},${center.y})`,
     reducer: (message, current: Circle) => {
       switch (message.type) {
@@ -76,8 +76,19 @@ const actions = container<Array<Action>>({
 
 export const currentAction = container({ initialValue: -1 })
 
+function addActionMessage(get: GetState, message: Action): StoreMessage<any> {
+  const actionIndex = get(currentAction)
+  const currentActions = get(actions)
+
+  return batch([
+    write(actions, [...currentActions.slice(0, actionIndex + 1), message]),
+    write(currentAction, actionIndex + 1),
+    message.execute
+  ])
+}
+
 export const addCircleSelection = selection((get, center: Coordinate) => {
-  const circle = circleContainer(center, true)
+  const circle = circleContainer(center)
 
   const currentCircles = get(circleData)
 
@@ -86,14 +97,7 @@ export const addCircleSelection = selection((get, center: Coordinate) => {
     undo: write(circleData, currentCircles)
   }
 
-  const actionIndex = get(currentAction)
-  const currentActions = get(actions)
-
-  return batch([
-    write(actions, [...currentActions.slice(0, actionIndex + 1), addCircleAction]),
-    write(currentAction, actionIndex + 1),
-    addCircleAction.execute
-  ])
+  return addActionMessage(get, addCircleAction)
 })
 
 export interface AdjustmentOptions {
@@ -113,14 +117,7 @@ export const adjustRadiusSelection = selection((get, options: AdjustmentOptions)
     undo: write(options.circle, adjustRadius(options.originalRadius))
   }
 
-  const actionIndex = get(currentAction)
-  const currentActions = get(actions)
-
-  return batch([
-    write(actions, [...currentActions.slice(0, actionIndex + 1), adjustRadiusAction]),
-    write(currentAction, actionIndex + 1),
-    adjustRadiusAction.execute
-  ])
+  return addActionMessage(get, adjustRadiusAction)
 })
 
 export const undoSelection = selection(get => {

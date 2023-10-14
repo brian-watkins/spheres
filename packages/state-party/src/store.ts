@@ -46,6 +46,11 @@ export interface WriteMessage<T, M = T> {
   value: M
 }
 
+export interface RunMessage {
+  type: "run"
+  effect: () => void
+}
+
 export interface Selection<SelectionArgument = undefined> {
   readonly query: (get: GetState, input: SelectionArgument) => StoreMessage<any>
 }
@@ -61,7 +66,7 @@ export interface BatchMessage {
   messages: Array<StoreMessage<any>>
 }
 
-export type StoreMessage<T, M = T> = WriteMessage<T, M> | SelectMessage | BatchMessage
+export type StoreMessage<T, M = T> = WriteMessage<T, M> | SelectMessage | BatchMessage | RunMessage
 
 const registerState = Symbol("registerState")
 const getController = Symbol("getController")
@@ -315,6 +320,9 @@ export class Store {
         const get: GetState = (state) => this[getController](state).value
         const result = message.selection.query(get, message.input)
         this.dispatch(result)
+        break
+      case "run":
+        message.effect()
         break
       case "batch":
         for (let i = 0; i < message.messages.length; i++) {

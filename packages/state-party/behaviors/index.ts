@@ -10,6 +10,7 @@ import queryBehavior from "./query.behavior.js"
 import debugBehavior from "./debug.behavior.js"
 import batchBehavior from "batch.behavior.js"
 import storeEffectBehavior from "storeEffect.behavior.js"
+import runBehavior from "run.behavior.js"
 
 window.validateBehaviors = () => {
   return validate([
@@ -19,6 +20,7 @@ window.validateBehaviors = () => {
     stateWriterBehavior,
     selectionBehavior,
     batchBehavior,
+    runBehavior,
     queryBehavior,
     storeEffectBehavior,
     updateContainerBehavior,

@@ -5,6 +5,26 @@ import { expect, resolvesTo } from "great-expectations";
 export default (context: Context<TestCirclesApp>) => behavior("Create Circle", [
 
   example(context)
+    .description("create a circle")
+    .script({
+      suppose: [
+        fact("the app is rendered", async (context) => {
+          await context.renderAppWithCircles([])
+        })
+      ],
+      perform: [
+        step("click the canvas area", async (context) => {
+          await context.display.canvas.click({ x: 280, y: 120 })
+        })
+      ],
+      observe: [
+        effect("there is a circle and it is highlighted", async (context) => {
+          await expect(context.display.circleCenteredAt(280, 120, { highlighted: true }).isVisible(), resolvesTo(true))
+        })
+      ]
+    }),
+
+  example(context)
     .description("create multiple circles")
     .script({
       suppose: [
@@ -21,9 +41,9 @@ export default (context: Context<TestCirclesApp>) => behavior("Create Circle", [
       ],
       observe: [
         effect("three circles are centered at the click positions", async (context) => {
-          await expect(context.display.circleCenteredAt(80, 70).exists(), resolvesTo(true))
-          await expect(context.display.circleCenteredAt(200, 90).exists(), resolvesTo(true))
-          await expect(context.display.circleCenteredAt(130, 270).exists(), resolvesTo(true))
+          await expect(context.display.circleCenteredAt(80, 70).isVisible(), resolvesTo(true))
+          await expect(context.display.circleCenteredAt(200, 90).isVisible(), resolvesTo(true))
+          await expect(context.display.circleCenteredAt(130, 270).isVisible(), resolvesTo(true))
         })
       ]
     })

@@ -12,4 +12,9 @@ window.startCircleApp = (testData: Array<Circle>) => {
 
   const display = createDisplay(dataStore)
   display.mount(document.getElementById("test-display")!, circles())
+
+  // to deselect all circles
+  document.querySelectorAll("circle").forEach(circle => {
+    circle.dispatchEvent(new MouseEvent("mouseout"))
+  })
 }

@@ -49,6 +49,10 @@ export class TestDisplay {
     })
   }
 
+  pause(): Promise<void> {
+    return this.page.pause()
+  }
+
   tick(millis: number): Promise<void> {
     return this.page.evaluate((millis) => { window.__testRepeater.runFor(millis) }, millis)
   }

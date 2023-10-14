@@ -61,21 +61,37 @@ export class TestCirclesDisplay extends TestDisplay {
     return this.page.keyboard.press("Escape")
   }
 
-  circleCenteredAt(x: number, y: number): CircleDisplayElement {
-    return new CircleDisplayElement(this.page, x, y)
+  circleCenteredAt(x: number, y: number, options: CircleOptions = {}): CircleDisplayElement {
+    return new CircleDisplayElement(this.page, x, y, options)
   }
+}
+
+interface CircleOptions {
+  highlighted?: boolean
+}
+
+function circleSelector(x: number, y: number, options: CircleOptions) {
+  let selector = `circle[cx='${x}'][cy='${y}']`
+  if (options.highlighted !== undefined) {
+    selector += options.highlighted ? ":not([fill='transparent'])" : "[fill='transparent']"
+  }
+  return selector
 }
 
 class CircleDisplayElement extends DisplayElement {
   private display: TestCirclesDisplay
 
-  constructor(page: Page, private x: number, private y: number) {
-    super(page.locator(`circle[cx='${x}'][cy='${y}']`))
-    this.display = new TestCirclesDisplay(page)
+  constructor(private page: Page, private x: number, private y: number, options: CircleOptions) {
+    super(page.locator(circleSelector(x, y, options)))
+    this.display = new TestCirclesDisplay(this.page)
   }
   
   get radius(): Promise<number> {
     return this.attribute("r").then(s => Number(s))
+  }
+
+  get isHighlighted(): Promise<boolean> {
+    return this.attribute("fill").then(value => value !== "transparent")
   }
 
   async adjustRadiusTo(radius: number): Promise<void> {

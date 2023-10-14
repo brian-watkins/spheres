@@ -6,12 +6,13 @@ import { testCircle } from "./helpers/fakeCircle.js";
 export default (context: Context<TestCirclesApp>) => behavior("Adjust Radius", [
 
   example(context)
-    .description("closing the dialog")
+    .description("opening and closing the dialog")
     .script({
       suppose: [
         fact("the app is rendered", async (context) => {
           await context.renderAppWithCircles([
-            testCircle(50, 50)
+            testCircle(50, 50),
+            testCircle(120, 120)
           ])
         })
       ],
@@ -23,17 +24,26 @@ export default (context: Context<TestCirclesApp>) => behavior("Adjust Radius", [
       observe: [
         effect("the dialog is visible", async (context) => {
           await expect(context.display.selectElement("dialog").isVisible(), resolvesTo(true))
+        }),
+        effect("the circle to be adjusted is highlighted", async (context) => {
+          await expect(context.display.circleCenteredAt(50, 50, { highlighted: true }).isVisible(), resolvesTo(true))
+        }),
+        effect("the other circle is not highlighted", async (context) => {
+          await expect(context.display.circleCenteredAt(120, 120, { highlighted: false }).isVisible(), resolvesTo(true))
         })
       ]
     }).andThen({
       perform: [
         step("click outside the dialog", async (context) => {
           await context.display.selectElement("body").click({ x: 2, y: 2 })
-        })
+        }),
       ],
       observe: [
         effect("the dialog is closed", async (context) => {
           await expect(context.display.selectElement("dialog").isVisible(), resolvesTo(false))
+        }),
+        effect("the circle to be adjusted is no longer highlighted", async (context) => {
+          await expect(context.display.circleCenteredAt(50, 50, { highlighted: false }).isVisible(), resolvesTo(false))
         })
       ]
     }),

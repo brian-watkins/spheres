@@ -69,7 +69,6 @@ function circleView(circleContainer: CircleContainer) {
           .cy(`${circle.center.y}`)
           .r(`${circle.radius}`)
           .on("mouseover", () => write(circleContainer, selectCircle()))
-          .on("mouseout", () => write(circleContainer, deselectCircle()))
           .on("click", (evt) => {
             evt.stopPropagation()
             return batch([
@@ -83,6 +82,10 @@ function circleView(circleContainer: CircleContainer) {
               })
             ])
           })
+
+        if (get(dialog)?.circle !== circleContainer) {
+          config.on("mouseout", () => write(circleContainer, deselectCircle()))
+        }
       })
   }
 }
@@ -114,10 +117,14 @@ function optionsView(get: GetState): View {
       config
         .on("click", closeDialog)
         .on("close", () => {
-          return store(adjustRadiusSelection, {
-            circle: dialogData.circle,
-            originalRadius: dialogData.originalRadius
-          })
+          return batch([
+            store(adjustRadiusSelection, {
+              circle: dialogData.circle,
+              originalRadius: dialogData.originalRadius
+            }),
+            write(dialogData.circle, deselectCircle()),
+            write(dialog, undefined),
+          ])
         })
       children
         .div(({ config, children }) => {

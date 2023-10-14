@@ -88,12 +88,10 @@ function addActionMessage(get: GetState, message: Action): StoreMessage<any> {
 }
 
 export const addCircleSelection = selection((get, center: Coordinate) => {
-  const circle = circleContainer(center)
-
   const currentCircles = get(circleData)
 
   const addCircleAction = {
-    execute: write(circleData, [...currentCircles, circle]),
+    execute: write(circleData, [...currentCircles, circleContainer(center)]),
     undo: write(circleData, currentCircles)
   }
 

@@ -26,8 +26,8 @@ export default (context: Context<TestCirclesApp>) => behavior("hover over circle
       ],
       observe: [
         effect("the circles are not filled", async (context) => {
-          await expect(context.display.circleCenteredAt(50, 50).attribute("fill"), resolvesTo("transparent"))
-          await expect(context.display.circleCenteredAt(300, 200).attribute("fill"), resolvesTo("transparent"))
+          await expect(context.display.circleCenteredAt(50, 50).isHighlighted, resolvesTo(false))
+          await expect(context.display.circleCenteredAt(300, 200).isHighlighted, resolvesTo(false))
         })
       ]
     }).andThen({
@@ -41,10 +41,10 @@ export default (context: Context<TestCirclesApp>) => behavior("hover over circle
       ],
       observe: [
         effect("the hovered circle is filled", async (context) => {
-          await expect(context.display.circleCenteredAt(50, 50).attribute("fill"), resolvesTo("#333333"))
+          await expect(context.display.circleCenteredAt(50, 50).isHighlighted, resolvesTo(true))
         }),
         effect("the other circle is not filled", async (context) => {
-          await expect(context.display.circleCenteredAt(300, 200).attribute("fill"), resolvesTo("transparent"))
+          await expect(context.display.circleCenteredAt(300, 200).isHighlighted, resolvesTo(false))
         })
       ]
     }).andThen({
@@ -58,10 +58,10 @@ export default (context: Context<TestCirclesApp>) => behavior("hover over circle
       ],
       observe: [
         effect("the previously hovered circle is not filled", async (context) => {
-          await expect(context.display.circleCenteredAt(50, 50).attribute("fill"), resolvesTo("transparent"))
+          await expect(context.display.circleCenteredAt(50, 50).isHighlighted, resolvesTo(false))
         }),
         effect("the newly hovered circle is filled", async (context) => {
-          await expect(context.display.circleCenteredAt(300, 200).attribute("fill"), resolvesTo("#333333"))
+          await expect(context.display.circleCenteredAt(300, 200).isHighlighted, resolvesTo(true))
         })
       ]
     })

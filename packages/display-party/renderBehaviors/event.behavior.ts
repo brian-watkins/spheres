@@ -6,6 +6,7 @@ import { renderContext } from "helpers/renderContext.js";
 import { Container, container, selection, store, write } from "state-party";
 
 export default behavior("event handlers", [
+
   example(renderContext<Container<number>>())
     .description("mount an element with an event handler")
     .script({
@@ -108,5 +109,77 @@ export default behavior("event handlers", [
             resolvesTo(equalTo("You clicked the button 4 times!")))
         })
       ]
+    }),
+
+  example(renderContext<Container<string>>())
+    .description("event handler function that changes during patch")
+    .script({
+      suppose: [
+        fact("there is a container", (context) => {
+          context.setState(container({ initialValue: "" }))
+        }),
+        fact("there is an element with a click event handler", (context) => {
+          const config = virtualNodeConfig()
+          setEventHandler(config, "click", () => {
+            return write(context.state, "hello")
+          })
+          const button = makeVirtualElement("button", config, [
+            makeVirtualTextNode("Click me!")
+          ])
+          const message = makeStatefulElement(virtualNodeConfig(), (get) => {
+            const messageConfig = virtualNodeConfig()
+            addAttribute(messageConfig, "data-message", "true")
+            return makeVirtualElement("p", messageConfig, [
+              makeVirtualTextNode(`Here is your message: ${get(context.state)}`)
+            ])
+          })
+          context.mount(makeVirtualElement("div", virtualNodeConfig(), [
+            message,
+            button
+          ]))
+        })
+      ],
+      perform: [
+        step("the button is clicked", async () => {
+          await selectElement("button").click()
+        })
+      ],
+      observe: [
+        effect("the message is updated", async () => {
+          await expect(selectElement("[data-message]").text(), resolvesTo("Here is your message: hello"))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the event handler function is patched", (context) => {
+          const config = virtualNodeConfig()
+          setEventHandler(config, "click", () => {
+            return write(context.state, "something different")
+          })
+          const button = makeVirtualElement("button", config, [
+            makeVirtualTextNode("Click me!")
+          ])
+          const message = makeStatefulElement(virtualNodeConfig(), (get) => {
+            const messageConfig = virtualNodeConfig()
+            addAttribute(messageConfig, "data-message", "true")
+            return makeVirtualElement("p", messageConfig, [
+              makeVirtualTextNode(`Here is your message: ${get(context.state)}`)
+            ])
+          })
+          context.patch(makeVirtualElement("div", virtualNodeConfig(), [
+            message,
+            button
+          ]))
+        }),
+        step("the button is clicked", async () => {
+          await selectElement("button").click()
+        })
+      ],
+      observe: [
+        effect("the message is updated", async () => {
+          await expect(selectElement("[data-message]").text(), resolvesTo("Here is your message: something different"))
+        })
+      ]
     })
-  ])
+
+])

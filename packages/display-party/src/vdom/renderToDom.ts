@@ -212,6 +212,9 @@ function patchEvents(oldVNode: ElementNode, newVNode: ElementNode) {
       oldVNode.node!.removeEventListener(i, oldEvents![i]!)
     } else if (oldEvents[i] === undefined) {
       oldVNode.node!.addEventListener(i, newEvents![i]!)
+    } else if (oldEvents[i] !== newEvents[i]) {
+      oldVNode.node!.removeEventListener(i, oldEvents![i]!)
+      oldVNode.node!.addEventListener(i, newEvents![i]!)
     }
   }
 }

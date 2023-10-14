@@ -5,11 +5,11 @@ import { useValue } from "../helpers/helpers";
 
 export default function circles(): View {
   return htmlView()
-    .main(({ children }) => {
+    .main(({ config, children }) => {
+      config
+        .class("p-8")
       children
-        .div(({ config, children }) => {
-          config
-            .class("p-8")
+        .div(({ children }) => {
           children
             .button(({ config, children }) => {
               config
@@ -75,8 +75,8 @@ function circleView(circleContainer: CircleContainer) {
               write(dialog, {
                 circle: circleContainer,
                 originalRadius: circle.radius,
+                showDiameterSlider: false,
               }),
-              write(showDiameterSlider, false),
               run(() => {
                 document.querySelector("dialog")?.showModal()
               })
@@ -95,13 +95,12 @@ function circleView(circleContainer: CircleContainer) {
 interface DialogContents {
   circle: CircleContainer
   originalRadius: number
+  showDiameterSlider: boolean
 }
 
 const dialog = container<DialogContents | undefined>({
   initialValue: undefined
 })
-
-const showDiameterSlider = container({ initialValue: false })
 
 function optionsView(get: GetState): View {
   const dialogData = get(dialog)
@@ -130,9 +129,9 @@ function optionsView(get: GetState): View {
         .div(({ config, children }) => {
           config
             .class("p-8")
-            .on("click", () => write(showDiameterSlider, true))
+            .on("click", () => write(dialog, { ...dialogData, showDiameterSlider: true }))
 
-          if (get(showDiameterSlider)) {
+          if (dialogData.showDiameterSlider) {
             children
               .andThen(adjustRadiusView(dialogData.circle))
           } else {

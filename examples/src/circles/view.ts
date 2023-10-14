@@ -144,11 +144,9 @@ function optionsView(get: GetState): View {
 
 function closeDialog(evt: Event): StoreMessage<any> {
   const target = evt.target as HTMLElement
-  if (target.tagName === "DIALOG") {
-    return run(() => (target as HTMLDialogElement).close())
-  } else {
-    return batch([])
-  }
+  return target.tagName === "DIALOG" ?
+    run(() => (target as HTMLDialogElement).close()) :
+    batch([])
 }
 
 function adjustRadiusView(circleState: CircleContainer): () => View {

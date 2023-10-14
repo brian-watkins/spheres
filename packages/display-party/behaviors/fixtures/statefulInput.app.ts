@@ -1,9 +1,9 @@
 import { View, htmlView } from "@src/index.js"
-import { container, selection, store, write } from "state-party"
+import { container, rule, use, write } from "state-party"
 
 const inputValue = container({ initialValue: 17 })
 
-const incrementValue = selection((get) => write(inputValue, get(inputValue) + 1))
+const incrementValue = rule((get) => write(inputValue, get(inputValue) + 1))
 
 export default function(): View {
   return htmlView()
@@ -16,7 +16,7 @@ export default function(): View {
         })
         .button(el => {
           el.config
-            .on("click", () => store(incrementValue))
+            .on("click", () => use(incrementValue))
         })
     })
 }

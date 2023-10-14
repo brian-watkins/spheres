@@ -51,13 +51,13 @@ export interface RunMessage {
   effect: () => void
 }
 
-export interface Selection<SelectionArgument = undefined> {
-  readonly query: (get: GetState, input: SelectionArgument) => StoreMessage<any>
+export interface Rule<Argument = undefined> {
+  readonly definition: (get: GetState, input: Argument) => StoreMessage<any>
 }
 
-export interface SelectMessage {
-  type: "select"
-  selection: Selection<any>
+export interface UseMessage {
+  type: "use"
+  rule: Rule<any>
   input: any
 }
 
@@ -66,7 +66,7 @@ export interface BatchMessage {
   messages: Array<StoreMessage<any>>
 }
 
-export type StoreMessage<T, M = T> = WriteMessage<T, M> | SelectMessage | BatchMessage | RunMessage
+export type StoreMessage<T, M = T> = WriteMessage<T, M> | UseMessage | BatchMessage | RunMessage
 
 const registerState = Symbol("registerState")
 const getController = Symbol("getController")
@@ -316,9 +316,9 @@ export class Store {
           this[getController](message.container.meta).writeValue(error(message.value, err))
         }
         break
-      case "select":
+      case "use":
         const get: GetState = (state) => this[getController](state).value
-        const result = message.selection.query(get, message.input)
+        const result = message.rule.definition(get, message.input)
         this.dispatch(result)
         break
       case "run":

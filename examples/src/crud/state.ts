@@ -1,4 +1,4 @@
-import { Container, batch, container, selection, value, write } from "state-party";
+import { Container, batch, container, rule, value, write } from "state-party";
 
 export interface DataRecord {
   id?: number
@@ -64,7 +64,7 @@ export const selectedRecord = container({
   initialValue: -1
 })
 
-export const updateSelected = selection((get, record: DataRecord) => {
+export const updateSelected = rule((get, record: DataRecord) => {
   const selectedIndex = get(selectedRecord)
 
   if (selectedIndex == -1) {
@@ -74,7 +74,7 @@ export const updateSelected = selection((get, record: DataRecord) => {
   return write(records, updateRecord({ id: selectedIndex, ...record }))
 })
 
-export const deleteSelected = selection(get => {
+export const deleteSelected = rule(get => {
   const selectedIndex = get(selectedRecord)
 
   if (selectedIndex === -1) {

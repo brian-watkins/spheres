@@ -1,5 +1,5 @@
 import { View, htmlView } from "@src/index.js";
-import { store, GetState, State, container, selection, write } from "state-party";
+import { GetState, State, container, rule, use, write } from "state-party";
 
 interface Person {
   name: string
@@ -26,7 +26,7 @@ const people = container({
   ]
 })
 
-const shiftPeopleSelection = selection(get => {
+const shiftPeopleRule = rule(get => {
   const current = get(people)
   if (current.length === 0) {
     return write(people, current)
@@ -35,7 +35,7 @@ const shiftPeopleSelection = selection(get => {
   return write(people, [...current.slice(1), current[0]])
 })
 
-const incrementTicker = selection(get => {
+const incrementTicker = rule(get => {
   return write(ticker, get(ticker) + 1)
 })
 
@@ -51,14 +51,14 @@ const peopleView = (props: ReorderAppProps) => (get: GetState) => {
         .button(el => {
           el.config
             .dataAttribute("reorder")
-            .on("click", () => store(shiftPeopleSelection))
+            .on("click", () => use(shiftPeopleRule))
           el.children
             .textNode("Reorder People")
         })
         .button(el => {
           el.config
             .dataAttribute("increment-ticker")
-            .on("click", () => store(incrementTicker))
+            .on("click", () => use(incrementTicker))
           el.children
             .textNode("Increment")
         })

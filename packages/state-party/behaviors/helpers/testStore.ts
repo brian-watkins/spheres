@@ -1,4 +1,4 @@
-import { Selection, Container, Provider, State, Store, Writer, store, write, StoreArg, StoreMessage, batch, GetState, Effect } from "@src/index.js"
+import { Rule, Container, Provider, State, Store, Writer, write, RuleArg, StoreMessage, batch, GetState, Effect, use } from "@src/index.js"
 import { Context } from "esbehavior"
 
 export function testStoreContext<T>(): Context<TestStore<T>> {
@@ -46,8 +46,8 @@ export class TestStore<T> {
     this.store.useWriter(token, writer)
   }
 
-  storeSelection<A>(selection: Selection<A>, ...input: StoreArg<A>) {
-    this.store.dispatch(store(selection, ...input))
+  useRule<A>(rule: Rule<A>, ...input: RuleArg<A>) {
+    this.store.dispatch(use(rule, ...input))
   }
 
   writeTo<S, M = S>(token: Container<S, M>, value: M) {

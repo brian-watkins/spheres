@@ -1,11 +1,11 @@
-import { batch, container, selection, value, write } from "state-party"
+import { batch, container, rule, value, write } from "state-party"
 
 export interface TemperatureUpdate {
   celsius?: string
   farenheit?: string
 }
 
-export const temperatureUpdate = selection((_, input: TemperatureUpdate) => {
+export const temperatureUpdate = rule((_, input: TemperatureUpdate) => {
   return batch([
     write(celsiusTemperature, input),
     write(farenheitTemperature, input)

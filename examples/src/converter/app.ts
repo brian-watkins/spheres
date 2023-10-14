@@ -1,4 +1,4 @@
-import { Meta, store } from "state-party";
+import { Meta, use } from "state-party";
 import { celsiusInvalid, celsiusTemperature, farenheitInvalid, farenheitTemperature, temperatureUpdate } from "./state.js";
 import { names, useValue } from "../helpers/helpers.js";
 import { View, htmlView } from "display-party";
@@ -32,7 +32,7 @@ function celsiusInput(): View {
       .id("celsius")
       .type("text")
       .value((get) => get(celsiusTemperature))
-      .on("input", useValue((value) => store(temperatureUpdate, { celsius: value })))
+      .on("input", useValue((value) => use(temperatureUpdate, { celsius: value })))
       .class((get) => inputStyling(get(celsiusInvalid), isError(get(celsiusTemperature.meta))))
   })
 }
@@ -43,7 +43,7 @@ function farenheitInput(): View {
       .id("farenheit")
       .type("text")
       .value((get) => get(farenheitTemperature))
-      .on("input", useValue((value) => store(temperatureUpdate, { farenheit: value })))
+      .on("input", useValue((value) => use(temperatureUpdate, { farenheit: value })))
       .class((get) => inputStyling(get(farenheitInvalid), isError(get(farenheitTemperature.meta))))
   })
 }

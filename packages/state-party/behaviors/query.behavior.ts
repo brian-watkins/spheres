@@ -1,4 +1,4 @@
-import { Selection, Container, selection, container, write } from "@src/index.js";
+import { Rule, Container, container, write, rule } from "@src/index.js";
 import { ConfigurableExample, behavior, effect, example, fact, step } from "esbehavior";
 import { equalTo, expect, is } from "great-expectations";
 import { testStoreContext } from "helpers/testStore.js";
@@ -151,15 +151,15 @@ const queryDependency: ConfigurableExample =
 interface QuerySelectionContext {
   stringContainer: Container<string>,
   numberContainer: Container<number>,
-  incrementModThreeSelection: Selection
+  incrementModThreeRule: Rule
 }
 
-const queryFromSelection: ConfigurableExample =
+const queryFromRule: ConfigurableExample =
   example(testStoreContext<QuerySelectionContext>())
-    .description("a selection provides the value to a query")
+    .description("a rule provides the value to a query")
     .script({
       suppose: [
-        fact("there is a selection for a container with a query", (context) => {
+        fact("there is a rule for a container with a query", (context) => {
           const stringContainer = container({ initialValue: "init" })
           const numberContainer = container({
             initialValue: 1,
@@ -167,13 +167,13 @@ const queryFromSelection: ConfigurableExample =
               return get(stringContainer).length + (next ?? current)
             }
           })
-          const incrementModThreeSelection = selection((get) => {
+          const incrementModThreeRule = rule((get) => {
             return write(numberContainer, (get(numberContainer) + 1) % 3)
           })
           context.setTokens({
             stringContainer,
             numberContainer,
-            incrementModThreeSelection
+            incrementModThreeRule
           })
         }),
         fact("there is a subscriber to the container", (context) => {
@@ -181,14 +181,14 @@ const queryFromSelection: ConfigurableExample =
         })
       ],
       perform: [
-        step("the selection is stored", (context) => {
-          context.storeSelection(context.tokens.incrementModThreeSelection)
+        step("the rule is triggered", (context) => {
+          context.useRule(context.tokens.incrementModThreeRule)
         }),
         step("the dependency is updated", (context) => {
           context.writeTo(context.tokens.stringContainer, "hello")
         }),
-        step("the selection is stored again", (context) => {
-          context.storeSelection(context.tokens.incrementModThreeSelection)
+        step("the rule is triggered again", (context) => {
+          context.useRule(context.tokens.incrementModThreeRule)
         })
       ],
       observe: [
@@ -263,7 +263,7 @@ const queryWithReducer: ConfigurableExample =
 
 export default behavior("query", [
   basicQuery,
-  queryFromSelection,
+  queryFromRule,
   queryDependency,
   queryWithReducer
 ])

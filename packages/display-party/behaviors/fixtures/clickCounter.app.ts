@@ -1,16 +1,16 @@
 import { htmlView } from "@src/index.js"
-import { GetState, container, selection, store, write } from "state-party"
+import { GetState, container, rule, use, write } from "state-party"
 
 const clickCount = container({ initialValue: 0 })
 
-const incrementCount = selection(get => write(clickCount, get(clickCount) + 1))
+const incrementCount = rule(get => write(clickCount, get(clickCount) + 1))
 
 const clickCounterView = (get: GetState) => {
   return htmlView()
     .div(div => {
       div.children
         .button(b => {
-          b.config.on("click", () => store(incrementCount))
+          b.config.on("click", () => use(incrementCount))
           b.children.textNode("Click me!")
         })
         .p(p => {

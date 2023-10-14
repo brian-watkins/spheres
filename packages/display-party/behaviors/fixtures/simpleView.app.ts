@@ -1,5 +1,5 @@
 import { View, inputValue, htmlView } from "@src/index.js"
-import { container, GetState, selection, store, write } from "state-party"
+import { container, GetState, rule, use, write } from "state-party"
 
 const peopleState = container({
   initialValue: [
@@ -23,7 +23,7 @@ const peopleView = (get: GetState) => {
 
 const localState = container({ initialValue: "" })
 
-const writePeople = selection((get) => {
+const writePeople = rule((get) => {
   return write(peopleState, [{
     name: get(localState),
     age: 104
@@ -33,7 +33,7 @@ const writePeople = selection((get) => {
 function updateButton(): View {
   return htmlView()
     .button(el => {
-      el.config.on("click", () => store(writePeople))
+      el.config.on("click", () => use(writePeople))
       el.children.textNode("Click me!")
     })
 }

@@ -3,7 +3,7 @@ import { behavior, effect, example, fact, step } from "esbehavior";
 import { equalTo, expect, resolvesTo } from "great-expectations";
 import { selectElement } from "helpers/displayElement.js";
 import { renderContext } from "helpers/renderContext.js";
-import { Container, container, selection, store, write } from "state-party";
+import { Container, container, rule, use, write } from "state-party";
 
 export default behavior("event handlers", [
 
@@ -17,7 +17,7 @@ export default behavior("event handlers", [
         fact("there is an element with a click event", (context) => {
           const config = virtualNodeConfig()
           setEventHandler(config, "click", () => {
-            return store(selection((get) => write(context.state, get(context.state) + 1)))
+            return use(rule((get) => write(context.state, get(context.state) + 1)))
           })
           const button = makeVirtualElement("button", config, [
             makeVirtualTextNode("Click me!")
@@ -82,7 +82,7 @@ export default behavior("event handlers", [
         step("the element is patched to add the event handler back", (context) => {
           const config = virtualNodeConfig()
           setEventHandler(config, "click", () => {
-            return store(selection((get) => write(context.state, get(context.state) + 1)))
+            return use(rule((get) => write(context.state, get(context.state) + 1)))
           })
           const button = makeVirtualElement("button", config, [
             makeVirtualTextNode("Click me!")

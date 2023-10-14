@@ -1,6 +1,6 @@
 import { View, htmlView, svgView } from "display-party";
-import { GetState, batch, write, run, store, container, StoreMessage } from "state-party";
-import { Circle, CircleContainer, addCircleSelection, adjustRadius, adjustRadiusSelection, canRedo, canUndo, circleData, deselectCircle, redoSelection, selectCircle, undoSelection } from "./state";
+import { GetState, batch, write, run, container, StoreMessage, use } from "state-party";
+import { Circle, CircleContainer, addCircleRule, adjustRadius, adjustRadiusRule, canRedo, canUndo, circleData, deselectCircle, redoRule, selectCircle, undoRule } from "./state";
 import { useValue } from "../helpers/helpers";
 
 export default function circles(): View {
@@ -15,7 +15,7 @@ export default function circles(): View {
               config
                 .class(`${buttonStyle} grow`)
                 .disabled(get => !get(canUndo))
-                .on("click", () => store(undoSelection))
+                .on("click", () => use(undoRule))
               children
                 .textNode("Undo")
             })
@@ -23,7 +23,7 @@ export default function circles(): View {
               config
                 .class(`${buttonStyle} grow`)
                 .disabled(get => !get(canRedo))
-                .on("click", () => store(redoSelection))
+                .on("click", () => use(redoRule))
               children
                 .textNode("Redo")
             })
@@ -36,7 +36,7 @@ export default function circles(): View {
             .class("bg-slate-300 rounded")
             .on("click", (evt) => {
               const mouseEvent = (evt as unknown as MouseEvent)
-              return store(addCircleSelection, { x: mouseEvent.offsetX, y: mouseEvent.offsetY })
+              return use(addCircleRule, { x: mouseEvent.offsetX, y: mouseEvent.offsetY })
             })
           children
             .andThen(circleViews)
@@ -118,7 +118,7 @@ function optionsView(get: GetState): View {
         .on("click", closeDialog)
         .on("close", () => {
           return batch([
-            store(adjustRadiusSelection, {
+            use(adjustRadiusRule, {
               circle: dialogData.circle,
               originalRadius: dialogData.originalRadius
             }),

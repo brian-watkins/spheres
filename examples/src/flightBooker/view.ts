@@ -1,5 +1,5 @@
 import { View, htmlView } from "display-party";
-import { store, write } from "state-party";
+import { use, write } from "state-party";
 import { FlightTypes, allowReturnDate, bookFlight, bookingAllowed, flightType, returnDate, returnDateIsValid, startDate, startDateIsValid } from "./state.js";
 import { names, useValue } from "../helpers/helpers.js";
 
@@ -48,7 +48,7 @@ function bookFlightButton(): View {
           "disabled:bg-slate-400",
           "hover:bg-sky-800"
         ]))
-        .on("click", () => store(bookFlight))
+        .on("click", () => use(bookFlight))
         .disabled((get) => !get(bookingAllowed))
       el.children
         .textNode("Book Flight!")

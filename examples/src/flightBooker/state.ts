@@ -1,4 +1,4 @@
-import { batch, container, selection, value } from "state-party";
+import { batch, container, rule, value } from "state-party";
 import { DateTime } from "luxon"
 
 export const DATE_FORMAT = "dd.MM.yyyy"
@@ -55,7 +55,7 @@ export const bookingAllowed = value({
   }
 })
 
-export const bookFlight = selection((get) => {
+export const bookFlight = rule((get) => {
   switch (get(flightType)) {
     case FlightTypes.ONE_WAY:
       alert(`You have booked a one-way flight on ${get(startDate)}.`)

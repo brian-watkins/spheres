@@ -1,9 +1,9 @@
 import { View, htmlView } from "@src/index.js";
-import { container, selection, store, write } from "state-party";
+import { container, rule, use, write } from "state-party";
 
 const clicks = container({ initialValue: 0 })
 const isDisabled = container({ initialValue: false })
-const incrementClicks = selection(get => write(clicks, get(clicks) + 1))
+const incrementClicks = rule(get => write(clicks, get(clicks) + 1))
 
 export default function (): View {
   return htmlView()
@@ -28,7 +28,7 @@ export default function (): View {
         .button(el => {
           el.config
             .dataAttribute("action", "increment")
-            .on("click", () => store(incrementClicks))
+            .on("click", () => use(incrementClicks))
           el.children.textNode("Click to increment!")
         })
         .button(el => {

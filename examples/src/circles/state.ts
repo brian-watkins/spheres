@@ -1,4 +1,4 @@
-import { Container, GetState, StoreMessage, batch, container, selection, value, write } from "state-party";
+import { Container, GetState, StoreMessage, batch, container, rule, value, write } from "state-party";
 
 export interface Coordinate {
   x: number
@@ -87,7 +87,7 @@ function addActionMessage(get: GetState, message: Action): StoreMessage<any> {
   ])
 }
 
-export const addCircleSelection = selection((get, center: Coordinate) => {
+export const addCircleRule = rule((get, center: Coordinate) => {
   const currentCircles = get(circleData)
 
   const addCircleAction = {
@@ -103,7 +103,7 @@ export interface AdjustmentOptions {
   originalRadius: number
 }
 
-export const adjustRadiusSelection = selection((get, options: AdjustmentOptions) => {
+export const adjustRadiusRule = rule((get, options: AdjustmentOptions) => {
   const currentRadius = get(options.circle).radius
 
   if (currentRadius === options.originalRadius) {
@@ -118,7 +118,7 @@ export const adjustRadiusSelection = selection((get, options: AdjustmentOptions)
   return addActionMessage(get, adjustRadiusAction)
 })
 
-export const undoSelection = selection(get => {
+export const undoRule = rule(get => {
   const actionIndex = get(currentAction)
   const action = get(actions)[actionIndex]
 
@@ -128,7 +128,7 @@ export const undoSelection = selection(get => {
   ])
 })
 
-export const redoSelection = selection(get => {
+export const redoRule = rule(get => {
   const actionIndex = get(currentAction)
   const action = get(actions)[actionIndex + 1]
 

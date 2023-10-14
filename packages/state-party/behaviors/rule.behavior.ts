@@ -1,26 +1,26 @@
 import { ConfigurableExample, behavior, effect, example, fact, step } from "esbehavior";
 import { equalTo, expect, is } from "great-expectations";
-import { Selection, Container, selection, container, write } from "@src/index.js";
+import { Rule, Container, container, write, rule } from "@src/index.js";
 import { testStoreContext } from "./helpers/testStore.js";
 
-interface BasicSelectionContext {
+interface BasicRuleContext {
   numberContainer: Container<number>,
-  incrementModThreeSelection: Selection
+  incrementModThreeRule: Rule
 }
 
-const basicSelection: ConfigurableExample =
-  example(testStoreContext<BasicSelectionContext>())
-    .description("trigger a selection")
+const basicRule: ConfigurableExample =
+  example(testStoreContext<BasicRuleContext>())
+    .description("trigger a rule")
     .script({
       suppose: [
-        fact("there is a selection", (context) => {
+        fact("there is a rule", (context) => {
           const numberContainer = container({ initialValue: 1 })
-          const incrementModThreeSelection = selection((get) => {
+          const incrementModThreeRule = rule((get) => {
             return write(numberContainer, (get(numberContainer) + 1) % 3)
           })
           context.setTokens({
             numberContainer,
-            incrementModThreeSelection
+            incrementModThreeRule
           })
         }),
         fact("there is a subscriber to the number container", (context) => {
@@ -28,11 +28,11 @@ const basicSelection: ConfigurableExample =
         })
       ],
       perform: [
-        step("the selection is stored", (context) => {
-          context.storeSelection(context.tokens.incrementModThreeSelection)
+        step("the rule is triggered", (context) => {
+          context.useRule(context.tokens.incrementModThreeRule)
         }),
-        step("the selection is stored again", (context) => {
-          context.storeSelection(context.tokens.incrementModThreeSelection)
+        step("the rule is triggered again", (context) => {
+          context.useRule(context.tokens.incrementModThreeRule)
         }),
       ],
       observe: [
@@ -46,28 +46,28 @@ const basicSelection: ConfigurableExample =
       ]
     })
 
-const lateSubscribeSelection: ConfigurableExample =
-  example(testStoreContext<BasicSelectionContext>())
-    .description("dispatch a selection on a container before any subscribers")
+const lateSubscribeRule: ConfigurableExample =
+  example(testStoreContext<BasicRuleContext>())
+    .description("dispatch a rule on a container before any subscribers")
     .script({
       suppose: [
-        fact("there is a selection", (context) => {
+        fact("there is a rule", (context) => {
           const numberContainer = container({ initialValue: 1 })
-          const incrementModThreeSelection = selection((get) => {
+          const incrementModThreeRule = rule((get) => {
             return write(numberContainer, (get(numberContainer) + 1) % 3)
           })
           context.setTokens({
             numberContainer,
-            incrementModThreeSelection
+            incrementModThreeRule
           })
         })
       ],
       perform: [
-        step("the selection is stored", (context) => {
-          context.storeSelection(context.tokens.incrementModThreeSelection)
+        step("the rule is triggered", (context) => {
+          context.useRule(context.tokens.incrementModThreeRule)
         }),
-        step("the selection is stored again", (context) => {
-          context.storeSelection(context.tokens.incrementModThreeSelection)
+        step("the rule is triggered again", (context) => {
+          context.useRule(context.tokens.incrementModThreeRule)
         }),
         step("a listener subscribes to the container", (context) => {
           context.subscribeTo(context.tokens.numberContainer, "sub-one")
@@ -82,24 +82,24 @@ const lateSubscribeSelection: ConfigurableExample =
       ]
     })
 
-interface SelectionWithInputContext {
+interface RuleWithInputContext {
   numberContainer: Container<number>
-  incrementSelection: Selection<number>
+  incrementRule: Rule<number>
 }
 
-const selectionWithInput: ConfigurableExample =
-  example(testStoreContext<SelectionWithInputContext>())
-    .description("a selection that takes an input value")
+const ruleWithInput: ConfigurableExample =
+  example(testStoreContext<RuleWithInputContext>())
+    .description("a rule that takes an input value")
     .script({
       suppose: [
-        fact("there is a selection", (context) => {
+        fact("there is a rule", (context) => {
           const numberContainer = container({ initialValue: 1 })
-          const incrementSelection = selection((get, value: number) => {
+          const incrementRule = rule((get, value: number) => {
             return write(numberContainer, get(numberContainer) + value)
           })
           context.setTokens({
             numberContainer,
-            incrementSelection
+            incrementRule
           })
         }),
         fact("there is a subscriber to the number container", (context) => {
@@ -107,11 +107,11 @@ const selectionWithInput: ConfigurableExample =
         })
       ],
       perform: [
-        step("the selection is stored", (context) => {
-          context.storeSelection(context.tokens.incrementSelection, 5)
+        step("the rule is triggered", (context) => {
+          context.useRule(context.tokens.incrementRule, 5)
         }),
-        step("the selection is stored again", (context) => {
-          context.storeSelection(context.tokens.incrementSelection, 10)
+        step("the rule is triggered again", (context) => {
+          context.useRule(context.tokens.incrementRule, 10)
         }),
       ],
       observe: [
@@ -125,27 +125,27 @@ const selectionWithInput: ConfigurableExample =
       ]
     })
 
-interface SelectionWithOtherStateContext {
+interface RuleWithOtherStateContext {
   numberContainer: Container<number>
   anotherContainer: Container<number>
-  incrementSelection: Selection<number>
+  incrementRule: Rule<number>
 }
 
-const selectionWithOtherState: ConfigurableExample =
-  example(testStoreContext<SelectionWithOtherStateContext>())
-    .description("a selection that gets the value of another state")
+const ruleWithOtherState: ConfigurableExample =
+  example(testStoreContext<RuleWithOtherStateContext>())
+    .description("a rule that gets the value of another state")
     .script({
       suppose: [
-        fact("there is a selection", (context) => {
+        fact("there is a rule", (context) => {
           const numberContainer = container({ initialValue: 1 })
           const anotherContainer = container({ initialValue: 7 })
-          const incrementSelection = selection((get, value: number) => {
+          const incrementRule = rule((get, value: number) => {
             return write(numberContainer, get(anotherContainer) + get(numberContainer) + value)
           })
           context.setTokens({
             numberContainer,
             anotherContainer,
-            incrementSelection
+            incrementRule
           })
         }),
         fact("there is a subscriber to the number container", (context) => {
@@ -153,14 +153,14 @@ const selectionWithOtherState: ConfigurableExample =
         })
       ],
       perform: [
-        step("the selection is stored", (context) => {
-          context.storeSelection(context.tokens.incrementSelection, 5)
+        step("the rule is triggered", (context) => {
+          context.useRule(context.tokens.incrementRule, 5)
         }),
         step("the other container is updated", (context) => {
           context.writeTo(context.tokens.anotherContainer, 3)
         }),
-        step("the selection is stored again", (context) => {
-          context.storeSelection(context.tokens.incrementSelection, 10)
+        step("the rule is triggered again", (context) => {
+          context.useRule(context.tokens.incrementRule, 10)
         }),
       ],
       observe: [
@@ -175,9 +175,9 @@ const selectionWithOtherState: ConfigurableExample =
     })
 
 
-export default behavior("selection", [
-  basicSelection,
-  lateSubscribeSelection,
-  selectionWithInput,
-  selectionWithOtherState
+export default behavior("rule", [
+  basicRule,
+  lateSubscribeRule,
+  ruleWithInput,
+  ruleWithOtherState
 ])

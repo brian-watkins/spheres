@@ -1,5 +1,5 @@
 import { ConfigurableElement, HTMLElements, InputElementAttributes, View, htmlView } from "display-party";
-import { GetState, store, write } from "state-party";
+import { GetState, use, write } from "state-party";
 import { createRecord, deleteSelected, filterPrefix, filteredRecords, records, selectedRecord, updateSelected } from "./state.js";
 import { names, useValue } from "../helpers/helpers.js";
 
@@ -50,7 +50,7 @@ export default function crud(): View {
               config
                 .dataAttribute("action", "delete")
                 .disabled((get) => get(selectedRecord) === -1)
-                .on("click", () => store(deleteSelected))
+                .on("click", () => use(deleteSelected))
                 .class(buttonClasses())
               children.textNode("Delete")
             })
@@ -76,7 +76,7 @@ function recordForm(): View {
           if (submissionAction(evt) === "create") {
             return write(records, createRecord({ firstName, lastName }))
           } else {
-            return store(updateSelected, { firstName, lastName })
+            return use(updateSelected, { firstName, lastName })
           }
         })
       children

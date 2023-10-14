@@ -1,6 +1,6 @@
 import { htmlView } from "@src/index.js"
 import { clickCount, nameState } from "../state.js"
-import { GetState, selection, store, write } from "state-party"
+import { GetState, rule, use, write } from "state-party"
 
 export default htmlView()
   .andThen(get => {
@@ -19,14 +19,14 @@ export default htmlView()
       })
   })
 
-const incrementCount = selection(get => write(clickCount, get(clickCount) + 1))
+const incrementCount = rule(get => write(clickCount, get(clickCount) + 1))
 
 function counterView() {
   return htmlView()
     .div(el => {
       el.children
         .button(el => {
-          el.config.on("click", () => store(incrementCount))
+          el.config.on("click", () => use(incrementCount))
           el.children.textNode("Click me!")
         })
     })

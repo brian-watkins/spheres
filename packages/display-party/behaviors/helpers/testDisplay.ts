@@ -24,6 +24,10 @@ export class TestAppDisplay {
     return new DisplayElement(this.page.locator(selector))
   }
 
+  selectWithText(text: string): DisplayElement {
+    return new DisplayElement(this.page.getByText(text))
+  }
+
   selectAll(selector: string): DisplayElementList {
     return new DisplayElementList(this.page.locator(selector))
   }

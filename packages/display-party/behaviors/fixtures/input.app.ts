@@ -1,23 +1,46 @@
 import { View, htmlView } from "@src/index.js"
+import { container, write } from "state-party"
 
 export interface InputAppProps {
   defaultInputValue: string
 }
 
-export default function(context: InputAppProps): View {
+const formInputValue = container({ initialValue: "" })
+
+export default function (context: InputAppProps): View {
   return htmlView()
-    .div(el => {
+    .main(el => {
       el.children
-        .input(el => {
+        .form(el => {
           el.config
-            .dataAttribute("with-default")
-            .value(context.defaultInputValue)
-            .disabled(false)
+            .on("submit", (evt) => {
+              evt.preventDefault()
+              const form = evt.target as HTMLFormElement
+              const inputValue = (form.elements.namedItem("fun-stuff") as HTMLInputElement).value
+              return write(formInputValue, inputValue)
+            })
+          el.children
+            .input(el => {
+              el.config
+                .name("fun-stuff")
+                .dataAttribute("with-default")
+                .value(context.defaultInputValue)
+                .disabled(false)
+            })
+            .input(el => {
+              el.config
+                .dataAttribute("disabled")
+                .disabled(true)
+            })
+            .button(el => {
+              el.config.type("submit")
+              el.children.textNode("Submit!")
+            })
         })
-        .input(el => {
-          el.config
-            .dataAttribute("disabled")
-            .disabled(true)
+        .hr()
+        .div(el => {
+          el.config.dataAttribute("message")
+          el.children.textNode((get) => get(formInputValue))
         })
     })
 }

@@ -28,6 +28,20 @@ export default (context: Context<TestAppController>) => behavior("Input Element 
           expect(isDisabled, is(equalTo(true)))
         })
       ]
+    }).andThen({
+      perform: [
+        step("type something new", async (controller) => {
+          await controller.display.select("input[data-with-default]").type("Fun stuff!", { clear: true })
+        }),
+        step("submit the form", async (controller) => {
+          await controller.display.select("button").click()
+        })
+      ],
+      observe: [
+        effect("the message is displayed", async (controller) => {
+          await expect(controller.display.select("[data-message]").text(), resolvesTo("Fun stuff!"))
+        })
+      ]
     }),
 
   example(context)
@@ -53,6 +67,21 @@ export default (context: Context<TestAppController>) => behavior("Input Element 
       observe: [
         effect("the input value is updated", async (controller) => {
           await expect(controller.display.select("input").inputValue(), resolvesTo("19"))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("a number is typed into the field", async (controller) => {
+          await controller.display.select("input").type("45", { clear: true })
+        }),
+        step("the button is pressed to increment the count", async (controller) => {
+          await controller.display.select("button").click()
+          await controller.display.select("button").click()
+        })
+      ],
+      observe: [
+        effect("the input value is updated", async (controller) => {
+          await expect(controller.display.select("input").inputValue(), resolvesTo("47"))
         })
       ]
     })

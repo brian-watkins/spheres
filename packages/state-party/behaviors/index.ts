@@ -8,9 +8,10 @@ import valueBehavior from "./value.behavior.js"
 import ruleBehavior from "./rule.behavior.js"
 import queryBehavior from "./query.behavior.js"
 import debugBehavior from "./debug.behavior.js"
-import batchBehavior from "batch.behavior.js"
-import storeEffectBehavior from "storeEffect.behavior.js"
-import runBehavior from "run.behavior.js"
+import batchBehavior from "./batch.behavior.js"
+import storeEffectBehavior from "./storeEffect.behavior.js"
+import runBehavior from "./run.behavior.js"
+import resetBehavior from "./reset.behavior.js"
 
 window.validateBehaviors = () => {
   return validate([
@@ -22,6 +23,7 @@ window.validateBehaviors = () => {
     batchBehavior,
     runBehavior,
     queryBehavior,
+    resetBehavior,
     storeEffectBehavior,
     updateContainerBehavior,
     valueBehavior,

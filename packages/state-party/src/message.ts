@@ -1,10 +1,17 @@
-import { BatchMessage, Container, RunMessage, UseMessage, StoreMessage, WriteMessage, Rule } from "./store"
+import { BatchMessage, Container, RunMessage, UseMessage, StoreMessage, WriteMessage, Rule, ResetMessage } from "./store"
 
 export function write<T, M = T>(container: Container<T, M>, value: M): WriteMessage<T, M> {
   return {
     type: "write",
     container,
     value
+  }
+}
+
+export function reset<T, M = T>(container: Container<T, M>): ResetMessage<T, M> {
+  return {
+    type: "reset",
+    container
   }
 }
 

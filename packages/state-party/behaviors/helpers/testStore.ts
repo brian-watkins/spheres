@@ -1,4 +1,4 @@
-import { Rule, Container, Provider, State, Store, Writer, write, RuleArg, StoreMessage, batch, GetState, Effect, use } from "@src/index.js"
+import { Rule, Container, Provider, State, Store, Writer, write, RuleArg, StoreMessage, batch, GetState, Effect, use, reset } from "@src/index.js"
 import { Context } from "esbehavior"
 
 export function testStoreContext<T>(): Context<TestStore<T>> {
@@ -56,6 +56,10 @@ export class TestStore<T> {
 
   sendBatch(messages: Array<StoreMessage<any>>) {
     this.store.dispatch(batch(messages))
+  }
+
+  sendReset(container: Container<any>) {
+    this.store.dispatch(reset(container))
   }
 
   valuesForSubscriber(name: string): Array<any> {

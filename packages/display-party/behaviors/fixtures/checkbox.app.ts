@@ -1,5 +1,5 @@
 import { View, htmlView } from "@src/index";
-import { container, write } from "state-party";
+import { container, reset, write } from "state-party";
 
 const boxes = [
   "one",
@@ -57,7 +57,7 @@ export default function (): View {
               config
                 .type("button")
                 .dataAttribute("reset-button")
-                .on("click", () => write(checkedBoxes, [ "three" ]))
+                .on("click", () => reset(checkedBoxes))
               children
                 .textNode("Reset")
             })

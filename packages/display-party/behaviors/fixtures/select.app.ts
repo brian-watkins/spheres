@@ -1,5 +1,5 @@
 import { View, htmlView } from "@src/index";
-import { container, write } from "state-party";
+import { container, reset, write } from "state-party";
 
 const fruits = [
   "apple",
@@ -40,7 +40,7 @@ export default function (): View {
               config
                 .type("button")
                 .dataAttribute("reset-button")
-                .on("click", () => write(selectedFruit, "grapes"))
+                .on("click", () => reset(selectedFruit))
               children
                 .textNode("Reset")
             })

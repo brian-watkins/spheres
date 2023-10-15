@@ -46,6 +46,11 @@ export interface WriteMessage<T, M = T> {
   value: M
 }
 
+export interface ResetMessage<T, M = T> {
+  type: "reset"
+  container: Container<T, M>
+}
+
 export interface RunMessage {
   type: "run"
   effect: () => void
@@ -66,10 +71,11 @@ export interface BatchMessage {
   messages: Array<StoreMessage<any>>
 }
 
-export type StoreMessage<T, M = T> = WriteMessage<T, M> | UseMessage | BatchMessage | RunMessage
+export type StoreMessage<T, M = T> = WriteMessage<T, M> | ResetMessage<T, M> | UseMessage | BatchMessage | RunMessage
 
 const registerState = Symbol("registerState")
 const getController = Symbol("getController")
+const initialValue = Symbol("initialValue")
 
 export abstract class State<T, M = T> {
   private _meta: MetaState<T, M, any> | undefined
@@ -131,6 +137,10 @@ export class Container<T, M = T> extends State<T, M> {
     private query: ((actions: QueryActions<T>, nextValue?: M) => M) | undefined
   ) {
     super(name)
+  }
+
+  get [initialValue](): T {
+    return this.initialValue
   }
 
   [registerState](store: Store): ContainerController<T, M> {
@@ -315,6 +325,13 @@ export class Store {
         } catch (err) {
           this[getController](message.container.meta).writeValue(error(message.value, err))
         }
+        break
+      case "reset":
+        this.dispatch({
+          type: "write",
+          container: message.container,
+          value: message.container[initialValue]
+        })
         break
       case "use":
         const get: GetState = (state) => this[getController](state).value

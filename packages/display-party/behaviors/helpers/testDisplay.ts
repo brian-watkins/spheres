@@ -64,6 +64,10 @@ class DisplayElement {
     return text ?? ""
   }
 
+  async selectOption(label: string): Promise<void> {
+    await this.locator.first().selectOption({ label }, { timeout: 200 })
+  }
+
   async inputValue(): Promise<string> {
     return this.locator.first().inputValue({ timeout: 200 })
   }

@@ -6,6 +6,7 @@ import elementBehavior from "./element.behavior.js";
 import eventBehavior from "./event.behavior.js";
 import { DisplayBehaviorOptions, testAppContext } from "./helpers/testAppController.js";
 import inputPropertiesBehavior from "./inputProperties.behavior.js";
+import selectPropertiesBehavior from "./selectProperties.behavior.js";
 import renderBehavior from "./render.behavior.js";
 import viewBehavior from "./view.behavior.js";
 import clientActivationBehavior from "./clientActivation.behavior.js";
@@ -24,6 +25,7 @@ export async function validateBehaviors(page: Page, ssrServer: TestSSRServer, op
     cssBehavior(appContext),
     eventBehavior(appContext),
     inputPropertiesBehavior(appContext),
+    selectPropertiesBehavior(appContext),
     dynamicViewStateBehavior(appContext),
     svgElementBehavior(appContext),
     renderBehavior,

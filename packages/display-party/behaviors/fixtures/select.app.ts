@@ -36,6 +36,14 @@ export default function (): View {
                   })
               }
             })
+            .button(({ config, children }) => {
+              config
+                .type("button")
+                .dataAttribute("reset-button")
+                .on("click", () => write(selectedFruit, "grapes"))
+              children
+                .textNode("Reset")
+            })
         })
         .hr()
         .div(({ config, children }) => {

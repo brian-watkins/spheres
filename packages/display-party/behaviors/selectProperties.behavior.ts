@@ -5,14 +5,17 @@ import { TestAppController } from "./helpers/testAppController.js";
 export default (context: Context<TestAppController>) => behavior("Select Element Properties", [
 
   example(context)
-    .description("set default value of select element")
+    .description("set selected option of select element")
     .script({
       suppose: [
-        fact("there is an app with an input that has a default value", async (controller) => {
+        fact("there is an app with a select that has an option selected", async (controller) => {
           await controller.loadApp("select.app")
         })
       ],
       observe: [
+        effect("the grapes option is selected", async (controller) => {
+          await expect(controller.display.select("select").inputValue(), resolvesTo("grapes"))
+        }),
         effect("grapes are selected", async (controller) => {
           await expect(controller.display.select("[data-message]").text(), resolvesTo("Selected Option: grapes"))
         })
@@ -24,8 +27,25 @@ export default (context: Context<TestAppController>) => behavior("Select Element
         })
       ],
       observe: [
-        effect("pear is selected", async (controller) => {
+        effect("the pear option is selected", async (controller) => {
+          await expect(controller.display.select("select").inputValue(), resolvesTo("pear"))
+        }),
+        effect("the message is updated", async (controller) => {
           await expect(controller.display.select("[data-message]").text(), resolvesTo("Selected Option: pear"))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("reset the state", async (controller) => {
+          await controller.display.select("[data-reset-button]").click()
+        })
+      ],
+      observe: [
+        effect("the grapes option is selected", async (controller) => {
+          await expect(controller.display.select("select").inputValue(), resolvesTo("grapes"))
+        }),
+        effect("the message is updated", async (controller) => {
+          await expect(controller.display.select("[data-message]").text(), resolvesTo("Selected Option: grapes"))
         })
       ]
     })

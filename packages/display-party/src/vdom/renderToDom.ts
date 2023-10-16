@@ -120,8 +120,7 @@ function createNode(store: Store, vnode: VirtualNode): Node {
       }
 
       const events = vnode.data.on
-      let k: keyof HTMLElementEventMap
-      for (k in events) {
+      for (const k in events) {
         const handler: any = events![k]
         element.addEventListener(k, handler)
       }
@@ -204,10 +203,9 @@ function patchStatefulAttributes(store: Store, oldVNode: ElementNode, newVNode: 
 }
 
 function patchEvents(oldVNode: ElementNode, newVNode: ElementNode) {
-  let i: keyof HTMLElementEventMap
   const oldEvents = oldVNode.data.on ?? {}
   const newEvents = newVNode.data.on ?? {}
-  for (i in { ...oldEvents, ...newEvents }) {
+  for (const i in { ...oldEvents, ...newEvents }) {
     if (newEvents[i] === undefined) {
       oldVNode.node!.removeEventListener(i, oldEvents![i]!)
     } else if (oldEvents[i] === undefined) {

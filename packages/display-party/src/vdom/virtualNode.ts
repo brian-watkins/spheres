@@ -62,7 +62,7 @@ export interface VirtualNodeConfig {
   attrs: Record<string, string>
   statefulAttrs?: Record<string, StatefulValue>
   namespace?: string
-  on?: { [N in keyof HTMLElementEventMap]?: Listener }
+  on?: { [index: string]: Listener }
   key?: VirtualNodeKey
 }
 
@@ -107,7 +107,7 @@ export function addStatefulAttribute(config: VirtualNodeConfig, name: string, ge
   }
 }
 
-export function setEventHandler<N extends keyof HTMLElementEventMap>(config: VirtualNodeConfig, event: N, handler: (evt: HTMLElementEventMap[N]) => StoreMessage<any, any>) {
+export function setEventHandler(config: VirtualNodeConfig, event: string, handler: (evt: Event) => StoreMessage<any, any>) {
   if (!config.on) { config.on = {} }
 
   config.on[event] = (evt: any) => {

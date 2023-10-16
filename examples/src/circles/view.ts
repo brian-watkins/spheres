@@ -34,10 +34,7 @@ export default function circles(): View {
             .width("100%")
             .height("400")
             .class("bg-slate-300 rounded")
-            .on("click", (evt) => {
-              const mouseEvent = (evt as unknown as MouseEvent)
-              return use(addCircleRule, { x: mouseEvent.offsetX, y: mouseEvent.offsetY })
-            })
+            .on("click", (evt) => use(addCircleRule, { x: evt.offsetX, y: evt.offsetY }))
           children
             .andThen(circleViews)
         })

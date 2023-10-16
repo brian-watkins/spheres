@@ -7,7 +7,7 @@ export interface SpecialAttributes {
   dataAttribute(name: string, value?: string | Stateful<string>): this
   innerHTML(html: string | Stateful<string>): this
   aria(name: AriaAttribute, value: string | Stateful<string>): this
-  on(event: keyof HTMLElementEventMap, handler: <E extends Event>(evt: E) => StoreMessage<any>): this
+  on<E extends keyof HTMLElementEventMap | string>(event: E, handler: (evt: E extends keyof HTMLElementEventMap ? HTMLElementEventMap[E] : Event) => StoreMessage<any>): this
 }
 
 export class BasicElementConfig implements SpecialAttributes {
@@ -75,8 +75,8 @@ export class BasicElementConfig implements SpecialAttributes {
     return this
   }
 
-  on(event: keyof HTMLElementEventMap, handler: <E extends Event>(evt: E) => StoreMessage<any>) {
-    setEventHandler(this.config, event, handler)
+  on<E extends keyof HTMLElementEventMap | string>(event: E, handler: (evt: E extends keyof HTMLElementEventMap ? HTMLElementEventMap[E] : Event) => StoreMessage<any>): this {
+    setEventHandler(this.config, event, handler as (evt: Event) => StoreMessage<any>)
     return this
   }
 

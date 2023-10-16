@@ -14,6 +14,7 @@ export default (context: Context<TestAppController>) => behavior("View Elements"
       ],
       observe: [
         theElementExists("DIV#funny-id"),
+        theElementHasText("DIV[silly-attribute='joke']", "This is silly!"),
         theElementHasText("DIV P.super-class", "This is text"),
         theElementExists("h3[data-title]"),
         effect("an element with boolean attributes, checked and not disabled", async (context) => {

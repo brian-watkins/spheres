@@ -147,6 +147,36 @@ export default (context: Context<TestAppController>) => behavior("reactive eleme
           expect(dataValue, is(assignedWith(equalTo("3"))))
         })
       ]
+    }),
+
+  example(context)
+    .description("reactive custom attribute")
+    .script({
+      suppose: [
+        fact("there is a view with reactive custom attributes", async (controller) => {
+          controller.loadApp("reactiveAttributes.app")
+        })
+      ],
+      observe: [
+        effect("the custom attribute has the default value", async (controller) => {
+          const dataValue = await controller.display.select("#title").attribute("weirdness")
+          expect(dataValue, is(assignedWith(equalTo("0"))))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("click the button", async (controller) => {
+          await controller.display.select("button[data-action='increment']").click()
+          await controller.display.select("button[data-action='increment']").click()
+          await controller.display.select("button[data-action='increment']").click()
+        })
+      ],
+      observe: [
+        effect("the custom attribute is updated", async (controller) => {
+          const value = await controller.display.select("#title").attribute("weirdness")
+          expect(value, is(assignedWith(equalTo("3"))))
+        })
+      ]
     })
 
 ])

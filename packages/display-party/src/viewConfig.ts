@@ -4,6 +4,7 @@ import { VirtualNodeConfig, addAttribute, addProperty, addStatefulAttribute, add
 import { svgAttributeNames } from "./svgElements.js"
 
 export interface SpecialAttributes {
+  attribute(name: string, value: string | Stateful<string>): this
   dataAttribute(name: string, value?: string | Stateful<string>): this
   innerHTML(html: string | Stateful<string>): this
   aria(name: AriaAttribute, value: string | Stateful<string>): this
@@ -50,6 +51,16 @@ export class BasicElementConfig implements SpecialAttributes {
       addStatefulProperty(this.config, "innerHTML", html)
     } else {
       addProperty(this.config, "innerHTML", html)
+    }
+
+    return this
+  }
+
+  attribute(name: string, value: string | Stateful<string>) {
+    if (typeof value === "function") {
+      addStatefulAttribute(this.config, name, value)
+    } else {
+      addAttribute(this.config, name, value)
     }
 
     return this

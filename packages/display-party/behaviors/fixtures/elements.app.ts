@@ -17,6 +17,12 @@ export default function () {
           h3.config
             .dataAttribute("title")
         })
+        .div(el => {
+          el.config
+            .attribute("silly-attribute", "joke")
+          el.children
+            .textNode("This is silly!")
+        })
         .input(el => {
           el.config
             .type("checkbox")

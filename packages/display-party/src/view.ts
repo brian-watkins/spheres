@@ -44,11 +44,13 @@ export interface ViewOptions {
 }
 
 export interface SpecialElements {
+  element(tag: string, builder?: (element: ConfigurableElement<SpecialAttributes, HTMLElements>) => void): this
   textNode(value: string | Stateful<string>): this
   andThen(definition: (() => View) | ((get: GetState) => View), options?: ViewOptions): this
 }
 
 export interface SpecialElementBuilder {
+  element(tag: string, builder?: (element: ConfigurableElement<SpecialAttributes, HTMLElements>) => void): View
   textNode(value: string | Stateful<string>): View
   andThen(definition: (() => View) | ((get: GetState) => View), options?: ViewOptions): View
 }
@@ -101,7 +103,11 @@ class BasicView {
     return this
   }
 
-  buildElement(tag: string, builder: (element: ConfigurableElement<any, any>) => void) {
+  element(tag: string, builder?: (element: ConfigurableElement<SpecialAttributes, HTMLElements>) => void) {
+    return this.buildElement(tag, builder)
+  }
+
+  buildElement(tag: string, builder?: (element: ConfigurableElement<any, any>) => void) {
     let storedNodes = this.nodes
     let childNodes: Array<VirtualNode> = []
     this.nodes = childNodes

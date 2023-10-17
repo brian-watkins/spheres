@@ -14,6 +14,7 @@ import clientActivationBehavior from "./clientActivation.behavior.js";
 import reactiveBehavior from "./reactive.behavior.js";
 import svgElementBehavior from "./svgElement.behavior.js";
 import { TestSSRServer, ssrTestAppContext } from "./helpers/testSSRServer.js";
+import customElementBehavior from "./customElement.behavior.js";
 
 export async function validateBehaviors(page: Page, ssrServer: TestSSRServer, options: DisplayBehaviorOptions): Promise<Summary> {
   const appContext = testAppContext(page, options)
@@ -21,6 +22,7 @@ export async function validateBehaviors(page: Page, ssrServer: TestSSRServer, op
 
   return validate([
     elementBehavior(appContext),
+    customElementBehavior(appContext),
     reactiveBehavior(appContext),
     viewBehavior(appContext),
     cssBehavior(appContext),

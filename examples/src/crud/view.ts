@@ -1,5 +1,5 @@
-import { ConfigurableElement, HTMLElements, InputElementAttributes, View, htmlView } from "display-party";
-import { GetState, use, write } from "state-party";
+import { ConfigurableElement, HTMLElements, InputElementAttributes, View, htmlView } from "@spheres/display";
+import { GetState, use, write } from "@spheres/store";
 import { createRecord, deleteSelected, filterPrefix, filteredRecords, records, selectedRecord, updateSelected } from "./state.js";
 import { names, useValue } from "../helpers/helpers.js";
 

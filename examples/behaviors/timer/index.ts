@@ -1,6 +1,6 @@
-import { createDisplay } from "display-party"
+import { createDisplay } from "@spheres/display"
 import { timer } from "../../src/timer/view.js"
-import { Store } from "state-party"
+import { Store } from "@spheres/store"
 import { timerProvider } from "../../src/timer/state.js"
 import { TestRepeater } from "./testRepeater.js"
 

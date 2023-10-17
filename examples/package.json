@@ -26,7 +26,8 @@
   "author": "Brian Watkins",
   "license": "MIT",
   "dependencies": {
-    "display-party": "^1.0.0",
+    "@spheres/display": "^1.0.0",
+    "@spheres/store": "^1.0.0",
     "luxon": "^3.4.0"
   }
 }

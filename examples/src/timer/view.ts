@@ -1,5 +1,5 @@
-import { View, htmlView } from "display-party";
-import { write } from "state-party";
+import { View, htmlView } from "@spheres/display";
+import { write } from "@spheres/store";
 import { duration, elapsedTime, percentComplete } from "./state.js";
 import { names, useValue } from "../helpers/helpers.js";
 

@@ -1,4 +1,4 @@
-import { createDisplay } from "display-party";
+import { createDisplay } from "@spheres/display";
 import { counter } from "../../src/counter/app.js";
 
 const display = createDisplay()

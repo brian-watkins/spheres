@@ -1,5 +1,5 @@
-import { View, htmlView } from "display-party";
-import { use, write } from "state-party";
+import { View, htmlView } from "@spheres/display";
+import { use, write } from "@spheres/store";
 import { FlightTypes, allowReturnDate, bookFlight, bookingAllowed, flightType, returnDate, returnDateIsValid, startDate, startDateIsValid } from "./state.js";
 import { names, useValue } from "../helpers/helpers.js";
 

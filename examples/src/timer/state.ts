@@ -1,4 +1,4 @@
-import { Provider, container, value } from "state-party";
+import { Provider, container, value } from "@spheres/store";
 
 export const elapsedTime = container({ initialValue: 0 })
 

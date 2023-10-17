@@ -1,4 +1,4 @@
-import { batch, container, rule, value, write } from "state-party"
+import { batch, container, rule, value, write } from "@spheres/store"
 
 export interface TemperatureUpdate {
   celsius?: string

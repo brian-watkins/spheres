@@ -1,4 +1,4 @@
-import { createDisplay } from "display-party";
+import { createDisplay } from "@spheres/display";
 import circles from "./view";
 
 const display = createDisplay()

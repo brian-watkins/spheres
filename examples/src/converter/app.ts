@@ -1,7 +1,7 @@
-import { Meta, use } from "state-party";
+import { Meta, use } from "@spheres/store";
 import { celsiusInvalid, celsiusTemperature, farenheitInvalid, farenheitTemperature, temperatureUpdate } from "./state.js";
 import { names, useValue } from "../helpers/helpers.js";
-import { View, htmlView } from "display-party";
+import { View, htmlView } from "@spheres/display";
 
 
 export function converter(): View {

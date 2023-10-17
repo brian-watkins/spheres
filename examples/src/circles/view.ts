@@ -1,5 +1,5 @@
-import { View, htmlView, svgView } from "display-party";
-import { GetState, batch, write, run, container, StoreMessage, use } from "state-party";
+import { View, htmlView, svgView } from "@spheres/display";
+import { GetState, batch, write, run, container, StoreMessage, use } from "@spheres/store";
 import { Circle, CircleContainer, addCircleRule, adjustRadius, adjustRadiusRule, canRedo, canUndo, circleData, deselectCircle, redoRule, selectCircle, undoRule } from "./state";
 import { useValue } from "../helpers/helpers";
 

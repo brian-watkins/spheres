@@ -1,7 +1,7 @@
 {
   "files": [],
   "references": [
-    { "path": "./packages/state-party" },
-    { "path": "./packages/display-party" }
+    { "path": "./packages/store" },
+    { "path": "./packages/display" }
   ]
 }

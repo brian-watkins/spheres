@@ -1,4 +1,4 @@
-import { createDisplay } from "display-party";
+import { createDisplay } from "@spheres/display";
 import { flightBooker } from "./view.js";
 
 const display = createDisplay()

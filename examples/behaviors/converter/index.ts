@@ -1,4 +1,4 @@
-import { createDisplay } from "display-party";
+import { createDisplay } from "@spheres/display";
 import { converter } from "../../src/converter/app.js";
 
 const display = createDisplay()

@@ -1,4 +1,4 @@
-import { batch, container, rule, value } from "state-party";
+import { batch, container, rule, value } from "@spheres/store";
 import { DateTime } from "luxon"
 
 export const DATE_FORMAT = "dd.MM.yyyy"

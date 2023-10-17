@@ -1,5 +1,5 @@
-import { createDisplay } from "display-party"
-import { Store, use } from "state-party"
+import { createDisplay } from "@spheres/display"
+import { Store, use } from "@spheres/store"
 import circles from "../../src/circles/view"
 import { addCircleRule } from "../../src/circles/state"
 import { FakeCircle } from "./helpers/fakeCircle"

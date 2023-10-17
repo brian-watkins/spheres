@@ -1,5 +1,5 @@
 {
-  "name": "party-supplies",
+  "name": "spheres",
   "version": "1.0.0",
   "description": "Tools to create web-based applications",
   "author": "Brian Watkins",
@@ -13,13 +13,13 @@
     "build": "tsc --build --verbose",
     "clean": "npm run clean --workspaces --if-present",
     "test": "npm run test --workspaces",
-    "test:store": "npm run test -w state-party",
-    "test:display": "npm run test -w display-party",
+    "test:store": "npm run test -w @spheres/store",
+    "test:display": "npm run test -w @spheres/display",
     "test:display:debug": "DEBUG=true npm run test:display"
   },
   "workspaces": [
-    "packages/state-party",
-    "packages/display-party",
+    "packages/store",
+    "packages/display",
     "examples"
   ],
   "devDependencies": {

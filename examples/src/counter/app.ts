@@ -1,5 +1,5 @@
-import { View, htmlView } from "display-party";
-import { container, write } from "state-party";
+import { View, htmlView } from "@spheres/display";
+import { container, write } from "@spheres/store";
 
 const clickCount = container({
   initialValue: 0,

@@ -1,6 +1,6 @@
-import { createDisplay } from "display-party";
+import { createDisplay } from "@spheres/display";
 import crud from "../../src/crud/view.js";
-import { Store } from "state-party";
+import { Store } from "@spheres/store";
 import { DataRecord, createRecord, records } from "../../src/crud/state.js";
 
 

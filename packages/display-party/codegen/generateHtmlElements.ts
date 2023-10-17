@@ -1,6 +1,6 @@
 import { MethodSignatureStructure, OptionalKind, ParameterDeclarationStructure, Project, VariableDeclarationKind } from "ts-morph"
 import { htmlElementAttributes } from "html-element-attributes"
-import { htmlTagNames } from "html-tag-names"
+import htmlTags from "html-tags"
 import { ariaAttributes } from "aria-attributes"
 import { booleanAttributes } from "./booleanAttributes"
 import { toCamel } from "./helpers"
@@ -71,7 +71,7 @@ const viewBuilderInterface = htmlElementsFile.addInterface({
   isExported: true
 })
 
-for (const tag of htmlTagNames) {
+for (const tag of htmlTags) {
   const methodSignature = viewBuilderInterface.addMethod({
     name: tag,
     returnType: "View"
@@ -105,7 +105,7 @@ const viewElementsInterface = htmlElementsFile.addInterface({
   isExported: true
 })
 
-for (const tag of htmlTagNames) {
+for (const tag of htmlTags) {
   const methodSignature = viewElementsInterface.addMethod({
     name: tag,
     returnType: "this"
@@ -131,7 +131,7 @@ for (const tag of htmlTagNames) {
 
 // Attribute Interfaces
 
-for (const tag of htmlTagNames) {
+for (const tag of htmlTags) {
   if (tag === "svg") {
     continue
   }

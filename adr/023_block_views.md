@@ -20,7 +20,7 @@ because they are static.
 
 This technique is similar to what is known as 'block dom.' In that case, I think,
 the approach says that we think of the user interface as composed of 'blocks'
-instead of individual dom elements. These blocks are higher-level combinarions
+instead of individual dom elements. These blocks are higher-level combinations
 of individual dom elements that tend to get rendered together. In certain cases,
 this can lead to large gains in rendering speed and efficiency, especially when
 simply reordering blocks, since the renderer need only deal with the high-level
@@ -33,7 +33,12 @@ the 'automatic memoization' to /every/ view.
 
 ### Decision
 
-Any time that a programmer uses the `andThen` function to add a child 'view' via
+Instead of using the term 'block', we will make up a new term called `zone`.
+The idea here is that each zone is it's own little world as far as the renderer
+is concerned. And when you build a zone, you should keep any state updates
+inside that zone.
+
+Any time that a programmer uses the `zone` function to add a child 'view' via
 some function they write -- whether this function produces a stateful view in
 the general sense, or a view that has stateful attributes or text, or even no
 state at all -- the system will treat the generated view as a 'block' for the

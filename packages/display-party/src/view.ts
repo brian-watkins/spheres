@@ -46,13 +46,13 @@ export interface ViewOptions {
 export interface SpecialElements {
   element(tag: string, builder?: (element: ConfigurableElement<SpecialAttributes, HTMLElements>) => void): this
   textNode(value: string | Stateful<string>): this
-  andThen(definition: (() => View) | ((get: GetState) => View), options?: ViewOptions): this
+  zone(definition: (() => View) | ((get: GetState) => View), options?: ViewOptions): this
 }
 
 export interface SpecialElementBuilder {
   element(tag: string, builder?: (element: ConfigurableElement<SpecialAttributes, HTMLElements>) => void): View
   textNode(value: string | Stateful<string>): View
-  andThen(definition: (() => View) | ((get: GetState) => View), options?: ViewOptions): View
+  zone(definition: (() => View) | ((get: GetState) => View), options?: ViewOptions): View
 }
 
 const configBuilder = new BasicElementConfig()
@@ -87,7 +87,7 @@ class BasicView {
     return this
   }
 
-  andThen(definition: (() => View) | ((get: GetState) => View), options?: ViewOptions) {
+  zone(definition: (() => View) | ((get: GetState) => View), options?: ViewOptions) {
     let config = virtualNodeConfig()
     if (options?.key) {
       setKey(config, options.key)

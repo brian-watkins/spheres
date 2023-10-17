@@ -9,7 +9,7 @@ export default function crud(): View {
       config
         .class("m-4")
       children
-        .andThen(inputView("Filter:", ({ config }) => {
+        .zone(inputView("Filter:", ({ config }) => {
           config
             .dataAttribute("filter-input")
             .on("input", useValue((val) => write(filterPrefix, val)))
@@ -22,8 +22,8 @@ export default function crud(): View {
               "my-4"
             ]))
           children
-            .andThen(recordsView)
-            .andThen(recordForm)
+            .zone(recordsView)
+            .zone(recordForm)
         })
         .div(({ config, children }) => {
           config
@@ -80,12 +80,12 @@ function recordForm(): View {
           }
         })
       children
-        .andThen(inputView("First Name:", ({ config }) => {
+        .zone(inputView("First Name:", ({ config }) => {
           config
             .name("firstName")
             .dataAttribute("first-name-input")
         }))
-        .andThen(inputView("Last Name:", ({ config }) => {
+        .zone(inputView("Last Name:", ({ config }) => {
           config
             .name("lastName")
             .dataAttribute("last-name-input")

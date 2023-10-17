@@ -57,18 +57,18 @@ function nameView(get: GetState): View {
 export function appWithSimpleState(): View {
   return htmlView()
     .div(el => {
-      el.children.andThen(nameView)
+      el.children.zone(nameView)
     })
 }
 
 export function appWithNestedState(): View {
   return htmlView()
     .div(el => {
-      el.children.andThen(get => {
+      el.children.zone(get => {
         const age = get(ageState)
         if (age < 100) {
           return htmlView()
-            .andThen(nameView)
+            .zone(nameView)
         } else {
           return htmlView()
             .p(el => el.children.textNode("You are old!"))
@@ -80,11 +80,11 @@ export function appWithNestedState(): View {
 export function appWithDeeplyNestedState(): View {
   return htmlView()
     .div(el => {
-      el.children.andThen(get => {
+      el.children.zone(get => {
         return htmlView()
           .div(el => {
             el.children
-              .andThen(nameView)
+              .zone(nameView)
               .p(el => el.children.textNode(`${get(ageState)} years!`))
           })
       })
@@ -93,7 +93,7 @@ export function appWithDeeplyNestedState(): View {
 
 export function appWithBlock(): View {
   return htmlView()
-    .andThen(() => {
+    .zone(() => {
       return htmlView().div(({ children }) => {
         children
           .h1(({ children }) => {

@@ -23,7 +23,7 @@ const nameView = (get: GetState) => {
         el.children.textNode(`My name is: ${name}`)
       })
       if (name !== "AGELESS PERSON") {
-        el.children.andThen(ageView)
+        el.children.zone(ageView)
       }
     })
 }
@@ -34,7 +34,7 @@ export default function(): View {
     .div(el => {
       el.children
         .h1(el => el.children.textNode("This is only a test!"))
-        .andThen(nameView)
+        .zone(nameView)
         .hr()
         .input(({config}) => {
           config

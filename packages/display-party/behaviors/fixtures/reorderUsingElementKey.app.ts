@@ -67,12 +67,12 @@ const peopleView = (props: ReorderAppProps) => (get: GetState) => {
           for (const person of list) {
             switch (props.keyOnState) {
               case "stateful":
-                el.children.andThen(get => personViewWithoutKey(person, get), {
+                el.children.zone(get => personViewWithoutKey(person, get), {
                   key: person
                 })
                 break
               case "block":
-                el.children.andThen(() => personViewWithStatefultextNode(person), {
+                el.children.zone(() => personViewWithStatefultextNode(person), {
                   key: person
                 })
             }
@@ -111,6 +111,6 @@ export default function (props: ReorderAppProps): View {
   return htmlView()
     .div(el => {
       el.config.id("reorder-list")
-      el.children.andThen(peopleView(props))
+      el.children.zone(peopleView(props))
     })
 }

@@ -20,9 +20,9 @@ export function timer(): View {
         ]))
         el.children
           .textNode("Elapsed Time")
-          .andThen(progressMeter)
+          .zone(progressMeter)
       })
-      .andThen(elapsedTimeLabel)
+      .zone(elapsedTimeLabel)
       .label(el => {
         el.config.class(names([
           "mt-4",

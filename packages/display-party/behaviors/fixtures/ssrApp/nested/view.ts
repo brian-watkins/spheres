@@ -6,6 +6,6 @@ export default function(): View {
     .div(el => {
       el.children
         .h1(el => el.children.textNode("This is the click counter!"))
-        .andThen(() => superIsland)
+        .zone(() => superIsland)
     })
 }

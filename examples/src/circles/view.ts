@@ -36,9 +36,9 @@ export default function circles(): View {
             .class("bg-slate-300 rounded")
             .on("click", (evt) => use(addCircleRule, { x: evt.offsetX, y: evt.offsetY }))
           children
-            .andThen(circleViews)
+            .zone(circleViews)
         })
-        .andThen(optionsView)
+        .zone(optionsView)
     })
 }
 
@@ -48,7 +48,7 @@ function circleViews(get: GetState): View {
   return svgView()
     .g(({ children }) => {
       for (const circle of data) {
-        children.andThen(circleView(circle))
+        children.zone(circleView(circle))
       }
     })
 }
@@ -131,7 +131,7 @@ function optionsView(get: GetState): View {
 
           if (dialogData.showDiameterSlider) {
             children
-              .andThen(adjustRadiusView(dialogData.circle))
+              .zone(adjustRadiusView(dialogData.circle))
           } else {
             children
               .textNode(adjustmentMessage(circle))

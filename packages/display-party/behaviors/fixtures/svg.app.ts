@@ -34,7 +34,7 @@ export default function (): View {
                 .r("80")
                 .fill("green")
             })
-            .andThen((get) => {
+            .zone((get) => {
               return svgView()
                 .text(({ config, children }) => {
                   config

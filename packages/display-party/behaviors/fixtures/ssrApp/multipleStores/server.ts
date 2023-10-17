@@ -14,11 +14,11 @@ function theView() {
       el.children
         .div(el => {
           el.config.id("fragment-a")
-          el.children.andThen(viewGenerator)
+          el.children.zone(viewGenerator)
         })
         .div(el => {
           el.config.id("fragment-b")
-          el.children.andThen(viewGenerator)
+          el.children.zone(viewGenerator)
         })
     })
 }

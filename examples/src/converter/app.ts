@@ -13,7 +13,7 @@ export function converter(): View {
             el.config.for("celsius")
             el.children.textNode("Celsius")
           })
-          .andThen(celsiusInput)
+          .zone(celsiusInput)
       })
       .div(el => {
         el.children
@@ -21,7 +21,7 @@ export function converter(): View {
             el.config.for("farenheit")
             el.children.textNode("Farenheit")
           })
-          .andThen(farenheitInput)
+          .zone(farenheitInput)
       })
   })
 }

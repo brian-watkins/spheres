@@ -4,16 +4,16 @@ import tallyIsland from "../islands/tally.js"
 import { htmlView } from "@src/index.js"
 
 export default htmlView()
-  .andThen(get => {
+  .zone(get => {
     return htmlView()
       .div(el => {
         el.config.id("super-island")
         el.children
           .h1(el => el.children.textNode(`This is for ${get(nameState)}!`))
-          .andThen(() => counterIsland)
+          .zone(() => counterIsland)
           .hr()
-          .andThen(() => tallyIsland)
+          .zone(() => tallyIsland)
           .hr()
-          .andThen(() => tallyIsland)
+          .zone(() => tallyIsland)
       })
   })

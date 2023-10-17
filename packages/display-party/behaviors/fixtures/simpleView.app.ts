@@ -43,9 +43,9 @@ export default function (): View {
     .div(el => {
       el.children
         .p(el => el.children.textNode("Here is some person"))
-        .andThen(peopleView)
+        .zone(peopleView)
         .hr()
         .input(el => el.config.on("input", event => write(localState, inputValue(event))))
-        .andThen(updateButton)
+        .zone(updateButton)
     })
 }

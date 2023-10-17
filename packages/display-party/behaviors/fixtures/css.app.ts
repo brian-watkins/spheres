@@ -24,7 +24,7 @@ export default function (): View {
           el.children
             .textNode("This is only a test!")
         })
-        .andThen(funView)
+        .zone(funView)
         .hr()
         .input(el => {
           el.config

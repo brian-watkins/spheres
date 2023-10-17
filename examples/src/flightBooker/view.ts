@@ -13,10 +13,10 @@ export function flightBooker(): View {
         "w-96"
       ]))
     el.children
-      .andThen(flightTypeSelect)
-      .andThen(startDateInput)
-      .andThen(returnDateInput)
-      .andThen(bookFlightButton)
+      .zone(flightTypeSelect)
+      .zone(startDateInput)
+      .zone(returnDateInput)
+      .zone(bookFlightButton)
   })
 }
 

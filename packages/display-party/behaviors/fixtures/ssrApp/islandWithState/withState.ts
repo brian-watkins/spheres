@@ -3,7 +3,7 @@ import { clickCount, nameState } from "../state.js"
 import { GetState, rule, use, write } from "state-party"
 
 export default htmlView()
-  .andThen(get => {
+  .zone(get => {
     return htmlView()
       .div(el => {
         el.config.id("nested-state-island")
@@ -11,11 +11,11 @@ export default htmlView()
           .h1(el => {
             el.children.textNode(`This is ${get(nameState)}'s stuff!`)
           })
-          .andThen(counterView)
+          .zone(counterView)
           .hr()
-          .andThen(tallyView)
+          .zone(tallyView)
           .hr()
-          .andThen(tallyView)
+          .zone(tallyView)
       })
   })
 

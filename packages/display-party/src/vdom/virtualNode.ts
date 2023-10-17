@@ -24,7 +24,6 @@ export type VirtualNodeKey = string | number | State<any>
 
 export interface ElementNode {
   type: NodeType.ELEMENT
-  is?: string
   tag: string
   data: VirtualNodeConfig
   children: Array<VirtualNode>
@@ -158,10 +157,6 @@ export function makeVirtualElement(tag: string, config: VirtualNodeConfig, child
 
   if (config.key) {
     element.key = config.key
-  }
-
-  if (config.attrs.is) {
-    element.is = config.attrs.is
   }
 
   return element

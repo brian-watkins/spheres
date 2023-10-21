@@ -88,8 +88,16 @@ export class DisplayElementList {
   }
 }
 
+export enum KeyboardKey {
+  Enter = "Enter"
+}
+
 export class DisplayElement {
   constructor(private locator: Locator) { }
+
+  descendant(selector: string): DisplayElement {
+    return new DisplayElement(this.locator.locator(selector))
+  }
 
   async hover(position?: MousePosition): Promise<void> {
     await this.locator.first().hover({ position, timeout: 200 })
@@ -125,6 +133,10 @@ export class DisplayElement {
 
   async type(text: string): Promise<void> {
     await this.locator.first().fill(text, { timeout: 200 })
+  }
+
+  async press(key: KeyboardKey): Promise<void> {
+    await this.locator.first().press(key, { timeout: 200 })
   }
 
   async select(option: string): Promise<void> {

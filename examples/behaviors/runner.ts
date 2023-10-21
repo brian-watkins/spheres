@@ -9,6 +9,7 @@ import flightBookerBehavior from "./flightBooker/flightBooker.behavior.js"
 import timerBehavior from "./timer/timer.behavior.js"
 import crudBehavior from "./crud/crud.behavior.js"
 import circlesBehavior from "./circles/circles.behavior.js"
+import cellsBehavior from "./cells/cells.behavior.js"
 
 const serverPort = 5957
 
@@ -39,7 +40,8 @@ const summary = await validate([
   flightBookerBehavior(testContext),
   timerBehavior(testContext),
   ...crudBehavior(testContext),
-  ...circlesBehavior(testContext)
+  ...circlesBehavior(testContext),
+  cellsBehavior(testContext)
 ], { failFast: true })
 
 if (summary.invalid > 0 || summary.skipped > 0) {

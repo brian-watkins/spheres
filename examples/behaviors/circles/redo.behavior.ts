@@ -1,11 +1,11 @@
-import { Context, behavior, effect, example, fact, step } from "esbehavior";
-import { TestCirclesApp } from "./helpers/testApp.js";
+import { behavior, effect, example, fact, step } from "esbehavior";
+import { testCirclesApp } from "./helpers/testApp.js";
 import { expect, resolvesTo } from "great-expectations";
 import { testCircle } from "./helpers/fakeCircle.js";
 
-export default (context: Context<TestCirclesApp>) => behavior("redo", [
+export default behavior("redo", [
 
-  example(context)
+  example(testCirclesApp)
     .description("before any undo")
     .script({
       suppose: [
@@ -20,7 +20,7 @@ export default (context: Context<TestCirclesApp>) => behavior("redo", [
       ]
     }),
 
-  example(context)
+  example(testCirclesApp)
     .description("redo create circle")
     .script({
       suppose: [
@@ -68,7 +68,7 @@ export default (context: Context<TestCirclesApp>) => behavior("redo", [
       ]
     }),
 
-  example(context)
+  example(testCirclesApp)
     .description("redo radius adjustment")
     .script({
       suppose: [

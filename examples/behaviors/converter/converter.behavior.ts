@@ -1,10 +1,10 @@
-import { Context, behavior, effect, example, fact, step } from "esbehavior";
-import { DisplayElement, TestApp } from "../helpers/testApp.js";
+import { behavior, effect, example, fact, step } from "esbehavior";
+import { DisplayElement, TestApp, testAppContext } from "../helpers/testApp.js";
 import { equalTo, expect, resolvesTo, stringContaining } from "great-expectations";
 
-export default (context: Context<TestApp>) => behavior("temperature converter", [
+export default behavior("temperature converter", [
 
-  example(context)
+  example(testAppContext)
     .description("default state")
     .script({
       suppose: [
@@ -22,7 +22,7 @@ export default (context: Context<TestApp>) => behavior("temperature converter", 
       ]
     }),
 
-  example(context)
+  example(testAppContext)
     .description("convert celsius to farenheit")
     .script({
       suppose: [
@@ -53,7 +53,7 @@ export default (context: Context<TestApp>) => behavior("temperature converter", 
       ]
     }),
 
-  example(context)
+  example(testAppContext)
     .description("convert farenheit to celsius")
     .script({
       suppose: [
@@ -84,7 +84,7 @@ export default (context: Context<TestApp>) => behavior("temperature converter", 
       ]
     }),
 
-  example(context)
+  example(testAppContext)
     .description("the celsius input is not a number")
     .script({
       suppose: [
@@ -113,7 +113,7 @@ export default (context: Context<TestApp>) => behavior("temperature converter", 
       ]
     }),
 
-  example(context)
+  example(testAppContext)
     .description("the farenheit input is not a number")
     .script({
       suppose: [

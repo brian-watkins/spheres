@@ -1,11 +1,12 @@
 import { Context } from "esbehavior";
 import { DataRecord } from "../../../src/crud/state.js";
-import { DisplayElement, TestApp, TestDisplay } from "../../helpers/testApp.js";
+import { DisplayElement, TestApp, TestDisplay, testAppContext } from "../../helpers/testApp.js";
 
-export function testCrudApp(context: Context<TestApp>): Context<TestCrudApp> {
-  return {
-    init: () => new TestCrudApp(context.init() as TestApp)
-  }
+export const testCrudApp: Context<TestCrudApp> = {
+  init: async () => {
+    const testApp = await testAppContext.init()
+    return new TestCrudApp(testApp)
+  },
 }
 
 export class TestCrudApp {
@@ -13,7 +14,7 @@ export class TestCrudApp {
 
   async renderAppWithRecords(records: Array<DataRecord>) {
     await this.testApp.renderApp("crud")
-    await this.testApp.page?.evaluate((records) => {
+    await this.testApp.page.evaluate((records) => {
       window.startApp(records)
     }, records)
   }
@@ -28,8 +29,8 @@ export class CrudDisplay {
 
   get firstNameInput(): DisplayElement {
     return this.display.selectElement("[data-first-name-input]")
-  } 
-  
+  }
+
   get lastNameInput(): DisplayElement {
     return this.display.selectElement("[data-last-name-input]")
   }

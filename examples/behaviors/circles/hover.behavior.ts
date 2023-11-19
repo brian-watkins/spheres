@@ -1,10 +1,10 @@
-import { Context, behavior, effect, example, fact, step } from "esbehavior";
+import { behavior, effect, example, fact, step } from "esbehavior";
 import { expect, resolvesTo } from "great-expectations";
-import { TestCirclesApp } from "./helpers/testApp.js";
+import { testCirclesApp } from "./helpers/testApp.js";
 
-export default (context: Context<TestCirclesApp>) => behavior("hover over circle", [
+export default behavior("hover over circle", [
 
-  example(context)
+  example(testCirclesApp)
     .description("hover over existing circle")
     .script({
       suppose: [

@@ -1,11 +1,11 @@
-import { Context, behavior, effect, example, fact, step } from "esbehavior";
+import { behavior, effect, example, fact, step } from "esbehavior";
 import { expect, resolvesTo } from "great-expectations";
-import { TestCirclesApp } from "./helpers/testApp.js";
+import { testCirclesApp } from "./helpers/testApp.js";
 import { testCircle } from "./helpers/fakeCircle.js";
 
-export default (context: Context<TestCirclesApp>) => behavior("undo", [
+export default behavior("undo", [
 
-  example(context)
+  example(testCirclesApp)
     .description("no actions have been taken")
     .script({
       suppose: [
@@ -20,7 +20,7 @@ export default (context: Context<TestCirclesApp>) => behavior("undo", [
       ]
     }),
 
-  example(context)
+  example(testCirclesApp)
     .description("undo circle creation")
     .script({
       suppose: [
@@ -78,7 +78,7 @@ export default (context: Context<TestCirclesApp>) => behavior("undo", [
       ]
     }),
 
-  example(context)
+  example(testCirclesApp)
     .description("undo circle diameter adjustment")
     .script({
       suppose: [
@@ -140,7 +140,7 @@ export default (context: Context<TestCirclesApp>) => behavior("undo", [
       ]
     }),
 
-  example(context)
+  example(testCirclesApp)
     .description("undo both radius and circle creation")
     .script({
       suppose: [
@@ -175,7 +175,7 @@ export default (context: Context<TestCirclesApp>) => behavior("undo", [
       ]
     }),
 
-  example(context)
+  example(testCirclesApp)
     .description("closing diameter dialog without changing diameter")
     .script({
       suppose: [

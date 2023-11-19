@@ -1,53 +1,37 @@
 import { Context } from "esbehavior";
-import { Browser, Locator, Page } from "playwright";
+import { Locator, Page } from "playwright";
+import { LocalBrowser, useLocalBrowser } from "best-behavior"
 
-export function testApp(host: string, browser: Browser): Context<TestApp> {
-  return {
-    init: () => new TestApp(host, browser)
-  }
+export const testAppContext: Context<TestApp> = {
+  init: async () => {
+    const localBrowser = await useLocalBrowser()
+    return new TestApp(localBrowser)
+  },
 }
 
 export class TestApp {
-  page: Page | undefined
   private testDisplay: TestDisplay | undefined
 
-  constructor(private host: string, private browser: Browser) { }
+  constructor(private localBrowser: LocalBrowser) { }
 
   async renderApp(name: string): Promise<void> {
-    this.page = await this.getPage()
-    this.testDisplay = new TestDisplay(this.page)
-    await this.page.goto(`${this.host}/examples/behaviors/${name}/index.html`)
+    await this.localBrowser.loadLocal(`./behaviors/${name}/index.html`)
   }
 
-  private async getPage(): Promise<Page> {
-    const page = await this.browser.newPage()
-    page.on("console", (message) => {
-      const text = message.text()
-      if (text.startsWith("[vite]")) return
-      console.log(text.replace(this.host, ''))
-    })
-    page.on("pageerror", console.log)
-    return page
+  get page(): Page {
+    return this.localBrowser.page
   }
 
   get display(): TestDisplay {
-    return this.testDisplay!
+    if (this.testDisplay === undefined) {
+      this.testDisplay = new TestDisplay(this.page)
+    }
+    return this.testDisplay
   }
-}
-
-class TestAlert {
-  constructor(public readonly message: string) { }
 }
 
 export class TestDisplay {
-  public lastAlert: TestAlert | undefined
-
-  constructor(protected page: Page) {
-    page.on("dialog", async (dialog) => {
-      this.lastAlert = new TestAlert(dialog.message())
-      await dialog.dismiss()
-    })
-  }
+  constructor(protected page: Page) { }
 
   pause(): Promise<void> {
     return this.page.pause()

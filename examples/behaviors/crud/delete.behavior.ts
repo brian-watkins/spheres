@@ -1,5 +1,5 @@
-import { Context, behavior, effect, example, fact, step } from "esbehavior";
-import { TestCrudApp } from "./helpers/testApp.js";
+import { behavior, effect, example, fact, step } from "esbehavior";
+import { testCrudApp } from "./helpers/testApp.js";
 import { testRecord } from "./helpers/fakeRecord.js";
 import { expect, is, resolvesTo, stringContaining } from "great-expectations";
 
@@ -7,9 +7,9 @@ const marge = testRecord("Marge", "Simpson")
 const jackie = testRecord("Jackie", "Kennedy")
 const beyonce = testRecord("Beyonce", "Knowles")
 
-export default (context: Context<TestCrudApp>) => behavior("delete records", [
+export default behavior("delete records", [
 
-  example(context)
+  example(testCrudApp)
     .description("no record is selected")
     .script({
       suppose: [
@@ -28,7 +28,7 @@ export default (context: Context<TestCrudApp>) => behavior("delete records", [
       ]
     }),
 
-  example(context)
+  example(testCrudApp)
     .description("delete an existing record")
     .script({
       suppose: [

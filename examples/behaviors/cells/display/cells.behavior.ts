@@ -1,11 +1,10 @@
-import { Context, behavior, effect, example, fact, step } from "esbehavior";
-import { TestApp } from "../../helpers/testApp.js";
+import { behavior, effect, example, fact, step } from "esbehavior";
 import { expect, resolvesTo } from "great-expectations";
 import { testCellsApp } from "./helpers/testApp.js";
 
-export default (context: Context<TestApp>) => behavior("cells", [
+export default behavior("cells", [
 
-  example(testCellsApp(context))
+  example(testCellsApp)
     .description("cells that reference each other")
     .script({
       suppose: [

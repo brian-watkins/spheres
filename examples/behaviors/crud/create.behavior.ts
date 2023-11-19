@@ -1,10 +1,10 @@
-import { Context, behavior, example, fact, step } from "esbehavior";
+import { behavior, example, fact, step } from "esbehavior";
 import { expect, is, stringContaining } from "great-expectations";
-import { TestCrudApp } from "./helpers/testApp.js";
+import { testCrudApp } from "./helpers/testApp.js";
 
-export default (context: Context<TestCrudApp>) => behavior("create records", [
+export default behavior("create records", [
 
-  example(context)
+  example(testCrudApp)
     .description("create new record")
     .script({
       suppose: [

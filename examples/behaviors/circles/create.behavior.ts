@@ -1,10 +1,10 @@
-import { Context, behavior, effect, example, fact, step } from "esbehavior";
-import { TestCirclesApp } from "./helpers/testApp";
+import { behavior, effect, example, fact, step } from "esbehavior";
+import { testCirclesApp } from "./helpers/testApp";
 import { expect, resolvesTo } from "great-expectations";
 
-export default (context: Context<TestCirclesApp>) => behavior("Create Circle", [
+export default behavior("Create Circle", [
 
-  example(context)
+  example(testCirclesApp)
     .description("create a circle")
     .script({
       suppose: [
@@ -24,7 +24,7 @@ export default (context: Context<TestCirclesApp>) => behavior("Create Circle", [
       ]
     }),
 
-  example(context)
+  example(testCirclesApp)
     .description("create multiple circles")
     .script({
       suppose: [

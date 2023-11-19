@@ -1,10 +1,11 @@
 import { Context } from "esbehavior";
-import { DisplayElement, KeyboardKey, TestApp, TestDisplay } from "../../../helpers/testApp.js";
+import { DisplayElement, KeyboardKey, TestApp, TestDisplay, testAppContext } from "../../../helpers/testApp.js";
 import { Locator, Page } from "playwright";
 
-export function testCellsApp(context: Context<TestApp>): Context<TestCellsApp> {
-  return {
-    init: () => new TestCellsApp(context.init() as TestApp)
+export const testCellsApp: Context<TestCellsApp> = {
+  init: async () => {
+    const testApp = await testAppContext.init()
+    return new TestCellsApp(testApp)
   }
 }
 

@@ -1,10 +1,10 @@
-import { Action, Context, Observation, Presupposition, behavior, effect, example, fact, step } from "esbehavior";
-import { DisplayElement, TestApp } from "../helpers/testApp.js";
+import { Action, Observation, Presupposition, behavior, effect, example, fact, step } from "esbehavior";
+import { DisplayElement, TestApp, testAppContext } from "../helpers/testApp.js";
 import { expect, resolvesTo } from "great-expectations";
 
-export default (context: Context<TestApp>) => behavior("timer", [
+export default behavior("timer", [
 
-  example(context)
+  example(testAppContext)
     .description("default state")
     .script({
       suppose: [
@@ -23,7 +23,7 @@ export default (context: Context<TestApp>) => behavior("timer", [
       ]
     }),
 
-  example(context)
+  example(testAppContext)
     .description("run the timer to completion")
     .script({
       suppose: [
@@ -55,7 +55,7 @@ export default (context: Context<TestApp>) => behavior("timer", [
       ]
     }),
 
-  example(context)
+  example(testAppContext)
     .description("adjust the duration while the timer is running to less than the elapsed time")
     .script({
       suppose: [
@@ -82,7 +82,7 @@ export default (context: Context<TestApp>) => behavior("timer", [
       ]
     }),
 
-  example(context)
+  example(testAppContext)
     .description("adjust the duration while the timer is running to give it more time")
     .script({
       suppose: [
@@ -100,7 +100,7 @@ export default (context: Context<TestApp>) => behavior("timer", [
       ]
     }),
 
-  example(context)
+  example(testAppContext)
     .description("reset the time while it is running")
     .script({
       suppose: [

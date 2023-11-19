@@ -1,6 +1,6 @@
-import { Context, behavior, effect, example, fact, step } from "esbehavior";
+import { behavior, effect, example, fact, step } from "esbehavior";
 import { expect, is, stringContaining } from "great-expectations";
-import { TestCrudApp } from "./helpers/testApp.js";
+import { testCrudApp } from "./helpers/testApp.js";
 import { testRecord } from "./helpers/fakeRecord.js";
 
 
@@ -8,9 +8,9 @@ const taylor = testRecord("Taylor", "Swift")
 const annakin = testRecord("Annakin", "Skywalker")
 const larry = testRecord("Larry", "David")
 
-export default (context: Context<TestCrudApp>) => behavior("filter records", [
+export default behavior("filter records", [
 
-  example(context)
+  example(testCrudApp)
     .description("filter list of records by last name")
     .script({
       suppose: [

@@ -1,11 +1,12 @@
 import { Context } from "esbehavior"
-import { DisplayElement, TestApp, TestDisplay } from "../../helpers/testApp.js"
+import { DisplayElement, TestApp, TestDisplay, testAppContext } from "../../helpers/testApp.js"
 import { Circle } from "../../../src/circles/state.js"
 import { Page } from "playwright"
 
-export function testCirclesApp(context: Context<TestApp>): Context<TestCirclesApp> {
-  return {
-    init: () => new TestCirclesApp(context.init() as TestApp)
+export const testCirclesApp: Context<TestCirclesApp> = {
+  init: async () => {
+    const testApp = await testAppContext.init()
+    return new TestCirclesApp(testApp)
   }
 }
 
@@ -85,7 +86,7 @@ class CircleDisplayElement extends DisplayElement {
     super(page.locator(circleSelector(x, y, options)))
     this.display = new TestCirclesDisplay(this.page)
   }
-  
+
   get radius(): Promise<number> {
     return this.attribute("r").then(s => Number(s))
   }

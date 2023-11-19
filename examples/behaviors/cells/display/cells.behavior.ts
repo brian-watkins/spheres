@@ -1,5 +1,5 @@
 import { Context, behavior, effect, example, fact, step } from "esbehavior";
-import { TestApp } from "../helpers/testApp.js";
+import { TestApp } from "../../helpers/testApp.js";
 import { expect, resolvesTo } from "great-expectations";
 import { testCellsApp } from "./helpers/testApp.js";
 

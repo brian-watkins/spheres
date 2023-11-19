@@ -9,7 +9,7 @@ import flightBookerBehavior from "./flightBooker/flightBooker.behavior.js"
 import timerBehavior from "./timer/timer.behavior.js"
 import crudBehavior from "./crud/crud.behavior.js"
 import circlesBehavior from "./circles/circles.behavior.js"
-import cellsBehavior from "./cells/cells.behavior.js"
+import cellsBehavior from "./cells/display/cells.behavior.js"
 
 const serverPort = 5957
 

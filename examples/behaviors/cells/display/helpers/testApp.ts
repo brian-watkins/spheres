@@ -1,5 +1,5 @@
 import { Context } from "esbehavior";
-import { DisplayElement, KeyboardKey, TestApp, TestDisplay } from "../../helpers/testApp.js";
+import { DisplayElement, KeyboardKey, TestApp, TestDisplay } from "../../../helpers/testApp.js";
 import { Locator, Page } from "playwright";
 
 export function testCellsApp(context: Context<TestApp>): Context<TestCellsApp> {
@@ -12,7 +12,7 @@ export class TestCellsApp {
   constructor(private testApp: TestApp) { }
 
   async renderApp(): Promise<void> {
-    await this.testApp.renderApp("cells")
+    await this.testApp.renderApp("cells/display")
   }
 
   get display(): TestCellsDisplay {

@@ -1,3 +1,4 @@
+import { usePage } from "best-behavior/browser"
 
 export function selectElement(selector: string): DisplayElement {
   return new DisplayElement(selector, 0)
@@ -15,7 +16,7 @@ export class DisplayElementList {
   constructor(private selector: string) { }
 
   async count(): Promise<number> {
-    return window._testDisplayElementsCount(this.selector)
+    return usePage((page, selector) => page.locator(selector).count(), this.selector)
   }
 
   async map<T>(handler: (element: DisplayElement) => Promise<T>): Promise<Array<T>> {
@@ -33,26 +34,48 @@ export class DisplayElement {
   constructor(private selector: string, private index: number) { }
 
   text(): Promise<string> {
-    return window._testDisplayElement(this.selector, this.index, "text")
+    return usePage((page, opt) => page.locator(opt.selector).nth(opt.index).innerText({ timeout: 200 }), {
+      selector: this.selector,
+      index: this.index
+    })
   }
 
-  attribute(name: string): Promise<string | undefined> {
-    return window._testDisplayElement(this.selector, this.index, "attribute", name)
+  async attribute(name: string): Promise<string | undefined> {
+    const attributeValue = await usePage((page, opt) => page.locator(opt.selector).nth(opt.index).getAttribute(opt.name, { timeout: 200 }), {
+      selector: this.selector,
+      index: this.index,
+      name
+    })
+    return attributeValue ?? undefined
   }
 
   inputValue(): Promise<string> {
-    return window._testDisplayElement(this.selector, this.index, "inputValue")
+    return usePage((page, opt) => page.locator(opt.selector).nth(opt.index).inputValue({ timeout: 200 }), {
+      selector: this.selector,
+      index: this.index
+    })
   }
 
   type(text: string): Promise<void> {
-    return window._testDisplayElement(this.selector, this.index, "type", text)
+    return usePage((page, opt) => page.locator(opt.selector).nth(opt.index).fill(opt.text, { timeout: 200 }), {
+      selector: this.selector,
+      index: this.index,
+      text
+    })
   }
 
-  exists(): Promise<boolean> {
-    return window._testDisplayElement(this.selector, this.index, "exists")
+  async exists(): Promise<boolean> {
+    const elementCount = await usePage((page, opt) => page.locator(opt.selector).nth(opt.index).count(), {
+      selector: this.selector,
+      index: this.index
+    })
+    return elementCount > 0
   }
 
   click(): Promise<void> {
-    return window._testDisplayElement(this.selector, this.index, "click")
+    return usePage((page, opt) => page.locator(opt.selector).nth(opt.index).click({ timeout: 200 }), {
+      selector: this.selector,
+      index: this.index
+    })
   }
 }

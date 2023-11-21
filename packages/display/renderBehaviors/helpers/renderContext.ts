@@ -23,7 +23,7 @@ export class RenderApp<T> {
 
   mount(vnode: VirtualNode) {
     const base = document.createElement("div")
-    document.querySelector("#test-display")?.appendChild(base)
+    document.body.appendChild(base)
 
     const renderResult = patch(this.store, virtualize(base), vnode)
     this.current = renderResult
@@ -54,7 +54,8 @@ export function renderContext<T = undefined>(): Context<RenderApp<T>> {
       return new RenderApp()
     },
     teardown: async (patchApp) => {
-      const isDebug = await window._testDebug()
+      //@ts-ignore
+      const isDebug = import.meta.env.VITE_DEBUG
       if (isDebug) {
         window._testPatchApp = patchApp
       } else {

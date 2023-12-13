@@ -12,7 +12,7 @@
     "prepublishOnly": "npm run build",
     "build": "tsc --build",
     "clean": "rm -rf ./dist && rm -rf ./tsconfig.tsbuildinfo",
-    "test": "best --behaviors './behaviors/**/*.behavior.ts' --runInBrowser '**/*' --failFast --viteConfigPath './behaviors/vite.config.js'"
+    "test": "best --behaviors './behaviors/**/*.behavior.ts' --runInBrowser '**/*' --failFast --viteConfig './behaviors/vite.config.js'"
   },
   "author": "Brian Watkins",
   "license": "MIT",

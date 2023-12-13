@@ -13,6 +13,7 @@
     "build": "tsc --build --verbose",
     "clean": "npm run clean --workspaces --if-present",
     "test": "npm run test --workspaces",
+    "test:examples": "npm run clean && npm run build && npm run test -w examples",
     "test:store": "npm run test -w @spheres/store",
     "test:display": "npm run test -w @spheres/display",
     "test:display:debug": "DEBUG=true npm run test:display"

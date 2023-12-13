@@ -1,10 +1,10 @@
 import { Context } from "esbehavior";
 import { Locator, Page } from "playwright";
-import { LocalBrowser, useLocalBrowser } from "best-behavior"
+import { BrowserTestInstrument, useBrowser } from "best-behavior"
 
 export const testAppContext: Context<TestApp> = {
   init: async () => {
-    const localBrowser = await useLocalBrowser()
+    const localBrowser = await useBrowser()
     return new TestApp(localBrowser)
   },
 }
@@ -12,10 +12,10 @@ export const testAppContext: Context<TestApp> = {
 export class TestApp {
   private testDisplay: TestDisplay | undefined
 
-  constructor(private localBrowser: LocalBrowser) { }
+  constructor(private localBrowser: BrowserTestInstrument) { }
 
   async renderApp(name: string): Promise<void> {
-    await this.localBrowser.loadLocal(`./behaviors/${name}/index.html`)
+    await this.localBrowser.page.goto(`./behaviors/${name}/index.html`)
   }
 
   get page(): Page {

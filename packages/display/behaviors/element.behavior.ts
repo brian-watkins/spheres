@@ -1,10 +1,12 @@
-import { behavior, Context, effect, example, fact } from "esbehavior";
+import { behavior, effect, example, fact } from "esbehavior";
 import { equalTo, expect, is } from "great-expectations";
-import { TestAppController } from "./helpers/testAppController.js";
+import { browserAppContext } from "./helpers/testAppController.js";
 import { theElementExists, theElementHasText } from "./helpers/effects.js";
 
-export default (context: Context<TestAppController>) => behavior("View Elements", [
-  example(context)
+
+
+export default behavior("View Elements", [
+  example(browserAppContext())
     .description("basic view element support")
     .script({
       suppose: [

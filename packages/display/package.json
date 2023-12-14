@@ -12,6 +12,7 @@
     "clean": "rm -rf ./dist && rm -rf ./tsconfig.tsbuildinfo",
     "test": "npm run test:render && npm run test:view",
     "test:view": "npm run build && ts-node --esm --swc ./behaviors/runner.ts",
+    "test:view:new": "best --behaviors './behaviors/**/element.behavior.ts' --viteConfig './behaviors/vite.config.js'",
     "test:render": "best --behaviors './renderBehaviors/**/*.behavior.ts' --runInBrowser '**/*' --viteConfig ./renderBehaviors/vite.config.js --failFast",
     "test:render:debug": "VITE_DEBUG=true npm run test:render -- --showBrowser",
     "test:tsx": "tsx ./behaviors/runner.ts"

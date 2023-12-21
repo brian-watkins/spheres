@@ -1,9 +1,10 @@
-import { Context, behavior, effect, example, fact, step } from "esbehavior";
+import { behavior, effect, example, fact, step } from "esbehavior";
 import { arrayWith, equalTo, expect, is, stringContaining } from "great-expectations";
-import { SSRTestAppContext } from "./helpers/testSSRServer.js";
+import { ssrTestAppContext } from "./helpers/testSSRServer.js";
 
-export default (context: Context<SSRTestAppContext>) => behavior("client activation of server rendered views", [
-  example(context)
+export default behavior("client activation of server rendered views", [
+
+  example(ssrTestAppContext())
     .description("rendered content before activating the island")
     .script({
       suppose: [
@@ -22,7 +23,8 @@ export default (context: Context<SSRTestAppContext>) => behavior("client activat
         })
       ]
     }),
-  example(context)
+
+  example(ssrTestAppContext())
     .description("simple app with multiple islands sharing state, some of the same element")
     .script({
       suppose: [
@@ -58,7 +60,8 @@ export default (context: Context<SSRTestAppContext>) => behavior("client activat
         })
       ]
     }),
-  example(context)
+
+  example(ssrTestAppContext())
     .description("simple app with multiple stores")
     .script({
       suppose: [
@@ -95,7 +98,8 @@ export default (context: Context<SSRTestAppContext>) => behavior("client activat
         })
       ]
     }),
-  example(context)
+
+  example(ssrTestAppContext())
     .description("app with nested islands sharing state, some of the same element")
     .script({
       suppose: [
@@ -131,7 +135,8 @@ export default (context: Context<SSRTestAppContext>) => behavior("client activat
         })
       ]
     }),
-  example(context)
+
+  example(ssrTestAppContext())
     .description("app with view fragments nested under the island")
     .script({
       suppose: [
@@ -167,4 +172,5 @@ export default (context: Context<SSRTestAppContext>) => behavior("client activat
         })
       ]
     })
+
 ])

@@ -1,10 +1,10 @@
-import { behavior, Context, effect, example, fact, step } from "esbehavior";
+import { behavior, effect, example, fact, step } from "esbehavior";
 import { equalTo, expect, is } from "great-expectations";
-import { TestAppController } from "./helpers/testAppController.js";
+import { browserAppContext } from "./helpers/testAppController.js";
 
 
-export default (context: Context<TestAppController>) => behavior("css attributes on view", [
-  example(context)
+export default behavior("css attributes on view", [
+  example(browserAppContext())
     .description("View with dynamic css attributes")
     .script({
       suppose: [

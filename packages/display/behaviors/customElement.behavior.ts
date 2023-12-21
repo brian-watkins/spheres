@@ -1,10 +1,10 @@
-import { Context, behavior, effect, example, fact, step } from "esbehavior";
+import { behavior, effect, example, fact, step } from "esbehavior";
 import { expect, resolvesTo } from "great-expectations";
-import { TestAppController } from "helpers/testAppController";
+import { browserAppContext } from "helpers/testAppController";
 
-export default (context: Context<TestAppController>) => behavior("Checkbox Properties", [
+export default behavior("Checkbox Properties", [
 
-  example(context)
+  example(browserAppContext())
     .description("rendering a custom element")
     .script({
       suppose: [

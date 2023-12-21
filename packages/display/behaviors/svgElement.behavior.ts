@@ -1,10 +1,10 @@
-import { Context, behavior, effect, example, fact, step } from "esbehavior"
-import { TestAppController } from "./helpers/testAppController"
+import { behavior, effect, example, fact, step } from "esbehavior"
+import { browserAppContext } from "./helpers/testAppController"
 import { expect, resolvesTo } from "great-expectations"
 
-export default (context: Context<TestAppController>) => behavior("SVG", [
+export default behavior("SVG", [
 
-  example(context)
+  example(browserAppContext())
     .description("svg element is rendered")
     .script({
       suppose: [

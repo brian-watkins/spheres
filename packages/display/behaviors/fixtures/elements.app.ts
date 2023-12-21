@@ -1,6 +1,6 @@
 import { htmlView } from "@src/index.js"
 
-export default function () {
+export default function view() {
   return htmlView()
     .div(div => {
       div.config

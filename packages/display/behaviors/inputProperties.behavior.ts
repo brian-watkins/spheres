@@ -1,10 +1,10 @@
-import { behavior, Context, effect, example, fact, step } from "esbehavior";
+import { behavior, effect, example, fact, step } from "esbehavior";
 import { equalTo, expect, is, resolvesTo } from "great-expectations";
 import { InputAppProps } from "./fixtures/input.app.js";
-import { TestAppController } from "./helpers/testAppController.js";
+import { browserAppContext } from "./helpers/testAppController.js";
 
-export default (context: Context<TestAppController>) => behavior("Input Element Properties", [
-  example(context)
+export default behavior("Input Element Properties", [
+  example(browserAppContext())
     .description("default value")
     .script({
       suppose: [
@@ -44,7 +44,7 @@ export default (context: Context<TestAppController>) => behavior("Input Element 
       ]
     }),
 
-  example(context)
+  example(browserAppContext())
     .description("reactive input value")
     .script({
       suppose: [

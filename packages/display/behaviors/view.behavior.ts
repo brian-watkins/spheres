@@ -1,6 +1,6 @@
 import { behavior, ConfigurableExample, Context, effect, example, fact, step } from "esbehavior";
 import { equalTo, expect, is, resolvesTo, stringContaining } from "great-expectations";
-import { TestAppController } from "./helpers/testAppController.js";
+import { browserAppContext, TestAppController } from "./helpers/testAppController.js";
 
 
 const simpleViewBehavior = (context: Context<TestAppController>): ConfigurableExample =>
@@ -163,9 +163,9 @@ const nestedViewsBehavior = (context: Context<TestAppController>): ConfigurableE
     })
 
 
-export default (context: Context<TestAppController>) => behavior("view", [
-  simpleViewBehavior(context),
-  innerHTMLViewBehavior(context),
-  reactiveInnerHTMLViewBehavior(context),
-  nestedViewsBehavior(context),
+export default behavior("view", [
+  simpleViewBehavior(browserAppContext()),
+  innerHTMLViewBehavior(browserAppContext()),
+  reactiveInnerHTMLViewBehavior(browserAppContext()),
+  nestedViewsBehavior(browserAppContext()),
 ])

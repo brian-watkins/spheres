@@ -1,10 +1,10 @@
-import { behavior, Context, effect, example, fact, step } from "esbehavior";
+import { behavior, effect, example, fact, step } from "esbehavior";
 import { expect, resolvesTo } from "great-expectations";
-import { TestAppController } from "./helpers/testAppController.js";
+import { browserAppContext } from "./helpers/testAppController.js";
 
-export default (context: Context<TestAppController>) => behavior("Select Element Properties", [
+export default behavior("Select Element Properties", [
 
-  example(context)
+  example(browserAppContext())
     .description("set selected option of select element")
     .script({
       suppose: [

@@ -1,10 +1,10 @@
-import { Context, behavior, effect, example, fact, step } from "esbehavior";
+import { behavior, effect, example, fact, step } from "esbehavior";
 import { assignedWith, equalTo, expect, is, resolvesTo, stringContaining } from "great-expectations";
-import { TestAppController } from "helpers/testAppController.js";
+import { browserAppContext } from "helpers/testAppController.js";
 
-export default (context: Context<TestAppController>) => behavior("reactive elements", [
+export default behavior("reactive elements", [
 
-  example(context)
+  example(browserAppContext())
     .description("reactive text")
     .script({
       suppose: [
@@ -28,7 +28,7 @@ export default (context: Context<TestAppController>) => behavior("reactive eleme
       ]
     }),
 
-  example(context)
+  example(browserAppContext())
     .description("reactive attributes")
     .script({
       suppose: [
@@ -61,7 +61,7 @@ export default (context: Context<TestAppController>) => behavior("reactive eleme
       ]
     }),
 
-  example(context)
+  example(browserAppContext())
     .description("reactive boolean attribute")
     .script({
       suppose: [
@@ -93,7 +93,7 @@ export default (context: Context<TestAppController>) => behavior("reactive eleme
       ]
     }),
 
-  example(context)
+  example(browserAppContext())
     .description("reactive aria attribute")
     .script({
       suppose: [
@@ -119,12 +119,12 @@ export default (context: Context<TestAppController>) => behavior("reactive eleme
       ]
     }),
 
-  example(context)
+  example(browserAppContext())
     .description("reactive data attribute")
     .script({
       suppose: [
         fact("there is a view with reactive data attributes", async (controller) => {
-          controller.loadApp("reactiveAttributes.app")
+          await controller.loadApp("reactiveAttributes.app")
         })
       ],
       observe: [
@@ -149,12 +149,12 @@ export default (context: Context<TestAppController>) => behavior("reactive eleme
       ]
     }),
 
-  example(context)
+  example(browserAppContext())
     .description("reactive custom attribute")
     .script({
       suppose: [
         fact("there is a view with reactive custom attributes", async (controller) => {
-          controller.loadApp("reactiveAttributes.app")
+          await controller.loadApp("reactiveAttributes.app")
         })
       ],
       observe: [

@@ -1,20 +1,6 @@
-import { createDisplay, htmlView } from "@src/index.js"
-import { ViewController } from "best-behavior"
+import { htmlView } from "@src/index.js"
 
-const viewController: ViewController<any> = {
-  render: () => {
-    const testAppMountPoint = document.createElement("div")
-    testAppMountPoint.id = "test-display"
-    document.body.appendChild(testAppMountPoint)
-
-    const appDisplay = createDisplay()
-    appDisplay.mount(testAppMountPoint, view())
-  }
-}
-
-export default viewController
-
-function view() {
+export default function view() {
   return htmlView()
     .div(div => {
       div.config

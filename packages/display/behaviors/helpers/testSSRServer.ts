@@ -6,8 +6,8 @@ import { Server } from "http"
 import { ViteDevServer, createServer as createViteServer } from "vite"
 import tsConfigPaths from "vite-tsconfig-paths"
 import { Context } from 'esbehavior'
-import { Page } from 'playwright'
 import { TestAppDisplay } from './testDisplay.js'
+import { BrowserTestInstrument, useBrowser } from 'best-behavior'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -16,26 +16,36 @@ export interface SSRTestAppContext {
   browser: TestBrowser
 }
 
-export function ssrTestAppContext(page: Page, ssrServer: TestSSRServer): Context<SSRTestAppContext> {
+export function ssrTestAppContext(): Context<SSRTestAppContext> {
   return {
-    init: () => {
+    init: async () => {
+      const server = new TestSSRServer()
+      await server.start()
+
+      const browser = await useBrowser()
+
       return {
-        server: ssrServer,
-        browser: new TestBrowser(page)
+        server: server,
+        browser: new TestBrowser(browser)
       }
     },
+    teardown: async (context) => {
+      await context.browser.browser.page.close()
+      await context.server.close()
+    }
   }
 }
 
+
 class TestBrowser {
-  constructor(private page: Page) { }
+  constructor(public browser: BrowserTestInstrument) { }
 
   get display(): TestAppDisplay {
-    return new TestAppDisplay(this.page!)
+    return new TestAppDisplay(this.browser.page)
   }
 
   async loadApp(): Promise<void> {
-    await this.page.goto("http://localhost:9899/index.html")
+    await this.browser.page.goto("http://localhost:9899/index.html")
   }
 }
 

@@ -1,10 +1,10 @@
-import { behavior, Context, effect, example, fact, step } from "esbehavior";
+import { behavior, effect, example, fact, step } from "esbehavior";
 import { expect, is, resolvesTo, stringContaining } from "great-expectations";
-import { TestAppController } from "./helpers/testAppController.js";
+import { browserAppContext } from "./helpers/testAppController.js";
 
 
-export default (context: Context<TestAppController>) => behavior("view events", [
-  example(context)
+export default behavior("view events", [
+  example(browserAppContext())
     .description("counting clicks with local state")
     .script({
       suppose: [
@@ -27,7 +27,7 @@ export default (context: Context<TestAppController>) => behavior("view events", 
       ]
     }),
 
-  example(context)
+  example(browserAppContext())
     .description("event listener for custom event")
     .script({
       suppose: [

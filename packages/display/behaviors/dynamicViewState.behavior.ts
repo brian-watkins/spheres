@@ -1,13 +1,13 @@
 import { behavior, ConfigurableExample, Context, effect, example, fact, step } from "esbehavior";
 import { equalTo, expect, is } from "great-expectations";
 import { DOMChangeRecord, DOMStructureChangeRecord } from "./helpers/changeRecords.js";
-import { TestAppController } from "./helpers/testAppController.js";
+import { browserAppContext, TestAppController } from "./helpers/testAppController.js";
 import { ReorderAppProps } from "./fixtures/reorderUsingElementKey.app.js";
 
-export default (context: Context<TestAppController>) =>
+export default
   behavior("keyed list", [
-    exampleGenerator(context, "key on stateful view", "reorderUsingElementKey.app", { keyOnState: "stateful" }),
-    exampleGenerator(context, "key on block", "reorderUsingElementKey.app", { keyOnState: "block" })
+    exampleGenerator(browserAppContext(), "key on stateful view", "reorderUsingElementKey.app", { keyOnState: "stateful" }),
+    exampleGenerator(browserAppContext(), "key on block", "reorderUsingElementKey.app", { keyOnState: "block" })
   ])
 
 function exampleGenerator(context: Context<TestAppController>, description: string, appName: string, props: ReorderAppProps): ConfigurableExample {

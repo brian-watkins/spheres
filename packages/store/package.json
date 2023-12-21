@@ -17,8 +17,8 @@
   "author": "Brian Watkins",
   "license": "MIT",
   "devDependencies": {
-    "best-behavior": "^0.3.0",
-    "esbehavior": "^4.2.2",
+    "best-behavior": "^0.4.0",
+    "esbehavior": "^4.2.3",
     "great-expectations": "^1.5.1",
     "playwright": "^1.40.0",
     "typescript": "^5.0.2",

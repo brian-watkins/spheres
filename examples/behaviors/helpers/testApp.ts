@@ -1,6 +1,6 @@
 import { Context } from "esbehavior";
 import { Locator, Page } from "playwright";
-import { BrowserTestInstrument, useBrowser } from "best-behavior"
+import { BrowserTestInstrument, useBrowser } from "best-behavior/browser"
 
 export const testAppContext: Context<TestApp> = {
   init: async () => {

@@ -1,6 +1,6 @@
 import { Context } from "esbehavior";
 import { TestAppDisplay } from "./testDisplay.js";
-import { BrowserTestInstrument, useBrowser } from "best-behavior";
+import { BrowserTestInstrument, useBrowser } from "best-behavior/browser";
 
 export interface DisplayBehaviorOptions {
   host: string

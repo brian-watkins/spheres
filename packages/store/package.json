@@ -12,12 +12,12 @@
     "prepublishOnly": "npm run build",
     "build": "tsc --build",
     "clean": "rm -rf ./dist && rm -rf ./tsconfig.tsbuildinfo",
-    "test": "best --behaviors './behaviors/**/*.behavior.ts' --runInBrowser '**/*' --failFast --viteConfig './behaviors/vite.config.js'"
+    "test": "best"
   },
   "author": "Brian Watkins",
   "license": "MIT",
   "devDependencies": {
-    "best-behavior": "^0.4.0",
+    "best-behavior": "^0.6.0",
     "esbehavior": "^4.2.3",
     "great-expectations": "^1.5.1",
     "playwright": "^1.40.0",

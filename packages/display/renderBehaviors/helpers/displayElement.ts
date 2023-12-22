@@ -1,4 +1,4 @@
-import { usePage } from "best-behavior/browser"
+import { usePage } from "best-behavior/page"
 
 export function selectElement(selector: string): DisplayElement {
   return new DisplayElement(selector, 0)

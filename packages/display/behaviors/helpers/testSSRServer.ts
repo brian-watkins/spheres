@@ -7,7 +7,7 @@ import { ViteDevServer, createServer as createViteServer } from "vite"
 import tsConfigPaths from "vite-tsconfig-paths"
 import { Context } from 'esbehavior'
 import { TestAppDisplay } from './testDisplay.js'
-import { BrowserTestInstrument, useBrowser } from 'best-behavior'
+import { BrowserTestInstrument, useBrowser } from 'best-behavior/browser'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 

@@ -71,8 +71,9 @@ function recordForm(): View {
         ]))
         .on("submit", (evt) => {
           evt.preventDefault();
-          const firstName = valueFromFormElement(evt, "firstName")
-          const lastName = valueFromFormElement(evt, "lastName")
+          const data = new FormData(evt.target as HTMLFormElement)
+          const firstName = data.get("firstName")!.toString()
+          const lastName = data.get("lastName")!.toString()
           if (submissionAction(evt) === "create") {
             return write(records, createRecord({ firstName, lastName }))
           } else {
@@ -136,10 +137,6 @@ function recordsView(get: GetState): View {
           })
       }
     })
-}
-
-function valueFromFormElement(evt: Event, name: string): string {
-  return ((evt.target as HTMLFormElement).elements.namedItem(name) as HTMLInputElement).value
 }
 
 function submissionAction(evt: Event): string {

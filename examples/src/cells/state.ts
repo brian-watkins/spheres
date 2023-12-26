@@ -1,35 +1,28 @@
-import { Container, GetState, Value, rule, container, value, write } from "@spheres/store";
+import { Container, Value, container, value } from "@spheres/store";
+import { cellDefinition } from "./parser"
 
-const cells: Map<string, Container<Value<string | number>>> = new Map()
+const cells: Map<string, Container<Value<string | number>, string>> = new Map()
 
-export function cellContainer(id: string): Container<Value<string | number>> {
+export function cellContainer(id: string): Container<Value<string | number>, string> {
   let cell = cells.get(id)
   if (!cell) {
     cell = container({
       initialValue: value<string | number>({
         query: () => ""
-      })
+      }),
+      reducer: (definition: string) => {
+        const result = cellDefinition(definition)
+
+        if (result.type === "failure") {
+          throw new Error("parse-failure")
+        }
+
+        return value({
+          query: result.context.formula ?? (() => result.value)
+        })
+      }
     })
     cells.set(id, cell)
   }
   return cell
 }
-
-export interface CellDefinition {
-  cell: string
-  definition: string
-}
-
-export const updateCellDefinitionRule = rule((_: GetState, definition: CellDefinition) => {
-  const cell = cellContainer(definition.cell)
-  if (definition.definition.startsWith("=")) {
-    const cellReference = definition.definition.substring(1)
-    return write(cell, value({
-      query: (get) => get(get(cellContainer(cellReference)))
-    }))
-  }
-
-  return write(cell, value<string | number>({
-    query: () => definition.definition
-  }))
-})

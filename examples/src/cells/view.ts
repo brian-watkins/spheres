@@ -1,6 +1,6 @@
 import { View, htmlView } from "@spheres/display";
-import { batch, container, run, use, write } from "@spheres/store";
-import { cellContainer, updateCellDefinitionRule } from "./state";
+import { batch, container, run, write } from "@spheres/store";
+import { cellContainer } from "./state";
 
 const showInput = container({ initialValue: "" })
 
@@ -55,7 +55,13 @@ function cell(identifier: string): View {
     .div(({ config, children }) => {
       config
         .dataAttribute("cell", identifier)
-        .class((get) => `shrink-0 h-8 w-40 ${get(showInput) === identifier ? "bg-slate-100" : "bg-slate-200"} relative`)
+        .class((get) => {
+          if (get(cellContainer(identifier).meta).type === "error") {
+            return "shrink-0 h-8 w-40 bg-fuchsia-300 relative"
+          } else {
+            return `shrink-0 h-8 w-40 ${get(showInput) === identifier ? "bg-slate-100" : "bg-slate-200"} relative`
+          }
+        })
         .on("click", () => batch([
           write(showInput, identifier),
           run(() => (document.querySelector(`input[name='${identifier}']`) as HTMLInputElement)?.focus())
@@ -66,7 +72,14 @@ function cell(identifier: string): View {
             .class("px-1 py-1")
             .hidden((get) => get(showInput) === identifier ? "hidden" : undefined)
           children
-            .textNode((get) => `${get(get(cellContainer(identifier)))}`)
+            .textNode((get) => {
+              const cell = cellContainer(identifier)
+              const meta = get(cell.meta)
+              if (meta.type === "error") {
+                return meta.message
+              }
+              return `${get(get(cell))}`
+            })
         })
         .form(({ config, children }) => {
           config
@@ -77,10 +90,7 @@ function cell(identifier: string): View {
               const cellDefinition = ((evt.target as HTMLFormElement).elements.namedItem(identifier) as HTMLInputElement).value
               return batch([
                 write(showInput, ""),
-                use(updateCellDefinitionRule, {
-                  cell: identifier,
-                  definition: cellDefinition
-                })
+                write(cellContainer(identifier), cellDefinition)
               ])
             })
           children

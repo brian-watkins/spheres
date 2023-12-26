@@ -1,11 +1,10 @@
 import { GetState } from "@spheres/store"
 import { cellContainer } from "./state"
 
-interface ParseSuccess {
+interface ParseSuccess<T> {
   type: "success"
-  value: string
+  value: T
   next: string
-  context: Record<string, any>
 }
 
 interface ParseFailure {
@@ -18,18 +17,17 @@ function failureResult(): ParseFailure {
   }
 }
 
-type ParseResult = ParseSuccess | ParseFailure
+type ParseResult<T> = ParseSuccess<T> | ParseFailure
 
-type Parser = (message: string) => ParseResult
+type Parser<T> = (message: string) => ParseResult<T>
 
-function char(c: string): Parser {
+function char(c: string): Parser<string> {
   return (message) => {
     if (message[0] === c) {
       return {
         type: "success",
         value: c,
         next: message.substring(1),
-        context: {}
       }
     }
 
@@ -37,7 +35,7 @@ function char(c: string): Parser {
   }
 }
 
-function oneOf(parsers: Array<Parser>): Parser {
+function oneOf<T>(parsers: Array<Parser<T>>): Parser<T> {
   return (message) => {
     for (const parser of parsers) {
       const result = parser(message)
@@ -49,10 +47,10 @@ function oneOf(parsers: Array<Parser>): Parser {
   }
 }
 
-function someOrMore(minimumCount: number, parser: Parser): Parser {
+function concat(parser: Parser<string>): Parser<string> {
   return (message) => {
     let matches = 0
-    let result: ParseResult
+    let result: ParseResult<string>
     let next: string = message
     let value: string = ""
     while ((result = parser(next)).type === "success") {
@@ -60,11 +58,46 @@ function someOrMore(minimumCount: number, parser: Parser): Parser {
       next = result.next
       value = value + result.value
     }
-    if (matches >= minimumCount) {
+    if (matches >= 0) {
       return {
         type: "success",
         value,
         next,
+      }
+    } else {
+      return failureResult()
+    }
+  }
+}
+
+function sequence<T>(parsers: Array<Parser<any>>, map: (values: any) => T): Parser<T> {
+  return (message) => {
+    let next = message
+    let values: Array<any> = []
+    for (const parser of parsers) {
+      const result = parser(next)
+      if (result.type === "failure") {
+        return failureResult()
+      }
+      values.push(result.value)
+      next = result.next
+    }
+    return {
+      type: "success",
+      value: map(values),
+      next
+    }
+  }
+}
+
+function mapValue<T, R>(parser: Parser<T>, map: (value: T) => R): Parser<R> {
+  return (message) => {
+    const result = parser(message)
+    if (result.type === "success") {
+      return {
+        type: "success",
+        value: map(result.value),
+        next: result.next,
         context: {}
       }
     } else {
@@ -73,57 +106,24 @@ function someOrMore(minimumCount: number, parser: Parser): Parser {
   }
 }
 
-function sequence(parsers: Array<Parser>): Parser {
-  return (message) => {
-    let next = message
-    let value = ""
-    let context = {}
-    for (const parser of parsers) {
-      const result = parser(next)
-      if (result.type === "failure") {
-        return failureResult()
-      }
-      value += result.value
-      next = result.next
-      context = { ...context, ...result.context }
-    }
-    return {
-      type: "success",
-      value,
-      next,
-      context
-    }
-  }
-}
-
-function capture(name: string, parser: Parser, map?: (value: string) => any): Parser {
-  return (message) => {
-    const result = parser(message)
-    if (result.type === "success") {
-      return {
-        type: "success",
-        value: result.value,
-        next: result.next,
-        context: {
-          [name]: map ? map(result.value) : result.value
-        }
-      }
-    }
-    return failureResult()
-  }
-}
-
 const letter = oneOf(Array.from("aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ").map(char))
-const word = someOrMore(1, letter)
+const word = concat(letter)
 
 const digit = oneOf(Array.from("1234567890").map(char))
-const wholeNumber = someOrMore(1, digit)
+const wholeNumber = mapValue(concat(digit), (val) => Number(val))
 
-const cellIdentifier = sequence([letter, digit])
+const cellIdentifier = sequence<string>([letter, digit], (components) => components.join(""))
 
-const formula = sequence([char("="), capture("formula", cellIdentifier, (value) => {
-  return (get: GetState) => get(get(cellContainer(value)))
-})])
+const formula = sequence<(get: GetState) => string | number>([
+  char("="),
+  mapValue(cellIdentifier, (value) => {
+    return (get: GetState) => get(get(cellContainer(value)))
+  })
+], ([_, formula]) => formula)
 
-export const cellDefinition = oneOf([word, wholeNumber, formula])
+export const cellDefinition = oneOf([
+  mapValue(word, (value) => () => value),
+  mapValue(wholeNumber, (value) => () => value),
+  formula
+])
 

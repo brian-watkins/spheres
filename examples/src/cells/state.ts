@@ -18,7 +18,7 @@ export function cellContainer(id: string): Container<Value<string | number>, str
         }
 
         return value({
-          query: result.context.formula ?? (() => result.value)
+          query: result.value
         })
       }
     })

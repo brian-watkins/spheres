@@ -58,7 +58,7 @@ function concat(parser: Parser<string>): Parser<string> {
       next = result.next
       value = value + result.value
     }
-    if (matches >= 0) {
+    if (matches > 1) {
       return {
         type: "success",
         value,

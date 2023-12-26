@@ -1,5 +1,3 @@
-import { GetState } from "@spheres/store"
-import { cellContainer } from "./state"
 
 interface ParseSuccess<T> {
   type: "success"
@@ -114,10 +112,12 @@ const wholeNumber = mapValue(concat(digit), (val) => Number(val))
 
 const cellIdentifier = sequence<string>([letter, digit], (components) => components.join(""))
 
-const formula = sequence<(get: GetState) => string | number>([
+export type GetCellValue = (identifier: string) => string | number
+
+const formula = sequence<(get: GetCellValue) => string | number>([
   char("="),
   mapValue(cellIdentifier, (value) => {
-    return (get: GetState) => get(get(cellContainer(value)))
+    return (get: GetCellValue) => get(value)
   })
 ], ([_, formula]) => formula)
 

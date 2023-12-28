@@ -104,21 +104,45 @@ function mapValue<T, R>(parser: Parser<T>, map: (value: T) => R): Parser<R> {
   }
 }
 
+function charSequence(expected: string): Parser<string> {
+  return sequence(Array.from(expected).map(char), (values) => values.join(""))
+}
+
 const letter = oneOf(Array.from("aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ").map(char))
 const word = concat(letter)
 
 const digit = oneOf(Array.from("1234567890").map(char))
-const wholeNumber = mapValue(concat(digit), (val) => Number(val))
-
-const cellIdentifier = sequence<string>([letter, digit], (components) => components.join(""))
+const wholeNumber = concat(digit)
 
 export type GetCellValue = (identifier: string) => string | number
 
+const cellIdentifier = sequence([letter, digit], (components) => {
+  const id = components.join("")
+  return (get: GetCellValue) => get(id)
+})
+
+function formulaPrimitive(parser: Parser<string>): Parser<(get: GetCellValue) => string | number> {
+  return mapValue(parser, (value) => () => value)
+}
+
+const addFunction = sequence([
+  charSequence("ADD("),
+  oneOf([cellIdentifier, formulaPrimitive(wholeNumber)]),
+  char(","),
+  oneOf([cellIdentifier, formulaPrimitive(wholeNumber)]),
+  char(")")
+], (components) => {
+  return (get: GetCellValue) => {
+    return Number(components[1](get)) + Number(components[3](get))
+  }
+})
+
 const formula = sequence<(get: GetCellValue) => string | number>([
   char("="),
-  mapValue(cellIdentifier, (value) => {
-    return (get: GetCellValue) => get(value)
-  })
+  oneOf([
+    cellIdentifier,
+    addFunction
+  ])
 ], ([_, formula]) => formula)
 
 export const cellDefinition = oneOf([

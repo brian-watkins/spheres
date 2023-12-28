@@ -9,12 +9,12 @@ export default behavior("add function", [
     .script({
       suppose: [
         fact("there is a cell with a formula that adds two numbers", (context) => {
-          context.defineCell("C4", "=ADD(70,53)")
+          context.defineCell("C4", "=ADD(70,53.8)")
         })
       ],
       observe: [
         effect("the cell value is the sum of the numbers", (context) => {
-          expect(context.getCellValue("C4"), is("123"))
+          expect(context.getCellValue("C4"), is("123.8"))
         })
       ]
     }),

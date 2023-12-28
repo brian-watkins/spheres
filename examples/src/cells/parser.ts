@@ -56,7 +56,7 @@ function concat(parser: Parser<string>): Parser<string> {
       next = result.next
       value = value + result.value
     }
-    if (matches > 1) {
+    if (matches > 0) {
       return {
         type: "success",
         value,
@@ -113,6 +113,12 @@ const word = concat(letter)
 
 const digit = oneOf(Array.from("1234567890").map(char))
 const wholeNumber = concat(digit)
+const float = sequence([
+  concat(digit),
+  char("."),
+  concat(digit)
+], (components) => components.join(""))
+const number = oneOf([ float, wholeNumber ])
 
 export type GetCellValue = (identifier: string) => string | number
 
@@ -121,15 +127,15 @@ const cellIdentifier = sequence([letter, digit], (components) => {
   return (get: GetCellValue) => get(id)
 })
 
-function formulaPrimitive(parser: Parser<string>): Parser<(get: GetCellValue) => string | number> {
+function primitive(parser: Parser<string>): Parser<(get: GetCellValue) => string | number> {
   return mapValue(parser, (value) => () => value)
 }
 
 const addFunction = sequence([
   charSequence("ADD("),
-  oneOf([cellIdentifier, formulaPrimitive(wholeNumber)]),
+  oneOf([cellIdentifier, primitive(number)]),
   char(","),
-  oneOf([cellIdentifier, formulaPrimitive(wholeNumber)]),
+  oneOf([cellIdentifier, primitive(number)]),
   char(")")
 ], (components) => {
   return (get: GetCellValue) => {
@@ -146,8 +152,8 @@ const formula = sequence<(get: GetCellValue) => string | number>([
 ], ([_, formula]) => formula)
 
 export const cellDefinition = oneOf([
-  mapValue(word, (value) => () => value),
-  mapValue(wholeNumber, (value) => () => value),
+  primitive(word),
+  primitive(number),
   formula
 ])
 

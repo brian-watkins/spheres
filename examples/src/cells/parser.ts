@@ -45,7 +45,7 @@ function oneOf<T>(parsers: Array<Parser<T>>): Parser<T> {
   }
 }
 
-function concat(parser: Parser<string>): Parser<string> {
+function oneOrMore(parser: Parser<string>): Parser<string> {
   return (message) => {
     let matches = 0
     let result: ParseResult<string>
@@ -88,6 +88,10 @@ function sequence<T>(parsers: Array<Parser<any>>, map: (values: any) => T): Pars
   }
 }
 
+function join(parsers: Array<Parser<string>>): Parser<string> {
+  return sequence(parsers, (components) => components.join(""))
+}
+
 function mapValue<T, R>(parser: Parser<T>, map: (value: T) => R): Parser<R> {
   return (message) => {
     const result = parser(message)
@@ -104,21 +108,34 @@ function mapValue<T, R>(parser: Parser<T>, map: (value: T) => R): Parser<R> {
   }
 }
 
+function maybe(parser: Parser<string>): Parser<string> {
+  return (message) => {
+    const result = parser(message)
+    if (result.type === "failure") {
+      return {
+        type: "success",
+        value: "",
+        next: message
+      }
+    } else {
+      return result
+    }
+  }
+}
+
 function charSequence(expected: string): Parser<string> {
-  return sequence(Array.from(expected).map(char), (values) => values.join(""))
+  return join(Array.from(expected).map(char))
 }
 
 const letter = oneOf(Array.from("aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ").map(char))
-const word = concat(letter)
+const word = oneOrMore(letter)
 
 const digit = oneOf(Array.from("1234567890").map(char))
-const wholeNumber = concat(digit)
-const float = sequence([
-  concat(digit),
-  char("."),
-  concat(digit)
-], (components) => components.join(""))
-const number = oneOf([ float, wholeNumber ])
+const number = join([
+  maybe(char("-")),
+  oneOrMore(digit),
+  maybe(join([char("."), oneOrMore(digit)]))
+])
 
 export type GetCellValue = (identifier: string) => string | number
 

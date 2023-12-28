@@ -23,12 +23,12 @@ export default behavior("basic formulas", [
     }).andThen({
       perform: [
         step("update the referenced cell", (context) => {
-          context.updateCell("A6", "42.6")
+          context.updateCell("A6", "-42.6")
         })
       ],
       observe: [
         effect("the value of the referencing cell is updated", (context) => {
-          expect(context.getCellValue("B4"), is("42.6"))
+          expect(context.getCellValue("B4"), is("-42.6"))
         })
       ]
     })

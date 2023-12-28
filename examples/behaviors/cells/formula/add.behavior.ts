@@ -24,7 +24,7 @@ export default behavior("add function", [
     .script({
       suppose: [
         fact("there are two cells with numbers", (context) => {
-          context.defineCell("A1", "28")
+          context.defineCell("A1", "-28")
           context.defineCell("A2", "33")
         }),
         fact("there is a cell with a formula that adds the two cells", (context) =>{
@@ -33,7 +33,7 @@ export default behavior("add function", [
       ],
       observe: [
         effect("the cell has the expected value", (context) => {
-          expect(context.getCellValue("B3"), is("61"))
+          expect(context.getCellValue("B3"), is("5"))
         })
       ]
     }).andThen({
@@ -44,7 +44,7 @@ export default behavior("add function", [
       ],
       observe: [
         effect("the value of the referencing cell is recalculated", (context) => {
-          expect(context.getCellValue("B3"), is("59"))
+          expect(context.getCellValue("B3"), is("3"))
         })
       ]
     })

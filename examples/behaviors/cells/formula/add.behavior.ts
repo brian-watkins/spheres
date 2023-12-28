@@ -3,7 +3,7 @@ import { testStoreContext } from "./helpers/testStoreContext";
 import { expect, is } from "great-expectations";
 
 export default behavior("add function", [
-  
+
   example(testStoreContext())
     .description("adding two numbers")
     .script({
@@ -27,7 +27,7 @@ export default behavior("add function", [
           context.defineCell("A1", "-28")
           context.defineCell("A2", "33")
         }),
-        fact("there is a cell with a formula that adds the two cells", (context) =>{
+        fact("there is a cell with a formula that adds the two cells", (context) => {
           context.defineCell("B3", "=ADD(A1,A2)")
         })
       ],

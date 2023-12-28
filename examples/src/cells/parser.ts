@@ -45,27 +45,31 @@ function oneOf<T>(parsers: Array<Parser<T>>): Parser<T> {
   }
 }
 
-function oneOrMore(parser: Parser<string>): Parser<string> {
+function oneOrMore<T>(parser: Parser<T>): Parser<Array<T>> {
   return (message) => {
     let matches = 0
-    let result: ParseResult<string>
+    let result: ParseResult<T>
     let next: string = message
-    let value: string = ""
+    let values: Array<T> = []
     while ((result = parser(next)).type === "success") {
       matches = matches + 1
       next = result.next
-      value = value + result.value
+      values.push(result.value)
     }
     if (matches > 0) {
       return {
         type: "success",
-        value,
+        value: values,
         next,
       }
     } else {
       return failureResult()
     }
   }
+}
+
+function joinOneOrMore(parser: Parser<string>): Parser<string> {
+  return mapValue(oneOrMore(parser), (values) => values.join(""))
 }
 
 function sequence<T>(parsers: Array<Parser<any>>, map: (values: any) => T): Parser<T> {
@@ -129,14 +133,14 @@ function charSequence(expected: string): Parser<string> {
 
 const letter = oneOf(Array.from("aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ").map(char))
 const punctuation = oneOf(Array.from("!?,.';:#@$%^&*()+-_<>/~`{}[]\\|").map(char))
-const word = oneOrMore(letter)
-const text = oneOrMore(oneOf([word, char(" "), punctuation]))
+const word = joinOneOrMore(letter)
+const text = joinOneOrMore(oneOf([word, char(" "), punctuation]))
 
 const digit = oneOf(Array.from("1234567890").map(char))
 const number = join([
   maybe(char("-")),
-  oneOrMore(digit),
-  maybe(join([char("."), oneOrMore(digit)]))
+  joinOneOrMore(digit),
+  maybe(join([char("."), joinOneOrMore(digit)]))
 ])
 
 export type GetCellValue = (identifier: string) => string | number
@@ -150,11 +154,13 @@ function primitive(parser: Parser<string>): Parser<(get: GetCellValue) => string
   return mapValue(parser, (value) => () => value)
 }
 
+const binaryArgument = oneOf([cellIdentifier, primitive(number)])
+
 const addFunction = sequence([
   charSequence("ADD("),
-  oneOf([cellIdentifier, primitive(number)]),
+  binaryArgument,
   char(","),
-  oneOf([cellIdentifier, primitive(number)]),
+  binaryArgument,
   char(")")
 ], (components) => {
   return (get: GetCellValue) => {
@@ -162,17 +168,37 @@ const addFunction = sequence([
   }
 })
 
+const naryArgument = oneOf([cellIdentifier, primitive(number)])
+
+const sumFunction = sequence([
+  charSequence("SUM("),
+  naryArgument,
+  oneOrMore(sequence([
+    char(","),
+    naryArgument
+  ], ([_, argument]) => argument)),
+  char(")")
+], (components: Array<any>) => {
+  return (get: GetCellValue) => {
+    let args: Array<(get: GetCellValue) => string> = []
+    args.push(components[1])
+    args = args.concat(components[2])
+    return args.map(arg => Number(arg(get))).reduce((acc, cur) => acc + cur, 0)
+  }
+})
+
 const formula = sequence<(get: GetCellValue) => string | number>([
   char("="),
   oneOf([
     cellIdentifier,
-    addFunction
+    addFunction,
+    sumFunction
   ])
 ], ([_, formula]) => formula)
 
 export const cellDefinition = oneOf([
-  primitive(text),
+  formula,
   primitive(number),
-  formula
+  primitive(text)
 ])
 

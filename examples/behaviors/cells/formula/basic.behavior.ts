@@ -4,7 +4,7 @@ import { expect, is } from "great-expectations";
 
 export default behavior("basic formulas", [
 
-  (m) => m.pick() && example(testStoreContext())
+  example(testStoreContext())
     .description("write arbitrary text to a cell")
     .script({
       suppose: [

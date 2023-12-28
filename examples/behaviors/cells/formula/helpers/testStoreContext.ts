@@ -39,6 +39,6 @@ export class TestStore {
   }
 
   printall() {
-    console.log("cell values", this.cellValues)
+    console.log("cell values", Array.from(this.cellValues.entries()).map(entry => entry.toString()))
   }
 }

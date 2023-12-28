@@ -128,7 +128,9 @@ function charSequence(expected: string): Parser<string> {
 }
 
 const letter = oneOf(Array.from("aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ").map(char))
+const punctuation = oneOf(Array.from("!?,.';:#@$%^&*()+-_<>/~`{}[]\\|").map(char))
 const word = oneOrMore(letter)
+const text = oneOrMore(oneOf([word, char(" "), punctuation]))
 
 const digit = oneOf(Array.from("1234567890").map(char))
 const number = join([
@@ -169,7 +171,7 @@ const formula = sequence<(get: GetCellValue) => string | number>([
 ], ([_, formula]) => formula)
 
 export const cellDefinition = oneOf([
-  primitive(word),
+  primitive(text),
   primitive(number),
   formula
 ])

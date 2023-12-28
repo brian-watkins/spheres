@@ -4,6 +4,21 @@ import { expect, is } from "great-expectations";
 
 export default behavior("basic formulas", [
 
+  (m) => m.pick() && example(testStoreContext())
+    .description("write arbitrary text to a cell")
+    .script({
+      suppose: [
+        fact("there is a cell with some text", (context) => {
+          context.defineCell("A2", "This is some cool text!?!?")
+        })
+      ],
+      observe: [
+        effect("the cell contains the text", (context) => {
+          expect(context.getCellValue("A2"), is("This is some cool text!?!?"))
+        })
+      ]
+    }),
+
   example(testStoreContext())
     .description("reference another cell's value")
     .script({

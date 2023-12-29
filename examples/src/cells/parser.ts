@@ -112,19 +112,18 @@ function mapValue<T, R>(parser: Parser<T>, map: (value: T) => R): Parser<R> {
   }
 }
 
-function maybe<T>(parser: Parser<T>, alt: T): Parser<T> {
+function succeed<T>(value: T): Parser<T> {
   return (message) => {
-    const result = parser(message)
-    if (result.type === "failure") {
-      return {
-        type: "success",
-        value: alt,
-        next: message
-      }
-    } else {
-      return result
+    return {
+      type: "success",
+      value,
+      next: message
     }
   }
+}
+
+function maybe<T>(parser: Parser<T>, alt: T): Parser<T> {
+  return oneOf([parser, succeed(alt)])
 }
 
 function charSequence(expected: string): Parser<string> {

@@ -112,13 +112,13 @@ function mapValue<T, R>(parser: Parser<T>, map: (value: T) => R): Parser<R> {
   }
 }
 
-function maybe(parser: Parser<string>): Parser<string> {
+function maybe<T>(parser: Parser<T>, alt: T): Parser<T> {
   return (message) => {
     const result = parser(message)
     if (result.type === "failure") {
       return {
         type: "success",
-        value: "",
+        value: alt,
         next: message
       }
     } else {
@@ -138,16 +138,32 @@ const text = joinOneOrMore(oneOf([word, char(" "), punctuation]))
 
 const digit = oneOf(Array.from("1234567890").map(char))
 const number = join([
-  maybe(char("-")),
+  maybe(char("-"), ""),
   joinOneOrMore(digit),
-  maybe(join([char("."), joinOneOrMore(digit)]))
+  maybe(join([char("."), joinOneOrMore(digit)]), "")
 ])
 
 export type GetCellValue = (identifier: string) => string | number
 
-const cellIdentifier = sequence([letter, digit], (components) => {
-  const id = components.join("")
-  return (get: GetCellValue) => get(id)
+const cellIdentifier = mapValue(join([letter, digit]), (id) => (get: GetCellValue) => get(id))
+
+const cellRange = sequence([
+  letter,
+  digit,
+  char(":"),
+  letter,
+  digit
+], ([startLetter, startNumber, _, endLetter, endNumber]) => {
+  let cells: Array<(get: GetCellValue) => string | number> = []
+  const startLetterIndex = startLetter.toUpperCase().charCodeAt(0)
+  const endLetterIndex = endLetter.toUpperCase().charCodeAt(0)
+
+  for (let l = startLetterIndex; l <= endLetterIndex; l++) {
+    for (let i = Number(startNumber); i <= Number(endNumber); i++) {
+      cells.push((get) => get(`${String.fromCharCode(l)}${i}`))
+    }  
+  }
+  return cells
 })
 
 function primitive(parser: Parser<string>): Parser<(get: GetCellValue) => string | number> {
@@ -168,21 +184,27 @@ const addFunction = sequence([
   }
 })
 
-const naryArgument = oneOf([cellIdentifier, primitive(number)])
+const naryArgument = oneOf([
+  cellRange,
+  mapValue(cellIdentifier, (val) => [val]),
+  mapValue(primitive(number), (val) => [val])
+])
 
 const sumFunction = sequence([
   charSequence("SUM("),
   naryArgument,
-  oneOrMore(sequence([
+  maybe(oneOrMore(sequence([
     char(","),
     naryArgument
-  ], ([_, argument]) => argument)),
+  ], ([_, argument]) => argument)), []),
   char(")")
 ], (components: Array<any>) => {
   return (get: GetCellValue) => {
     let args: Array<(get: GetCellValue) => string> = []
-    args.push(components[1])
-    args = args.concat(components[2])
+    args = args.concat(components[1])
+    components[2].forEach((c: Array<any>) => {
+      args = args.concat(c)
+    })
     return args.map(arg => Number(arg(get))).reduce((acc, cur) => acc + cur, 0)
   }
 })

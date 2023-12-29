@@ -37,6 +37,53 @@ export default behavior("sum function", [
           expect(context.getCellValue("D3"), is("24.2"))
         })
       ]
+    }),
+
+  example(testStoreContext())
+    .description("sum many numbers from a one column range of cells")
+    .script({
+      suppose: [
+        fact("there are several cells with numbers", (context) => {
+          context.defineCell("A2", "27")
+          context.defineCell("A3", "-41")
+          context.defineCell("A4", "22")
+        }),
+        fact("there is a cell that sums the other cell values", (context) => {
+          context.defineCell("D3", "=SUM(10,A2:A4,-14)")
+        })
+      ],
+      observe: [
+        effect("the calculated value is shown", (context) => {
+          expect(context.getCellValue("D3"), is("4"))
+        })
+      ]
+    }),
+
+  example(testStoreContext())
+    .description("sum many numbers from a multiple column range of cells")
+    .script({
+      suppose: [
+        fact("there are several cells with numbers", (context) => {
+          context.defineCell("A2", "27")
+          context.defineCell("A3", "-41")
+          context.defineCell("A4", "22")
+          context.defineCell("A5", "19")
+          context.defineCell("B2", "13")
+          context.defineCell("B3", "8")
+          context.defineCell("B4", "2")
+          context.defineCell("C2", "-12")
+          context.defineCell("C3", "18")
+          context.defineCell("C4", "9")
+        }),
+        fact("there is a cell that sums the other cell values", (context) => {
+          context.defineCell("D8", "=SUM(a2:C4)")
+        })
+      ],
+      observe: [
+        effect("the calculated value is shown", (context) => {
+          expect(context.getCellValue("D8"), is("46"))
+        })
+      ]
     })
 
 ])

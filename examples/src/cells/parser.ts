@@ -1,25 +1,25 @@
 
-interface ParseSuccess<T> {
+export interface ParseSuccess<T> {
   type: "success"
   value: T
   next: string
 }
 
-interface ParseFailure {
+export interface ParseFailure {
   type: "failure"
 }
 
-function failureResult(): ParseFailure {
+export function failureResult(): ParseFailure {
   return {
     type: "failure"
   }
 }
 
-type ParseResult<T> = ParseSuccess<T> | ParseFailure
+export type ParseResult<T> = ParseSuccess<T> | ParseFailure
 
-type Parser<T> = (message: string) => ParseResult<T>
+export type Parser<T> = (message: string) => ParseResult<T>
 
-function char(c: string): Parser<string> {
+export function char(c: string): Parser<string> {
   return (message) => {
     if (message[0] === c) {
       return {
@@ -33,7 +33,7 @@ function char(c: string): Parser<string> {
   }
 }
 
-function oneOf<T>(parsers: Array<Parser<T>>): Parser<T> {
+export function oneOf<T>(parsers: Array<Parser<T>>): Parser<T> {
   return (message) => {
     for (const parser of parsers) {
       const result = parser(message)
@@ -45,7 +45,7 @@ function oneOf<T>(parsers: Array<Parser<T>>): Parser<T> {
   }
 }
 
-function oneOrMore<T>(parser: Parser<T>): Parser<Array<T>> {
+export function oneOrMore<T>(parser: Parser<T>): Parser<Array<T>> {
   return (message) => {
     let matches = 0
     let result: ParseResult<T>
@@ -68,11 +68,87 @@ function oneOrMore<T>(parser: Parser<T>): Parser<Array<T>> {
   }
 }
 
-function joinOneOrMore(parser: Parser<string>): Parser<string> {
-  return mapValue(oneOrMore(parser), (values) => values.join(""))
+export function joinOneOrMore(parser: Parser<string>): Parser<string> {
+  return map(oneOrMore(parser), (values) => values.join(""))
 }
 
-function sequence<T>(parsers: Array<Parser<any>>, map: (values: any) => T): Parser<T> {
+export function sequence<A>(
+  aParser: Parser<A>
+): Parser<[A]>;
+export function sequence<A, B>(
+  aParser: Parser<A>,
+  bParser: Parser<B>
+): Parser<[A, B]>;
+export function sequence<A, B, C>(
+  aParser: Parser<A>,
+  bParser: Parser<B>,
+  cParser: Parser<C>
+): Parser<[A, B, C]>;
+export function sequence<A, B, C, D>(
+  aParser: Parser<A>,
+  bParser: Parser<B>,
+  cParser: Parser<C>,
+  dParser: Parser<D>,
+): Parser<[A, B, C, D]>;
+export function sequence<A, B, C, D, E>(
+  aParser: Parser<A>,
+  bParser: Parser<B>,
+  cParser: Parser<C>,
+  dParser: Parser<D>,
+  eParser: Parser<E>
+): Parser<[A, B, C, D, E]>;
+export function sequence<A, B, C, D, E, F>(
+  aParser: Parser<A>,
+  bParser: Parser<B>,
+  cParser: Parser<C>,
+  dParser: Parser<D>,
+  eParser: Parser<E>,
+  fParser: Parser<F>
+): Parser<[A, B, C, D, E, F]>;
+export function sequence<A, B, C, D, E, F, G>(
+  aParser: Parser<A>,
+  bParser: Parser<B>,
+  cParser: Parser<C>,
+  dParser: Parser<D>,
+  eParser: Parser<E>,
+  fParser: Parser<F>,
+  gParser: Parser<G>
+): Parser<[A, B, C, D, E, F, G]>;
+export function sequence<A, B, C, D, E, F, G, H>(
+  aParser: Parser<A>,
+  bParser: Parser<B>,
+  cParser: Parser<C>,
+  dParser: Parser<D>,
+  eParser: Parser<E>,
+  fParser: Parser<F>,
+  gParser: Parser<G>,
+  hParser: Parser<H>
+): Parser<[A, B, C, D, E, F, G, H]>;
+export function sequence<A, B, C, D, E, F, G, H, I>(
+  aParser: Parser<A>,
+  bParser: Parser<B>,
+  cParser: Parser<C>,
+  dParser: Parser<D>,
+  eParser: Parser<E>,
+  fParser: Parser<F>,
+  gParser: Parser<G>,
+  hParser: Parser<H>,
+  iParser: Parser<I>,
+): Parser<[A, B, C, D, E, F, G, H, I,]>;
+export function sequence<A, B, C, D, E, F, G, H, I, J>(
+  aParser: Parser<A>,
+  bParser: Parser<B>,
+  cParser: Parser<C>,
+  dParser: Parser<D>,
+  eParser: Parser<E>,
+  fParser: Parser<F>,
+  gParser: Parser<G>,
+  hParser: Parser<H>,
+  iParser: Parser<I>,
+  jParser: Parser<J>,
+): Parser<[A, B, C, D, E, F, G, H, I, J]>;
+export function sequence<T>(...parsers: Array<Parser<T>>): Parser<Array<T>>;
+export function sequence<T extends any>(...parsers: Array<Parser<T>>): Parser<Array<any>> {
   return (message) => {
     let next = message
     let values: Array<any> = []
@@ -86,17 +162,17 @@ function sequence<T>(parsers: Array<Parser<any>>, map: (values: any) => T): Pars
     }
     return {
       type: "success",
-      value: map(values),
+      value: values,
       next
     }
   }
 }
 
-function join(parsers: Array<Parser<string>>): Parser<string> {
-  return sequence(parsers, (components) => components.join(""))
+export function join(parsers: Array<Parser<string>>): Parser<string> {
+  return map(sequence(...parsers), (values) => values.join(""))
 }
 
-function mapValue<T, R>(parser: Parser<T>, map: (value: T) => R): Parser<R> {
+export function map<T, R>(parser: Parser<T>, map: (value: T) => R): Parser<R> {
   return (message) => {
     const result = parser(message)
     if (result.type === "success") {
@@ -112,7 +188,7 @@ function mapValue<T, R>(parser: Parser<T>, map: (value: T) => R): Parser<R> {
   }
 }
 
-function succeed<T>(value: T): Parser<T> {
+export function succeed<T>(value: T): Parser<T> {
   return (message) => {
     return {
       type: "success",
@@ -122,104 +198,23 @@ function succeed<T>(value: T): Parser<T> {
   }
 }
 
-function maybe<T>(parser: Parser<T>, alt: T): Parser<T> {
+export function maybe<T>(parser: Parser<T>, alt: T): Parser<T> {
   return oneOf([parser, succeed(alt)])
 }
 
-function charSequence(expected: string): Parser<string> {
+export function charSequence(expected: string): Parser<string> {
   return join(Array.from(expected).map(char))
 }
 
-const letter = oneOf(Array.from("aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ").map(char))
-const punctuation = oneOf(Array.from("!?,.';:#@$%^&*()+-_<>/~`{}[]\\|").map(char))
-const word = joinOneOrMore(letter)
-const text = joinOneOrMore(oneOf([word, char(" "), punctuation]))
+export const letter = oneOf(Array.from("aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ").map(char))
+export const punctuation = oneOf(Array.from("!?,.';:#@$%^&*()+-_<>/~`{}[]\\|").map(char))
+export const word = joinOneOrMore(letter)
+export const text = joinOneOrMore(oneOf([word, char(" "), punctuation]))
 
-const digit = oneOf(Array.from("1234567890").map(char))
-const number = join([
+export const digit = oneOf(Array.from("1234567890").map(char))
+export const number = join([
   maybe(char("-"), ""),
   joinOneOrMore(digit),
   maybe(join([char("."), joinOneOrMore(digit)]), "")
-])
-
-export type GetCellValue = (identifier: string) => string | number
-
-const cellIdentifier = mapValue(join([letter, joinOneOrMore(digit)]), (id) => (get: GetCellValue) => get(id))
-
-const cellRange = sequence([
-  letter,
-  joinOneOrMore(digit),
-  char(":"),
-  letter,
-  joinOneOrMore(digit)
-], ([startLetter, startNumber, _, endLetter, endNumber]) => {
-  let cells: Array<(get: GetCellValue) => string | number> = []
-  const startLetterIndex = startLetter.toUpperCase().charCodeAt(0)
-  const endLetterIndex = endLetter.toUpperCase().charCodeAt(0)
-
-  for (let l = startLetterIndex; l <= endLetterIndex; l++) {
-    for (let i = Number(startNumber); i <= Number(endNumber); i++) {
-      cells.push((get) => get(`${String.fromCharCode(l)}${i}`))
-    }  
-  }
-  return cells
-})
-
-function primitive(parser: Parser<string>): Parser<(get: GetCellValue) => string | number> {
-  return mapValue(parser, (value) => () => value)
-}
-
-const binaryArgument = oneOf([cellIdentifier, primitive(number)])
-
-const addFunction = sequence([
-  charSequence("ADD("),
-  binaryArgument,
-  char(","),
-  binaryArgument,
-  char(")")
-], (components) => {
-  return (get: GetCellValue) => {
-    return Number(components[1](get)) + Number(components[3](get))
-  }
-})
-
-const naryArgument = oneOf([
-  cellRange,
-  mapValue(cellIdentifier, (val) => [val]),
-  mapValue(primitive(number), (val) => [val])
-])
-
-const sumFunction = sequence([
-  charSequence("SUM("),
-  naryArgument,
-  maybe(oneOrMore(sequence([
-    char(","),
-    naryArgument
-  ], ([_, argument]) => argument)), []),
-  char(")")
-], (components: Array<any>) => {
-  return (get: GetCellValue) => {
-    let args: Array<(get: GetCellValue) => string> = []
-    args = args.concat(components[1])
-    components[2].forEach((c: Array<any>) => {
-      args = args.concat(c)
-    })
-    return args.map(arg => Number(arg(get))).reduce((acc, cur) => acc + cur, 0)
-  }
-})
-
-const formula = sequence<(get: GetCellValue) => string | number>([
-  char("="),
-  oneOf([
-    cellIdentifier,
-    addFunction,
-    sumFunction
-  ])
-], ([_, formula]) => formula)
-
-export const cellDefinition = oneOf([
-  formula,
-  primitive(number),
-  primitive(text)
 ])
 

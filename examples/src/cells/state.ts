@@ -1,5 +1,5 @@
 import { Container, Value, container, value } from "@spheres/store";
-import { cellDefinition } from "./parser"
+import { cellDefinition } from "./formula";
 
 export type CellContainer = Container<Value<string | number>, string>
 

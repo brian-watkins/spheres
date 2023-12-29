@@ -84,6 +84,33 @@ export default behavior("sum function", [
           expect(context.getCellValue("D8"), is("46"))
         })
       ]
+    }),
+
+  example(testStoreContext())
+    .description("sum many numbers from a multiple column range of cells with double-digit rows")
+    .script({
+      suppose: [
+        fact("there are several cells with numbers at double-digit rows", (context) => {
+          context.defineCell("A22", "27")
+          context.defineCell("A23", "-41")
+          context.defineCell("A24", "22")
+          context.defineCell("A25", "19")
+          context.defineCell("B22", "13")
+          context.defineCell("B23", "8")
+          context.defineCell("B24", "2")
+          context.defineCell("C22", "-12")
+          context.defineCell("C23", "18")
+          context.defineCell("C24", "9")
+        }),
+        fact("there is a cell that sums the other cell values", (context) => {
+          context.defineCell("D8", "=SUM(A22:C24)")
+        })
+      ],
+      observe: [
+        effect("the calculated value is shown", (context) => {
+          expect(context.getCellValue("D8"), is("46"))
+        })
+      ]
     })
 
 ])

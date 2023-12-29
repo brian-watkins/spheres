@@ -46,6 +46,24 @@ export default behavior("basic formulas", [
           expect(context.getCellValue("B4"), is("-42.6"))
         })
       ]
+    }),
+
+  example(testStoreContext())
+    .description("reference another cell's value at a double-digit row")
+    .script({
+      suppose: [
+        fact("there is a cell with some value at a double-digit row", (context) => {
+          context.defineCell("A61", "27")
+        }),
+        fact("there is a cell with a formula that references the value", (context) => {
+          context.defineCell("B4", "=A61")
+        })
+      ],
+      observe: [
+        effect("the value of the cells are equal", (context) => {
+          expect(context.getCellValue("B4"), is("27"))
+        })
+      ]
     })
 
 ])

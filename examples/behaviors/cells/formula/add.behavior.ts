@@ -47,6 +47,25 @@ export default behavior("add function", [
           expect(context.getCellValue("B3"), is("3"))
         })
       ]
+    }),
+
+  example(testStoreContext())
+    .description("adding two cells at double-digit rows")
+    .script({
+      suppose: [
+        fact("there are two cells with numbers at double-digit rows", (context) => {
+          context.defineCell("A12", "-28")
+          context.defineCell("A23", "33")
+        }),
+        fact("there is a cell with a formula that adds the two cells", (context) => {
+          context.defineCell("B3", "=ADD(A12,A23)")
+        })
+      ],
+      observe: [
+        effect("the cell has the expected value", (context) => {
+          expect(context.getCellValue("B3"), is("5"))
+        })
+      ]
     })
 
 ])

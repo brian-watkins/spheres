@@ -145,14 +145,14 @@ const number = join([
 
 export type GetCellValue = (identifier: string) => string | number
 
-const cellIdentifier = mapValue(join([letter, digit]), (id) => (get: GetCellValue) => get(id))
+const cellIdentifier = mapValue(join([letter, joinOneOrMore(digit)]), (id) => (get: GetCellValue) => get(id))
 
 const cellRange = sequence([
   letter,
-  digit,
+  joinOneOrMore(digit),
   char(":"),
   letter,
-  digit
+  joinOneOrMore(digit)
 ], ([startLetter, startNumber, _, endLetter, endNumber]) => {
   let cells: Array<(get: GetCellValue) => string | number> = []
   const startLetterIndex = startLetter.toUpperCase().charCodeAt(0)

@@ -1,4 +1,4 @@
-import { Parser, char, charSequence, digit, join, joinOneOrMore, letter, map, maybe, number, oneOf, oneOrMore, sequence, test, text } from "./parser"
+import { Parser, char, charSequence, digit, join, joinOneOrMore, lazy, letter, map, maybe, number, oneOf, oneOrMore, sequence, test, text } from "./parser"
 
 export type GetCellValue = (identifier: string) => string | number
 export type FormulaResult = (get: GetCellValue) => string | number
@@ -28,7 +28,15 @@ function primitive(parser: Parser<string>): Parser<FormulaResult> {
   return map(parser, (value) => () => value)
 }
 
-const binaryArgument = oneOf([cellIdentifier, primitive(number)])
+const cellFunction = lazy(() => {
+  return oneOf([
+    addFunction,
+    subtractFunction,
+    sumFunction
+  ])
+})
+
+const binaryArgument = oneOf([cellIdentifier, cellFunction, primitive(number)])
 
 function binaryFunction(name: string, handler: (right: number, left: number) => number): Parser<FormulaResult> {
   return map(sequence(
@@ -76,9 +84,7 @@ const formula = map(sequence(
   char("="),
   oneOf([
     cellIdentifier,
-    addFunction,
-    subtractFunction,
-    sumFunction
+    cellFunction
   ])
 ), ([_, formula]) => formula)
 

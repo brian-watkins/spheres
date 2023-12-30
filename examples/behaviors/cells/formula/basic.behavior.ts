@@ -64,6 +64,26 @@ export default behavior("basic formulas", [
           expect(context.getCellValue("B4"), is("27"))
         })
       ]
+    }),
+
+  example(testStoreContext())
+    .description("binary function with another function as an argument")
+    .script({
+      suppose: [
+        fact("there are cells with numbers", (context) => {
+          context.defineCell("A21", "14")
+          context.defineCell("A22", "21")
+          context.defineCell("A23", "2")
+        }),
+        fact("there is a cell with a function that references another function", (context) => {
+          context.defineCell("C9", "=SUB(SUM(A21:A23),19)")
+        })
+      ],
+      observe: [
+        effect("the cell contains the calculated value", (context) => {
+          expect(context.getCellValue("C9"), is("18"))
+        })
+      ]
     })
 
 ])

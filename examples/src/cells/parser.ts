@@ -213,6 +213,10 @@ export function test<T>(parser: Parser<T>, predicate: (value: T) => boolean): Pa
   }
 }
 
+export function lazy<T>(generator: () => Parser<T>): Parser<T> {
+  return (message) => generator()(message)
+}
+
 export function charSequence(expected: string): Parser<string> {
   return join(Array.from(expected).map(char))
 }

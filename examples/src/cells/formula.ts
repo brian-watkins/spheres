@@ -1,6 +1,7 @@
 import { Parser, char, charSequence, digit, join, joinOneOrMore, letter, map, maybe, number, oneOf, oneOrMore, sequence, test, text } from "./parser"
 
 export type GetCellValue = (identifier: string) => string | number
+export type FormulaResult = (get: GetCellValue) => string | number
 
 const cellIdentifier = map(join([letter, joinOneOrMore(digit)]), (id) => (get: GetCellValue) => get(id))
 
@@ -11,7 +12,7 @@ const cellRange = map(sequence(
   letter,
   joinOneOrMore(digit)
 ), ([startLetter, startNumber, _, endLetter, endNumber]) => {
-  let cells: Array<(get: GetCellValue) => string | number> = []
+  let cells: Array<FormulaResult> = []
   const startLetterIndex = startLetter.toUpperCase().charCodeAt(0)
   const endLetterIndex = endLetter.toUpperCase().charCodeAt(0)
 
@@ -23,23 +24,28 @@ const cellRange = map(sequence(
   return cells
 })
 
-function primitive(parser: Parser<string>): Parser<(get: GetCellValue) => string | number> {
+function primitive(parser: Parser<string>): Parser<FormulaResult> {
   return map(parser, (value) => () => value)
 }
 
 const binaryArgument = oneOf([cellIdentifier, primitive(number)])
 
-const addFunction = map(sequence(
-  charSequence("ADD("),
-  binaryArgument,
-  char(","),
-  binaryArgument,
-  char(")")
-), (components) => {
-  return (get: GetCellValue) => {
-    return Number(components[1](get)) + Number(components[3](get))
-  }
-})
+function binaryFunction(name: string, handler: (right: number, left: number) => number): Parser<FormulaResult> {
+  return map(sequence(
+    charSequence(`${name}(`),
+    binaryArgument,
+    char(","),
+    binaryArgument,
+    char(")")
+  ), ([_, right, __, left, ___]) => {
+    return (get: GetCellValue) => {
+      return handler(Number(right(get)), Number(left(get)))
+    }
+  })
+}
+
+const addFunction = binaryFunction("ADD", (right, left) => right + left)
+const subtractFunction = binaryFunction("SUB", (right, left) => right - left)
 
 const naryArgument = oneOf([
   cellRange,
@@ -57,7 +63,7 @@ const sumFunction = map(sequence(
   char(")")
 ), (components: Array<any>) => {
   return (get: GetCellValue) => {
-    let args: Array<(get: GetCellValue) => string> = []
+    let args: Array<FormulaResult> = []
     args = args.concat(components[1])
     components[2].forEach((c: Array<any>) => {
       args = args.concat(c)
@@ -71,6 +77,7 @@ const formula = map(sequence(
   oneOf([
     cellIdentifier,
     addFunction,
+    subtractFunction,
     sumFunction
   ])
 ), ([_, formula]) => formula)

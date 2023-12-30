@@ -58,27 +58,32 @@ const subtractFunction = binaryFunction("SUB", (right, left) => right - left)
 const naryArgument = oneOf([
   cellRange,
   map(cellIdentifier, (val) => [val]),
+  map(cellFunction, (val) => [val]),
   map(primitive(number), (val) => [val])
 ])
 
-const sumFunction = map(sequence(
-  charSequence("SUM("),
-  naryArgument,
-  maybe(oneOrMore(map(sequence(
-    char(","),
-    naryArgument
-  ), ([_, argument]) => argument)), []),
-  char(")")
-), (components: Array<any>) => {
-  return (get: GetCellValue) => {
-    let args: Array<FormulaResult> = []
-    args = args.concat(components[1])
-    components[2].forEach((c: Array<any>) => {
-      args = args.concat(c)
-    })
-    return args.map(arg => Number(arg(get))).reduce((acc, cur) => acc + cur, 0)
-  }
-})
+function naryFunction(name: string, handler: (args: Array<number>) => number): Parser<FormulaResult> {
+  return map(sequence(
+    charSequence(`${name}(`),
+    naryArgument,
+    maybe(oneOrMore(map(sequence(
+      char(","),
+      naryArgument
+    ), ([_, argument]) => argument)), []),
+    char(")")
+  ), (components: Array<any>) => {
+    return (get: GetCellValue) => {
+      let args: Array<FormulaResult> = []
+      args = args.concat(components[1])
+      components[2].forEach((c: Array<any>) => {
+        args = args.concat(c)
+      })
+      return handler(args.map(arg => Number(arg(get))))
+    }
+  })
+}
+
+const sumFunction = naryFunction("SUM", (args) => args.reduce((acc, cur) => acc + cur, 0))
 
 const formula = map(sequence(
   char("="),

@@ -1,4 +1,4 @@
-import { Parser, char, charSequence, digit, join, joinOneOrMore, letter, map, maybe, number, oneOf, oneOrMore, sequence, text } from "./parser"
+import { Parser, char, charSequence, digit, join, joinOneOrMore, letter, map, maybe, number, oneOf, oneOrMore, sequence, test, text } from "./parser"
 
 export type GetCellValue = (identifier: string) => string | number
 
@@ -75,9 +75,11 @@ const formula = map(sequence(
   ])
 ), ([_, formula]) => formula)
 
+const isNotAFormula = (value: string) => !value.startsWith("=")
+
 export const cellDefinition = oneOf([
   formula,
   primitive(number),
-  primitive(text)
+  primitive(test(text, isNotAFormula))
 ])
 

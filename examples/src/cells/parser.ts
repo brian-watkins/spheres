@@ -202,12 +202,23 @@ export function maybe<T>(parser: Parser<T>, alt: T): Parser<T> {
   return oneOf([parser, succeed(alt)])
 }
 
+export function test<T>(parser: Parser<T>, predicate: (value: T) => boolean): Parser<T> {
+  return (message) => {
+    const result = parser(message)
+    if (result.type === "success" && predicate(result.value)) {
+      return result
+    } else {
+      return failureResult()
+    }
+  }
+}
+
 export function charSequence(expected: string): Parser<string> {
   return join(Array.from(expected).map(char))
 }
 
 export const letter = oneOf(Array.from("aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ").map(char))
-export const punctuation = oneOf(Array.from("!?,.';:#@$%^&*()+-_<>/~`{}[]\\|").map(char))
+export const punctuation = oneOf(Array.from("!?,.';:#@$%^&*()+=-_<>/~`{}[]\\|").map(char))
 export const word = joinOneOrMore(letter)
 export const text = joinOneOrMore(oneOf([word, char(" "), punctuation]))
 

@@ -9,12 +9,12 @@ export default behavior("basic formulas", [
     .script({
       suppose: [
         fact("there is a cell with some text", (context) => {
-          context.defineCell("A2", "This is some cool text!?!?")
+          context.defineCell("A2", "This == some cool text!?!?")
         })
       ],
       observe: [
         effect("the cell contains the text", (context) => {
-          expect(context.getCellValue("A2"), is("This is some cool text!?!?"))
+          expect(context.getCellValue("A2"), is("This == some cool text!?!?"))
         })
       ]
     }),

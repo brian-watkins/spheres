@@ -32,7 +32,8 @@ const cellFunction = lazy(() => {
   return oneOf([
     addFunction,
     subtractFunction,
-    sumFunction
+    sumFunction,
+    prodFunction
   ])
 })
 
@@ -84,6 +85,7 @@ function naryFunction(name: string, handler: (args: Array<number>) => number): P
 }
 
 const sumFunction = naryFunction("SUM", (args) => args.reduce((acc, cur) => acc + cur, 0))
+const prodFunction = naryFunction("PROD", (args) => args.reduce((acc, cur) => acc * cur, 1))
 
 const formula = map(sequence(
   char("="),

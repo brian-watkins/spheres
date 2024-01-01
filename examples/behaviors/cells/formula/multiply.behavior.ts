@@ -27,7 +27,7 @@ export default behavior("multiply function", [
           context.defineCell("B18", "4")
           context.defineCell("C11", "-21")
         }),
-        fact("there is a cell that divides the other cell values", (context) => {
+        fact("there is a cell that multiplies the other cell values", (context) => {
           context.defineCell("D14", "=MUL(B18,C11)")
         })
       ],

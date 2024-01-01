@@ -33,6 +33,7 @@ const cellFunction = lazy(() => {
     addFunction,
     subtractFunction,
     divideFunction,
+    multiplyFunction,
     sumFunction,
     prodFunction
   ])
@@ -57,6 +58,7 @@ function binaryFunction(name: string, handler: (right: number, left: number) => 
 const addFunction = binaryFunction("ADD", (right, left) => right + left)
 const subtractFunction = binaryFunction("SUB", (right, left) => right - left)
 const divideFunction = binaryFunction("DIV", (right, left) => right / left)
+const multiplyFunction = binaryFunction("MUL", (right, left) => right * left)
 
 const naryArgument = oneOf([
   cellRange,

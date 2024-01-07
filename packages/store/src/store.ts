@@ -76,19 +76,21 @@ export type StoreMessage<T, M = T> = WriteMessage<T, M> | ResetMessage<T, M> | U
 const registerState = Symbol("registerState")
 const getController = Symbol("getController")
 const initialValue = Symbol("initialValue")
+const registryKey = Symbol("registryKey")
+
+type StoreRegistryKey = State<any> | {}
 
 export abstract class State<T, M = T> {
-  private _meta: MetaState<T, M, any> | undefined
-
   constructor(private name: string | undefined) { }
 
   abstract [registerState](store: Store): ContainerController<T, M>
 
+  get [registryKey](): StoreRegistryKey {
+    return this
+  }
+
   get meta(): MetaState<T, M, any> {
-    if (!this._meta) {
-      this._meta = new MetaState(this)
-    }
-    return this._meta
+    return new MetaState(this)
   }
 
   toString() {
@@ -97,8 +99,18 @@ export abstract class State<T, M = T> {
 }
 
 export class MetaState<T, M, E = unknown> extends State<Meta<M, E>> {
+  private static keys: WeakMap<StoreRegistryKey, StoreRegistryKey> = new WeakMap()
+
   constructor(private token: State<T, M>) {
     super(`meta[${token.toString()}]`)
+
+    if (!MetaState.keys.has(this.token[registryKey])) {
+      MetaState.keys.set(this.token[registryKey], {})
+    }
+  }
+
+  get [registryKey](): StoreRegistryKey {
+    return MetaState.keys.get(this.token[registryKey])!
   }
 
   [registerState](store: Store): ContainerController<Meta<M, E>> {
@@ -130,13 +142,30 @@ abstract class AbstractReactiveQuery implements StateListener {
 }
 
 export class Container<T, M = T> extends State<T, M> {
+  private static idMap: Map<string, {}> = new Map()
+  private key: StoreRegistryKey
+
   constructor(
+    id: string | undefined,
     name: string | undefined,
     private initialValue: T,
     private reducer: ((message: M, current: T) => T) | undefined,
     private query: ((actions: QueryActions<T>, nextValue?: M) => M) | undefined
   ) {
     super(name)
+
+    if (id) {
+      if (!Container.idMap.has(id)) {
+        Container.idMap.set(id, {})
+      }
+      this.key = Container.idMap.get(id)!
+    } else {
+      this.key = this
+    }
+  }
+
+  get [registryKey](): StoreRegistryKey {
+    return this.key
   }
 
   get [initialValue](): T {
@@ -271,13 +300,14 @@ class ReactiveProvider extends AbstractReactiveQuery {
 }
 
 export class Store {
-  private registry: WeakMap<State<any>, ContainerController<any, any>> = new WeakMap();
+  private registry: WeakMap<StoreRegistryKey, ContainerController<any, any>> = new WeakMap();
 
   [getController]<T, M>(token: State<T, M>): ContainerController<T, M> {
-    let controller = this.registry.get(token)
+    const key = token[registryKey]
+    let controller = this.registry.get(key)
     if (controller === undefined) {
       controller = token[registerState](this)
-      this.registry.set(token, controller)
+      this.registry.set(key, controller)
     }
     return controller
   }

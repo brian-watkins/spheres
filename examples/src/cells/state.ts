@@ -3,28 +3,22 @@ import { cellDefinition } from "./formula";
 
 export type CellContainer = Container<Value<string | number>, string>
 
-const cells: Map<string, CellContainer> = new Map()
+export function cellContainer(id: string): CellContainer {
+  return container({
+    id,
+    initialValue: value<string | number>({
+      query: () => ""
+    }),
+    reducer: (definition: string) => {
+      const result = cellDefinition(definition)
 
-export function cellContainer(id: string, cellCollection: Map<string, CellContainer> = cells): CellContainer {
-  let cell = cellCollection.get(id)
-  if (!cell) {
-    cell = container({
-      initialValue: value<string | number>({
-        query: () => ""
-      }),
-      reducer: (definition: string) => {
-        const result = cellDefinition(definition)
-
-        if (result.type === "failure") {
-          throw new Error("parse-failure")
-        }
-
-        return value({
-          query: (get) => result.value((identifier) => get(get(cellContainer(identifier, cellCollection))))
-        })
+      if (result.type === "failure") {
+        throw new Error("parse-failure")
       }
-    })
-    cellCollection.set(id, cell)
-  }
-  return cell
+
+      return value({
+        query: (get) => result.value((identifier) => get(get(cellContainer(identifier))))
+      })
+    }
+  })
 }

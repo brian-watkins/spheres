@@ -1,6 +1,6 @@
 import { Store, write } from "@spheres/store";
 import { Context } from "esbehavior";
-import { CellContainer, cellContainer } from "../../../../src/cells/state";
+import { cellContainer } from "../../../../src/cells/state";
 
 export function testStoreContext(): Context<TestStore> {
   return {
@@ -10,11 +10,10 @@ export function testStoreContext(): Context<TestStore> {
 
 export class TestStore {
   private store = new Store()
-  private cellCollection = new Map<string, CellContainer>()
   private cellValues = new Map<string, string>()
 
   defineCell(id: string, definition: string) {
-    const cell = cellContainer(id, this.cellCollection)
+    const cell = cellContainer(id)
     this.store.dispatch(write(cell, definition))
     this.store.useEffect({
       run: (get) => {
@@ -30,7 +29,7 @@ export class TestStore {
   }
 
   updateCell(id: string, value: string) {
-    const cell = cellContainer(id, this.cellCollection)
+    const cell = cellContainer(id)
     this.store.dispatch(write(cell, value))
   }
 

@@ -478,6 +478,61 @@ const currentValueWriter: ConfigurableExample =
       ]
     })
 
+const addWriterOnRegisterHook: ConfigurableExample =
+  example(testStoreContext<Container<string>>())
+    .description("add writer to container via register hook")
+    .script({
+      suppose: [
+        fact("there is a container that uses a writer", (context) => {
+          context.setTokens(container({ initialValue: "initial" }))
+        }),
+        fact("there is a registerState hook that attaches a writer", (context) => {
+          context.store.onRegisterState((token) => {
+            context.store.useWriter(token, {
+              async write(message, {pending, ok}) {
+                pending(`Dynamic Writer is pending: ${message}`)
+                ok(`Dynamic Writer is complete: ${message}`)
+              },
+            })
+          })
+        }),
+        fact("there is a subscriber", (context) => {
+          context.subscribeTo(context.tokens, "sub-one")
+        }),
+        fact("there is a subscriber to the meta container", (context) => {
+          context.subscribeTo(context.tokens.meta, "meta-sub")
+        })
+      ],
+      observe: [
+        effect("the subscriber gets the initial value", (context) => {
+          expect(context.valuesForSubscriber("sub-one"), is(arrayWith([
+            equalTo("initial")
+          ])))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("a write message is dispatched for the container", (context) => {
+          context.writeTo(context.tokens, "Something Funny!")
+        })
+      ],
+      observe: [
+        effect("the subscriber does not receives the message", (context) => {
+          expect(context.valuesForSubscriber("sub-one"), is(arrayWith([
+            equalTo("initial"),
+            equalTo("Dynamic Writer is complete: Something Funny!")
+          ])))
+        }),
+        effect("the subscriber to the meta container gets a pending message", (context) => {
+          expect(context.valuesForSubscriber("meta-sub"), is(arrayWith([
+            okMessage(),
+            pendingMessage("Dynamic Writer is pending: Something Funny!"),
+            okMessage()
+          ])))
+        })
+      ]
+    })
+
 export default behavior("Writer", [
   containerWithSimpleWriter,
   errorWriter,
@@ -486,5 +541,6 @@ export default behavior("Writer", [
   pendingWriter,
   writerThatUsesOtherState,
   reducerContainerWriter,
-  currentValueWriter
+  currentValueWriter,
+  addWriterOnRegisterHook
 ])

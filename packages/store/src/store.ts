@@ -299,8 +299,11 @@ class ReactiveProvider extends AbstractReactiveQuery {
   }
 }
 
+export type RegisterStateHook = (token: State<any>) => void
+
 export class Store {
   private registry: WeakMap<StoreRegistryKey, ContainerController<any, any>> = new WeakMap();
+  private registerStateHook: RegisterStateHook | undefined
 
   [getController]<T, M>(token: State<T, M>): ContainerController<T, M> {
     const key = token[registryKey]
@@ -308,8 +311,13 @@ export class Store {
     if (controller === undefined) {
       controller = token[registerState](this)
       this.registry.set(key, controller)
+      this.registerStateHook?.(token)
     }
     return controller
+  }
+
+  onRegisterState(handler: RegisterStateHook) {
+    this.registerStateHook = handler
   }
 
   useEffect(effect: Effect): EffectHandle {

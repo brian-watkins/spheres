@@ -40,6 +40,11 @@ export default behavior("dynamic container id", [
             "one two",
             "one two three"
           ]))
+        }),
+        effect("the debug name is equal to the id", (context) => {
+          expect(context.tokens.one.toString(), is("container-1"))
+          expect(context.tokens.two.toString(), is("container-1"))
+          expect(context.tokens.three.toString(), is("container-1"))
         })
       ]
     }),
@@ -70,6 +75,25 @@ export default behavior("dynamic container id", [
             okMessage(),
             errorMessage("BLOWUP", new Error("reducer-failure"))
           ])))
+        })
+      ]
+    }),
+
+  example(testStoreContext<Container<string>>())
+    .description("when the name and the id are set")
+    .script({
+      suppose: [
+        fact("there is a container with a name and an id", (context) => {
+          context.setTokens(container({
+            id: "6",
+            name: "fun-container",
+            initialValue: "hello"
+          }))
+        })
+      ],
+      observe: [
+        effect("the string name includes the name and id", (context) => {
+          expect(context.tokens.toString(), is("fun-container-6"))
         })
       ]
     })

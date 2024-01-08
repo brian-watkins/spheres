@@ -152,7 +152,7 @@ export class Container<T, M = T> extends State<T, M> {
     private reducer: ((message: M, current: T) => T) | undefined,
     private query: ((actions: QueryActions<T>, nextValue?: M) => M) | undefined
   ) {
-    super(name)
+    super(name && id ? `${name}-${id}` : (name ?? id))
 
     if (id) {
       if (!Container.idMap.has(id)) {

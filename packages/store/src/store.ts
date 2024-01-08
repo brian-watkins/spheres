@@ -81,7 +81,7 @@ const registryKey = Symbol("registryKey")
 type StoreRegistryKey = State<any> | {}
 
 export abstract class State<T, M = T> {
-  constructor(private name: string | undefined) { }
+  constructor(readonly name: string | undefined) { }
 
   abstract [registerState](store: Store): ContainerController<T, M>
 
@@ -146,7 +146,7 @@ export class Container<T, M = T> extends State<T, M> {
   private key: StoreRegistryKey
 
   constructor(
-    id: string | undefined,
+    readonly id: string | undefined,
     name: string | undefined,
     private initialValue: T,
     private reducer: ((message: M, current: T) => T) | undefined,

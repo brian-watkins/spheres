@@ -46,6 +46,12 @@ export interface WriteMessage<T, M = T> {
   value: M
 }
 
+export interface ExecMessage<M> {
+  type: "exec"
+  command: Command<M>
+  message: M
+}
+
 export interface ResetMessage<T, M = T> {
   type: "reset"
   container: Container<T, M>
@@ -71,7 +77,7 @@ export interface BatchMessage {
   messages: Array<StoreMessage<any>>
 }
 
-export type StoreMessage<T, M = T> = WriteMessage<T, M> | ResetMessage<T, M> | UseMessage | BatchMessage | RunMessage
+export type StoreMessage<T, M = T> = WriteMessage<T, M> | ResetMessage<T, M> | UseMessage | BatchMessage | RunMessage | ExecMessage<M>
 
 const registerState = Symbol("registerState")
 const getController = Symbol("getController")
@@ -139,6 +145,21 @@ abstract class AbstractReactiveQuery implements StateListener {
   }
 
   abstract update(): void
+}
+
+export class SuppliedState<T, M, E = any> extends State<T, M> {
+
+  constructor(private initialValue: T) {
+    super(undefined)
+  }
+
+  [registerState](_: Store): ContainerController<T, M> {
+    return new ContainerController(this.initialValue, undefined)
+  }
+
+  get meta(): MetaState<T, M, E> {
+    return new MetaState(this)
+  }
 }
 
 export class Container<T, M = T> extends State<T, M> {
@@ -249,7 +270,7 @@ class ReactiveValue<T, M> extends AbstractReactiveQuery {
   update(): void {
     const derivedController = this.store[getController](this.state)
     try {
-      derivedController.publishValue(this.run(derivedController.value))
+      derivedController.generateNext(this.run(derivedController.value))
     } catch (err) {
       this.store[getController](this.state.meta).writeValue(error(undefined, err))
     }
@@ -288,7 +309,7 @@ class ReactiveProvider extends AbstractReactiveQuery {
   }
 
   setValue<Q, M>(state: State<Q, M>, value: M) {
-    this.store[getController](state).publishValue(value)
+    this.store[getController](state).generateNext(value)
   }
 
   update(): void {
@@ -299,10 +320,23 @@ class ReactiveProvider extends AbstractReactiveQuery {
   }
 }
 
+export class Command<_> { }
+
+export interface CommandActions {
+  supply<T, M, E>(state: SuppliedState<T, M, E>, value: T): void
+  pending<T, M, E>(state: SuppliedState<T, M, E>, message: M): void
+  error<T, M, E>(state: SuppliedState<T, M, E>, message: M, reason: E): void
+}
+
+export interface CommandManager<M> {
+  exec(message: M, actions: CommandActions): void
+}
+
 export type RegisterStateHook = (token: State<any>) => void
 
 export class Store {
   private registry: WeakMap<StoreRegistryKey, ContainerController<any, any>> = new WeakMap();
+  private commandRegistry: Map<Command<any>, CommandManager<any>> = new Map()
   private registerStateHook: RegisterStateHook | undefined
 
   [getController]<T, M>(token: State<T, M>): ContainerController<T, M> {
@@ -331,6 +365,10 @@ export class Store {
     reactiveProvider.update()
   }
 
+  useCommand<M>(command: Command<M>, handler: CommandManager<M>) {
+    this.commandRegistry.set(command, handler)
+  }
+
   useWriter<T, M, E = unknown>(token: State<T, M>, writer: Writer<T, M, E>) {
     const controller = this[getController](token)
 
@@ -340,7 +378,7 @@ export class Store {
           return this[getController](state).value
         },
         ok: (value) => {
-          controller.publishValue(value)
+          controller.generateNext(value)
         },
         pending: (message) => {
           this[getController](token.meta).publishValue(pending(message))
@@ -363,6 +401,19 @@ export class Store {
         } catch (err) {
           this[getController](message.container.meta).writeValue(error(message.value, err))
         }
+        break
+      case "exec":
+        this.commandRegistry.get(message.command)?.exec(message.message, {
+          supply: (token, value) => {
+            this[getController](token).publishValue(value)
+          },
+          pending: (token, message) => {
+            this[getController](token.meta).publishValue(pending(message))
+          },
+          error: (token, message, reason) => {
+            this[getController](token.meta).publishValue(error(message, reason))
+          }
+        })
         break
       case "reset":
         this.dispatch({

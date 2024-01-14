@@ -1,4 +1,4 @@
-import { Rule, Container, Provider, State, Store, Writer, write, RuleArg, StoreMessage, batch, GetState, Effect, use, reset } from "@src/index.js"
+import { Rule, Container, Provider, State, Store, Writer, write, RuleArg, StoreMessage, batch, GetState, Effect, use, reset, Command, CommandActions } from "@src/index.js"
 import { Context } from "esbehavior"
 
 export function testStoreContext<T>(): Context<TestStore<T>> {
@@ -40,6 +40,10 @@ export class TestStore<T> {
 
   useProvider(provider: Provider) {
     this.store.useProvider(provider)
+  }
+
+  useCommand<M>(command: Command<M>, handler: (message: M, actions: CommandActions) => void) {
+    this.store.useCommand(command, { exec: handler })
   }
 
   useWriter<T, M>(token: State<T, M>, writer: Writer<T, M>) {

@@ -28,19 +28,23 @@ export class ContainerController<T, M = T> {
     this.listeners.delete(listener)
   }
 
-  publishValue(value: M) {
+  generateNext(message: M) {
     let updatedValue
     if (this.reducer === undefined) {
-      updatedValue = value as unknown as T
+      updatedValue = message as unknown as T
     } else {
-      updatedValue = this.reducer(value, this._value)
+      updatedValue = this.reducer(message, this._value)
     }
-   
+
+    this.publishValue(updatedValue)
+  }
+
+  publishValue(value: T) {
     this.metaController?.publishValue(ok())
 
-    if (Object.is(this._value, updatedValue)) return
+    if (Object.is(this._value, value)) return
    
-    this._value = updatedValue
+    this._value = value
 
     for (const listener of this.listeners) {
       listener.update()
@@ -49,7 +53,7 @@ export class ContainerController<T, M = T> {
 
   writeValue(value: M) {
     if (this.writer === undefined) {
-      this.publishValue(value)
+      this.generateNext(value)
     } else {
       this.writer(value)
     }

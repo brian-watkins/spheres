@@ -35,11 +35,6 @@ export interface QueryActions<T> {
   current: T
 }
 
-export interface SelectionActions<T> {
-  get: GetState,
-  current: T
-}
-
 export interface WriteMessage<T, M = T> {
   type: "write"
   container: Container<T, M>

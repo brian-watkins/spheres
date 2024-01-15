@@ -11,8 +11,8 @@ export interface Circle {
   selected: boolean
 }
 
-export const circleData: Container<Array<CircleContainer>> = container({
-  initialValue: [],
+export const circleData = container<Array<CircleContainer>>({
+  initialValue: []
 })
 
 export interface CircleSelectionMessage {

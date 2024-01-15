@@ -80,6 +80,7 @@ export interface BatchMessage {
 export type StoreMessage<T, M = T> = WriteMessage<T, M> | ResetMessage<T, M> | UseMessage | BatchMessage | RunMessage | ExecMessage<M>
 
 const registerState = Symbol("registerState")
+const initializeCommand = Symbol("initializeCommand")
 const getController = Symbol("getController")
 const initialValue = Symbol("initialValue")
 const registryKey = Symbol("registryKey")
@@ -320,7 +321,34 @@ class ReactiveProvider extends AbstractReactiveQuery {
   }
 }
 
-export class Command<_> { }
+export class Command<M> {
+  constructor(private query: ((get: GetState) => M) | undefined) { }
+
+  [initializeCommand](store: Store): void {
+    if (this.query !== undefined) {
+      const reactiveQuery = new ReactiveCommandQuery(store, this, this.query)
+      reactiveQuery.update()
+    }
+  }
+}
+
+class ReactiveCommandQuery<M> extends AbstractReactiveQuery {
+  constructor(store: Store, private command: Command<M>, private query: (get: GetState) => M) {
+    super(store)
+  }
+
+  update(): void {
+    this.store.dispatch({
+      type: "exec",
+      command: this.command,
+      message: this.run()
+    })
+  }
+
+  run(): M {
+    return this.query((state) => this.getValue(state))
+  }
+}
 
 export interface CommandActions {
   supply<T, M, E>(state: SuppliedState<T, M, E>, value: T): void
@@ -367,6 +395,7 @@ export class Store {
 
   useCommand<M>(command: Command<M>, handler: CommandManager<M>) {
     this.commandRegistry.set(command, handler)
+    command[initializeCommand](this)
   }
 
   useWriter<T, M, E = unknown>(token: State<T, M>, writer: Writer<T, M, E>) {

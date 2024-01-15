@@ -1,7 +1,11 @@
-import { Command, ExecMessage, SuppliedState } from "./store";
+import { Command, ExecMessage, GetState, SuppliedState } from "./store";
 
-export function command<Message>(): Command<Message> {
-  return new Command<Message>()
+export interface CommandInitializer<M> {
+  query?: (get: GetState) => M
+}
+
+export function command<M>(initializer: CommandInitializer<M> = {}): Command<M> {
+  return new Command<M>(initializer.query)
 }
 
 export function exec<M>(command: Command<M>, message: M): ExecMessage<M> {

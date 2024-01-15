@@ -107,6 +107,50 @@ export default behavior("command", [
           ])))
         })
       ]
+
+  example(testStoreContext<TestQueryCommandState>())
+    .description("Command triggered by a query")
+    .script({
+      suppose: [
+        fact("there is a command triggered by a reactive query", (context) => {
+          const keyContainer = container({ initialValue: 27 })
+          const reactiveCommand = command({
+            query: (get) => {
+              return `command-invocation-${get(keyContainer)}`
+            }
+          })
+          let messages: Array<string> = []
+          context.useCommand(reactiveCommand, (message) => {
+            messages.push(message)
+          })
+          context.setTokens({
+            container: keyContainer,
+            messages
+          })
+        })
+      ],
+      perform: [
+        step("the dependency is updated", (context) => {
+          context.writeTo(context.tokens.container, 14)
+        }),
+        step("the dependency is updated again", (context) => {
+          context.writeTo(context.tokens.container, 18)
+        })
+      ],
+      observe: [
+        effect("the command is invoked with the initial value and on each subsequent update of the dependency", (context) => {
+          expect(context.tokens.messages, is([
+            "command-invocation-27",
+            "command-invocation-14",
+            "command-invocation-18",
+          ]))
+        })
+      ]
     })
 
 ])
+
+interface TestQueryCommandState {
+  container: Container<number>,
+  messages: Array<string>
+}

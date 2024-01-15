@@ -1,4 +1,4 @@
-import { Command, SuppliedState, command, exec, supplied } from "@src/index";
+import { Command, Container, SuppliedState, command, container, exec, supplied } from "@src/index";
 import { behavior, effect, example, fact, step } from "esbehavior";
 import { arrayWith, expect, is } from "great-expectations";
 import { errorMessage, okMessage, pendingMessage } from "helpers/metaMatchers";
@@ -17,6 +17,11 @@ interface TestCommandContext {
 interface TestCommandStateContext {
   command: Command<{ container: SuppliedState<string, number, boolean> }>
   responseContainer: SuppliedState<string, number, boolean>
+}
+
+interface TestCommandGetStateContext {
+  command: Command<{ container: SuppliedState<number, any> }>,
+  state: SuppliedState<number, any>
 }
 
 export default behavior("command", [
@@ -107,6 +112,49 @@ export default behavior("command", [
           ])))
         })
       ]
+    }),
+
+  example(testStoreContext<TestCommandGetStateContext>())
+    .description("get state when processing a command")
+    .script({
+      suppose: [
+        fact("there is a command that gets state value", (context) => {
+          const counter = supplied({ initialValue: 0 })
+          const incrementCommand = command<{ container: SuppliedState<number, any> }>()
+          context.setTokens({
+            command: incrementCommand,
+            state: counter
+          })
+          context.useCommand(incrementCommand, (message, { get, supply }) => {
+            supply(message.container, get(message.container) + 1)
+          })
+        }),
+        fact("there is a subscriber to the state", (context) => {
+          context.subscribeTo(context.tokens.state, "sub-1")
+        })
+      ],
+      perform: [
+        step("execute the command", (context) => {
+          context.store.dispatch(exec(context.tokens.command, { container: context.tokens.state }))
+        }),
+        step("execute the command", (context) => {
+          context.store.dispatch(exec(context.tokens.command, { container: context.tokens.state }))
+        }),
+        step("execute the command", (context) => {
+          context.store.dispatch(exec(context.tokens.command, { container: context.tokens.state }))
+        })
+      ],
+      observe: [
+        effect("the subscriber gets the updates", (context) => {
+          expect(context.valuesForSubscriber("sub-1"), is([
+            0,
+            1,
+            2,
+            3
+          ]))
+        })
+      ]
+    }),
 
   example(testStoreContext<TestQueryCommandState>())
     .description("Command triggered by a query")

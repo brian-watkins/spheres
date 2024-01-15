@@ -351,6 +351,7 @@ class ReactiveCommandQuery<M> extends AbstractReactiveQuery {
 }
 
 export interface CommandActions {
+  get<T, M>(state: State<T, M>): T
   supply<T, M, E>(state: SuppliedState<T, M, E>, value: T): void
   pending<T, M, E>(state: SuppliedState<T, M, E>, message: M): void
   error<T, M, E>(state: SuppliedState<T, M, E>, message: M, reason: E): void
@@ -433,6 +434,9 @@ export class Store {
         break
       case "exec":
         this.commandRegistry.get(message.command)?.exec(message.message, {
+          get: (state) => {
+            return this[getController](state).value
+          },
           supply: (token, value) => {
             this[getController](token).publishValue(value)
           },

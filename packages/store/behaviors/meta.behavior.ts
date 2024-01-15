@@ -1,7 +1,7 @@
 import { behavior, ConfigurableExample, effect, example, fact, step } from "esbehavior";
 import { arrayWith, equalTo, expect, is, objectOfType, objectWithProperty, satisfying, throws } from "great-expectations";
 import { errorMessage, okMessage, pendingMessage } from "./helpers/metaMatchers.js";
-import { container, Container, error, Meta, pending, StoreError, value, Value } from "@src/index.js";
+import { container, Container, Meta, StoreError, value, Value } from "@src/index.js";
 import { testStoreContext } from "./helpers/testStore.js";
 
 interface MetaContext {
@@ -64,7 +64,7 @@ const metaContainerWithReducer: ConfigurableExample =
     .description("meta container with reducer")
     .script({
       suppose: [
-        fact("there is a container with a reducer", (context) => {
+        fact("there is a container with a reducer and a writer", (context) => {
           context.setTokens({
             reducerContainer: container({
               initialValue: 41,
@@ -72,6 +72,11 @@ const metaContainerWithReducer: ConfigurableExample =
                 return message === "add" ? current + 1 : current - 1
               }
             })
+          })
+          context.useWriter(context.tokens.reducerContainer, {
+            async write(message, actions) {
+              actions.pending(message)
+            }
           })
         }),
         fact("there is a subscriber to the container", (context) => {
@@ -94,13 +99,9 @@ const metaContainerWithReducer: ConfigurableExample =
         })
       ]
     }).andThen({
-      suppose: [
-        fact("there is a provider for the container", (context) => {
-          context.useProvider({
-            provide: ({ set }) => {
-              set(context.tokens.reducerContainer.meta, pending("add"))
-            }
-          })
+      perform: [
+        step("a message is written to the container", (context) => {
+          context.writeTo(context.tokens.reducerContainer, "add")
         })
       ],
       observe: [
@@ -144,6 +145,11 @@ const metaErrorBehavior: ConfigurableExample =
               }
             })
           })
+          context.useWriter(context.tokens.container, {
+            async write(_, actions) {
+              actions.error("goodbye", 37)
+            },
+          })
         }),
         fact("there is a subscriber to the derived value", (context) => {
           context.subscribeTo(context.tokens.derived, "sub-one")
@@ -151,11 +157,7 @@ const metaErrorBehavior: ConfigurableExample =
       ],
       perform: [
         step("an error is written to the meta container", (context) => {
-          context.useProvider({
-            provide: ({ set }) => {
-              set(context.tokens.container.meta, error("goodbye", 37))
-            }
-          })
+          context.writeTo(context.tokens.container, "blah")
         })
       ],
       observe: [

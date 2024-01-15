@@ -5,15 +5,6 @@ import { Meta, error, ok, pending } from "./meta.js"
 export type GetState = <S, N = S>(state: State<S, N>) => S
 export type Stateful<T> = (get: GetState) => T | undefined
 
-export interface ProviderActions {
-  get: GetState
-  set: <Q, M>(state: State<Q, M>, value: M) => void
-}
-
-export interface Provider {
-  provide(actions: ProviderActions): void
-}
-
 export interface WriterActions<T, M, E> {
   get: GetState
   ok(value: M): void
@@ -299,23 +290,6 @@ class ReactiveEffect extends AbstractReactiveQuery implements EffectHandle {
   }
 }
 
-class ReactiveProvider extends AbstractReactiveQuery {
-  constructor(store: Store, private provider: Provider) {
-    super(store)
-  }
-
-  setValue<Q, M>(state: State<Q, M>, value: M) {
-    this.store[getController](state).generateNext(value)
-  }
-
-  update(): void {
-    this.provider.provide({
-      get: (state) => this.getValue(state),
-      set: (state, value) => this.setValue(state, value)
-    })
-  }
-}
-
 export class Command<M> {
   constructor(private query: ((get: GetState) => M) | undefined) { }
 
@@ -382,11 +356,6 @@ export class Store {
     const reactiveEffect = new ReactiveEffect(this, effect)
     reactiveEffect.update()
     return reactiveEffect
-  }
-
-  useProvider(provider: Provider) {
-    const reactiveProvider = new ReactiveProvider(this, provider)
-    reactiveProvider.update()
   }
 
   useCommand<M>(command: Command<M>, handler: CommandManager<M>) {

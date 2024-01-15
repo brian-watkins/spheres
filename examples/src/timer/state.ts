@@ -1,6 +1,11 @@
-import { Provider, container, value } from "@spheres/store";
+import { Rule, command, container, rule, value, write } from "@spheres/store";
 
-export const elapsedTime = container({ initialValue: 0 })
+export const elapsedTime = container({
+  initialValue: 0,
+  query: ({ get, current }, next) => {
+    return Math.min(get(duration) * 1000, next ?? current)
+  }
+})
 
 export const duration = container({ initialValue: 0 })
 
@@ -11,33 +16,18 @@ export const percentComplete = value({
   }
 })
 
-const timerId = container<any | undefined>({ initialValue: undefined })
-
-const timerShouldRun = value({
-  query: (get) => get(duration) > 0 && get(elapsedTime) < (get(duration) * 1000)
-})
-
-export type RepeaterId = any
-
-export interface Repeater {
-  repeatEvery(run: () => void, millis: number): RepeaterId
-  cancel(systemTimerId: RepeaterId): void
+export interface RepeaterCommand {
+  shouldRun: boolean
+  rule: Rule
+  interval: number
 }
 
-export const timerProvider = (repeater: Repeater): Provider => {
-  return {
-    provide: ({ get, set }) => {
-      const timerIsRunning = get(timerId) !== undefined
-
-      if (timerIsRunning && !get(timerShouldRun)) {
-        repeater.cancel(get(timerId))
-        set(timerId, undefined)
-      } else if (!timerIsRunning && get(timerShouldRun)) {
-        const intervalId = repeater.repeatEvery(() => {
-          set(elapsedTime, get(elapsedTime) + 100)
-        }, 100)
-        set(timerId, intervalId)
-      }
+export const runTimerCommand = command<RepeaterCommand>({
+  query: (get) => {
+    return {
+      shouldRun: get(duration) > 0 && get(elapsedTime) < (get(duration) * 1000),
+      interval: 100,
+      rule: rule((get) => write(elapsedTime, get(elapsedTime) + 100))
     }
   }
-}
+})

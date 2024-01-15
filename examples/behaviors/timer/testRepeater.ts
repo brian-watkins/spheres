@@ -1,31 +1,26 @@
-import { Repeater } from "../../src/timer/state.js";
+import { CommandManager, Store, use } from "@spheres/store";
+import { RepeaterCommand } from "../../src/timer/state";
 
-export class TestRepeater implements Repeater {
-  private runner: (() => void) | undefined
-  private interval: number = 0
+export class TestRepeaterManager implements CommandManager<RepeaterCommand> {
+  private current: RepeaterCommand | undefined
 
-  repeatEvery(run: () => void, millis: number) {
-    this.runner = run
-    this.interval = millis
-    return "my-repeater-id"
-  }
-  
-  cancel(systemTimerId: any): void {
-    if (systemTimerId === "my-repeater-id") {
-      this.runner = undefined
-      this.interval = 0
-    }
+  constructor(private store: Store) { }
+
+  exec(message: RepeaterCommand): void {
+    this.current = message
   }
 
   runFor(millis: number) {
-    if (this.interval === 0) {
+    if (!this.current) return
+
+    if (this.current.interval === 0) {
       return
     }
 
-    const loops = Math.floor(millis / this.interval)
+    const loops = Math.floor(millis / this.current.interval)
 
     for (let i = 0; i < loops; i++) {
-      this.runner?.()
+      this.store.dispatch(use(this.current.rule))
     }
   }
 }

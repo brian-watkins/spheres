@@ -1,5 +1,5 @@
 import { View, htmlView } from "@spheres/display";
-import { write } from "@spheres/store";
+import { reset, write } from "@spheres/store";
 import { duration, elapsedTime, percentComplete } from "./state.js";
 import { names, useValue } from "../helpers/helpers.js";
 
@@ -60,7 +60,7 @@ export function timer(): View {
             "disabled:bg-slate-400",
             "hover:bg-sky-800"
           ]))
-          .on("click", () => write(elapsedTime, 0))
+          .on("click", () => reset(elapsedTime))
         el.children
           .textNode("Reset")
       })

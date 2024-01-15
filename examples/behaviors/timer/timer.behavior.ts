@@ -68,7 +68,7 @@ export default behavior("timer", [
         timePassesInMillis(200)
       ],
       observe: [
-        itShowsElapsedTime("1.2s"),
+        itShowsElapsedTime("1.0s"),
         itShowsPercentComplete("1.00")
       ]
     }).andThen({
@@ -77,8 +77,8 @@ export default behavior("timer", [
         timePassesInMillis(300)
       ],
       observe: [
-        itShowsElapsedTime("1.5s"),
-        itShowsPercentComplete("0.50")
+        itShowsElapsedTime("1.3s"),
+        itShowsPercentComplete("0.43")
       ]
     }),
 

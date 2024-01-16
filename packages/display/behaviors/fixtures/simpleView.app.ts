@@ -1,5 +1,6 @@
-import { View, inputValue, htmlView } from "@src/index.js"
+import { View, htmlView } from "@src/index.js"
 import { container, GetState, rule, use, write } from "@spheres/store"
+import { useValue } from "./helpers"
 
 const peopleState = container({
   initialValue: [
@@ -45,7 +46,7 @@ export default function (): View {
         .p(el => el.children.textNode("Here is some person"))
         .zone(peopleView)
         .hr()
-        .input(el => el.config.on("input", event => write(localState, inputValue(event))))
+        .input(el => el.config.on("input", useValue((value) => write(localState, value))))
         .zone(updateButton)
     })
 }

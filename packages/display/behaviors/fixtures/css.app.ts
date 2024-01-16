@@ -1,5 +1,6 @@
 import { container, write } from "@spheres/store"
-import { inputValue, View, htmlView } from "@src/index.js"
+import { View, htmlView } from "@src/index.js"
+import { useValue } from "./helpers"
 
 const numberState = container({ initialValue: 17 })
 
@@ -29,7 +30,7 @@ export default function (): View {
         .input(el => {
           el.config
             .dataAttribute("number-input")
-            .on("input", evt => write(numberState, Number(inputValue(evt))))
+            .on("input", useValue((value) => write(numberState, Number(value))))
         })
     })
 }

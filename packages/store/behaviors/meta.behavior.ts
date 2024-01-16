@@ -1,7 +1,7 @@
 import { behavior, ConfigurableExample, effect, example, fact, step } from "esbehavior";
 import { arrayWith, equalTo, expect, is, objectOfType, objectWithProperty, satisfying, throws } from "great-expectations";
 import { errorMessage, okMessage, pendingMessage } from "./helpers/metaMatchers.js";
-import { container, Container, Meta, StoreError, value, Value } from "@src/index.js";
+import { container, Container, Meta, StoreError, derived, DerivedState } from "@src/index.js";
 import { testStoreContext } from "./helpers/testStore.js";
 
 interface MetaContext {
@@ -121,7 +121,7 @@ const metaContainerWithReducer: ConfigurableExample =
 
 interface MetaErrorContext {
   container: Container<string>
-  derived: Value<number>
+  derived: DerivedState<number>
 }
 
 const metaErrorBehavior: ConfigurableExample =
@@ -132,7 +132,7 @@ const metaErrorBehavior: ConfigurableExample =
         fact("there is a container", (context) => {
           context.setTokens({
             container: container({ initialValue: "hello" }),
-            derived: value({
+            derived: derived({
               query: get => {
                 const metaValue = get<Meta<string, number>>(context.tokens.container.meta)
                 switch (metaValue.type) {
@@ -347,7 +347,7 @@ const containerReducerError: ConfigurableExample =
 
 interface TestValueWithDependency {
   dependency: Container<number>
-  value: Value<string>
+  value: DerivedState<string>
 }
 
 const valueQueryInitError: ConfigurableExample =
@@ -359,7 +359,7 @@ const valueQueryInitError: ConfigurableExample =
           const dep = container({ initialValue: 88 })
           context.setTokens({
             dependency: dep,
-            value: value({
+            value: derived({
               name: "bad-value",
               query: ((get) => {
                 if (get(context.tokens.dependency) > 0) {
@@ -393,7 +393,7 @@ const valueQueryDependencyError: ConfigurableExample =
           const dep = container({ initialValue: 88 })
           context.setTokens({
             dependency: dep,
-            value: value({
+            value: derived({
               query: ((get) => {
                 if (get(context.tokens.dependency) < 20) {
                   throw `Error processing dependency ${get(context.tokens.dependency)}!!`

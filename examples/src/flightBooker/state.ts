@@ -1,4 +1,4 @@
-import { batch, container, rule, value } from "@spheres/store";
+import { batch, container, rule, derived } from "@spheres/store";
 import { DateTime } from "luxon"
 
 export const DATE_FORMAT = "dd.MM.yyyy"
@@ -12,7 +12,7 @@ export const startDate = container({
   initialValue: formatDate(DateTime.now())
 })
 
-export const startDateIsValid = value({
+export const startDateIsValid = derived({
   query: (get) => toDateTime(get(startDate)).isValid
 })
 
@@ -20,7 +20,7 @@ export const returnDate = container({
   initialValue: formatDate(DateTime.now())
 })
 
-export const returnDateIsValid = value({
+export const returnDateIsValid = derived({
   query: (get) => toDateTime(get(returnDate)).isValid
 })
 
@@ -28,13 +28,13 @@ export const flightType = container({
   initialValue: FlightTypes.ONE_WAY
 })
 
-export const allowReturnDate = value({
+export const allowReturnDate = derived({
   query: (get) => {
     return get(flightType) === FlightTypes.RETURN
   }
 })
 
-export const bookingAllowed = value({
+export const bookingAllowed = derived({
   query: (get) => {
     const startDateValue = toDateTime(get(startDate))
     const returnDateValue = toDateTime(get(returnDate))

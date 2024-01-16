@@ -225,28 +225,24 @@ class ReactiveContainerQuery<T, M> extends AbstractReactiveQuery {
   }
 }
 
-export class Value<T, M = T> extends State<T, M> {
-  constructor(name: string | undefined, private derivation: (get: GetState, current: T | undefined) => M, private reducer: ((message: M, current: T | undefined) => T) | undefined) {
+export class DerivedState<T> extends State<T, T> {
+  constructor(name: string | undefined, private derivation: (get: GetState, current: T | undefined) => T) {
     super(name)
   }
 
-  [registerState](store: Store): ContainerController<T, M> {
+  [registerState](store: Store): ContainerController<T, T> {
     const reactiveQuery = new ReactiveValue(store, this, this.derivation)
 
     let initialValue: T
-    if (this.reducer) {
-      initialValue = this.reducer(reactiveQuery.run(undefined), undefined)
-    } else {
-      try {
-        initialValue = reactiveQuery.run(undefined) as unknown as T
-      } catch (err) {
-        const e = new StoreError(`Unable to initialize value: ${this.toString()}`)
-        e.cause = err
-        throw e
-      }
+    try {
+      initialValue = reactiveQuery.run(undefined) as unknown as T
+    } catch (err) {
+      const e = new StoreError(`Unable to initialize value: ${this.toString()}`)
+      e.cause = err
+      throw e
     }
 
-    return new ContainerController(initialValue, this.reducer)
+    return new ContainerController(initialValue, undefined)
   }
 }
 

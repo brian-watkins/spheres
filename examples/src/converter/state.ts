@@ -1,4 +1,4 @@
-import { batch, container, rule, value, write } from "@spheres/store"
+import { batch, container, rule, derived, write } from "@spheres/store"
 
 export interface TemperatureUpdate {
   celsius?: string
@@ -48,10 +48,10 @@ export const farenheitTemperature = container({
   }
 })
 
-export const farenheitInvalid = value({
+export const farenheitInvalid = derived({
   query: (get) => isNaN(Number(get(farenheitTemperature)))
 })
 
-export const celsiusInvalid = value({
+export const celsiusInvalid = derived({
   query: (get) => isNaN(Number(get(celsiusTemperature)))
 })

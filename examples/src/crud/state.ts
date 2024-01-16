@@ -1,4 +1,4 @@
-import { Container, batch, container, rule, value, write } from "@spheres/store";
+import { Container, batch, container, rule, derived, write } from "@spheres/store";
 
 export interface DataRecord {
   id?: number
@@ -88,7 +88,7 @@ export const filterPrefix = container({
   initialValue: ""
 })
 
-export const filteredRecords = value({
+export const filteredRecords = derived({
   query: (get) => {
     const prefix = get(filterPrefix)
 

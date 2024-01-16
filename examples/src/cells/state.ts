@@ -1,12 +1,12 @@
-import { Container, Value, container, value } from "@spheres/store";
+import { Container, DerivedState, container, derived } from "@spheres/store";
 import { cellDefinition } from "./formula";
 
-export type CellContainer = Container<Value<string | number>, string>
+export type CellContainer = Container<DerivedState<string | number>, string>
 
 export function cellContainer(id: string): CellContainer {
   return container({
     id,
-    initialValue: value<string | number>({
+    initialValue: derived<string | number>({
       query: () => ""
     }),
     reducer: (definition: string) => {
@@ -16,7 +16,7 @@ export function cellContainer(id: string): CellContainer {
         throw new Error("parse-failure")
       }
 
-      return value({
+      return derived({
         query: (get) => result.value((identifier) => get(get(cellContainer(identifier))))
       })
     }

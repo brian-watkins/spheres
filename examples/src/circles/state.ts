@@ -1,4 +1,4 @@
-import { Container, GetState, StoreMessage, batch, container, rule, value, write } from "@spheres/store";
+import { Container, GetState, StoreMessage, batch, container, rule, derived, write } from "@spheres/store";
 
 export interface Coordinate {
   x: number
@@ -138,10 +138,10 @@ export const redoRule = rule(get => {
   ])
 })
 
-export const canUndo = value({
+export const canUndo = derived({
   query: (get) => get(currentAction) > -1
 })
 
-export const canRedo = value({
+export const canRedo = derived({
   query: (get) => get(currentAction) !== get(actions).length - 1
 })

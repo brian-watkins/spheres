@@ -1,6 +1,6 @@
 import { ConfigurableExample, behavior, effect, example, fact, step } from "esbehavior";
 import { arrayWithItemAt, equalTo, expect, is } from "great-expectations"
-import { Container, State, Value, container, value } from "@src/index.js";
+import { Container, State, DerivedState, container, derived } from "@src/index.js";
 import { TestStore, testStoreContext } from "./helpers/testStore.js";
 
 interface BasicContainerTokens {
@@ -109,8 +109,8 @@ const lateSubscriber: ConfigurableExample =
 
 interface DerivedStateContext {
   basic: Container<number>,
-  derived?: Value<string>
-  thirdLevel?: Value<number>
+  derived?: DerivedState<string>
+  thirdLevel?: DerivedState<number>
 }
 
 const derivedState: ConfigurableExample =
@@ -122,7 +122,7 @@ const derivedState: ConfigurableExample =
           const basic = container({ initialValue: 17 })
           context.setTokens({
             basic,
-            derived: value({
+            derived: derived({
               query: (get) => `${get(basic)} things!`
             })
           })
@@ -160,7 +160,7 @@ const derivedState: ConfigurableExample =
           context.setTokens({
             basic: context.tokens.basic,
             derived: context.tokens.derived,
-            thirdLevel: value({
+            thirdLevel: derived({
               query: (get) => get(context.tokens.derived!).length
             })
           })
@@ -215,7 +215,7 @@ interface MultipleSourceState {
   numberAtom: Container<number>
   stringAtom: Container<string>
   anotherAtom: Container<string>
-  derived: Value<string>
+  derived: DerivedState<string>
 }
 
 const multipleSourceState: ConfigurableExample =
@@ -231,7 +231,7 @@ const multipleSourceState: ConfigurableExample =
             numberAtom,
             stringAtom,
             anotherAtom,
-            derived: value({
+            derived: derived({
               query: (get) => `${get(stringAtom)} ${get(numberAtom)} times. And then ${get(anotherAtom)}!`
             })
           })
@@ -267,7 +267,7 @@ const reactiveQueryCount: ConfigurableExample =
             numberAtom,
             stringAtom,
             anotherAtom,
-            derived: value({
+            derived: derived({
               query: (get) => {
                 counter = counter + 1
                 return `${counter} => ${get(stringAtom)} ${get(numberAtom)} times. And then ${get(anotherAtom)}!`
@@ -310,7 +310,7 @@ const reactiveQueryCount: ConfigurableExample =
 interface DeferredDependencyContext {
   numberState: Container<number>,
   stringState: Container<string>,
-  derivedState: Value<number>
+  derivedState: DerivedState<number>
 }
 
 const deferredDependency: ConfigurableExample =
@@ -321,7 +321,7 @@ const deferredDependency: ConfigurableExample =
         fact("there is derived state with a dependency used only later", (context) => {
           const numberState = container({ initialValue: 6 })
           const stringState = container({ initialValue: "hello" })
-          const derivedState = value({
+          const derivedState = derived({
             query: (get) => {
               if (get(stringState) === "now") {
                 return get(numberState)
@@ -378,7 +378,7 @@ const recursiveDerivedState: ConfigurableExample =
       suppose: [
         fact("there is derived state that depends on its current value", (context) => {
           const numberState = container({ initialValue: 6 })
-          const derivedState = value({
+          const derivedState = derived({
             query: (get, current?: number) => {
               return get(numberState) + (current ?? 0)
             }

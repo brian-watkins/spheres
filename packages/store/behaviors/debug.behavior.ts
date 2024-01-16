@@ -1,4 +1,4 @@
-import { State, container, value } from "@src/index.js";
+import { State, container, derived } from "@src/index.js";
 import { behavior, effect, example, fact } from "esbehavior";
 import { expect, is } from "great-expectations";
 import { testStoreContext } from "helpers/testStore.js";
@@ -49,7 +49,7 @@ export default behavior("debug name", [
       suppose: [
         fact("there is a value with a debug name", (context) => {
           context.setTokens({
-            stringState: value({
+            stringState: derived({
               query: () => "blah",
               name: "funny-value"
             })
@@ -68,7 +68,7 @@ export default behavior("debug name", [
       suppose: [
         fact("there is a value with no debug name", (context) => {
           context.setTokens({
-            stringState: value({ query: () => "blah" })
+            stringState: derived({ query: () => "blah" })
           })
         })
       ],

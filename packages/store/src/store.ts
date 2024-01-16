@@ -5,7 +5,7 @@ import { Meta, error, ok, pending } from "./meta.js"
 export type GetState = <S, N = S>(state: State<S, N>) => S
 export type Stateful<T> = (get: GetState) => T | undefined
 
-export interface StorageActions<T, M, E> {
+export interface ContainerActions<T, M, E> {
   get: GetState
   ok(value: M): void
   pending(value: M): void
@@ -13,9 +13,9 @@ export interface StorageActions<T, M, E> {
   current: T
 }
 
-export interface StorageHooks<T, M, E = unknown> {
-  onReady?(actions: StorageActions<T, M, E>): Promise<void>
-  onWrite?(message: M, actions: StorageActions<T, M, E>): Promise<void>
+export interface ContainerHooks<T, M, E = unknown> {
+  onReady?(actions: ContainerActions<T, M, E>): Promise<void>
+  onWrite?(message: M, actions: ContainerActions<T, M, E>): Promise<void>
 }
 
 export interface Effect {
@@ -327,12 +327,14 @@ export interface CommandManager<M> {
   exec(message: M, actions: CommandActions): void
 }
 
-export type RegisterStateHook = (token: State<any>) => void
+export interface StoreHooks {
+  onRegister(container: Container<any>): void
+}
 
 export class Store {
   private registry: WeakMap<StoreRegistryKey, ContainerController<any, any>> = new WeakMap();
   private commandRegistry: Map<Command<any>, CommandManager<any>> = new Map()
-  private registerStateHook: RegisterStateHook | undefined
+  private hooks: StoreHooks | undefined
 
   [getController]<T, M>(token: State<T, M>): ContainerController<T, M> {
     const key = token[registryKey]
@@ -340,13 +342,15 @@ export class Store {
     if (controller === undefined) {
       controller = token[registerState](this)
       this.registry.set(key, controller)
-      this.registerStateHook?.(token)
+      if (this.hooks !== undefined && token instanceof Container) {
+        this.hooks.onRegister(token)
+      }
     }
     return controller
   }
 
-  onRegisterState(handler: RegisterStateHook) {
-    this.registerStateHook = handler
+  useHooks(hooks: StoreHooks) {
+    this.hooks = hooks
   }
 
   useEffect(effect: Effect): EffectHandle {
@@ -360,7 +364,7 @@ export class Store {
     command[initializeCommand](this)
   }
 
-  private storageActions<T, M, E>(container: Container<T, M>, controller: ContainerController<T, M>): StorageActions<T, M, E> {
+  private containerActions<T, M, E>(container: Container<T, M>, controller: ContainerController<T, M>): ContainerActions<T, M, E> {
     return {
       get: (state) => {
         return this[getController](state).value
@@ -378,17 +382,17 @@ export class Store {
     }
   }
 
-  useStorage<T, M, E = unknown>(container: Container<T, M>, hooks: StorageHooks<T, M, E>) {
+  useContainerHooks<T, M, E = unknown>(container: Container<T, M>, hooks: ContainerHooks<T, M, E>) {
     const controller = this[getController](container)
 
     if (hooks.onWrite !== undefined) {
       controller.setWriter((value) => {
-        hooks.onWrite?.(value, this.storageActions(container, controller))
+        hooks.onWrite?.(value, this.containerActions(container, controller))
       })
     }
 
     if (hooks.onReady !== undefined) {
-      hooks.onReady(this.storageActions(container, controller))
+      hooks.onReady(this.containerActions(container, controller))
     }
   }
 

@@ -73,7 +73,7 @@ const metaContainerWithReducer: ConfigurableExample =
               }
             })
           })
-          context.useStorage(context.tokens.reducerContainer, {
+          context.useContainerHooks(context.tokens.reducerContainer, {
             async onWrite(message, actions) {
               actions.pending(message)
             }
@@ -145,7 +145,7 @@ const metaErrorBehavior: ConfigurableExample =
               }
             })
           })
-          context.useStorage(context.tokens.container, {
+          context.useContainerHooks(context.tokens.container, {
             async onWrite(_, actions) {
               actions.error("goodbye", 37)
             },

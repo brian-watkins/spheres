@@ -1,26 +1,26 @@
-import { Container, StorageHooks, container } from "@src/index";
+import { Container, ContainerHooks, container } from "@src/index";
 import { ConfigurableExample, behavior, effect, example, fact, step } from "esbehavior";
 import { arrayWith, expect, is } from "great-expectations";
 import { errorMessage, okMessage, pendingMessage } from "helpers/metaMatchers";
 import { TestTask } from "helpers/testTask";
 import { testStoreContext } from "helpers/testStore";
 
-interface BasicStorageHooksContext {
+interface BasicContainerHooksContext {
   container: Container<string>
   readyTask: TestTask<string>,
   writeTask: TestTask<string>
 }
 
-const basicStorageHooks: ConfigurableExample =
-  example(testStoreContext<BasicStorageHooksContext>())
-    .description("basic storage hooks usage")
+const basicContainerHooks: ConfigurableExample =
+  example(testStoreContext<BasicContainerHooksContext>())
+    .description("basic container hooks usage")
     .script({
       suppose: [
-        fact("there is a container with onReady and onWrite storage hooks", (context) => {
+        fact("there is a container with onReady and onWrite hooks", (context) => {
           const stringContainer = container({ initialValue: "initial" })
           const readyTask = new TestTask<string>()
           const writeTask = new TestTask<string>()
-          const hooks: StorageHooks<string, string> = {
+          const hooks: ContainerHooks<string, string> = {
             async onReady(actions) {
               actions.pending(`Loading! Current is: ${actions.current}`)
               const val = await readyTask.waitForIt()
@@ -32,7 +32,7 @@ const basicStorageHooks: ConfigurableExample =
               actions.ok(`Wrote: ${val}`)
             },
           }
-          context.useStorage(stringContainer, hooks)
+          context.useContainerHooks(stringContainer, hooks)
           context.setTokens({
             container: stringContainer,
             readyTask,
@@ -133,9 +133,9 @@ const errorInReadyHook: ConfigurableExample =
     .description("when the error meta state is set")
     .script({
       suppose: [
-        fact("there is a container with a storage handler that writes errors", (context) => {
+        fact("there is a container with a hooks that writes errors", (context) => {
           const stringContainer = container({ initialValue: "hello" })
-          const hooks: StorageHooks<string, string, number> = {
+          const hooks: ContainerHooks<string, string, number> = {
             async onReady(actions) {
               actions.error(actions.current, 32)
             },
@@ -143,7 +143,7 @@ const errorInReadyHook: ConfigurableExample =
               actions.error(message, 61)
             },
           }
-          context.useStorage(stringContainer, hooks)
+          context.useContainerHooks(stringContainer, hooks)
           context.setTokens({
             container: stringContainer
           })
@@ -183,14 +183,14 @@ interface GetStateInHooksContext {
 
 const getStateInHooks: ConfigurableExample =
   example(testStoreContext<GetStateInHooksContext>())
-    .description("when get state in storage hooks")
+    .description("when get state in container hooks")
     .script({
       suppose: [
         fact("there is a container whose hooks get state", (context) => {
           const one = container({ initialValue: 23 })
           const two = container({ initialValue: "hello" })
           const myContainer = container({ initialValue: "initial" })
-          const hooks: StorageHooks<string, string> = {
+          const hooks: ContainerHooks<string, string> = {
             async onReady(actions) {
               actions.ok(`Loading: ${actions.get(one)}-${actions.get(two)}`)
             },
@@ -198,7 +198,7 @@ const getStateInHooks: ConfigurableExample =
               actions.ok(`Writing: ${message} & ${actions.get(one)}-${actions.get(two)}`)
             },
           }
-          context.useStorage(myContainer, hooks)
+          context.useContainerHooks(myContainer, hooks)
           context.setTokens({
             one,
             two,
@@ -228,13 +228,13 @@ const getStateInHooks: ConfigurableExample =
       ]
     })
 
-interface AddStorageHookOnRegisterContext {
+interface AddContainerHookOnRegisterContext {
   container: Container<string>
 }
 
-const addStorageHooksOnRegister: ConfigurableExample =
-  example(testStoreContext<AddStorageHookOnRegisterContext>())
-    .description("when storage hooks are added on register")
+const addContainerHooksOnRegister: ConfigurableExample =
+  example(testStoreContext<AddContainerHookOnRegisterContext>())
+    .description("when container hooks are added on register")
     .script({
       suppose: [
         fact("there is a container", (context) => {
@@ -242,17 +242,18 @@ const addStorageHooksOnRegister: ConfigurableExample =
             container: container({ initialValue: "hello" })
           })
         }),
-        fact("storage hooks are added to a container on register", (context) => {
-          context.store.onRegisterState((token) => {
-            // fix this
-            context.store.useStorage(token as Container<any>, {
-              async onReady(actions) {
-                actions.ok("Loaded")
-              },
-              async onWrite(message, actions) {
-                actions.ok(`Wrote: ${message}`)
-              },
-            })
+        fact("container hooks are added to a container on register", (context) => {
+          context.store.useHooks({
+            onRegister(token) {
+              context.store.useContainerHooks(token, {
+                async onReady(actions) {
+                  actions.ok("Loaded")
+                },
+                async onWrite(message, actions) {
+                  actions.ok(`Wrote: ${message}`)
+                },
+              })
+            }
           })
         }),
         fact("there is a subscriber", (context) => {
@@ -274,13 +275,13 @@ const addStorageHooksOnRegister: ConfigurableExample =
       ]
     })
 
-interface StorageHooksWithReducerContext {
+interface ContainerHooksWithReducerContext {
   container: Container<number, string>
 }
 
-const storageHooksWithReducer: ConfigurableExample =
-  example(testStoreContext<StorageHooksWithReducerContext>())
-    .description("when storage hooks are used with a container that has a reducer")
+const containerHooksWithReducer: ConfigurableExample =
+  example(testStoreContext<ContainerHooksWithReducerContext>())
+    .description("when container hooks are used with a container that has a reducer")
     .script({
       suppose: [
         fact("there is a container with a reducer", (context) => {
@@ -293,8 +294,8 @@ const storageHooksWithReducer: ConfigurableExample =
           })
           context.setTokens({ container: myContainer })
         }),
-        fact("storage hooks are associated with the container", (context) => {
-          context.useStorage(context.tokens.container, {
+        fact("container hooks are associated with the container", (context) => {
+          context.useContainerHooks(context.tokens.container, {
             async onReady(actions) {
               actions.ok("add")
             },
@@ -329,10 +330,10 @@ const storageHooksWithReducer: ConfigurableExample =
       ]
     })
 
-export default behavior("Storage Hooks", [
-  basicStorageHooks,
+export default behavior("Container Hooks", [
+  basicContainerHooks,
   errorInReadyHook,
   getStateInHooks,
-  addStorageHooksOnRegister,
-  storageHooksWithReducer
+  addContainerHooksOnRegister,
+  containerHooksWithReducer
 ])

@@ -5,7 +5,7 @@ import { Meta, error, ok, pending } from "./meta.js"
 export type GetState = <S, N = S>(state: State<S, N>) => S
 export type Stateful<T> = (get: GetState) => T | undefined
 
-export interface WriterActions<T, M, E> {
+export interface StorageActions<T, M, E> {
   get: GetState
   ok(value: M): void
   pending(value: M): void
@@ -13,8 +13,9 @@ export interface WriterActions<T, M, E> {
   current: T
 }
 
-export interface Writer<T, M = T, E = unknown> {
-  write(message: M, actions: WriterActions<T, M, E>): Promise<void>
+export interface StorageHooks<T, M, E = unknown> {
+  onReady?(actions: StorageActions<T, M, E>): Promise<void>
+  onWrite?(message: M, actions: StorageActions<T, M, E>): Promise<void>
 }
 
 export interface Effect {
@@ -363,28 +364,36 @@ export class Store {
     command[initializeCommand](this)
   }
 
-  useWriter<T, M, E = unknown>(token: State<T, M>, writer: Writer<T, M, E>) {
-    const controller = this[getController](token)
+  private storageActions<T, M, E>(container: Container<T, M>, controller: ContainerController<T, M>): StorageActions<T, M, E> {
+    return {
+      get: (state) => {
+        return this[getController](state).value
+      },
+      ok: (value) => {
+        controller.generateNext(value)
+      },
+      pending: (message) => {
+        this[getController](container.meta).publishValue(pending(message))
+      },
+      error: (message, reason) => {
+        this[getController](container.meta).publishValue(error(message, reason))
+      },
+      current: controller.value
+    }
+  }
 
-    controller.setWriter((value) => {
-      writer.write(value, {
-        get: (state) => {
-          return this[getController](state).value
-        },
-        ok: (value) => {
-          controller.generateNext(value)
-        },
-        pending: (message) => {
-          this[getController](token.meta).publishValue(pending(message))
-        },
-        error: (message, reason) => {
-          this[getController](token.meta).publishValue(error(message, reason))
-        },
-        current: controller.value
-      }).catch((err) => {
-        this[getController](token.meta).publishValue(error(value, err))
+  useStorage<T, M, E = unknown>(container: Container<T, M>, hooks: StorageHooks<T, M, E>) {
+    const controller = this[getController](container)
+
+    if (hooks.onWrite !== undefined) {
+      controller.setWriter((value) => {
+        hooks.onWrite?.(value, this.storageActions(container, controller))
       })
-    })
+    }
+
+    if (hooks.onReady !== undefined) {
+      hooks.onReady(this.storageActions(container, controller))
+    }
   }
 
   dispatch(message: StoreMessage<any>) {

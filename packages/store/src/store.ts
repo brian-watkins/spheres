@@ -70,41 +70,32 @@ const registerState = Symbol("registerState")
 const initializeCommand = Symbol("initializeCommand")
 const getController = Symbol("getController")
 const initialValue = Symbol("initialValue")
-const registryKey = Symbol("registryKey")
+const getKeyForToken = Symbol("getKeyForToken")
 
-type StoreRegistryKey = State<any> | {}
+type StoreRegistryKey = State<any>
 
 export abstract class State<T, M = T> {
-  constructor(readonly name: string | undefined) { }
+  private _meta: MetaState<T, M, any> | undefined
+
+  constructor(readonly id: string | undefined, readonly name: string | undefined) { }
 
   abstract [registerState](store: Store): ContainerController<T, M>
 
-  get [registryKey](): StoreRegistryKey {
-    return this
-  }
-
   get meta(): MetaState<T, M, any> {
-    return new MetaState(this)
+    if (this._meta === undefined) {
+      this._meta = new MetaState(this)
+    }
+    return this._meta
   }
 
   toString() {
-    return this.name ?? "State"
+    return this.name && this.id ? `${this.name}-${this.id}` : (this.name ?? this.id ?? "State")
   }
 }
 
 export class MetaState<T, M, E = unknown> extends State<Meta<M, E>> {
-  private static keys: WeakMap<StoreRegistryKey, StoreRegistryKey> = new WeakMap()
-
   constructor(private token: State<T, M>) {
-    super(`meta[${token.toString()}]`)
-
-    if (!MetaState.keys.has(this.token[registryKey])) {
-      MetaState.keys.set(this.token[registryKey], {})
-    }
-  }
-
-  get [registryKey](): StoreRegistryKey {
-    return MetaState.keys.get(this.token[registryKey])!
+    super(token.id ? `meta[${token.id}]` : undefined, `meta[${token.toString()}]`)
   }
 
   [registerState](store: Store): ContainerController<Meta<M, E>> {
@@ -119,14 +110,14 @@ export class MetaState<T, M, E = unknown> extends State<Meta<M, E>> {
 }
 
 abstract class AbstractReactiveQuery implements StateListener {
-  private dependencies: WeakSet<State<any>> = new WeakSet()
+  private dependencies: WeakSet<ContainerController<any, any>> = new WeakSet()
 
   constructor(protected store: Store) { }
 
   protected getValue<S, N>(state: State<S, N>): S {
     const controller = this.store[getController](state)
-    if (!this.dependencies.has(state)) {
-      this.dependencies.add(state)
+    if (!this.dependencies.has(controller)) {
+      this.dependencies.add(controller)
       controller.addListener(this)
     }
     return controller.value
@@ -138,7 +129,7 @@ abstract class AbstractReactiveQuery implements StateListener {
 export class SuppliedState<T, M, E = any> extends State<T, M> {
 
   constructor(private initialValue: T) {
-    super(undefined)
+    super(undefined, undefined)
   }
 
   [registerState](_: Store): ContainerController<T, M> {
@@ -146,14 +137,11 @@ export class SuppliedState<T, M, E = any> extends State<T, M> {
   }
 
   get meta(): MetaState<T, M, E> {
-    return new MetaState(this)
+    return super.meta
   }
 }
 
 export class Container<T, M = T> extends State<T, M> {
-  private static idMap: Map<string, {}> = new Map()
-  private key: StoreRegistryKey
-
   constructor(
     readonly id: string | undefined,
     name: string | undefined,
@@ -161,20 +149,7 @@ export class Container<T, M = T> extends State<T, M> {
     private reducer: ((message: M, current: T) => T) | undefined,
     private query: ((actions: QueryActions<T>, nextValue?: M) => M) | undefined
   ) {
-    super(name && id ? `${name}-${id}` : (name ?? id))
-
-    if (id) {
-      if (!Container.idMap.has(id)) {
-        Container.idMap.set(id, {})
-      }
-      this.key = Container.idMap.get(id)!
-    } else {
-      this.key = this
-    }
-  }
-
-  get [registryKey](): StoreRegistryKey {
-    return this.key
+    super(id, name)
   }
 
   get [initialValue](): T {
@@ -226,8 +201,8 @@ class ReactiveContainerQuery<T, M> extends AbstractReactiveQuery {
 }
 
 export class DerivedState<T> extends State<T, T> {
-  constructor(name: string | undefined, private derivation: (get: GetState, current: T | undefined) => T) {
-    super(name)
+  constructor(id: string | undefined, name: string | undefined, private derivation: (get: GetState, current: T | undefined) => T) {
+    super(id, name)
   }
 
   [registerState](store: Store): ContainerController<T, T> {
@@ -335,9 +310,23 @@ export class Store {
   private registry: WeakMap<StoreRegistryKey, ContainerController<any, any>> = new WeakMap();
   private commandRegistry: Map<Command<any>, CommandManager<any>> = new Map()
   private hooks: StoreHooks | undefined
+  private tokenIdMap: Map<string, StoreRegistryKey> = new Map();
+
+  [getKeyForToken](token: State<any>): StoreRegistryKey {
+    if (token.id !== undefined) {
+      const key = this.tokenIdMap.get(token.id)
+      if (key === undefined) {
+        this.tokenIdMap.set(token.id, token)
+        return token
+      }
+      return key
+    } else {
+      return token
+    }
+  }
 
   [getController]<T, M>(token: State<T, M>): ContainerController<T, M> {
-    const key = token[registryKey]
+    const key = this[getKeyForToken](token)
     let controller = this.registry.get(key)
     if (controller === undefined) {
       controller = token[registerState](this)

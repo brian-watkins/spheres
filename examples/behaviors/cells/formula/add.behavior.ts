@@ -1,6 +1,7 @@
 import { behavior, effect, example, fact, step } from "esbehavior";
 import { testStoreContext } from "./helpers/testStoreContext";
 import { expect, is } from "great-expectations";
+import { Result } from "../../../src/cells/result";
 
 export default behavior("add function", [
 
@@ -64,6 +65,25 @@ export default behavior("add function", [
       observe: [
         effect("the cell has the expected value", (context) => {
           expect(context.getCellValue("B3"), is("5"))
+        })
+      ]
+    }),
+
+  example(testStoreContext())
+    .description("Adding cells where one is not a number")
+    .script({
+      suppose: [
+        fact("there are two cells, one with a number, one without", (context) => {
+          context.defineCell("A1", "-28")
+          context.defineCell("A2", "XXX")
+        }),
+        fact("there is a cell with a formula that adds the two cells", (context) => {
+          context.defineCell("B3", "=ADD(A1,A2)")
+        })
+      ],
+      observe: [
+        effect("the cell has an error value with its definition", (context) => {
+          expect(context.getCellResult("B3"), is(Result.err("=ADD(A1,A2)")))
         })
       ]
     })

@@ -56,7 +56,7 @@ function cell(identifier: string): View {
       config
         .dataAttribute("cell", identifier)
         .class((get) => {
-          if (get(cellContainer(identifier).meta).type === "error") {
+          if (!get(get(cellContainer(identifier))).isOk) {
             return "shrink-0 h-8 w-40 bg-fuchsia-300 relative"
           } else {
             return `shrink-0 h-8 w-40 ${get(showInput) === identifier ? "bg-slate-100" : "bg-slate-200"} relative`
@@ -73,12 +73,11 @@ function cell(identifier: string): View {
             .hidden((get) => get(showInput) === identifier ? "hidden" : undefined)
           children
             .textNode((get) => {
-              const cell = cellContainer(identifier)
-              const meta = get(cell.meta)
-              if (meta.type === "error") {
-                return meta.message
-              }
-              return `${get(get(cell))}`
+              const cellValue = get(get(cellContainer(identifier)))
+              return cellValue.resolve({
+                ok: (val) => val,
+                err: (error) => error
+              })
             })
         })
         .form(({ config, children }) => {

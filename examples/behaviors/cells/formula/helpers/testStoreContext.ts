@@ -1,6 +1,7 @@
 import { Store, write } from "@spheres/store";
 import { Context } from "esbehavior";
 import { cellContainer } from "../../../../src/cells/state";
+import { Result } from "../../../../src/cells/result";
 
 export function testStoreContext(): Context<TestStore> {
   return {
@@ -10,7 +11,7 @@ export function testStoreContext(): Context<TestStore> {
 
 export class TestStore {
   private store = new Store()
-  private cellValues = new Map<string, string>()
+  private cellValues = new Map<string, Result<string, string>>()
 
   defineCell(id: string, definition: string) {
     const cell = cellContainer(id)
@@ -18,12 +19,11 @@ export class TestStore {
     this.store.useEffect({
       run: (get) => {
         try {
-          this.cellValues.set(id, `${get(get(cell))}`)
+          this.cellValues.set(id, get(get(cell)))
         } catch (err) {
           console.log("Erro", err)
           throw err
         }
-        
       }
     })
   }
@@ -34,7 +34,11 @@ export class TestStore {
   }
 
   getCellValue(id: string): string {
-    return this.cellValues.get(id) ?? "<UNDEFINED CELL>"
+    return this.cellValues.get(id)?.withDefault("<ERROR IN CELL>") ?? "<UNDEFINED CELL>"
+  }
+
+  getCellResult(id: string): Result<string, string> {
+    return this.cellValues.get(id) ?? Result.err("<UNDEFINED CELL>")
   }
 
   printall() {

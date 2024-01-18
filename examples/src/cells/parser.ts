@@ -19,6 +19,22 @@ export type ParseResult<T> = ParseSuccess<T> | ParseFailure
 
 export type Parser<T> = (message: string) => ParseResult<T>
 
+export function end(message: string): ParseResult<string> {
+  if (message.length === 0) {
+    return {
+      type: "success",
+      value: "",
+      next: ""
+    }
+  }
+
+  return failureResult()
+}
+
+export function just(parser: Parser<string>): Parser<string> {
+  return join([parser, end])
+}
+
 export function char(c: string): Parser<string> {
   return (message) => {
     if (message[0] === c) {
@@ -224,9 +240,9 @@ export function charSequence(expected: string): Parser<string> {
 export const letter = oneOf(Array.from("aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ").map(char))
 export const punctuation = oneOf(Array.from("!?,.';:#@$%^&*()+=-_<>/~`{}[]\\|").map(char))
 export const word = joinOneOrMore(letter)
-export const text = joinOneOrMore(oneOf([word, char(" "), punctuation]))
-
 export const digit = oneOf(Array.from("1234567890").map(char))
+export const text = joinOneOrMore(oneOf([word, digit, char(" "), punctuation]))
+
 export const number = join([
   maybe(char("-"), ""),
   joinOneOrMore(digit),

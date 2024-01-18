@@ -1,7 +1,8 @@
-import { Parser, char, charSequence, digit, join, joinOneOrMore, lazy, letter, map, maybe, number, oneOf, oneOrMore, sequence, test, text } from "./parser"
+import { Parser, char, charSequence, digit, end, join, joinOneOrMore, just, lazy, letter, map, maybe, number, oneOf, oneOrMore, sequence, test, text } from "./parser"
+import { Result, toNumber } from "./result"
 
-export type GetCellValue = (identifier: string) => string | number
-export type FormulaResult = (get: GetCellValue) => string | number
+export type GetCellValue = (identifier: string) => Result<string, string>
+export type FormulaResult = (get: GetCellValue) => Result<string, string>
 
 const cellIdentifier = map(join([letter, joinOneOrMore(digit)]), (id) => (get: GetCellValue) => get(id))
 
@@ -25,7 +26,7 @@ const cellRange = map(sequence(
 })
 
 function primitive(parser: Parser<string>): Parser<FormulaResult> {
-  return map(parser, (value) => () => value)
+  return map(parser, (value) => () => Result.ok(value))
 }
 
 const cellFunction = lazy(() => {
@@ -51,7 +52,10 @@ function binaryFunction(name: string, handler: (right: number, left: number) => 
     char(")")
   ), ([_, right, __, left, ___]) => {
     return (get: GetCellValue) => {
-      return handler(Number(right(get)), Number(left(get)))
+      return Result.all(right(get).andThen(toNumber), left(get).andThen(toNumber))
+        .map((args): [number, number] => [args[0], args[1]])  
+        .map(args => handler(...args))
+        .map(val => val.toString())
     }
   })
 }
@@ -85,7 +89,9 @@ function naryFunction(name: string, handler: (args: Array<number>) => number): P
       components[2].forEach((c: Array<any>) => {
         args = args.concat(c)
       })
-      return handler(args.map(arg => Number(arg(get))))
+      return Result.all(...args.map(arg => arg(get).andThen(toNumber)))
+        .map(numbers => handler(numbers))
+        .map(val => val.toString())
     }
   })
 }
@@ -105,7 +111,8 @@ const isNotAFormula = (value: string) => !value.startsWith("=")
 
 export const cellDefinition = oneOf([
   formula,
-  primitive(number),
-  primitive(test(text, isNotAFormula))
+  primitive(just(number)),
+  primitive(test(text, isNotAFormula)),
+  primitive(end)
 ])
 

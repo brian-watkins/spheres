@@ -17,6 +17,17 @@ export default behavior("basic formulas", [
           expect(context.getCellValue("A2"), is("This == some cool text!?!?"))
         })
       ]
+    }).andThen({
+      perform: [
+        step("clear the cell", (context) => {
+          context.updateCell("A2", "")
+        })
+      ],
+      observe: [
+        effect("the cell is empty", (context) => {
+          expect(context.getCellValue("A2"), is(""))
+        })
+      ]
     }),
 
   example(testStoreContext())
@@ -102,6 +113,21 @@ export default behavior("basic formulas", [
       observe: [
         effect("the cell contains the calculated value", (context) => {
           expect(context.getCellValue("C9"), is("60"))
+        })
+      ]
+    }),
+
+  example(testStoreContext())
+    .description("write text that contains numbers")
+    .script({
+      suppose: [
+        fact("there is a cell that contains text and numbers", (context) => {
+          context.defineCell("D14", "19x")
+        })
+      ],
+      observe: [
+        effect("the cell value resolves to the text", (context) => {
+          expect(context.getCellValue("D14"), is("19x"))
         })
       ]
     })

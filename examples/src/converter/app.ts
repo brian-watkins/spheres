@@ -1,4 +1,4 @@
-import { Meta, use } from "@spheres/store";
+import { use } from "@spheres/store";
 import { celsiusInvalid, celsiusTemperature, farenheitInvalid, farenheitTemperature, temperatureUpdate } from "./state.js";
 import { names, useValue } from "../helpers/helpers.js";
 import { View, htmlView } from "@spheres/display";
@@ -33,7 +33,7 @@ function celsiusInput(): View {
       .type("text")
       .value((get) => get(celsiusTemperature))
       .on("input", useValue((value) => use(temperatureUpdate, { celsius: value })))
-      .class((get) => inputStyling(get(celsiusInvalid), isError(get(celsiusTemperature.meta))))
+      .class((get) => inputStyling(get(celsiusInvalid), get(farenheitInvalid)))
   })
 }
 
@@ -44,7 +44,7 @@ function farenheitInput(): View {
       .type("text")
       .value((get) => get(farenheitTemperature))
       .on("input", useValue((value) => use(temperatureUpdate, { farenheit: value })))
-      .class((get) => inputStyling(get(farenheitInvalid), isError(get(farenheitTemperature.meta))))
+      .class((get) => inputStyling(get(farenheitInvalid), get(celsiusInvalid)))
   })
 }
 
@@ -58,10 +58,6 @@ function inputStyling(isInvalid: boolean, isError: boolean): string {
   }
 
   return names(classNames)
-}
-
-function isError(meta: Meta<any, any>): boolean {
-  return meta.type === "error"
 }
 
 function invalidInputClasses(): Array<string> {

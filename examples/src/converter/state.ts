@@ -14,16 +14,16 @@ export const temperatureUpdate = rule((_, input: TemperatureUpdate) => {
 
 export const celsiusTemperature = container({
   initialValue: "",
-  reducer: (update: TemperatureUpdate) => {
+  reducer: (update: TemperatureUpdate, current) => {
     if (update.celsius) return update.celsius
 
     if (update.farenheit) {
       const farenheitValue = Number(update.farenheit)
       if (Number.isNaN(farenheitValue)) {
-        throw new Error("calculation-invalid")
-      } else {
-        return ((farenheitValue - 32) * (5 / 9)).toFixed(1)
+        return current
       }
+
+      return ((farenheitValue - 32) * (5 / 9)).toFixed(1)
     }
 
     return ""
@@ -32,16 +32,16 @@ export const celsiusTemperature = container({
 
 export const farenheitTemperature = container({
   initialValue: "",
-  reducer: (update: TemperatureUpdate) => {
+  reducer: (update: TemperatureUpdate, current) => {
     if (update.farenheit) return update.farenheit
 
     if (update.celsius) {
       const celsiusValue = Number(update.celsius)
       if (Number.isNaN(celsiusValue)) {
-        throw new Error("calculation-invalid")
-      } else {
-        return (celsiusValue * (9 / 5) + 32).toFixed(1)
+        return current
       }
+
+      return (celsiusValue * (9 / 5) + 32).toFixed(1)
     }
 
     return ""

@@ -33,6 +33,10 @@ export class Result<T, E = undefined> {
     return this.impl.isOk
   }
 
+  get isErr(): boolean {
+    return !this.impl.isOk
+  }
+
   map<S>(mapper: (value: T) => S): Result<S, E> {
     return this.impl.map(mapper)
   }
@@ -107,14 +111,5 @@ export class Err<T, E> {
 
   resolve<X>(handler: ResultHandler<T, E, X>): X {
     return handler.err(this.error)
-  }
-}
-
-export function toNumber(val: string): Result<number, string> {
-  const numberVal = Number(val)
-  if (Number.isNaN(numberVal)) {
-    return Result.err(val)
-  } else {
-    return Result.ok(numberVal)
   }
 }

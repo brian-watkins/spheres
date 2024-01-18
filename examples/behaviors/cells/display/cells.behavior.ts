@@ -28,6 +28,34 @@ export default behavior("cells", [
     }),
 
   example(testCellsApp)
+    .description("cell formula that cannot be calculated")
+    .script({
+      suppose: [
+        fact("the app is rendered", async (context) => {
+          await context.renderApp()
+        })
+      ],
+      perform: [
+        step("set some non-numeric values in some cells", async (context) => {
+          await context.display.cell("B4").setDefinition("27")
+          await context.display.cell("B5").setDefinition("27aaa")
+          await context.display.cell("B6").setDefinition("27")
+        }),
+        step("set a formula to sum the cells", async (context) => {
+          await context.display.cell("D2").setDefinition("=SUM(B4:B6)")
+        })
+      ],
+      observe: [
+        effect("the cell contains an error message", async (context) => {
+          await expect(context.display.cell("D2").text(), resolvesTo("NaN"))
+        }),
+        effect("the cell is marked as invalid", async (context) => {
+          await expect(context.display.cell("D2").classNames(), resolvesTo(stringContaining("bg-fuchsia-300")))
+        })
+      ]
+    }),
+
+  example(testCellsApp)
     .description("cells that reference each other")
     .script({
       suppose: [

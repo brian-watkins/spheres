@@ -1,6 +1,7 @@
 import { View, htmlView } from "@spheres/display";
 import { batch, container, run, write } from "@spheres/store";
 import { cellContainer } from "./state";
+import { CellErrorType } from "./formula";
 
 const showInput = container({ initialValue: "" })
 
@@ -56,8 +57,8 @@ function cell(identifier: string): View {
       config
         .dataAttribute("cell", identifier)
         .class((get) => {
-          if (!get(get(cellContainer(identifier))).isOk) {
-            return "shrink-0 h-8 w-40 bg-fuchsia-300 relative"
+          if (get(get(cellContainer(identifier))).isErr) {
+            return "shrink-0 h-8 w-40 bg-fuchsia-300 relative italic"
           } else {
             return `shrink-0 h-8 w-40 ${get(showInput) === identifier ? "bg-slate-100" : "bg-slate-200"} relative`
           }
@@ -76,7 +77,14 @@ function cell(identifier: string): View {
               const cellValue = get(get(cellContainer(identifier)))
               return cellValue.resolve({
                 ok: (val) => val,
-                err: (error) => error
+                err: (error) => {
+                  switch (error.type) {
+                    case CellErrorType.ParseFailure:
+                      return error.value
+                    case CellErrorType.UnableToCalculate:
+                      return "NaN"
+                  }
+                }
               })
             })
         })

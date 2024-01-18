@@ -1,8 +1,33 @@
 import { Parser, char, charSequence, digit, end, join, joinOneOrMore, just, lazy, letter, map, maybe, number, oneOf, oneOrMore, sequence, test, text } from "./parser"
-import { Result, toNumber } from "./result"
+import { Result } from "./result"
 
-export type GetCellValue = (identifier: string) => Result<string, string>
-export type FormulaResult = (get: GetCellValue) => Result<string, string>
+export enum CellErrorType {
+  ParseFailure,
+  UnableToCalculate
+}
+
+export class ParseFailure {
+  type: CellErrorType.ParseFailure = CellErrorType.ParseFailure
+  constructor (readonly value: string) { }
+}
+
+export class UnableToCalculate {
+  type: CellErrorType.UnableToCalculate = CellErrorType.UnableToCalculate
+}
+
+export type CellError = ParseFailure | UnableToCalculate
+
+export type GetCellValue = (identifier: string) => Result<string, CellError>
+export type FormulaResult = (get: GetCellValue) => Result<string, CellError>
+
+function toNumber(val: string): Result<number, CellError> {
+  const numberVal = Number(val)
+  if (Number.isNaN(numberVal)) {
+    return Result.err(new UnableToCalculate())
+  } else {
+    return Result.ok(numberVal)
+  }
+}
 
 const cellIdentifier = map(join([letter, joinOneOrMore(digit)]), (id) => (get: GetCellValue) => get(id))
 

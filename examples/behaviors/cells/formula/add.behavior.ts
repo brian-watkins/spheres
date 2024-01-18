@@ -2,6 +2,7 @@ import { behavior, effect, example, fact, step } from "esbehavior";
 import { testStoreContext } from "./helpers/testStoreContext";
 import { expect, is } from "great-expectations";
 import { Result } from "../../../src/cells/result";
+import { CellError, UnableToCalculate } from "../../../src/cells/formula";
 
 export default behavior("add function", [
 
@@ -82,8 +83,8 @@ export default behavior("add function", [
         })
       ],
       observe: [
-        effect("the cell has an error value with its definition", (context) => {
-          expect(context.getCellResult("B3"), is(Result.err("=ADD(A1,A2)")))
+        effect("the cell has an error value that shows it is not calculable", (context) => {
+          expect(context.getCellResult("B3"), is<Result<string, CellError>>(Result.err(new UnableToCalculate())))
         })
       ]
     })

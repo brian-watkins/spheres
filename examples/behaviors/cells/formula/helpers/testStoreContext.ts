@@ -2,6 +2,7 @@ import { Store, write } from "@spheres/store";
 import { Context } from "esbehavior";
 import { cellContainer } from "../../../../src/cells/state";
 import { Result } from "../../../../src/cells/result";
+import { CellError, ParseFailure } from "../../../../src/cells/formula";
 
 export function testStoreContext(): Context<TestStore> {
   return {
@@ -11,7 +12,7 @@ export function testStoreContext(): Context<TestStore> {
 
 export class TestStore {
   private store = new Store()
-  private cellValues = new Map<string, Result<string, string>>()
+  private cellValues = new Map<string, Result<string, CellError>>()
 
   defineCell(id: string, definition: string) {
     const cell = cellContainer(id)
@@ -37,8 +38,8 @@ export class TestStore {
     return this.cellValues.get(id)?.withDefault("<ERROR IN CELL>") ?? "<UNDEFINED CELL>"
   }
 
-  getCellResult(id: string): Result<string, string> {
-    return this.cellValues.get(id) ?? Result.err("<UNDEFINED CELL>")
+  getCellResult(id: string): Result<string, CellError> {
+    return this.cellValues.get(id) ?? Result.err(new ParseFailure("Undefined Cell"))
   }
 
   printall() {

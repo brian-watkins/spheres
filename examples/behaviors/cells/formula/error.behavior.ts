@@ -2,6 +2,7 @@ import { behavior, effect, example, fact, step } from "esbehavior";
 import { testStoreContext } from "./helpers/testStoreContext";
 import { expect, is } from "great-expectations";
 import { Result } from "../../../src/cells/result";
+import { CellError, ParseFailure, UnableToCalculate } from "../../../src/cells/formula";
 
 export default behavior("propogated errors", [
 
@@ -18,7 +19,10 @@ export default behavior("propogated errors", [
       ],
       observe: [
         effect("the referenced cell is in an error state and shows its definition", (context) => {
-          expect(context.getCellResult("B3"), is(Result.err("=A4")))
+          expect(context.getCellResult("A4"), is<Result<string, CellError>>(Result.err(new ParseFailure("=49B"))))
+        }),
+        effect("the referencing cell shows a formula error", (context) => {
+          expect(context.getCellResult("B3"), is<Result<string, CellError>>(Result.err(new UnableToCalculate())))
         })
       ]
     }),
@@ -41,7 +45,10 @@ export default behavior("propogated errors", [
       ],
       observe: [
         effect("the referenced cell is in an error state and shows its definition", (context) => {
-          expect(context.getCellResult("B3"), is(Result.err("=A4")))
+          expect(context.getCellResult("A4"), is<Result<string, CellError>>(Result.err(new ParseFailure("=49B"))))
+        }),
+        effect("the referencing cell shows a formula error", (context) => {
+          expect(context.getCellResult("B3"), is<Result<string, CellError>>(Result.err(new UnableToCalculate())))
         })
       ]
     })

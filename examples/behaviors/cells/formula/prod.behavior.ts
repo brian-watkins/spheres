@@ -1,6 +1,8 @@
 import { behavior, effect, example, fact } from "esbehavior";
 import { testStoreContext } from "./helpers/testStoreContext";
 import { expect, is } from "great-expectations";
+import { Result } from "../../../src/cells/result";
+import { CellError, UnableToCalculate } from "../../../src/cells/formula";
 
 export default behavior("product function", [
 
@@ -38,6 +40,26 @@ export default behavior("product function", [
       observe: [
         effect("the cell contains the calculated value", (context) => {
           expect(context.getCellValue("D8"), is("120"))
+        })
+      ]
+    }),
+
+  example(testStoreContext())
+    .description("PROD formula that references non-numeric values")
+    .script({
+      suppose: [
+        fact("there are some cells, some with text, some with numbers", (context) => {
+          context.defineCell("B1", "18")
+          context.defineCell("B2", "18xxx")
+          context.defineCell("B3", "4")
+        }),
+        fact("there is a cell with a formula that attempts to multiply the cells", (context) => {
+          context.defineCell("C1", "=PROD(B1:B3)")
+        })
+      ],
+      observe: [
+        effect("the cell with the formula is an error that shows it was uncalculable", (context) => {
+          expect(context.getCellResult("C1"), is<Result<string, CellError>>(Result.err(new UnableToCalculate())))
         })
       ]
     })

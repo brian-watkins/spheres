@@ -194,6 +194,66 @@ export default behavior("command", [
           ]))
         })
       ]
+    }),
+
+  example(testStoreContext<Command<string>>())
+    .description("supplied state with id")
+    .script({
+      suppose: [
+        fact("there is a command", (context) => {
+          const myCommand = command<string>()
+          context.setTokens(myCommand)
+          context.useCommand(myCommand, (message, actions) => {
+            actions.pending(supplied({ id: "fun-stuff", initialValue: "initial" }), message)
+            actions.supply(supplied({ id: "fun-stuff", initialValue: "initial" }), `From command: ${message}`)
+          })
+        }),
+        fact("there is a subscriber to the supplied state", (context) => {
+          context.subscribeTo(supplied({ id: "fun-stuff", initialValue: "initial" }), "supplied-sub")
+        }),
+        fact("there is a subscriber to the meta state", (context) => {
+          context.subscribeTo(supplied({ id: "fun-stuff", initialValue: "initial" }).meta, "meta-supplied-sub")
+        })
+      ],
+      perform: [
+        step("the command is executed", (context) => {
+          context.store.dispatch(exec(context.tokens, "yo yo yo"))
+        })
+      ],
+      observe: [
+        effect("the subscriber gets the values", (context) => {
+          expect(context.valuesForSubscriber("supplied-sub"), is([
+            "initial",
+            "From command: yo yo yo"
+          ]))
+        }),
+        effect("the meta subscriber gets the values", (context) => {
+          expect(context.valuesForSubscriber("meta-supplied-sub"), is(arrayWith([
+            okMessage(),
+            pendingMessage("yo yo yo"),
+            okMessage()
+          ])))
+        })
+      ]
+    }),
+
+  example(testStoreContext<SuppliedState<string, string>>())
+    .description("when the name and the id are set")
+    .script({
+      suppose: [
+        fact("there is a derived state with a name and an id", (context) => {
+          context.setTokens(supplied({
+            id: "bowling",
+            name: "fun-stuff",
+            initialValue: ""
+          }))
+        })
+      ],
+      observe: [
+        effect("the string name includes the name and id", (context) => {
+          expect(context.tokens.toString(), is("fun-stuff-bowling"))
+        })
+      ]
     })
 
 ])

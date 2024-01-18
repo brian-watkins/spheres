@@ -128,8 +128,8 @@ abstract class AbstractReactiveQuery implements StateListener {
 
 export class SuppliedState<T, M, E = any> extends State<T, M> {
 
-  constructor(private initialValue: T) {
-    super(undefined, undefined)
+  constructor(id: string | undefined, name: string | undefined, private initialValue: T) {
+    super(id, name)
   }
 
   [registerState](_: Store): ContainerController<T, M> {
@@ -143,7 +143,7 @@ export class SuppliedState<T, M, E = any> extends State<T, M> {
 
 export class Container<T, M = T> extends State<T, M> {
   constructor(
-    readonly id: string | undefined,
+    id: string | undefined,
     name: string | undefined,
     private initialValue: T,
     private reducer: ((message: M, current: T) => T) | undefined,

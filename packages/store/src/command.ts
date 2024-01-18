@@ -1,4 +1,4 @@
-import { Command, ExecMessage, GetState, SuppliedState } from "./store";
+import { Command, ExecMessage, GetState } from "./store";
 
 export interface CommandInitializer<M> {
   query?: (get: GetState) => M
@@ -14,12 +14,4 @@ export function exec<M>(command: Command<M>, message: M): ExecMessage<M> {
     command,
     message
   }
-}
-
-export interface SuppliedStateInitializer<T> {
-  initialValue: T
-}
-
-export function supplied<T, M, E>(initializer: SuppliedStateInitializer<T>): SuppliedState<T, M, E> {
-  return new SuppliedState(initializer.initialValue)
 }

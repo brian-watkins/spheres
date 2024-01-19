@@ -62,6 +62,13 @@ export default behavior("dynamic container id", [
         }),
         fact("there is a subscriber to the meta container for the container with the same id", (context) => {
           context.subscribeTo(containerGenerator("container-1").meta, "meta-sub-1")
+        }),
+        fact("there are container hooks defined for the container", (context) => {
+          context.useContainerHooks(containerGenerator("container-1"), {
+            async onWrite(message, actions) {
+              actions.error(message, "Oops!")
+            },
+          })
         })
       ],
       perform: [
@@ -73,7 +80,7 @@ export default behavior("dynamic container id", [
         effect("the meta container has the expected value", (context) => {
           expect(context.valuesForSubscriber("meta-sub-1"), is(arrayWith([
             okMessage(),
-            errorMessage("BLOWUP", new Error("reducer-failure"))
+            errorMessage("BLOWUP", "Oops!")
           ])))
         })
       ]
@@ -105,9 +112,6 @@ function containerGenerator(id: string): Container<string> {
     id,
     initialValue: "",
     reducer: (message, current) => {
-      if (message === "BLOWUP") {
-        throw new Error("reducer-failure")
-      }
       return `${current} ${message}`.trim()
     }
   })

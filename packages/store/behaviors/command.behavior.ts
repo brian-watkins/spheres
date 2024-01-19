@@ -20,8 +20,8 @@ interface TestCommandStateContext {
 }
 
 interface TestCommandGetStateContext {
-  command: Command<{ container: SuppliedState<number, any> }>,
-  state: SuppliedState<number, any>
+  command: Command<{ container: SuppliedState<number> }>,
+  state: SuppliedState<number>
 }
 
 export default behavior("command", [
@@ -120,7 +120,7 @@ export default behavior("command", [
       suppose: [
         fact("there is a command that gets state value", (context) => {
           const counter = supplied({ initialValue: 0 })
-          const incrementCommand = command<{ container: SuppliedState<number, any> }>()
+          const incrementCommand = command<{ container: SuppliedState<number> }>()
           context.setTokens({
             command: incrementCommand,
             state: counter

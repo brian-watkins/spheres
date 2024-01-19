@@ -8,7 +8,7 @@ export interface ContainerInitializer<T, M> {
   name?: string
 }
 
-export function container<T, M = T>(initializer: ContainerInitializer<T, M>): Container<T, M> {
+export function container<T, M = T, E = any>(initializer: ContainerInitializer<T, M>): Container<T, M, E> {
   return new Container(
     initializer.id,
     initializer.name,

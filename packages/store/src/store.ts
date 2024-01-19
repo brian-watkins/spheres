@@ -1,5 +1,4 @@
 import { ContainerController, StateListener } from "./controller.js"
-import { StoreError } from "./error.js"
 import { Meta, error, ok, pending } from "./meta.js"
 
 export type GetState = <S, N = S>(state: State<S, N>) => S
@@ -75,18 +74,9 @@ const getKeyForToken = Symbol("getKeyForToken")
 type StoreRegistryKey = State<any>
 
 export abstract class State<T, M = T> {
-  private _meta: MetaState<T, M, any> | undefined
-
   constructor(readonly id: string | undefined, readonly name: string | undefined) { }
 
   abstract [registerState](store: Store): ContainerController<T, M>
-
-  get meta(): MetaState<T, M, any> {
-    if (this._meta === undefined) {
-      this._meta = new MetaState(this)
-    }
-    return this._meta
-  }
 
   toString() {
     return this.name && this.id ? `${this.name}-${this.id}` : (this.name ?? this.id ?? "State")
@@ -126,7 +116,8 @@ abstract class AbstractReactiveQuery implements StateListener {
   abstract update(): void
 }
 
-export class SuppliedState<T, M, E = any> extends State<T, M> {
+export class SuppliedState<T, M = any, E = any> extends State<T, M> {
+  private _meta: MetaState<T, M, E> | undefined
 
   constructor(id: string | undefined, name: string | undefined, private initialValue: T) {
     super(id, name)
@@ -137,11 +128,16 @@ export class SuppliedState<T, M, E = any> extends State<T, M> {
   }
 
   get meta(): MetaState<T, M, E> {
-    return super.meta
+    if (this._meta === undefined) {
+      this._meta = new MetaState(this)
+    }
+    return this._meta
   }
 }
 
-export class Container<T, M = T> extends State<T, M> {
+export class Container<T, M = T, E = any> extends State<T, M> {
+  private _meta: MetaState<T, M, E> | undefined
+
   constructor(
     id: string | undefined,
     name: string | undefined,
@@ -159,7 +155,7 @@ export class Container<T, M = T> extends State<T, M> {
   [registerState](store: Store): ContainerController<T, M> {
     const containerController = new ContainerController(this.initialValue, this.reducer)
 
-    if (!this.query) {
+    if (this.query === undefined) {
       return containerController
     }
 
@@ -169,30 +165,27 @@ export class Container<T, M = T> extends State<T, M> {
       return reactiveQuery.run(current, next)
     })
 
-    try {
-      containerController.writeValue(reactiveQuery.run(this.initialValue, undefined))
-    } catch (err: any) {
-      queueMicrotask(() => {
-        store[getController](this.meta).writeValue(error(undefined, err))
-      })
-    }
+    containerController.writeValue(reactiveQuery.run(this.initialValue, undefined))
 
     return containerController
+  }
+
+  get meta(): MetaState<T, M, E> {
+    if (this._meta === undefined) {
+      this._meta = new MetaState(this)
+    }
+    return this._meta
   }
 }
 
 class ReactiveContainerQuery<T, M> extends AbstractReactiveQuery {
-  constructor(store: Store, private state: State<T, M>, private query: ((actions: QueryActions<T>, nextValue?: M) => M)) {
+  constructor(store: Store, private state: Container<T, M>, private query: ((actions: QueryActions<T>, nextValue?: M) => M)) {
     super(store)
   }
 
   update(): void {
-    try {
-      const containerController = this.store[getController](this.state)
-      containerController.writeValue(this.run(containerController.value, undefined))
-    } catch (err) {
-      this.store[getController](this.state.meta).writeValue(error(undefined, err))
-    }
+    const containerController = this.store[getController](this.state)
+    containerController.writeValue(this.run(containerController.value, undefined))
   }
 
   run(currentValue: T, nextValue: M | undefined): M {
@@ -200,39 +193,27 @@ class ReactiveContainerQuery<T, M> extends AbstractReactiveQuery {
   }
 }
 
-export class DerivedState<T> extends State<T, T> {
+export class DerivedState<T> extends State<T> {
   constructor(id: string | undefined, name: string | undefined, private derivation: (get: GetState, current: T | undefined) => T) {
     super(id, name)
   }
 
   [registerState](store: Store): ContainerController<T, T> {
     const reactiveQuery = new ReactiveValue(store, this, this.derivation)
-
-    let initialValue: T
-    try {
-      initialValue = reactiveQuery.run(undefined) as unknown as T
-    } catch (err) {
-      const e = new StoreError(`Unable to initialize value: ${this.toString()}`)
-      e.cause = err
-      throw e
-    }
+    const initialValue = reactiveQuery.run(undefined)
 
     return new ContainerController(initialValue, undefined)
   }
 }
 
 class ReactiveValue<T, M> extends AbstractReactiveQuery {
-  constructor(store: Store, private state: State<any>, private definition: (get: GetState, current: T | undefined) => M) {
+  constructor(store: Store, private state: DerivedState<any>, private definition: (get: GetState, current: T | undefined) => M) {
     super(store)
   }
 
   update(): void {
     const derivedController = this.store[getController](this.state)
-    try {
-      derivedController.generateNext(this.run(derivedController.value))
-    } catch (err) {
-      this.store[getController](this.state.meta).writeValue(error(undefined, err))
-    }
+    derivedController.generateNext(this.run(derivedController.value))
   }
 
   run(currentValue: T | undefined): M {
@@ -313,16 +294,14 @@ export class Store {
   private tokenIdMap: Map<string, StoreRegistryKey> = new Map();
 
   [getKeyForToken](token: State<any>): StoreRegistryKey {
-    if (token.id !== undefined) {
-      const key = this.tokenIdMap.get(token.id)
-      if (key === undefined) {
-        this.tokenIdMap.set(token.id, token)
-        return token
-      }
-      return key
-    } else {
+    if (token.id === undefined) return token
+
+    const key = this.tokenIdMap.get(token.id)
+    if (key === undefined) {
+      this.tokenIdMap.set(token.id, token)
       return token
     }
+    return key
   }
 
   [getController]<T, M>(token: State<T, M>): ContainerController<T, M> {
@@ -388,11 +367,7 @@ export class Store {
   dispatch(message: StoreMessage<any>) {
     switch (message.type) {
       case "write":
-        try {
-          this[getController](message.container).updateValue(message.value)
-        } catch (err) {
-          this[getController](message.container.meta).writeValue(error(message.value, err))
-        }
+        this[getController](message.container).updateValue(message.value)
         break
       case "exec":
         this.commandRegistry.get(message.command)?.exec(message.message, {

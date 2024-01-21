@@ -156,9 +156,9 @@ type GetState = <T, M>(state: State<T, M>) => T
 ```
 
 The `GetState` type refers to a function that can be called with a state
-token to get its value.
+token to get its value. It is used throughout the API.
 
-### Create State Tokens
+### State Tokens
 
 Use `derived`, `supplied`, and `container` to create state tokens. Each function
 takes an initializer with token-specific properties. All token initializers share

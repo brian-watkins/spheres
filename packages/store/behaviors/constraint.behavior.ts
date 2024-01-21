@@ -3,21 +3,21 @@ import { ConfigurableExample, behavior, effect, example, fact, step } from "esbe
 import { equalTo, expect, is } from "great-expectations";
 import { testStoreContext } from "helpers/testStore.js";
 
-interface BasicQueryContext {
+interface BasicConstraintContext {
   numberContainer: Container<number>
   stringContainer: Container<string>
 }
 
-const basicQuery: ConfigurableExample =
-  example(testStoreContext<BasicQueryContext>())
-    .description("trigger a query")
+const basicConstraint: ConfigurableExample =
+  example(testStoreContext<BasicConstraintContext>())
+    .description("trigger a constraint")
     .script({
       suppose: [
-        fact("there is a container with a query", (context) => {
+        fact("there is a container with a constraint", (context) => {
           const numberContainer = container({ initialValue: 7 })
           const stringContainer = container({
             initialValue: "hello",
-            query: ({get, current}, next) => {
+            constraint: ({get, current}, next) => {
               if (get(numberContainer) % 2 === 0) {
                 return "even"
               } else {
@@ -48,7 +48,7 @@ const basicQuery: ConfigurableExample =
         })
       ],
       observe: [
-        effect("the subscriber gets the value updated after the query is triggered", (context) => {
+        effect("the subscriber gets the value updated after the constraint is triggered", (context) => {
           expect(context.valuesForSubscriber("sub-one"), is(equalTo([
             "hello",
             "even"
@@ -57,7 +57,7 @@ const basicQuery: ConfigurableExample =
       ]
     }).andThen({
       perform: [
-        step("write a value to trigger the query, which just results in the same value", (context) => {
+        step("write a value to trigger the constraint, which just results in the same value", (context) => {
           context.writeTo(context.tokens.stringContainer, "something else!")
         })
       ],
@@ -71,7 +71,7 @@ const basicQuery: ConfigurableExample =
       ]
     }).andThen({
       perform: [
-        step("write another value that triggers the query", (context) => {
+        step("write another value that triggers the constraint", (context) => {
           context.writeTo(context.tokens.numberContainer, 27)
           context.writeTo(context.tokens.stringContainer, "this is odd!")
         })
@@ -93,17 +93,17 @@ interface QueryDependencyContext {
   queryContainer: Container<string>
 }
 
-const queryDependency: ConfigurableExample =
+const constraintDependency: ConfigurableExample =
   example(testStoreContext<QueryDependencyContext>())
-    .description("the query has a dependency that is not used initially")
+    .description("the constraint has a dependency that is not used initially")
     .script({
       suppose: [
-        fact("there is a container with a query", (context) => {
+        fact("there is a container with a constraint", (context) => {
           const stringContainer = container({ initialValue: "hello" })
           const anotherStringContainer = container({ initialValue: "fun" })
           const queryContainer = container({
             initialValue: "first",
-            query: ({get, current}, next) => {
+            constraint: ({get, current}, next) => {
               const word = next ?? current
               if (get(stringContainer) === "hello") {
                 return `${word} stuff`
@@ -118,7 +118,7 @@ const queryDependency: ConfigurableExample =
             queryContainer
           })
         }),
-        fact("there is a subscriber to the query container", (context) => {
+        fact("there is a subscriber to the conatrained container", (context) => {
           context.subscribeTo(context.tokens.queryContainer, "sub-one")
         })
       ],
@@ -126,7 +126,7 @@ const queryDependency: ConfigurableExample =
         step("the other string container is updated", (context) => {
           context.writeTo(context.tokens.anotherStringContainer, "awesome")
         }),
-        step("the query container is written to", (context) => {
+        step("the constrained container is written to", (context) => {
           context.writeTo(context.tokens.queryContainer, "second")
         }),
         step("the string container is updated", (context) => {
@@ -154,16 +154,16 @@ interface QuerySelectionContext {
   incrementModThreeRule: Rule
 }
 
-const queryFromRule: ConfigurableExample =
+const constraintFromRule: ConfigurableExample =
   example(testStoreContext<QuerySelectionContext>())
-    .description("a rule provides the value to a query")
+    .description("a rule provides the value to a constraint")
     .script({
       suppose: [
-        fact("there is a rule for a container with a query", (context) => {
+        fact("there is a rule for a container with a constraint", (context) => {
           const stringContainer = container({ initialValue: "init" })
           const numberContainer = container({
             initialValue: 1,
-            query: ({get, current}, next) => {
+            constraint: ({get, current}, next) => {
               return get(stringContainer).length + (next ?? current)
             }
           })
@@ -208,16 +208,16 @@ interface ReducerQueryContext {
   queryContainer: Container<number, string>
 }
 
-const queryWithReducer: ConfigurableExample =
+const constraintWithReducer: ConfigurableExample =
   example(testStoreContext<ReducerQueryContext>())
-    .description("query with a reducer")
+    .description("constrained container with a reducer")
     .script({
       suppose: [
-        fact("there is a container with a reducer and a query", (context) => {
+        fact("there is a container with a reducer and a constraint", (context) => {
           const numberContainer = container({ initialValue: 17 })
           const queryContainer: Container<number, string> = container({
             initialValue: 7,
-            query: ({get}, next) => {
+            constraint: ({get}, next) => {
               if (next) return next
               return (get(numberContainer) % 2 === 0) ? "add" : "not-add"
             },
@@ -261,9 +261,9 @@ const queryWithReducer: ConfigurableExample =
       ]
     })
 
-export default behavior("query", [
-  basicQuery,
-  queryFromRule,
-  queryDependency,
-  queryWithReducer
+export default behavior("container constraint", [
+  basicConstraint,
+  constraintFromRule,
+  constraintDependency,
+  constraintWithReducer
 ])

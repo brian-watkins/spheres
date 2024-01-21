@@ -34,7 +34,7 @@ export interface Effect {
   run(get: GetState): void
 }
 
-export interface QueryActions<T> {
+export interface ConstraintActions<T> {
   get: GetState,
   current: T
 }
@@ -156,7 +156,7 @@ export class Container<T, M = T, E = any> extends State<T, M> {
     name: string | undefined,
     private initialValue: T,
     private reducer: ((message: M, current: T) => T) | undefined,
-    private query: ((actions: QueryActions<T>, nextValue?: M) => M) | undefined
+    private query: ((actions: ConstraintActions<T>, nextValue?: M) => M) | undefined
   ) {
     super(id, name)
   }
@@ -192,7 +192,7 @@ export class Container<T, M = T, E = any> extends State<T, M> {
 }
 
 class ReactiveContainerQuery<T, M> extends AbstractReactiveQuery {
-  constructor(store: Store, private state: Container<T, M>, private query: ((actions: QueryActions<T>, nextValue?: M) => M)) {
+  constructor(store: Store, private state: Container<T, M>, private query: ((actions: ConstraintActions<T>, nextValue?: M) => M)) {
     super(store)
   }
 
@@ -381,7 +381,7 @@ export class Store {
     }
   }
 
-  useContainerHooks<T, M, E = unknown>(container: Container<T, M>, hooks: ContainerHooks<T, M, E>) {
+  useContainerHooks<T, M, E>(container: Container<T, M>, hooks: ContainerHooks<T, M, E>) {
     const controller = this[getController](container)
 
     if (hooks.onWrite !== undefined) {

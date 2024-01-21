@@ -6,6 +6,6 @@ export interface SuppliedStateInitializer<T> {
   initialValue: T
 }
 
-export function supplied<T, M, E>(initializer: SuppliedStateInitializer<T>): SuppliedState<T, M, E> {
+export function supplied<T, M = any, E = any>(initializer: SuppliedStateInitializer<T>): SuppliedState<T, M, E> {
   return new SuppliedState(initializer.id, initializer.name, initializer.initialValue)
 }

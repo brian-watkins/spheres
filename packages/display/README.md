@@ -81,7 +81,7 @@ const display = createDisplay()
 display.mount(document.getElementById("app")!, counter())
 ```
 
-See more examples [here](https://github.com/brian-watkins/spheres/tree/main/examples)
+See more examples [here](https://github.com/brian-watkins/spheres/tree/main/examples).
 
 ## API
 
@@ -214,6 +214,29 @@ htmlView().zone((get) => {
 ```
 
 
+### Stateful Attributes
+
+All attribute functions may take either a value `T` (usually a string)
+or a `Stateful<T>` value:
+
+```
+type Stateful<T> = (get: GetState) => T | undefined
+```
+
+which is just a function based on state that produces a value. For example,
+to change the class of an element based on some state:
+
+```
+htmlView().div({ config } => {
+  config.class((get) => get(isError) ? "error-class" : "ok-class")
+})
+```
+
+Once this View is rendered, the class attribute -- and only the class
+attribute -- will be updated whenever the `isError` state token comes to
+represent a new value.
+
+
 ### Special Attribute Functions
 
 When configuring an element, the `config` property contains functions
@@ -223,8 +246,8 @@ property to note.
 
 #### attribute
 
-Create an arbitrary attribute by providing a name and value to the
-`attribute` function.
+Create an arbitrary attribute by providing a name and string or `Stateful<string>`
+value to the `attribute` function.
 
 ```
 htmlView().div({ config } => {
@@ -238,7 +261,8 @@ htmlView().div({ config } => {
 
 #### dataAttribute
 
-Provide a data attribute with the `dataAttribute` function:
+Provide a data attribute with the `dataAttribute` function. The value may be
+a `Stateful<string>`.
 
 ```
 htmlView().div({ config } => {
@@ -252,12 +276,12 @@ htmlView().div({ config } => {
 
 #### innerHTML
 
-Provide an HTML string to be set as the content of this element. Any
-children set on the element will be ignored.
+Provide an HTML string or `Stateful<string>` to be set as the content of this
+element. Any children set on the element will be ignored.
 
 #### aria
 
-Provide an aria attribute and value via the `aria` function.
+Provide an aria attribute and value or `Stateful<string>` via the `aria` function.
 
 ```
 htmlView().div(({ config }) => {
@@ -280,34 +304,3 @@ htmlView().button(({ config }) => {
   config.on("click", () => write(myContainer, "some text"))
 })
 ```
-
-### Stateful Attributes
-
-All attribute functions may take either a value or a `Stateful` value,
-which is just a function based on state that produces a value. For example,
-to change the class of an element based on some state:
-
-```
-htmlView().div({ config } => {
-  config.class((get) => get(isError) ? "error-class" : "ok-class")
-})
-```
-
-Once this View is rendered, the class attribute -- and only the class
-attribute -- will be updated whenever the `isError` state token comes to
-represent a new value.
-
-
-
-
-Things to document
-
-- createDisplay, Display (really just mount)
-- htmlView(), svgView(); how to build up a View with config and children
-- renderToDom(), renderToString() (Should renderToDom() be exposed?)
-- htmlElements -- and need to expose svgElements as well
-- also specialAttributes from viewConfig is exposed ... do we need that?
-
-Note that display registers an event handler at the top to catch events.
-Should we do that? Or we could probably have things dispatch to the store
-directly from the vdom?

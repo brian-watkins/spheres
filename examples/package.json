@@ -19,7 +19,7 @@
   },
   "scripts": {
     "start": "vite --open",
-    "test": "best --behaviors './behaviors/**/*.behavior.ts' --runInBrowser '**/cells/formula/**/*'",
+    "test": "best --behaviors './behaviors/**/*.behavior.ts' --runInBrowser '**/cells/formula/**/*' --failFast",
     "test:debug": "npm run test -- --showBrowser"
   },
   "author": "Brian Watkins",

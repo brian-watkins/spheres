@@ -24,7 +24,7 @@ export const returnDateIsValid = derived({
   query: (get) => toDateTime(get(returnDate)).isValid
 })
 
-export const flightType = container({
+export const flightType = container<FlightTypes, string>({
   initialValue: FlightTypes.ONE_WAY
 })
 

@@ -2,7 +2,7 @@ import { Rule, command, container, rule, derived, write } from "@spheres/store";
 
 export const elapsedTime = container({
   initialValue: 0,
-  query: ({ get, current }, next) => {
+  constraint: ({ get, current }, next) => {
     return Math.min(get(duration) * 1000, next ?? current)
   }
 })

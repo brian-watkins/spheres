@@ -23,7 +23,7 @@ export interface RepeaterCommand {
 }
 
 export const runTimerCommand = command<RepeaterCommand>({
-  query: (get) => {
+  trigger: (get) => {
     return {
       shouldRun: get(duration) > 0 && get(elapsedTime) < (get(duration) * 1000),
       interval: 100,

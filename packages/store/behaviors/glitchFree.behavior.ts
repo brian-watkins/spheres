@@ -56,7 +56,7 @@ export default behavior("glitch-free effects", [
             query: (get) => `${get(root)} + second`
           })
           const myCommand = command({
-            query: (get) => `${get(first)} & ${get(second)}`
+            trigger: (get) => `${get(first)} & ${get(second)}`
           })
           let commandMessages: Array<string> = []
           context.useCommand(myCommand, (message) => {

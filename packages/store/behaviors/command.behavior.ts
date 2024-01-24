@@ -183,7 +183,7 @@ export default behavior("command", [
         fact("there is a command triggered by a reactive query", (context) => {
           const keyContainer = container({ initialValue: 27 })
           const reactiveCommand = command({
-            query: (get) => {
+            trigger: (get) => {
               return `command-invocation-${get(keyContainer)}`
             }
           })

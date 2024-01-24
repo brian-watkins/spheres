@@ -349,7 +349,7 @@ Generate a command using the `command` function:
 
 ```
 interface CommandInitializer<M> {
-  query?: (get: GetState) => M
+  trigger?: (get: GetState) => M
 }
 
 function command<M>(initializer: CommandInitializer<M> = {}): Command<M>
@@ -359,8 +359,8 @@ A command typically just serves as a way to capture type information
 about the message (the `M` type) that must be passed when invoking it
 with the `exec` StoreMessage.
 
-Use the optional `query` attribute to define a *reactive* query that will
-run to invoke the command with the proper message every time one of the
+Use the optional `trigger` attribute to define a *reactive* query that will
+run to invoke the command with the resulting message every time one of the
 referenced state tokens comes to represent a new value.
 
 Call the `useCommand` function on the Store to register a `CommandManager`

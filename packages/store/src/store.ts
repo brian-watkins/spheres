@@ -268,16 +268,16 @@ class ReactiveConstraint<T, M> extends ReactiveEffect {
 }
 
 export class Command<M> {
-  constructor(private query: ((get: GetState) => M) | undefined) { }
+  constructor(private trigger: ((get: GetState) => M) | undefined) { }
 
   [initializeCommand](store: Store): void {
-    if (this.query !== undefined) {
+    if (this.trigger !== undefined) {
       store.useEffect({
         run: (get) => {
           store.dispatch({
             type: "exec",
             command: this,
-            message: this.query!((state) => get(state))
+            message: this.trigger!((state) => get(state))
           })
         }
       })

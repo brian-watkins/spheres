@@ -172,13 +172,13 @@ export class Container<T, M = T, E = any> extends State<T, M> {
       return controller
     }
 
-    const reactiveQuery = new ReactiveContainerQuery(store, this, this.query)
+    const reactiveConstraint = new ReactiveConstraint(store, controller, this.query)
 
     controller.setQuery((current, next) => {
-      return reactiveQuery.run(current, next)
+      return reactiveConstraint.runQuery(current, next)
     })
 
-    controller.update(MessageStatus.Constrained, reactiveQuery.run(this.initialValue, undefined))
+    reactiveConstraint.run()
 
     return controller
   }
@@ -188,21 +188,6 @@ export class Container<T, M = T, E = any> extends State<T, M> {
       this._meta = new MetaState(this)
     }
     return this._meta
-  }
-}
-
-class ReactiveContainerQuery<T, M> extends AbstractReactiveQuery {
-  constructor(store: Store, private state: Container<T, M>, private query: ((actions: ConstraintActions<T>, nextValue?: M) => M)) {
-    super(store)
-  }
-
-  update(): void {
-    const containerController = this.store[getController](this.state)
-    containerController.update(MessageStatus.Constrained, this.run(containerController.value, undefined))
-  }
-
-  run(currentValue: T, nextValue: M | undefined): M {
-    return this.query({ get: (state) => this.getValue(state), current: currentValue }, nextValue)
   }
 }
 
@@ -239,11 +224,23 @@ export interface EffectHandle {
 }
 
 class ReactiveEffect extends AbstractReactiveQuery implements EffectHandle {
+  private isQueued = false
+
   constructor(store: Store, private effect: Effect) {
     super(store)
   }
 
   update() {
+    if (!this.isQueued) {
+      queueMicrotask(() => {
+        this.run()
+        this.isQueued = false
+      })
+      this.isQueued = true
+    }
+  }
+
+  run() {
     this.effect.run((state) => this.getValue(state))
   }
 
@@ -256,32 +253,35 @@ class ReactiveEffect extends AbstractReactiveQuery implements EffectHandle {
   }
 }
 
+class ReactiveConstraint<T, M> extends ReactiveEffect {
+  constructor(store: Store, controller: StateController<T, M>, private query: ((actions: ConstraintActions<T>, nextValue?: M) => M)) {
+    super(store, {
+      run: () => {
+        controller.update(MessageStatus.Constrained, this.runQuery(controller.value, undefined))
+      }
+    })
+  }
+
+  runQuery(current: T, next: M | undefined): M {
+    return this.query!({ get: (state) => this.getValue(state), current }, next)
+  }
+}
+
 export class Command<M> {
   constructor(private query: ((get: GetState) => M) | undefined) { }
 
   [initializeCommand](store: Store): void {
     if (this.query !== undefined) {
-      const reactiveQuery = new ReactiveCommandQuery(store, this, this.query)
-      reactiveQuery.update()
+      store.useEffect({
+        run: (get) => {
+          store.dispatch({
+            type: "exec",
+            command: this,
+            message: this.query!((state) => get(state))
+          })
+        }
+      })
     }
-  }
-}
-
-class ReactiveCommandQuery<M> extends AbstractReactiveQuery {
-  constructor(store: Store, private command: Command<M>, private query: (get: GetState) => M) {
-    super(store)
-  }
-
-  update(): void {
-    this.store.dispatch({
-      type: "exec",
-      command: this.command,
-      message: this.run()
-    })
-  }
-
-  run(): M {
-    return this.query((state) => this.getValue(state))
   }
 }
 
@@ -336,7 +336,7 @@ export class Store {
 
   useEffect(effect: Effect): EffectHandle {
     const reactiveEffect = new ReactiveEffect(this, effect)
-    reactiveEffect.update()
+    reactiveEffect.run()
     return reactiveEffect
   }
 

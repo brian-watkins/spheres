@@ -3,6 +3,7 @@ import { behavior, effect, example, fact, step } from "esbehavior";
 import { arrayWith, expect, is } from "great-expectations";
 import { errorMessage, okMessage, pendingMessage } from "helpers/metaMatchers";
 import { testStoreContext } from "helpers/testStore";
+import { TestTask } from "helpers/testTask";
 
 interface FunCommandMessage {
   name: string
@@ -17,6 +18,7 @@ interface TestCommandContext {
 interface TestCommandStateContext {
   command: Command<{ container: SuppliedState<string, number, boolean> }>
   responseContainer: SuppliedState<string, number, boolean>
+  task: TestTask<number, boolean>
 }
 
 interface TestCommandGetStateContext {
@@ -72,14 +74,20 @@ export default behavior("command", [
       suppose: [
         fact("there is a command that accepts supplied state to write to in its message", (context) => {
           const funCommand = command<{ container: SuppliedState<string, number, boolean> }>()
+          const task = new TestTask<number, boolean>()
           context.setTokens({
             command: funCommand,
-            responseContainer: supplied<string, number, boolean>({ initialValue: "initial value" })
+            responseContainer: supplied<string, number, boolean>({ initialValue: "initial value" }),
+            task
           })
-          context.useCommand(funCommand, (message, { supply, pending, error }) => {
+          context.useCommand(funCommand, async (message, { supply, pending, error }) => {
             pending(message.container, 27)
-            error(message.container, 27, false)
-            supply(message.container, "Hello from the command!")
+            const result = await task.waitForIt()
+            if (result < 20) {
+              error(message.container, result, false)
+            } else {
+              supply(message.container, `Hello from the command! (${result})`)
+            }
           })
         }),
         fact("there is a subscriber to the meta-container", (context) => {
@@ -94,20 +102,32 @@ export default behavior("command", [
           context.store.dispatch(exec(context.tokens.command, {
             container: context.tokens.responseContainer
           }))
+        }),
+        step("the task resolves and causes an error", (context) => {
+          context.tokens.task.resolveWith(10)
+        }),
+        step("the command is triggered again", (context) => {
+          context.store.dispatch(exec(context.tokens.command, {
+            container: context.tokens.responseContainer
+          }))
+        }),
+        step("the task resolves and causes a supply", (context) => {
+          context.tokens.task.resolveWith(30)
         })
       ],
       observe: [
-        effect("subscribers to the supplied state receive the value", (context) => {
+        effect("subscribers to the supplied state receive the supplied value", (context) => {
           expect(context.valuesForSubscriber("sub-1"), is([
             "initial value",
-            "Hello from the command!"
+            "Hello from the command! (30)"
           ]))
         }),
         effect("the meta subscriber receives meta info about the supplied state", (context) => {
           expect(context.valuesForSubscriber("meta-sub-1"), is(arrayWith([
             okMessage(),
             pendingMessage(27),
-            errorMessage(27, false),
+            errorMessage(10, false),
+            pendingMessage(27),
             okMessage()
           ])))
         })
@@ -196,15 +216,20 @@ export default behavior("command", [
       ]
     }),
 
-  example(testStoreContext<Command<string>>())
+  example(testStoreContext<SuppliedStateWithIdContext>())
     .description("supplied state with id")
     .script({
       suppose: [
         fact("there is a command", (context) => {
           const myCommand = command<string>()
-          context.setTokens(myCommand)
-          context.useCommand(myCommand, (message, actions) => {
+          const task = new TestTask<string>()
+          context.setTokens({
+            command: myCommand,
+            task
+          })
+          context.useCommand(myCommand, async (message, actions) => {
             actions.pending(supplied({ id: "fun-stuff", initialValue: "initial" }), message)
+            await task.waitForIt()
             actions.supply(supplied({ id: "fun-stuff", initialValue: "initial" }), `From command: ${message}`)
           })
         }),
@@ -217,7 +242,10 @@ export default behavior("command", [
       ],
       perform: [
         step("the command is executed", (context) => {
-          context.store.dispatch(exec(context.tokens, "yo yo yo"))
+          context.store.dispatch(exec(context.tokens.command, "yo yo yo"))
+        }),
+        step("the command's task resolves", (context) => {
+          context.tokens.task.resolveWith("hello")
         })
       ],
       observe: [
@@ -257,6 +285,11 @@ export default behavior("command", [
     })
 
 ])
+
+interface SuppliedStateWithIdContext {
+  command: Command<string>
+  task: TestTask<string>
+}
 
 interface TestQueryCommandState {
   container: Container<number>,

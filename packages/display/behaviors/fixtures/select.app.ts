@@ -13,8 +13,8 @@ const fruits = [
 const selectedFruit = container({ initialValue: "grapes" })
 
 export default function (): View {
-  return htmlView()
-    .main(({ children }) => {
+  return htmlView(root => {
+    root.main(({ children }) => {
       children
         .form(({ children }) => {
           children
@@ -51,4 +51,5 @@ export default function (): View {
           children.textNode((get) => `Selected Option: ${get(selectedFruit)}`)
         })
     })
+  })
 }

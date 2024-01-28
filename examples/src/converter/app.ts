@@ -5,7 +5,7 @@ import { View, htmlView } from "@spheres/display";
 
 
 export function converter(): View {
-  return htmlView().main(el => {
+  return htmlView(root => root.main(el => {
     el.children
       .div(el => {
         el.children
@@ -23,29 +23,29 @@ export function converter(): View {
           })
           .zone(farenheitInput)
       })
-  })
+  }))
 }
 
 function celsiusInput(): View {
-  return htmlView().input(el => {
+  return htmlView(root => root.input(el => {
     el.config
       .id("celsius")
       .type("text")
       .value((get) => get(celsiusTemperature))
       .on("input", useValue((value) => use(temperatureUpdate, { celsius: value })))
       .class((get) => inputStyling(get(celsiusInvalid), get(farenheitInvalid)))
-  })
+  }))
 }
 
 function farenheitInput(): View {
-  return htmlView().input(el => {
+  return htmlView(root => root.input(el => {
     el.config
       .id("farenheit")
       .type("text")
       .value((get) => get(farenheitTemperature))
       .on("input", useValue((value) => use(temperatureUpdate, { farenheit: value })))
       .class((get) => inputStyling(get(farenheitInvalid), get(celsiusInvalid)))
-  })
+  }))
 }
 
 function inputStyling(isInvalid: boolean, isError: boolean): string {

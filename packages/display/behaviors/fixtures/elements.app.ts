@@ -1,8 +1,8 @@
 import { htmlView } from "@src/index.js"
 
 export default function view() {
-  return htmlView()
-    .div(div => {
+  return htmlView(root => {
+    root.div(div => {
       div.config
         .id("funny-id")
       div.children
@@ -33,4 +33,5 @@ export default function view() {
           el.config.aria("label", "submit")
         })
     })
+  })
 }

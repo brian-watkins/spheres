@@ -71,7 +71,7 @@ const MagicElements = new Proxy({}, {
   }
 })
 
-class BasicView {
+class ViewBuilder {
   protected nodes: Array<VirtualNode> = []
 
   storeNode(node: VirtualNode) {
@@ -126,7 +126,7 @@ class BasicView {
     const config = virtualNodeConfig()
     setNamespace(config, "http://www.w3.org/2000/svg")
     configBuilder.resetConfig(config)
-    const view = new SVGView()
+    const view = new SVGViewBuilder()
     builder?.({
       config: configBuilder as unknown as SvgElementAttributes,
       children: view as unknown as SVGElements
@@ -155,11 +155,22 @@ class BasicView {
   }
 }
 
-Object.setPrototypeOf(Object.getPrototypeOf(new BasicView()), MagicElements)
+Object.setPrototypeOf(Object.getPrototypeOf(new ViewBuilder()), MagicElements)
+
+class HTMLView implements View {
+  constructor (private definition: (builder: HTMLBuilder) => void) { }
+
+  get [toVirtualNode](): VirtualNode {
+    const builder = new ViewBuilder()
+    this.definition(builder as unknown as HTMLBuilder)
+    return builder[toVirtualNode]
+  }
+}
+
 
 // SVG
 
-class SVGView extends BasicView {
+class SVGViewBuilder extends ViewBuilder {
   buildElement(tag: string, builder: (element: ConfigurableElement<any, SVGElements>) => void) {
     let storedNodes = this.nodes
     let childNodes: Array<VirtualNode> = []
@@ -177,10 +188,20 @@ class SVGView extends BasicView {
   }
 }
 
-export function htmlView(): HTMLBuilder {
-  return new BasicView() as unknown as HTMLBuilder
+class SVGView implements View {
+  constructor (private definition: (builder: SVGBuilder) => void) { }
+
+  get [toVirtualNode](): VirtualNode {
+    const builder = new SVGViewBuilder()
+    this.definition(builder as unknown as SVGBuilder)
+    return builder[toVirtualNode]
+  }
 }
 
-export function svgView(): SVGBuilder {
-  return new SVGView() as unknown as SVGBuilder
+export function htmlView(definition: (builder: HTMLBuilder) => void): View {
+  return new HTMLView(definition)
+}
+
+export function svgView(definition: (builder: SVGBuilder) => void): View {
+  return new SVGView(definition)
 }

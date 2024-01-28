@@ -3,8 +3,8 @@ import counterIsland from "../islands/counter.js"
 import tallyIsland from "../islands/tally.js"
 
 export default function (): View {
-  return htmlView()
-    .div(el => {
+  return htmlView(root => {
+    root.div(el => {
       el.children
         .h1(el => el.children.textNode("This is the click counter!"))
         .zone(() => counterIsland)
@@ -13,5 +13,6 @@ export default function (): View {
         .hr()
         .zone(() => tallyIsland)
     })
+  })
 }
 

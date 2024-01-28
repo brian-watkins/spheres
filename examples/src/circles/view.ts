@@ -4,8 +4,8 @@ import { Circle, CircleContainer, addCircleRule, adjustRadius, adjustRadiusRule,
 import { useValue } from "../helpers/helpers";
 
 export default function circles(): View {
-  return htmlView()
-    .main(({ children }) => {
+  return htmlView(root => {
+    root.main(({ children }) => {
       children
         .div(({ config, children }) => {
           config
@@ -40,24 +40,26 @@ export default function circles(): View {
         })
         .zone(optionsView)
     })
+  })
 }
 
 function circleViews(get: GetState): View {
   const data = get(circleData)
 
-  return svgView()
-    .g(({ children }) => {
+  return svgView(root => {
+    root.g(({ children }) => {
       for (const circle of data) {
         children.zone(circleView(circle))
       }
     })
+  })
 }
 
 function circleView(circleContainer: CircleContainer) {
   return (get: GetState) => {
     const circle = get(circleContainer)
-    return svgView()
-      .circle(({ config }) => {
+    return svgView(root => {
+      root.circle(({ config }) => {
         config
           .fill(circle.selected ? "#333333" : "transparent")
           .stroke("#555555")
@@ -84,6 +86,7 @@ function circleView(circleContainer: CircleContainer) {
           config.on("mouseout", () => write(circleContainer, deselectCircle()))
         }
       })
+    })
   }
 }
 
@@ -103,13 +106,13 @@ function optionsView(get: GetState): View {
   const dialogData = get(dialog)
 
   if (dialogData === undefined) {
-    return htmlView().dialog()
+    return htmlView(root => root.dialog())
   }
 
   const circle = get(dialogData.circle)
 
-  return htmlView()
-    .dialog(({ config, children }) => {
+  return htmlView(root => {
+    root.dialog(({ config, children }) => {
       config
         .class("backdrop:bg-gray-500/50 bg-slate-100 shadow-lg rounded")
         .on("click", closeDialog)
@@ -138,6 +141,7 @@ function optionsView(get: GetState): View {
           }
         })
     })
+  })
 }
 
 function closeDialog(evt: Event): StoreMessage<any> {
@@ -149,8 +153,8 @@ function closeDialog(evt: Event): StoreMessage<any> {
 
 function adjustRadiusView(circleState: CircleContainer): () => View {
   return () => {
-    return htmlView()
-      .div(({ config, children }) => {
+    return htmlView(root => {
+      root.div(({ config, children }) => {
         config
           .class("w-96")
         children
@@ -172,6 +176,7 @@ function adjustRadiusView(circleState: CircleContainer): () => View {
               .on("input", useValue(value => write(circleState, adjustRadius(Number(value)))))
           })
       })
+    })
   }
 }
 

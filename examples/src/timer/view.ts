@@ -4,7 +4,7 @@ import { duration, elapsedTime, percentComplete } from "./state.js";
 import { names, useValue } from "../helpers/helpers.js";
 
 export function timer(): View {
-  return htmlView().section(el => {
+  return htmlView(root => root.section(el => {
     el.config
       .class(names([
         "flex",
@@ -64,12 +64,12 @@ export function timer(): View {
         el.children
           .textNode("Reset")
       })
-  })
+  }))
 }
 
 function elapsedTimeLabel(): View {
-  return htmlView()
-    .div(el => {
+  return htmlView(root => {
+    root.div(el => {
       el.config
         .dataAttribute("elapsed-time")
         .class(names([
@@ -79,11 +79,12 @@ function elapsedTimeLabel(): View {
       el.children
         .textNode((get) => formatTime(get(elapsedTime)))
     })
+  })
 }
 
 function progressMeter(): View {
-  return htmlView()
-    .progress(el => {
+  return htmlView(root => {
+    root.progress(el => {
       el.config
         .class(names([
           "mt-2",
@@ -96,6 +97,7 @@ function progressMeter(): View {
         ]))
         .value((get) => get(percentComplete))
     })
+  })
 }
 
 function formatTime(millis: number): string {

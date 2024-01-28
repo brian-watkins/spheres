@@ -11,8 +11,8 @@ const peopleState = container({
 
 const peopleView = (get: GetState) => {
   const people = get(peopleState)
-  return htmlView()
-    .ul(el => {
+  return htmlView(root => {
+    root.ul(el => {
       for (const person of people) {
         el.children.li(el => {
           el.config.dataAttribute("person")
@@ -20,6 +20,7 @@ const peopleView = (get: GetState) => {
         })
       }
     })
+  })
 }
 
 const localState = container({ initialValue: "" })
@@ -32,21 +33,25 @@ const writePeople = rule((get) => {
 })
 
 function updateButton(): View {
-  return htmlView()
-    .button(el => {
+  return htmlView(root => {
+    root.button(el => {
       el.config.on("click", () => use(writePeople))
       el.children.textNode("Click me!")
     })
+  })
 }
 
 export default function (): View {
-  return htmlView()
-    .div(el => {
+  return htmlView(root => {
+    root.div(el => {
       el.children
         .p(el => el.children.textNode("Here is some person"))
         .zone(peopleView)
         .hr()
-        .input(el => el.config.on("input", useValue((value) => write(localState, value))))
+        .input(el => {
+          el.config.on("input", useValue((value) => write(localState, value)))
+        })
         .zone(updateButton)
     })
+  })
 }

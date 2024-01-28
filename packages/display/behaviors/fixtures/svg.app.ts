@@ -4,8 +4,8 @@ import { container, write } from "@spheres/store";
 const message = container({ initialValue: "SVG" })
 
 export default function (): View {
-  return htmlView()
-    .main(({ children }) => {
+  return htmlView(root => {
+    root.main(({ children }) => {
       children
         .form(({ children }) => {
           children
@@ -35,8 +35,8 @@ export default function (): View {
                 .fill("green")
             })
             .zone((get) => {
-              return svgView()
-                .text(({ config, children }) => {
+              return svgView(root => {
+                root.text(({ config, children }) => {
                   config
                     .x("150")
                     .y("125")
@@ -46,7 +46,9 @@ export default function (): View {
                   children
                     .textNode(get(message))
                 })
+              })
             })
         })
     })
+  })
 }

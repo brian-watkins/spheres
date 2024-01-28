@@ -1,5 +1,6 @@
-import { createDisplay } from "@src/index.js"
+import { renderToDOM } from "@src/view.js"
 import withStateIsland from "./withState.js"
+import { Store } from "@spheres/store"
 
-const display = createDisplay()
-display.mount(document.getElementById("nested-state-island")!, withStateIsland)
+const store = new Store()
+renderToDOM(store, document.getElementById("nested-state-island")!, withStateIsland)

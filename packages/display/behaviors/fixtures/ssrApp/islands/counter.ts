@@ -4,8 +4,8 @@ import { rule, use, write } from "@spheres/store"
 
 const incrementCount = rule(get => write(clickCount, get(clickCount) + 1))
 
-export default htmlView()
-  .div(el => {
+export default htmlView(root => {
+  root.div(el => {
     el.config
       .id("counter")
     el.children
@@ -16,3 +16,4 @@ export default htmlView()
           .textNode("Click me!")
       })
   })
+})

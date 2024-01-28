@@ -4,8 +4,8 @@ import { createRecord, deleteSelected, filterPrefix, filteredRecords, records, s
 import { names, useValue } from "../helpers/helpers.js";
 
 export default function crud(): View {
-  return htmlView()
-    .main(({ config, children }) => {
+  return htmlView(root => {
+    root.main(({ config, children }) => {
       config
         .class("m-4")
       children
@@ -54,14 +54,14 @@ export default function crud(): View {
                 .class(buttonClasses())
               children.textNode("Delete")
             })
-
         })
     })
+  })
 }
 
 function recordForm(): View {
-  return htmlView()
-    .form(({ config, children }) => {
+  return htmlView(root => {
+    root.form(({ config, children }) => {
       config
         .id("record-form")
         .class(names([
@@ -92,12 +92,12 @@ function recordForm(): View {
             .dataAttribute("last-name-input")
         }))
     })
-
+  })
 }
 
 function inputView(label: string, builder: (el: ConfigurableElement<InputElementAttributes, HTMLElements>) => void): () => View {
-  return () => htmlView()
-    .label(el => {
+  return () => htmlView(root => {
+    root.label(el => {
       el.children
         .textNode(label)
         .input(el => {
@@ -108,14 +108,14 @@ function inputView(label: string, builder: (el: ConfigurableElement<InputElement
           builder(el)
         })
     })
-
+  })
 }
 
 function recordsView(get: GetState): View {
   const data = get(filteredRecords)
 
-  return htmlView()
-    .select(({ config, children }) => {
+  return htmlView(root => {
+    root.select(({ config, children }) => {
       config
         .size("5")
         .dataAttribute("records")
@@ -137,6 +137,7 @@ function recordsView(get: GetState): View {
           })
       }
     })
+  })
 }
 
 function submissionAction(evt: Event): string {

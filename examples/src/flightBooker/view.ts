@@ -4,7 +4,7 @@ import { FlightTypes, allowReturnDate, bookFlight, bookingAllowed, flightType, r
 import { names, useValue } from "../helpers/helpers.js";
 
 export function flightBooker(): View {
-  return htmlView().main(el => {
+  return htmlView(root => root.main(el => {
     el.config
       .class(names([
         "flex",
@@ -17,12 +17,12 @@ export function flightBooker(): View {
       .zone(startDateInput)
       .zone(returnDateInput)
       .zone(bookFlightButton)
-  })
+  }))
 }
 
 function flightTypeSelect(): View {
-  return htmlView()
-    .select(el => {
+  return htmlView(root => {
+    root.select(el => {
       el.config.on("change", useValue((value) => write(flightType, value)))
       el.children
         .option(el => {
@@ -32,11 +32,12 @@ function flightTypeSelect(): View {
           el.children.textNode(FlightTypes.RETURN)
         })
     })
+  })
 }
 
 function bookFlightButton(): View {
-  return htmlView()
-    .button(el => {
+  return htmlView(root => {
+    root.button(el => {
       el.config
         .class(names([
           "bg-sky-600",
@@ -53,22 +54,24 @@ function bookFlightButton(): View {
       el.children
         .textNode("Book Flight!")
     })
+  })
 }
 
 function startDateInput(): View {
-  return htmlView()
-    .input(el => {
+  return htmlView(root => {
+    root.input(el => {
       el.config
         .dataAttribute("start-date")
         .class((get) => textInputClasses(get(startDateIsValid)))
         .value((get) => get(startDate))
         .on("input", useValue((value) => write(startDate, value)))
     })
+  })
 }
 
 function returnDateInput(): View {
-  return htmlView()
-    .input(el => {
+  return htmlView(root => {
+    root.input(el => {
       el.config
         .dataAttribute("return-date")
         .class((get) => textInputClasses(get(returnDateIsValid)))
@@ -76,6 +79,7 @@ function returnDateInput(): View {
         .disabled((get) => !get(allowReturnDate))
         .on("input", useValue((value) => write(returnDate, value)))
     })
+  })
 }
 
 function textInputClasses(isValid: boolean): string {

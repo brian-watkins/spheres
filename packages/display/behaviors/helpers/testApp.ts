@@ -1,4 +1,4 @@
-import { Display } from "@src/index.js"
+import { renderToDOM } from "@src/view.js"
 import { DOMChangeRecord, structureChangeRecord, textChangeRecord } from "./changeRecords.js"
 import { Store } from "@spheres/store"
 
@@ -13,13 +13,13 @@ export class TestApp {
 
     const viewConfiguration = await import(`../fixtures/${name}.ts`)
     const view = viewConfiguration.default
-    const appDisplay = new Display(store)
 
     const testAppMountPoint = document.createElement("div")
     testAppMountPoint.id = "test-display"
     document.body.appendChild(testAppMountPoint)
 
-    this.unmountTestApp = appDisplay.mount(testAppMountPoint, view(context))
+    const renderResult = renderToDOM(store, testAppMountPoint, view(context))
+    this.unmountTestApp = renderResult.unmount
   }
 
   observe(selector: string) {

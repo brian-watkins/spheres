@@ -1,5 +1,5 @@
-import { createDisplay } from "@spheres/display";
+import { renderToDOM } from "@spheres/display";
 import { cells } from "../../../src/cells/view";
+import { Store } from "@spheres/store";
 
-const display = createDisplay()
-display.mount(document.getElementById("test-display")!, cells())
+renderToDOM(new Store(), document.getElementById("test-display")!, cells())

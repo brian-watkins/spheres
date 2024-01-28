@@ -7,7 +7,7 @@ const clickCount = container({
 })
 
 export function counter(): View {
-  return htmlView().main(el => {
+  return htmlView(root => root.main(el => {
     el.children
       .p(el => {
         el.config.dataAttribute("counter-text")
@@ -17,5 +17,5 @@ export function counter(): View {
         el.config.on("click", () => write(clickCount, "increment"))
         el.children.textNode("Count!")
       })
-  })
+  }))
 }

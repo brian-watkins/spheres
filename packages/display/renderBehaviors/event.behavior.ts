@@ -111,17 +111,22 @@ export default behavior("event handlers", [
       ]
     }),
 
-  example(renderContext<Container<string>>())
+  example(renderContext<Container<number>>())
     .description("event handler function that changes during patch")
     .script({
       suppose: [
         fact("there is a container", (context) => {
-          context.setState(container({ initialValue: "" }))
+          context.setState(container({
+            initialValue: 0,
+            reducer: (amount, current) => {
+              return current + amount
+            }
+          }))
         }),
         fact("there is an element with a click event handler", (context) => {
           const config = virtualNodeConfig()
           setEventHandler(config, "click", () => {
-            return write(context.state, "hello")
+            return write(context.state, 1)
           })
           const button = makeVirtualElement("button", config, [
             makeVirtualTextNode("Click me!")
@@ -130,7 +135,7 @@ export default behavior("event handlers", [
             const messageConfig = virtualNodeConfig()
             addAttribute(messageConfig, "data-message", "true")
             return makeVirtualElement("p", messageConfig, [
-              makeVirtualTextNode(`Here is your message: ${get(context.state)}`)
+              makeVirtualTextNode(`Here is your total: ${get(context.state)}`)
             ])
           })
           context.mount(makeVirtualElement("div", virtualNodeConfig(), [
@@ -146,7 +151,7 @@ export default behavior("event handlers", [
       ],
       observe: [
         effect("the message is updated", async () => {
-          await expect(selectElement("[data-message]").text(), resolvesTo("Here is your message: hello"))
+          await expect(selectElement("[data-message]").text(), resolvesTo("Here is your total: 1"))
         })
       ]
     }).andThen({
@@ -154,7 +159,7 @@ export default behavior("event handlers", [
         step("the event handler function is patched", (context) => {
           const config = virtualNodeConfig()
           setEventHandler(config, "click", () => {
-            return write(context.state, "something different")
+            return write(context.state, 3)
           })
           const button = makeVirtualElement("button", config, [
             makeVirtualTextNode("Click me!")
@@ -163,7 +168,7 @@ export default behavior("event handlers", [
             const messageConfig = virtualNodeConfig()
             addAttribute(messageConfig, "data-message", "true")
             return makeVirtualElement("p", messageConfig, [
-              makeVirtualTextNode(`Here is your message: ${get(context.state)}`)
+              makeVirtualTextNode(`Here is your total: ${get(context.state)}`)
             ])
           })
           context.patch(makeVirtualElement("div", virtualNodeConfig(), [
@@ -177,7 +182,35 @@ export default behavior("event handlers", [
       ],
       observe: [
         effect("the message is updated", async () => {
-          await expect(selectElement("[data-message]").text(), resolvesTo("Here is your message: something different"))
+          await expect(selectElement("[data-message]").text(), resolvesTo("Here is your total: 4"))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the event handler function is removed", (context) => {
+          const button = makeVirtualElement("button", virtualNodeConfig(), [
+            makeVirtualTextNode("Click me!")
+          ])
+          const message = makeStatefulElement(virtualNodeConfig(), (get) => {
+            const messageConfig = virtualNodeConfig()
+            addAttribute(messageConfig, "data-message", "true")
+            return makeVirtualElement("p", messageConfig, [
+              makeVirtualTextNode(`Here is your total: ${get(context.state)}`)
+            ])
+          })
+          context.patch(makeVirtualElement("div", virtualNodeConfig(), [
+            message,
+            button
+          ]))
+        }),
+        step("the button is clicked twice", async () => {
+          await selectElement("button").click()
+          await selectElement("button").click()
+        })
+      ],
+      observe: [
+        effect("the message does not update", async () => {
+          await expect(selectElement("[data-message]").text(), resolvesTo("Here is your total: 4"))
         })
       ]
     })

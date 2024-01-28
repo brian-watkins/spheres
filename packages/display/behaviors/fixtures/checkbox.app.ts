@@ -11,8 +11,8 @@ const boxes = [
 const checkedBoxes = container({ initialValue: [ "three" ] })
 
 export default function (): View {
-  return htmlView()
-    .main(({ children }) => {
+  return htmlView(root => {
+    root.main(({ children }) => {
       children
         .form(({ config, children }) => {
           config
@@ -68,4 +68,5 @@ export default function (): View {
           children.textNode((get) => `You checked: ${get(checkedBoxes).join(", ")}`)
         })
     })
+  })
 }

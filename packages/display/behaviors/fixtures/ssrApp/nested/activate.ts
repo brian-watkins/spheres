@@ -1,5 +1,5 @@
-import { createDisplay } from "@src/index.js"
+import { renderToDOM } from "@src/view.js"
 import superIsland from "./nestedIsland.js"
+import { Store } from "@spheres/store"
 
-const display = createDisplay()
-display.mount(document.getElementById("super-island")!, superIsland)
+renderToDOM(new Store(), document.getElementById("super-island")!, superIsland)

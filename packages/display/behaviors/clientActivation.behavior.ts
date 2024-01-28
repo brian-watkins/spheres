@@ -1,5 +1,5 @@
 import { behavior, effect, example, fact, step } from "esbehavior";
-import { arrayWith, equalTo, expect, is, stringContaining } from "great-expectations";
+import { arrayWith, assignedWith, equalTo, expect, is, stringContaining } from "great-expectations";
 import { ssrTestAppContext } from "./helpers/testSSRServer.js";
 
 export default behavior("client activation of server rendered views", [
@@ -95,12 +95,18 @@ export default behavior("client activation of server rendered views", [
           expect(counterText, is(stringContaining("2 times")))
           const secondCounterText = await context.browser.display.select("#fragment-b [data-click-count]").text()
           expect(secondCounterText, is(stringContaining("1 times")))
+        }),
+        effect("both nodes are independently updated", async (context) => {
+          const fragAIsEven = await context.browser.display.select("#fragment-a [data-click-count]").attribute("data-isEven")
+          expect(fragAIsEven, is(assignedWith(equalTo("true"))))
+          const fragBIsEven = await context.browser.display.select("#fragment-b [data-click-count]").attribute("data-isEven")
+          expect(fragBIsEven, is<string | undefined>(undefined))
         })
       ]
     }),
 
   example(ssrTestAppContext())
-    .description("app with nested islands sharing state, some of the same element")
+    .description("app with nested islands sharing state, some of the same view")
     .script({
       suppose: [
         fact("the app is loaded in the browser", async (context) => {
@@ -131,6 +137,13 @@ export default behavior("client activation of server rendered views", [
           expect(counterTexts, is(arrayWith([
             stringContaining("3 times"),
             stringContaining("3 times"),
+          ])))
+        }),
+        effect("both tally islands are missing the isEven data attribute", async (context) => {
+          const isEvenAttrs = await context.browser.display.selectAll("[data-click-count]").map(el => el.attribute("data-isEven"))
+          expect(isEvenAttrs, is(arrayWith([
+            equalTo<string | undefined>(undefined),
+            equalTo<string | undefined>(undefined)
           ])))
         })
       ]

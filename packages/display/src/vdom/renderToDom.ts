@@ -1,6 +1,7 @@
 import { GetState, Effect, Stateful, Store } from "@spheres/store";
 import { DOMRenderer } from "./render.js";
 import { ElementNode, NodeType, TextNode, VirtualNode, VirtualNodeKey, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "./virtualNode.js";
+import { EventHandler } from "./eventHandler.js";
 
 export function virtualize(element: Node): VirtualNode {
   if (element.nodeType === NodeType.TEXT) {
@@ -121,8 +122,7 @@ function createNode(store: Store, vnode: VirtualNode): Node {
 
       const events = vnode.data.on
       for (const k in events) {
-        const handler: any = events![k]
-        element.addEventListener(k, handler)
+        addEventListener(store, element, k, events![k])
       }
 
       for (var i = 0; i < vnode.children.length; i++) {
@@ -131,6 +131,11 @@ function createNode(store: Store, vnode: VirtualNode): Node {
 
       return element
   }
+}
+
+function addEventListener(store: Store, element: Element, event: string, handler: EventHandler) {
+  handler.connect(store)
+  element.addEventListener(event, handler)
 }
 
 function removeNode(parent: Node, vnode: VirtualNode) {
@@ -202,17 +207,17 @@ function patchStatefulAttributes(store: Store, oldVNode: ElementNode, newVNode: 
   }
 }
 
-function patchEvents(oldVNode: ElementNode, newVNode: ElementNode) {
+function patchEvents(store: Store, oldVNode: ElementNode, newVNode: ElementNode) {
   const oldEvents = oldVNode.data.on ?? {}
   const newEvents = newVNode.data.on ?? {}
   for (const i in { ...oldEvents, ...newEvents }) {
     if (newEvents[i] === undefined) {
-      oldVNode.node!.removeEventListener(i, oldEvents![i]!)
+      oldVNode.node!.removeEventListener(i, oldEvents[i])
     } else if (oldEvents[i] === undefined) {
-      oldVNode.node!.addEventListener(i, newEvents![i]!)
+      addEventListener(store, oldVNode.node!, i, newEvents[i])
     } else if (oldEvents[i] !== newEvents[i]) {
-      oldVNode.node!.removeEventListener(i, oldEvents![i]!)
-      oldVNode.node!.addEventListener(i, newEvents![i]!)
+      oldEvents[i].handler = newEvents[i].handler
+      newEvents[i] = oldEvents[i]
     }
   }
 }
@@ -403,7 +408,7 @@ export function patch(store: Store, oldVNode: VirtualNode | null, newVNode: Virt
           patchStatefulProperties(store, oldVNode, newElement)
         }
         if (oldVNode.data.on || newElement.data.on) {
-          patchEvents(oldVNode, newElement)
+          patchEvents(store, oldVNode, newElement)
         }
         if (!newElement.data.props?.innerHTML && !newElement.data.statefulProps?.innerHTML) {
           patchChildren(store, oldVNode, newElement)

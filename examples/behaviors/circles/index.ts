@@ -1,8 +1,8 @@
-import { createDisplay } from "@spheres/display"
 import { Store, use } from "@spheres/store"
 import circles from "../../src/circles/view"
 import { addCircleRule } from "../../src/circles/state"
 import { FakeCircle } from "./helpers/fakeCircle"
+import { renderToDOM } from "@spheres/display"
 
 window.startCircleApp = (testData: Array<FakeCircle>) => {
   const dataStore = new Store()
@@ -11,8 +11,7 @@ window.startCircleApp = (testData: Array<FakeCircle>) => {
     dataStore.dispatch(use(addCircleRule, circle.center))
   }
 
-  const display = createDisplay(dataStore)
-  display.mount(document.getElementById("test-display")!, circles())
+  renderToDOM(dataStore, document.getElementById("test-display")!, circles())
 
   // to deselect all circles
   document.querySelectorAll("circle").forEach(circle => {

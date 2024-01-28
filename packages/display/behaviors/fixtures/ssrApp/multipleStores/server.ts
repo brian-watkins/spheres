@@ -9,8 +9,8 @@ export default function() {
 }
 
 function theView() {
-  return htmlView()
-    .div(el => {
+  return htmlView(root => {
+    root.div(el => {
       el.children
         .div(el => {
           el.config.id("fragment-a")
@@ -21,4 +21,5 @@ function theView() {
           el.children.zone(viewGenerator)
         })
     })
+  })
 }

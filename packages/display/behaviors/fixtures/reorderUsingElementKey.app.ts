@@ -42,8 +42,8 @@ const incrementTicker = rule(get => {
 const peopleView = (props: ReorderAppProps) => (get: GetState) => {
   const list = get(people)
 
-  return htmlView()
-    .div(el => {
+  return htmlView(root => {
+    root.div(el => {
       el.children
         .h1(el => {
           el.children.textNode(`There are ${list.length} people!`)
@@ -79,28 +79,31 @@ const peopleView = (props: ReorderAppProps) => (get: GetState) => {
           }
         })
     })
+  })
 }
 
 function personViewWithoutKey(person: State<Person>, get: GetState): View {
-  return htmlView()
-    .li(el => {
+  return htmlView(root => {
+    root.li(el => {
       el.children
         .h1(el => {
           el.config.dataAttribute("person")
           el.children.textNode(`${get(person).name} is ${get(person).age} years old: ${get(ticker)}`)
         })
     })
+  })
 }
 
 function personViewWithStatefultextNode(person: State<Person>): View {
-  return htmlView()
-    .li(el => {
+  return htmlView(root => {
+    root.li(el => {
       el.children
         .h1(el => {
           el.config.dataAttribute("person")
           el.children.textNode((get) => `${get(person).name} is ${get(person).age} years old: ${get(ticker)}`)
         })
     })
+  })
 }
 
 export interface ReorderAppProps {
@@ -108,9 +111,10 @@ export interface ReorderAppProps {
 }
 
 export default function (props: ReorderAppProps): View {
-  return htmlView()
-    .div(el => {
+  return htmlView(root => {
+    root.div(el => {
       el.config.id("reorder-list")
       el.children.zone(peopleView(props))
     })
+  })
 }

@@ -1,4 +1,5 @@
 import { GetState, EffectHandle, State, Stateful, StoreMessage } from "@spheres/store";
+import { EventHandler } from "./eventHandler.js";
 
 export enum NodeType {
   TEXT = 3,
@@ -48,8 +49,6 @@ export interface BlockNode {
 
 export type VirtualNode = TextNode | StatefulTextNode | ElementNode | StatefulNode | BlockNode
 
-declare type Listener = (ev: Event) => any;
-
 export interface StatefulValue {
   generator: Stateful<string>
   effect?: EffectHandle
@@ -61,7 +60,7 @@ export interface VirtualNodeConfig {
   attrs: Record<string, string>
   statefulAttrs?: Record<string, StatefulValue>
   namespace?: string
-  on?: { [index: string]: Listener }
+  on?: { [index: string]: EventHandler }
   key?: VirtualNodeKey
 }
 
@@ -109,13 +108,7 @@ export function addStatefulAttribute(config: VirtualNodeConfig, name: string, ge
 export function setEventHandler(config: VirtualNodeConfig, event: string, handler: (evt: Event) => StoreMessage<any, any>) {
   if (!config.on) { config.on = {} }
 
-  config.on[event] = (evt: any) => {
-    evt.target?.dispatchEvent(new CustomEvent("displayMessage", {
-      bubbles: true,
-      cancelable: true,
-      detail: handler(evt)
-    }))
-  }
+  config.on[event] = new EventHandler(handler)
 }
 
 export function makeStatefulElement(config: VirtualNodeConfig, generator: (get: GetState) => VirtualNode, node?: Node): VirtualNode {

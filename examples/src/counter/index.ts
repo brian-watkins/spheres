@@ -1,5 +1,5 @@
-import { createDisplay } from "@spheres/display";
+import { renderToDOM } from "@spheres/display";
 import { counter } from "./app.js";
+import { Store } from "@spheres/store";
 
-const display = createDisplay()
-display.mount(document.getElementById("app")!, counter())
+renderToDOM(new Store(), document.getElementById("app")!, counter())

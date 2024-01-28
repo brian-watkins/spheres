@@ -6,8 +6,8 @@ const clickCount = container({ initialValue: 0 })
 const incrementCount = rule(get => write(clickCount, get(clickCount) + 1))
 
 export default function () {
-  return htmlView()
-    .div(div => {
+  return htmlView(root => {
+    root.div(div => {
       div.children
         .h1(h1 => h1.children.textNode("This is the click counter!"))
         .div(div => {
@@ -22,5 +22,6 @@ export default function () {
             })
         })
     })
+  })
 }
 

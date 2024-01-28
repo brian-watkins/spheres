@@ -6,8 +6,8 @@ const inputValue = container({ initialValue: 17 })
 const incrementValue = rule((get) => write(inputValue, get(inputValue) + 1))
 
 export default function(): View {
-  return htmlView()
-    .main(({ children }) => {
+  return htmlView(root => {
+    root.main(({ children }) => {
       children
         .input(el => {
           el.config
@@ -22,4 +22,5 @@ export default function(): View {
             .textNode("Increment!")
         })
     })
+  })
 }

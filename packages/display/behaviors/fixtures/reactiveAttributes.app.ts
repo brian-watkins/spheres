@@ -6,8 +6,8 @@ const isDisabled = container({ initialValue: false })
 const incrementClicks = rule(get => write(clicks, get(clicks) + 1))
 
 export default function (): View {
-  return htmlView()
-    .main(el => {
+  return htmlView(root => {
+    root.main(el => {
       el.children
         .div(el => {
           el.config
@@ -39,4 +39,5 @@ export default function (): View {
           el.children.textNode("Click to disable!")
         })
     })
+  })
 }

@@ -2,10 +2,10 @@ import { htmlView } from "@src/index.js"
 import { clickCount, nameState } from "../state.js"
 import { GetState, rule, use, write } from "@spheres/store"
 
-export default htmlView()
-  .zone(get => {
-    return htmlView()
-      .div(el => {
+export default htmlView(root => {
+  root.zone(get => {
+    return htmlView(root => {
+      root.div(el => {
         el.config.id("nested-state-island")
         el.children
           .h1(el => {
@@ -17,25 +17,29 @@ export default htmlView()
           .hr()
           .zone(tallyView)
       })
+    })
   })
+})
 
 const incrementCount = rule(get => write(clickCount, get(clickCount) + 1))
 
 function counterView() {
-  return htmlView()
-    .div(el => {
+  return htmlView(root => {
+    root.div(el => {
       el.children
         .button(el => {
           el.config.on("click", () => use(incrementCount))
           el.children.textNode("Click me!")
         })
     })
+  })
 }
 
 function tallyView(get: GetState) {
-  return htmlView()
-    .p(el => {
+  return htmlView(root => {
+    root.p(el => {
       el.config.dataAttribute("click-count")
       el.children.textNode(`You've clicked the button ${get(clickCount)} times!`)
     })
+  })
 }

@@ -1,5 +1,5 @@
-import { createDisplay } from "@spheres/display";
+import { renderToDOM } from "@spheres/display";
 import circles from "./view";
+import { Store } from "@spheres/store";
 
-const display = createDisplay()
-display.mount(document.getElementById("app")!, circles())
+renderToDOM(new Store(), document.getElementById("app")!, circles())

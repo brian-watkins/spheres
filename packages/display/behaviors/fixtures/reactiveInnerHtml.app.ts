@@ -4,8 +4,8 @@ import { container, write } from "@spheres/store";
 const htmlContent = container({ initialValue: "<h1>Hello!</h1>" })
 
 export default function(): View {
-  return htmlView()
-    .main(el => {
+  return htmlView(root => {
+    root.main(el => {
       el.children
         .input(el => {
           el.config
@@ -18,4 +18,5 @@ export default function(): View {
             .innerHTML((get) => get(htmlContent))
         })
     })
+  })
 }

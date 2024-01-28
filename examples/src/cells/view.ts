@@ -10,8 +10,8 @@ const totalColumns = 26
 const totalRows = 50
 
 export function cells(): View {
-  return htmlView()
-    .main(({ config, children }) => {
+  return htmlView(root => {
+    root.main(({ config, children }) => {
       config
         .class("absolute bottom-0 top-32 left-0 right-0 overflow-auto")
       children
@@ -49,11 +49,12 @@ export function cells(): View {
           })
       }
     })
+  })
 }
 
 function cell(identifier: string): View {
-  return htmlView()
-    .div(({ config, children }) => {
+  return htmlView(root => {
+    root.div(({ config, children }) => {
       config
         .dataAttribute("cell", identifier)
         .class((get) => {
@@ -109,4 +110,5 @@ function cell(identifier: string): View {
             })
         })
     })
+  })
 }

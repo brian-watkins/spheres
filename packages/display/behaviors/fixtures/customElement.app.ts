@@ -4,8 +4,8 @@ import { container, write } from "@spheres/store";
 const coolMessage = container({ initialValue: "NOTHING!" })
 
 export default function (): View {
-  return htmlView()
-    .main(({ config, children }) => {
+  return htmlView(root => {
+    root.main(({ config, children }) => {
       config
         .on("cool-event", (evt) => {
           return write(coolMessage, (evt as CustomEvent).detail)
@@ -21,6 +21,7 @@ export default function (): View {
             .attribute("cool-stuff", "camels")
         })
     })
+  })
 }
 
 class CoolElement extends HTMLElement {

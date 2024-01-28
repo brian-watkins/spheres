@@ -1,7 +1,7 @@
-import { createDisplay } from "@spheres/display";
 import crud from "../../src/crud/view.js";
 import { Store, write } from "@spheres/store";
 import { DataRecord, createRecord, records } from "../../src/crud/state.js";
+import { renderToDOM } from "@spheres/display";
 
 
 window.startApp = (testData: Array<DataRecord>) => {
@@ -11,7 +11,6 @@ window.startApp = (testData: Array<DataRecord>) => {
     store.dispatch(write(records, createRecord(record)))
   }
 
-  const display = createDisplay(store)
-  display.mount(document.getElementById("test-display")!, crud())
+  renderToDOM(store, document.getElementById("test-display")!, crud())
 }
 

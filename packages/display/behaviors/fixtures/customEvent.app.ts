@@ -4,8 +4,8 @@ import { container, run, write } from "@spheres/store";
 const secretMessage = container({ initialValue: "" })
 
 export default function (): View {
-  return htmlView()
-    .main(({ config, children }) => {
+  return htmlView(root => {
+    root.main(({ config, children }) => {
       config
         .on("super-secret-message", (evt) => {
           return write(secretMessage, (evt as CustomEvent).detail)
@@ -34,4 +34,5 @@ export default function (): View {
             .textNode("Send Message!")
         })
     })
+  })
 }

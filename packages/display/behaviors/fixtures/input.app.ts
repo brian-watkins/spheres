@@ -8,8 +8,8 @@ export interface InputAppProps {
 const formInputValue = container({ initialValue: "" })
 
 export default function (context: InputAppProps): View {
-  return htmlView()
-    .main(el => {
+  return htmlView(root => {
+    root.main(el => {
       el.children
         .form(el => {
           el.config
@@ -43,4 +43,5 @@ export default function (context: InputAppProps): View {
           el.children.textNode((get) => get(formInputValue))
         })
     })
+  })
 }

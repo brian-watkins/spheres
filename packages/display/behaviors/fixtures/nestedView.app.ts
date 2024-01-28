@@ -7,18 +7,19 @@ const nameState = container({ initialValue: "hello" })
 const ageState = container({ initialValue: 27 })
 
 const ageView = (get: GetState) => {
-  return htmlView()
-    .p(el => {
+  return htmlView(root => {
+    root.p(el => {
       el.config.dataAttribute("age")
       el.children.textNode(`My age is ${get(ageState)}`)
     })
+  })
 }
 
 const nameView = (get: GetState) => {
   const name = get(nameState)
 
-  return htmlView()
-    .div(el => {
+  return htmlView(root => {
+    root.div(el => {
       el.children.p(el => {
         el.config.dataAttribute("name")
         el.children.textNode(`My name is: ${name}`)
@@ -27,12 +28,13 @@ const nameView = (get: GetState) => {
         el.children.zone(ageView)
       }
     })
+  })
 }
 
 
 export default function(): View {
-  return htmlView()
-    .div(el => {
+  return htmlView(root => {
+    root.div(el => {
       el.children
         .h1(el => el.children.textNode("This is only a test!"))
         .zone(nameView)
@@ -48,4 +50,5 @@ export default function(): View {
             .on("input", useValue((value) => write(ageState, Number(value))))
         })
     })
+  })
 }

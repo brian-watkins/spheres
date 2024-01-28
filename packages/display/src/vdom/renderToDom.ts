@@ -86,7 +86,7 @@ function createNode(store: Store, vnode: VirtualNode): Node {
 
     case NodeType.STATEFUL:
       const query = new PatchElementEffect(store, vnode.generator)
-      store.useEffect(query)
+      vnode.handle = store.useEffect(query)
       return query.current!.node!
 
     case NodeType.BLOCK:
@@ -139,7 +139,7 @@ function addEventListener(store: Store, element: Element, event: string, handler
 }
 
 function removeNode(parent: Node, vnode: VirtualNode) {
-  if (vnode.type === NodeType.STATEFUL_TEXT) {
+  if (vnode.type === NodeType.STATEFUL_TEXT || vnode.type === NodeType.STATEFUL) {
     vnode.handle?.unsubscribe()
   }
   parent.removeChild(vnode.node!)

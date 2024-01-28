@@ -81,7 +81,7 @@ function createNode(store: Store, vnode: VirtualNode): Node {
 
     case NodeType.STATEFUL_TEXT:
       const node = document.createTextNode("")
-      store.useEffect(new UpdateTextEffect(node, vnode.generator))
+      vnode.handle = store.useEffect(new UpdateTextEffect(node, vnode.generator))
       return node
 
     case NodeType.STATEFUL:
@@ -139,6 +139,9 @@ function addEventListener(store: Store, element: Element, event: string, handler
 }
 
 function removeNode(parent: Node, vnode: VirtualNode) {
+  if (vnode.type === NodeType.STATEFUL_TEXT) {
+    vnode.handle?.unsubscribe()
+  }
   parent.removeChild(vnode.node!)
 }
 

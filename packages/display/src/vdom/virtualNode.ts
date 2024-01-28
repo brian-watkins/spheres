@@ -19,6 +19,7 @@ export interface StatefulTextNode {
   type: NodeType.STATEFUL_TEXT
   generator: Stateful<string>
   node: Node | undefined
+  handle: EffectHandle | undefined
 }
 
 export type VirtualNodeKey = string | number | State<any>
@@ -167,6 +168,7 @@ export function makeStatefulTextNode(generator: (get: GetState) => string, node?
   return {
     type: NodeType.STATEFUL_TEXT,
     generator,
-    node
+    node,
+    handle: undefined
   }
 }

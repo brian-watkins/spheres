@@ -146,11 +146,8 @@ function removeNode(parent: Node, vnode: VirtualNode) {
 }
 
 function getKey(vnode: VirtualNode | undefined) {
-  if (vnode && (vnode.type === NodeType.ELEMENT || vnode.type === NodeType.STATEFUL || vnode.type === NodeType.BLOCK)) {
-    return vnode.key
-  } else {
-    return undefined
-  }
+  //@ts-ignore
+  return vnode?.key
 }
 
 function patchAttributes(oldVNode: ElementNode, newVNode: ElementNode) {

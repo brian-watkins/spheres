@@ -99,14 +99,12 @@ export function appWithDeeplyNestedState(): View {
 
 export function appWithBlock(): View {
   return htmlView(root => {
-    root.zone(() => {
-      return htmlView(root => root.div(({ children }) => {
-        children
-          .h1(({ children }) => {
-            children.textNode("Hello!")
-          })
-      }))
-    })
+    root.zone(htmlView(root => root.div(({ children }) => {
+      children
+        .h1(({ children }) => {
+          children.textNode("Hello!")
+        })
+    })))
   })
 }
 

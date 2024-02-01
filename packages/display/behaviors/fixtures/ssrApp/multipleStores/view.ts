@@ -7,8 +7,8 @@ export default function (): View {
     root.div(el => {
       el.children
         .h1(el => el.children.textNode("This is a click counter!"))
-        .zone(() => counterIsland)
-        .zone(() => tallyIsland)
+        .zone(counterIsland)
+        .zone(tallyIsland)
     })
   })
 }

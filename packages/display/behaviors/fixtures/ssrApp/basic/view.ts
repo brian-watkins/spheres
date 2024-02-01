@@ -7,11 +7,11 @@ export default function (): View {
     root.div(el => {
       el.children
         .h1(el => el.children.textNode("This is the click counter!"))
-        .zone(() => counterIsland)
+        .zone(counterIsland)
         .hr()
-        .zone(() => tallyIsland)
+        .zone(tallyIsland)
         .hr()
-        .zone(() => tallyIsland)
+        .zone(tallyIsland)
     })
   })
 }

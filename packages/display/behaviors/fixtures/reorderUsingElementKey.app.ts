@@ -72,7 +72,7 @@ const peopleView = (props: ReorderAppProps) => (get: GetState) => {
                 })
                 break
               case "block":
-                el.children.zone(() => personViewWithStatefultextNode(person), {
+                el.children.zone(personViewWithStatefultextNode(person), {
                   key: person
                 })
             }

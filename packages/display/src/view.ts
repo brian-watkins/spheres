@@ -46,13 +46,13 @@ export interface ViewOptions {
 export interface SpecialElements {
   element(tag: string, builder?: (element: ConfigurableElement<SpecialAttributes, HTMLElements>) => void): this
   textNode(value: string | Stateful<string>): this
-  zone(definition: (() => View) | ((get: GetState) => View), options?: ViewOptions): this
+  zone(definition: View | ((get: GetState) => View), options?: ViewOptions): this
 }
 
 export interface SpecialElementBuilder {
   element(tag: string, builder?: (element: ConfigurableElement<SpecialAttributes, HTMLElements>) => void): View
   textNode(value: string | Stateful<string>): View
-  zone(definition: (() => View) | ((get: GetState) => View), options?: ViewOptions): View
+  zone(definition: View | ((get: GetState) => View), options?: ViewOptions): View
 }
 
 const configBuilder = new BasicElementConfig()
@@ -87,18 +87,17 @@ class ViewBuilder {
     return this
   }
 
-  zone(definition: (() => View) | ((get: GetState) => View), options?: ViewOptions) {
+  zone(definition: View | ((get: GetState) => View), options?: ViewOptions) {
     let config = virtualNodeConfig()
     if (options?.key) {
       setKey(config, options.key)
     }
 
-    const element = definition.length === 0 ?
-      //@ts-ignore
-      makeBlockElement(config, () => definition()[toVirtualNode]) :
-      makeStatefulElement(config, (get) => definition(get)[toVirtualNode])
-
-    this.storeNode(element)
+    if (typeof definition === "function") {
+      this.storeNode(makeStatefulElement(config, (get) => definition(get)[toVirtualNode]))
+    } else {
+      this.storeNode(makeBlockElement(config, () => definition[toVirtualNode]))
+    }
 
     return this
   }

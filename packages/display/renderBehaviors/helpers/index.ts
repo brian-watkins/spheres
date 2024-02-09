@@ -31,10 +31,10 @@ export function blockChildElement(testId: number): VirtualNode {
   setKey(config, testId)
   const treeConfig = virtualNodeConfig()
   addAttribute(treeConfig, "data-block-child", `${testId}`)
-  const generator = () => makeVirtualElement("div", treeConfig, [
+  const block = makeVirtualElement("div", treeConfig, [
     makeVirtualTextNode(`block child ${testId}`)
   ])
-  return makeBlockElement(config, generator)
+  return makeBlockElement(config, block)
 }
 
 export async function expectTotalChildren(total: number) {

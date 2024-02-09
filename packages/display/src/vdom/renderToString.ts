@@ -20,7 +20,7 @@ function stringifyVirtualNode(store: Store, node: VirtualNode): string {
     case NodeType.STATEFUL:
       return stringifyStatefulNode(store, node)
     case NodeType.BLOCK:
-      return stringifyVirtualNode(store, node.generator())
+      return stringifyVirtualNode(store, node.block)
   }
 }
 

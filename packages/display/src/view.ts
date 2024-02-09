@@ -96,7 +96,7 @@ class ViewBuilder {
     if (typeof definition === "function") {
       this.storeNode(makeStatefulElement(config, (get) => definition(get)[toVirtualNode]))
     } else {
-      this.storeNode(makeBlockElement(config, () => definition[toVirtualNode]))
+      this.storeNode(makeBlockElement(config, definition[toVirtualNode]))
     }
 
     return this

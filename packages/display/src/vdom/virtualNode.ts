@@ -42,7 +42,7 @@ export interface StatefulNode {
 export interface BlockNode {
   type: NodeType.BLOCK
   key?: VirtualNodeKey
-  generator: () => VirtualNode
+  block: VirtualNode
   node: Node | undefined
 }
 
@@ -124,18 +124,18 @@ export function makeStatefulElement(config: VirtualNodeConfig, generator: (get: 
   return element
 }
 
-export function makeBlockElement(config: VirtualNodeConfig, generator: () => VirtualNode, node?: Element): VirtualNode {
-  const block: BlockNode = {
+export function makeBlockElement(config: VirtualNodeConfig, block: VirtualNode, node?: Element): VirtualNode {
+  const blockNode: BlockNode = {
     type: NodeType.BLOCK,
-    generator,
+    block,
     node
   }
 
   if (config.key) {
-    block.key = config.key
+    blockNode.key = config.key
   }
 
-  return block
+  return blockNode
 }
 
 export function makeVirtualElement(tag: string, config: VirtualNodeConfig, children: Array<VirtualNode>, node?: Element): ElementNode {

@@ -90,7 +90,7 @@ function createNode(store: Store, vnode: VirtualNode): Node {
       return query.current!.node!
 
     case NodeType.BLOCK:
-      return createNode(store, vnode.generator())
+      return createNode(store, vnode.block)
 
     default:
       const element = vnode.data.namespace ?

@@ -81,12 +81,12 @@ function createNode(store: Store, vnode: VirtualNode): Node {
 
     case NodeType.STATEFUL_TEXT:
       const node = document.createTextNode("")
-      vnode.handle = store.useEffect(new UpdateTextEffect(node, vnode.generator))
+      store.useEffect(new UpdateTextEffect(node, vnode.generator))
       return node
 
     case NodeType.STATEFUL:
       const query = new PatchElementEffect(store, vnode.generator)
-      vnode.handle = store.useEffect(query)
+      store.useEffect(query)
       return query.current!.node!
 
     case NodeType.BLOCK:
@@ -139,9 +139,6 @@ function addEventListener(store: Store, element: Element, event: string, handler
 }
 
 function removeNode(parent: Node, vnode: VirtualNode) {
-  if (vnode.type === NodeType.STATEFUL_TEXT || vnode.type === NodeType.STATEFUL) {
-    vnode.handle?.unsubscribe()
-  }
   parent.removeChild(vnode.node!)
 }
 

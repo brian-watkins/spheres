@@ -44,7 +44,7 @@ export function cells(): View {
               })
             for (let col = startLetter; col < startLetter + totalColumns; col++) {
               children
-                .zone(() => cell(`${String.fromCharCode(col)}${row}`))
+                .zone(cell(`${String.fromCharCode(col)}${row}`))
             }
           })
       }

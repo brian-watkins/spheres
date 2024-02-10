@@ -67,8 +67,8 @@ export function timer(): View {
   }))
 }
 
-function elapsedTimeLabel(): View {
-  return htmlView(root => {
+const elapsedTimeLabel =
+  htmlView(root => {
     root.div(el => {
       el.config
         .dataAttribute("elapsed-time")
@@ -80,10 +80,9 @@ function elapsedTimeLabel(): View {
         .textNode((get) => formatTime(get(elapsedTime)))
     })
   })
-}
 
-function progressMeter(): View {
-  return htmlView(root => {
+const progressMeter =
+  htmlView(root => {
     root.progress(el => {
       el.config
         .class(names([
@@ -98,7 +97,6 @@ function progressMeter(): View {
         .value((get) => get(percentComplete))
     })
   })
-}
 
 function formatTime(millis: number): string {
   const timeInTenthsOfSecond = (millis / 1000).toFixed(1)

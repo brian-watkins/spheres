@@ -151,33 +151,31 @@ function closeDialog(evt: Event): StoreMessage<any> {
     batch([])
 }
 
-function adjustRadiusView(circleState: CircleContainer): () => View {
-  return () => {
-    return htmlView(root => {
-      root.div(({ config, children }) => {
-        config
-          .class("w-96")
-        children
-          .div(({ config, children }) => {
-            config
-              .class("text-sky-800 mb-4")
-            children
-              .textNode((get) => adjustmentMessage(get(circleState)))
-          })
-          .input(({ config }) => {
-            config
-              .class("w-full")
-              .name("radius")
-              .type("range")
-              .max("75")
-              .min("2")
-              .step("1")
-              .value(get => `${get(circleState).radius}`)
-              .on("input", useValue(value => write(circleState, adjustRadius(Number(value)))))
-          })
-      })
+function adjustRadiusView(circleState: CircleContainer): View {
+  return htmlView(root => {
+    root.div(({ config, children }) => {
+      config
+        .class("w-96")
+      children
+        .div(({ config, children }) => {
+          config
+            .class("text-sky-800 mb-4")
+          children
+            .textNode((get) => adjustmentMessage(get(circleState)))
+        })
+        .input(({ config }) => {
+          config
+            .class("w-full")
+            .name("radius")
+            .type("range")
+            .max("75")
+            .min("2")
+            .step("1")
+            .value(get => `${get(circleState).radius}`)
+            .on("input", useValue(value => write(circleState, adjustRadius(Number(value)))))
+        })
     })
-  }
+  })
 }
 
 function adjustmentMessage(circle: Circle): string {

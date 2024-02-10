@@ -31,7 +31,7 @@ export function blockChildElement(testId: number): VirtualNode {
   setKey(config, testId)
   const treeConfig = virtualNodeConfig()
   addAttribute(treeConfig, "data-block-child", `${testId}`)
-  const block = makeVirtualElement("div", treeConfig, [
+  const block = () => makeVirtualElement("div", treeConfig, [
     makeVirtualTextNode(`block child ${testId}`)
   ])
   return makeBlockElement(config, block)

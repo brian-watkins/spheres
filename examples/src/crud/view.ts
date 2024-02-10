@@ -59,8 +59,8 @@ export default function crud(): View {
   })
 }
 
-function recordForm(): View {
-  return htmlView(root => {
+const recordForm =
+  htmlView(root => {
     root.form(({ config, children }) => {
       config
         .id("record-form")
@@ -93,10 +93,10 @@ function recordForm(): View {
         }))
     })
   })
-}
 
-function inputView(label: string, builder: (el: ConfigurableElement<InputElementAttributes, HTMLElements>) => void): () => View {
-  return () => htmlView(root => {
+
+function inputView(label: string, builder: (el: ConfigurableElement<InputElementAttributes, HTMLElements>) => void): View {
+  return htmlView(root => {
     root.label(el => {
       el.children
         .textNode(label)

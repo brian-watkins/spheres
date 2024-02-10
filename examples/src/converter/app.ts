@@ -26,8 +26,8 @@ export function converter(): View {
   }))
 }
 
-function celsiusInput(): View {
-  return htmlView(root => root.input(el => {
+const celsiusInput =
+  htmlView(root => root.input(el => {
     el.config
       .id("celsius")
       .type("text")
@@ -35,10 +35,10 @@ function celsiusInput(): View {
       .on("input", useValue((value) => use(temperatureUpdate, { celsius: value })))
       .class((get) => inputStyling(get(celsiusInvalid), get(farenheitInvalid)))
   }))
-}
 
-function farenheitInput(): View {
-  return htmlView(root => root.input(el => {
+
+const farenheitInput =
+  htmlView(root => root.input(el => {
     el.config
       .id("farenheit")
       .type("text")
@@ -46,7 +46,7 @@ function farenheitInput(): View {
       .on("input", useValue((value) => use(temperatureUpdate, { farenheit: value })))
       .class((get) => inputStyling(get(farenheitInvalid), get(celsiusInvalid)))
   }))
-}
+
 
 function inputStyling(isInvalid: boolean, isError: boolean): string {
   let classNames = textInputClasses()

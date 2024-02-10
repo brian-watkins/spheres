@@ -20,8 +20,8 @@ export function flightBooker(): View {
   }))
 }
 
-function flightTypeSelect(): View {
-  return htmlView(root => {
+const flightTypeSelect =
+  htmlView(root => {
     root.select(el => {
       el.config.on("change", useValue((value) => write(flightType, value)))
       el.children
@@ -33,10 +33,9 @@ function flightTypeSelect(): View {
         })
     })
   })
-}
 
-function bookFlightButton(): View {
-  return htmlView(root => {
+const bookFlightButton =
+  htmlView(root => {
     root.button(el => {
       el.config
         .class(names([
@@ -55,10 +54,10 @@ function bookFlightButton(): View {
         .textNode("Book Flight!")
     })
   })
-}
 
-function startDateInput(): View {
-  return htmlView(root => {
+
+const startDateInput =
+  htmlView(root => {
     root.input(el => {
       el.config
         .dataAttribute("start-date")
@@ -67,10 +66,9 @@ function startDateInput(): View {
         .on("input", useValue((value) => write(startDate, value)))
     })
   })
-}
 
-function returnDateInput(): View {
-  return htmlView(root => {
+const returnDateInput =
+  htmlView(root => {
     root.input(el => {
       el.config
         .dataAttribute("return-date")
@@ -80,7 +78,7 @@ function returnDateInput(): View {
         .on("input", useValue((value) => write(returnDate, value)))
     })
   })
-}
+
 
 function textInputClasses(isValid: boolean): string {
   let classes = [

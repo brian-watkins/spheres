@@ -15,7 +15,7 @@ export interface RenderResult {
 
 export function renderToDOM(store: Store, element: Element, view: View): RenderResult {
   const render = createDOMRenderer(store)
-  const renderResult = render(element, view[toVirtualNode])
+  const renderResult = render(element, view[toVirtualNode]())
 
   return {
     root: renderResult.root,
@@ -27,7 +27,7 @@ export function renderToDOM(store: Store, element: Element, view: View): RenderR
 
 export function renderToString(store: Store, view: View): string {
   const render = createStringRenderer(store)
-  return render(view[toVirtualNode])
+  return render(view[toVirtualNode]())
 }
 
 
@@ -36,7 +36,7 @@ export function renderToString(store: Store, view: View): string {
 const toVirtualNode = Symbol("toVirtualNode")
 
 export interface View {
-  [toVirtualNode]: VirtualNode
+  [toVirtualNode](): VirtualNode
 }
 
 export interface ViewOptions {
@@ -94,9 +94,9 @@ class ViewBuilder {
     }
 
     if (typeof definition === "function") {
-      this.storeNode(makeStatefulElement(config, (get) => definition(get)[toVirtualNode]))
+      this.storeNode(makeStatefulElement(config, (get) => definition(get)[toVirtualNode]()))
     } else {
-      this.storeNode(makeBlockElement(config, definition[toVirtualNode]))
+      this.storeNode(makeBlockElement(config, () => definition[toVirtualNode]()))
     }
 
     return this
@@ -149,7 +149,7 @@ class ViewBuilder {
     return this
   }
 
-  get [toVirtualNode](): VirtualNode {
+  [toVirtualNode](): VirtualNode {
     return this.nodes[0]
   }
 }
@@ -157,12 +157,12 @@ class ViewBuilder {
 Object.setPrototypeOf(Object.getPrototypeOf(new ViewBuilder()), MagicElements)
 
 class HTMLView implements View {
-  constructor (private definition: (builder: HTMLBuilder) => void) { }
+  constructor(private definition: (builder: HTMLBuilder) => void) { }
 
-  get [toVirtualNode](): VirtualNode {
+  [toVirtualNode](): VirtualNode {
     const builder = new ViewBuilder()
     this.definition(builder as unknown as HTMLBuilder)
-    return builder[toVirtualNode]
+    return builder[toVirtualNode]()
   }
 }
 
@@ -188,12 +188,12 @@ class SVGViewBuilder extends ViewBuilder {
 }
 
 class SVGView implements View {
-  constructor (private definition: (builder: SVGBuilder) => void) { }
+  constructor(private definition: (builder: SVGBuilder) => void) { }
 
-  get [toVirtualNode](): VirtualNode {
+  [toVirtualNode](): VirtualNode {
     const builder = new SVGViewBuilder()
     this.definition(builder as unknown as SVGBuilder)
-    return builder[toVirtualNode]
+    return builder[toVirtualNode]()
   }
 }
 

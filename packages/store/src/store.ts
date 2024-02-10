@@ -113,16 +113,11 @@ export class MetaState<T, M, E = unknown> extends State<Meta<M, E>> {
 }
 
 abstract class AbstractReactiveQuery implements StateListener {
-  private dependencies: WeakSet<StateController<any, any>> = new WeakSet()
-
   constructor(protected store: Store) { }
 
   protected getValue<S, N>(state: State<S, N>): S {
     const controller = this.store[getController](state)
-    if (!this.dependencies.has(controller)) {
-      this.dependencies.add(controller)
-      controller.addListener(this)
-    }
+    controller.addListener(this)
     return controller.value
   }
 
@@ -224,6 +219,7 @@ export interface EffectHandle {
 }
 
 class ReactiveEffect extends AbstractReactiveQuery implements EffectHandle {
+  private deps = new Set<State<any>>()
   private isQueued = false
 
   constructor(store: Store, private effect: Effect) {
@@ -241,15 +237,17 @@ class ReactiveEffect extends AbstractReactiveQuery implements EffectHandle {
   }
 
   run() {
-    this.effect.run((state) => this.getValue(state))
+    this.effect.run((state) => {
+      this.deps.add(state)
+      return this.getValue(state)
+    })
   }
 
   unsubscribe() {
-    this.effect = {
-      run: () => {
-        // do nothing
-      }
-    }
+    this.deps.forEach(state => {
+      this.store[getController](state).removeListener(this)
+    })
+    this.deps.clear()
   }
 }
 

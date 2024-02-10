@@ -18,6 +18,7 @@ export interface TextNode {
 export interface StatefulTextNode {
   type: NodeType.STATEFUL_TEXT
   generator: Stateful<string>
+  handle?: EffectHandle
   node: Node | undefined
 }
 
@@ -36,6 +37,7 @@ export interface StatefulNode {
   type: NodeType.STATEFUL
   key?: VirtualNodeKey
   generator: (get: GetState) => VirtualNode
+  handle?: EffectHandle
   node: Node | undefined
 }
 

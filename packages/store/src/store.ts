@@ -231,6 +231,7 @@ class ReactiveEffect extends AbstractReactiveQuery {
   update() {
     if (!this.isQueued) {
       queueMicrotask(() => {
+        this.unsubscribe()
         this.run()
         this.isQueued = false
       })

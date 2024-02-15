@@ -52,19 +52,27 @@ const basicEffect: ConfigurableExample =
       ]
     })
 
+interface HiddenDepsContext {
+  stringContainer: Container<string>
+  numberContainer: Container<number>
+  calls: number
+}
+
 const effectWithHiddenDependencies: ConfigurableExample =
-  example(testStoreContext<BasicQueryContext>())
+  (m) => m.pick() && example(testStoreContext<HiddenDepsContext>())
     .description("effect with hidden dependents")
     .script({
       suppose: [
         fact("there are some containers", (context) => {
           context.setTokens({
             stringContainer: container({ initialValue: "hello" }),
-            numberContainer: container({ initialValue: 7 })
+            numberContainer: container({ initialValue: 7 }),
+            calls: 0
           })
         }),
         fact("a subscriber registers an effect involving the state", (context) => {
           context.registerEffect((get) => {
+            context.tokens.calls++
             if (get(context.tokens.stringContainer) === "reveal!") {
               return `The secret number is: ${get(context.tokens.numberContainer)}`
             } else {
@@ -79,6 +87,9 @@ const effectWithHiddenDependencies: ConfigurableExample =
         })
       ],
       observe: [
+        effect("the effect function is not called when the hidden dependency changes", (context) => {
+          expect(context.tokens.calls, is(1))
+        }),
         effect("the subscriber does not update when the hidden dependency changes", (context) => {
           expect(context.valuesForSubscriber("sub-one"), is(equalTo([
             "It's a secret!",
@@ -92,14 +103,27 @@ const effectWithHiddenDependencies: ConfigurableExample =
         }),
         step("the hidden dependency is updated", (context) => {
           context.writeTo(context.tokens.numberContainer, 22)
+        }),
+        step("the hidden dependency is hidden again", (context) => {
+          context.writeTo(context.tokens.stringContainer, "hide it!")
+        }),
+        step("the hidden dependency is updated", (context) => {
+          context.writeTo(context.tokens.numberContainer, 28)
+        }),
+        step("the hidden dependency is updated again", (context) => {
+          context.writeTo(context.tokens.numberContainer, 31)
         })
       ],
       observe: [
-        effect("the subscriber gets updates for the hidden dependency now", (context) => {
+        effect("the run function is not called when the dependency is hidden", (context) => {
+          expect(context.tokens.calls, is(4))
+        }),
+        effect("the subscriber gets updates for the hidden dependency only when it is in the path of the effect function", (context) => {
           expect(context.valuesForSubscriber("sub-one"), is(equalTo([
             "It's a secret!",
             "The secret number is: 21",
             "The secret number is: 22",
+            "It's a secret!"
           ])))
         })
       ]

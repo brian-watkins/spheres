@@ -10,6 +10,6 @@ export class EventHandler implements EventListenerObject {
   }
 
   handleEvent(evt: Event): void {
-    this.store?.dispatch(this.handler(evt))
+    this.store!.dispatch(this.handler(evt))
   }
 }

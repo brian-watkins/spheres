@@ -1,5 +1,6 @@
-import { GetState, EffectHandle, State, Stateful, StoreMessage } from "@spheres/store";
+import { GetState, State, Stateful, StoreMessage } from "@spheres/store";
 import { EventHandler } from "./eventHandler.js";
+import { EffectHandle } from "./renderToDom.js";
 
 export enum NodeType {
   TEXT = 3,
@@ -18,7 +19,6 @@ export interface TextNode {
 export interface StatefulTextNode {
   type: NodeType.STATEFUL_TEXT
   generator: Stateful<string>
-  handle?: EffectHandle
   node: Node | undefined
 }
 
@@ -37,7 +37,6 @@ export interface StatefulNode {
   type: NodeType.STATEFUL
   key?: VirtualNodeKey
   generator: (get: GetState) => VirtualNode
-  handle?: EffectHandle
   node: Node | undefined
 }
 

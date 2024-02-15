@@ -30,7 +30,13 @@ export interface ContainerHooks<T, M, E = unknown> {
   onPublish?(value: T, actions: PublishHookActions): void
 }
 
+export interface EffectSubscription {
+  unsubscribe(): void
+}
+
 export interface Effect {
+  onSubscribe?(subscription: EffectSubscription): void
+  init?(get: GetState): void
   run(get: GetState): void
 }
 
@@ -214,11 +220,7 @@ class ReactiveValue<T, M> extends AbstractReactiveQuery {
   }
 }
 
-export interface EffectHandle {
-  unsubscribe(): void
-}
-
-class ReactiveEffect extends AbstractReactiveQuery implements EffectHandle {
+class ReactiveEffect extends AbstractReactiveQuery {
   private deps = new Set<State<any>>()
   private isQueued = false
 
@@ -233,6 +235,17 @@ class ReactiveEffect extends AbstractReactiveQuery implements EffectHandle {
         this.isQueued = false
       })
       this.isQueued = true
+    }
+  }
+
+  init() {
+    if (this.effect.init !== undefined) {
+      this.effect.init((state) => {
+        this.deps.add(state)
+        return this.getValue(state)
+      })
+    } else {
+      this.run()
     }
   }
 
@@ -332,10 +345,10 @@ export class Store {
     this.hooks = hooks
   }
 
-  useEffect(effect: Effect): EffectHandle {
+  useEffect(effect: Effect): void {
     const reactiveEffect = new ReactiveEffect(this, effect)
-    reactiveEffect.run()
-    return reactiveEffect
+    effect.onSubscribe?.(reactiveEffect)
+    reactiveEffect.init()
   }
 
   useCommand<M>(command: Command<M>, handler: CommandManager<M>) {

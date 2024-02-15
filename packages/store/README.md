@@ -390,20 +390,23 @@ a reference to the Store and calling `dispatch` explicitly.
 ### Effects
 
 ```
-interface EffectHandle {
+export interface EffectSubscription {
   unsubscribe(): void
 }
 
 interface Effect {
+  onSubscribe?(subscription: EffectSubscription): void
+  init?(get: GetState): void
   run(get: GetState): void
 }
 ```
 
-Register an `Effect` with the Store via the `useEffect` method. This will return
-an `EffectHandle` that allows for unsubscribing the Effect, if necessry. An `Effect`
-implements a `run` function that defines a *reactive* query. The `run` function
-will be executed anytime the state tokens referenced in the definition come to
-represent a new value.
+Register an `Effect` with the Store via the `useEffect` method. The optional `onSubscribe`
+function will be called with an `EffectSubscription` that allows for unsubscribing the
+Effect, if necessry. An `Effect` implements an optional `init` function and a required `run`
+function that defines a *reactive* query. The `init` function is run after `onSubscribe`
+when the Effect is registered with the store via `useEffect`. The `run` function will be
+executed anytime the state tokens referenced in the definition come to represent a new value.
 
 Use `Effects` to perform side effects on state changes.
 

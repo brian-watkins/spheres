@@ -1,4 +1,4 @@
-import { Container, container } from "@src/index.js"
+import { Container, Effect, EffectSubscription, GetState, container } from "@src/index.js"
 import { ConfigurableExample, behavior, effect, example, fact, step } from "esbehavior"
 import { equalTo, expect, is } from "great-expectations"
 import { testStoreContext } from "helpers/testStore.js"
@@ -105,7 +105,122 @@ const effectWithHiddenDependencies: ConfigurableExample =
       ]
     })
 
+interface CollectingEffectContext {
+  container: Container<string>
+  collector: Array<string>
+}
+
+const unsubscribingEffect: ConfigurableExample =
+  example(testStoreContext<CollectingEffectContext>())
+    .description("an effect that unsubscribes itself under certain conditions")
+    .script({
+      suppose: [
+        fact("there are some containers", (context) => {
+          context.setTokens({
+            container: container({ initialValue: "hello" }),
+            collector: []
+          })
+        }),
+        fact("an effect is registered", (context) => {
+          context.store.useEffect(new UnsubscribingEffect(context.tokens.collector, (get) => {
+            return get(context.tokens.container) !== "unsub"
+          }))
+        })
+      ],
+      perform: [
+        step("the container is updated", (context) => {
+          context.writeTo(context.tokens.container, "yo yo!")
+        }),
+        step("the container is updated to trigger the unsubscribe", (context) => {
+          context.writeTo(context.tokens.container, "unsub")
+        }),
+        step("the container updates again", (context) => {
+          context.writeTo(context.tokens.container, "Hello again!")
+        })
+      ],
+      observe: [
+        effect("the effect was only run twice", (context) => {
+          expect(context.tokens.collector, is([
+            "RUN!",
+            "RUN!"
+          ]))
+        })
+      ]
+    })
+
+class UnsubscribingEffect implements Effect {
+  private subscription: EffectSubscription | undefined
+
+  constructor(public collector: Array<string>, private runner: (get: GetState) => boolean) { }
+
+  onSubscribe(subscription: EffectSubscription): void {
+    this.subscription = subscription
+  }
+
+  run(get: GetState): void {
+    if (!this.runner(get)) {
+      this.subscription?.unsubscribe()
+    } else {
+      this.collector.push("RUN!")
+    }
+  }
+}
+
+const initializingEffectExample: ConfigurableExample =
+  (m) => m.pick() && example(testStoreContext<CollectingEffectContext>())
+    .description("an effect with an initializer")
+    .script({
+      suppose: [
+        fact("there is a container", (context) => {
+          context.setTokens({
+            container: container({ initialValue: "hello" }),
+            collector: []
+          })
+        }),
+        fact("an effect is registered", (context) => {
+          context.store.useEffect(new InitializingEffect(context.tokens.collector, (get) => {
+            return get(context.tokens.container)
+          }))
+        })
+      ],
+      perform: [
+        step("the container is updated", (context) => {
+          context.writeTo(context.tokens.container, "YO! YO!")
+        }),
+        step("the container is updated again", (context) => {
+          context.writeTo(context.tokens.container, "Hey! Hey!")
+        }),
+        step("the container updates again", (context) => {
+          context.writeTo(context.tokens.container, "WHAT! WHAT!")
+        })
+      ],
+      observe: [
+        effect("the initializer is run first and then the run function", (context) => {
+          expect(context.tokens.collector, is([
+            "INIT: hello",
+            "RUN: YO! YO!",
+            "RUN: Hey! Hey!",
+            "RUN: WHAT! WHAT!"
+          ]))
+        })
+      ]
+    })
+
+class InitializingEffect implements Effect {
+  constructor(private collector: Array<string>, private runner: (get: GetState) => string) { }
+
+  init(get: GetState): void {
+    this.collector.push(`INIT: ${this.runner(get)}`)
+  }
+
+  run(get: GetState): void {
+    this.collector.push(`RUN: ${this.runner(get)}`)
+  }
+}
+
 export default behavior("effect", [
   basicEffect,
   effectWithHiddenDependencies,
+  unsubscribingEffect,
+  initializingEffectExample
 ])

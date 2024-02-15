@@ -1,4 +1,4 @@
-import { GetState, Effect, Stateful, Store } from "@spheres/store";
+import { GetState, Effect, Stateful, Store, EffectSubscription } from "@spheres/store";
 import { DOMRenderer } from "./render.js";
 import { ElementNode, NodeType, TextNode, VirtualNode, VirtualNodeKey, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "./virtualNode.js";
 import { EventHandler } from "./eventHandler.js";
@@ -33,20 +33,64 @@ export function createDOMRenderer(store: Store): DOMRenderer {
   }
 }
 
+export interface EffectHandle {
+  unsubscribe(): void
+}
+
 class PatchElementEffect implements Effect {
-  current: VirtualNode | null = null
+  private current!: VirtualNode
+  private subscription: EffectSubscription | undefined;
 
   constructor(private store: Store, private generator: (get: GetState) => VirtualNode) { }
 
+  get node(): Node {
+    return this.current!.node!
+  }
+
+  onSubscribe(subscription: EffectSubscription): void {
+    this.subscription = subscription
+  }
+
+  init(get: GetState): void {
+    this.current = patch(this.store, null, this.generator(get))
+  }
+
   run(get: GetState): void {
+    if (!this.node?.isConnected) {
+      this.subscription?.unsubscribe()
+      return
+    }
+
     this.current = patch(this.store, this.current, this.generator(get))
   }
 }
 
-class UpdateAttributeEffect implements Effect {
+class UpdateAttributeEffect implements Effect, EffectHandle {
+  private subscription: EffectSubscription | undefined;
+
   constructor(private element: Element, private attribute: string, private generator: Stateful<string>) { }
 
+  onSubscribe(subscription: EffectSubscription): void {
+    this.subscription = subscription
+  }
+
+  unsubscribe(): void {
+    this.subscription?.unsubscribe()
+  }
+
+  init(get: GetState): void {
+    const val = this.generator(get)
+    if (val !== undefined) {
+      this.element.setAttribute(this.attribute, val)
+    }
+  }
+
   run(get: GetState): void {
+    if (!this.element.isConnected) {
+      this.unsubscribe()
+      return
+    }
+
     const val = this.generator(get)
     if (val === undefined) {
       this.element.removeAttribute(this.attribute)
@@ -56,19 +100,58 @@ class UpdateAttributeEffect implements Effect {
   }
 }
 
-class UpdatePropertyEffect implements Effect {
+class UpdatePropertyEffect implements Effect, EffectHandle {
+  private subscription: EffectSubscription | undefined;
+
   constructor(private element: Element, private property: string, private generator: Stateful<string>) { }
 
+  onSubscribe(subscription: EffectSubscription): void {
+    this.subscription = subscription
+  }
+
+  unsubscribe(): void {
+    this.subscription?.unsubscribe()
+  }
+
+  init(get: GetState): void {
+    const val = this.generator(get)
+    if (val !== undefined) {
+      //@ts-ignore
+      this.element[this.property] = val
+    }
+  }
+
   run(get: GetState): void {
+    if (!this.element.isConnected) {
+      this.unsubscribe()
+      return
+    }
+
     // @ts-ignore
     this.element[this.property] = this.generator(get) ?? ""
   }
 }
 
 class UpdateTextEffect implements Effect {
-  constructor(private node: Node, private generator: Stateful<string>) { }
+  private subscription: EffectSubscription | undefined;
+  node!: Node
+
+  constructor(private generator: Stateful<string>) { }
+
+  onSubscribe(subscription: EffectSubscription): void {
+    this.subscription = subscription
+  }
+
+  init(get: GetState): void {
+    this.node = document.createTextNode(this.generator(get) ?? "")
+  }
 
   run(get: GetState): void {
+    if (!this.node.isConnected) {
+      this.subscription?.unsubscribe()
+      return
+    }
+
     this.node.nodeValue = this.generator(get) ?? null
   }
 }
@@ -79,15 +162,17 @@ function createNode(store: Store, vnode: VirtualNode): Node {
     case NodeType.TEXT:
       return document.createTextNode(vnode.value)
 
-    case NodeType.STATEFUL_TEXT:
-      const node = document.createTextNode("")
-      vnode.handle = store.useEffect(new UpdateTextEffect(node, vnode.generator))
-      return node
+    case NodeType.STATEFUL_TEXT: {
+      const textEffect = new UpdateTextEffect(vnode.generator)
+      store.useEffect(textEffect)
+      return textEffect.node
+    }
 
-    case NodeType.STATEFUL:
+    case NodeType.STATEFUL: {
       const query = new PatchElementEffect(store, vnode.generator)
-      vnode.handle = store.useEffect(query)
-      return query.current!.node!
+      store.useEffect(query)
+      return query.node!
+    }
 
     case NodeType.BLOCK:
       const blockNode = createNode(store, vnode.generator!())
@@ -107,7 +192,9 @@ function createNode(store: Store, vnode: VirtualNode): Node {
       const statefulAttrs = vnode.data.statefulAttrs
       for (const attr in statefulAttrs) {
         const stateful = statefulAttrs[attr]
-        stateful.effect = store.useEffect(new UpdateAttributeEffect(element, attr, stateful.generator))
+        const attributeEffect = new UpdateAttributeEffect(element, attr, stateful.generator)
+        store.useEffect(attributeEffect)
+        stateful.effect = attributeEffect
       }
 
       const props = vnode.data.props
@@ -119,7 +206,9 @@ function createNode(store: Store, vnode: VirtualNode): Node {
       const statefulProps = vnode.data.statefulProps
       for (const prop in statefulProps) {
         const stateful = statefulProps[prop]
-        stateful.effect = store.useEffect(new UpdatePropertyEffect(element, prop, stateful.generator))
+        const propertyEffect = new UpdatePropertyEffect(element, prop, stateful.generator)
+        store.useEffect(propertyEffect)
+        stateful.effect = propertyEffect
       }
 
       const events = vnode.data.on
@@ -141,9 +230,6 @@ function addEventListener(store: Store, element: Element, event: string, handler
 }
 
 function removeNode(parent: Node, vnode: VirtualNode) {
-  if (vnode.type === NodeType.STATEFUL_TEXT || vnode.type === NodeType.STATEFUL) {
-    vnode.handle?.unsubscribe()
-  }
   parent.removeChild(vnode.node!)
 }
 
@@ -190,7 +276,9 @@ function patchStatefulProperties(store: Store, oldVNode: ElementNode, newVNode: 
       oldVNode.node![key] = ""
     } else if (oldProps[key] === undefined) {
       const stateful = newProps[key]
-      stateful.effect = store.useEffect(new UpdatePropertyEffect(oldVNode.node!, key, stateful.generator))
+      const propertyEffect = new UpdatePropertyEffect(oldVNode.node!, key, stateful.generator)
+      store.useEffect(propertyEffect)
+      stateful.effect = propertyEffect
     }
   }
 }
@@ -204,7 +292,9 @@ function patchStatefulAttributes(store: Store, oldVNode: ElementNode, newVNode: 
       oldVNode.node!.removeAttribute(key)
     } else if (oldAttr[key] === undefined) {
       const stateful = newAttr![key]
-      stateful.effect = store.useEffect(new UpdateAttributeEffect(oldVNode.node!, key, stateful.generator))
+      const attributeEffect = new UpdateAttributeEffect(oldVNode.node!, key, stateful.generator)
+      store.useEffect(attributeEffect)
+      stateful.effect = attributeEffect
     }
   }
 }

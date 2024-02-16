@@ -39,16 +39,11 @@ export interface EffectHandle {
 
 class PatchElementEffect implements Effect {
   private current!: VirtualNode
-  private subscription: EffectSubscription | undefined;
 
   constructor(private store: Store, private generator: (get: GetState) => VirtualNode) { }
 
   get node(): Node {
     return this.current!.node!
-  }
-
-  onSubscribe(subscription: EffectSubscription): void {
-    this.subscription = subscription
   }
 
   init(get: GetState): void {
@@ -57,7 +52,6 @@ class PatchElementEffect implements Effect {
 
   run(get: GetState): void {
     if (!this.node?.isConnected) {
-      this.subscription?.unsubscribe()
       return
     }
 
@@ -133,14 +127,9 @@ class UpdatePropertyEffect implements Effect, EffectHandle {
 }
 
 class UpdateTextEffect implements Effect {
-  private subscription: EffectSubscription | undefined;
   node!: Node
 
   constructor(private generator: Stateful<string>) { }
-
-  onSubscribe(subscription: EffectSubscription): void {
-    this.subscription = subscription
-  }
 
   init(get: GetState): void {
     this.node = document.createTextNode(this.generator(get) ?? "")
@@ -148,7 +137,6 @@ class UpdateTextEffect implements Effect {
 
   run(get: GetState): void {
     if (!this.node.isConnected) {
-      this.subscription?.unsubscribe()
       return
     }
 

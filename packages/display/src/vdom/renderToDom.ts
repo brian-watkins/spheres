@@ -1,6 +1,6 @@
-import { GetState, Effect, Stateful, Store, EffectSubscription } from "@spheres/store";
+import { GetState, Effect, Store, EffectSubscription } from "@spheres/store";
 import { DOMRenderer } from "./render.js";
-import { ElementNode, NodeType, TextNode, VirtualNode, VirtualNodeKey, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "./virtualNode.js";
+import { ElementNode, NodeType, Stateful, TextNode, VirtualNode, VirtualNodeKey, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "./virtualNode.js";
 import { EventHandler } from "./eventHandler.js";
 
 export function virtualize(element: Node): VirtualNode {

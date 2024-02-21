@@ -2,7 +2,6 @@ import { StateController, StateListener } from "./controller.js"
 import { Meta, error, ok, pending } from "./meta.js"
 
 export type GetState = <S, N = S>(state: State<S, N>) => S
-export type Stateful<T> = (get: GetState) => T | undefined
 
 export interface ReadyHookActions<T, M, E> {
   get: GetState

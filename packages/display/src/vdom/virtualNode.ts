@@ -1,6 +1,8 @@
-import { GetState, State, Stateful, StoreMessage } from "@spheres/store";
+import { GetState, State, StoreMessage } from "@spheres/store";
 import { EventHandler } from "./eventHandler.js";
 import { EffectHandle } from "./renderToDom.js";
+
+export type Stateful<T> = (get: GetState) => T | undefined
 
 export enum NodeType {
   TEXT = 3,

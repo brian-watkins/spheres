@@ -1,10 +1,11 @@
-import { GetState, State, Stateful, Store } from "@spheres/store"
-import { VirtualNode, makeBlockElement, makeStatefulTextNode, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, setKey, virtualNodeConfig, addNamespace as setNamespace } from "./vdom/virtualNode.js"
+import { GetState, State, Store } from "@spheres/store"
+import { VirtualNode, makeBlockElement, makeStatefulTextNode, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, setKey, virtualNodeConfig, addNamespace as setNamespace, Stateful } from "./vdom/virtualNode.js"
 import { InputElementAttributes, HTMLElements, HTMLBuilder } from "./htmlElements.js"
 import { createStringRenderer } from "./vdom/renderToString.js"
 import { createDOMRenderer } from "./vdom/renderToDom.js"
 import { SVGBuilder, SVGElements, SvgElementAttributes } from "./svgElements.js"
 import { BasicElementConfig, InputElementConfig, SpecialAttributes } from "./viewConfig.js"
+export type { Stateful } from "./vdom/virtualNode.js"
 
 // Renderers
 

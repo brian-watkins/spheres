@@ -1,6 +1,5 @@
-import { ConfigurableElement, SpecialElements, SpecialElementBuilder, View } from "./view.js";
+import { ConfigurableElement, SpecialElements, SpecialElementBuilder, View, Stateful } from "./view.js";
 import { SpecialAttributes } from "./viewConfig.js";
-import { Stateful } from "@spheres/store";
 
 export interface SVGBuilder extends SpecialElementBuilder {
     a(builder?: (element: ConfigurableElement<ASVGElementAttributes, SVGElements>) => void): View;

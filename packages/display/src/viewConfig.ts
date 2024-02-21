@@ -1,6 +1,6 @@
-import { Stateful, StoreMessage } from "@spheres/store"
+import { StoreMessage } from "@spheres/store"
 import { AriaAttribute, booleanAttributes } from "./htmlElements.js"
-import { VirtualNodeConfig, addAttribute, addProperty, addStatefulAttribute, addStatefulProperty, setEventHandler, virtualNodeConfig } from "./vdom/virtualNode.js"
+import { Stateful, VirtualNodeConfig, addAttribute, addProperty, addStatefulAttribute, addStatefulProperty, setEventHandler, virtualNodeConfig } from "./vdom/virtualNode.js"
 import { svgAttributeNames } from "./svgElements.js"
 
 export interface SpecialAttributes {

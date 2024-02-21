@@ -1,7 +1,6 @@
-import { View, ConfigurableElement, SpecialElements, SpecialElementBuilder } from "./view.js";
+import { View, ConfigurableElement, SpecialElements, SpecialElementBuilder, Stateful } from "./view.js";
 import { SpecialAttributes } from "./viewConfig.js";
 import { SVGElements, SvgElementAttributes } from "./svgElements.js";
-import { Stateful } from "@spheres/store";
 
 export interface GlobalHTMLAttributes {
     accesskey(value: string | Stateful<string>): this;

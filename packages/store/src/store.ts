@@ -87,7 +87,6 @@ const registerState = Symbol("registerState")
 const initializeCommand = Symbol("initializeCommand")
 const getController = Symbol("getController")
 const initialValue = Symbol("initialValue")
-const getKeyForToken = Symbol("getKeyForToken")
 
 type StoreRegistryKey = State<any>
 
@@ -317,7 +316,7 @@ export class Store {
   private hooks: StoreHooks | undefined
   private tokenIdMap: Map<string, StoreRegistryKey> = new Map();
 
-  [getKeyForToken](token: State<any>): StoreRegistryKey {
+  private getKeyForToken(token: State<any>): StoreRegistryKey {
     if (token.id === undefined) return token
 
     const key = this.tokenIdMap.get(token.id)
@@ -329,7 +328,7 @@ export class Store {
   }
 
   [getController]<T, M>(token: State<T, M>): StateController<T, M> {
-    const key = this[getKeyForToken](token)
+    const key = this.getKeyForToken(token)
     let controller = this.registry.get(key)
     if (controller === undefined) {
       controller = token[registerState](this)

@@ -1,4 +1,4 @@
-import { StateController, MessageStatus, StateListener } from "./controller.js"
+import { StateController, StateListener } from "./controller.js"
 import { Meta, error, ok, pending } from "./meta.js"
 
 export type GetState = <S, N = S>(state: State<S, N>) => S
@@ -212,7 +212,7 @@ class ReactiveValue<T, M> extends AbstractReactiveQuery {
 
   update(): void {
     const derivedController = this.store[getController](this.state)
-    derivedController.update(MessageStatus.Written, this.run(derivedController.value))
+    derivedController.update(this.run(derivedController.value))
   }
 
   run(currentValue: T | undefined): M {
@@ -269,7 +269,7 @@ class ReactiveConstraint<T, M> extends ReactiveEffect {
   constructor(store: Store, controller: StateController<T, M>, private query: ((actions: ConstraintActions<T>, nextValue?: M) => M)) {
     super(store, {
       run: () => {
-        controller.update(MessageStatus.Constrained, this.runQuery(controller.value, undefined))
+        controller.writeConstrained(this.runQuery(controller.value, undefined))
       }
     })
   }
@@ -381,7 +381,7 @@ export class Store {
         return this[getController](state).value
       },
       ok: (message) => {
-        controller.update(MessageStatus.Written, message)
+        controller.update(message)
       },
       pending: (message) => {
         this[getController](container.meta).publish(pending(message))
@@ -420,7 +420,7 @@ export class Store {
   dispatch(message: StoreMessage<any>) {
     switch (message.type) {
       case "write":
-        this[getController](message.container).update(MessageStatus.Provided, message.value)
+        this[getController](message.container).write(message.value)
         break
       case "exec":
         this.commandRegistry.get(message.command)?.exec(message.message, {

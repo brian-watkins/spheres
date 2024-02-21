@@ -4,12 +4,6 @@ export interface StateListener {
   update(): void
 }
 
-export enum MessageStatus {
-  Provided,
-  Constrained,
-  Written
-}
-
 export class StateController<T, M = T> {
   private listeners: Set<StateListener> = new Set()
   private query: ((current: T, next: M) => M) | undefined
@@ -43,30 +37,26 @@ export class StateController<T, M = T> {
     this.query = query
   }
 
-  update(source: MessageStatus, message: M) {
-    switch (source) {
-      case MessageStatus.Provided: {
-        if (this.query === undefined) {
-          this.update(MessageStatus.Constrained, message)
-        } else {
-          this.update(MessageStatus.Constrained, this.query(this._value, message))
-        }
-        break
-      }
-      case MessageStatus.Constrained: {
-        if (this.writer === undefined) {
-          this.update(MessageStatus.Written, message)
-        } else {
-          this.writer(message)
-        }
-        break
-      }
-      case MessageStatus.Written: {
-        this.publish(this.nextValue(message))
-        this.onPublish?.()
-        break
-      }
+  write(message: M) {
+    const constrainedValue = (this.query === undefined) ? message : this.query(this._value, message)
+    if (this.writer === undefined) {
+      this.update(constrainedValue)
+    } else {
+      this.writer(constrainedValue)
     }
+  }
+
+  writeConstrained(message: M) {
+    if (this.writer === undefined) {
+      this.update(message)
+    } else {
+      this.writer(message)
+    }
+  }
+
+  update(message: M) {
+    this.publish(this.nextValue(message))
+    this.onPublish?.()
   }
 
   publish(value: T) {

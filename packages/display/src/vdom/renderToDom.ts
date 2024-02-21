@@ -127,7 +127,7 @@ class UpdatePropertyEffect implements Effect, EffectHandle {
 }
 
 class UpdateTextEffect implements Effect {
-  node!: Node
+  node!: Text
 
   constructor(private generator: Stateful<string>) { }
 
@@ -140,7 +140,7 @@ class UpdateTextEffect implements Effect {
       return
     }
 
-    this.node.nodeValue = this.generator(get) ?? null
+    this.node.data = this.generator(get) ?? ""
   }
 }
 

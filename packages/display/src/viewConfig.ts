@@ -14,8 +14,7 @@ export interface SpecialAttributes {
 export class BasicElementConfig implements SpecialAttributes {
   protected config: VirtualNodeConfig = virtualNodeConfig()
 
-  recordAttribute(attributeAlias: string, value: string | Stateful<string>) {
-    const attribute = svgAttributeNames.get(attributeAlias) ?? attributeAlias
+  recordAttribute(attribute: string, value: string | Stateful<string>) {
     if (typeof value === "function") {
       addStatefulAttribute(this.config, attribute, value)
     } else {
@@ -111,6 +110,13 @@ export class InputElementConfig extends BasicElementConfig {
     this.recordBooleanProperty("checked", value)
 
     return this
+  }
+}
+
+export class SVGElementConfig extends BasicElementConfig {
+  recordAttribute(attributeAlias: string, value: string | Stateful<string>): this {
+    const attribute = svgAttributeNames.get(attributeAlias) ?? attributeAlias
+    return super.recordAttribute(attribute, value)
   }
 }
 

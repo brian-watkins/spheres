@@ -4,7 +4,7 @@ import { InputElementAttributes, HTMLElements, HTMLBuilder } from "./htmlElement
 import { createStringRenderer } from "./vdom/renderToString.js"
 import { createDOMRenderer } from "./vdom/renderToDom.js"
 import { SVGBuilder, SVGElements, SvgElementAttributes } from "./svgElements.js"
-import { BasicElementConfig, InputElementConfig, SpecialAttributes } from "./viewConfig.js"
+import { BasicElementConfig, InputElementConfig, SVGElementConfig, SpecialAttributes } from "./viewConfig.js"
 export type { Stateful } from "./vdom/virtualNode.js"
 
 // Renderers
@@ -57,6 +57,7 @@ export interface SpecialElementBuilder {
 }
 
 const configBuilder = new BasicElementConfig()
+const svgConfigBuilder = new SVGElementConfig()
 const inputConfigBuilder = new InputElementConfig()
 
 export interface ConfigurableElement<A extends SpecialAttributes, B> {
@@ -125,10 +126,10 @@ class ViewBuilder {
   svg(builder?: (element: ConfigurableElement<SvgElementAttributes, SVGElements>) => void) {
     const config = virtualNodeConfig()
     setNamespace(config, "http://www.w3.org/2000/svg")
-    configBuilder.resetConfig(config)
+    svgConfigBuilder.resetConfig(config)
     const view = new SVGViewBuilder()
     builder?.({
-      config: configBuilder as unknown as SvgElementAttributes,
+      config: svgConfigBuilder as unknown as SvgElementAttributes,
       children: view as unknown as SVGElements
     })
     this.storeNode(makeVirtualElement("svg", config, view.nodes))
@@ -177,9 +178,9 @@ class SVGViewBuilder extends ViewBuilder {
     this.nodes = childNodes
     const config = virtualNodeConfig()
     setNamespace(config, "http://www.w3.org/2000/svg")
-    configBuilder.resetConfig(config)
+    svgConfigBuilder.resetConfig(config)
     builder?.({
-      config: configBuilder,
+      config: svgConfigBuilder,
       children: this as unknown as SVGElements
     })
     storedNodes.push(makeVirtualElement(tag, config, childNodes))

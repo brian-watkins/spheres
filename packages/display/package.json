@@ -33,6 +33,7 @@
     "svg-element-attributes": "^2.0.1",
     "svg-tag-names": "^3.0.1",
     "ts-morph": "^18.0.0",
+    "tsx": "^4.7.1",
     "typescript": "^5.0.2",
     "vite": "^5.0.0",
     "vite-tsconfig-paths": "^4.2.0"

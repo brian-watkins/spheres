@@ -1,5 +1,5 @@
 import { GetState, State, Store } from "@spheres/store"
-import { VirtualNode, makeBlockElement, makeStatefulTextNode, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, setKey, virtualNodeConfig, addNamespace as setNamespace, Stateful } from "./vdom/virtualNode.js"
+import { VirtualNode, makeBlockElement, makeStatefulTextNode, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, setKey, virtualNodeConfig, addNamespace as setNamespace, Stateful, makeTemplate } from "./vdom/virtualNode.js"
 import { InputElementAttributes, HTMLElements, HTMLBuilder } from "./htmlElements.js"
 import { createStringRenderer } from "./vdom/renderToString.js"
 import { createDOMRenderer } from "./vdom/renderToDom.js"
@@ -44,14 +44,14 @@ export interface ViewOptions {
   key?: string | number | State<any>
 }
 
-export interface SpecialElements {
-  element(tag: string, builder?: (element: ConfigurableElement<SpecialAttributes, HTMLElements>) => void): this
-  textNode(value: string | Stateful<string>): this
+export interface SpecialElements<Context> {
+  element(tag: string, builder?: (element: ConfigurableElement<SpecialAttributes<Context>, HTMLElements<Context>, Context>) => void): this
+  textNode(value: string | Stateful<string, Context>): this
   zone(definition: View | ((get: GetState) => View), options?: ViewOptions): this
 }
 
-export interface SpecialElementBuilder {
-  element(tag: string, builder?: (element: ConfigurableElement<SpecialAttributes, HTMLElements>) => void): View
+export interface SpecialElementBuilder<Context> {
+  element(tag: string, builder?: (element: ConfigurableElement<SpecialAttributes<Context>, HTMLElements<Context>, Context>) => void): View
   textNode(value: string | Stateful<string>): View
   zone(definition: View | ((get: GetState) => View), options?: ViewOptions): View
 }
@@ -60,14 +60,14 @@ const configBuilder = new BasicElementConfig()
 const svgConfigBuilder = new SVGElementConfig()
 const inputConfigBuilder = new InputElementConfig()
 
-export interface ConfigurableElement<A extends SpecialAttributes, B> {
+export interface ConfigurableElement<A extends SpecialAttributes<C>, B, C> {
   config: A
   children: B
 }
 
 const MagicElements = new Proxy({}, {
   get: (_, prop, receiver) => {
-    return function (builder?: <A extends SpecialAttributes, B>(element: ConfigurableElement<A, B>) => void) {
+    return function (builder?: <Context, A extends SpecialAttributes<Context>, B>(element: ConfigurableElement<A, B, Context>) => void) {
       return receiver.buildElement(prop as string, builder)
     }
   }
@@ -104,11 +104,11 @@ class ViewBuilder {
     return this
   }
 
-  element(tag: string, builder?: (element: ConfigurableElement<SpecialAttributes, HTMLElements>) => void) {
+  element(tag: string, builder?: (element: ConfigurableElement<SpecialAttributes<any>, HTMLElements<any>, any>) => void) {
     return this.buildElement(tag, builder)
   }
 
-  buildElement(tag: string, builder?: (element: ConfigurableElement<any, any>) => void) {
+  buildElement(tag: string, builder?: (element: ConfigurableElement<any, any, any>) => void) {
     let storedNodes = this.nodes
     let childNodes: Array<VirtualNode> = []
     this.nodes = childNodes
@@ -123,28 +123,28 @@ class ViewBuilder {
     return this
   }
 
-  svg(builder?: (element: ConfigurableElement<SvgElementAttributes, SVGElements>) => void) {
+  svg(builder?: (element: ConfigurableElement<SvgElementAttributes<any>, SVGElements<any>, any>) => void) {
     const config = virtualNodeConfig()
     setNamespace(config, "http://www.w3.org/2000/svg")
     svgConfigBuilder.resetConfig(config)
     const view = new SVGViewBuilder()
     builder?.({
-      config: svgConfigBuilder as unknown as SvgElementAttributes,
-      children: view as unknown as SVGElements
+      config: svgConfigBuilder as unknown as SvgElementAttributes<any>,
+      children: view as unknown as SVGElements<any>
     })
     this.storeNode(makeVirtualElement("svg", config, view.nodes))
     return this
   }
 
-  input(builder?: (element: ConfigurableElement<InputElementAttributes, HTMLElements>) => void) {
+  input(builder?: (element: ConfigurableElement<InputElementAttributes<any>, HTMLElements<any>, any>) => void) {
     let storedNodes = this.nodes
     let childNodes: Array<VirtualNode> = []
     this.nodes = childNodes
     const config = virtualNodeConfig()
     inputConfigBuilder.resetConfig(config)
     builder?.({
-      config: inputConfigBuilder as unknown as InputElementAttributes,
-      children: this as unknown as HTMLElements
+      config: inputConfigBuilder as unknown as InputElementAttributes<any>,
+      children: this as unknown as HTMLElements<any>
     })
     storedNodes.push(makeVirtualElement("input", config, childNodes))
     this.nodes = storedNodes
@@ -158,12 +158,12 @@ class ViewBuilder {
 
 Object.setPrototypeOf(Object.getPrototypeOf(new ViewBuilder()), MagicElements)
 
-class HTMLView implements View {
-  constructor(private definition: (builder: HTMLBuilder) => void) { }
+class HTMLView<C> implements View {
+  constructor(private definition: (builder: HTMLBuilder<C>) => void) { }
 
   [toVirtualNode](): VirtualNode {
     const builder = new ViewBuilder()
-    this.definition(builder as unknown as HTMLBuilder)
+    this.definition(builder as unknown as HTMLBuilder<C>)
     return builder[toVirtualNode]()
   }
 }
@@ -172,7 +172,7 @@ class HTMLView implements View {
 // SVG
 
 class SVGViewBuilder extends ViewBuilder {
-  buildElement(tag: string, builder: (element: ConfigurableElement<any, SVGElements>) => void) {
+  buildElement(tag: string, builder: (element: ConfigurableElement<any, SVGElements<any>, any>) => void) {
     let storedNodes = this.nodes
     let childNodes: Array<VirtualNode> = []
     this.nodes = childNodes
@@ -181,7 +181,7 @@ class SVGViewBuilder extends ViewBuilder {
     svgConfigBuilder.resetConfig(config)
     builder?.({
       config: svgConfigBuilder,
-      children: this as unknown as SVGElements
+      children: this as unknown as SVGElements<any>
     })
     storedNodes.push(makeVirtualElement(tag, config, childNodes))
     this.nodes = storedNodes
@@ -189,20 +189,36 @@ class SVGViewBuilder extends ViewBuilder {
   }
 }
 
-class SVGView implements View {
-  constructor(private definition: (builder: SVGBuilder) => void) { }
+class SVGView<C> implements View {
+  constructor(private definition: (builder: SVGBuilder<C>) => void) { }
 
   [toVirtualNode](): VirtualNode {
     const builder = new SVGViewBuilder()
-    this.definition(builder as unknown as SVGBuilder)
+    this.definition(builder as unknown as SVGBuilder<C>)
     return builder[toVirtualNode]()
   }
 }
 
-export function htmlView(definition: (builder: HTMLBuilder) => void): View {
+export function htmlView(definition: (builder: HTMLBuilder<undefined>) => void): View {
   return new HTMLView(definition)
 }
 
-export function svgView(definition: (builder: SVGBuilder) => void): View {
+export function svgView(definition: (builder: SVGBuilder<undefined>) => void): View {
   return new SVGView(definition)
+}
+
+// Template
+
+export function htmlTemplate<T>(definition: (builder: HTMLBuilder<T>) => void): (context: T) => View {
+  const builder = new ViewBuilder()
+  definition(builder as unknown as HTMLBuilder<T>)
+  const vnode = builder[toVirtualNode]()
+
+  return (context) => {
+    return {
+      [toVirtualNode]() {
+        return makeTemplate(vnode, context)
+      }
+    }
+  }
 }

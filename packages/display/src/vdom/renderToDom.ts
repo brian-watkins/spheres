@@ -1,7 +1,12 @@
-import { GetState, Effect, Store, EffectSubscription } from "@spheres/store";
+import { Store } from "@spheres/store";
 import { DOMRenderer } from "./render.js";
-import { ElementNode, NodeType, Stateful, TextNode, VirtualNode, VirtualNodeKey, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "./virtualNode.js";
+import { ElementNode, NodeType, TextNode, VirtualNode, VirtualNodeKey, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "./virtualNode.js";
 import { EventHandler } from "./eventHandler.js";
+import { PatchElementEffect } from "./effects/elementEffect.js";
+import { UpdateTextEffect } from "./effects/textEffect.js";
+import { UpdateAttributeEffect } from "./effects/attributeEffect.js";
+import { UpdatePropertyEffect } from "./effects/propertyEffect.js";
+import { createTemplateInstance } from "./template.js";
 
 export function virtualize(element: Node): VirtualNode {
   if (element.nodeType === NodeType.TEXT) {
@@ -33,117 +38,6 @@ export function createDOMRenderer(store: Store): DOMRenderer {
   }
 }
 
-export interface EffectHandle {
-  unsubscribe(): void
-}
-
-class PatchElementEffect implements Effect {
-  private current!: VirtualNode
-
-  constructor(private store: Store, private generator: (get: GetState) => VirtualNode) { }
-
-  get node(): Node {
-    return this.current!.node!
-  }
-
-  init(get: GetState): void {
-    this.current = patch(this.store, null, this.generator(get))
-  }
-
-  run(get: GetState): void {
-    if (!this.node?.isConnected) {
-      return
-    }
-
-    this.current = patch(this.store, this.current, this.generator(get))
-  }
-}
-
-class UpdateAttributeEffect implements Effect, EffectHandle {
-  private subscription: EffectSubscription | undefined;
-
-  constructor(private element: Element, private attribute: string, private generator: Stateful<string>) { }
-
-  onSubscribe(subscription: EffectSubscription): void {
-    this.subscription = subscription
-  }
-
-  unsubscribe(): void {
-    this.subscription?.unsubscribe()
-  }
-
-  init(get: GetState): void {
-    const val = this.generator(get)
-    if (val !== undefined) {
-      this.element.setAttribute(this.attribute, val)
-    }
-  }
-
-  run(get: GetState): void {
-    if (!this.element.isConnected) {
-      this.unsubscribe()
-      return
-    }
-
-    const val = this.generator(get)
-    if (val === undefined) {
-      this.element.removeAttribute(this.attribute)
-    } else {
-      this.element.setAttribute(this.attribute, val)
-    }
-  }
-}
-
-class UpdatePropertyEffect implements Effect, EffectHandle {
-  private subscription: EffectSubscription | undefined;
-
-  constructor(private element: Element, private property: string, private generator: Stateful<string>) { }
-
-  onSubscribe(subscription: EffectSubscription): void {
-    this.subscription = subscription
-  }
-
-  unsubscribe(): void {
-    this.subscription?.unsubscribe()
-  }
-
-  init(get: GetState): void {
-    const val = this.generator(get)
-    if (val !== undefined) {
-      //@ts-ignore
-      this.element[this.property] = val
-    }
-  }
-
-  run(get: GetState): void {
-    if (!this.element.isConnected) {
-      this.unsubscribe()
-      return
-    }
-
-    // @ts-ignore
-    this.element[this.property] = this.generator(get) ?? ""
-  }
-}
-
-class UpdateTextEffect implements Effect {
-  node!: Text
-
-  constructor(private generator: Stateful<string>) { }
-
-  init(get: GetState): void {
-    this.node = document.createTextNode(this.generator(get) ?? "")
-  }
-
-  run(get: GetState): void {
-    if (!this.node.isConnected) {
-      return
-    }
-
-    this.node.data = this.generator(get) ?? ""
-  }
-}
-
 function createNode(store: Store, vnode: VirtualNode): Node {
   switch (vnode.type) {
 
@@ -151,9 +45,10 @@ function createNode(store: Store, vnode: VirtualNode): Node {
       return document.createTextNode(vnode.value)
 
     case NodeType.STATEFUL_TEXT: {
-      const textEffect = new UpdateTextEffect(vnode.generator)
+      const textNode = document.createTextNode("")
+      const textEffect = new UpdateTextEffect(textNode, vnode.generator)
       store.useEffect(textEffect)
-      return textEffect.node
+      return textNode
     }
 
     case NodeType.STATEFUL: {
@@ -166,6 +61,9 @@ function createNode(store: Store, vnode: VirtualNode): Node {
       const blockNode = createNode(store, vnode.generator!())
       vnode.generator = undefined
       return blockNode
+
+    case NodeType.TEMPLATE:
+      return createTemplateInstance(store, vnode)
 
     default:
       const element = vnode.data.namespace ?

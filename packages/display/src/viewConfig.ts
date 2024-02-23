@@ -3,15 +3,15 @@ import { AriaAttribute, booleanAttributes } from "./htmlElements.js"
 import { Stateful, VirtualNodeConfig, addAttribute, addProperty, addStatefulAttribute, addStatefulProperty, setEventHandler, virtualNodeConfig } from "./vdom/virtualNode.js"
 import { svgAttributeNames } from "./svgElements.js"
 
-export interface SpecialAttributes {
-  attribute(name: string, value: string | Stateful<string>): this
-  dataAttribute(name: string, value?: string | Stateful<string>): this
-  innerHTML(html: string | Stateful<string>): this
-  aria(name: AriaAttribute, value: string | Stateful<string>): this
-  on<E extends keyof HTMLElementEventMap | string>(event: E, handler: (evt: E extends keyof HTMLElementEventMap ? HTMLElementEventMap[E] : Event) => StoreMessage<any>): this
+export interface SpecialAttributes<Context> {
+  attribute(name: string, value: string | Stateful<string, Context>): this
+  dataAttribute(name: string, value?: string | Stateful<string, Context>): this
+  innerHTML(html: string | Stateful<string, Context>): this
+  aria(name: AriaAttribute, value: string | Stateful<string, Context>): this
+  on<E extends keyof HTMLElementEventMap | string>(event: E, handler: (evt: E extends keyof HTMLElementEventMap ? HTMLElementEventMap[E] : Event, context: Context) => StoreMessage<any>): this
 }
 
-export class BasicElementConfig implements SpecialAttributes {
+export class BasicElementConfig implements SpecialAttributes<any> {
   protected config: VirtualNodeConfig = virtualNodeConfig()
 
   recordAttribute(attribute: string, value: string | Stateful<string>) {
@@ -25,7 +25,7 @@ export class BasicElementConfig implements SpecialAttributes {
 
   recordBooleanAttribute(attribute: string, isSelected: boolean | Stateful<boolean>) {
     if (typeof isSelected === "function") {
-      addStatefulAttribute(this.config, attribute, (get) => isSelected(get) ? attribute : undefined)
+      addStatefulAttribute(this.config, attribute, (get) => isSelected(get, undefined) ? attribute : undefined)
     } else {
       if (isSelected) {
         addAttribute(this.config, attribute, attribute)
@@ -36,7 +36,7 @@ export class BasicElementConfig implements SpecialAttributes {
 
   recordBooleanProperty(name: string, isSelected: boolean | Stateful<boolean>) {
     if (typeof isSelected === "function") {
-      addStatefulProperty(this.config, name, (get) => isSelected(get) ? name : undefined)
+      addStatefulProperty(this.config, name, (get) => isSelected(get, undefined) ? name : undefined)
     } else {
       if (isSelected) {
         addProperty(this.config, name, name)
@@ -85,8 +85,8 @@ export class BasicElementConfig implements SpecialAttributes {
     return this
   }
 
-  on<E extends keyof HTMLElementEventMap | string>(event: E, handler: (evt: E extends keyof HTMLElementEventMap ? HTMLElementEventMap[E] : Event) => StoreMessage<any>): this {
-    setEventHandler(this.config, event, handler as (evt: Event) => StoreMessage<any>)
+  on<E extends keyof HTMLElementEventMap | string>(event: E, handler: (evt: E extends keyof HTMLElementEventMap ? HTMLElementEventMap[E] : Event, context: any) => StoreMessage<any>): this {
+    setEventHandler(this.config, event, handler as (evt: Event, context: any) => StoreMessage<any>)
     return this
   }
 

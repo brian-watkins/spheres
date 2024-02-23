@@ -21,6 +21,8 @@ function stringifyVirtualNode(store: Store, node: VirtualNode): string {
       return stringifyStatefulNode(store, node)
     case NodeType.BLOCK:
       return stringifyVirtualNode(store, node.generator!())
+    case NodeType.TEMPLATE:
+      return "NOT DONE YET!"
   }
 }
 
@@ -59,7 +61,7 @@ function stringifyReactiveText(store: Store, node: StatefulTextNode): string {
   let textValue: string | undefined = undefined
   store.useEffect({
     run: (get) => {
-      textValue = node.generator(get)
+      textValue = node.generator(get, undefined)
     }
   })
 

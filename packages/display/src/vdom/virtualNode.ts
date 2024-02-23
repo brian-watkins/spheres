@@ -1,15 +1,19 @@
 import { GetState, State, StoreMessage } from "@spheres/store";
 import { EventHandler } from "./eventHandler.js";
-import { EffectHandle } from "./renderToDom.js";
 
-export type Stateful<T> = (get: GetState) => T | undefined
+export type Stateful<T, P = undefined> = (get: GetState, props: P) => T | undefined
+
+export interface EffectHandle {
+  unsubscribe(): void
+}
 
 export enum NodeType {
   TEXT = 3,
   ELEMENT = 1,
   STATEFUL = 15,
   STATEFUL_TEXT = 16,
-  BLOCK = 17
+  BLOCK = 17,
+  TEMPLATE = 18
 }
 
 export interface TextNode {
@@ -20,7 +24,7 @@ export interface TextNode {
 
 export interface StatefulTextNode {
   type: NodeType.STATEFUL_TEXT
-  generator: Stateful<string>
+  generator: Stateful<string, any>
   node: Node | undefined
 }
 
@@ -49,10 +53,17 @@ export interface BlockNode {
   node: Node | undefined
 }
 
-export type VirtualNode = TextNode | StatefulTextNode | ElementNode | StatefulNode | BlockNode
+export interface TemplateNode {
+  type: NodeType.TEMPLATE
+  content: VirtualNode
+  context: any
+  node: Node | undefined
+}
+
+export type VirtualNode = TextNode | StatefulTextNode | ElementNode | StatefulNode | BlockNode | TemplateNode
 
 export interface StatefulValue {
-  generator: Stateful<string>
+  generator: Stateful<string, any>
   effect?: EffectHandle
 }
 
@@ -107,7 +118,7 @@ export function addStatefulAttribute(config: VirtualNodeConfig, name: string, ge
   }
 }
 
-export function setEventHandler(config: VirtualNodeConfig, event: string, handler: (evt: Event) => StoreMessage<any, any>) {
+export function setEventHandler(config: VirtualNodeConfig, event: string, handler: (evt: Event, context: any) => StoreMessage<any, any>) {
   if (!config.on) { config.on = {} }
 
   config.on[event] = new EventHandler(handler)
@@ -170,5 +181,14 @@ export function makeStatefulTextNode(generator: (get: GetState) => string, node?
     type: NodeType.STATEFUL_TEXT,
     generator,
     node
+  }
+}
+
+export function makeTemplate(content: VirtualNode, context: any): TemplateNode {
+  return {
+    type: NodeType.TEMPLATE,
+    content,
+    context,
+    node: undefined
   }
 }

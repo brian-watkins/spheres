@@ -51,7 +51,7 @@ function stringifyStatefulNode(store: Store, node: StatefulNode): string {
   let statefulNode: VirtualNode
   store.useEffect({
     run: (get) => {
-      statefulNode = node.generator(get)
+      statefulNode = node.generator(get, undefined)
     }
   })
   return stringifyVirtualNode(store, statefulNode!)

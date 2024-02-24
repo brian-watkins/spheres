@@ -104,6 +104,16 @@ class StatefulZoneEffectTemplate implements EffectTemplate {
   }
 }
 
+class TemplateTemplate implements EffectTemplate {
+  constructor(private vnode: TemplateNode, private findNode: (root: Node) => Node) { }
+
+  attach(store: Store, root: Node, _: any): void {
+    const placeholder = this.findNode(root)
+    const templateNode = createTemplateInstance(store, this.vnode)
+    placeholder.parentNode?.replaceChild(templateNode, placeholder)
+  }
+}
+
 function findEffectLocations(vnode: VirtualNode, location: EffectLocation): Array<EffectTemplate> {
   switch (vnode.type) {
     case NodeType.TEXT:
@@ -119,8 +129,7 @@ function findEffectLocations(vnode: VirtualNode, location: EffectLocation): Arra
       return findEffectLocations(vnode.generator!(), location)
 
     case NodeType.TEMPLATE:
-      // what do we do about nested templates?
-      return []
+      return [new TemplateTemplate(vnode, location.findNode)]
 
     case NodeType.ELEMENT:
       let effects: Array<EffectTemplate> = []
@@ -166,7 +175,7 @@ function createTemplateNode(vnode: VirtualNode): Node {
       return createTemplateNode(vnode.generator!())
 
     case NodeType.TEMPLATE:
-      return document.createElement("div")
+      return document.createElement("nested-template")
 
     default:
       const element = vnode.data.namespace ?

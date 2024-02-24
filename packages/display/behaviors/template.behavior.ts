@@ -2,14 +2,14 @@ import { behavior, effect, example, fact, step } from "esbehavior";
 import { expect, is, resolvesTo } from "great-expectations";
 import { browserAppContext } from "helpers/testAppController";
 
-export default behavior("zone", [
+export default behavior("template", [
 
   example(browserAppContext())
-    .description("a zone with a template and context")
+    .description("a template and context")
     .script({
       suppose: [
         fact("there is a view with a template", async (controller) => {
-          await controller.loadApp("zone.app")
+          await controller.loadApp("template.app")
         })
       ],
       observe: [
@@ -63,9 +63,9 @@ export default behavior("zone", [
         effect("it shows the default values for the reactive zones", async (controller) => {
           await expect(controller.display.selectAll("[data-message]").map(el => Promise.all([el.tagName(), el.text()])),
             resolvesTo([
-              [ "DIV", "You've clicked 0 times, which is good!" ],
-              [ "DIV", "You've clicked 0 times, which is good!" ],
-              [ "DIV", "You've clicked 0 times, which is good!" ]
+              ["DIV", "You've clicked 0 times, which is good!"],
+              ["DIV", "You've clicked 0 times, which is good!"],
+              ["DIV", "You've clicked 0 times, which is good!"]
             ]))
         })
       ]
@@ -86,9 +86,9 @@ export default behavior("zone", [
         effect("the second zone is patched", async (context) => {
           await expect(context.display.selectAll("[data-message]").map(el => Promise.all([el.tagName(), el.text()])),
             resolvesTo([
-              [ "DIV", "You've clicked 0 times, which is good!" ],
-              [ "H1", "1 clicks just doesn't feel right. Try again!" ],
-              [ "DIV", "You've clicked 0 times, which is good!" ]
+              ["DIV", "You've clicked 0 times, which is good!"],
+              ["H1", "1 clicks just doesn't feel right. Try again!"],
+              ["DIV", "You've clicked 0 times, which is good!"]
             ]))
         }),
       ]
@@ -102,9 +102,9 @@ export default behavior("zone", [
         effect("the second zone is patched again", async (context) => {
           await expect(context.display.selectAll("[data-message]").map(el => Promise.all([el.tagName(), el.text()])),
             resolvesTo([
-              [ "DIV", "You've clicked 0 times, which is good!" ],
-              [ "DIV", "You've clicked 2 times, which is good!" ],
-              [ "DIV", "You've clicked 0 times, which is good!" ]
+              ["DIV", "You've clicked 0 times, which is good!"],
+              ["DIV", "You've clicked 2 times, which is good!"],
+              ["DIV", "You've clicked 0 times, which is good!"]
             ]))
         }),
       ]
@@ -121,6 +121,48 @@ export default behavior("zone", [
               "You found it!",
               "You found it!",
               "You found it!"
+            ]))
+        })
+      ]
+    }),
+
+  example(browserAppContext())
+    .description("nested templates")
+    .script({
+      suppose: [
+        fact("there is a view with a template", async (controller) => {
+          await controller.loadApp("nestedTemplates.app")
+        })
+      ],
+      perform: [
+        step("click the button in the nested template", async (controller) => {
+          await controller.display.selectWithText("Increment the counter!").click()
+          await controller.display.selectWithText("Increment the counter!").click()
+        })
+      ],
+      observe: [
+        effect("the counter increments as expected", async (controller) => {
+          await expect(controller.display.selectAll("[data-counter]").map(el => el.text()),
+            resolvesTo([
+              "Cool dude - 2 clicks!",
+              "Awesome person - 2 clicks!",
+              "Fun human - 2 clicks!"
+            ]))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("click a reset button", async (context) => {
+          await context.display.selectWithText("Click me to reset!").click()
+        })
+      ],
+      observe: [
+        effect("the counter is reset to zero", async (controller) => {
+          await expect(controller.display.selectAll("[data-counter]").map(el => el.text()),
+            resolvesTo([
+              "Cool dude - 0 clicks!",
+              "Awesome person - 0 clicks!",
+              "Fun human - 0 clicks!"
             ]))
         })
       ]

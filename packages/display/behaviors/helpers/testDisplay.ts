@@ -54,6 +54,10 @@ export interface TypingOptions {
 class DisplayElement {
   constructor(private locator: Locator) {}
 
+  async tagName(): Promise<string> {
+    return this.locator.first().evaluate((el) => el.tagName)
+  }
+
   async type(text: string, options: TypingOptions = { clear: false }): Promise<void> {
     await this.locator.first().click({ clickCount: options.clear ? 3 : 1, timeout: 200 })
     await this.locator.first().type(text, { timeout: 200 })

@@ -47,7 +47,7 @@ export interface ViewOptions {
 export interface SpecialElements<Context> {
   element(tag: string, builder?: (element: ConfigurableElement<SpecialAttributes<Context>, HTMLElements<Context>, Context>) => void): this
   textNode(value: string | Stateful<string, Context>): this
-  zone(definition: View | ((get: GetState) => View), options?: ViewOptions): this
+  zone(definition: View | ((get: GetState, context: Context) => View), options?: ViewOptions): this
 }
 
 export interface SpecialElementBuilder<Context> {
@@ -76,6 +76,8 @@ const MagicElements = new Proxy({}, {
 class ViewBuilder {
   protected nodes: Array<VirtualNode> = []
 
+  // we could keep a flag here like 'containsZone' or something?
+
   storeNode(node: VirtualNode) {
     this.nodes.push(node)
   }
@@ -89,14 +91,14 @@ class ViewBuilder {
     return this
   }
 
-  zone(definition: View | ((get: GetState) => View), options?: ViewOptions) {
+  zone(definition: View | ((get: GetState, context: any) => View), options?: ViewOptions) {
     let config = virtualNodeConfig()
     if (options?.key) {
       setKey(config, options.key)
     }
 
     if (typeof definition === "function") {
-      this.storeNode(makeStatefulElement(config, (get) => definition(get)[toVirtualNode]()))
+      this.storeNode(makeStatefulElement(config, (get, context) => definition(get, context)[toVirtualNode]()))
     } else {
       this.storeNode(makeBlockElement(config, () => definition[toVirtualNode]()))
     }

@@ -42,7 +42,7 @@ export interface ElementNode {
 export interface StatefulNode {
   type: NodeType.STATEFUL
   key?: VirtualNodeKey
-  generator: (get: GetState) => VirtualNode
+  generator: (get: GetState, context: any) => VirtualNode
   node: Node | undefined
 }
 
@@ -124,7 +124,7 @@ export function setEventHandler(config: VirtualNodeConfig, event: string, handle
   config.on[event] = new EventHandler(handler)
 }
 
-export function makeStatefulElement(config: VirtualNodeConfig, generator: (get: GetState) => VirtualNode, node?: Node): VirtualNode {
+export function makeStatefulElement(config: VirtualNodeConfig, generator: (get: GetState, context: any) => VirtualNode, node?: Node): VirtualNode {
   const element: StatefulNode = {
     type: NodeType.STATEFUL,
     generator,

@@ -2,11 +2,11 @@ import { Store } from "@spheres/store";
 import { DOMRenderer } from "./render.js";
 import { ElementNode, NodeType, TextNode, VirtualNode, VirtualNodeKey, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "./virtualNode.js";
 import { EventHandler } from "./eventHandler.js";
-import { PatchElementEffect } from "./effects/elementEffect.js";
 import { UpdateTextEffect } from "./effects/textEffect.js";
 import { UpdateAttributeEffect } from "./effects/attributeEffect.js";
 import { UpdatePropertyEffect } from "./effects/propertyEffect.js";
 import { createTemplateInstance } from "./template.js";
+import { PatchZoneEffect } from "./effects/zoneEffect.js";
 
 export function virtualize(element: Node): VirtualNode {
   if (element.nodeType === NodeType.TEXT) {
@@ -52,7 +52,7 @@ function createNode(store: Store, vnode: VirtualNode): Node {
     }
 
     case NodeType.STATEFUL: {
-      const query = new PatchElementEffect(store, vnode.generator)
+      const query = new PatchZoneEffect(store, undefined, vnode.generator)
       store.useEffect(query)
       return query.node!
     }

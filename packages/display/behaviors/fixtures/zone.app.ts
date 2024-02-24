@@ -23,7 +23,7 @@ export default function (): View {
 }
 
 const funZone = htmlTemplate<Context>(root => {
-  return root.div(el => {
+  root.div(el => {
     el.children
       .hr()
       .div(el => {

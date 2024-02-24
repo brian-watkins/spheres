@@ -54,7 +54,7 @@ for (const tag of svgTagNames) {
   methodSignature.addParameter({
     name: "builder?",
     type: (writer) => {
-      writer.write(`(element: ConfigurableElement<${attributesName(tag)}<Context>, SVGElements, Context>) => void`)
+      writer.write(`(element: ConfigurableElement<${attributesName(tag)}<Context>, SVGElements<Context>, Context>) => void`)
     }
   })
 }
@@ -85,7 +85,7 @@ for (const tag of svgTagNames) {
   methodSignature.addParameter({
     name: "builder?",
     type: (writer) => {
-      writer.write(`(element: ConfigurableElement<${attributesName(tag)}<Context>, SVGElements, Context>) => void`)
+      writer.write(`(element: ConfigurableElement<${attributesName(tag)}<Context>, SVGElements<Context>, Context>) => void`)
     }
   })
 }
@@ -119,7 +119,7 @@ for (const tag of svgTagNames) {
     typeParameters: [
       { name: "Context" }
     ],
-    methods: elementAttributes.map(buildAttributeProperty(attributesName(tag))),
+    methods: elementAttributes.map(buildAttributeProperty(`${attributesName(tag)}<Context>`)),
     extends: [
       "SpecialAttributes<Context>",
       "GlobalSVGAttributes<Context>"

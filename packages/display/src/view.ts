@@ -211,14 +211,19 @@ export function svgView(definition: (builder: SVGBuilder<undefined>) => void): V
 
 // Template
 
+
 export function htmlTemplate<T>(definition: (builder: HTMLBuilder<T>) => void): (context: T) => View {
-  const builder = new ViewBuilder()
-  definition(builder as unknown as HTMLBuilder<T>)
-  const vnode = builder[toVirtualNode]()
+  let vnode: VirtualNode | undefined
 
   return (context) => {
     return {
       [toVirtualNode]() {
+        if (vnode === undefined) {
+          const builder = new ViewBuilder()
+          definition(builder as unknown as HTMLBuilder<T>)
+          vnode = builder[toVirtualNode]()
+        }
+
         return makeTemplate(vnode, context)
       }
     }

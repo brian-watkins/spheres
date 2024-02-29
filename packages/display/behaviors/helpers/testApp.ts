@@ -1,4 +1,4 @@
-import { renderToDOM } from "@src/view.js"
+import { renderToDOM } from "@src/index.js"
 import { DOMChangeRecord, structureChangeRecord, textChangeRecord } from "./changeRecords.js"
 import { Store } from "@spheres/store"
 
@@ -18,7 +18,12 @@ export class TestApp {
     testAppMountPoint.id = "test-display"
     document.body.appendChild(testAppMountPoint)
 
-    const renderResult = renderToDOM(store, testAppMountPoint, view(context))
+    // Maybe for these tests, if the context is not undefined then
+    // we assume that the view export is a function that takes the context
+    // and produces an HTMLViewFunction<undefined>?
+
+    // const renderResult = renderToDOM(store, testAppMountPoint, view(context))
+    const renderResult = renderToDOM(store, testAppMountPoint, view)
     this.unmountTestApp = renderResult.unmount
   }
 

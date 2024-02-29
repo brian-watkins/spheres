@@ -1,9 +1,8 @@
 import { StoreMessage } from "@spheres/store"
 import { AriaAttribute, booleanAttributes } from "./htmlElements.js"
 import { Stateful, VirtualNodeConfig, addAttribute, addProperty, addStatefulAttribute, addStatefulProperty, setEventHandler, virtualNodeConfig } from "./vdom/virtualNode.js"
-import { svgAttributeNames } from "./svgElements.js"
 
-export interface SpecialAttributes<Context> {
+export interface SpecialElementAttributes<Context> {
   attribute(name: string, value: string | Stateful<string, Context>): this
   dataAttribute(name: string, value?: string | Stateful<string, Context>): this
   innerHTML(html: string | Stateful<string, Context>): this
@@ -11,7 +10,7 @@ export interface SpecialAttributes<Context> {
   on<E extends keyof HTMLElementEventMap | string>(event: E, handler: (evt: E extends keyof HTMLElementEventMap ? HTMLElementEventMap[E] : Event, context: Context) => StoreMessage<any>): this
 }
 
-export class BasicElementConfig implements SpecialAttributes<any> {
+export class BasicElementConfig implements SpecialElementAttributes<any> {
   protected config: VirtualNodeConfig = virtualNodeConfig()
 
   recordAttribute(attribute: string, value: string | Stateful<string>) {
@@ -25,7 +24,7 @@ export class BasicElementConfig implements SpecialAttributes<any> {
 
   recordBooleanAttribute(attribute: string, isSelected: boolean | Stateful<boolean>) {
     if (typeof isSelected === "function") {
-      addStatefulAttribute(this.config, attribute, (get) => isSelected(get, undefined) ? attribute : undefined)
+      addStatefulAttribute(this.config, attribute, (get, props) => isSelected(get, props) ? attribute : undefined)
     } else {
       if (isSelected) {
         addAttribute(this.config, attribute, attribute)
@@ -36,7 +35,7 @@ export class BasicElementConfig implements SpecialAttributes<any> {
 
   recordBooleanProperty(name: string, isSelected: boolean | Stateful<boolean>) {
     if (typeof isSelected === "function") {
-      addStatefulProperty(this.config, name, (get) => isSelected(get, undefined) ? name : undefined)
+      addStatefulProperty(this.config, name, (get, props) => isSelected(get, props) ? name : undefined)
     } else {
       if (isSelected) {
         addProperty(this.config, name, name)
@@ -95,31 +94,6 @@ export class BasicElementConfig implements SpecialAttributes<any> {
   }
 }
 
-export class InputElementConfig extends BasicElementConfig {
-  value(val: string | Stateful<string>) {
-    if (typeof val === "function") {
-      addStatefulProperty(this.config, "value", val)
-    } else {
-      addProperty(this.config, "value", val)
-    }
-
-    return this
-  }
-
-  checked(value: boolean | Stateful<boolean>) {
-    this.recordBooleanProperty("checked", value)
-
-    return this
-  }
-}
-
-export class SVGElementConfig extends BasicElementConfig {
-  recordAttribute(attributeAlias: string, value: string | Stateful<string>): this {
-    const attribute = svgAttributeNames.get(attributeAlias) ?? attributeAlias
-    return super.recordAttribute(attribute, value)
-  }
-}
-
 const MagicConfig = new Proxy({}, {
   get: (_, prop, receiver) => {
     const attribute = prop as string
@@ -135,4 +109,5 @@ const MagicConfig = new Proxy({}, {
   }
 })
 
-Object.setPrototypeOf(Object.getPrototypeOf(new BasicElementConfig()), MagicConfig)
+// This might be bad for performance?
+Object.setPrototypeOf(BasicElementConfig.prototype, MagicConfig)

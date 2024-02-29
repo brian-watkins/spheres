@@ -14,16 +14,19 @@ svgElementsFile.addImportDeclarations([
   {
     namedImports: [
       "ConfigurableElement",
-      "SpecialElements",
-      "SpecialElementBuilder",
-      "View",
       "Stateful"
     ],
-    moduleSpecifier: "./view.js"
+    moduleSpecifier: "./viewBuilder.js"
   },
   {
     namedImports: [
-      "SpecialAttributes"
+      "SpecialSVGElements",
+    ],
+    moduleSpecifier: "./svgViewBuilder.js"
+  },
+  {
+    namedImports: [
+      "SpecialElementAttributes"
     ],
     moduleSpecifier: "./viewConfig.js"
   }
@@ -35,10 +38,10 @@ svgElementsFile.addImportDeclarations([
 const viewBuilderInterface = svgElementsFile.addInterface({
   name: "SVGBuilder",
   typeParameters: [
-    { name: "Context" }
+    { name: "Context", default: "undefined" }
   ],
   extends: [
-    "SpecialElementBuilder<Context>"
+    "SpecialSVGElements<Context>"
   ],
   isExported: true
 })
@@ -48,7 +51,7 @@ for (const tag of svgTagNames) {
 
   const methodSignature = viewBuilderInterface.addMethod({
     name: toCamel(tag),
-    returnType: "View"
+    returnType: "void"
   })
 
   methodSignature.addParameter({
@@ -68,7 +71,7 @@ const svgElementsInterface = svgElementsFile.addInterface({
     { name: "Context" }
   ],
   extends: [
-    "SpecialElements<Context>"
+    "SpecialSVGElements<Context>"
   ],
   isExported: true
 })
@@ -121,7 +124,7 @@ for (const tag of svgTagNames) {
     ],
     methods: elementAttributes.map(buildAttributeProperty(`${attributesName(tag)}<Context>`)),
     extends: [
-      "SpecialAttributes<Context>",
+      "SpecialElementAttributes<Context>",
       "GlobalSVGAttributes<Context>"
     ],
     isExported: true
@@ -173,7 +176,7 @@ for (const tag of svgTagNames) {
 
 
 function attributesName(tag: string): string {
-  if (tag === "svg") return "SvgElementAttributes"
+  if (tag === "svg") return "SVGElementAttributes"
 
   return `${toCamel(tag, true)}SVGElementAttributes`
 }

@@ -1,6 +1,6 @@
-import { View, htmlView } from "@src/index.js"
 import { container, GetState, rule, use, write } from "@spheres/store"
 import { useValue } from "./helpers"
+import { HTMLBuilder } from "@src/htmlElements"
 
 const peopleState = container({
   initialValue: [
@@ -9,17 +9,15 @@ const peopleState = container({
   ]
 })
 
-const peopleView = (get: GetState) => {
+function peopleView(root: HTMLBuilder, get: GetState) {
   const people = get(peopleState)
-  return htmlView(root => {
-    root.ul(el => {
-      for (const person of people) {
-        el.children.li(el => {
-          el.config.dataAttribute("person")
-          el.children.textNode(`${person.name} - ${person.age}`)
-        })
-      }
-    })
+  root.ul(el => {
+    for (const person of people) {
+      el.children.li(el => {
+        el.config.dataAttribute("person")
+        el.children.textNode(`${person.name} - ${person.age}`)
+      })
+    }
   })
 }
 
@@ -32,26 +30,22 @@ const writePeople = rule((get) => {
   }])
 })
 
-function updateButton(): View {
-  return htmlView(root => {
-    root.button(el => {
-      el.config.on("click", () => use(writePeople))
-      el.children.textNode("Click me!")
-    })
+function updateButton(root: HTMLBuilder) {
+  root.button(el => {
+    el.config.on("click", () => use(writePeople))
+    el.children.textNode("Click me!")
   })
 }
 
-export default function (): View {
-  return htmlView(root => {
-    root.div(el => {
-      el.children
-        .p(el => el.children.textNode("Here is some person"))
-        .zone(peopleView)
-        .hr()
-        .input(el => {
-          el.config.on("input", useValue((value) => write(localState, value)))
-        })
-        .zone(updateButton)
-    })
+export default function view(root: HTMLBuilder) {
+  root.div(el => {
+    el.children
+      .p(el => el.children.textNode("Here is some person"))
+      .zone(peopleView)
+      .hr()
+      .input(el => {
+        el.config.on("input", useValue((value) => write(localState, value)))
+      })
+      .zone(updateButton)
   })
 }

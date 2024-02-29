@@ -15,24 +15,27 @@ const htmlElementsFile = project.createSourceFile("./src/htmlElements.ts", undef
 htmlElementsFile.addImportDeclarations([
   {
     namedImports: [
-      "View",
       "ConfigurableElement",
-      "SpecialElements",
-      "SpecialElementBuilder",
       "Stateful"
     ],
-    moduleSpecifier: "./view.js"
+    moduleSpecifier: "./viewBuilder.js"
   },
   {
     namedImports: [
-      "SpecialAttributes"
+      "SpecialHTMLElements"
+    ],
+    moduleSpecifier: "./htmlViewBuilder.js"
+  },
+  {
+    namedImports: [
+      "SpecialElementAttributes"
     ],
     moduleSpecifier: "./viewConfig.js"
   },
   {
     namedImports: [
       "SVGElements",
-      "SvgElementAttributes",
+      "SVGElementAttributes",
     ],
     moduleSpecifier: "./svgElements.js"
   }
@@ -64,10 +67,10 @@ globalAttibutesInterface.addMethod(buildAttributeProperty("this")("role"))
 const viewBuilderInterface = htmlElementsFile.addInterface({
   name: "HTMLBuilder",
   typeParameters: [
-    { name: "Context" }
+    { name: "Context", default: "undefined" }
   ],
   extends: [
-    "SpecialElementBuilder<Context>"
+    "SpecialHTMLElements<Context>"
   ],
   isExported: true
 })
@@ -75,14 +78,14 @@ const viewBuilderInterface = htmlElementsFile.addInterface({
 for (const tag of htmlTags) {
   const methodSignature = viewBuilderInterface.addMethod({
     name: tag,
-    returnType: "View"
+    returnType: "void"
   })
 
   if (tag === "svg") {
     methodSignature.addParameter({
       name: "builder?",
       type: (writer) => {
-        writer.write(`(element: ConfigurableElement<SvgElementAttributes<Context>, SVGElements<Context>, Context>) => void`)
+        writer.write(`(element: ConfigurableElement<SVGElementAttributes<Context>, SVGElements<Context>, Context>) => void`)
       }
     })
   } else {
@@ -104,7 +107,7 @@ const viewElementsInterface = htmlElementsFile.addInterface({
     { name: "Context" }
   ],
   extends: [
-    "SpecialElements<Context>"
+    "SpecialHTMLElements<Context>"
   ],
   isExported: true
 })
@@ -119,7 +122,7 @@ for (const tag of htmlTags) {
     methodSignature.addParameter({
       name: "builder?",
       type: (writer) => {
-        writer.write(`(element: ConfigurableElement<SvgElementAttributes<Context>, SVGElements<Context>, Context>) => void`)
+        writer.write(`(element: ConfigurableElement<SVGElementAttributes<Context>, SVGElements<Context>, Context>) => void`)
       }
     })
   } else {
@@ -149,7 +152,7 @@ for (const tag of htmlTags) {
     ],
     methods: elementAttributes.map(buildAttributeProperty(`${attributesName(tag)}<Context>`)),
     extends: [
-      "SpecialAttributes<Context>",
+      "SpecialElementAttributes<Context>",
       "GlobalHTMLAttributes<Context>"
     ],
     isExported: true

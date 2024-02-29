@@ -1,96 +1,97 @@
-import { ConfigurableElement, SpecialElements, SpecialElementBuilder, View, Stateful } from "./view.js";
-import { SpecialAttributes } from "./viewConfig.js";
+import { ConfigurableElement, Stateful } from "./viewBuilder.js";
+import { SpecialSVGElements } from "./svgViewBuilder.js";
+import { SpecialElementAttributes } from "./viewConfig.js";
 
-export interface SVGBuilder<Context> extends SpecialElementBuilder<Context> {
-    a(builder?: (element: ConfigurableElement<ASVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    altGlyph(builder?: (element: ConfigurableElement<AltGlyphSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    altGlyphDef(builder?: (element: ConfigurableElement<AltGlyphDefSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    altGlyphItem(builder?: (element: ConfigurableElement<AltGlyphItemSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    animate(builder?: (element: ConfigurableElement<AnimateSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    animateColor(builder?: (element: ConfigurableElement<AnimateColorSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    animateMotion(builder?: (element: ConfigurableElement<AnimateMotionSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    animateTransform(builder?: (element: ConfigurableElement<AnimateTransformSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    animation(builder?: (element: ConfigurableElement<AnimationSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    audio(builder?: (element: ConfigurableElement<AudioSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    canvas(builder?: (element: ConfigurableElement<CanvasSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    circle(builder?: (element: ConfigurableElement<CircleSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    clipPath(builder?: (element: ConfigurableElement<ClipPathSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    cursor(builder?: (element: ConfigurableElement<CursorSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    defs(builder?: (element: ConfigurableElement<DefsSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    desc(builder?: (element: ConfigurableElement<DescSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    discard(builder?: (element: ConfigurableElement<DiscardSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    ellipse(builder?: (element: ConfigurableElement<EllipseSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    feBlend(builder?: (element: ConfigurableElement<FeBlendSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    feColorMatrix(builder?: (element: ConfigurableElement<FeColorMatrixSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    feComponentTransfer(builder?: (element: ConfigurableElement<FeComponentTransferSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    feComposite(builder?: (element: ConfigurableElement<FeCompositeSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    feConvolveMatrix(builder?: (element: ConfigurableElement<FeConvolveMatrixSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    feDiffuseLighting(builder?: (element: ConfigurableElement<FeDiffuseLightingSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    feDisplacementMap(builder?: (element: ConfigurableElement<FeDisplacementMapSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    feDistantLight(builder?: (element: ConfigurableElement<FeDistantLightSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    feDropShadow(builder?: (element: ConfigurableElement<FeDropShadowSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    feFlood(builder?: (element: ConfigurableElement<FeFloodSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    feFuncA(builder?: (element: ConfigurableElement<FeFuncASVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    feFuncB(builder?: (element: ConfigurableElement<FeFuncBSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    feFuncG(builder?: (element: ConfigurableElement<FeFuncGSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    feFuncR(builder?: (element: ConfigurableElement<FeFuncRSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    feGaussianBlur(builder?: (element: ConfigurableElement<FeGaussianBlurSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    feImage(builder?: (element: ConfigurableElement<FeImageSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    feMerge(builder?: (element: ConfigurableElement<FeMergeSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    feMergeNode(builder?: (element: ConfigurableElement<FeMergeNodeSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    feMorphology(builder?: (element: ConfigurableElement<FeMorphologySVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    feOffset(builder?: (element: ConfigurableElement<FeOffsetSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    fePointLight(builder?: (element: ConfigurableElement<FePointLightSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    feSpecularLighting(builder?: (element: ConfigurableElement<FeSpecularLightingSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    feSpotLight(builder?: (element: ConfigurableElement<FeSpotLightSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    feTile(builder?: (element: ConfigurableElement<FeTileSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    feTurbulence(builder?: (element: ConfigurableElement<FeTurbulenceSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    filter(builder?: (element: ConfigurableElement<FilterSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    foreignObject(builder?: (element: ConfigurableElement<ForeignObjectSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    g(builder?: (element: ConfigurableElement<GSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    glyph(builder?: (element: ConfigurableElement<GlyphSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    glyphRef(builder?: (element: ConfigurableElement<GlyphRefSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    handler(builder?: (element: ConfigurableElement<HandlerSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    hkern(builder?: (element: ConfigurableElement<HkernSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    iframe(builder?: (element: ConfigurableElement<IframeSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    image(builder?: (element: ConfigurableElement<ImageSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    line(builder?: (element: ConfigurableElement<LineSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    linearGradient(builder?: (element: ConfigurableElement<LinearGradientSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    listener(builder?: (element: ConfigurableElement<ListenerSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    marker(builder?: (element: ConfigurableElement<MarkerSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    mask(builder?: (element: ConfigurableElement<MaskSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    metadata(builder?: (element: ConfigurableElement<MetadataSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    mpath(builder?: (element: ConfigurableElement<MpathSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    path(builder?: (element: ConfigurableElement<PathSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    pattern(builder?: (element: ConfigurableElement<PatternSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    polygon(builder?: (element: ConfigurableElement<PolygonSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    polyline(builder?: (element: ConfigurableElement<PolylineSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    prefetch(builder?: (element: ConfigurableElement<PrefetchSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    radialGradient(builder?: (element: ConfigurableElement<RadialGradientSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    rect(builder?: (element: ConfigurableElement<RectSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    script(builder?: (element: ConfigurableElement<ScriptSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    set(builder?: (element: ConfigurableElement<SetSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    solidColor(builder?: (element: ConfigurableElement<SolidColorSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    stop(builder?: (element: ConfigurableElement<StopSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    style(builder?: (element: ConfigurableElement<StyleSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    svg(builder?: (element: ConfigurableElement<SvgElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    switch(builder?: (element: ConfigurableElement<SwitchSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    symbol(builder?: (element: ConfigurableElement<SymbolSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    tbreak(builder?: (element: ConfigurableElement<TbreakSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    text(builder?: (element: ConfigurableElement<TextSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    textArea(builder?: (element: ConfigurableElement<TextAreaSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    textPath(builder?: (element: ConfigurableElement<TextPathSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    title(builder?: (element: ConfigurableElement<TitleSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    tref(builder?: (element: ConfigurableElement<TrefSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    tspan(builder?: (element: ConfigurableElement<TspanSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    unknown(builder?: (element: ConfigurableElement<UnknownSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    use(builder?: (element: ConfigurableElement<UseSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    video(builder?: (element: ConfigurableElement<VideoSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    view(builder?: (element: ConfigurableElement<ViewSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    vkern(builder?: (element: ConfigurableElement<VkernSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
+export interface SVGBuilder<Context = undefined> extends SpecialSVGElements<Context> {
+    a(builder?: (element: ConfigurableElement<ASVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    altGlyph(builder?: (element: ConfigurableElement<AltGlyphSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    altGlyphDef(builder?: (element: ConfigurableElement<AltGlyphDefSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    altGlyphItem(builder?: (element: ConfigurableElement<AltGlyphItemSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    animate(builder?: (element: ConfigurableElement<AnimateSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    animateColor(builder?: (element: ConfigurableElement<AnimateColorSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    animateMotion(builder?: (element: ConfigurableElement<AnimateMotionSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    animateTransform(builder?: (element: ConfigurableElement<AnimateTransformSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    animation(builder?: (element: ConfigurableElement<AnimationSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    audio(builder?: (element: ConfigurableElement<AudioSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    canvas(builder?: (element: ConfigurableElement<CanvasSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    circle(builder?: (element: ConfigurableElement<CircleSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    clipPath(builder?: (element: ConfigurableElement<ClipPathSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    cursor(builder?: (element: ConfigurableElement<CursorSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    defs(builder?: (element: ConfigurableElement<DefsSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    desc(builder?: (element: ConfigurableElement<DescSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    discard(builder?: (element: ConfigurableElement<DiscardSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    ellipse(builder?: (element: ConfigurableElement<EllipseSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    feBlend(builder?: (element: ConfigurableElement<FeBlendSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    feColorMatrix(builder?: (element: ConfigurableElement<FeColorMatrixSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    feComponentTransfer(builder?: (element: ConfigurableElement<FeComponentTransferSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    feComposite(builder?: (element: ConfigurableElement<FeCompositeSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    feConvolveMatrix(builder?: (element: ConfigurableElement<FeConvolveMatrixSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    feDiffuseLighting(builder?: (element: ConfigurableElement<FeDiffuseLightingSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    feDisplacementMap(builder?: (element: ConfigurableElement<FeDisplacementMapSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    feDistantLight(builder?: (element: ConfigurableElement<FeDistantLightSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    feDropShadow(builder?: (element: ConfigurableElement<FeDropShadowSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    feFlood(builder?: (element: ConfigurableElement<FeFloodSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    feFuncA(builder?: (element: ConfigurableElement<FeFuncASVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    feFuncB(builder?: (element: ConfigurableElement<FeFuncBSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    feFuncG(builder?: (element: ConfigurableElement<FeFuncGSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    feFuncR(builder?: (element: ConfigurableElement<FeFuncRSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    feGaussianBlur(builder?: (element: ConfigurableElement<FeGaussianBlurSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    feImage(builder?: (element: ConfigurableElement<FeImageSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    feMerge(builder?: (element: ConfigurableElement<FeMergeSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    feMergeNode(builder?: (element: ConfigurableElement<FeMergeNodeSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    feMorphology(builder?: (element: ConfigurableElement<FeMorphologySVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    feOffset(builder?: (element: ConfigurableElement<FeOffsetSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    fePointLight(builder?: (element: ConfigurableElement<FePointLightSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    feSpecularLighting(builder?: (element: ConfigurableElement<FeSpecularLightingSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    feSpotLight(builder?: (element: ConfigurableElement<FeSpotLightSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    feTile(builder?: (element: ConfigurableElement<FeTileSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    feTurbulence(builder?: (element: ConfigurableElement<FeTurbulenceSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    filter(builder?: (element: ConfigurableElement<FilterSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    foreignObject(builder?: (element: ConfigurableElement<ForeignObjectSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    g(builder?: (element: ConfigurableElement<GSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    glyph(builder?: (element: ConfigurableElement<GlyphSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    glyphRef(builder?: (element: ConfigurableElement<GlyphRefSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    handler(builder?: (element: ConfigurableElement<HandlerSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    hkern(builder?: (element: ConfigurableElement<HkernSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    iframe(builder?: (element: ConfigurableElement<IframeSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    image(builder?: (element: ConfigurableElement<ImageSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    line(builder?: (element: ConfigurableElement<LineSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    linearGradient(builder?: (element: ConfigurableElement<LinearGradientSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    listener(builder?: (element: ConfigurableElement<ListenerSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    marker(builder?: (element: ConfigurableElement<MarkerSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    mask(builder?: (element: ConfigurableElement<MaskSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    metadata(builder?: (element: ConfigurableElement<MetadataSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    mpath(builder?: (element: ConfigurableElement<MpathSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    path(builder?: (element: ConfigurableElement<PathSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    pattern(builder?: (element: ConfigurableElement<PatternSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    polygon(builder?: (element: ConfigurableElement<PolygonSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    polyline(builder?: (element: ConfigurableElement<PolylineSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    prefetch(builder?: (element: ConfigurableElement<PrefetchSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    radialGradient(builder?: (element: ConfigurableElement<RadialGradientSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    rect(builder?: (element: ConfigurableElement<RectSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    script(builder?: (element: ConfigurableElement<ScriptSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    set(builder?: (element: ConfigurableElement<SetSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    solidColor(builder?: (element: ConfigurableElement<SolidColorSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    stop(builder?: (element: ConfigurableElement<StopSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    style(builder?: (element: ConfigurableElement<StyleSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    svg(builder?: (element: ConfigurableElement<SVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    switch(builder?: (element: ConfigurableElement<SwitchSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    symbol(builder?: (element: ConfigurableElement<SymbolSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    tbreak(builder?: (element: ConfigurableElement<TbreakSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    text(builder?: (element: ConfigurableElement<TextSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    textArea(builder?: (element: ConfigurableElement<TextAreaSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    textPath(builder?: (element: ConfigurableElement<TextPathSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    title(builder?: (element: ConfigurableElement<TitleSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    tref(builder?: (element: ConfigurableElement<TrefSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    tspan(builder?: (element: ConfigurableElement<TspanSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    unknown(builder?: (element: ConfigurableElement<UnknownSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    use(builder?: (element: ConfigurableElement<UseSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    video(builder?: (element: ConfigurableElement<VideoSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    view(builder?: (element: ConfigurableElement<ViewSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    vkern(builder?: (element: ConfigurableElement<VkernSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
 }
 
-export interface SVGElements<Context> extends SpecialElements<Context> {
+export interface SVGElements<Context> extends SpecialSVGElements<Context> {
     a(builder?: (element: ConfigurableElement<ASVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): this;
     altGlyph(builder?: (element: ConfigurableElement<AltGlyphSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): this;
     altGlyphDef(builder?: (element: ConfigurableElement<AltGlyphDefSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): this;
@@ -162,7 +163,7 @@ export interface SVGElements<Context> extends SpecialElements<Context> {
     solidColor(builder?: (element: ConfigurableElement<SolidColorSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): this;
     stop(builder?: (element: ConfigurableElement<StopSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): this;
     style(builder?: (element: ConfigurableElement<StyleSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): this;
-    svg(builder?: (element: ConfigurableElement<SvgElementAttributes<Context>, SVGElements<Context>, Context>) => void): this;
+    svg(builder?: (element: ConfigurableElement<SVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): this;
     switch(builder?: (element: ConfigurableElement<SwitchSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): this;
     symbol(builder?: (element: ConfigurableElement<SymbolSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): this;
     tbreak(builder?: (element: ConfigurableElement<TbreakSVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): this;
@@ -195,7 +196,7 @@ export interface GlobalSVGAttributes<Context> {
     typeof(value: string | Stateful<string, Context>): this;
 }
 
-export interface ASVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface ASVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     alignmentBaseline(value: string | Stateful<string, Context>): ASVGElementAttributes<Context>;
     baselineShift(value: string | Stateful<string, Context>): ASVGElementAttributes<Context>;
     clip(value: string | Stateful<string, Context>): ASVGElementAttributes<Context>;
@@ -283,7 +284,7 @@ export interface ASVGElementAttributes<Context> extends SpecialAttributes<Contex
     writingMode(value: string | Stateful<string, Context>): ASVGElementAttributes<Context>;
 }
 
-export interface AltGlyphSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface AltGlyphSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     alignmentBaseline(value: string | Stateful<string, Context>): AltGlyphSVGElementAttributes<Context>;
     baselineShift(value: string | Stateful<string, Context>): AltGlyphSVGElementAttributes<Context>;
     clip(value: string | Stateful<string, Context>): AltGlyphSVGElementAttributes<Context>;
@@ -356,13 +357,13 @@ export interface AltGlyphSVGElementAttributes<Context> extends SpecialAttributes
     y(value: string | Stateful<string, Context>): AltGlyphSVGElementAttributes<Context>;
 }
 
-export interface AltGlyphDefSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface AltGlyphDefSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
 }
 
-export interface AltGlyphItemSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface AltGlyphItemSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
 }
 
-export interface AnimateSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface AnimateSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     accumulate(value: string | Stateful<string, Context>): AnimateSVGElementAttributes<Context>;
     additive(value: string | Stateful<string, Context>): AnimateSVGElementAttributes<Context>;
     alignmentBaseline(value: string | Stateful<string, Context>): AnimateSVGElementAttributes<Context>;
@@ -450,7 +451,7 @@ export interface AnimateSVGElementAttributes<Context> extends SpecialAttributes<
     writingMode(value: string | Stateful<string, Context>): AnimateSVGElementAttributes<Context>;
 }
 
-export interface AnimateColorSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface AnimateColorSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     accumulate(value: string | Stateful<string, Context>): AnimateColorSVGElementAttributes<Context>;
     additive(value: string | Stateful<string, Context>): AnimateColorSVGElementAttributes<Context>;
     alignmentBaseline(value: string | Stateful<string, Context>): AnimateColorSVGElementAttributes<Context>;
@@ -537,7 +538,7 @@ export interface AnimateColorSVGElementAttributes<Context> extends SpecialAttrib
     writingMode(value: string | Stateful<string, Context>): AnimateColorSVGElementAttributes<Context>;
 }
 
-export interface AnimateMotionSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface AnimateMotionSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     accumulate(value: string | Stateful<string, Context>): AnimateMotionSVGElementAttributes<Context>;
     additive(value: string | Stateful<string, Context>): AnimateMotionSVGElementAttributes<Context>;
     begin(value: string | Stateful<string, Context>): AnimateMotionSVGElementAttributes<Context>;
@@ -569,7 +570,7 @@ export interface AnimateMotionSVGElementAttributes<Context> extends SpecialAttri
     values(value: string | Stateful<string, Context>): AnimateMotionSVGElementAttributes<Context>;
 }
 
-export interface AnimateTransformSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface AnimateTransformSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     accumulate(value: string | Stateful<string, Context>): AnimateTransformSVGElementAttributes<Context>;
     additive(value: string | Stateful<string, Context>): AnimateTransformSVGElementAttributes<Context>;
     attributeName(value: string | Stateful<string, Context>): AnimateTransformSVGElementAttributes<Context>;
@@ -600,7 +601,7 @@ export interface AnimateTransformSVGElementAttributes<Context> extends SpecialAt
     values(value: string | Stateful<string, Context>): AnimateTransformSVGElementAttributes<Context>;
 }
 
-export interface AnimationSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface AnimationSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     begin(value: string | Stateful<string, Context>): AnimationSVGElementAttributes<Context>;
     dur(value: string | Stateful<string, Context>): AnimationSVGElementAttributes<Context>;
     end(value: string | Stateful<string, Context>): AnimationSVGElementAttributes<Context>;
@@ -640,7 +641,7 @@ export interface AnimationSVGElementAttributes<Context> extends SpecialAttribute
     y(value: string | Stateful<string, Context>): AnimationSVGElementAttributes<Context>;
 }
 
-export interface AudioSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface AudioSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     begin(value: string | Stateful<string, Context>): AudioSVGElementAttributes<Context>;
     dur(value: string | Stateful<string, Context>): AudioSVGElementAttributes<Context>;
     end(value: string | Stateful<string, Context>): AudioSVGElementAttributes<Context>;
@@ -662,13 +663,13 @@ export interface AudioSVGElementAttributes<Context> extends SpecialAttributes<Co
     type(value: string | Stateful<string, Context>): AudioSVGElementAttributes<Context>;
 }
 
-export interface CanvasSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface CanvasSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     preserveAspectRatio(value: string | Stateful<string, Context>): CanvasSVGElementAttributes<Context>;
     requiredExtensions(value: string | Stateful<string, Context>): CanvasSVGElementAttributes<Context>;
     systemLanguage(value: string | Stateful<string, Context>): CanvasSVGElementAttributes<Context>;
 }
 
-export interface CircleSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface CircleSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     alignmentBaseline(value: string | Stateful<string, Context>): CircleSVGElementAttributes<Context>;
     baselineShift(value: string | Stateful<string, Context>): CircleSVGElementAttributes<Context>;
     clip(value: string | Stateful<string, Context>): CircleSVGElementAttributes<Context>;
@@ -753,7 +754,7 @@ export interface CircleSVGElementAttributes<Context> extends SpecialAttributes<C
     writingMode(value: string | Stateful<string, Context>): CircleSVGElementAttributes<Context>;
 }
 
-export interface ClipPathSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface ClipPathSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     alignmentBaseline(value: string | Stateful<string, Context>): ClipPathSVGElementAttributes<Context>;
     baselineShift(value: string | Stateful<string, Context>): ClipPathSVGElementAttributes<Context>;
     clip(value: string | Stateful<string, Context>): ClipPathSVGElementAttributes<Context>;
@@ -821,7 +822,7 @@ export interface ClipPathSVGElementAttributes<Context> extends SpecialAttributes
     writingMode(value: string | Stateful<string, Context>): ClipPathSVGElementAttributes<Context>;
 }
 
-export interface CursorSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface CursorSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     externalResourcesRequired(value: string | Stateful<string, Context>): CursorSVGElementAttributes<Context>;
     requiredExtensions(value: string | Stateful<string, Context>): CursorSVGElementAttributes<Context>;
     requiredFeatures(value: string | Stateful<string, Context>): CursorSVGElementAttributes<Context>;
@@ -830,7 +831,7 @@ export interface CursorSVGElementAttributes<Context> extends SpecialAttributes<C
     y(value: string | Stateful<string, Context>): CursorSVGElementAttributes<Context>;
 }
 
-export interface DefsSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface DefsSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     alignmentBaseline(value: string | Stateful<string, Context>): DefsSVGElementAttributes<Context>;
     baselineShift(value: string | Stateful<string, Context>): DefsSVGElementAttributes<Context>;
     clip(value: string | Stateful<string, Context>): DefsSVGElementAttributes<Context>;
@@ -897,7 +898,7 @@ export interface DefsSVGElementAttributes<Context> extends SpecialAttributes<Con
     writingMode(value: string | Stateful<string, Context>): DefsSVGElementAttributes<Context>;
 }
 
-export interface DescSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface DescSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     requiredExtensions(value: string | Stateful<string, Context>): DescSVGElementAttributes<Context>;
     requiredFeatures(value: string | Stateful<string, Context>): DescSVGElementAttributes<Context>;
     requiredFonts(value: string | Stateful<string, Context>): DescSVGElementAttributes<Context>;
@@ -905,7 +906,7 @@ export interface DescSVGElementAttributes<Context> extends SpecialAttributes<Con
     systemLanguage(value: string | Stateful<string, Context>): DescSVGElementAttributes<Context>;
 }
 
-export interface DiscardSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface DiscardSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     begin(value: string | Stateful<string, Context>): DiscardSVGElementAttributes<Context>;
     href(value: string | Stateful<string, Context>): DiscardSVGElementAttributes<Context>;
     requiredExtensions(value: string | Stateful<string, Context>): DiscardSVGElementAttributes<Context>;
@@ -915,7 +916,7 @@ export interface DiscardSVGElementAttributes<Context> extends SpecialAttributes<
     systemLanguage(value: string | Stateful<string, Context>): DiscardSVGElementAttributes<Context>;
 }
 
-export interface EllipseSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface EllipseSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     alignmentBaseline(value: string | Stateful<string, Context>): EllipseSVGElementAttributes<Context>;
     baselineShift(value: string | Stateful<string, Context>): EllipseSVGElementAttributes<Context>;
     clip(value: string | Stateful<string, Context>): EllipseSVGElementAttributes<Context>;
@@ -1001,7 +1002,7 @@ export interface EllipseSVGElementAttributes<Context> extends SpecialAttributes<
     writingMode(value: string | Stateful<string, Context>): EllipseSVGElementAttributes<Context>;
 }
 
-export interface FeBlendSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface FeBlendSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     alignmentBaseline(value: string | Stateful<string, Context>): FeBlendSVGElementAttributes<Context>;
     baselineShift(value: string | Stateful<string, Context>): FeBlendSVGElementAttributes<Context>;
     clip(value: string | Stateful<string, Context>): FeBlendSVGElementAttributes<Context>;
@@ -1071,7 +1072,7 @@ export interface FeBlendSVGElementAttributes<Context> extends SpecialAttributes<
     y(value: string | Stateful<string, Context>): FeBlendSVGElementAttributes<Context>;
 }
 
-export interface FeColorMatrixSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface FeColorMatrixSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     alignmentBaseline(value: string | Stateful<string, Context>): FeColorMatrixSVGElementAttributes<Context>;
     baselineShift(value: string | Stateful<string, Context>): FeColorMatrixSVGElementAttributes<Context>;
     clip(value: string | Stateful<string, Context>): FeColorMatrixSVGElementAttributes<Context>;
@@ -1141,7 +1142,7 @@ export interface FeColorMatrixSVGElementAttributes<Context> extends SpecialAttri
     y(value: string | Stateful<string, Context>): FeColorMatrixSVGElementAttributes<Context>;
 }
 
-export interface FeComponentTransferSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface FeComponentTransferSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     alignmentBaseline(value: string | Stateful<string, Context>): FeComponentTransferSVGElementAttributes<Context>;
     baselineShift(value: string | Stateful<string, Context>): FeComponentTransferSVGElementAttributes<Context>;
     clip(value: string | Stateful<string, Context>): FeComponentTransferSVGElementAttributes<Context>;
@@ -1209,7 +1210,7 @@ export interface FeComponentTransferSVGElementAttributes<Context> extends Specia
     y(value: string | Stateful<string, Context>): FeComponentTransferSVGElementAttributes<Context>;
 }
 
-export interface FeCompositeSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface FeCompositeSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     alignmentBaseline(value: string | Stateful<string, Context>): FeCompositeSVGElementAttributes<Context>;
     baselineShift(value: string | Stateful<string, Context>): FeCompositeSVGElementAttributes<Context>;
     clip(value: string | Stateful<string, Context>): FeCompositeSVGElementAttributes<Context>;
@@ -1283,7 +1284,7 @@ export interface FeCompositeSVGElementAttributes<Context> extends SpecialAttribu
     y(value: string | Stateful<string, Context>): FeCompositeSVGElementAttributes<Context>;
 }
 
-export interface FeConvolveMatrixSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface FeConvolveMatrixSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     alignmentBaseline(value: string | Stateful<string, Context>): FeConvolveMatrixSVGElementAttributes<Context>;
     baselineShift(value: string | Stateful<string, Context>): FeConvolveMatrixSVGElementAttributes<Context>;
     bias(value: string | Stateful<string, Context>): FeConvolveMatrixSVGElementAttributes<Context>;
@@ -1360,7 +1361,7 @@ export interface FeConvolveMatrixSVGElementAttributes<Context> extends SpecialAt
     y(value: string | Stateful<string, Context>): FeConvolveMatrixSVGElementAttributes<Context>;
 }
 
-export interface FeDiffuseLightingSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface FeDiffuseLightingSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     alignmentBaseline(value: string | Stateful<string, Context>): FeDiffuseLightingSVGElementAttributes<Context>;
     baselineShift(value: string | Stateful<string, Context>): FeDiffuseLightingSVGElementAttributes<Context>;
     clip(value: string | Stateful<string, Context>): FeDiffuseLightingSVGElementAttributes<Context>;
@@ -1431,7 +1432,7 @@ export interface FeDiffuseLightingSVGElementAttributes<Context> extends SpecialA
     y(value: string | Stateful<string, Context>): FeDiffuseLightingSVGElementAttributes<Context>;
 }
 
-export interface FeDisplacementMapSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface FeDisplacementMapSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     alignmentBaseline(value: string | Stateful<string, Context>): FeDisplacementMapSVGElementAttributes<Context>;
     baselineShift(value: string | Stateful<string, Context>): FeDisplacementMapSVGElementAttributes<Context>;
     clip(value: string | Stateful<string, Context>): FeDisplacementMapSVGElementAttributes<Context>;
@@ -1503,12 +1504,12 @@ export interface FeDisplacementMapSVGElementAttributes<Context> extends SpecialA
     yChannelSelector(value: string | Stateful<string, Context>): FeDisplacementMapSVGElementAttributes<Context>;
 }
 
-export interface FeDistantLightSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface FeDistantLightSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     azimuth(value: string | Stateful<string, Context>): FeDistantLightSVGElementAttributes<Context>;
     elevation(value: string | Stateful<string, Context>): FeDistantLightSVGElementAttributes<Context>;
 }
 
-export interface FeDropShadowSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface FeDropShadowSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     dx(value: string | Stateful<string, Context>): FeDropShadowSVGElementAttributes<Context>;
     dy(value: string | Stateful<string, Context>): FeDropShadowSVGElementAttributes<Context>;
     height(value: string | Stateful<string, Context>): FeDropShadowSVGElementAttributes<Context>;
@@ -1520,7 +1521,7 @@ export interface FeDropShadowSVGElementAttributes<Context> extends SpecialAttrib
     y(value: string | Stateful<string, Context>): FeDropShadowSVGElementAttributes<Context>;
 }
 
-export interface FeFloodSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface FeFloodSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     alignmentBaseline(value: string | Stateful<string, Context>): FeFloodSVGElementAttributes<Context>;
     baselineShift(value: string | Stateful<string, Context>): FeFloodSVGElementAttributes<Context>;
     clip(value: string | Stateful<string, Context>): FeFloodSVGElementAttributes<Context>;
@@ -1587,7 +1588,7 @@ export interface FeFloodSVGElementAttributes<Context> extends SpecialAttributes<
     y(value: string | Stateful<string, Context>): FeFloodSVGElementAttributes<Context>;
 }
 
-export interface FeFuncASVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface FeFuncASVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     amplitude(value: string | Stateful<string, Context>): FeFuncASVGElementAttributes<Context>;
     exponent(value: string | Stateful<string, Context>): FeFuncASVGElementAttributes<Context>;
     intercept(value: string | Stateful<string, Context>): FeFuncASVGElementAttributes<Context>;
@@ -1597,7 +1598,7 @@ export interface FeFuncASVGElementAttributes<Context> extends SpecialAttributes<
     type(value: string | Stateful<string, Context>): FeFuncASVGElementAttributes<Context>;
 }
 
-export interface FeFuncBSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface FeFuncBSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     amplitude(value: string | Stateful<string, Context>): FeFuncBSVGElementAttributes<Context>;
     exponent(value: string | Stateful<string, Context>): FeFuncBSVGElementAttributes<Context>;
     intercept(value: string | Stateful<string, Context>): FeFuncBSVGElementAttributes<Context>;
@@ -1607,7 +1608,7 @@ export interface FeFuncBSVGElementAttributes<Context> extends SpecialAttributes<
     type(value: string | Stateful<string, Context>): FeFuncBSVGElementAttributes<Context>;
 }
 
-export interface FeFuncGSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface FeFuncGSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     amplitude(value: string | Stateful<string, Context>): FeFuncGSVGElementAttributes<Context>;
     exponent(value: string | Stateful<string, Context>): FeFuncGSVGElementAttributes<Context>;
     intercept(value: string | Stateful<string, Context>): FeFuncGSVGElementAttributes<Context>;
@@ -1617,7 +1618,7 @@ export interface FeFuncGSVGElementAttributes<Context> extends SpecialAttributes<
     type(value: string | Stateful<string, Context>): FeFuncGSVGElementAttributes<Context>;
 }
 
-export interface FeFuncRSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface FeFuncRSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     amplitude(value: string | Stateful<string, Context>): FeFuncRSVGElementAttributes<Context>;
     exponent(value: string | Stateful<string, Context>): FeFuncRSVGElementAttributes<Context>;
     intercept(value: string | Stateful<string, Context>): FeFuncRSVGElementAttributes<Context>;
@@ -1627,7 +1628,7 @@ export interface FeFuncRSVGElementAttributes<Context> extends SpecialAttributes<
     type(value: string | Stateful<string, Context>): FeFuncRSVGElementAttributes<Context>;
 }
 
-export interface FeGaussianBlurSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface FeGaussianBlurSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     alignmentBaseline(value: string | Stateful<string, Context>): FeGaussianBlurSVGElementAttributes<Context>;
     baselineShift(value: string | Stateful<string, Context>): FeGaussianBlurSVGElementAttributes<Context>;
     clip(value: string | Stateful<string, Context>): FeGaussianBlurSVGElementAttributes<Context>;
@@ -1697,7 +1698,7 @@ export interface FeGaussianBlurSVGElementAttributes<Context> extends SpecialAttr
     y(value: string | Stateful<string, Context>): FeGaussianBlurSVGElementAttributes<Context>;
 }
 
-export interface FeImageSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface FeImageSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     alignmentBaseline(value: string | Stateful<string, Context>): FeImageSVGElementAttributes<Context>;
     baselineShift(value: string | Stateful<string, Context>): FeImageSVGElementAttributes<Context>;
     clip(value: string | Stateful<string, Context>): FeImageSVGElementAttributes<Context>;
@@ -1768,7 +1769,7 @@ export interface FeImageSVGElementAttributes<Context> extends SpecialAttributes<
     y(value: string | Stateful<string, Context>): FeImageSVGElementAttributes<Context>;
 }
 
-export interface FeMergeSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface FeMergeSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     alignmentBaseline(value: string | Stateful<string, Context>): FeMergeSVGElementAttributes<Context>;
     baselineShift(value: string | Stateful<string, Context>): FeMergeSVGElementAttributes<Context>;
     clip(value: string | Stateful<string, Context>): FeMergeSVGElementAttributes<Context>;
@@ -1835,11 +1836,11 @@ export interface FeMergeSVGElementAttributes<Context> extends SpecialAttributes<
     y(value: string | Stateful<string, Context>): FeMergeSVGElementAttributes<Context>;
 }
 
-export interface FeMergeNodeSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface FeMergeNodeSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     in(value: string | Stateful<string, Context>): FeMergeNodeSVGElementAttributes<Context>;
 }
 
-export interface FeMorphologySVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface FeMorphologySVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     alignmentBaseline(value: string | Stateful<string, Context>): FeMorphologySVGElementAttributes<Context>;
     baselineShift(value: string | Stateful<string, Context>): FeMorphologySVGElementAttributes<Context>;
     clip(value: string | Stateful<string, Context>): FeMorphologySVGElementAttributes<Context>;
@@ -1909,7 +1910,7 @@ export interface FeMorphologySVGElementAttributes<Context> extends SpecialAttrib
     y(value: string | Stateful<string, Context>): FeMorphologySVGElementAttributes<Context>;
 }
 
-export interface FeOffsetSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface FeOffsetSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     alignmentBaseline(value: string | Stateful<string, Context>): FeOffsetSVGElementAttributes<Context>;
     baselineShift(value: string | Stateful<string, Context>): FeOffsetSVGElementAttributes<Context>;
     clip(value: string | Stateful<string, Context>): FeOffsetSVGElementAttributes<Context>;
@@ -1979,13 +1980,13 @@ export interface FeOffsetSVGElementAttributes<Context> extends SpecialAttributes
     y(value: string | Stateful<string, Context>): FeOffsetSVGElementAttributes<Context>;
 }
 
-export interface FePointLightSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface FePointLightSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     x(value: string | Stateful<string, Context>): FePointLightSVGElementAttributes<Context>;
     y(value: string | Stateful<string, Context>): FePointLightSVGElementAttributes<Context>;
     z(value: string | Stateful<string, Context>): FePointLightSVGElementAttributes<Context>;
 }
 
-export interface FeSpecularLightingSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface FeSpecularLightingSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     alignmentBaseline(value: string | Stateful<string, Context>): FeSpecularLightingSVGElementAttributes<Context>;
     baselineShift(value: string | Stateful<string, Context>): FeSpecularLightingSVGElementAttributes<Context>;
     clip(value: string | Stateful<string, Context>): FeSpecularLightingSVGElementAttributes<Context>;
@@ -2057,7 +2058,7 @@ export interface FeSpecularLightingSVGElementAttributes<Context> extends Special
     y(value: string | Stateful<string, Context>): FeSpecularLightingSVGElementAttributes<Context>;
 }
 
-export interface FeSpotLightSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface FeSpotLightSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     limitingConeAngle(value: string | Stateful<string, Context>): FeSpotLightSVGElementAttributes<Context>;
     pointsAtX(value: string | Stateful<string, Context>): FeSpotLightSVGElementAttributes<Context>;
     pointsAtY(value: string | Stateful<string, Context>): FeSpotLightSVGElementAttributes<Context>;
@@ -2068,7 +2069,7 @@ export interface FeSpotLightSVGElementAttributes<Context> extends SpecialAttribu
     z(value: string | Stateful<string, Context>): FeSpotLightSVGElementAttributes<Context>;
 }
 
-export interface FeTileSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface FeTileSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     alignmentBaseline(value: string | Stateful<string, Context>): FeTileSVGElementAttributes<Context>;
     baselineShift(value: string | Stateful<string, Context>): FeTileSVGElementAttributes<Context>;
     clip(value: string | Stateful<string, Context>): FeTileSVGElementAttributes<Context>;
@@ -2136,7 +2137,7 @@ export interface FeTileSVGElementAttributes<Context> extends SpecialAttributes<C
     y(value: string | Stateful<string, Context>): FeTileSVGElementAttributes<Context>;
 }
 
-export interface FeTurbulenceSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface FeTurbulenceSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     alignmentBaseline(value: string | Stateful<string, Context>): FeTurbulenceSVGElementAttributes<Context>;
     baseFrequency(value: string | Stateful<string, Context>): FeTurbulenceSVGElementAttributes<Context>;
     baselineShift(value: string | Stateful<string, Context>): FeTurbulenceSVGElementAttributes<Context>;
@@ -2208,7 +2209,7 @@ export interface FeTurbulenceSVGElementAttributes<Context> extends SpecialAttrib
     y(value: string | Stateful<string, Context>): FeTurbulenceSVGElementAttributes<Context>;
 }
 
-export interface FilterSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface FilterSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     alignmentBaseline(value: string | Stateful<string, Context>): FilterSVGElementAttributes<Context>;
     baselineShift(value: string | Stateful<string, Context>): FilterSVGElementAttributes<Context>;
     clip(value: string | Stateful<string, Context>): FilterSVGElementAttributes<Context>;
@@ -2278,7 +2279,7 @@ export interface FilterSVGElementAttributes<Context> extends SpecialAttributes<C
     y(value: string | Stateful<string, Context>): FilterSVGElementAttributes<Context>;
 }
 
-export interface ForeignObjectSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface ForeignObjectSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     alignmentBaseline(value: string | Stateful<string, Context>): ForeignObjectSVGElementAttributes<Context>;
     baselineShift(value: string | Stateful<string, Context>): ForeignObjectSVGElementAttributes<Context>;
     clip(value: string | Stateful<string, Context>): ForeignObjectSVGElementAttributes<Context>;
@@ -2363,7 +2364,7 @@ export interface ForeignObjectSVGElementAttributes<Context> extends SpecialAttri
     y(value: string | Stateful<string, Context>): ForeignObjectSVGElementAttributes<Context>;
 }
 
-export interface GSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface GSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     alignmentBaseline(value: string | Stateful<string, Context>): GSVGElementAttributes<Context>;
     baselineShift(value: string | Stateful<string, Context>): GSVGElementAttributes<Context>;
     clip(value: string | Stateful<string, Context>): GSVGElementAttributes<Context>;
@@ -2444,7 +2445,7 @@ export interface GSVGElementAttributes<Context> extends SpecialAttributes<Contex
     writingMode(value: string | Stateful<string, Context>): GSVGElementAttributes<Context>;
 }
 
-export interface GlyphSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface GlyphSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     alignmentBaseline(value: string | Stateful<string, Context>): GlyphSVGElementAttributes<Context>;
     arabicForm(value: string | Stateful<string, Context>): GlyphSVGElementAttributes<Context>;
     baselineShift(value: string | Stateful<string, Context>): GlyphSVGElementAttributes<Context>;
@@ -2515,7 +2516,7 @@ export interface GlyphSVGElementAttributes<Context> extends SpecialAttributes<Co
     writingMode(value: string | Stateful<string, Context>): GlyphSVGElementAttributes<Context>;
 }
 
-export interface GlyphRefSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface GlyphRefSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     alignmentBaseline(value: string | Stateful<string, Context>): GlyphRefSVGElementAttributes<Context>;
     baselineShift(value: string | Stateful<string, Context>): GlyphRefSVGElementAttributes<Context>;
     clip(value: string | Stateful<string, Context>): GlyphRefSVGElementAttributes<Context>;
@@ -2583,12 +2584,12 @@ export interface GlyphRefSVGElementAttributes<Context> extends SpecialAttributes
     y(value: string | Stateful<string, Context>): GlyphRefSVGElementAttributes<Context>;
 }
 
-export interface HandlerSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface HandlerSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     externalResourcesRequired(value: string | Stateful<string, Context>): HandlerSVGElementAttributes<Context>;
     type(value: string | Stateful<string, Context>): HandlerSVGElementAttributes<Context>;
 }
 
-export interface HkernSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface HkernSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     g1(value: string | Stateful<string, Context>): HkernSVGElementAttributes<Context>;
     g2(value: string | Stateful<string, Context>): HkernSVGElementAttributes<Context>;
     k(value: string | Stateful<string, Context>): HkernSVGElementAttributes<Context>;
@@ -2596,12 +2597,12 @@ export interface HkernSVGElementAttributes<Context> extends SpecialAttributes<Co
     u2(value: string | Stateful<string, Context>): HkernSVGElementAttributes<Context>;
 }
 
-export interface IframeSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface IframeSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     requiredExtensions(value: string | Stateful<string, Context>): IframeSVGElementAttributes<Context>;
     systemLanguage(value: string | Stateful<string, Context>): IframeSVGElementAttributes<Context>;
 }
 
-export interface ImageSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface ImageSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     alignmentBaseline(value: string | Stateful<string, Context>): ImageSVGElementAttributes<Context>;
     baselineShift(value: string | Stateful<string, Context>): ImageSVGElementAttributes<Context>;
     clip(value: string | Stateful<string, Context>): ImageSVGElementAttributes<Context>;
@@ -2690,7 +2691,7 @@ export interface ImageSVGElementAttributes<Context> extends SpecialAttributes<Co
     y(value: string | Stateful<string, Context>): ImageSVGElementAttributes<Context>;
 }
 
-export interface LineSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface LineSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     alignmentBaseline(value: string | Stateful<string, Context>): LineSVGElementAttributes<Context>;
     baselineShift(value: string | Stateful<string, Context>): LineSVGElementAttributes<Context>;
     clip(value: string | Stateful<string, Context>): LineSVGElementAttributes<Context>;
@@ -2776,7 +2777,7 @@ export interface LineSVGElementAttributes<Context> extends SpecialAttributes<Con
     y2(value: string | Stateful<string, Context>): LineSVGElementAttributes<Context>;
 }
 
-export interface LinearGradientSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface LinearGradientSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     alignmentBaseline(value: string | Stateful<string, Context>): LinearGradientSVGElementAttributes<Context>;
     baselineShift(value: string | Stateful<string, Context>): LinearGradientSVGElementAttributes<Context>;
     clip(value: string | Stateful<string, Context>): LinearGradientSVGElementAttributes<Context>;
@@ -2847,7 +2848,7 @@ export interface LinearGradientSVGElementAttributes<Context> extends SpecialAttr
     y2(value: string | Stateful<string, Context>): LinearGradientSVGElementAttributes<Context>;
 }
 
-export interface ListenerSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface ListenerSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     defaultAction(value: string | Stateful<string, Context>): ListenerSVGElementAttributes<Context>;
     event(value: string | Stateful<string, Context>): ListenerSVGElementAttributes<Context>;
     handler(value: string | Stateful<string, Context>): ListenerSVGElementAttributes<Context>;
@@ -2857,7 +2858,7 @@ export interface ListenerSVGElementAttributes<Context> extends SpecialAttributes
     target(value: string | Stateful<string, Context>): ListenerSVGElementAttributes<Context>;
 }
 
-export interface MarkerSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface MarkerSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     alignmentBaseline(value: string | Stateful<string, Context>): MarkerSVGElementAttributes<Context>;
     baselineShift(value: string | Stateful<string, Context>): MarkerSVGElementAttributes<Context>;
     clip(value: string | Stateful<string, Context>): MarkerSVGElementAttributes<Context>;
@@ -2928,7 +2929,7 @@ export interface MarkerSVGElementAttributes<Context> extends SpecialAttributes<C
     writingMode(value: string | Stateful<string, Context>): MarkerSVGElementAttributes<Context>;
 }
 
-export interface MaskSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface MaskSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     alignmentBaseline(value: string | Stateful<string, Context>): MaskSVGElementAttributes<Context>;
     baselineShift(value: string | Stateful<string, Context>): MaskSVGElementAttributes<Context>;
     clip(value: string | Stateful<string, Context>): MaskSVGElementAttributes<Context>;
@@ -3000,7 +3001,7 @@ export interface MaskSVGElementAttributes<Context> extends SpecialAttributes<Con
     y(value: string | Stateful<string, Context>): MaskSVGElementAttributes<Context>;
 }
 
-export interface MetadataSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface MetadataSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     requiredExtensions(value: string | Stateful<string, Context>): MetadataSVGElementAttributes<Context>;
     requiredFeatures(value: string | Stateful<string, Context>): MetadataSVGElementAttributes<Context>;
     requiredFonts(value: string | Stateful<string, Context>): MetadataSVGElementAttributes<Context>;
@@ -3008,12 +3009,12 @@ export interface MetadataSVGElementAttributes<Context> extends SpecialAttributes
     systemLanguage(value: string | Stateful<string, Context>): MetadataSVGElementAttributes<Context>;
 }
 
-export interface MpathSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface MpathSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     externalResourcesRequired(value: string | Stateful<string, Context>): MpathSVGElementAttributes<Context>;
     href(value: string | Stateful<string, Context>): MpathSVGElementAttributes<Context>;
 }
 
-export interface PathSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface PathSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     alignmentBaseline(value: string | Stateful<string, Context>): PathSVGElementAttributes<Context>;
     baselineShift(value: string | Stateful<string, Context>): PathSVGElementAttributes<Context>;
     clip(value: string | Stateful<string, Context>): PathSVGElementAttributes<Context>;
@@ -3096,7 +3097,7 @@ export interface PathSVGElementAttributes<Context> extends SpecialAttributes<Con
     writingMode(value: string | Stateful<string, Context>): PathSVGElementAttributes<Context>;
 }
 
-export interface PatternSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface PatternSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     alignmentBaseline(value: string | Stateful<string, Context>): PatternSVGElementAttributes<Context>;
     baselineShift(value: string | Stateful<string, Context>): PatternSVGElementAttributes<Context>;
     clip(value: string | Stateful<string, Context>): PatternSVGElementAttributes<Context>;
@@ -3172,7 +3173,7 @@ export interface PatternSVGElementAttributes<Context> extends SpecialAttributes<
     y(value: string | Stateful<string, Context>): PatternSVGElementAttributes<Context>;
 }
 
-export interface PolygonSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface PolygonSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     alignmentBaseline(value: string | Stateful<string, Context>): PolygonSVGElementAttributes<Context>;
     baselineShift(value: string | Stateful<string, Context>): PolygonSVGElementAttributes<Context>;
     clip(value: string | Stateful<string, Context>): PolygonSVGElementAttributes<Context>;
@@ -3255,7 +3256,7 @@ export interface PolygonSVGElementAttributes<Context> extends SpecialAttributes<
     writingMode(value: string | Stateful<string, Context>): PolygonSVGElementAttributes<Context>;
 }
 
-export interface PolylineSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface PolylineSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     alignmentBaseline(value: string | Stateful<string, Context>): PolylineSVGElementAttributes<Context>;
     baselineShift(value: string | Stateful<string, Context>): PolylineSVGElementAttributes<Context>;
     clip(value: string | Stateful<string, Context>): PolylineSVGElementAttributes<Context>;
@@ -3338,7 +3339,7 @@ export interface PolylineSVGElementAttributes<Context> extends SpecialAttributes
     writingMode(value: string | Stateful<string, Context>): PolylineSVGElementAttributes<Context>;
 }
 
-export interface PrefetchSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface PrefetchSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     bandwidth(value: string | Stateful<string, Context>): PrefetchSVGElementAttributes<Context>;
     mediaCharacterEncoding(value: string | Stateful<string, Context>): PrefetchSVGElementAttributes<Context>;
     mediaContentEncodings(value: string | Stateful<string, Context>): PrefetchSVGElementAttributes<Context>;
@@ -3346,7 +3347,7 @@ export interface PrefetchSVGElementAttributes<Context> extends SpecialAttributes
     mediaTime(value: string | Stateful<string, Context>): PrefetchSVGElementAttributes<Context>;
 }
 
-export interface RadialGradientSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface RadialGradientSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     alignmentBaseline(value: string | Stateful<string, Context>): RadialGradientSVGElementAttributes<Context>;
     baselineShift(value: string | Stateful<string, Context>): RadialGradientSVGElementAttributes<Context>;
     clip(value: string | Stateful<string, Context>): RadialGradientSVGElementAttributes<Context>;
@@ -3419,7 +3420,7 @@ export interface RadialGradientSVGElementAttributes<Context> extends SpecialAttr
     writingMode(value: string | Stateful<string, Context>): RadialGradientSVGElementAttributes<Context>;
 }
 
-export interface RectSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface RectSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     alignmentBaseline(value: string | Stateful<string, Context>): RectSVGElementAttributes<Context>;
     baselineShift(value: string | Stateful<string, Context>): RectSVGElementAttributes<Context>;
     clip(value: string | Stateful<string, Context>): RectSVGElementAttributes<Context>;
@@ -3507,14 +3508,14 @@ export interface RectSVGElementAttributes<Context> extends SpecialAttributes<Con
     y(value: string | Stateful<string, Context>): RectSVGElementAttributes<Context>;
 }
 
-export interface ScriptSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface ScriptSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     crossorigin(value: string | Stateful<string, Context>): ScriptSVGElementAttributes<Context>;
     externalResourcesRequired(value: string | Stateful<string, Context>): ScriptSVGElementAttributes<Context>;
     href(value: string | Stateful<string, Context>): ScriptSVGElementAttributes<Context>;
     type(value: string | Stateful<string, Context>): ScriptSVGElementAttributes<Context>;
 }
 
-export interface SetSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface SetSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     attributeName(value: string | Stateful<string, Context>): SetSVGElementAttributes<Context>;
     attributeType(value: string | Stateful<string, Context>): SetSVGElementAttributes<Context>;
     begin(value: string | Stateful<string, Context>): SetSVGElementAttributes<Context>;
@@ -3536,10 +3537,10 @@ export interface SetSVGElementAttributes<Context> extends SpecialAttributes<Cont
     to(value: string | Stateful<string, Context>): SetSVGElementAttributes<Context>;
 }
 
-export interface SolidColorSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface SolidColorSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
 }
 
-export interface StopSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface StopSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     alignmentBaseline(value: string | Stateful<string, Context>): StopSVGElementAttributes<Context>;
     baselineShift(value: string | Stateful<string, Context>): StopSVGElementAttributes<Context>;
     clip(value: string | Stateful<string, Context>): StopSVGElementAttributes<Context>;
@@ -3602,110 +3603,110 @@ export interface StopSVGElementAttributes<Context> extends SpecialAttributes<Con
     writingMode(value: string | Stateful<string, Context>): StopSVGElementAttributes<Context>;
 }
 
-export interface StyleSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface StyleSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     media(value: string | Stateful<string, Context>): StyleSVGElementAttributes<Context>;
     title(value: string | Stateful<string, Context>): StyleSVGElementAttributes<Context>;
     type(value: string | Stateful<string, Context>): StyleSVGElementAttributes<Context>;
 }
 
-export interface SvgElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
-    alignmentBaseline(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    baseProfile(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    baselineShift(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    clip(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    clipPath(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    clipRule(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    color(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    colorInterpolation(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    colorInterpolationFilters(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    colorProfile(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    colorRendering(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    contentScriptType(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    contentStyleType(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    cursor(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    direction(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    display(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    dominantBaseline(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    enableBackground(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    externalResourcesRequired(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    fill(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    fillOpacity(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    fillRule(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    filter(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    floodColor(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    floodOpacity(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    focusHighlight(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    focusable(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    fontFamily(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    fontSize(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    fontSizeAdjust(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    fontStretch(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    fontStyle(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    fontVariant(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    fontWeight(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    glyphOrientationHorizontal(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    glyphOrientationVertical(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    height(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    imageRendering(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    kerning(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    letterSpacing(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    lightingColor(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    markerEnd(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    markerMid(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    markerStart(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    mask(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    navDown(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    navDownLeft(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    navDownRight(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    navLeft(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    navNext(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    navPrev(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    navRight(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    navUp(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    navUpLeft(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    navUpRight(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    opacity(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    overflow(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    playbackOrder(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    playbackorder(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    pointerEvents(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    preserveAspectRatio(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    requiredExtensions(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    requiredFeatures(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    shapeRendering(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    snapshotTime(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    stopColor(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    stopOpacity(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    stroke(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    strokeDasharray(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    strokeDashoffset(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    strokeLinecap(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    strokeLinejoin(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    strokeMiterlimit(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    strokeOpacity(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    strokeWidth(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    syncBehaviorDefault(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    syncToleranceDefault(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    systemLanguage(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    textAnchor(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    textDecoration(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    textRendering(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    timelineBegin(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    timelinebegin(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    transform(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    unicodeBidi(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    version(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    viewBox(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    visibility(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    width(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    wordSpacing(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    writingMode(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    x(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    y(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
-    zoomAndPan(value: string | Stateful<string, Context>): SvgElementAttributes<Context>;
+export interface SVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
+    alignmentBaseline(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    baseProfile(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    baselineShift(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    clip(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    clipPath(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    clipRule(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    color(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    colorInterpolation(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    colorInterpolationFilters(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    colorProfile(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    colorRendering(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    contentScriptType(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    contentStyleType(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    cursor(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    direction(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    display(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    dominantBaseline(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    enableBackground(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    externalResourcesRequired(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    fill(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    fillOpacity(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    fillRule(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    filter(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    floodColor(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    floodOpacity(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    focusHighlight(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    focusable(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    fontFamily(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    fontSize(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    fontSizeAdjust(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    fontStretch(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    fontStyle(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    fontVariant(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    fontWeight(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    glyphOrientationHorizontal(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    glyphOrientationVertical(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    height(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    imageRendering(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    kerning(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    letterSpacing(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    lightingColor(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    markerEnd(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    markerMid(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    markerStart(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    mask(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    navDown(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    navDownLeft(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    navDownRight(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    navLeft(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    navNext(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    navPrev(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    navRight(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    navUp(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    navUpLeft(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    navUpRight(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    opacity(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    overflow(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    playbackOrder(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    playbackorder(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    pointerEvents(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    preserveAspectRatio(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    requiredExtensions(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    requiredFeatures(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    shapeRendering(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    snapshotTime(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    stopColor(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    stopOpacity(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    stroke(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    strokeDasharray(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    strokeDashoffset(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    strokeLinecap(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    strokeLinejoin(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    strokeMiterlimit(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    strokeOpacity(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    strokeWidth(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    syncBehaviorDefault(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    syncToleranceDefault(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    systemLanguage(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    textAnchor(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    textDecoration(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    textRendering(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    timelineBegin(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    timelinebegin(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    transform(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    unicodeBidi(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    version(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    viewBox(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    visibility(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    width(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    wordSpacing(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    writingMode(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    x(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    y(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
+    zoomAndPan(value: string | Stateful<string, Context>): SVGElementAttributes<Context>;
 }
 
-export interface SwitchSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface SwitchSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     alignmentBaseline(value: string | Stateful<string, Context>): SwitchSVGElementAttributes<Context>;
     baselineShift(value: string | Stateful<string, Context>): SwitchSVGElementAttributes<Context>;
     clip(value: string | Stateful<string, Context>): SwitchSVGElementAttributes<Context>;
@@ -3786,7 +3787,7 @@ export interface SwitchSVGElementAttributes<Context> extends SpecialAttributes<C
     writingMode(value: string | Stateful<string, Context>): SwitchSVGElementAttributes<Context>;
 }
 
-export interface SymbolSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface SymbolSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     alignmentBaseline(value: string | Stateful<string, Context>): SymbolSVGElementAttributes<Context>;
     baselineShift(value: string | Stateful<string, Context>): SymbolSVGElementAttributes<Context>;
     clip(value: string | Stateful<string, Context>): SymbolSVGElementAttributes<Context>;
@@ -3853,7 +3854,7 @@ export interface SymbolSVGElementAttributes<Context> extends SpecialAttributes<C
     writingMode(value: string | Stateful<string, Context>): SymbolSVGElementAttributes<Context>;
 }
 
-export interface TbreakSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface TbreakSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     requiredExtensions(value: string | Stateful<string, Context>): TbreakSVGElementAttributes<Context>;
     requiredFeatures(value: string | Stateful<string, Context>): TbreakSVGElementAttributes<Context>;
     requiredFonts(value: string | Stateful<string, Context>): TbreakSVGElementAttributes<Context>;
@@ -3861,7 +3862,7 @@ export interface TbreakSVGElementAttributes<Context> extends SpecialAttributes<C
     systemLanguage(value: string | Stateful<string, Context>): TbreakSVGElementAttributes<Context>;
 }
 
-export interface TextSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface TextSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     alignmentBaseline(value: string | Stateful<string, Context>): TextSVGElementAttributes<Context>;
     baselineShift(value: string | Stateful<string, Context>): TextSVGElementAttributes<Context>;
     clip(value: string | Stateful<string, Context>): TextSVGElementAttributes<Context>;
@@ -3950,7 +3951,7 @@ export interface TextSVGElementAttributes<Context> extends SpecialAttributes<Con
     y(value: string | Stateful<string, Context>): TextSVGElementAttributes<Context>;
 }
 
-export interface TextAreaSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface TextAreaSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     editable(value: string | Stateful<string, Context>): TextAreaSVGElementAttributes<Context>;
     focusHighlight(value: string | Stateful<string, Context>): TextAreaSVGElementAttributes<Context>;
     focusable(value: string | Stateful<string, Context>): TextAreaSVGElementAttributes<Context>;
@@ -3976,7 +3977,7 @@ export interface TextAreaSVGElementAttributes<Context> extends SpecialAttributes
     y(value: string | Stateful<string, Context>): TextAreaSVGElementAttributes<Context>;
 }
 
-export interface TextPathSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface TextPathSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     alignmentBaseline(value: string | Stateful<string, Context>): TextPathSVGElementAttributes<Context>;
     baselineShift(value: string | Stateful<string, Context>): TextPathSVGElementAttributes<Context>;
     clip(value: string | Stateful<string, Context>): TextPathSVGElementAttributes<Context>;
@@ -4050,7 +4051,7 @@ export interface TextPathSVGElementAttributes<Context> extends SpecialAttributes
     writingMode(value: string | Stateful<string, Context>): TextPathSVGElementAttributes<Context>;
 }
 
-export interface TitleSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface TitleSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     requiredExtensions(value: string | Stateful<string, Context>): TitleSVGElementAttributes<Context>;
     requiredFeatures(value: string | Stateful<string, Context>): TitleSVGElementAttributes<Context>;
     requiredFonts(value: string | Stateful<string, Context>): TitleSVGElementAttributes<Context>;
@@ -4058,7 +4059,7 @@ export interface TitleSVGElementAttributes<Context> extends SpecialAttributes<Co
     systemLanguage(value: string | Stateful<string, Context>): TitleSVGElementAttributes<Context>;
 }
 
-export interface TrefSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface TrefSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     alignmentBaseline(value: string | Stateful<string, Context>): TrefSVGElementAttributes<Context>;
     baselineShift(value: string | Stateful<string, Context>): TrefSVGElementAttributes<Context>;
     clip(value: string | Stateful<string, Context>): TrefSVGElementAttributes<Context>;
@@ -4131,7 +4132,7 @@ export interface TrefSVGElementAttributes<Context> extends SpecialAttributes<Con
     y(value: string | Stateful<string, Context>): TrefSVGElementAttributes<Context>;
 }
 
-export interface TspanSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface TspanSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     alignmentBaseline(value: string | Stateful<string, Context>): TspanSVGElementAttributes<Context>;
     baselineShift(value: string | Stateful<string, Context>): TspanSVGElementAttributes<Context>;
     clip(value: string | Stateful<string, Context>): TspanSVGElementAttributes<Context>;
@@ -4218,12 +4219,12 @@ export interface TspanSVGElementAttributes<Context> extends SpecialAttributes<Co
     y(value: string | Stateful<string, Context>): TspanSVGElementAttributes<Context>;
 }
 
-export interface UnknownSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface UnknownSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     requiredExtensions(value: string | Stateful<string, Context>): UnknownSVGElementAttributes<Context>;
     systemLanguage(value: string | Stateful<string, Context>): UnknownSVGElementAttributes<Context>;
 }
 
-export interface UseSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface UseSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     alignmentBaseline(value: string | Stateful<string, Context>): UseSVGElementAttributes<Context>;
     baselineShift(value: string | Stateful<string, Context>): UseSVGElementAttributes<Context>;
     clip(value: string | Stateful<string, Context>): UseSVGElementAttributes<Context>;
@@ -4309,7 +4310,7 @@ export interface UseSVGElementAttributes<Context> extends SpecialAttributes<Cont
     y(value: string | Stateful<string, Context>): UseSVGElementAttributes<Context>;
 }
 
-export interface VideoSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface VideoSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     begin(value: string | Stateful<string, Context>): VideoSVGElementAttributes<Context>;
     dur(value: string | Stateful<string, Context>): VideoSVGElementAttributes<Context>;
     end(value: string | Stateful<string, Context>): VideoSVGElementAttributes<Context>;
@@ -4352,7 +4353,7 @@ export interface VideoSVGElementAttributes<Context> extends SpecialAttributes<Co
     y(value: string | Stateful<string, Context>): VideoSVGElementAttributes<Context>;
 }
 
-export interface ViewSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface ViewSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     externalResourcesRequired(value: string | Stateful<string, Context>): ViewSVGElementAttributes<Context>;
     preserveAspectRatio(value: string | Stateful<string, Context>): ViewSVGElementAttributes<Context>;
     viewBox(value: string | Stateful<string, Context>): ViewSVGElementAttributes<Context>;
@@ -4360,7 +4361,7 @@ export interface ViewSVGElementAttributes<Context> extends SpecialAttributes<Con
     zoomAndPan(value: string | Stateful<string, Context>): ViewSVGElementAttributes<Context>;
 }
 
-export interface VkernSVGElementAttributes<Context> extends SpecialAttributes<Context>, GlobalSVGAttributes<Context> {
+export interface VkernSVGElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalSVGAttributes<Context> {
     g1(value: string | Stateful<string, Context>): VkernSVGElementAttributes<Context>;
     g2(value: string | Stateful<string, Context>): VkernSVGElementAttributes<Context>;
     k(value: string | Stateful<string, Context>): VkernSVGElementAttributes<Context>;

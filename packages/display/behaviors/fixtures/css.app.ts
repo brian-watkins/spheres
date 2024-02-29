@@ -1,39 +1,35 @@
 import { container, write } from "@spheres/store"
-import { View, htmlView } from "@src/index.js"
+import { HTMLBuilder } from "@src/index.js"
 import { useValue } from "./helpers"
 
 const numberState = container({ initialValue: 17 })
 
-const funView = () => {
-  return htmlView(root => {
-    root.div(el => {
-      el.config
-        .id("cool-stuff")
-        .class((get) => `zoom ${get(numberState) % 2 == 0 ? "even" : "odd"}`)
-      el.children
-        .textNode("This is some cool stuff!")
-    })
+function funView(root: HTMLBuilder) {
+  root.div(el => {
+    el.config
+      .id("cool-stuff")
+      .class(get => `zoom ${get(numberState) % 2 == 0 ? "even" : "odd"}`)
+    el.children
+      .textNode("This is some cool stuff!")
   })
 }
 
-export default function (): View {
-  return htmlView(root => {
-    root.div(el => {
-      el.children
-        .h1(el => {
-          el.config
-            .class("super-title")
-          el.children
-            .textNode("This is only a test!")
-        })
-        .zone(funView)
-        .hr()
-        .input(el => {
-          el.config
-            .dataAttribute("number-input")
-            .on("input", useValue((value) => write(numberState, Number(value))))
-        })
-    })
+export default function view(root: HTMLBuilder) {
+  root.div(el => {
+    el.children
+      .h1(el => {
+        el.config
+          .class("super-title")
+        el.children
+          .textNode("This is only a test!")
+      })
+      .zone(funView)
+      .hr()
+      .input(el => {
+        el.config
+          .dataAttribute("number-input")
+          .on("input", useValue((value) => write(numberState, Number(value))))
+      })
   })
 }
 

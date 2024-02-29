@@ -1,7 +1,5 @@
-import { htmlView, View } from "../../src/index.js";
+import { HTMLBuilder } from "@src/htmlElements"
 
-export default function(): View {
-  return htmlView(root => {
-    root.div(el => el.config.innerHTML("<h3>Hello!!!</h3>"))
-  })
+export default function (root: HTMLBuilder) {
+  root.div(el => el.config.innerHTML("<h3>Hello!!!</h3>"))
 }

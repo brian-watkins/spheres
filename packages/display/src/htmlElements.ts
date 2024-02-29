@@ -1,6 +1,7 @@
-import { View, ConfigurableElement, SpecialElements, SpecialElementBuilder, Stateful } from "./view.js";
-import { SpecialAttributes } from "./viewConfig.js";
-import { SVGElements, SvgElementAttributes } from "./svgElements.js";
+import { ConfigurableElement, Stateful } from "./viewBuilder.js";
+import { SpecialHTMLElements } from "./htmlViewBuilder.js";
+import { SpecialElementAttributes } from "./viewConfig.js";
+import { SVGElements, SVGElementAttributes } from "./svgElements.js";
 
 export interface GlobalHTMLAttributes<Context> {
     accesskey(value: string | Stateful<string, Context>): this;
@@ -33,128 +34,128 @@ export interface GlobalHTMLAttributes<Context> {
     role(value: string | Stateful<string, Context>): this;
 }
 
-export interface HTMLBuilder<Context> extends SpecialElementBuilder<Context> {
-    a(builder?: (element: ConfigurableElement<AElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    abbr(builder?: (element: ConfigurableElement<AbbrElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    address(builder?: (element: ConfigurableElement<AddressElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    area(builder?: (element: ConfigurableElement<AreaElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    article(builder?: (element: ConfigurableElement<ArticleElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    aside(builder?: (element: ConfigurableElement<AsideElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    audio(builder?: (element: ConfigurableElement<AudioElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    b(builder?: (element: ConfigurableElement<BElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    base(builder?: (element: ConfigurableElement<BaseElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    bdi(builder?: (element: ConfigurableElement<BdiElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    bdo(builder?: (element: ConfigurableElement<BdoElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    blockquote(builder?: (element: ConfigurableElement<BlockquoteElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    body(builder?: (element: ConfigurableElement<BodyElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    br(builder?: (element: ConfigurableElement<BrElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    button(builder?: (element: ConfigurableElement<ButtonElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    canvas(builder?: (element: ConfigurableElement<CanvasElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    caption(builder?: (element: ConfigurableElement<CaptionElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    cite(builder?: (element: ConfigurableElement<CiteElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    code(builder?: (element: ConfigurableElement<CodeElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    col(builder?: (element: ConfigurableElement<ColElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    colgroup(builder?: (element: ConfigurableElement<ColgroupElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    data(builder?: (element: ConfigurableElement<DataElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    datalist(builder?: (element: ConfigurableElement<DatalistElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    dd(builder?: (element: ConfigurableElement<DdElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    del(builder?: (element: ConfigurableElement<DelElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    details(builder?: (element: ConfigurableElement<DetailsElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    dfn(builder?: (element: ConfigurableElement<DfnElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    dialog(builder?: (element: ConfigurableElement<DialogElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    div(builder?: (element: ConfigurableElement<DivElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    dl(builder?: (element: ConfigurableElement<DlElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    dt(builder?: (element: ConfigurableElement<DtElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    em(builder?: (element: ConfigurableElement<EmElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    embed(builder?: (element: ConfigurableElement<EmbedElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    fieldset(builder?: (element: ConfigurableElement<FieldsetElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    figcaption(builder?: (element: ConfigurableElement<FigcaptionElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    figure(builder?: (element: ConfigurableElement<FigureElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    footer(builder?: (element: ConfigurableElement<FooterElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    form(builder?: (element: ConfigurableElement<FormElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    h1(builder?: (element: ConfigurableElement<H1ElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    h2(builder?: (element: ConfigurableElement<H2ElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    h3(builder?: (element: ConfigurableElement<H3ElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    h4(builder?: (element: ConfigurableElement<H4ElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    h5(builder?: (element: ConfigurableElement<H5ElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    h6(builder?: (element: ConfigurableElement<H6ElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    head(builder?: (element: ConfigurableElement<HeadElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    header(builder?: (element: ConfigurableElement<HeaderElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    hgroup(builder?: (element: ConfigurableElement<HgroupElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    hr(builder?: (element: ConfigurableElement<HrElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    html(builder?: (element: ConfigurableElement<HtmlElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    i(builder?: (element: ConfigurableElement<IElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    iframe(builder?: (element: ConfigurableElement<IframeElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    img(builder?: (element: ConfigurableElement<ImgElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    input(builder?: (element: ConfigurableElement<InputElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    ins(builder?: (element: ConfigurableElement<InsElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    kbd(builder?: (element: ConfigurableElement<KbdElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    label(builder?: (element: ConfigurableElement<LabelElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    legend(builder?: (element: ConfigurableElement<LegendElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    li(builder?: (element: ConfigurableElement<LiElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    link(builder?: (element: ConfigurableElement<LinkElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    main(builder?: (element: ConfigurableElement<MainElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    map(builder?: (element: ConfigurableElement<MapElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    mark(builder?: (element: ConfigurableElement<MarkElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    math(builder?: (element: ConfigurableElement<MathElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    menu(builder?: (element: ConfigurableElement<MenuElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    menuitem(builder?: (element: ConfigurableElement<MenuitemElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    meta(builder?: (element: ConfigurableElement<MetaElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    meter(builder?: (element: ConfigurableElement<MeterElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    nav(builder?: (element: ConfigurableElement<NavElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    noscript(builder?: (element: ConfigurableElement<NoscriptElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    object(builder?: (element: ConfigurableElement<ObjectElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    ol(builder?: (element: ConfigurableElement<OlElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    optgroup(builder?: (element: ConfigurableElement<OptgroupElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    option(builder?: (element: ConfigurableElement<OptionElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    output(builder?: (element: ConfigurableElement<OutputElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    p(builder?: (element: ConfigurableElement<PElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    param(builder?: (element: ConfigurableElement<ParamElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    picture(builder?: (element: ConfigurableElement<PictureElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    pre(builder?: (element: ConfigurableElement<PreElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    progress(builder?: (element: ConfigurableElement<ProgressElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    q(builder?: (element: ConfigurableElement<QElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    rb(builder?: (element: ConfigurableElement<RbElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    rp(builder?: (element: ConfigurableElement<RpElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    rt(builder?: (element: ConfigurableElement<RtElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    rtc(builder?: (element: ConfigurableElement<RtcElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    ruby(builder?: (element: ConfigurableElement<RubyElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    s(builder?: (element: ConfigurableElement<SElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    samp(builder?: (element: ConfigurableElement<SampElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    script(builder?: (element: ConfigurableElement<ScriptElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    search(builder?: (element: ConfigurableElement<SearchElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    section(builder?: (element: ConfigurableElement<SectionElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    select(builder?: (element: ConfigurableElement<SelectElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    slot(builder?: (element: ConfigurableElement<SlotElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    small(builder?: (element: ConfigurableElement<SmallElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    source(builder?: (element: ConfigurableElement<SourceElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    span(builder?: (element: ConfigurableElement<SpanElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    strong(builder?: (element: ConfigurableElement<StrongElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    style(builder?: (element: ConfigurableElement<StyleElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    sub(builder?: (element: ConfigurableElement<SubElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    summary(builder?: (element: ConfigurableElement<SummaryElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    sup(builder?: (element: ConfigurableElement<SupElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    svg(builder?: (element: ConfigurableElement<SvgElementAttributes<Context>, SVGElements<Context>, Context>) => void): View;
-    table(builder?: (element: ConfigurableElement<TableElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    tbody(builder?: (element: ConfigurableElement<TbodyElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    td(builder?: (element: ConfigurableElement<TdElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    template(builder?: (element: ConfigurableElement<TemplateElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    textarea(builder?: (element: ConfigurableElement<TextareaElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    tfoot(builder?: (element: ConfigurableElement<TfootElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    th(builder?: (element: ConfigurableElement<ThElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    thead(builder?: (element: ConfigurableElement<TheadElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    time(builder?: (element: ConfigurableElement<TimeElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    title(builder?: (element: ConfigurableElement<TitleElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    tr(builder?: (element: ConfigurableElement<TrElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    track(builder?: (element: ConfigurableElement<TrackElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    u(builder?: (element: ConfigurableElement<UElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    ul(builder?: (element: ConfigurableElement<UlElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    var(builder?: (element: ConfigurableElement<VarElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    video(builder?: (element: ConfigurableElement<VideoElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
-    wbr(builder?: (element: ConfigurableElement<WbrElementAttributes<Context>, HTMLElements<Context>, Context>) => void): View;
+export interface HTMLBuilder<Context = undefined> extends SpecialHTMLElements<Context> {
+    a(builder?: (element: ConfigurableElement<AElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    abbr(builder?: (element: ConfigurableElement<AbbrElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    address(builder?: (element: ConfigurableElement<AddressElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    area(builder?: (element: ConfigurableElement<AreaElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    article(builder?: (element: ConfigurableElement<ArticleElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    aside(builder?: (element: ConfigurableElement<AsideElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    audio(builder?: (element: ConfigurableElement<AudioElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    b(builder?: (element: ConfigurableElement<BElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    base(builder?: (element: ConfigurableElement<BaseElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    bdi(builder?: (element: ConfigurableElement<BdiElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    bdo(builder?: (element: ConfigurableElement<BdoElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    blockquote(builder?: (element: ConfigurableElement<BlockquoteElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    body(builder?: (element: ConfigurableElement<BodyElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    br(builder?: (element: ConfigurableElement<BrElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    button(builder?: (element: ConfigurableElement<ButtonElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    canvas(builder?: (element: ConfigurableElement<CanvasElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    caption(builder?: (element: ConfigurableElement<CaptionElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    cite(builder?: (element: ConfigurableElement<CiteElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    code(builder?: (element: ConfigurableElement<CodeElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    col(builder?: (element: ConfigurableElement<ColElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    colgroup(builder?: (element: ConfigurableElement<ColgroupElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    data(builder?: (element: ConfigurableElement<DataElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    datalist(builder?: (element: ConfigurableElement<DatalistElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    dd(builder?: (element: ConfigurableElement<DdElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    del(builder?: (element: ConfigurableElement<DelElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    details(builder?: (element: ConfigurableElement<DetailsElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    dfn(builder?: (element: ConfigurableElement<DfnElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    dialog(builder?: (element: ConfigurableElement<DialogElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    div(builder?: (element: ConfigurableElement<DivElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    dl(builder?: (element: ConfigurableElement<DlElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    dt(builder?: (element: ConfigurableElement<DtElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    em(builder?: (element: ConfigurableElement<EmElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    embed(builder?: (element: ConfigurableElement<EmbedElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    fieldset(builder?: (element: ConfigurableElement<FieldsetElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    figcaption(builder?: (element: ConfigurableElement<FigcaptionElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    figure(builder?: (element: ConfigurableElement<FigureElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    footer(builder?: (element: ConfigurableElement<FooterElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    form(builder?: (element: ConfigurableElement<FormElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    h1(builder?: (element: ConfigurableElement<H1ElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    h2(builder?: (element: ConfigurableElement<H2ElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    h3(builder?: (element: ConfigurableElement<H3ElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    h4(builder?: (element: ConfigurableElement<H4ElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    h5(builder?: (element: ConfigurableElement<H5ElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    h6(builder?: (element: ConfigurableElement<H6ElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    head(builder?: (element: ConfigurableElement<HeadElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    header(builder?: (element: ConfigurableElement<HeaderElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    hgroup(builder?: (element: ConfigurableElement<HgroupElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    hr(builder?: (element: ConfigurableElement<HrElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    html(builder?: (element: ConfigurableElement<HtmlElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    i(builder?: (element: ConfigurableElement<IElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    iframe(builder?: (element: ConfigurableElement<IframeElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    img(builder?: (element: ConfigurableElement<ImgElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    input(builder?: (element: ConfigurableElement<InputElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    ins(builder?: (element: ConfigurableElement<InsElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    kbd(builder?: (element: ConfigurableElement<KbdElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    label(builder?: (element: ConfigurableElement<LabelElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    legend(builder?: (element: ConfigurableElement<LegendElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    li(builder?: (element: ConfigurableElement<LiElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    link(builder?: (element: ConfigurableElement<LinkElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    main(builder?: (element: ConfigurableElement<MainElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    map(builder?: (element: ConfigurableElement<MapElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    mark(builder?: (element: ConfigurableElement<MarkElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    math(builder?: (element: ConfigurableElement<MathElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    menu(builder?: (element: ConfigurableElement<MenuElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    menuitem(builder?: (element: ConfigurableElement<MenuitemElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    meta(builder?: (element: ConfigurableElement<MetaElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    meter(builder?: (element: ConfigurableElement<MeterElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    nav(builder?: (element: ConfigurableElement<NavElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    noscript(builder?: (element: ConfigurableElement<NoscriptElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    object(builder?: (element: ConfigurableElement<ObjectElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    ol(builder?: (element: ConfigurableElement<OlElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    optgroup(builder?: (element: ConfigurableElement<OptgroupElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    option(builder?: (element: ConfigurableElement<OptionElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    output(builder?: (element: ConfigurableElement<OutputElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    p(builder?: (element: ConfigurableElement<PElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    param(builder?: (element: ConfigurableElement<ParamElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    picture(builder?: (element: ConfigurableElement<PictureElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    pre(builder?: (element: ConfigurableElement<PreElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    progress(builder?: (element: ConfigurableElement<ProgressElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    q(builder?: (element: ConfigurableElement<QElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    rb(builder?: (element: ConfigurableElement<RbElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    rp(builder?: (element: ConfigurableElement<RpElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    rt(builder?: (element: ConfigurableElement<RtElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    rtc(builder?: (element: ConfigurableElement<RtcElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    ruby(builder?: (element: ConfigurableElement<RubyElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    s(builder?: (element: ConfigurableElement<SElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    samp(builder?: (element: ConfigurableElement<SampElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    script(builder?: (element: ConfigurableElement<ScriptElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    search(builder?: (element: ConfigurableElement<SearchElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    section(builder?: (element: ConfigurableElement<SectionElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    select(builder?: (element: ConfigurableElement<SelectElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    slot(builder?: (element: ConfigurableElement<SlotElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    small(builder?: (element: ConfigurableElement<SmallElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    source(builder?: (element: ConfigurableElement<SourceElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    span(builder?: (element: ConfigurableElement<SpanElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    strong(builder?: (element: ConfigurableElement<StrongElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    style(builder?: (element: ConfigurableElement<StyleElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    sub(builder?: (element: ConfigurableElement<SubElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    summary(builder?: (element: ConfigurableElement<SummaryElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    sup(builder?: (element: ConfigurableElement<SupElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    svg(builder?: (element: ConfigurableElement<SVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): void;
+    table(builder?: (element: ConfigurableElement<TableElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    tbody(builder?: (element: ConfigurableElement<TbodyElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    td(builder?: (element: ConfigurableElement<TdElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    template(builder?: (element: ConfigurableElement<TemplateElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    textarea(builder?: (element: ConfigurableElement<TextareaElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    tfoot(builder?: (element: ConfigurableElement<TfootElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    th(builder?: (element: ConfigurableElement<ThElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    thead(builder?: (element: ConfigurableElement<TheadElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    time(builder?: (element: ConfigurableElement<TimeElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    title(builder?: (element: ConfigurableElement<TitleElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    tr(builder?: (element: ConfigurableElement<TrElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    track(builder?: (element: ConfigurableElement<TrackElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    u(builder?: (element: ConfigurableElement<UElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    ul(builder?: (element: ConfigurableElement<UlElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    var(builder?: (element: ConfigurableElement<VarElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    video(builder?: (element: ConfigurableElement<VideoElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
+    wbr(builder?: (element: ConfigurableElement<WbrElementAttributes<Context>, HTMLElements<Context>, Context>) => void): void;
 }
 
-export interface HTMLElements<Context> extends SpecialElements<Context> {
+export interface HTMLElements<Context> extends SpecialHTMLElements<Context> {
     a(builder?: (element: ConfigurableElement<AElementAttributes<Context>, HTMLElements<Context>, Context>) => void): this;
     abbr(builder?: (element: ConfigurableElement<AbbrElementAttributes<Context>, HTMLElements<Context>, Context>) => void): this;
     address(builder?: (element: ConfigurableElement<AddressElementAttributes<Context>, HTMLElements<Context>, Context>) => void): this;
@@ -255,7 +256,7 @@ export interface HTMLElements<Context> extends SpecialElements<Context> {
     sub(builder?: (element: ConfigurableElement<SubElementAttributes<Context>, HTMLElements<Context>, Context>) => void): this;
     summary(builder?: (element: ConfigurableElement<SummaryElementAttributes<Context>, HTMLElements<Context>, Context>) => void): this;
     sup(builder?: (element: ConfigurableElement<SupElementAttributes<Context>, HTMLElements<Context>, Context>) => void): this;
-    svg(builder?: (element: ConfigurableElement<SvgElementAttributes<Context>, SVGElements<Context>, Context>) => void): this;
+    svg(builder?: (element: ConfigurableElement<SVGElementAttributes<Context>, SVGElements<Context>, Context>) => void): this;
     table(builder?: (element: ConfigurableElement<TableElementAttributes<Context>, HTMLElements<Context>, Context>) => void): this;
     tbody(builder?: (element: ConfigurableElement<TbodyElementAttributes<Context>, HTMLElements<Context>, Context>) => void): this;
     td(builder?: (element: ConfigurableElement<TdElementAttributes<Context>, HTMLElements<Context>, Context>) => void): this;
@@ -275,7 +276,7 @@ export interface HTMLElements<Context> extends SpecialElements<Context> {
     wbr(builder?: (element: ConfigurableElement<WbrElementAttributes<Context>, HTMLElements<Context>, Context>) => void): this;
 }
 
-export interface AElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface AElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     charset(value: string | Stateful<string, Context>): AElementAttributes<Context>;
     coords(value: string | Stateful<string, Context>): AElementAttributes<Context>;
     download(value: string | Stateful<string, Context>): AElementAttributes<Context>;
@@ -291,13 +292,13 @@ export interface AElementAttributes<Context> extends SpecialAttributes<Context>,
     type(value: string | Stateful<string, Context>): AElementAttributes<Context>;
 }
 
-export interface AbbrElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface AbbrElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
 }
 
-export interface AddressElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface AddressElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
 }
 
-export interface AreaElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface AreaElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     alt(value: string | Stateful<string, Context>): AreaElementAttributes<Context>;
     coords(value: string | Stateful<string, Context>): AreaElementAttributes<Context>;
     download(value: string | Stateful<string, Context>): AreaElementAttributes<Context>;
@@ -312,13 +313,13 @@ export interface AreaElementAttributes<Context> extends SpecialAttributes<Contex
     type(value: string | Stateful<string, Context>): AreaElementAttributes<Context>;
 }
 
-export interface ArticleElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface ArticleElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
 }
 
-export interface AsideElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface AsideElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
 }
 
-export interface AudioElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface AudioElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     autoplay(value: boolean | Stateful<boolean, Context>): AudioElementAttributes<Context>;
     controls(value: boolean | Stateful<boolean, Context>): AudioElementAttributes<Context>;
     crossorigin(value: string | Stateful<string, Context>): AudioElementAttributes<Context>;
@@ -328,25 +329,25 @@ export interface AudioElementAttributes<Context> extends SpecialAttributes<Conte
     src(value: string | Stateful<string, Context>): AudioElementAttributes<Context>;
 }
 
-export interface BElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface BElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
 }
 
-export interface BaseElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface BaseElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     href(value: string | Stateful<string, Context>): BaseElementAttributes<Context>;
     target(value: string | Stateful<string, Context>): BaseElementAttributes<Context>;
 }
 
-export interface BdiElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface BdiElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
 }
 
-export interface BdoElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface BdoElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
 }
 
-export interface BlockquoteElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface BlockquoteElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     cite(value: string | Stateful<string, Context>): BlockquoteElementAttributes<Context>;
 }
 
-export interface BodyElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface BodyElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     alink(value: string | Stateful<string, Context>): BodyElementAttributes<Context>;
     background(value: string | Stateful<string, Context>): BodyElementAttributes<Context>;
     bgcolor(value: string | Stateful<string, Context>): BodyElementAttributes<Context>;
@@ -355,11 +356,11 @@ export interface BodyElementAttributes<Context> extends SpecialAttributes<Contex
     vlink(value: string | Stateful<string, Context>): BodyElementAttributes<Context>;
 }
 
-export interface BrElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface BrElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     clear(value: string | Stateful<string, Context>): BrElementAttributes<Context>;
 }
 
-export interface ButtonElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface ButtonElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     disabled(value: boolean | Stateful<boolean, Context>): ButtonElementAttributes<Context>;
     form(value: string | Stateful<string, Context>): ButtonElementAttributes<Context>;
     formaction(value: string | Stateful<string, Context>): ButtonElementAttributes<Context>;
@@ -374,22 +375,22 @@ export interface ButtonElementAttributes<Context> extends SpecialAttributes<Cont
     value(value: string | Stateful<string, Context>): ButtonElementAttributes<Context>;
 }
 
-export interface CanvasElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface CanvasElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     height(value: string | Stateful<string, Context>): CanvasElementAttributes<Context>;
     width(value: string | Stateful<string, Context>): CanvasElementAttributes<Context>;
 }
 
-export interface CaptionElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface CaptionElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     align(value: string | Stateful<string, Context>): CaptionElementAttributes<Context>;
 }
 
-export interface CiteElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface CiteElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
 }
 
-export interface CodeElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface CodeElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
 }
 
-export interface ColElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface ColElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     align(value: string | Stateful<string, Context>): ColElementAttributes<Context>;
     char(value: string | Stateful<string, Context>): ColElementAttributes<Context>;
     charoff(value: string | Stateful<string, Context>): ColElementAttributes<Context>;
@@ -398,7 +399,7 @@ export interface ColElementAttributes<Context> extends SpecialAttributes<Context
     width(value: string | Stateful<string, Context>): ColElementAttributes<Context>;
 }
 
-export interface ColgroupElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface ColgroupElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     align(value: string | Stateful<string, Context>): ColgroupElementAttributes<Context>;
     char(value: string | Stateful<string, Context>): ColgroupElementAttributes<Context>;
     charoff(value: string | Stateful<string, Context>): ColgroupElementAttributes<Context>;
@@ -407,69 +408,69 @@ export interface ColgroupElementAttributes<Context> extends SpecialAttributes<Co
     width(value: string | Stateful<string, Context>): ColgroupElementAttributes<Context>;
 }
 
-export interface DataElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface DataElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     value(value: string | Stateful<string, Context>): DataElementAttributes<Context>;
 }
 
-export interface DatalistElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface DatalistElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
 }
 
-export interface DdElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface DdElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
 }
 
-export interface DelElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface DelElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     cite(value: string | Stateful<string, Context>): DelElementAttributes<Context>;
     datetime(value: string | Stateful<string, Context>): DelElementAttributes<Context>;
 }
 
-export interface DetailsElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface DetailsElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     open(value: boolean | Stateful<boolean, Context>): DetailsElementAttributes<Context>;
 }
 
-export interface DfnElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface DfnElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
 }
 
-export interface DialogElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface DialogElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     open(value: boolean | Stateful<boolean, Context>): DialogElementAttributes<Context>;
 }
 
-export interface DivElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface DivElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     align(value: string | Stateful<string, Context>): DivElementAttributes<Context>;
 }
 
-export interface DlElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface DlElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     compact(value: string | Stateful<string, Context>): DlElementAttributes<Context>;
 }
 
-export interface DtElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface DtElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
 }
 
-export interface EmElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface EmElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
 }
 
-export interface EmbedElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface EmbedElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     height(value: string | Stateful<string, Context>): EmbedElementAttributes<Context>;
     src(value: string | Stateful<string, Context>): EmbedElementAttributes<Context>;
     type(value: string | Stateful<string, Context>): EmbedElementAttributes<Context>;
     width(value: string | Stateful<string, Context>): EmbedElementAttributes<Context>;
 }
 
-export interface FieldsetElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface FieldsetElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     disabled(value: boolean | Stateful<boolean, Context>): FieldsetElementAttributes<Context>;
     form(value: string | Stateful<string, Context>): FieldsetElementAttributes<Context>;
     name(value: string | Stateful<string, Context>): FieldsetElementAttributes<Context>;
 }
 
-export interface FigcaptionElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface FigcaptionElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
 }
 
-export interface FigureElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface FigureElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
 }
 
-export interface FooterElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface FooterElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
 }
 
-export interface FormElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface FormElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     accept(value: string | Stateful<string, Context>): FormElementAttributes<Context>;
     acceptCharset(value: string | Stateful<string, Context>): FormElementAttributes<Context>;
     action(value: string | Stateful<string, Context>): FormElementAttributes<Context>;
@@ -481,56 +482,56 @@ export interface FormElementAttributes<Context> extends SpecialAttributes<Contex
     target(value: string | Stateful<string, Context>): FormElementAttributes<Context>;
 }
 
-export interface H1ElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface H1ElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     align(value: string | Stateful<string, Context>): H1ElementAttributes<Context>;
 }
 
-export interface H2ElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface H2ElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     align(value: string | Stateful<string, Context>): H2ElementAttributes<Context>;
 }
 
-export interface H3ElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface H3ElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     align(value: string | Stateful<string, Context>): H3ElementAttributes<Context>;
 }
 
-export interface H4ElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface H4ElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     align(value: string | Stateful<string, Context>): H4ElementAttributes<Context>;
 }
 
-export interface H5ElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface H5ElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     align(value: string | Stateful<string, Context>): H5ElementAttributes<Context>;
 }
 
-export interface H6ElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface H6ElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     align(value: string | Stateful<string, Context>): H6ElementAttributes<Context>;
 }
 
-export interface HeadElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface HeadElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     profile(value: string | Stateful<string, Context>): HeadElementAttributes<Context>;
 }
 
-export interface HeaderElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface HeaderElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
 }
 
-export interface HgroupElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface HgroupElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
 }
 
-export interface HrElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface HrElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     align(value: string | Stateful<string, Context>): HrElementAttributes<Context>;
     noshade(value: string | Stateful<string, Context>): HrElementAttributes<Context>;
     size(value: string | Stateful<string, Context>): HrElementAttributes<Context>;
     width(value: string | Stateful<string, Context>): HrElementAttributes<Context>;
 }
 
-export interface HtmlElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface HtmlElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     manifest(value: string | Stateful<string, Context>): HtmlElementAttributes<Context>;
     version(value: string | Stateful<string, Context>): HtmlElementAttributes<Context>;
 }
 
-export interface IElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface IElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
 }
 
-export interface IframeElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface IframeElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     align(value: string | Stateful<string, Context>): IframeElementAttributes<Context>;
     allow(value: string | Stateful<string, Context>): IframeElementAttributes<Context>;
     allowfullscreen(value: boolean | Stateful<boolean, Context>): IframeElementAttributes<Context>;
@@ -551,7 +552,7 @@ export interface IframeElementAttributes<Context> extends SpecialAttributes<Cont
     width(value: string | Stateful<string, Context>): IframeElementAttributes<Context>;
 }
 
-export interface ImgElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface ImgElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     align(value: string | Stateful<string, Context>): ImgElementAttributes<Context>;
     alt(value: string | Stateful<string, Context>): ImgElementAttributes<Context>;
     border(value: string | Stateful<string, Context>): ImgElementAttributes<Context>;
@@ -573,7 +574,7 @@ export interface ImgElementAttributes<Context> extends SpecialAttributes<Context
     width(value: string | Stateful<string, Context>): ImgElementAttributes<Context>;
 }
 
-export interface InputElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface InputElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     accept(value: string | Stateful<string, Context>): InputElementAttributes<Context>;
     align(value: string | Stateful<string, Context>): InputElementAttributes<Context>;
     alt(value: string | Stateful<string, Context>): InputElementAttributes<Context>;
@@ -611,29 +612,29 @@ export interface InputElementAttributes<Context> extends SpecialAttributes<Conte
     width(value: string | Stateful<string, Context>): InputElementAttributes<Context>;
 }
 
-export interface InsElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface InsElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     cite(value: string | Stateful<string, Context>): InsElementAttributes<Context>;
     datetime(value: string | Stateful<string, Context>): InsElementAttributes<Context>;
 }
 
-export interface KbdElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface KbdElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
 }
 
-export interface LabelElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface LabelElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     for(value: string | Stateful<string, Context>): LabelElementAttributes<Context>;
     form(value: string | Stateful<string, Context>): LabelElementAttributes<Context>;
 }
 
-export interface LegendElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface LegendElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     align(value: string | Stateful<string, Context>): LegendElementAttributes<Context>;
 }
 
-export interface LiElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface LiElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     type(value: string | Stateful<string, Context>): LiElementAttributes<Context>;
     value(value: string | Stateful<string, Context>): LiElementAttributes<Context>;
 }
 
-export interface LinkElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface LinkElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     as(value: string | Stateful<string, Context>): LinkElementAttributes<Context>;
     blocking(value: string | Stateful<string, Context>): LinkElementAttributes<Context>;
     charset(value: string | Stateful<string, Context>): LinkElementAttributes<Context>;
@@ -655,27 +656,27 @@ export interface LinkElementAttributes<Context> extends SpecialAttributes<Contex
     type(value: string | Stateful<string, Context>): LinkElementAttributes<Context>;
 }
 
-export interface MainElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface MainElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
 }
 
-export interface MapElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface MapElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     name(value: string | Stateful<string, Context>): MapElementAttributes<Context>;
 }
 
-export interface MarkElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface MarkElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
 }
 
-export interface MathElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface MathElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
 }
 
-export interface MenuElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface MenuElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     compact(value: string | Stateful<string, Context>): MenuElementAttributes<Context>;
 }
 
-export interface MenuitemElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface MenuitemElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
 }
 
-export interface MetaElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface MetaElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     charset(value: string | Stateful<string, Context>): MetaElementAttributes<Context>;
     content(value: string | Stateful<string, Context>): MetaElementAttributes<Context>;
     httpEquiv(value: string | Stateful<string, Context>): MetaElementAttributes<Context>;
@@ -684,7 +685,7 @@ export interface MetaElementAttributes<Context> extends SpecialAttributes<Contex
     scheme(value: string | Stateful<string, Context>): MetaElementAttributes<Context>;
 }
 
-export interface MeterElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface MeterElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     high(value: string | Stateful<string, Context>): MeterElementAttributes<Context>;
     low(value: string | Stateful<string, Context>): MeterElementAttributes<Context>;
     max(value: string | Stateful<string, Context>): MeterElementAttributes<Context>;
@@ -693,13 +694,13 @@ export interface MeterElementAttributes<Context> extends SpecialAttributes<Conte
     value(value: string | Stateful<string, Context>): MeterElementAttributes<Context>;
 }
 
-export interface NavElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface NavElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
 }
 
-export interface NoscriptElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface NoscriptElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
 }
 
-export interface ObjectElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface ObjectElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     align(value: string | Stateful<string, Context>): ObjectElementAttributes<Context>;
     archive(value: string | Stateful<string, Context>): ObjectElementAttributes<Context>;
     border(value: string | Stateful<string, Context>): ObjectElementAttributes<Context>;
@@ -720,80 +721,80 @@ export interface ObjectElementAttributes<Context> extends SpecialAttributes<Cont
     width(value: string | Stateful<string, Context>): ObjectElementAttributes<Context>;
 }
 
-export interface OlElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface OlElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     compact(value: string | Stateful<string, Context>): OlElementAttributes<Context>;
     reversed(value: boolean | Stateful<boolean, Context>): OlElementAttributes<Context>;
     start(value: string | Stateful<string, Context>): OlElementAttributes<Context>;
     type(value: string | Stateful<string, Context>): OlElementAttributes<Context>;
 }
 
-export interface OptgroupElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface OptgroupElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     disabled(value: boolean | Stateful<boolean, Context>): OptgroupElementAttributes<Context>;
     label(value: string | Stateful<string, Context>): OptgroupElementAttributes<Context>;
 }
 
-export interface OptionElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface OptionElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     disabled(value: boolean | Stateful<boolean, Context>): OptionElementAttributes<Context>;
     label(value: string | Stateful<string, Context>): OptionElementAttributes<Context>;
     selected(value: boolean | Stateful<boolean, Context>): OptionElementAttributes<Context>;
     value(value: string | Stateful<string, Context>): OptionElementAttributes<Context>;
 }
 
-export interface OutputElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface OutputElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     for(value: string | Stateful<string, Context>): OutputElementAttributes<Context>;
     form(value: string | Stateful<string, Context>): OutputElementAttributes<Context>;
     name(value: string | Stateful<string, Context>): OutputElementAttributes<Context>;
 }
 
-export interface PElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface PElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     align(value: string | Stateful<string, Context>): PElementAttributes<Context>;
 }
 
-export interface ParamElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface ParamElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     name(value: string | Stateful<string, Context>): ParamElementAttributes<Context>;
     type(value: string | Stateful<string, Context>): ParamElementAttributes<Context>;
     value(value: string | Stateful<string, Context>): ParamElementAttributes<Context>;
     valuetype(value: string | Stateful<string, Context>): ParamElementAttributes<Context>;
 }
 
-export interface PictureElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface PictureElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
 }
 
-export interface PreElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface PreElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     width(value: string | Stateful<string, Context>): PreElementAttributes<Context>;
 }
 
-export interface ProgressElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface ProgressElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     max(value: string | Stateful<string, Context>): ProgressElementAttributes<Context>;
     value(value: string | Stateful<string, Context>): ProgressElementAttributes<Context>;
 }
 
-export interface QElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface QElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     cite(value: string | Stateful<string, Context>): QElementAttributes<Context>;
 }
 
-export interface RbElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface RbElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
 }
 
-export interface RpElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface RpElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
 }
 
-export interface RtElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface RtElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
 }
 
-export interface RtcElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface RtcElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
 }
 
-export interface RubyElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface RubyElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
 }
 
-export interface SElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface SElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
 }
 
-export interface SampElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface SampElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
 }
 
-export interface ScriptElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface ScriptElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     async(value: boolean | Stateful<boolean, Context>): ScriptElementAttributes<Context>;
     blocking(value: string | Stateful<string, Context>): ScriptElementAttributes<Context>;
     charset(value: string | Stateful<string, Context>): ScriptElementAttributes<Context>;
@@ -808,13 +809,13 @@ export interface ScriptElementAttributes<Context> extends SpecialAttributes<Cont
     type(value: string | Stateful<string, Context>): ScriptElementAttributes<Context>;
 }
 
-export interface SearchElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface SearchElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
 }
 
-export interface SectionElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface SectionElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
 }
 
-export interface SelectElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface SelectElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     autocomplete(value: string | Stateful<string, Context>): SelectElementAttributes<Context>;
     disabled(value: boolean | Stateful<boolean, Context>): SelectElementAttributes<Context>;
     form(value: string | Stateful<string, Context>): SelectElementAttributes<Context>;
@@ -824,14 +825,14 @@ export interface SelectElementAttributes<Context> extends SpecialAttributes<Cont
     size(value: string | Stateful<string, Context>): SelectElementAttributes<Context>;
 }
 
-export interface SlotElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface SlotElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     name(value: string | Stateful<string, Context>): SlotElementAttributes<Context>;
 }
 
-export interface SmallElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface SmallElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
 }
 
-export interface SourceElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface SourceElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     height(value: string | Stateful<string, Context>): SourceElementAttributes<Context>;
     media(value: string | Stateful<string, Context>): SourceElementAttributes<Context>;
     sizes(value: string | Stateful<string, Context>): SourceElementAttributes<Context>;
@@ -841,28 +842,28 @@ export interface SourceElementAttributes<Context> extends SpecialAttributes<Cont
     width(value: string | Stateful<string, Context>): SourceElementAttributes<Context>;
 }
 
-export interface SpanElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface SpanElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
 }
 
-export interface StrongElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface StrongElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
 }
 
-export interface StyleElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface StyleElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     blocking(value: string | Stateful<string, Context>): StyleElementAttributes<Context>;
     media(value: string | Stateful<string, Context>): StyleElementAttributes<Context>;
     type(value: string | Stateful<string, Context>): StyleElementAttributes<Context>;
 }
 
-export interface SubElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface SubElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
 }
 
-export interface SummaryElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface SummaryElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
 }
 
-export interface SupElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface SupElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
 }
 
-export interface TableElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface TableElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     align(value: string | Stateful<string, Context>): TableElementAttributes<Context>;
     bgcolor(value: string | Stateful<string, Context>): TableElementAttributes<Context>;
     border(value: string | Stateful<string, Context>): TableElementAttributes<Context>;
@@ -874,14 +875,14 @@ export interface TableElementAttributes<Context> extends SpecialAttributes<Conte
     width(value: string | Stateful<string, Context>): TableElementAttributes<Context>;
 }
 
-export interface TbodyElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface TbodyElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     align(value: string | Stateful<string, Context>): TbodyElementAttributes<Context>;
     char(value: string | Stateful<string, Context>): TbodyElementAttributes<Context>;
     charoff(value: string | Stateful<string, Context>): TbodyElementAttributes<Context>;
     valign(value: string | Stateful<string, Context>): TbodyElementAttributes<Context>;
 }
 
-export interface TdElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface TdElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     abbr(value: string | Stateful<string, Context>): TdElementAttributes<Context>;
     align(value: string | Stateful<string, Context>): TdElementAttributes<Context>;
     axis(value: string | Stateful<string, Context>): TdElementAttributes<Context>;
@@ -898,10 +899,10 @@ export interface TdElementAttributes<Context> extends SpecialAttributes<Context>
     width(value: string | Stateful<string, Context>): TdElementAttributes<Context>;
 }
 
-export interface TemplateElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface TemplateElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
 }
 
-export interface TextareaElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface TextareaElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     autocomplete(value: string | Stateful<string, Context>): TextareaElementAttributes<Context>;
     cols(value: string | Stateful<string, Context>): TextareaElementAttributes<Context>;
     dirname(value: string | Stateful<string, Context>): TextareaElementAttributes<Context>;
@@ -917,14 +918,14 @@ export interface TextareaElementAttributes<Context> extends SpecialAttributes<Co
     wrap(value: string | Stateful<string, Context>): TextareaElementAttributes<Context>;
 }
 
-export interface TfootElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface TfootElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     align(value: string | Stateful<string, Context>): TfootElementAttributes<Context>;
     char(value: string | Stateful<string, Context>): TfootElementAttributes<Context>;
     charoff(value: string | Stateful<string, Context>): TfootElementAttributes<Context>;
     valign(value: string | Stateful<string, Context>): TfootElementAttributes<Context>;
 }
 
-export interface ThElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface ThElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     abbr(value: string | Stateful<string, Context>): ThElementAttributes<Context>;
     align(value: string | Stateful<string, Context>): ThElementAttributes<Context>;
     axis(value: string | Stateful<string, Context>): ThElementAttributes<Context>;
@@ -941,21 +942,21 @@ export interface ThElementAttributes<Context> extends SpecialAttributes<Context>
     width(value: string | Stateful<string, Context>): ThElementAttributes<Context>;
 }
 
-export interface TheadElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface TheadElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     align(value: string | Stateful<string, Context>): TheadElementAttributes<Context>;
     char(value: string | Stateful<string, Context>): TheadElementAttributes<Context>;
     charoff(value: string | Stateful<string, Context>): TheadElementAttributes<Context>;
     valign(value: string | Stateful<string, Context>): TheadElementAttributes<Context>;
 }
 
-export interface TimeElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface TimeElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     datetime(value: string | Stateful<string, Context>): TimeElementAttributes<Context>;
 }
 
-export interface TitleElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface TitleElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
 }
 
-export interface TrElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface TrElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     align(value: string | Stateful<string, Context>): TrElementAttributes<Context>;
     bgcolor(value: string | Stateful<string, Context>): TrElementAttributes<Context>;
     char(value: string | Stateful<string, Context>): TrElementAttributes<Context>;
@@ -963,7 +964,7 @@ export interface TrElementAttributes<Context> extends SpecialAttributes<Context>
     valign(value: string | Stateful<string, Context>): TrElementAttributes<Context>;
 }
 
-export interface TrackElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface TrackElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     default(value: boolean | Stateful<boolean, Context>): TrackElementAttributes<Context>;
     kind(value: string | Stateful<string, Context>): TrackElementAttributes<Context>;
     label(value: string | Stateful<string, Context>): TrackElementAttributes<Context>;
@@ -971,18 +972,18 @@ export interface TrackElementAttributes<Context> extends SpecialAttributes<Conte
     srclang(value: string | Stateful<string, Context>): TrackElementAttributes<Context>;
 }
 
-export interface UElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface UElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
 }
 
-export interface UlElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface UlElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     compact(value: string | Stateful<string, Context>): UlElementAttributes<Context>;
     type(value: string | Stateful<string, Context>): UlElementAttributes<Context>;
 }
 
-export interface VarElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface VarElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
 }
 
-export interface VideoElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface VideoElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
     autoplay(value: boolean | Stateful<boolean, Context>): VideoElementAttributes<Context>;
     controls(value: boolean | Stateful<boolean, Context>): VideoElementAttributes<Context>;
     crossorigin(value: string | Stateful<string, Context>): VideoElementAttributes<Context>;
@@ -996,7 +997,7 @@ export interface VideoElementAttributes<Context> extends SpecialAttributes<Conte
     width(value: string | Stateful<string, Context>): VideoElementAttributes<Context>;
 }
 
-export interface WbrElementAttributes<Context> extends SpecialAttributes<Context>, GlobalHTMLAttributes<Context> {
+export interface WbrElementAttributes<Context> extends SpecialElementAttributes<Context>, GlobalHTMLAttributes<Context> {
 }
 
 export type AriaAttribute = "activedescendant" | "atomic" | "autocomplete" | "busy" | "checked" | "colcount" | "colindex" | "colspan" | "controls" | "current" | "describedby" | "details" | "disabled" | "dropeffect" | "errormessage" | "expanded" | "flowto" | "grabbed" | "haspopup" | "hidden" | "invalid" | "keyshortcuts" | "label" | "labelledby" | "level" | "live" | "modal" | "multiline" | "multiselectable" | "orientation" | "owns" | "placeholder" | "posinset" | "pressed" | "readonly" | "relevant" | "required" | "roledescription" | "rowcount" | "rowindex" | "rowspan" | "selected" | "setsize" | "sort" | "valuemax" | "valuemin" | "valuenow" | "valuetext" | "";

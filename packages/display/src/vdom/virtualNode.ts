@@ -36,7 +36,7 @@ export interface ElementNode {
   data: VirtualNodeConfig
   children: Array<VirtualNode>
   node: Element | undefined
-  key?: VirtualNodeKey
+  // key?: VirtualNodeKey
 }
 
 export interface StatefulNode {
@@ -57,6 +57,7 @@ export interface TemplateNode {
   type: NodeType.TEMPLATE
   content: VirtualNode
   context: any
+  key?: VirtualNodeKey
   node: Node | undefined
 }
 
@@ -87,7 +88,7 @@ export function virtualNodeConfig(): VirtualNodeConfig {
   }
 }
 
-export function addNamespace(config: VirtualNodeConfig, namespace: string) {
+export function setNamespace(config: VirtualNodeConfig, namespace: string) {
   config.namespace = namespace
 }
 
@@ -124,33 +125,30 @@ export function setEventHandler(config: VirtualNodeConfig, event: string, handle
   config.on[event] = new EventHandler(handler)
 }
 
-export function makeStatefulElement(config: VirtualNodeConfig, generator: (get: GetState, context: any) => VirtualNode, node?: Node): VirtualNode {
+export function makeStatefulElement(generator: (get: GetState, context: any) => VirtualNode, key: VirtualNodeKey | undefined, node?: Node): VirtualNode {
   const element: StatefulNode = {
     type: NodeType.STATEFUL,
     generator,
+    key,
     node
-  }
-
-  if (config.key) {
-    element.key = config.key
   }
 
   return element
 }
 
-export function makeBlockElement(config: VirtualNodeConfig, generator: () => VirtualNode, node?: Element): VirtualNode {
-  const blockNode: BlockNode = {
-    type: NodeType.BLOCK,
-    generator,
-    node
-  }
+// export function makeBlockElement(config: VirtualNodeConfig, generator: () => VirtualNode, node?: Element): VirtualNode {
+//   const blockNode: BlockNode = {
+//     type: NodeType.BLOCK,
+//     generator,
+//     node
+//   }
 
-  if (config.key) {
-    blockNode.key = config.key
-  }
+//   if (config.key) {
+//     blockNode.key = config.key
+//   }
 
-  return blockNode
-}
+//   return blockNode
+// }
 
 export function makeVirtualElement(tag: string, config: VirtualNodeConfig, children: Array<VirtualNode>, node?: Element): ElementNode {
   const element: ElementNode = {
@@ -161,9 +159,9 @@ export function makeVirtualElement(tag: string, config: VirtualNodeConfig, child
     node
   }
 
-  if (config.key) {
-    element.key = config.key
-  }
+  // if (config.key) {
+    // element.key = config.key
+  // }
 
   return element
 }
@@ -176,7 +174,7 @@ export function makeVirtualTextNode(text: string, node?: Node): TextNode {
   }
 }
 
-export function makeStatefulTextNode(generator: (get: GetState) => string, node?: Node): StatefulTextNode {
+export function makeStatefulTextNode(generator: Stateful<string, any>, node?: Node): StatefulTextNode {
   return {
     type: NodeType.STATEFUL_TEXT,
     generator,
@@ -184,11 +182,12 @@ export function makeStatefulTextNode(generator: (get: GetState) => string, node?
   }
 }
 
-export function makeTemplate(content: VirtualNode, context: any): TemplateNode {
+export function makeTemplate(content: VirtualNode, context: any, key?: VirtualNodeKey): TemplateNode {
   return {
     type: NodeType.TEMPLATE,
     content,
     context,
+    key,
     node: undefined
   }
 }

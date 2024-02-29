@@ -1,5 +1,5 @@
 import { Container, StoreMessage, container, reset, rule, use, write } from "@spheres/store";
-import { View, htmlTemplate, htmlView } from "@src/index";
+import { HTMLBuilder } from "@src/htmlElements";
 
 interface Context {
   id: number
@@ -8,29 +8,35 @@ interface Context {
 
 const clickCounter = container({ initialValue: 0 })
 
-
-export default function (): View {
-  return htmlView(root => {
-    root.main(el => {
-      el.children
-        .zone(funZone({ id: 1, name: "Cool dude" }))
-        .zone(funZone({ id: 2, name: "Awesome person" }))
-        .zone(funZone({ id: 3, name: "Fun human" }))
-        .hr()
-        .zone(button({
+export default function view(root: HTMLBuilder) {
+  root.main(el => {
+    el.children
+      .zone(funZone, {
+        props: { id: 1, name: "Cool dude" }
+      })
+      .zone(funZone, {
+        props: { id: 2, name: "Awesome person" }
+      })
+      .zone(funZone, {
+        props: { id: 3, name: "Fun human" }
+      })
+      .hr()
+      .zone(button, {
+        props: {
           name: "increment",
           label: "Increment the counter!",
           handler: () => use(incrementRule, clickCounter)
-        }))
-    })
+        }
+      })
   })
 }
+
 
 const incrementRule = rule((get, counterContainer: Container<number>) => {
   return write(counterContainer, get(counterContainer) + 1)
 })
 
-const funZone = htmlTemplate<Context>(root => {
+function funZone(root: HTMLBuilder<Context>) {
   root.div(el => {
     el.children
       .hr()
@@ -38,21 +44,23 @@ const funZone = htmlTemplate<Context>(root => {
         el.children
           .div(el => {
             el.config
-              .dataAttribute("counter", (_, context) => `${context.id}`)
+              .dataAttribute("counter", (_, props) => `${props.id}`)
             el.children
-              .textNode((get, context) => `${context.name} - ${get(clickCounter)} clicks!`)
+              .textNode((get, props) => `${props.name} - ${get(clickCounter)} clicks!`)
           })
       })
       .div(el => {
         el.children
-          .zone(button({
-            name: "increment",
-            label: `Click me to reset!`,
-            handler: () => reset(clickCounter)
-          }))
+          .zone(button, {
+            props: {
+              name: "increment",
+              label: `Click me to reset!`,
+              handler: () => reset(clickCounter)
+            }
+          })
       })
   })
-})
+}
 
 interface ButtonContext {
   name: string
@@ -60,13 +68,13 @@ interface ButtonContext {
   label: string
 }
 
-const button = htmlTemplate<ButtonContext>(root => {
+function button(root: HTMLBuilder<ButtonContext>) {
   root.button(el => {
     el.config
-      .dataAttribute("button-name", (_, context) => context.name)
+      .dataAttribute("button-name", (_, props) => props.name)
       .on("click", (evt, context) => context.handler(evt))
     el.children
-      .textNode((_, context) => context.label)
+      .textNode((_, props) => props.label)
   })
-})
+}
 

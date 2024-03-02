@@ -1,6 +1,6 @@
 import { GetState, container, write } from "@spheres/store";
 import { HTMLBuilder } from "@src/htmlElements";
-import { SVGBuilder } from "@src/svgElements";
+import { SVGView } from "@src/svgViewBuilder";
 
 const message = container({ initialValue: "SVG" })
 
@@ -34,20 +34,23 @@ export default function view(root: HTMLBuilder) {
               .r("80")
               .fill("green")
           })
-          .zone(circle)
+          .zoneWithState(circle)
       })
   })
 }
 
-function circle(root: SVGBuilder, get: GetState) {
-  root.text(({ config, children }) => {
-    config
-      .x("150")
-      .y("125")
-      .fontSize("60")
-      .textAnchor("middle")
-      .fill("white")
-    children
-      .textNode(get(message))
-  })
+function circle(get: GetState): SVGView {
+  const text = get(message)
+  
+  return (root) =>
+    root.text(({ config, children }) => {
+      config
+        .x("150")
+        .y("125")
+        .fontSize("60")
+        .textAnchor("middle")
+        .fill("white")
+      children
+        .textNode(text)
+    })
 }

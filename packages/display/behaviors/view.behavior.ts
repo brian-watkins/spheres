@@ -4,7 +4,7 @@ import { browserAppContext, TestAppController } from "./helpers/testAppControlle
 
 
 const simpleViewBehavior = (context: Context<TestAppController>): ConfigurableExample =>
-  (m) => m.pick() && example(context)
+  example(context)
     .description("Rendering a simple view")
     .script({
       suppose: [

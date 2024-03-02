@@ -37,11 +37,8 @@ svgElementsFile.addImportDeclarations([
 
 const viewBuilderInterface = svgElementsFile.addInterface({
   name: "SVGBuilder",
-  typeParameters: [
-    { name: "Context", default: "undefined" }
-  ],
   extends: [
-    "SpecialSVGElements<Context>"
+    "SpecialSVGElements"
   ],
   isExported: true
 })
@@ -57,7 +54,7 @@ for (const tag of svgTagNames) {
   methodSignature.addParameter({
     name: "builder?",
     type: (writer) => {
-      writer.write(`(element: ConfigurableElement<${attributesName(tag)}<Context>, SVGElements<Context>, Context>) => void`)
+      writer.write(`(element: ConfigurableElement<${attributesName(tag)}, SVGElements>) => void`)
     }
   })
 }
@@ -67,11 +64,8 @@ for (const tag of svgTagNames) {
 
 const svgElementsInterface = svgElementsFile.addInterface({
   name: "SVGElements",
-  typeParameters: [
-    { name: "Context" }
-  ],
   extends: [
-    "SpecialSVGElements<Context>"
+    "SpecialSVGElements"
   ],
   isExported: true
 })
@@ -88,7 +82,7 @@ for (const tag of svgTagNames) {
   methodSignature.addParameter({
     name: "builder?",
     type: (writer) => {
-      writer.write(`(element: ConfigurableElement<${attributesName(tag)}<Context>, SVGElements<Context>, Context>) => void`)
+      writer.write(`(element: ConfigurableElement<${attributesName(tag)}, SVGElements>) => void`)
     }
   })
 }
@@ -97,9 +91,6 @@ for (const tag of svgTagNames) {
 
 const globalAttibutesInterface = svgElementsFile.addInterface({
   name: "GlobalSVGAttributes",
-  typeParameters: [
-    { name: "Context" }
-  ],
   isExported: true
 })
 
@@ -119,13 +110,10 @@ for (const tag of svgTagNames) {
 
   svgElementsFile.addInterface({
     name: attributesName(tag),
-    typeParameters: [
-      { name: "Context" }
-    ],
-    methods: elementAttributes.map(buildAttributeProperty(`${attributesName(tag)}<Context>`)),
+    methods: elementAttributes.map(buildAttributeProperty(`${attributesName(tag)}`)),
     extends: [
-      "SpecialElementAttributes<Context>",
-      "GlobalSVGAttributes<Context>"
+      "SpecialElementAttributes",
+      "GlobalSVGAttributes"
     ],
     isExported: true
   })
@@ -135,7 +123,7 @@ function buildAttributeProperty(returnType: string): (attribute: string) => Opti
   return (attribute) => {
     let parameters: Array<OptionalKind<ParameterDeclarationStructure>> = []
     parameters = [
-      { name: "value", type: "string | Stateful<string, Context>" }
+      { name: "value", type: "string | Stateful<string>" }
     ]
 
     return {

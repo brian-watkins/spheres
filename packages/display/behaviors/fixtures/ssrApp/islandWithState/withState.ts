@@ -1,10 +1,10 @@
-import { htmlView } from "@src/index.js"
+import { HTMLBuilder, HTMLView } from "@src/index.js"
 import { clickCount, nameState } from "../state.js"
 import { GetState, rule, use, write } from "@spheres/store"
 
-export default htmlView(root => {
-  root.zone(get => {
-    return htmlView(root => {
+export default function view(root: HTMLBuilder) {
+  root.zoneWithState(get => {
+    return (root) => {
       root.div(el => {
         el.config.id("nested-state-island")
         el.children
@@ -13,33 +13,31 @@ export default htmlView(root => {
           })
           .zone(counterView)
           .hr()
-          .zone(tallyView)
+          .zoneWithState(tallyView)
           .hr()
-          .zone(tallyView)
+          .zoneWithState(tallyView)
       })
-    })
-  })
-})
-
-const incrementCount = rule(get => write(clickCount, get(clickCount) + 1))
-
-function counterView() {
-  return htmlView(root => {
-    root.div(el => {
-      el.children
-        .button(el => {
-          el.config.on("click", () => use(incrementCount))
-          el.children.textNode("Click me!")
-        })
-    })
+    }
   })
 }
 
-function tallyView(get: GetState) {
-  return htmlView(root => {
+const incrementCount = rule(get => write(clickCount, get(clickCount) + 1))
+
+function counterView(root: HTMLBuilder) {
+  root.div(el => {
+    el.children
+      .button(el => {
+        el.config.on("click", () => use(incrementCount))
+        el.children.textNode("Click me!")
+      })
+  })
+}
+
+function tallyView(get: GetState): HTMLView {
+  return (root) => {
     root.p(el => {
       el.config.dataAttribute("click-count")
       el.children.textNode(`You've clicked the button ${get(clickCount)} times!`)
     })
-  })
+  }
 }

@@ -133,13 +133,13 @@ export default behavior("mount", [
       suppose: [
         fact("a stateful view", (context) => {
           const name = container({ initialValue: "Funny person" })
-          context.mount(makeStatefulElement(virtualNodeConfig(), (get) => {
+          context.mount(makeStatefulElement((get) => {
             const statefulConfig = virtualNodeConfig()
             addAttribute(statefulConfig, "data-label", "stateful")
             return makeVirtualElement("div", statefulConfig, [
               makeVirtualTextNode(`${get(name)}, you are so stateful!`)
             ])
-          }))
+          }, undefined))
         })
       ],
       observe: [
@@ -157,15 +157,15 @@ export default behavior("mount", [
           const name = container({ initialValue: "Funny person" })
           const sport = container({ initialValue: "bowling" })
 
-          const statefulChild = makeStatefulElement(virtualNodeConfig(), (get) => {
+          const statefulChild = makeStatefulElement((get) => {
             const config = virtualNodeConfig()
             addAttribute(config, "class", "coolness")
             return makeVirtualElement("div", config, [
               makeVirtualTextNode(`Your favorite sport is: ${get(sport)}`)
             ])
-          })
+          }, undefined)
 
-          context.mount(makeStatefulElement(virtualNodeConfig(), (get) => {
+          context.mount(makeStatefulElement((get) => {
             const statefulConfig = virtualNodeConfig()
             addAttribute(statefulConfig, "data-label", "stateful")
             return makeVirtualElement("div", virtualNodeConfig(), [
@@ -174,7 +174,7 @@ export default behavior("mount", [
               ]),
               statefulChild
             ])
-          }))
+          }, undefined))
         })
       ],
       observe: [

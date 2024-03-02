@@ -7,7 +7,7 @@ export interface InputAppProps {
 
 const formInputValue = container({ initialValue: "" })
 
-export default function (root: HTMLBuilder<InputAppProps>) {
+export default function (root: HTMLBuilder) {
   root.main(el => {
     el.children
       .form(el => {
@@ -23,7 +23,7 @@ export default function (root: HTMLBuilder<InputAppProps>) {
             el.config
               .name("fun-stuff")
               .dataAttribute("with-default")
-              .value(props.defaultInputValue)
+              .value("my default value")
               .disabled(false)
           })
           .input(el => {
@@ -39,7 +39,7 @@ export default function (root: HTMLBuilder<InputAppProps>) {
       .hr()
       .div(el => {
         el.config.dataAttribute("message")
-        el.children.textNode($ => $.get(formInputValue))
+        el.children.textNode(get => get(formInputValue))
       })
   })
 }

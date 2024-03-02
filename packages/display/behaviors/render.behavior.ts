@@ -1,4 +1,4 @@
-import { renderToString, View } from "../src/index.js";
+import { HTMLView, renderToString } from "../src/index.js";
 import { behavior, effect, example, Example } from "esbehavior";
 import { equalTo, expect, is } from "great-expectations";
 import { appWithBlock, appWithDataAttributesNoValue, appWithDeeplyNestedState, appWithInnerHTML, appWithNestedState, appWithPropertiesAndAttributes, appWithReactiveText, appWithSimpleState, staticApp } from "./fixtures/static.app.js";
@@ -18,27 +18,27 @@ export default behavior("Render view to HTML", [
     expect(actual, is(equalTo(`<div><div data-is-person="true">11 years old</div></div>`)))
   }),
   renderTest("render view with state", (renderer) => {
-    const actual = renderer.renderView(appWithSimpleState())
+    const actual = renderer.renderView(appWithSimpleState)
     expect(actual, is(equalTo(`<div><h2>Cool Person!</h2></div>`)))
   }),
   renderTest("render view with nested stateful views", (renderer) => {
-    const actual = renderer.renderView(appWithNestedState())
+    const actual = renderer.renderView(appWithNestedState)
     expect(actual, is(equalTo(`<div><h2>Cool Person!</h2></div>`)))
   }),
   renderTest("render view with deeply nested stateful views", (renderer) => {
-    const actual = renderer.renderView(appWithDeeplyNestedState())
+    const actual = renderer.renderView(appWithDeeplyNestedState)
     expect(actual, is(equalTo(`<div><div><h2>Cool Person!</h2><p>98 years!</p></div></div>`)))
   }),
   renderTest("render with block view", (renderer) => {
-    const actual = renderer.renderView(appWithBlock())
+    const actual = renderer.renderView(appWithBlock)
     expect(actual, is(equalTo("<div><h1>Hello!</h1></div>")))
   }),
   renderTest("render view with reactive text", (renderer) => {
-    const actual = renderer.renderView(appWithReactiveText())
+    const actual = renderer.renderView(appWithReactiveText)
     expect(actual, is(equalTo("<div>98 years old!</div>")))
   }),
   renderTest("render view with innerHTML property", (renderer) => {
-    const actual = renderer.renderView(appWithInnerHTML())
+    const actual = renderer.renderView(appWithInnerHTML)
     expect(actual, is(equalTo(`<div><div><h1>HELLO!!!</h1></div></div>`)))
   })
 ])
@@ -46,7 +46,7 @@ export default behavior("Render view to HTML", [
 class TestRenderer {
   private store = new Store()
 
-  renderView(view: View): string {
+  renderView(view: HTMLView): string {
     return renderToString(this.store, view)
   }
 }

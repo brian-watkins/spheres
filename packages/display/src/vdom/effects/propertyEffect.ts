@@ -1,10 +1,11 @@
 import { Effect, EffectSubscription, GetState } from "@spheres/store";
-import { EffectHandle, Stateful } from "../virtualNode";
+import { EffectHandle } from "../virtualNode.js";
+import { EffectGenerator } from "./effectGenerator.js";
 
 export class UpdatePropertyEffect implements Effect, EffectHandle {
   private subscription: EffectSubscription | undefined;
 
-  constructor(private element: Element, private property: string, private generator: Stateful<string>, private context: any = undefined) { }
+  constructor(private element: Element, private property: string, private generator: EffectGenerator<string | undefined>, private context: any = undefined) { }
 
   onSubscribe(subscription: EffectSubscription): void {
     this.subscription = subscription

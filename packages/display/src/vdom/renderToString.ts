@@ -61,7 +61,7 @@ function stringifyReactiveText(store: Store, node: StatefulTextNode): string {
   let textValue: string | undefined = undefined
   store.useEffect({
     run: (get) => {
-      textValue = node.generator({ get, props: undefined })
+      textValue = node.generator(get)
     }
   })
 

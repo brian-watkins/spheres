@@ -1,11 +1,11 @@
 import { nameState } from "../state.js"
 import counterIsland from "../islands/counter.js"
 import tallyIsland from "../islands/tally.js"
-import { htmlView } from "@src/index.js"
+import { HTMLBuilder } from "@src/index.js"
 
-export default htmlView(root => {
-  root.zone(get => {
-    return htmlView(root => {
+export default function view(root: HTMLBuilder) {
+  root.zoneWithState(get => {
+    return (root) => {
       root.div(el => {
         el.config.id("super-island")
         el.children
@@ -16,6 +16,6 @@ export default htmlView(root => {
           .hr()
           .zone(tallyIsland)
       })
-    })
+    }
   })
-})
+}

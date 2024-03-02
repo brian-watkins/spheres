@@ -1,36 +1,35 @@
 import { State } from "@spheres/store"
-import { BasicElementConfig, SpecialElementAttributes } from "./viewConfig"
-import { Stateful, VirtualNode, makeStatefulTextNode, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "./vdom/virtualNode"
+import { BasicElementConfig, SpecialElementAttributes } from "./viewConfig.js"
+import { Stateful, VirtualNode, VirtualTemplate, makeStatefulTextNode, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "./vdom/virtualNode.js"
 export type { Stateful } from "./vdom/virtualNode.js"
 
-export interface ConfigurableElement<A extends SpecialElementAttributes<C>, B, C> {
+export interface ConfigurableElement<A extends SpecialElementAttributes, B> {
   config: A
   children: B
 }
 
-export interface ViewOptions<T> {
-  props?: T
+export interface ViewOptions {
   key?: string | number | State<any>
 }
 
-const templateNodeRegistry = new WeakMap<Function, VirtualNode>()
+const templateNodeRegistry = new Map<Function, VirtualTemplate<any>>()
 
-export abstract class ViewBuilder<A extends SpecialElementAttributes<C>, B, C> {
+export abstract class ViewBuilder<A extends SpecialElementAttributes, B> {
   nodes: Array<VirtualNode> = []
 
   storeNode(node: VirtualNode) {
     this.nodes.push(node)
   }
 
-  protected getTemplateNode(key: Function): VirtualNode | undefined {
+  protected getVirtualTemplate(key: Function): VirtualTemplate<any> | undefined {
     return templateNodeRegistry.get(key)
   }
 
-  protected setTemplateNode(key: Function, value: VirtualNode) {
+  protected setVirtualTemplate(key: Function, value: VirtualTemplate<any>) {
     templateNodeRegistry.set(key, value)
   }
 
-  textNode(value: string | Stateful<string, any>) {
+  textNode(value: string | Stateful<string>) {
     if (typeof value === "function") {
       this.storeNode(makeStatefulTextNode(value))
     } else {
@@ -39,9 +38,9 @@ export abstract class ViewBuilder<A extends SpecialElementAttributes<C>, B, C> {
     return this
   }
 
-  abstract element(tag: string, builder?: (element: ConfigurableElement<A, B, C>) => void): this
+  abstract element(tag: string, builder?: (element: ConfigurableElement<A, B>) => void): this
 
-  protected buildElement(tag: string, configBuilder: BasicElementConfig, builder?: (element: ConfigurableElement<A, B, C>) => void) {
+  protected buildElement(tag: string, configBuilder: BasicElementConfig, builder?: (element: ConfigurableElement<A, B>) => void) {
     let storedNodes = this.nodes
     let childNodes: Array<VirtualNode> = []
     this.nodes = childNodes
@@ -63,7 +62,7 @@ export abstract class ViewBuilder<A extends SpecialElementAttributes<C>, B, C> {
 
 const MagicElements = new Proxy({}, {
   get: (_, prop, receiver) => {
-    return function (builder?: <Context, A extends SpecialElementAttributes<Context>, B>(element: ConfigurableElement<A, B, Context>) => void) {
+    return function (builder?: <A extends SpecialElementAttributes, B>(element: ConfigurableElement<A, B>) => void) {
       return receiver.element(prop as string, builder)
     }
   }

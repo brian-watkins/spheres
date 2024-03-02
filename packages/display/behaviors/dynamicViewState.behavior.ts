@@ -2,21 +2,21 @@ import { behavior, ConfigurableExample, Context, effect, example, fact, step } f
 import { equalTo, expect, is } from "great-expectations";
 import { DOMChangeRecord, DOMStructureChangeRecord } from "./helpers/changeRecords.js";
 import { browserAppContext, TestAppController } from "./helpers/testAppController.js";
-import { ReorderAppProps } from "./fixtures/reorderUsingElementKey.app.js";
 
 export default
   behavior("keyed list", [
-    exampleGenerator(browserAppContext(), "key on stateful view", "reorderUsingElementKey.app", { keyOnState: "stateful" }),
-    exampleGenerator(browserAppContext(), "key on block", "reorderUsingElementKey.app", { keyOnState: "block" })
+    exampleGenerator(browserAppContext(), "key on stateful zone", "keyOnZoneWithState.app"),
+    exampleGenerator(browserAppContext(), "key on template", "keyOnZoneWithTemplate.app"),
+    exampleGenerator(browserAppContext(), "key on zone", "keyOnZone.app")
   ])
 
-function exampleGenerator(context: Context<TestAppController>, description: string, appName: string, props: ReorderAppProps): ConfigurableExample {
+function exampleGenerator(context: Context<TestAppController>, description: string, appName: string): ConfigurableExample {
   return example(context)
     .description(description)
     .script({
       suppose: [
         fact("there is a list of view state elements with a key", async (controller) => {
-          await controller.loadApp(appName, props)
+          await controller.loadApp(appName)
         }),
         fact("observe the element", async (controller) => {
           await controller.display.observe("#reorder-list")

@@ -22,13 +22,13 @@ export default behavior("event handlers", [
           const button = makeVirtualElement("button", config, [
             makeVirtualTextNode("Click me!")
           ])
-          const message = makeStatefulElement(virtualNodeConfig(), (get) => {
+          const message = makeStatefulElement((get) => {
             const messageConfig = virtualNodeConfig()
             addAttribute(messageConfig, "data-message", "true")
             return makeVirtualElement("p", messageConfig, [
               makeVirtualTextNode(`You clicked the button ${get(context.state)} times!`)
             ])
-          })
+          }, undefined)
           context.mount(makeVirtualElement("div", virtualNodeConfig(), [
             message,
             button
@@ -54,13 +54,13 @@ export default behavior("event handlers", [
           const button = makeVirtualElement("button", virtualNodeConfig(), [
             makeVirtualTextNode("Click me!")
           ])
-          const message = makeStatefulElement(virtualNodeConfig(), (get) => {
+          const message = makeStatefulElement((get) => {
             const messageConfig = virtualNodeConfig()
             addAttribute(messageConfig, "data-message", "true")
             return makeVirtualElement("p", messageConfig, [
               makeVirtualTextNode(`You clicked the button ${get(context.state)} times!`)
             ])
-          })
+          }, undefined)
           context.patch(makeVirtualElement("div", virtualNodeConfig(), [
             message,
             button
@@ -87,13 +87,13 @@ export default behavior("event handlers", [
           const button = makeVirtualElement("button", config, [
             makeVirtualTextNode("Click me!")
           ])
-          const message = makeStatefulElement(virtualNodeConfig(), (get) => {
+          const message = makeStatefulElement((get) => {
             const messageConfig = virtualNodeConfig()
             addAttribute(messageConfig, "data-message", "true")
             return makeVirtualElement("p", messageConfig, [
               makeVirtualTextNode(`You clicked the button ${get(context.state)} times!`)
             ])
-          })
+          }, undefined)
           context.patch(makeVirtualElement("div", virtualNodeConfig(), [
             message,
             button
@@ -131,13 +131,13 @@ export default behavior("event handlers", [
           const button = makeVirtualElement("button", config, [
             makeVirtualTextNode("Click me!")
           ])
-          const message = makeStatefulElement(virtualNodeConfig(), (get) => {
+          const message = makeStatefulElement((get) => {
             const messageConfig = virtualNodeConfig()
             addAttribute(messageConfig, "data-message", "true")
             return makeVirtualElement("p", messageConfig, [
               makeVirtualTextNode(`Here is your total: ${get(context.state)}`)
             ])
-          })
+          }, undefined)
           context.mount(makeVirtualElement("div", virtualNodeConfig(), [
             message,
             button
@@ -164,13 +164,13 @@ export default behavior("event handlers", [
           const button = makeVirtualElement("button", config, [
             makeVirtualTextNode("Click me!")
           ])
-          const message = makeStatefulElement(virtualNodeConfig(), (get) => {
+          const message = makeStatefulElement((get) => {
             const messageConfig = virtualNodeConfig()
             addAttribute(messageConfig, "data-message", "true")
             return makeVirtualElement("p", messageConfig, [
               makeVirtualTextNode(`Here is your total: ${get(context.state)}`)
             ])
-          })
+          }, undefined)
           context.patch(makeVirtualElement("div", virtualNodeConfig(), [
             message,
             button
@@ -191,13 +191,13 @@ export default behavior("event handlers", [
           const button = makeVirtualElement("button", virtualNodeConfig(), [
             makeVirtualTextNode("Click me!")
           ])
-          const message = makeStatefulElement(virtualNodeConfig(), (get) => {
+          const message = makeStatefulElement((get) => {
             const messageConfig = virtualNodeConfig()
             addAttribute(messageConfig, "data-message", "true")
             return makeVirtualElement("p", messageConfig, [
               makeVirtualTextNode(`Here is your total: ${get(context.state)}`)
             ])
-          })
+          }, undefined)
           context.patch(makeVirtualElement("div", virtualNodeConfig(), [
             message,
             button

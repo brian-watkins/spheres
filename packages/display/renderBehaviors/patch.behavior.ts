@@ -286,13 +286,13 @@ export default behavior("patch", [
       suppose: [
         fact("there is a stateful element", (context) => {
           context.setState(container({ initialValue: "bowling" }))
-          const statefulChild = makeStatefulElement(virtualNodeConfig(), (get) => {
+          const statefulChild = makeStatefulElement((get) => {
             const config = virtualNodeConfig()
             addAttribute(config, "class", "funny")
             return makeVirtualElement("div", config, [
               makeVirtualTextNode(`Your favorite sport is: ${get(context.state)}`)
             ])
-          })
+          }, undefined)
           context.mount(makeVirtualElement("div", virtualNodeConfig(), [
             statefulChild
           ]))
@@ -316,7 +316,7 @@ export default behavior("patch", [
       suppose: [
         fact("there is a stateful element", (context) => {
           context.setState(container({ initialValue: "bowling" }))
-          const statefulChild = makeStatefulElement(virtualNodeConfig(), (get) => {
+          const statefulChild = makeStatefulElement((get) => {
             if (get(context.state) === "bowling") {
               const config = virtualNodeConfig()
               addAttribute(config, "class", "funny")
@@ -326,7 +326,7 @@ export default behavior("patch", [
             } else {
               return makeVirtualTextNode("You like weird sports!")
             }
-          })
+          }, undefined)
           context.mount(makeVirtualElement("div", virtualNodeConfig(), [
             statefulChild
           ]))
@@ -364,13 +364,13 @@ export default behavior("patch", [
       suppose: [
         fact("there is an element with a stateful child", (context) => {
           context.setState(container({ initialValue: "swimming" }))
-          const statefulChild = makeStatefulElement(virtualNodeConfig(), (get) => {
+          const statefulChild = makeStatefulElement((get) => {
             const config = virtualNodeConfig()
             addAttribute(config, "class", "funny")
             return makeVirtualElement("div", config, [
               makeVirtualTextNode(`Your favorite sport is: ${get(context.state)}`)
             ])
-          })
+          }, undefined)
           const parentConfig = virtualNodeConfig()
           addAttribute(parentConfig, "data-thing", "199")
           context.mount(makeVirtualElement("div", parentConfig, [
@@ -383,13 +383,13 @@ export default behavior("patch", [
           context.writeTo(context.state, "diving")
         }),
         step("the parent element is patched", (context) => {
-          const statefulChild = makeStatefulElement(virtualNodeConfig(), (get) => {
+          const statefulChild = makeStatefulElement((get) => {
             const config = virtualNodeConfig()
             addAttribute(config, "class", "funny")
             return makeVirtualElement("div", config, [
               makeVirtualTextNode(`Your favorite sport is: ${get(context.state)}`)
             ])
-          })
+          }, undefined)
           const parentConfig = virtualNodeConfig()
           addAttribute(parentConfig, "data-thing", "801")
           context.patch(makeVirtualElement("div", parentConfig, [

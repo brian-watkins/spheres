@@ -1,4 +1,4 @@
-import { renderToDOM } from "@src/view.js"
+import { renderToDOM } from "@src/index.js"
 import withStateIsland from "./withState.js"
 import { Store } from "@spheres/store"
 

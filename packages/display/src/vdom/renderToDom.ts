@@ -78,9 +78,6 @@ function createNode(store: Store, vnode: VirtualNode): Node {
       const statefulAttrs = vnode.data.statefulAttrs
       for (const attr in statefulAttrs) {
         const stateful = statefulAttrs[attr]
-        // If we really want individual elements to have a context then
-        // the virtual node needs to have a context property so we
-        // can pass it to the effects ...
         const attributeEffect = new UpdateAttributeEffect(element, attr, stateful.generator)
         store.useEffect(attributeEffect)
         stateful.effect = attributeEffect

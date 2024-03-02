@@ -1,4 +1,4 @@
-import { VirtualNode, VirtualNodeConfig, addAttribute, makeBlockElement, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, setKey, virtualNodeConfig } from "@src/vdom/virtualNode.js"
+import { VirtualNode, VirtualNodeConfig, addAttribute, makeBlockElement, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "@src/vdom/virtualNode.js"
 import { equalTo, expect, resolvesTo } from "great-expectations"
 import { selectElement, selectElements } from "./displayElement.js"
 
@@ -15,26 +15,22 @@ export function childElement(testId: number): VirtualNode {
 }
 
 export function statefulChildElement(testId: number): VirtualNode {
-  const statefulConfig = virtualNodeConfig()
-  setKey(statefulConfig, testId)
-  return makeStatefulElement(statefulConfig, () => {
+  return makeStatefulElement(() => {
     const config = virtualNodeConfig()
     addAttribute(config, "data-stateful-child", `${testId}`)
     return makeVirtualElement("div", config, [
       makeVirtualTextNode(`stateful child ${testId}`)
     ])
-  })
+  }, testId)
 }
 
 export function blockChildElement(testId: number): VirtualNode {
-  const config = virtualNodeConfig()
-  setKey(config, testId)
   const treeConfig = virtualNodeConfig()
   addAttribute(treeConfig, "data-block-child", `${testId}`)
   const block = () => makeVirtualElement("div", treeConfig, [
     makeVirtualTextNode(`block child ${testId}`)
   ])
-  return makeBlockElement(config, block)
+  return makeBlockElement(block, testId)
 }
 
 export async function expectTotalChildren(total: number) {

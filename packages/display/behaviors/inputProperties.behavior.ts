@@ -9,9 +9,7 @@ export default behavior("Input Element Properties", [
     .script({
       suppose: [
         fact("there is an app with an input that has a default value", async (controller) => {
-          await controller.loadApp<InputAppProps>("input.app", {
-            defaultInputValue: "my default value"
-          })
+          await controller.loadApp<InputAppProps>("input.app")
         })
       ],
       observe: [

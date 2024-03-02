@@ -1,7 +1,7 @@
 import { GetState, State, StoreMessage } from "@spheres/store";
 import { EventHandler } from "./eventHandler.js";
 
-export type Stateful<T, P = undefined> = (get: GetState, props: P) => T | undefined
+export type Stateful<T> = (get: GetState) => T | undefined
 
 export interface EffectHandle {
   unsubscribe(): void
@@ -24,7 +24,7 @@ export interface TextNode {
 
 export interface StatefulTextNode {
   type: NodeType.STATEFUL_TEXT
-  generator: Stateful<string, any>
+  generator: Stateful<string>
   node: Node | undefined
 }
 
@@ -55,8 +55,8 @@ export interface BlockNode {
 
 export interface TemplateNode {
   type: NodeType.TEMPLATE
-  content: VirtualNode
-  context: any
+  template: VirtualTemplate<any>
+  props: any
   key?: VirtualNodeKey
   node: Node | undefined
 }
@@ -64,7 +64,7 @@ export interface TemplateNode {
 export type VirtualNode = TextNode | StatefulTextNode | ElementNode | StatefulNode | BlockNode | TemplateNode
 
 export interface StatefulValue {
-  generator: Stateful<string, any>
+  generator: Stateful<string>
   effect?: EffectHandle
 }
 
@@ -108,10 +108,6 @@ export function addAttribute(config: VirtualNodeConfig, name: string, value: str
   config.attrs[name] = value
 }
 
-export function setKey(config: VirtualNodeConfig, key: VirtualNodeKey) {
-  config.key = key
-}
-
 export function addStatefulAttribute(config: VirtualNodeConfig, name: string, generator: Stateful<string>) {
   if (!config.statefulAttrs) { config.statefulAttrs = {} }
   config.statefulAttrs[name] = {
@@ -119,7 +115,7 @@ export function addStatefulAttribute(config: VirtualNodeConfig, name: string, ge
   }
 }
 
-export function setEventHandler(config: VirtualNodeConfig, event: string, handler: (evt: Event, context: any) => StoreMessage<any, any>) {
+export function setEventHandler(config: VirtualNodeConfig, event: string, handler: (evt: Event) => StoreMessage<any, any>) {
   if (!config.on) { config.on = {} }
 
   config.on[event] = new EventHandler(handler)
@@ -136,19 +132,16 @@ export function makeStatefulElement(generator: (get: GetState, context: any) => 
   return element
 }
 
-// export function makeBlockElement(config: VirtualNodeConfig, generator: () => VirtualNode, node?: Element): VirtualNode {
-//   const blockNode: BlockNode = {
-//     type: NodeType.BLOCK,
-//     generator,
-//     node
-//   }
+export function makeBlockElement(generator: () => VirtualNode, key: VirtualNodeKey | undefined, node?: Element): VirtualNode {
+  const blockNode: BlockNode = {
+    type: NodeType.BLOCK,
+    generator,
+    key,
+    node
+  }
 
-//   if (config.key) {
-//     blockNode.key = config.key
-//   }
-
-//   return blockNode
-// }
+  return blockNode
+}
 
 export function makeVirtualElement(tag: string, config: VirtualNodeConfig, children: Array<VirtualNode>, node?: Element): ElementNode {
   const element: ElementNode = {
@@ -158,10 +151,6 @@ export function makeVirtualElement(tag: string, config: VirtualNodeConfig, child
     children,
     node
   }
-
-  // if (config.key) {
-    // element.key = config.key
-  // }
 
   return element
 }
@@ -174,7 +163,7 @@ export function makeVirtualTextNode(text: string, node?: Node): TextNode {
   }
 }
 
-export function makeStatefulTextNode(generator: Stateful<string, any>, node?: Node): StatefulTextNode {
+export function makeStatefulTextNode(generator: Stateful<string>, node?: Node): StatefulTextNode {
   return {
     type: NodeType.STATEFUL_TEXT,
     generator,
@@ -182,11 +171,27 @@ export function makeStatefulTextNode(generator: Stateful<string, any>, node?: No
   }
 }
 
-export function makeTemplate(content: VirtualNode, context: any, key?: VirtualNodeKey): TemplateNode {
+export interface TemplateContext<T> {
+  props: T
+}
+
+export class VirtualTemplate<T> implements TemplateContext<T> {
+  props!: T
+  virtualNode!: VirtualNode
+
+  useWithProps<B, S>(generator: (arg: B, props: T) => S): (get: B, props: T) => S {
+    return (get, props) => {
+      this.props = props
+      return generator.call({ props }, get, props)
+    }
+  }
+}
+
+export function makeTemplate(template: VirtualTemplate<any>, props: any, key?: VirtualNodeKey): TemplateNode {
   return {
     type: NodeType.TEMPLATE,
-    content,
-    context,
+    template,
+    props,
     key,
     node: undefined
   }

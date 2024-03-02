@@ -46,9 +46,6 @@ htmlElementsFile.addImportDeclarations([
 
 const globalAttibutesInterface = htmlElementsFile.addInterface({
   name: "GlobalHTMLAttributes",
-  typeParameters: [
-    { name: "Context" }
-  ],
   isExported: true
 })
 
@@ -66,11 +63,8 @@ globalAttibutesInterface.addMethod(buildAttributeProperty("this")("role"))
 
 const viewBuilderInterface = htmlElementsFile.addInterface({
   name: "HTMLBuilder",
-  typeParameters: [
-    { name: "Context", default: "undefined" }
-  ],
   extends: [
-    "SpecialHTMLElements<Context>"
+    "SpecialHTMLElements"
   ],
   isExported: true
 })
@@ -85,14 +79,14 @@ for (const tag of htmlTags) {
     methodSignature.addParameter({
       name: "builder?",
       type: (writer) => {
-        writer.write(`(element: ConfigurableElement<SVGElementAttributes<Context>, SVGElements<Context>, Context>) => void`)
+        writer.write(`(element: ConfigurableElement<SVGElementAttributes, SVGElements>) => void`)
       }
     })
   } else {
     methodSignature.addParameter({
       name: "builder?",
       type: (writer) => {
-        writer.write(`(element: ConfigurableElement<${attributesName(tag)}<Context>, HTMLElements<Context>, Context>) => void`)
+        writer.write(`(element: ConfigurableElement<${attributesName(tag)}, HTMLElements>) => void`)
       }
     })
   }
@@ -103,11 +97,8 @@ for (const tag of htmlTags) {
 
 const viewElementsInterface = htmlElementsFile.addInterface({
   name: "HTMLElements",
-  typeParameters: [
-    { name: "Context" }
-  ],
   extends: [
-    "SpecialHTMLElements<Context>"
+    "SpecialHTMLElements"
   ],
   isExported: true
 })
@@ -122,14 +113,14 @@ for (const tag of htmlTags) {
     methodSignature.addParameter({
       name: "builder?",
       type: (writer) => {
-        writer.write(`(element: ConfigurableElement<SVGElementAttributes<Context>, SVGElements<Context>, Context>) => void`)
+        writer.write(`(element: ConfigurableElement<SVGElementAttributes, SVGElements>) => void`)
       }
     })
   } else {
     methodSignature.addParameter({
       name: "builder?",
       type: (writer) => {
-        writer.write(`(element: ConfigurableElement<${attributesName(tag)}<Context>, HTMLElements<Context>, Context>) => void`)
+        writer.write(`(element: ConfigurableElement<${attributesName(tag)}, HTMLElements>) => void`)
       }
     })
   }
@@ -147,13 +138,10 @@ for (const tag of htmlTags) {
 
   htmlElementsFile.addInterface({
     name: attributesName(tag),
-    typeParameters: [
-      { name: "Context" }
-    ],
-    methods: elementAttributes.map(buildAttributeProperty(`${attributesName(tag)}<Context>`)),
+    methods: elementAttributes.map(buildAttributeProperty(`${attributesName(tag)}`)),
     extends: [
-      "SpecialElementAttributes<Context>",
-      "GlobalHTMLAttributes<Context>"
+      "SpecialElementAttributes",
+      "GlobalHTMLAttributes"
     ],
     isExported: true
   })
@@ -192,11 +180,11 @@ function buildAttributeProperty(returnType: string): (attribute: string) => Opti
     let parameters: Array<OptionalKind<ParameterDeclarationStructure>> = []
     if (booleanAttributes.includes(attribute)) {
       parameters = [
-        { name: "value", type: "boolean | Stateful<boolean, Context>" }
+        { name: "value", type: "boolean | Stateful<boolean>" }
       ]
     } else {
       parameters = [
-        { name: "value", type: "string | Stateful<string, Context>" }
+        { name: "value", type: "string | Stateful<string>" }
       ]
     }
 

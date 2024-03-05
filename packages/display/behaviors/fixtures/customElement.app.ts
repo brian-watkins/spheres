@@ -1,26 +1,24 @@
-import { View, htmlView } from "@src/index";
 import { container, write } from "@spheres/store";
+import { HTMLBuilder } from "@src/index";
 
 const coolMessage = container({ initialValue: "NOTHING!" })
 
-export default function (): View {
-  return htmlView(root => {
-    root.main(({ config, children }) => {
-      config
-        .on("cool-event", (evt) => {
-          return write(coolMessage, (evt as CustomEvent).detail)
-        })
-      children
-        .div(({ config, children }) => {
-          config.dataAttribute("message")
-          children.textNode((get) => get(coolMessage))
-        })
-        .hr()
-        .element("cool-element", ({ config }) => {
-          config
-            .attribute("cool-stuff", "camels")
-        })
-    })
+export default function view(root: HTMLBuilder) {
+  root.main(({ config, children }) => {
+    config
+      .on("cool-event", (evt) => {
+        return write(coolMessage, (evt as CustomEvent).detail)
+      })
+    children
+      .div(({ config, children }) => {
+        config.dataAttribute("message")
+        children.textNode(get => get(coolMessage))
+      })
+      .hr()
+      .element("cool-element", ({ config }) => {
+        config
+          .attribute("cool-stuff", "camels")
+      })
   })
 }
 

@@ -1,4 +1,4 @@
-import { renderToDOM } from "@src/view.js"
+import { renderToDOM } from "@src/index.js"
 import { DOMChangeRecord, structureChangeRecord, textChangeRecord } from "./changeRecords.js"
 import { Store } from "@spheres/store"
 
@@ -7,7 +7,7 @@ export class TestApp {
   private observer: MutationObserver | undefined
   public changeRecords: Array<DOMChangeRecord> = []
 
-  async startApp<T>(name: string, context?: T) {
+  async startApp(name: string) {
     const store = new Store()
     this.changeRecords = []
 
@@ -18,7 +18,7 @@ export class TestApp {
     testAppMountPoint.id = "test-display"
     document.body.appendChild(testAppMountPoint)
 
-    const renderResult = renderToDOM(store, testAppMountPoint, view(context))
+    const renderResult = renderToDOM(store, testAppMountPoint, view)
     this.unmountTestApp = renderResult.unmount
   }
 

@@ -72,12 +72,12 @@ export default behavior("stateful views", [
           context.setState(data)
 
           context.mount(makeVirtualElement("div", virtualNodeConfig(), [
-            makeStatefulElement(virtualNodeConfig(), (get) => {
+            makeStatefulElement((get) => {
               data.callCount++
               return makeVirtualElement("p", virtualNodeConfig(), [
                 makeVirtualTextNode(`This is the count: ${get(data.container)}`)
               ])
-            })
+            }, undefined)
           ]))
         })
       ],
@@ -123,19 +123,16 @@ export default behavior("stateful views", [
 
           context.setState(data)
 
-          const configWithKey = virtualNodeConfig()
-          configWithKey.key = "my-key"
-
           context.mount(makeVirtualElement("main", virtualNodeConfig(), [
             makeVirtualTextNode("Here is some extra text"),
-            makeBlockElement(configWithKey, () => {
+            makeBlockElement(() => {
               return makeVirtualElement("p", virtualNodeConfig(), [
                 makeStatefulTextNode((get) => {
                   data.callCount++
                   return `Cool things: ${get(data.container)}`
                 })
               ])
-            })
+            }, "my-key")
           ]))
         })
       ],
@@ -152,18 +149,15 @@ export default behavior("stateful views", [
     }).andThen({
       perform: [
         step("the view is patched", (context) => {
-          const configWithKey = virtualNodeConfig()
-          configWithKey.key = "my-key"
-
           context.patch(makeVirtualElement("main", virtualNodeConfig(), [
-            makeBlockElement(configWithKey, () => {
+            makeBlockElement(() => {
               return makeVirtualElement("p", virtualNodeConfig(), [
                 makeStatefulTextNode((get) => {
                   context.state.callCount++
                   return `Cool things: ${get(context.state.container)}`
                 })
               ])
-            })
+            }, "my-key")
           ]))
         })
       ]
@@ -202,11 +196,11 @@ export default behavior("stateful views", [
           })
 
           context.mount(makeVirtualElement("div", virtualNodeConfig(), [
-            makeBlockElement(virtualNodeConfig(), () => {
+            makeBlockElement(() => {
               return makeVirtualElement("div", elementConfig, [
                 makeVirtualTextNode("Hello!")
               ])
-            })
+            }, undefined)
           ]))
         })
       ],
@@ -255,11 +249,11 @@ export default behavior("stateful views", [
           })
 
           context.mount(makeVirtualElement("div", virtualNodeConfig(), [
-            makeBlockElement(virtualNodeConfig(), () => {
+            makeBlockElement(() => {
               return makeVirtualElement("div", elementConfig, [
                 makeVirtualTextNode("Hello!")
               ])
-            })
+            }, undefined)
           ]))
         })
       ],

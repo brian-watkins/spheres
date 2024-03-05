@@ -15,24 +15,27 @@ const htmlElementsFile = project.createSourceFile("./src/htmlElements.ts", undef
 htmlElementsFile.addImportDeclarations([
   {
     namedImports: [
-      "View",
       "ConfigurableElement",
-      "SpecialElements",
-      "SpecialElementBuilder",
       "Stateful"
     ],
-    moduleSpecifier: "./view.js"
+    moduleSpecifier: "./viewBuilder.js"
   },
   {
     namedImports: [
-      "SpecialAttributes"
+      "SpecialHTMLElements"
+    ],
+    moduleSpecifier: "./htmlViewBuilder.js"
+  },
+  {
+    namedImports: [
+      "SpecialElementAttributes"
     ],
     moduleSpecifier: "./viewConfig.js"
   },
   {
     namedImports: [
       "SVGElements",
-      "SvgElementAttributes",
+      "SVGElementAttributes",
     ],
     moduleSpecifier: "./svgElements.js"
   }
@@ -43,9 +46,6 @@ htmlElementsFile.addImportDeclarations([
 
 const globalAttibutesInterface = htmlElementsFile.addInterface({
   name: "GlobalHTMLAttributes",
-  typeParameters: [
-    { name: "Context" }
-  ],
   isExported: true
 })
 
@@ -63,11 +63,8 @@ globalAttibutesInterface.addMethod(buildAttributeProperty("this")("role"))
 
 const viewBuilderInterface = htmlElementsFile.addInterface({
   name: "HTMLBuilder",
-  typeParameters: [
-    { name: "Context" }
-  ],
   extends: [
-    "SpecialElementBuilder<Context>"
+    "SpecialHTMLElements"
   ],
   isExported: true
 })
@@ -75,21 +72,21 @@ const viewBuilderInterface = htmlElementsFile.addInterface({
 for (const tag of htmlTags) {
   const methodSignature = viewBuilderInterface.addMethod({
     name: tag,
-    returnType: "View"
+    returnType: "void"
   })
 
   if (tag === "svg") {
     methodSignature.addParameter({
       name: "builder?",
       type: (writer) => {
-        writer.write(`(element: ConfigurableElement<SvgElementAttributes<Context>, SVGElements<Context>, Context>) => void`)
+        writer.write(`(element: ConfigurableElement<SVGElementAttributes, SVGElements>) => void`)
       }
     })
   } else {
     methodSignature.addParameter({
       name: "builder?",
       type: (writer) => {
-        writer.write(`(element: ConfigurableElement<${attributesName(tag)}<Context>, HTMLElements<Context>, Context>) => void`)
+        writer.write(`(element: ConfigurableElement<${attributesName(tag)}, HTMLElements>) => void`)
       }
     })
   }
@@ -100,11 +97,8 @@ for (const tag of htmlTags) {
 
 const viewElementsInterface = htmlElementsFile.addInterface({
   name: "HTMLElements",
-  typeParameters: [
-    { name: "Context" }
-  ],
   extends: [
-    "SpecialElements<Context>"
+    "SpecialHTMLElements"
   ],
   isExported: true
 })
@@ -119,14 +113,14 @@ for (const tag of htmlTags) {
     methodSignature.addParameter({
       name: "builder?",
       type: (writer) => {
-        writer.write(`(element: ConfigurableElement<SvgElementAttributes<Context>, SVGElements<Context>, Context>) => void`)
+        writer.write(`(element: ConfigurableElement<SVGElementAttributes, SVGElements>) => void`)
       }
     })
   } else {
     methodSignature.addParameter({
       name: "builder?",
       type: (writer) => {
-        writer.write(`(element: ConfigurableElement<${attributesName(tag)}<Context>, HTMLElements<Context>, Context>) => void`)
+        writer.write(`(element: ConfigurableElement<${attributesName(tag)}, HTMLElements>) => void`)
       }
     })
   }
@@ -144,13 +138,10 @@ for (const tag of htmlTags) {
 
   htmlElementsFile.addInterface({
     name: attributesName(tag),
-    typeParameters: [
-      { name: "Context" }
-    ],
-    methods: elementAttributes.map(buildAttributeProperty(`${attributesName(tag)}<Context>`)),
+    methods: elementAttributes.map(buildAttributeProperty(`${attributesName(tag)}`)),
     extends: [
-      "SpecialAttributes<Context>",
-      "GlobalHTMLAttributes<Context>"
+      "SpecialElementAttributes",
+      "GlobalHTMLAttributes"
     ],
     isExported: true
   })
@@ -189,11 +180,11 @@ function buildAttributeProperty(returnType: string): (attribute: string) => Opti
     let parameters: Array<OptionalKind<ParameterDeclarationStructure>> = []
     if (booleanAttributes.includes(attribute)) {
       parameters = [
-        { name: "value", type: "boolean | Stateful<boolean, Context>" }
+        { name: "value", type: "boolean | Stateful<boolean>" }
       ]
     } else {
       parameters = [
-        { name: "value", type: "string | Stateful<string, Context>" }
+        { name: "value", type: "string | Stateful<string>" }
       ]
     }
 

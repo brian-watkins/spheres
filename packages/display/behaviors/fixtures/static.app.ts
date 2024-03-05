@@ -1,13 +1,14 @@
-import { htmlView, View } from "../../src/index.js";
 import { container, GetState } from "@spheres/store";
+import { HTMLBuilder } from "@src/htmlElements";
+import { HTMLView } from "@src/index";
 
 interface StaticViewProps {
   name: string
   age: number
 }
 
-export function staticApp(props: StaticViewProps): View {
-  return htmlView(root => {
+export function staticApp(props: StaticViewProps): HTMLView {
+  return root =>
     root.div(el => {
       el.children
         .h1(el => {
@@ -18,11 +19,10 @@ export function staticApp(props: StaticViewProps): View {
           el.children.textNode(`You are supposedly ${props.age} years old.`)
         })
     })
-  })
 }
 
-export function appWithPropertiesAndAttributes(props: StaticViewProps): View {
-  return htmlView(root => {
+export function appWithPropertiesAndAttributes(props: StaticViewProps): HTMLView {
+  return root =>
     root.div(el => {
       el.config.id("element-1")
       el.children
@@ -33,96 +33,87 @@ export function appWithPropertiesAndAttributes(props: StaticViewProps): View {
           el.children.textNode(`${props.age} years old`)
         })
     })
-  })
 }
 
-export function appWithDataAttributesNoValue(props: StaticViewProps): View {
-  return htmlView(root => {
+export function appWithDataAttributesNoValue(props: StaticViewProps): HTMLView {
+  return root =>
     root.div(el => {
       el.children.div(el => {
         el.config.dataAttribute("is-person")
         el.children.textNode(`${props.age} years old`)
       })
     })
-  })
 }
 
 const nameState = container({ initialValue: "Cool Person!" })
 const ageState = container({ initialValue: 98 })
 
-function nameView(get: GetState): View {
-  return htmlView(root => {
-    root.h2(el => {
-      el.children.textNode(get(nameState))
-    })
+function nameView(root: HTMLBuilder, get: GetState) {
+  root.h2(el => {
+    el.children.textNode(get(nameState))
   })
 }
 
-export function appWithSimpleState(): View {
-  return htmlView(root => {
-    root.div(el => {
-      el.children.zone(nameView)
-    })
+export function appWithSimpleState(root: HTMLBuilder) {
+  root.div(el => {
+    el.children.zoneWithState(nameView)
   })
 }
 
-export function appWithNestedState(): View {
-  return htmlView(root => {
-    root.div(el => {
-      el.children.zone(get => {
-        const age = get(ageState)
-        if (age < 100) {
-          return htmlView(root => root.zone(nameView))
-        } else {
-          return htmlView(root => root.p(el => el.children.textNode("You are old!")))
-        }
+export function appWithNestedState(root: HTMLBuilder) {
+  root.div(el => {
+    el.children.zoneWithState(nestedAge)
+  })
+}
+
+function nestedAge(root: HTMLBuilder, get: GetState) {
+  const age = get(ageState)
+  if (age < 100) {
+    root.zoneWithState(nameView)
+  } else {
+    root.p(el => el.children.textNode("You are old!"))
+  }
+}
+
+
+function firstLevelZone(root: HTMLBuilder, get: GetState) {
+  root.div(el => {
+    el.children
+      .zoneWithState(nameView)
+      .p(el => el.children.textNode(`${get(ageState)} years!`))
+  })
+}
+
+export function appWithDeeplyNestedState(root: HTMLBuilder) {
+  root.div(el => {
+    el.children.zoneWithState(firstLevelZone)
+  })
+}
+
+function superZone(root: HTMLBuilder) {
+  root.div(({ children }) => {
+    children
+      .h1(({ children }) => {
+        children.textNode("Hello!")
       })
-    })
   })
 }
 
-export function appWithDeeplyNestedState(): View {
-  return htmlView(root => {
-    root.div(el => {
-      el.children.zone(get => {
-        return htmlView(root => {
-          root.div(el => {
-            el.children
-              .zone(nameView)
-              .p(el => el.children.textNode(`${get(ageState)} years!`))
-          })
-        })
+export function appWithBlock(root: HTMLBuilder) {
+  root.zone(superZone)
+}
+
+export function appWithReactiveText(root: HTMLBuilder) {
+  root.div(el => {
+    el.children.textNode(get => `${get(ageState)} years old!`)
+  })
+}
+
+export function appWithInnerHTML(root: HTMLBuilder) {
+  root.div(el => {
+    el.children
+      .div(el => {
+        el.config.innerHTML("<h1>HELLO!!!</h1>")
       })
-    })
-  })
-}
-
-export function appWithBlock(): View {
-  return htmlView(root => {
-    root.zone(htmlView(root => root.div(({ children }) => {
-      children
-        .h1(({ children }) => {
-          children.textNode("Hello!")
-        })
-    })))
-  })
-}
-
-export function appWithReactiveText(): View {
-  return htmlView(root => {
-    root.div(el => {
-      el.children.textNode((get) => `${get(ageState)} years old!`)
-    })
-  })
-}
-
-export function appWithInnerHTML(): View {
-  return htmlView(root => {
-    root.div(el => {
-      el.children
-        .div(el => {
-          el.config.innerHTML("<h1>HELLO!!!</h1>")
-        })
-    })
   })
 }

@@ -1,17 +1,16 @@
 import { StoreMessage } from "@spheres/store"
 import { AriaAttribute, booleanAttributes } from "./htmlElements.js"
 import { Stateful, VirtualNodeConfig, addAttribute, addProperty, addStatefulAttribute, addStatefulProperty, setEventHandler, virtualNodeConfig } from "./vdom/virtualNode.js"
-import { svgAttributeNames } from "./svgElements.js"
 
-export interface SpecialAttributes<Context> {
-  attribute(name: string, value: string | Stateful<string, Context>): this
-  dataAttribute(name: string, value?: string | Stateful<string, Context>): this
-  innerHTML(html: string | Stateful<string, Context>): this
-  aria(name: AriaAttribute, value: string | Stateful<string, Context>): this
-  on<E extends keyof HTMLElementEventMap | string>(event: E, handler: (evt: E extends keyof HTMLElementEventMap ? HTMLElementEventMap[E] : Event, context: Context) => StoreMessage<any>): this
+export interface SpecialElementAttributes {
+  attribute(name: string, value: string | Stateful<string>): this
+  dataAttribute(name: string, value?: string | Stateful<string>): this
+  innerHTML(html: string | Stateful<string>): this
+  aria(name: AriaAttribute, value: string | Stateful<string>): this
+  on<E extends keyof HTMLElementEventMap | string>(event: E, handler: (evt: E extends keyof HTMLElementEventMap ? HTMLElementEventMap[E] : Event) => StoreMessage<any>): this
 }
 
-export class BasicElementConfig implements SpecialAttributes<any> {
+export class BasicElementConfig implements SpecialElementAttributes {
   protected config: VirtualNodeConfig = virtualNodeConfig()
 
   recordAttribute(attribute: string, value: string | Stateful<string>) {
@@ -25,7 +24,7 @@ export class BasicElementConfig implements SpecialAttributes<any> {
 
   recordBooleanAttribute(attribute: string, isSelected: boolean | Stateful<boolean>) {
     if (typeof isSelected === "function") {
-      addStatefulAttribute(this.config, attribute, (get) => isSelected(get, undefined) ? attribute : undefined)
+      addStatefulAttribute(this.config, attribute, (get) => isSelected(get) ? attribute : undefined)
     } else {
       if (isSelected) {
         addAttribute(this.config, attribute, attribute)
@@ -36,7 +35,7 @@ export class BasicElementConfig implements SpecialAttributes<any> {
 
   recordBooleanProperty(name: string, isSelected: boolean | Stateful<boolean>) {
     if (typeof isSelected === "function") {
-      addStatefulProperty(this.config, name, (get) => isSelected(get, undefined) ? name : undefined)
+      addStatefulProperty(this.config, name, (get) => isSelected(get) ? name : undefined)
     } else {
       if (isSelected) {
         addProperty(this.config, name, name)
@@ -85,38 +84,13 @@ export class BasicElementConfig implements SpecialAttributes<any> {
     return this
   }
 
-  on<E extends keyof HTMLElementEventMap | string>(event: E, handler: (evt: E extends keyof HTMLElementEventMap ? HTMLElementEventMap[E] : Event, context: any) => StoreMessage<any>): this {
-    setEventHandler(this.config, event, handler as (evt: Event, context: any) => StoreMessage<any>)
+  on<E extends keyof HTMLElementEventMap | string>(event: E, handler: (evt: E extends keyof HTMLElementEventMap ? HTMLElementEventMap[E] : Event) => StoreMessage<any>): this {
+    setEventHandler(this.config, event, handler as (evt: Event) => StoreMessage<any>)
     return this
   }
 
   resetConfig(config: VirtualNodeConfig) {
     this.config = config
-  }
-}
-
-export class InputElementConfig extends BasicElementConfig {
-  value(val: string | Stateful<string>) {
-    if (typeof val === "function") {
-      addStatefulProperty(this.config, "value", val)
-    } else {
-      addProperty(this.config, "value", val)
-    }
-
-    return this
-  }
-
-  checked(value: boolean | Stateful<boolean>) {
-    this.recordBooleanProperty("checked", value)
-
-    return this
-  }
-}
-
-export class SVGElementConfig extends BasicElementConfig {
-  recordAttribute(attributeAlias: string, value: string | Stateful<string>): this {
-    const attribute = svgAttributeNames.get(attributeAlias) ?? attributeAlias
-    return super.recordAttribute(attribute, value)
   }
 }
 
@@ -135,4 +109,4 @@ const MagicConfig = new Proxy({}, {
   }
 })
 
-Object.setPrototypeOf(Object.getPrototypeOf(new BasicElementConfig()), MagicConfig)
+Object.setPrototypeOf(BasicElementConfig.prototype, MagicConfig)

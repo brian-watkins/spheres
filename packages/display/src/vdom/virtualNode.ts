@@ -1,7 +1,7 @@
 import { GetState, State, StoreMessage } from "@spheres/store";
 import { EventHandler } from "./eventHandler.js";
 
-export type Stateful<T, P = undefined> = (get: GetState, props: P) => T | undefined
+export type Stateful<T> = (get: GetState) => T | undefined
 
 export interface EffectHandle {
   unsubscribe(): void
@@ -24,7 +24,7 @@ export interface TextNode {
 
 export interface StatefulTextNode {
   type: NodeType.STATEFUL_TEXT
-  generator: Stateful<string, any>
+  generator: Stateful<string>
   node: Node | undefined
 }
 
@@ -36,13 +36,13 @@ export interface ElementNode {
   data: VirtualNodeConfig
   children: Array<VirtualNode>
   node: Element | undefined
-  key?: VirtualNodeKey
+  // key?: VirtualNodeKey
 }
 
 export interface StatefulNode {
   type: NodeType.STATEFUL
   key?: VirtualNodeKey
-  generator: (get: GetState, context: any) => VirtualNode
+  generator: (get: GetState) => VirtualNode
   node: Node | undefined
 }
 
@@ -55,15 +55,16 @@ export interface BlockNode {
 
 export interface TemplateNode {
   type: NodeType.TEMPLATE
-  content: VirtualNode
-  context: any
+  template: VirtualTemplate<any>
+  props: any
+  key?: VirtualNodeKey
   node: Node | undefined
 }
 
 export type VirtualNode = TextNode | StatefulTextNode | ElementNode | StatefulNode | BlockNode | TemplateNode
 
 export interface StatefulValue {
-  generator: Stateful<string, any>
+  generator: Stateful<string>
   effect?: EffectHandle
 }
 
@@ -87,7 +88,7 @@ export function virtualNodeConfig(): VirtualNodeConfig {
   }
 }
 
-export function addNamespace(config: VirtualNodeConfig, namespace: string) {
+export function setNamespace(config: VirtualNodeConfig, namespace: string) {
   config.namespace = namespace
 }
 
@@ -107,10 +108,6 @@ export function addAttribute(config: VirtualNodeConfig, name: string, value: str
   config.attrs[name] = value
 }
 
-export function setKey(config: VirtualNodeConfig, key: VirtualNodeKey) {
-  config.key = key
-}
-
 export function addStatefulAttribute(config: VirtualNodeConfig, name: string, generator: Stateful<string>) {
   if (!config.statefulAttrs) { config.statefulAttrs = {} }
   config.statefulAttrs[name] = {
@@ -118,35 +115,29 @@ export function addStatefulAttribute(config: VirtualNodeConfig, name: string, ge
   }
 }
 
-export function setEventHandler(config: VirtualNodeConfig, event: string, handler: (evt: Event, context: any) => StoreMessage<any, any>) {
+export function setEventHandler(config: VirtualNodeConfig, event: string, handler: (evt: Event) => StoreMessage<any, any>) {
   if (!config.on) { config.on = {} }
 
   config.on[event] = new EventHandler(handler)
 }
 
-export function makeStatefulElement(config: VirtualNodeConfig, generator: (get: GetState, context: any) => VirtualNode, node?: Node): VirtualNode {
+export function makeStatefulElement(generator: (get: GetState) => VirtualNode, key: VirtualNodeKey | undefined, node?: Node): VirtualNode {
   const element: StatefulNode = {
     type: NodeType.STATEFUL,
     generator,
+    key,
     node
-  }
-
-  if (config.key) {
-    element.key = config.key
   }
 
   return element
 }
 
-export function makeBlockElement(config: VirtualNodeConfig, generator: () => VirtualNode, node?: Element): VirtualNode {
+export function makeBlockElement(generator: () => VirtualNode, key: VirtualNodeKey | undefined, node?: Element): VirtualNode {
   const blockNode: BlockNode = {
     type: NodeType.BLOCK,
     generator,
+    key,
     node
-  }
-
-  if (config.key) {
-    blockNode.key = config.key
   }
 
   return blockNode
@@ -161,10 +152,6 @@ export function makeVirtualElement(tag: string, config: VirtualNodeConfig, child
     node
   }
 
-  if (config.key) {
-    element.key = config.key
-  }
-
   return element
 }
 
@@ -176,7 +163,7 @@ export function makeVirtualTextNode(text: string, node?: Node): TextNode {
   }
 }
 
-export function makeStatefulTextNode(generator: (get: GetState) => string, node?: Node): StatefulTextNode {
+export function makeStatefulTextNode(generator: Stateful<string>, node?: Node): StatefulTextNode {
   return {
     type: NodeType.STATEFUL_TEXT,
     generator,
@@ -184,11 +171,27 @@ export function makeStatefulTextNode(generator: (get: GetState) => string, node?
   }
 }
 
-export function makeTemplate(content: VirtualNode, context: any): TemplateNode {
+export type WithProps<T> =
+  <Arg1 = void, Arg2 = void, S = void>(generator: (props: T, arg1: Arg1, arg2: Arg2) => S) => (arg1: Arg1, arg2: Arg2) => S
+
+export class VirtualTemplate<T> {
+  protected props!: T
+  virtualNode!: VirtualNode
+
+  useWithProps<B, S>(generator: (arg: B) => S): (get: B, props: T) => S {
+    return (get, props) => {
+      this.props = props
+      return generator(get)
+    }
+  }
+}
+
+export function makeTemplate(template: VirtualTemplate<any>, props: any, key?: VirtualNodeKey): TemplateNode {
   return {
     type: NodeType.TEMPLATE,
-    content,
-    context,
+    template,
+    props,
+    key,
     node: undefined
   }
 }

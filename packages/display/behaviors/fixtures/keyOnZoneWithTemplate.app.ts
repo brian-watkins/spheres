@@ -1,5 +1,5 @@
 import { GetState, State, container, rule, use, write } from "@spheres/store";
-import { HTMLBuilder, HTMLView, WithProps } from "@src/index";
+import { HTMLBuilder, WithProps } from "@src/index";
 
 interface Person {
   name: string
@@ -39,38 +39,37 @@ const incrementTicker = rule(get => {
   return write(ticker, get(ticker) + 1)
 })
 
-function peopleView(get: GetState): HTMLView {
+function peopleView(root: HTMLBuilder, get: GetState) {
   const list = get(people)
 
-  return (root) =>
-    root.div(el => {
-      el.children
-        .h1(el => {
-          el.children.textNode(`There are ${list.length} people!`)
-        })
-        .button(el => {
-          el.config
-            .dataAttribute("reorder")
-            .on("click", () => use(shiftPeopleRule))
-          el.children
-            .textNode("Reorder People")
-        })
-        .button(el => {
-          el.config
-            .dataAttribute("increment-ticker")
-            .on("click", () => use(incrementTicker))
-          el.children
-            .textNode("Increment")
-        })
-        .hr()
-        .ul(el => {
-          for (const person of list) {
-            el.children.zoneWithTemplate(personViewWithStatefultextNode, person, {
-              key: person
-            })
-          }
-        })
-    })
+  root.div(el => {
+    el.children
+      .h1(el => {
+        el.children.textNode(`There are ${list.length} people!`)
+      })
+      .button(el => {
+        el.config
+          .dataAttribute("reorder")
+          .on("click", () => use(shiftPeopleRule))
+        el.children
+          .textNode("Reorder People")
+      })
+      .button(el => {
+        el.config
+          .dataAttribute("increment-ticker")
+          .on("click", () => use(incrementTicker))
+        el.children
+          .textNode("Increment")
+      })
+      .hr()
+      .ul(el => {
+        for (const person of list) {
+          el.children.zoneWithTemplate(personViewWithStatefultextNode, person, {
+            key: person
+          })
+        }
+      })
+  })
 }
 
 function personViewWithStatefultextNode(root: HTMLBuilder, withProps: WithProps<State<Person>>) {

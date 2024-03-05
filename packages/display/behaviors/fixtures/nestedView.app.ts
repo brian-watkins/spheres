@@ -1,5 +1,5 @@
 import { container, GetState, write } from "@spheres/store"
-import { HTMLBuilder, HTMLView } from "@src/index.js"
+import { HTMLBuilder } from "@src/index.js"
 import { useValue } from "./helpers"
 
 const nameState = container({ initialValue: "hello" })
@@ -13,19 +13,18 @@ function ageView(root: HTMLBuilder) {
   })
 }
 
-function nameView(get: GetState): HTMLView {
+function nameView(root: HTMLBuilder, get: GetState) {
   const name = get(nameState)
 
-  return root =>
-    root.div(el => {
-      el.children.p(el => {
-        el.config.dataAttribute("name")
-        el.children.textNode(`My name is: ${name}`)
-      })
-      if (name !== "AGELESS PERSON") {
-        el.children.zone(ageView)
-      }
+  root.div(el => {
+    el.children.p(el => {
+      el.config.dataAttribute("name")
+      el.children.textNode(`My name is: ${name}`)
     })
+    if (name !== "AGELESS PERSON") {
+      el.children.zone(ageView)
+    }
+  })
 }
 
 export default function view(root: HTMLBuilder) {

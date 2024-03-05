@@ -48,11 +48,10 @@ export function appWithDataAttributesNoValue(props: StaticViewProps): HTMLView {
 const nameState = container({ initialValue: "Cool Person!" })
 const ageState = container({ initialValue: 98 })
 
-function nameView(get: GetState): HTMLView {
-  return root =>
-    root.h2(el => {
-      el.children.textNode(get(nameState))
-    })
+function nameView(root: HTMLBuilder, get: GetState) {
+  root.h2(el => {
+    el.children.textNode(get(nameState))
+  })
 }
 
 export function appWithSimpleState(root: HTMLBuilder) {
@@ -67,23 +66,22 @@ export function appWithNestedState(root: HTMLBuilder) {
   })
 }
 
-function nestedAge(get: GetState): HTMLView {
+function nestedAge(root: HTMLBuilder, get: GetState) {
   const age = get(ageState)
   if (age < 100) {
-    return root => root.zoneWithState(nameView)
+    root.zoneWithState(nameView)
   } else {
-    return root => root.p(el => el.children.textNode("You are old!"))
+    root.p(el => el.children.textNode("You are old!"))
   }
 }
 
 
-function firstLevelZone(get: GetState): HTMLView {
-  return root =>
-    root.div(el => {
-      el.children
-        .zoneWithState(nameView)
-        .p(el => el.children.textNode(`${get(ageState)} years!`))
-    })
+function firstLevelZone(root: HTMLBuilder, get: GetState) {
+  root.div(el => {
+    el.children
+      .zoneWithState(nameView)
+      .p(el => el.children.textNode(`${get(ageState)} years!`))
+  })
 }
 
 export function appWithDeeplyNestedState(root: HTMLBuilder) {

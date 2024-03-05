@@ -21,9 +21,12 @@ function oddCounterDisplay(root: HTMLBuilder) {
   })
 }
 
-function evenOddZone(get: GetState): HTMLView {
-  return root =>
-    get(clickCount) % 2 === 0 ? evenCounterDisplay(root) : oddCounterDisplay(root)
+function evenOddZone(root: HTMLBuilder, get: GetState) {
+  if (get(clickCount) % 2 === 0) {
+    evenCounterDisplay(root)
+  } else {
+    oddCounterDisplay(root)
+  }
 }
 
 export default function (root: HTMLBuilder) {

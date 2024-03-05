@@ -47,11 +47,9 @@ function toVirtualNode(generator: HTMLView): VirtualNode {
   return builder.toVirtualNode()
 }
 
-function toReactiveVirtualNode(generator: (get: GetState) => HTMLView, get: GetState): VirtualNode {
+function toReactiveVirtualNode(generator: (root: HTMLBuilder, get: GetState) => void, get: GetState): VirtualNode {
   const builder = new HtmlViewBuilder()
-  // const view = generator.call({ props }, get)
-  const view = generator(get)
-  view(builder as unknown as HTMLBuilder)
+  generator(builder as unknown as HTMLBuilder, get)
   return builder.toVirtualNode()
 }
 
@@ -60,7 +58,7 @@ export interface SpecialHTMLElements {
   textNode(value: string | Stateful<string>): this
   zone(definition: HTMLView, options?: ViewOptions): this
   zoneWithTemplate<T>(template: (root: HTMLBuilder, props: WithProps<T>) => void, props: T, options?: ViewOptions): this
-  zoneWithState(generator: (get: GetState) => HTMLView, options?: ViewOptions): this
+  zoneWithState(generator: (root: HTMLBuilder, get: GetState) => void, options?: ViewOptions): this
 }
 
 const configBuilder = new BasicElementConfig()
@@ -103,7 +101,7 @@ class HtmlViewBuilder extends ViewBuilder<SpecialElementAttributes, HTMLElements
     return this
   }
 
-  zoneWithState(generator: (get: GetState) => HTMLView, options?: ViewOptions): this {
+  zoneWithState(generator: (root: HTMLBuilder, get: GetState) => void, options?: ViewOptions): this {
     this.storeNode(makeStatefulElement((get) => toReactiveVirtualNode(generator, get), options?.key))
     return this
   }
@@ -139,8 +137,8 @@ export class HTMLVirtualTemplate<T> extends VirtualTemplate<T> {
     const builder = new HtmlViewBuilder()
 
     generator(builder as unknown as HTMLBuilder, (handler) => {
-      return (arg) => {
-        return handler(this.props, arg)
+      return (arg1, arg2) => {
+        return handler(this.props, arg1, arg2)
       }
     })
 

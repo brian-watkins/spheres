@@ -1,7 +1,6 @@
 import { container, GetState, rule, use, write } from "@spheres/store"
 import { useValue } from "./helpers"
 import { HTMLBuilder } from "@src/htmlElements"
-import { HTMLView } from "@src/index"
 
 const peopleState = container({
   initialValue: [
@@ -10,18 +9,17 @@ const peopleState = container({
   ]
 })
 
-function peopleView(get: GetState): HTMLView {
+function peopleView(root: HTMLBuilder, get: GetState) {
   const people = get(peopleState)
 
-  return (root) =>
-    root.ul(el => {
-      for (const person of people) {
-        el.children.li(el => {
-          el.config.dataAttribute("person")
-          el.children.textNode(`${person.name} - ${person.age}`)
-        })
-      }
-    })
+  root.ul(el => {
+    for (const person of people) {
+      el.children.li(el => {
+        el.config.dataAttribute("person")
+        el.children.textNode(`${person.name} - ${person.age}`)
+      })
+    }
+  })
 }
 
 const localState = container({ initialValue: "" })

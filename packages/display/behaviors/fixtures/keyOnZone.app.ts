@@ -39,38 +39,37 @@ const incrementTicker = rule(get => {
   return write(ticker, get(ticker) + 1)
 })
 
-function peopleView(get: GetState): HTMLView {
+function peopleView(root: HTMLBuilder, get: GetState) {
   const list = get(people)
 
-  return (root) =>
-    root.div(el => {
-      el.children
-        .h1(el => {
-          el.children.textNode(`There are ${list.length} people!`)
-        })
-        .button(el => {
-          el.config
-            .dataAttribute("reorder")
-            .on("click", () => use(shiftPeopleRule))
-          el.children
-            .textNode("Reorder People")
-        })
-        .button(el => {
-          el.config
-            .dataAttribute("increment-ticker")
-            .on("click", () => use(incrementTicker))
-          el.children
-            .textNode("Increment")
-        })
-        .hr()
-        .ul(el => {
-          for (const person of list) {
-            el.children.zone(personView(person), {
-              key: person
-            })
-          }
-        })
-    })
+  root.div(el => {
+    el.children
+      .h1(el => {
+        el.children.textNode(`There are ${list.length} people!`)
+      })
+      .button(el => {
+        el.config
+          .dataAttribute("reorder")
+          .on("click", () => use(shiftPeopleRule))
+        el.children
+          .textNode("Reorder People")
+      })
+      .button(el => {
+        el.config
+          .dataAttribute("increment-ticker")
+          .on("click", () => use(incrementTicker))
+        el.children
+          .textNode("Increment")
+      })
+      .hr()
+      .ul(el => {
+        for (const person of list) {
+          el.children.zone(personView(person), {
+            key: person
+          })
+        }
+      })
+  })
 }
 
 function personView(person: State<Person>): HTMLView {

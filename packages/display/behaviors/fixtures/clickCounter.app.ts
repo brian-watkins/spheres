@@ -1,12 +1,12 @@
-import { HTMLBuilder, HTMLView } from "@src/index.js"
+import { HTMLBuilder } from "@src/index.js"
 import { GetState, container, rule, use, write } from "@spheres/store"
 
 const clickCount = container({ initialValue: 0 })
 
 const incrementCount = rule(get => write(clickCount, get(clickCount) + 1))
 
-function clickCounterView(get: GetState): HTMLView {
-  return (root) => root.div(div => {
+function clickCounterView(root: HTMLBuilder, get: GetState) {
+  root.div(div => {
     div.children
       .button(b => {
         b.config.on("click", () => use(incrementCount))

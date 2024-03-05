@@ -1,6 +1,6 @@
 import { Container, GetState, container, rule, use, write } from "@spheres/store"
 import { HTMLBuilder } from "@src/htmlElements"
-import { HTMLView, WithProps } from "@src/index"
+import { WithProps } from "@src/index"
 
 const message = container({ initialValue: "Find the secret!" })
 
@@ -39,7 +39,7 @@ function funZone(root: HTMLBuilder, withProps: WithProps<Context>) {
         el.children
           .textNode("Increment!")
       })
-      .zoneWithState(withProps((props, get) => description(props, get)))
+      .zoneWithState(withProps((props, root, get) => description(props, root, get)))
   })
 }
 
@@ -54,22 +54,18 @@ function title(root: HTMLBuilder, withProps: WithProps<string>) {
   })
 }
 
-function description(props: Context, get: GetState): HTMLView {
+function description(props: Context, root: HTMLBuilder, get: GetState) {
   const count = get(props.counter)
 
   if (count % 2 === 0) {
-    return root => {
-      root.div(el => {
-        el.config.dataAttribute("message")
-        el.children.textNode(`You've clicked ${count} times, which is good!`)
-      })
-    }
+    root.div(el => {
+      el.config.dataAttribute("message")
+      el.children.textNode(`You've clicked ${count} times, which is good!`)
+    })
   } else {
-    return root => {
-      root.h1(el => {
-        el.config.dataAttribute("message")
-        el.children.textNode(`${count} clicks just doesn't feel right. Try again!`)
-      })
-    }
+    root.h1(el => {
+      el.config.dataAttribute("message")
+      el.children.textNode(`${count} clicks just doesn't feel right. Try again!`)
+    })
   }
 }

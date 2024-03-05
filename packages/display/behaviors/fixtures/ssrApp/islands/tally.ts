@@ -1,4 +1,4 @@
-import { HTMLBuilder, HTMLView } from "@src/index.js"
+import { HTMLBuilder } from "@src/index.js"
 import { clickCount } from "../state.js"
 import { GetState } from "@spheres/store"
 

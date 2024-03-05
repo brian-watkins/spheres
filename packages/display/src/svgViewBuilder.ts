@@ -21,8 +21,8 @@ function toVirtualNode(view: SVGView): VirtualNode {
   return builder.toVirtualNode()
 }
 
-function toReactiveVirtualNode<T>(generator: (get: GetState) => SVGView, get: GetState, props: T): VirtualNode {
-  const view = generator.call({ props }, get)
+function toReactiveVirtualNode(generator: (get: GetState) => SVGView, get: GetState): VirtualNode {
+  const view = generator(get)
   const builder = new SvgViewBuilder()
   view(builder as unknown as SVGBuilder)
   return builder.toVirtualNode()
@@ -60,7 +60,7 @@ export class SvgViewBuilder extends ViewBuilder<SpecialElementAttributes, SVGEle
   }
 
   zoneWithState(generator: (get: GetState) => SVGView, options?: ViewOptions | undefined): this {
-    this.storeNode(makeStatefulElement((get, props) => toReactiveVirtualNode(generator, get, props), options?.key))
+    this.storeNode(makeStatefulElement((get) => toReactiveVirtualNode(generator, get), options?.key))
     return this
   }
 

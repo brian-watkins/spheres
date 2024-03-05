@@ -4,7 +4,7 @@ import { browserAppContext } from "helpers/testAppController";
 
 export default behavior("template", [
 
-  (m) => m.pick() && example(browserAppContext())
+  example(browserAppContext())
     .description("a template and context")
     .script({
       suppose: [

@@ -42,7 +42,7 @@ export interface ElementNode {
 export interface StatefulNode {
   type: NodeType.STATEFUL
   key?: VirtualNodeKey
-  generator: (get: GetState, context: any) => VirtualNode
+  generator: (get: GetState) => VirtualNode
   node: Node | undefined
 }
 
@@ -121,7 +121,7 @@ export function setEventHandler(config: VirtualNodeConfig, event: string, handle
   config.on[event] = new EventHandler(handler)
 }
 
-export function makeStatefulElement(generator: (get: GetState, context: any) => VirtualNode, key: VirtualNodeKey | undefined, node?: Node): VirtualNode {
+export function makeStatefulElement(generator: (get: GetState) => VirtualNode, key: VirtualNodeKey | undefined, node?: Node): VirtualNode {
   const element: StatefulNode = {
     type: NodeType.STATEFUL,
     generator,
@@ -171,18 +171,16 @@ export function makeStatefulTextNode(generator: Stateful<string>, node?: Node): 
   }
 }
 
-export interface TemplateContext<T> {
-  props: T
-}
+export type WithProps<T> = <B = any, S = any>(generator: (props: T, arg: B) => S) => (arg: B) => S
 
-export class VirtualTemplate<T> implements TemplateContext<T> {
-  props!: T
+export class VirtualTemplate<T> {
+  protected props!: T
   virtualNode!: VirtualNode
 
-  useWithProps<B, S>(generator: (arg: B, props: T) => S): (get: B, props: T) => S {
+  useWithProps<B, S>(generator: (arg: B) => S): (get: B, props: T) => S {
     return (get, props) => {
       this.props = props
-      return generator.call({ props }, get, props)
+      return generator(get)
     }
   }
 }

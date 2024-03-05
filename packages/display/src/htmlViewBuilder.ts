@@ -1,5 +1,5 @@
 import { GetState, Store } from "@spheres/store"
-import { VirtualNode, makeStatefulElement, Stateful, makeTemplate, addStatefulProperty, addProperty, makeBlockElement, TemplateContext, VirtualTemplate } from "./vdom/virtualNode.js"
+import { VirtualNode, makeStatefulElement, Stateful, makeTemplate, addStatefulProperty, addProperty, makeBlockElement, VirtualTemplate, WithProps } from "./vdom/virtualNode.js"
 import { HTMLElements, HTMLBuilder } from "./htmlElements.js"
 import { createStringRenderer } from "./vdom/renderToString.js"
 import { createDOMRenderer } from "./vdom/renderToDom.js"
@@ -44,12 +44,13 @@ export type HTMLView = (root: HTMLBuilder) => void
 function toVirtualNode(generator: HTMLView): VirtualNode {
   const builder = new HtmlViewBuilder()
   generator(builder as unknown as HTMLBuilder)
-  return builder.toVirtualNode()  
+  return builder.toVirtualNode()
 }
 
-function toReactiveVirtualNode(generator: (get: GetState) => HTMLView, get: GetState, props: any): VirtualNode {
+function toReactiveVirtualNode(generator: (get: GetState) => HTMLView, get: GetState): VirtualNode {
   const builder = new HtmlViewBuilder()
-  const view = generator.call({ props }, get)
+  // const view = generator.call({ props }, get)
+  const view = generator(get)
   view(builder as unknown as HTMLBuilder)
   return builder.toVirtualNode()
 }
@@ -58,7 +59,7 @@ export interface SpecialHTMLElements {
   element(tag: string, builder?: (element: ConfigurableElement<SpecialElementAttributes, HTMLElements>) => void): this
   textNode(value: string | Stateful<string>): this
   zone(definition: HTMLView, options?: ViewOptions): this
-  zoneWithTemplate<T>(template: (this: { props: T }, root: HTMLBuilder) => void, props: T, options?: ViewOptions): this
+  zoneWithTemplate<T>(template: (root: HTMLBuilder, props: WithProps<T>) => void, props: T, options?: ViewOptions): this
   zoneWithState(generator: (get: GetState) => HTMLView, options?: ViewOptions): this
 }
 
@@ -103,18 +104,18 @@ class HtmlViewBuilder extends ViewBuilder<SpecialElementAttributes, HTMLElements
   }
 
   zoneWithState(generator: (get: GetState) => HTMLView, options?: ViewOptions): this {
-    this.storeNode(makeStatefulElement((get, props) => toReactiveVirtualNode(generator, get, props), options?.key))
+    this.storeNode(makeStatefulElement((get) => toReactiveVirtualNode(generator, get), options?.key))
     return this
   }
 
-  zoneWithTemplate<T>(template: (this: TemplateContext<T>, root: HTMLBuilder) => void, props: T, options?: ViewOptions): this {
-      let virtualTemplate = this.getVirtualTemplate(template)
-      if (virtualTemplate === undefined) {
-        virtualTemplate = new HTMLVirtualTemplate(template, props)
-        this.setVirtualTemplate(template, virtualTemplate)
-      }
-      this.storeNode(makeTemplate(virtualTemplate, props, options?.key))
-      return this
+  zoneWithTemplate<T>(template: (root: HTMLBuilder, props: WithProps<T>) => void, props: T, options?: ViewOptions): this {
+    let virtualTemplate = this.getVirtualTemplate(template)
+    if (virtualTemplate === undefined) {
+      virtualTemplate = new HTMLVirtualTemplate(template, props)
+      this.setVirtualTemplate(template, virtualTemplate)
+    }
+    this.storeNode(makeTemplate(virtualTemplate, props, options?.key))
+    return this
   }
 
   element(tag: string, builder?: ((element: ConfigurableElement<SpecialElementAttributes, HTMLElements>) => void) | undefined): this {
@@ -132,10 +133,19 @@ class HtmlViewBuilder extends ViewBuilder<SpecialElementAttributes, HTMLElements
 }
 
 export class HTMLVirtualTemplate<T> extends VirtualTemplate<T> {
-  constructor (generator: (root: HTMLBuilder) => void, public props: T) {
+  constructor(generator: (root: HTMLBuilder, withProps: WithProps<T>) => void, protected props: T) {
     super()
+
     const builder = new HtmlViewBuilder()
-    generator.call(this, builder as unknown as HTMLBuilder)
+
+    generator(builder as unknown as HTMLBuilder, (handler) => {
+      return (arg) => {
+        return handler(this.props, arg)
+      }
+    })
+
     this.virtualNode = builder.toVirtualNode()
   }
+
+
 }

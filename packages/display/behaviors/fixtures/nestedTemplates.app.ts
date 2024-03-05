@@ -1,6 +1,6 @@
 import { Container, StoreMessage, container, reset, rule, use, write } from "@spheres/store";
 import { HTMLBuilder } from "@src/htmlElements";
-import { TemplateContext } from "@src/index";
+import { WithProps } from "@src/index";
 
 interface Context {
   id: number
@@ -29,7 +29,7 @@ const incrementRule = rule((get, counterContainer: Container<number>) => {
   return write(counterContainer, get(counterContainer) + 1)
 })
 
-function funZone(this: TemplateContext<Context>, root: HTMLBuilder) {
+function funZone(root: HTMLBuilder, withProps: WithProps<Context>) {
   root.div(el => {
     el.children
       .hr()
@@ -37,9 +37,9 @@ function funZone(this: TemplateContext<Context>, root: HTMLBuilder) {
         el.children
           .div(el => {
             el.config
-              .dataAttribute("counter", () => `${this.props.id}`)
+              .dataAttribute("counter", withProps(props => `${props.id}`))
             el.children
-              .textNode((get) => `${this.props.name} - ${get(clickCounter)} clicks!`)
+              .textNode(withProps((props, get) => `${props.name} - ${get(clickCounter)} clicks!`))
           })
       })
       .div(el => {
@@ -59,13 +59,13 @@ interface ButtonContext {
   label: string
 }
 
-function button(this: TemplateContext<ButtonContext>, root: HTMLBuilder) {
+function button(root: HTMLBuilder, withProps: WithProps<ButtonContext>) {
   root.button(el => {
     el.config
-      .dataAttribute("button-name", () => this.props.name)
-      .on("click", (evt) => this.props.handler(evt))
+      .dataAttribute("button-name", withProps(props => props.name))
+      .on("click", withProps((props, evt) => props.handler(evt)))
     el.children
-      .textNode(() => this.props.label)
+      .textNode(withProps(props => props.label))
   })
 }
 

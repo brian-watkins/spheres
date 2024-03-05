@@ -1,5 +1,6 @@
 import { Container, container, rule, use, write } from "@spheres/store";
-import { HTMLBuilder, TemplateContext } from "@src/index";
+import { HTMLBuilder } from "@src/index";
+import { WithProps } from "@src/vdom/virtualNode";
 
 const greeting = container({
   initialValue: "Hello"
@@ -26,7 +27,7 @@ export default function view(root: HTMLBuilder) {
   })
 }
 
-function funZone(this: TemplateContext<Context>, root: HTMLBuilder) {
+function funZone(root: HTMLBuilder, withProps: WithProps<Context>) {
   root.div(el => {
     el.children
       .hr()
@@ -34,27 +35,27 @@ function funZone(this: TemplateContext<Context>, root: HTMLBuilder) {
         el.children
           .div(el => {
             el.config
-              .dataAttribute("greeting", () => `${this.props.id}`)
+              .dataAttribute("greeting", withProps((props) => `${props.id}`))
             el.children
-              .textNode((get) => `${get(greeting)}, ${this.props.name}!`)
+              .textNode(withProps((props, get) => `${get(greeting)}, ${props.name}!`))
           })
           .div(el => {
             el.config
-              .dataAttribute("counter", () => `${this.props.id}`)
+              .dataAttribute("counter", withProps((props) => `${props.id}`))
             el.children
-              .textNode((get) => `${get(this.props.counter)} clicks!`)
+              .textNode(withProps((props, get) => `${get(props.counter)} clicks!`))
           })
       })
       .div(el => {
         el.children
           .button(el => {
             el.config
-              .dataAttribute("increment-counter", () => `${this.props.id}`)
-              .on("click", () => {
+              .dataAttribute("increment-counter", withProps((props) => `${props.id}`))
+              .on("click", withProps((props) => {
                 return use(rule((get) => {
-                  return write(this.props.counter, get(this.props.counter) + 1)
+                  return write(props.counter, get(props.counter) + 1)
                 }))
-              })
+              }))
             el.children
               .textNode("Click me!")
           })

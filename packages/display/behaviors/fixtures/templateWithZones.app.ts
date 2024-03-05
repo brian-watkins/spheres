@@ -1,6 +1,6 @@
 import { Container, GetState, container, rule, use, write } from "@spheres/store"
 import { HTMLBuilder } from "@src/htmlElements"
-import { HTMLView, TemplateContext } from "@src/index"
+import { HTMLView, WithProps } from "@src/index"
 
 const message = container({ initialValue: "Find the secret!" })
 
@@ -22,10 +22,9 @@ const incrementRule = rule((get, counterContainer: Container<number>) => {
   return write(counterContainer, get(counterContainer) + 1)
 })
 
-function funZone(this: TemplateContext<Context>, root: HTMLBuilder) {
+function funZone(root: HTMLBuilder, withProps: WithProps<Context>) {
   root.div(el => {
     el.children
-      // .zone(title, { props: "Counter Row!" })
       .zoneWithTemplate(title, "Counter Row!")
       .div(el => {
         el.config
@@ -35,31 +34,28 @@ function funZone(this: TemplateContext<Context>, root: HTMLBuilder) {
       })
       .button(el => {
         el.config
-          .dataAttribute("counter", function (this: TemplateContext<Context>) { return `${this.props.id}` })
-          .on("click", () => use(incrementRule, this.props.counter))
+          .dataAttribute("counter", withProps(props => `${props.id}`))
+          .on("click", withProps(props => use(incrementRule, props.counter)))
         el.children
           .textNode("Increment!")
       })
-      // now the issue seems to be that this function isn't itself bound to the scope
-      // of the other things because it is a function with its own this scope ...
-      // this could be a deeper problem if someone writes one of the effects as a function instead of an arrow function
-      .zoneWithState(description)
+      .zoneWithState(withProps((props, get) => description(props, get)))
   })
 }
 
-function title(this: TemplateContext<string>, root: HTMLBuilder) {
+function title(root: HTMLBuilder, withProps: WithProps<string>) {
   root.div(el => {
     el.children
       .hr()
       .h3(el => {
         el.config.on("click", () => write(message, "You found it!"))
-        el.children.textNode(() => this.props)
+        el.children.textNode(withProps((props) => props))
       })
   })
 }
 
-function description(this: TemplateContext<Context>, get: GetState): HTMLView {
-  const count = get(this.props.counter)
+function description(props: Context, get: GetState): HTMLView {
+  const count = get(props.counter)
 
   if (count % 2 === 0) {
     return root => {

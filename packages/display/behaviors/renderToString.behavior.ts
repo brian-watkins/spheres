@@ -4,7 +4,7 @@ import { equalTo, expect, is } from "great-expectations";
 import { appWithBlock, appWithDataAttributesNoValue, appWithDeeplyNestedState, appWithInnerHTML, appWithNestedState, appWithPropertiesAndAttributes, appWithReactiveText, appWithSimpleState, appWithTemplates, staticApp } from "./fixtures/static.app.js";
 import { Store } from "@spheres/store"
 
-export default behavior("Render view to HTML", [
+export default behavior("Render view to HTML string", [
   renderTest("render view with no event handlers or state", (renderer) => {
     const actual = renderer.renderView(staticApp({ name: "Cool Dude", age: 27 }))
     expect(actual, is(equalTo("<div><h1>Hello &quot;Cool Dude&quot;!</h1><hr /><p>You are supposedly 27 years old.</p></div>")))

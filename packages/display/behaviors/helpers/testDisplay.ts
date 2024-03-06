@@ -33,7 +33,7 @@ export class TestAppDisplay {
   }
 }
 
-class DisplayElementList {
+export class DisplayElementList {
   constructor(private locator: Locator) {}
 
   async map<T>(mapper: (element: DisplayElement) => Promise<T>): Promise<Array<T>> {
@@ -51,7 +51,7 @@ export interface TypingOptions {
   clear: boolean
 }
 
-class DisplayElement {
+export class DisplayElement {
   constructor(private locator: Locator) {}
 
   async tagName(): Promise<string> {

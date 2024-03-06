@@ -1,6 +1,7 @@
 import { behavior, effect, example, fact, step } from "esbehavior";
 import { expect, is, resolvesTo } from "great-expectations";
-import { browserAppContext } from "helpers/testAppController";
+import { TestAppController, browserAppContext } from "helpers/testAppController";
+import { DisplayElement } from "helpers/testDisplay";
 
 export default behavior("template", [
 
@@ -166,6 +167,46 @@ export default behavior("template", [
             ]))
         })
       ]
+    }),
+
+  example(browserAppContext())
+    .description("svg template")
+    .script({
+      suppose: [
+        fact("there is a view with a template", async (controller) => {
+          await controller.loadApp("svgTemplate.app")
+        })
+      ],
+      observe: [
+        effect("it renders the circles with the appropriate labels", async (context) => {
+          await expect(circleButton(context, 1).text(), resolvesTo("0"))
+          await expect(circleButton(context, 2).text(), resolvesTo("0"))
+          await expect(circleButton(context, 3).text(), resolvesTo("0"))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the middle counter button is clicked a few times", async (context) => {
+          await circleButton(context, 2).click()
+          await circleButton(context, 2).click()
+          await circleButton(context, 2).click()
+        }),
+        step("click the last counter a few times", async (context) => {
+          await circleButton(context, 3).click()
+          await circleButton(context, 3).click()
+        })
+      ],
+      observe: [
+        effect("the middle and last button labels are updated", async (context) => {
+          await expect(circleButton(context, 1).text(), resolvesTo("0"))
+          await expect(circleButton(context, 2).text(), resolvesTo("3"))
+          await expect(circleButton(context, 3).text(), resolvesTo("2"))
+        })
+      ]
     })
 
 ])
+
+function circleButton(context: TestAppController, id: number): DisplayElement {
+  return context.display.select(`[data-circle-button='${id}']`)
+}

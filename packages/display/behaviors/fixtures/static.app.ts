@@ -1,6 +1,6 @@
 import { container, GetState } from "@spheres/store";
 import { HTMLBuilder } from "@src/htmlElements";
-import { HTMLView } from "@src/index";
+import { HTMLView, WithProps } from "@src/index";
 
 interface StaticViewProps {
   name: string
@@ -115,5 +115,24 @@ export function appWithInnerHTML(root: HTMLBuilder) {
       .div(el => {
         el.config.innerHTML("<h1>HELLO!!!</h1>")
       })
+  })
+}
+
+export function appWithTemplates(root: HTMLBuilder) {
+  root.div(el => {
+    el.children
+      .zoneWithTemplate(titleTemplate, { title: "One" })
+      .zoneWithTemplate(titleTemplate, { title: "Two" })
+      .zoneWithTemplate(titleTemplate, { title: "Three" })
+  })
+}
+
+interface TitleProps {
+  title: string
+}
+
+function titleTemplate(root: HTMLBuilder, withProps: WithProps<TitleProps>) {
+  root.h1(el => {
+    el.children.textNode(withProps((props) => props.title))
   })
 }

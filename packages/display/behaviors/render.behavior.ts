@@ -1,7 +1,7 @@
 import { HTMLView, renderToString } from "../src/index.js";
 import { behavior, effect, example, Example } from "esbehavior";
 import { equalTo, expect, is } from "great-expectations";
-import { appWithBlock, appWithDataAttributesNoValue, appWithDeeplyNestedState, appWithInnerHTML, appWithNestedState, appWithPropertiesAndAttributes, appWithReactiveText, appWithSimpleState, staticApp } from "./fixtures/static.app.js";
+import { appWithBlock, appWithDataAttributesNoValue, appWithDeeplyNestedState, appWithInnerHTML, appWithNestedState, appWithPropertiesAndAttributes, appWithReactiveText, appWithSimpleState, appWithTemplates, staticApp } from "./fixtures/static.app.js";
 import { Store } from "@spheres/store"
 
 export default behavior("Render view to HTML", [
@@ -40,6 +40,10 @@ export default behavior("Render view to HTML", [
   renderTest("render view with innerHTML property", (renderer) => {
     const actual = renderer.renderView(appWithInnerHTML)
     expect(actual, is(equalTo(`<div><div><h1>HELLO!!!</h1></div></div>`)))
+  }),
+  renderTest("render view with templates", (renderer) => {
+    const actual = renderer.renderView(appWithTemplates)
+    expect(actual, is(equalTo("<div><h1>One</h1><h1>Two</h1><h1>Three</h1></div>")))
   })
 ])
 

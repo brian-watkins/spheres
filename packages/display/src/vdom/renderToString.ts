@@ -9,20 +9,21 @@ export function createStringRenderer(store: Store): StringRenderer {
   }
 }
 
-function stringifyVirtualNode(store: Store, node: VirtualNode): string {
-  switch (node.type) {
+function stringifyVirtualNode(store: Store, vnode: VirtualNode): string {
+  switch (vnode.type) {
     case NodeType.ELEMENT:
-      return stringifyElement(store, node)
+      return stringifyElement(store, vnode)
     case NodeType.TEXT:
-      return stringifyTextNode(node)
+      return stringifyTextNode(vnode)
     case NodeType.STATEFUL_TEXT:
-      return stringifyReactiveText(store, node)
+      return stringifyReactiveText(store, vnode)
     case NodeType.STATEFUL:
-      return stringifyStatefulNode(store, node)
+      return stringifyStatefulNode(store, vnode)
     case NodeType.BLOCK:
-      return stringifyVirtualNode(store, node.generator!())
+      return stringifyVirtualNode(store, vnode.generator!())
     case NodeType.TEMPLATE:
-      return "NOT DONE YET!"
+      vnode.template.setProps(vnode.props)
+      return stringifyVirtualNode(store, vnode.template.virtualNode)
   }
 }
 

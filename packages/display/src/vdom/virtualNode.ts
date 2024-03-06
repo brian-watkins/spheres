@@ -174,9 +174,13 @@ export function makeStatefulTextNode(generator: Stateful<string>, node?: Node): 
 export type WithProps<T> =
   <Arg1 = void, Arg2 = void, S = void>(generator: (props: T, arg1: Arg1, arg2: Arg2) => S) => (arg1: Arg1, arg2: Arg2) => S
 
-export class VirtualTemplate<T> {
+export class  VirtualTemplate<T> {
   protected props!: T
   virtualNode!: VirtualNode
+
+  setProps(props: T) {
+    this.props = props
+  }
 
   useWithProps<B, S>(generator: (arg: B) => S): (get: B, props: T) => S {
     return (get, props) => {

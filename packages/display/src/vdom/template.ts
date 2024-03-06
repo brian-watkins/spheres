@@ -6,7 +6,7 @@ import { UpdateTextEffect } from "./effects/textEffect.js"
 import { PatchZoneEffect } from "./effects/zoneEffect.js"
 import { EffectGenerator } from "./effects/effectGenerator.js"
 
-const templateRegistry = new Map<VirtualNode, DOMTemplate>()
+const templateRegistry = new WeakMap<VirtualTemplate<any>, DOMTemplate>()
 
 interface DOMTemplate {
   element: HTMLTemplateElement
@@ -26,11 +26,11 @@ export function createTemplateInstance(store: Store, vnode: TemplateNode): Node 
 }
 
 function getTemplate(vnode: TemplateNode): DOMTemplate {
-  const virtualNode = vnode.template.virtualNode!
-
-  let template = templateRegistry.get(virtualNode)
+  let template = templateRegistry.get(vnode.template)
 
   if (template === undefined) {
+    const virtualNode = vnode.template.virtualNode
+
     const element = document.createElement("template")
     element.content.appendChild(createTemplateNode(virtualNode))
 
@@ -39,7 +39,7 @@ function getTemplate(vnode: TemplateNode): DOMTemplate {
       effects: findEffectLocations(vnode.template, virtualNode, new EffectLocation((root) => root))
     }
 
-    templateRegistry.set(virtualNode, template)
+    templateRegistry.set(vnode.template, template)
   }
 
   return template

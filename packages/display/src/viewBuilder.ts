@@ -12,7 +12,7 @@ export interface ViewOptions {
   key?: string | number | State<any>
 }
 
-const templateNodeRegistry = new Map<Function, VirtualTemplate<any>>()
+const templateNodeRegistry = new WeakMap<Function, VirtualTemplate<any>>()
 
 export abstract class ViewBuilder<A extends SpecialElementAttributes, B> {
   nodes: Array<VirtualNode> = []

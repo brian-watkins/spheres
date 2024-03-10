@@ -52,9 +52,9 @@ function createNode(store: Store, vnode: VirtualNode): Node {
     }
 
     case NodeType.STATEFUL: {
-      const query = new PatchZoneEffect(store, undefined, vnode.generator)
+      const query = new PatchZoneEffect(store, undefined, vnode.generator, vnode)
       store.useEffect(query)
-      return query.node!
+      return query.node
     }
 
     case NodeType.BLOCK:

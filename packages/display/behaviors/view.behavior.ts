@@ -162,10 +162,65 @@ const nestedViewsBehavior = (context: Context<TestAppController>): ConfigurableE
       ]
     })
 
+const changingRootBehavior = (context: Context<TestAppController>): ConfigurableExample =>
+  example(context)
+    .description("changing the root of a stateful zone")
+    .script({
+      suppose: [
+        fact("there is a view", async (context) => {
+          await context.loadApp("changingStatefulRoot.app")
+        })
+      ],
+      observe: [
+        effect("the root is a p", async (context) => {
+          const text = await context.display.select("p").text()
+          expect(text, is("Regular text!"))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("when the toggle is clicked", async (context) => {
+          await context.display.select("[data-toggle]").click()
+        })
+      ],
+      observe: [
+        effect("the new root is an h1", async (context) => {
+          const text = await context.display.select("h1").text()
+          expect(text, is("Big text!"))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("hide the root view", async (context) => {
+          await context.display.select("[data-visibility]").click()
+        })
+      ],
+      observe: [
+        effect("the root is gone", async (context) => {
+          await expect(context.display.select("h1").exists(), resolvesTo(false))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("show the root view", async (context) => {
+          await context.display.select("[data-visibility]").click()
+        }),
+        step("click the toggle", async (context) => {
+          await context.display.select("[data-toggle]").click()
+        })
+      ],
+      observe: [
+        effect("the root is visible and is a p element once again", async (context) => {
+          const text = await context.display.select("p").text()
+          expect(text, is("Regular text!"))
+        })
+      ]
+    })
 
 export default behavior("view", [
   simpleViewBehavior(browserAppContext()),
   innerHTMLViewBehavior(browserAppContext()),
   reactiveInnerHTMLViewBehavior(browserAppContext()),
   nestedViewsBehavior(browserAppContext()),
+  changingRootBehavior(browserAppContext())
 ])

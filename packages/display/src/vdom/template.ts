@@ -3,7 +3,7 @@ import { NodeType, TemplateNode, VirtualNode, VirtualTemplate } from "./virtualN
 import { UpdateAttributeEffect } from "./effects/attributeEffect.js"
 import { UpdatePropertyEffect } from "./effects/propertyEffect.js"
 import { UpdateTextEffect } from "./effects/textEffect.js"
-import { PatchZoneEffect } from "./effects/zoneEffect.js"
+import { NodeReference, PatchZoneEffect } from "./effects/zoneEffect.js"
 import { EffectGenerator } from "./effects/effectGenerator.js"
 
 const templateRegistry = new WeakMap<VirtualTemplate<any>, DOMTemplate>()
@@ -100,10 +100,10 @@ class EventEffectTemplate implements EffectTemplate {
 }
 
 class StatefulZoneEffectTemplate implements EffectTemplate {
-  constructor(private generator: EffectGenerator<VirtualNode>, private findNode: (root: Node) => Node) { }
+  constructor(private generator: EffectGenerator<VirtualNode>, private nodeReference: NodeReference, private findNode: (root: Node) => Node) { }
 
   attach(store: Store, root: Node, props: any): void {
-    const effect = new PatchZoneEffect(store, this.findNode(root), this.generator, props)
+    const effect = new PatchZoneEffect(store, this.findNode(root), this.generator, this.nodeReference, props)
     store.useEffect(effect)
   }
 }
@@ -127,7 +127,7 @@ function findEffectLocations(template: VirtualTemplate<any>, vnode: VirtualNode,
       return [new TextEffectTemplate(template.useWithProps(vnode.generator), location.findNode)]
 
     case NodeType.STATEFUL:
-      return [new StatefulZoneEffectTemplate(template.useWithProps(vnode.generator), location.findNode)]
+      return [new StatefulZoneEffectTemplate(template.useWithProps(vnode.generator), vnode, location.findNode)]
 
     case NodeType.BLOCK:
       return findEffectLocations(template, vnode.generator!(), location)

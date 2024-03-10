@@ -16,13 +16,13 @@ interface DOMTemplate {
 export function createTemplateInstance(store: Store, vnode: TemplateNode): Node {
   let template = getTemplate(vnode)
 
-  const root = template.element.content.cloneNode(true).firstChild!
+  const root = template.element.content.cloneNode(true)
 
   for (const effect of template.effects) {
     effect.attach(store, root, vnode.props)
   }
 
-  return root
+  return root.firstChild!
 }
 
 function getTemplate(vnode: TemplateNode): DOMTemplate {
@@ -36,7 +36,7 @@ function getTemplate(vnode: TemplateNode): DOMTemplate {
 
     template = {
       element,
-      effects: findEffectLocations(vnode.template, virtualNode, new EffectLocation((root) => root))
+      effects: findEffectLocations(vnode.template, virtualNode, new EffectLocation((root) => root.firstChild!))
     }
 
     templateRegistry.set(vnode.template, template)

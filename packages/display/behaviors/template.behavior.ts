@@ -203,6 +203,26 @@ export default behavior("template", [
           await expect(circleButton(context, 3).text(), resolvesTo("2"))
         })
       ]
+    }),
+
+  example(browserAppContext())
+    .description("template with stateful zone as root element")
+    .script({
+      suppose: [
+        fact("there is a view with a template", async (controller) => {
+          await controller.loadApp("templateWithStatefulRoot.app")
+        })
+      ],
+      observe: [
+        effect("the stateful zones are rendered", async (context) => {
+          const titles = await context.display.selectAll("[data-fun-zone]").map(el => el.text())
+          expect(titles, is([
+            "1",
+            "2",
+            "3"
+          ]))
+        })
+      ]
     })
 
 ])

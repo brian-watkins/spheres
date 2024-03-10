@@ -1,7 +1,6 @@
 import { Effect, GetState, Store } from "@spheres/store"
 import { patch, virtualize } from "../renderToDom.js"
 import { VirtualNode } from "../virtualNode.js"
-import { EffectGenerator } from "./effectGenerator.js"
 
 export interface NodeReference {
   node: Node | undefined
@@ -10,7 +9,7 @@ export interface NodeReference {
 export class PatchZoneEffect implements Effect {
   private current: VirtualNode | null = null
 
-  constructor(private store: Store, placeholderNode: Node | undefined, private generator: EffectGenerator<VirtualNode>, private nodeReference: NodeReference, private context: any = undefined) {
+  constructor(private store: Store, placeholderNode: Node | undefined, private generator: (get: GetState) => VirtualNode, private nodeReference: NodeReference) {
     if (placeholderNode !== undefined) {
       this.current = virtualize(placeholderNode)
     }
@@ -33,7 +32,7 @@ export class PatchZoneEffect implements Effect {
   }
 
   private doPatch(get: GetState) {
-    this.current = patch(this.store, this.current, this.generator(get, this.context))
+    this.current = patch(this.store, this.current, this.generator(get))
     this.nodeReference.node = this.node
   }
 }

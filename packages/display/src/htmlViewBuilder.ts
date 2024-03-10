@@ -1,5 +1,5 @@
-import { GetState, Store } from "@spheres/store"
-import { VirtualNode, makeStatefulElement, Stateful, makeTemplate, addStatefulProperty, addProperty, makeBlockElement, VirtualTemplate, WithProps } from "./vdom/virtualNode.js"
+import { GetState, State, Store } from "@spheres/store"
+import { VirtualNode, makeStatefulElement, Stateful, makeTemplate, addStatefulProperty, addProperty, makeBlockElement, VirtualTemplate } from "./vdom/virtualNode.js"
 import { HTMLElements, HTMLBuilder } from "./htmlElements.js"
 import { createStringRenderer } from "./vdom/renderToString.js"
 import { createDOMRenderer } from "./vdom/renderToDom.js"
@@ -7,6 +7,7 @@ import { SVGElements } from "./svgElements.js"
 import { BasicElementConfig, SpecialElementAttributes } from "./viewConfig.js"
 import { ConfigurableElement, ViewBuilder, ViewOptions } from "./viewBuilder.js"
 import { buildSvgElement } from "./svgViewBuilder.js"
+import { EffectLocation, findEffectLocations } from "./vdom/template.js"
 
 // Renderers
 
@@ -57,7 +58,7 @@ export interface SpecialHTMLElements {
   element(tag: string, builder?: (element: ConfigurableElement<SpecialElementAttributes, HTMLElements>) => void): this
   textNode(value: string | Stateful<string>): this
   zone(definition: HTMLView, options?: ViewOptions): this
-  zoneWithTemplate<T>(template: (root: HTMLBuilder, props: WithProps<T>) => void, props: T, options?: ViewOptions): this
+  zoneWithTemplate<T>(template: (root: HTMLBuilder, props: State<T>) => void, state: State<T>, options?: ViewOptions): this
   zoneWithState(generator: (root: HTMLBuilder, get: GetState) => void, options?: ViewOptions): this
 }
 
@@ -106,13 +107,22 @@ class HtmlViewBuilder extends ViewBuilder<SpecialElementAttributes, HTMLElements
     return this
   }
 
-  zoneWithTemplate<T>(template: (root: HTMLBuilder, props: WithProps<T>) => void, props: T, options?: ViewOptions): this {
+  zoneWithTemplate<T>(template: (root: HTMLBuilder, state: State<T>) => void, state: State<T>, options?: ViewOptions): this {
     let virtualTemplate = this.getVirtualTemplate(template)
     if (virtualTemplate === undefined) {
-      virtualTemplate = new HTMLVirtualTemplate(template, props)
+      virtualTemplate = new HTMLVirtualTemplate(template, state)
       this.setVirtualTemplate(template, virtualTemplate)
     }
-    this.storeNode(makeTemplate(virtualTemplate, props, options?.key))
+
+    // gather the effects
+    // const effectHarvester = new EffectHarvester()
+    const builder = new HtmlViewBuilder()
+    template(builder as unknown as HTMLBuilder, state)
+    const virtualNode = builder.toVirtualNode()
+    const effects = findEffectLocations(virtualTemplate, virtualNode, new EffectLocation((root) => root.firstChild!))
+    // template(effectHarvester as unknown as HTMLBuilder, state)
+
+    this.storeNode(makeTemplate(virtualTemplate, effects, options?.key))
     return this
   }
 
@@ -131,16 +141,18 @@ class HtmlViewBuilder extends ViewBuilder<SpecialElementAttributes, HTMLElements
 }
 
 export class HTMLVirtualTemplate<T> extends VirtualTemplate<T> {
-  constructor(generator: (root: HTMLBuilder, withProps: WithProps<T>) => void, protected props: T) {
+  constructor(generator: (root: HTMLBuilder, state: State<T>) => void, protected state: State<T>) {
     super()
 
     const builder = new HtmlViewBuilder()
 
-    generator(builder as unknown as HTMLBuilder, (handler) => {
-      return (arg1, arg2) => {
-        return handler(this.props, arg1, arg2)
-      }
-    })
+    // generator(builder as unknown as HTMLBuilder, (handler) => {
+    //   return (arg1, arg2) => {
+    //     return handler(this.props, arg1, arg2)
+    //   }
+    // })
+
+    generator(builder as unknown as HTMLBuilder, state)
 
     this.virtualNode = builder.toVirtualNode()
   }

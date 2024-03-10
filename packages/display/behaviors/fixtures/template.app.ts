@@ -1,4 +1,4 @@
-import { Container, container, rule, use, write } from "@spheres/store";
+import { Container, State, container, derived, rule, use, write } from "@spheres/store";
 import { HTMLBuilder } from "@src/index";
 import { WithProps } from "@src/vdom/virtualNode";
 
@@ -15,19 +15,26 @@ interface Context {
 export default function view(root: HTMLBuilder) {
   root.main(el => {
     el.children
-      .zoneWithTemplate(funZone, {
+      .zoneWithTemplate(funZone, derived({ query: () => ({
         id: 1, name: "Cool dude", counter: container({ initialValue: 0 })
-      })
-      .zoneWithTemplate(funZone, {
+      }) }))
+      .zoneWithTemplate(funZone, derived({ query: () => ({
         id: 2, name: "Awesome person", counter: container({ initialValue: 0 })
-      })
-      .zoneWithTemplate(funZone, {
+      }) }))
+      .zoneWithTemplate(funZone, derived({ query: () => ({
         id: 3, name: "Fun human", counter: container({ initialValue: 0 })
-      })
-  })
+      }) }))
+
+      // .zoneWithTemplate(funZone, {
+      //   id: 2, name: "Awesome person", counter: container({ initialValue: 0 })
+      // })
+      // .zoneWithTemplate(funZone, {
+      //   id: 3, name: "Fun human", counter: container({ initialValue: 0 })
+      // })
+    })
 }
 
-function funZone(root: HTMLBuilder, withProps: WithProps<Context>) {
+function funZone(root: HTMLBuilder, state: State<Context>) {
   root.div(el => {
     el.children
       .hr()
@@ -35,27 +42,27 @@ function funZone(root: HTMLBuilder, withProps: WithProps<Context>) {
         el.children
           .div(el => {
             el.config
-              .dataAttribute("greeting", withProps((props) => `${props.id}`))
+              .dataAttribute("greeting", (get) => `${get(state).id}`)
             el.children
-              .textNode(withProps((props, get) => `${get(greeting)}, ${props.name}!`))
+              .textNode((get) => `${get(greeting)}, ${get(state).name}!`)
           })
           .div(el => {
             el.config
-              .dataAttribute("counter", withProps((props) => `${props.id}`))
+              .dataAttribute("counter", (get) => `${get(state).id}`)
             el.children
-              .textNode(withProps((props, get) => `${get(props.counter)} clicks!`))
+              .textNode((get) => `${get(get(state).counter)} clicks!`)
           })
       })
       .div(el => {
         el.children
           .button(el => {
             el.config
-              .dataAttribute("increment-counter", withProps((props) => `${props.id}`))
-              .on("click", withProps((props) => {
+              .dataAttribute("increment-counter", (get) => `${get(state).id}`)
+              .on("click", () => {
                 return use(rule((get) => {
-                  return write(props.counter, get(props.counter) + 1)
+                  return write(get(state).counter, get(get(state).counter) + 1)
                 }))
-              }))
+              })
             el.children
               .textNode("Click me!")
           })

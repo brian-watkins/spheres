@@ -1,11 +1,10 @@
 import { Effect, EffectSubscription, GetState } from "@spheres/store";
-import { EffectHandle } from "../virtualNode.js";
-import { EffectGenerator } from "./effectGenerator.js";
+import { EffectHandle, Stateful } from "../virtualNode.js";
 
 export class UpdateAttributeEffect implements Effect, EffectHandle {
   private subscription: EffectSubscription | undefined;
 
-  constructor(private element: Element, private attribute: string, private generator: EffectGenerator<string | undefined>, private context: any = undefined) { }
+  constructor(private element: Element, private attribute: string, private generator: Stateful<string>) { }
 
   onSubscribe(subscription: EffectSubscription): void {
     this.subscription = subscription
@@ -16,7 +15,7 @@ export class UpdateAttributeEffect implements Effect, EffectHandle {
   }
 
   init(get: GetState): void {
-    const val = this.generator(get, this.context)
+    const val = this.generator(get)
     if (val !== undefined) {
       this.element.setAttribute(this.attribute, val)
     }
@@ -28,7 +27,7 @@ export class UpdateAttributeEffect implements Effect, EffectHandle {
       return
     }
 
-    const val = this.generator(get, this.context)
+    const val = this.generator(get)
     if (val === undefined) {
       this.element.removeAttribute(this.attribute)
     } else {

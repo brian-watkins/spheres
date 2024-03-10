@@ -1,5 +1,6 @@
 import { GetState, State, StoreMessage } from "@spheres/store";
 import { EventHandler } from "./eventHandler.js";
+import { EffectTemplate } from "./template.js";
 
 export type Stateful<T> = (get: GetState) => T | undefined
 
@@ -56,7 +57,7 @@ export interface BlockNode {
 export interface TemplateNode {
   type: NodeType.TEMPLATE
   template: VirtualTemplate<any>
-  props: any
+  effects: Array<EffectTemplate>
   key?: VirtualNodeKey
   node: Node | undefined
 }
@@ -190,11 +191,11 @@ export class  VirtualTemplate<T> {
   }
 }
 
-export function makeTemplate(template: VirtualTemplate<any>, props: any, key?: VirtualNodeKey): TemplateNode {
+export function makeTemplate(template: VirtualTemplate<any>, effects: Array<EffectTemplate>, key?: VirtualNodeKey): TemplateNode {
   return {
     type: NodeType.TEMPLATE,
     template,
-    props,
+    effects,
     key,
     node: undefined
   }

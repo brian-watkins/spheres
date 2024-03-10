@@ -22,8 +22,9 @@ function stringifyVirtualNode(store: Store, vnode: VirtualNode): string {
     case NodeType.BLOCK:
       return stringifyVirtualNode(store, vnode.generator!())
     case NodeType.TEMPLATE:
-      vnode.template.setProps(vnode.props)
-      return stringifyVirtualNode(store, vnode.template.virtualNode)
+      return "not done yet"
+      // vnode.template.setProps(vnode.props)
+      // return stringifyVirtualNode(store, vnode.template.virtualNode)
   }
 }
 

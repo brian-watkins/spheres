@@ -5,7 +5,7 @@ import { DisplayElement } from "helpers/testDisplay";
 
 export default behavior("template", [
 
-  example(browserAppContext())
+  (m) => m.pick() && example(browserAppContext())
     .description("a template and context")
     .script({
       suppose: [

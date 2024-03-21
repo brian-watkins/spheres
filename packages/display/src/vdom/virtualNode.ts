@@ -63,16 +63,16 @@ export interface TemplateNode {
 
 export type VirtualNode = TextNode | StatefulTextNode | ElementNode | StatefulNode | BlockNode | TemplateNode
 
-export interface StatefulValue {
-  generator: Stateful<string>
+export interface StatefulValue<T> {
+  generator: Stateful<T>
   effect?: EffectHandle
 }
 
 export interface VirtualNodeConfig {
   props?: Record<string, any>
-  statefulProps?: Record<string, StatefulValue>
+  statefulProps?: Record<string, StatefulValue<any>>
   attrs: Record<string, string>
-  statefulAttrs?: Record<string, StatefulValue>
+  statefulAttrs?: Record<string, StatefulValue<string>>
   namespace?: string
   on?: { [index: string]: EventHandler }
   key?: VirtualNodeKey
@@ -92,12 +92,12 @@ export function setNamespace(config: VirtualNodeConfig, namespace: string) {
   config.namespace = namespace
 }
 
-export function addProperty(config: VirtualNodeConfig, name: string, value: string) {
+export function addProperty<T>(config: VirtualNodeConfig, name: string, value: T) {
   if (!config.props) { config.props = {} }
   config.props[name] = value
 }
 
-export function addStatefulProperty(config: VirtualNodeConfig, name: string, generator: Stateful<string>) {
+export function addStatefulProperty<T>(config: VirtualNodeConfig, name: string, generator: Stateful<T>) {
   if (!config.statefulProps) { config.statefulProps = {} }
   config.statefulProps[name] = {
     generator

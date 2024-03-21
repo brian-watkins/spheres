@@ -1,11 +1,11 @@
 import { container, rule, use, write } from "@spheres/store"
-import { HTMLBuilder } from "@src/htmlElements"
+import { htmlTemplate } from "@src/index"
 
 const clickCount = container({ initialValue: 0 })
 
 const incrementCount = rule(get => write(clickCount, get(clickCount) + 1))
 
-export default function (root: HTMLBuilder) {
+export default htmlTemplate(() => root => {
   root.div(div => {
     div.children
       .h1(h1 => h1.children.textNode("This is the click counter!"))
@@ -21,5 +21,5 @@ export default function (root: HTMLBuilder) {
           })
       })
   })
-}
+})
 

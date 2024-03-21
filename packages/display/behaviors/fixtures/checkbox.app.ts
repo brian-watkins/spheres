@@ -1,5 +1,5 @@
 import { container, reset, write } from "@spheres/store";
-import { HTMLBuilder } from "@src/htmlElements";
+import { htmlTemplate } from "@src/index";
 
 const boxes = [
   "one",
@@ -10,7 +10,7 @@ const boxes = [
 
 const checkedBoxes = container({ initialValue: ["three"] })
 
-export default function view(root: HTMLBuilder) {
+export default htmlTemplate(() => root => {
   root.main(({ children }) => {
     children
       .form(({ config, children }) => {
@@ -67,4 +67,4 @@ export default function view(root: HTMLBuilder) {
         children.textNode(get => `You checked: ${get(checkedBoxes).join(", ")}`)
       })
   })
-}
+})

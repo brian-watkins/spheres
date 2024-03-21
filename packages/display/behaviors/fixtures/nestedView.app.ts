@@ -1,37 +1,38 @@
 import { container, GetState, write } from "@spheres/store"
-import { HTMLBuilder } from "@src/index.js"
+import { htmlTemplate, HTMLView } from "@src/index.js"
 import { useValue } from "./helpers"
 
 const nameState = container({ initialValue: "hello" })
 
 const ageState = container({ initialValue: 27 })
 
-function ageView(root: HTMLBuilder) {
+const ageView = htmlTemplate(() => root => {
   root.p(el => {
     el.config.dataAttribute("age")
     el.children.textNode(get => `My age is ${get(ageState)}`)
   })
-}
+})
 
-function nameView(root: HTMLBuilder, get: GetState) {
+function nameView(get: GetState): HTMLView {
   const name = get(nameState)
 
-  root.div(el => {
-    el.children.p(el => {
-      el.config.dataAttribute("name")
-      el.children.textNode(`My name is: ${name}`)
+  return root =>
+    root.div(el => {
+      el.children.p(el => {
+        el.config.dataAttribute("name")
+        el.children.textNode(`My name is: ${name}`)
+      })
+      if (name !== "AGELESS PERSON") {
+        el.children.zone(ageView())
+      }
     })
-    if (name !== "AGELESS PERSON") {
-      el.children.zone(ageView)
-    }
-  })
 }
 
-export default function view(root: HTMLBuilder) {
+export default htmlTemplate(() => root => {
   root.div(el => {
     el.children
       .h1(el => el.children.textNode("This is only a test!"))
-      .zoneWithState(nameView)
+      .zone(nameView)
       .hr()
       .input(({ config }) => {
         config
@@ -44,4 +45,4 @@ export default function view(root: HTMLBuilder) {
           .on("input", useValue((value) => write(ageState, Number(value))))
       })
   })
-}
+})

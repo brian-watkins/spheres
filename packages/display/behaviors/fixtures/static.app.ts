@@ -1,6 +1,6 @@
 import { container, GetState } from "@spheres/store";
 import { HTMLBuilder } from "@src/htmlElements";
-import { HTMLView, WithProps } from "@src/index";
+import { htmlTemplate, HTMLView, WithProps } from "@src/index";
 
 interface StaticViewProps {
   name: string
@@ -48,59 +48,59 @@ export function appWithDataAttributesNoValue(props: StaticViewProps): HTMLView {
 const nameState = container({ initialValue: "Cool Person!" })
 const ageState = container({ initialValue: 98 })
 
-function nameView(root: HTMLBuilder, get: GetState) {
-  root.h2(el => {
+function nameView(get: GetState): HTMLView {
+  return root => root.h2(el => {
     el.children.textNode(get(nameState))
   })
 }
 
 export function appWithSimpleState(root: HTMLBuilder) {
   root.div(el => {
-    el.children.zoneWithState(nameView)
+    el.children.zone(nameView)
   })
 }
 
 export function appWithNestedState(root: HTMLBuilder) {
   root.div(el => {
-    el.children.zoneWithState(nestedAge)
+    el.children.zone(nestedAge)
   })
 }
 
-function nestedAge(root: HTMLBuilder, get: GetState) {
+function nestedAge(get: GetState): HTMLView {
   const age = get(ageState)
   if (age < 100) {
-    root.zoneWithState(nameView)
+    return root => root.zone(nameView)
   } else {
-    root.p(el => el.children.textNode("You are old!"))
+    return root => root.p(el => el.children.textNode("You are old!"))
   }
 }
 
 
-function firstLevelZone(root: HTMLBuilder, get: GetState) {
-  root.div(el => {
+function firstLevelZone(get: GetState): HTMLView {
+  return root => root.div(el => {
     el.children
-      .zoneWithState(nameView)
+      .zone(nameView)
       .p(el => el.children.textNode(`${get(ageState)} years!`))
   })
 }
 
 export function appWithDeeplyNestedState(root: HTMLBuilder) {
   root.div(el => {
-    el.children.zoneWithState(firstLevelZone)
+    el.children.zone(firstLevelZone)
   })
 }
 
-function superZone(root: HTMLBuilder) {
+const superZone = htmlTemplate(() => root => {
   root.div(({ children }) => {
     children
       .h1(({ children }) => {
         children.textNode("Hello!")
       })
   })
-}
+})
 
 export function appWithBlock(root: HTMLBuilder) {
-  root.zone(superZone)
+  root.zone(superZone())
 }
 
 export function appWithReactiveText(root: HTMLBuilder) {
@@ -121,9 +121,9 @@ export function appWithInnerHTML(root: HTMLBuilder) {
 export function appWithTemplates(root: HTMLBuilder) {
   root.div(el => {
     el.children
-      .zoneWithTemplate(titleTemplate, { title: "One" })
-      .zoneWithTemplate(titleTemplate, { title: "Two" })
-      .zoneWithTemplate(titleTemplate, { title: "Three" })
+      .zone(titleTemplate({ title: "One" }))
+      .zone(titleTemplate({ title: "Two" }))
+      .zone(titleTemplate({ title: "Three" }))
   })
 }
 
@@ -131,8 +131,8 @@ interface TitleProps {
   title: string
 }
 
-function titleTemplate(root: HTMLBuilder, withProps: WithProps<TitleProps>) {
-  root.h1(el => {
+const titleTemplate = htmlTemplate((withProps: WithProps<TitleProps>) => {
+  return root => root.h1(el => {
     el.children.textNode(withProps((props) => props.title))
   })
-}
+})

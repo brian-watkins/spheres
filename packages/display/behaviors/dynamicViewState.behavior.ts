@@ -6,8 +6,7 @@ import { browserAppContext, TestAppController } from "./helpers/testAppControlle
 export default
   behavior("keyed list", [
     exampleGenerator(browserAppContext(), "key on stateful zone", "keyOnZoneWithState.app"),
-    exampleGenerator(browserAppContext(), "key on template", "keyOnZoneWithTemplate.app"),
-    exampleGenerator(browserAppContext(), "key on zone", "keyOnZone.app")
+    exampleGenerator(browserAppContext(), "key on template", "keyOnZoneWithTemplate.app")
   ])
 
 function exampleGenerator(context: Context<TestAppController>, description: string, appName: string): ConfigurableExample {

@@ -1,29 +1,29 @@
 import { GetState } from "@spheres/store"
-import { Stateful, VirtualNode, VirtualNodeConfig, VirtualTemplate, WithProps, makeBlockElement, makeStatefulElement, makeTemplate, makeVirtualElement, setNamespace, virtualNodeConfig } from "./vdom/virtualNode.js"
+import { Stateful, VirtualNode, VirtualNodeConfig, VirtualTemplate, WithProps, makeStatefulElement, makeTemplate, makeVirtualElement, setNamespace, virtualNodeConfig } from "./vdom/virtualNode.js"
 import { SVGBuilder, SVGElements, SVGElementAttributes, svgAttributeNames } from "./svgElements.js"
-import { ConfigurableElement, ViewBuilder, ViewOptions } from "./viewBuilder.js"
+import { ConfigurableElement, ViewBuilder, ViewOptions, ViewProps } from "./viewBuilder.js"
 import { BasicElementConfig, SpecialElementAttributes } from "./viewConfig.js"
 
 export type SVGView = (root: SVGBuilder) => void
 export type ReactiveSvgViewFunction = (get: GetState) => void
 
+const template: unique symbol = Symbol();
+const templateProps: unique symbol = Symbol();
+
+export interface SVGTemplateView<T> {
+  [template]: SVGVirtualTemplate<T>
+  [templateProps]: T
+}
+
 export interface SpecialSVGElements {
   element(tag: string, builder?: (element: ConfigurableElement<SpecialElementAttributes, SVGElements>) => void): this
   textNode(value: string | Stateful<string>): this
-  zone(definition: SVGView, options?: ViewOptions): this
-  zoneWithState(generator: (root: SVGBuilder, get: GetState) => void, options?: ViewOptions): this
-  zoneWithTemplate<T>(template: (root: SVGBuilder, withProps: WithProps<T>) => void, props: T, options?: ViewOptions): this
+  zone(view: SVGTemplateView<any> | ((get: GetState) => SVGView), options?: ViewOptions): this
 }
 
-function toVirtualNode(view: SVGView): VirtualNode {
+function toReactiveVirtualNode(generator: (get: GetState) => SVGView, get: GetState): VirtualNode {
   const builder = new SvgViewBuilder()
-  view(builder as unknown as SVGBuilder)
-  return builder.toVirtualNode()
-}
-
-function toReactiveVirtualNode(generator: (root: SVGBuilder, get: GetState) => void, get: GetState): VirtualNode {
-  const builder = new SvgViewBuilder()
-  generator(builder as unknown as SVGBuilder, get)
+  generator(get)(builder as unknown as SVGBuilder)
   return builder.toVirtualNode()
 }
 
@@ -53,23 +53,13 @@ export function buildSvgElement(builder?: (element: ConfigurableElement<SpecialE
 }
 
 export class SvgViewBuilder extends ViewBuilder<SpecialElementAttributes, SVGElements> implements SpecialSVGElements {
-  zone(definition: SVGView, options?: ViewOptions | undefined): this {
-    this.storeNode(makeBlockElement(() => toVirtualNode(definition), options?.key))
-    return this
-  }
-
-  zoneWithState(generator: (root: SVGBuilder, get: GetState) => void, options?: ViewOptions | undefined): this {
-    this.storeNode(makeStatefulElement((get) => toReactiveVirtualNode(generator, get), options?.key))
-    return this
-  }
-
-  zoneWithTemplate<T>(template: (root: SVGBuilder, withProps: WithProps<T>) => void, props: T, options?: ViewOptions | undefined): this {
-    let virtualTemplate = this.getVirtualTemplate(template)
-    if (virtualTemplate === undefined) {
-      virtualTemplate = new SVGVirtualTemplate(template, props)
-      this.setVirtualTemplate(template, virtualTemplate)
+  zone(view: SVGTemplateView<any> | ((get: GetState) => SVGView), options?: ViewOptions | undefined): this {
+    if (typeof view === "function") {
+      this.storeNode(makeStatefulElement((get) => toReactiveVirtualNode(view, get), options?.key))
+    } else {
+      this.storeNode(makeTemplate(view[template], view[templateProps], options?.key))
     }
-    this.storeNode(makeTemplate(virtualTemplate, props, options?.key))
+
     return this
   }
 
@@ -79,17 +69,34 @@ export class SvgViewBuilder extends ViewBuilder<SpecialElementAttributes, SVGEle
 }
 
 export class SVGVirtualTemplate<T> extends VirtualTemplate<T> {
-  constructor(generator: (root: SVGBuilder, withProps: WithProps<T>) => void, protected props: T) {
+  constructor(generator: (withProps: WithProps<T>) => SVGView, protected props: T) {
     super()
 
     const builder = new SvgViewBuilder()
 
-    generator(builder as unknown as SVGBuilder, (handler) => {
-      return (arg1, arg2) => {
-        return handler(this.props, arg1, arg2)
+    generator((handler) => {
+      return (get) => {
+        return handler(this.props, get)
       }
-    })
+    })(builder as unknown as SVGBuilder)
 
     this.virtualNode = builder.toVirtualNode()
+  }
+}
+
+export function svgTemplate<P = undefined>(definition: (withProps: WithProps<P>) => SVGView): (...props: ViewProps<P>) => SVGTemplateView<P> {
+  let virtualTemplate: SVGVirtualTemplate<P> | undefined
+
+  return (...props: ViewProps<P>) => {
+    const viewProps: any = props.length == 0 ? undefined : props[0]
+
+    if (virtualTemplate === undefined) {
+      virtualTemplate = new SVGVirtualTemplate(definition, viewProps)
+    }
+
+    return {
+      [template]: virtualTemplate,
+      [templateProps]: viewProps
+    }
   }
 }

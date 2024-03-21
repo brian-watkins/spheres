@@ -1,4 +1,4 @@
-import { HTMLBuilder } from "@src/index.js"
+import { htmlTemplate } from "@src/index.js"
 import { container, write } from "@spheres/store"
 
 export interface InputAppProps {
@@ -7,7 +7,7 @@ export interface InputAppProps {
 
 const formInputValue = container({ initialValue: "" })
 
-export default function (root: HTMLBuilder) {
+export default htmlTemplate(() => root => {
   root.main(el => {
     el.children
       .form(el => {
@@ -42,4 +42,4 @@ export default function (root: HTMLBuilder) {
         el.children.textNode(get => get(formInputValue))
       })
   })
-}
+})

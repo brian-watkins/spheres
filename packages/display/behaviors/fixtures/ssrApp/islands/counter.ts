@@ -1,10 +1,10 @@
-import { HTMLBuilder } from "@src/index.js"
+import { htmlTemplate } from "@src/index.js"
 import { clickCount } from "../state.js"
 import { rule, use, write } from "@spheres/store"
 
 const incrementCount = rule(get => write(clickCount, get(clickCount) + 1))
 
-export default function (root: HTMLBuilder) {
+export default htmlTemplate(() => root => {
   root.div(el => {
     el.config
       .id("counter")
@@ -16,4 +16,4 @@ export default function (root: HTMLBuilder) {
           .textNode("Click me!")
       })
   })
-}
+})

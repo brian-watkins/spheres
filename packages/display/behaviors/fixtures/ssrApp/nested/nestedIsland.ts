@@ -1,19 +1,19 @@
 import { nameState } from "../state.js"
 import counterIsland from "../islands/counter.js"
 import tallyIsland from "../islands/tally.js"
-import { HTMLBuilder } from "@src/index.js"
+import { htmlTemplate } from "@src/index.js"
 
-export default function view(root: HTMLBuilder) {
-  root.zoneWithState((root, get) => {
-    root.div(el => {
+export default htmlTemplate(() => root => {
+  root.zone((get) => {
+    return root => root.div(el => {
       el.config.id("super-island")
       el.children
         .h1(el => el.children.textNode(`This is for ${get(nameState)}!`))
-        .zone(counterIsland)
+        .zone(counterIsland())
         .hr()
-        .zone(tallyIsland)
+        .zone(tallyIsland())
         .hr()
-        .zone(tallyIsland)
+        .zone(tallyIsland())
     })
   })
-}
+})

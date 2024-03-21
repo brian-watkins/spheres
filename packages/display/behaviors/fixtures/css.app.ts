@@ -1,20 +1,21 @@
 import { container, write } from "@spheres/store"
-import { HTMLBuilder } from "@src/index.js"
+import { htmlTemplate } from "@src/index.js"
 import { useValue } from "./helpers"
 
 const numberState = container({ initialValue: 17 })
 
-function funView(root: HTMLBuilder) {
-  root.div(el => {
-    el.config
-      .id("cool-stuff")
-      .class(get => `zoom ${get(numberState) % 2 == 0 ? "even" : "odd"}`)
-    el.children
-      .textNode("This is some cool stuff!")
-  })
-}
+const funView = htmlTemplate(() => {
+  return root =>
+    root.div(el => {
+      el.config
+        .id("cool-stuff")
+        .class(get => `zoom ${get(numberState) % 2 == 0 ? "even" : "odd"}`)
+      el.children
+        .textNode("This is some cool stuff!")
+    })
+})
 
-export default function view(root: HTMLBuilder) {
+export default htmlTemplate(() => root => {
   root.div(el => {
     el.children
       .h1(el => {
@@ -23,7 +24,7 @@ export default function view(root: HTMLBuilder) {
         el.children
           .textNode("This is only a test!")
       })
-      .zone(funView)
+      .zone(funView())
       .hr()
       .input(el => {
         el.config
@@ -31,5 +32,5 @@ export default function view(root: HTMLBuilder) {
           .on("input", useValue((value) => write(numberState, Number(value))))
       })
   })
-}
+})
 

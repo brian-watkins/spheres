@@ -1,11 +1,11 @@
-import { HTMLBuilder } from "@src/index.js";
+import { htmlTemplate } from "@src/index.js";
 import { container, rule, use, write } from "@spheres/store";
 
 const clicks = container({ initialValue: 0 })
 const isDisabled = container({ initialValue: false })
 const incrementClicks = rule(get => write(clicks, get(clicks) + 1))
 
-export default function view(root: HTMLBuilder) {
+export default htmlTemplate(() => root => {
   root.main(el => {
     el.children
       .div(el => {
@@ -38,4 +38,4 @@ export default function view(root: HTMLBuilder) {
         el.children.textNode("Click to disable!")
       })
   })
-}
+})

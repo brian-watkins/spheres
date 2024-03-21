@@ -89,12 +89,13 @@ class PropertyEffectTemplate implements EffectTemplate {
 }
 
 class EventEffectTemplate implements EffectTemplate {
-  constructor(private event: string, private handler: (evt: Event, context: any) => StoreMessage<any>, private findNode: (root: Node) => Node) { }
+  constructor(private template: VirtualTemplate<any>, private event: string, private handler: (evt: Event) => StoreMessage<any>, private findNode: (root: Node) => Node) { }
 
   attach(store: Store, root: Node, context: any) {
     const element = this.findNode(root) as Element
     element.addEventListener(this.event, (evt) => {
-      store.dispatch(this.handler(evt, context))
+      this.template.setProps(context)
+      store.dispatch(this.handler(evt))
     })
   }
 }
@@ -150,7 +151,7 @@ function findEffectLocations(template: VirtualTemplate<any>, vnode: VirtualNode,
 
       const events = vnode.data.on
       for (const k in events) {
-        effects.push(new EventEffectTemplate(k, template.useWithProps(events[k].handler), location.findNode))
+        effects.push(new EventEffectTemplate(template, k, events[k].handler, location.findNode))
       }
 
       for (var i = 0; i < vnode.children.length; i++) {

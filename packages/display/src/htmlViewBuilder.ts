@@ -1,11 +1,11 @@
 import { GetState, Store } from "@spheres/store"
-import { VirtualNode, makeStatefulElement, Stateful, makeTemplate, addStatefulProperty, addProperty, makeBlockElement, VirtualTemplate, WithProps } from "./vdom/virtualNode.js"
+import { VirtualNode, makeStatefulElement, Stateful, makeTemplate, addStatefulProperty, addProperty, VirtualTemplate, WithProps } from "./vdom/virtualNode.js"
 import { HTMLElements, HTMLBuilder } from "./htmlElements.js"
 import { createStringRenderer } from "./vdom/renderToString.js"
 import { createDOMRenderer } from "./vdom/renderToDom.js"
 import { SVGElements } from "./svgElements.js"
 import { BasicElementConfig, SpecialElementAttributes } from "./viewConfig.js"
-import { ConfigurableElement, ViewBuilder, ViewOptions } from "./viewBuilder.js"
+import { ConfigurableElement, ViewBuilder, ViewOptions, ViewProps } from "./viewBuilder.js"
 import { buildSvgElement } from "./svgViewBuilder.js"
 
 // Renderers
@@ -15,10 +15,10 @@ export interface RenderResult {
   unmount: () => void
 }
 
-export function renderToDOM(store: Store, element: Element, view: HTMLView): RenderResult {
+export function renderToDOM(store: Store, element: Element, view: HTMLDisplay): RenderResult {
   const render = createDOMRenderer(store)
   const builder = new HtmlViewBuilder()
-  view(builder as unknown as HTMLBuilder)
+  builder.zone(view)
   const renderResult = render(element, builder.toVirtualNode())
 
   return {
@@ -29,10 +29,10 @@ export function renderToDOM(store: Store, element: Element, view: HTMLView): Ren
   }
 }
 
-export function renderToString(store: Store, view: HTMLView): string {
+export function renderToString(store: Store, view: HTMLDisplay): string {
   const render = createStringRenderer(store)
   const builder = new HtmlViewBuilder()
-  view(builder as unknown as HTMLBuilder)
+  builder.zone(view)
   return render(builder.toVirtualNode())
 }
 
@@ -41,24 +41,20 @@ export function renderToString(store: Store, view: HTMLView): string {
 
 export type HTMLView = (root: HTMLBuilder) => void
 
-function toVirtualNode(generator: HTMLView): VirtualNode {
-  const builder = new HtmlViewBuilder()
-  generator(builder as unknown as HTMLBuilder)
-  return builder.toVirtualNode()
+const template: unique symbol = Symbol();
+const templateProps: unique symbol = Symbol();
+
+export interface HTMLTemplateView<T> {
+  [template]: HTMLVirtualTemplate<T>
+  [templateProps]: T
 }
 
-function toReactiveVirtualNode(generator: (root: HTMLBuilder, get: GetState) => void, get: GetState): VirtualNode {
-  const builder = new HtmlViewBuilder()
-  generator(builder as unknown as HTMLBuilder, get)
-  return builder.toVirtualNode()
-}
+export type HTMLDisplay = HTMLTemplateView<any> | ((get: GetState) => HTMLView)
 
 export interface SpecialHTMLElements {
   element(tag: string, builder?: (element: ConfigurableElement<SpecialElementAttributes, HTMLElements>) => void): this
   textNode(value: string | Stateful<string>): this
-  zone(definition: HTMLView, options?: ViewOptions): this
-  zoneWithTemplate<T>(template: (root: HTMLBuilder, props: WithProps<T>) => void, props: T, options?: ViewOptions): this
-  zoneWithState(generator: (root: HTMLBuilder, get: GetState) => void, options?: ViewOptions): this
+  zone(view: HTMLDisplay, options?: ViewOptions): this
 }
 
 const configBuilder = new BasicElementConfig()
@@ -95,24 +91,20 @@ class InputElementConfig extends HTMLElementConfig {
 
 const inputConfigBuilder = new InputElementConfig()
 
+function toReactiveVirtualNode(generator: (get: GetState) => HTMLView, get: GetState): VirtualNode {
+  const builder = new HtmlViewBuilder()
+  generator(get)(builder as unknown as HTMLBuilder)
+  return builder.toVirtualNode()
+}
+
 class HtmlViewBuilder extends ViewBuilder<SpecialElementAttributes, HTMLElements> implements SpecialHTMLElements {
-  zone(definition: HTMLView, options?: ViewOptions): this {
-    this.storeNode(makeBlockElement(() => toVirtualNode(definition), options?.key))
-    return this
-  }
-
-  zoneWithState(generator: (root: HTMLBuilder, get: GetState) => void, options?: ViewOptions): this {
-    this.storeNode(makeStatefulElement((get) => toReactiveVirtualNode(generator, get), options?.key))
-    return this
-  }
-
-  zoneWithTemplate<T>(template: (root: HTMLBuilder, props: WithProps<T>) => void, props: T, options?: ViewOptions): this {
-    let virtualTemplate = this.getVirtualTemplate(template)
-    if (virtualTemplate === undefined) {
-      virtualTemplate = new HTMLVirtualTemplate(template, props)
-      this.setVirtualTemplate(template, virtualTemplate)
+  zone(view: HTMLDisplay, options?: ViewOptions | undefined): this {
+    if (typeof view === "function") {
+      this.storeNode(makeStatefulElement((get) => toReactiveVirtualNode(view, get), options?.key))
+    } else {
+      this.storeNode(makeTemplate(view[template], view[templateProps], options?.key))
     }
-    this.storeNode(makeTemplate(virtualTemplate, props, options?.key))
+
     return this
   }
 
@@ -131,17 +123,35 @@ class HtmlViewBuilder extends ViewBuilder<SpecialElementAttributes, HTMLElements
 }
 
 export class HTMLVirtualTemplate<T> extends VirtualTemplate<T> {
-  constructor(generator: (root: HTMLBuilder, withProps: WithProps<T>) => void, protected props: T) {
+  constructor(generator: (withProps: WithProps<T>) => HTMLView, protected props: T) {
     super()
 
     const builder = new HtmlViewBuilder()
 
-    generator(builder as unknown as HTMLBuilder, (handler) => {
-      return (arg1, arg2) => {
-        return handler(this.props, arg1, arg2)
+    generator((handler) => {
+      return (get) => {
+        return handler(this.props, get)
       }
-    })
+    })(builder as unknown as HTMLBuilder)
 
     this.virtualNode = builder.toVirtualNode()
+  }
+}
+
+
+export function htmlTemplate<P = undefined>(definition: (withProps: WithProps<P>) => HTMLView): (...props: ViewProps<P>) => HTMLTemplateView<P> {
+  let virtualTemplate: HTMLVirtualTemplate<P> | undefined
+
+  return (...props: ViewProps<P>) => {
+    const viewProps: any = props.length == 0 ? undefined : props[0]
+
+    if (virtualTemplate === undefined) {
+      virtualTemplate = new HTMLVirtualTemplate(definition, viewProps)
+    }
+
+    return {
+      [template]: virtualTemplate,
+      [templateProps]: viewProps
+    }
   }
 }

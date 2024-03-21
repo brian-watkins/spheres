@@ -18,7 +18,7 @@ export class TestApp {
     testAppMountPoint.id = "test-display"
     document.body.appendChild(testAppMountPoint)
 
-    const renderResult = renderToDOM(store, testAppMountPoint, view)
+    const renderResult = renderToDOM(store, testAppMountPoint, view())
     this.unmountTestApp = renderResult.unmount
   }
 

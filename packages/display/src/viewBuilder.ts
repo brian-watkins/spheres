@@ -12,6 +12,8 @@ export interface ViewOptions {
   key?: string | number | State<any>
 }
 
+export type ViewProps<P> = P extends undefined ? [] : [P]
+
 const templateNodeRegistry = new WeakMap<Function, VirtualTemplate<any>>()
 
 export abstract class ViewBuilder<A extends SpecialElementAttributes, B> {

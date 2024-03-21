@@ -1,6 +1,6 @@
-import { HTMLBuilder } from "@src/index.js"
+import { htmlTemplate } from "@src/index.js"
 
-export default function view(root: HTMLBuilder) {
+export default htmlTemplate(() => root => {
   root.div(div => {
     div.config
       .id("funny-id")
@@ -32,4 +32,4 @@ export default function view(root: HTMLBuilder) {
         el.config.aria("label", "submit")
       })
   })
-}
+})

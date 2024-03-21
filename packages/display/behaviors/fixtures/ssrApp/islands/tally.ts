@@ -1,4 +1,4 @@
-import { HTMLBuilder } from "@src/index.js"
+import { HTMLBuilder, HTMLView, htmlTemplate } from "@src/index.js"
 import { clickCount } from "../state.js"
 import { GetState } from "@spheres/store"
 
@@ -21,14 +21,14 @@ function oddCounterDisplay(root: HTMLBuilder) {
   })
 }
 
-function evenOddZone(root: HTMLBuilder, get: GetState) {
+function evenOddZone(get: GetState): HTMLView {
   if (get(clickCount) % 2 === 0) {
-    evenCounterDisplay(root)
+    return root => evenCounterDisplay(root)
   } else {
-    oddCounterDisplay(root)
+    return root => oddCounterDisplay(root)
   }
 }
 
-export default function (root: HTMLBuilder) {
-  root.zoneWithState(evenOddZone)
-}
+export default htmlTemplate(() => root => {
+  root.zone(evenOddZone)
+})

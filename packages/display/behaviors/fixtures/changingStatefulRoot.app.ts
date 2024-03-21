@@ -1,5 +1,5 @@
 import { GetState, container, write } from "@spheres/store";
-import { HTMLBuilder } from "@src/htmlElements";
+import { HTMLView, htmlTemplate } from "@src/index";
 
 const toggleState = container<boolean, string>({
   initialValue: false,
@@ -16,42 +16,43 @@ const visibilityState = container<boolean, string>({
 })
 
 
-function multipleRootZone(root: HTMLBuilder, get: GetState) {
+function multipleRootZone(get: GetState): HTMLView {
   if (get(toggleState)) {
-    root.h1(el => {
+    return root => root.h1(el => {
       el.children.textNode("Big text!")
     })
   } else {
-    root.p(el => {
+    return root => root.p(el => {
       el.children.textNode("Regular text!")
     })
   }
 }
 
-function statefulContainer(root: HTMLBuilder, get: GetState) {
-  root.div(el => {
-    el.children
-      .button(el => {
-        el.config
-          .dataAttribute("toggle")
-          .on("click", () => write(toggleState, "toggle"))
-        el.children
-          .textNode("Click to toggle!")
-      })
-      .button(el => {
-        el.config
-          .dataAttribute("visibility")
-          .on("click", () => write(visibilityState, "toggle"))
-        el.children
-          .textNode(get => get(visibilityState) ? "Click to hide" : "Click to show")
-      })
-    
+function statefulContainer(get: GetState): HTMLView {
+  return root =>
+    root.div(el => {
+      el.children
+        .button(el => {
+          el.config
+            .dataAttribute("toggle")
+            .on("click", () => write(toggleState, "toggle"))
+          el.children
+            .textNode("Click to toggle!")
+        })
+        .button(el => {
+          el.config
+            .dataAttribute("visibility")
+            .on("click", () => write(visibilityState, "toggle"))
+          el.children
+            .textNode(get => get(visibilityState) ? "Click to hide" : "Click to show")
+        })
+
       if (get(visibilityState)) {
-        el.children.zoneWithState(multipleRootZone)
+        el.children.zone(multipleRootZone)
       }
-  })
+    })
 }
 
-export default function view(root: HTMLBuilder) {
-  root.zoneWithState(statefulContainer)
-}
+export default htmlTemplate(() => root => {
+  root.zone(statefulContainer)
+})

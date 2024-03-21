@@ -1,4 +1,5 @@
 export * from "./htmlViewBuilder.js"
+export * from "./svgViewBuilder.js"
 export type { SpecialElementAttributes } from "./viewConfig.js"
 export * from "./htmlElements.js"
 export type { WithProps } from "./vdom/virtualNode.js"

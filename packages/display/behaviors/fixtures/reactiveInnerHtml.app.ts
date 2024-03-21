@@ -1,9 +1,9 @@
-import { HTMLBuilder } from "@src/index.js";
+import { htmlTemplate } from "@src/index.js";
 import { container, write } from "@spheres/store";
 
 const htmlContent = container({ initialValue: "<h1>Hello!</h1>" })
 
-export default function view(root: HTMLBuilder) {
+export default htmlTemplate(() => root => {
   root.main(el => {
     el.children
       .input(el => {
@@ -17,4 +17,4 @@ export default function view(root: HTMLBuilder) {
           .innerHTML(get => get(htmlContent))
       })
   })
-}
+})

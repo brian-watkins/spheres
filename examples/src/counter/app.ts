@@ -1,4 +1,4 @@
-import { View, htmlView } from "@spheres/display";
+import { htmlTemplate } from "@spheres/display";
 import { container, write } from "@spheres/store";
 
 const clickCount = container({
@@ -6,8 +6,8 @@ const clickCount = container({
   reducer: (_: string, current) => current + 1
 })
 
-export function counter(): View {
-  return htmlView(root => root.main(el => {
+export default htmlTemplate(() => root => {
+  root.main(el => {
     el.children
       .p(el => {
         el.config.dataAttribute("counter-text")
@@ -17,5 +17,5 @@ export function counter(): View {
         el.config.on("click", () => write(clickCount, "increment"))
         el.children.textNode("Count!")
       })
-  }))
-}
+  })
+})

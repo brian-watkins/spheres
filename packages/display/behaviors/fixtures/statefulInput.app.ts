@@ -1,11 +1,11 @@
 import { container, rule, use, write } from "@spheres/store"
-import { HTMLBuilder } from "@src/htmlElements"
+import { htmlTemplate } from "@src/index"
 
 const inputValue = container({ initialValue: 17 })
 
 const incrementValue = rule((get) => write(inputValue, get(inputValue) + 1))
 
-export default function view(root: HTMLBuilder) {
+export default htmlTemplate(() => root => {
   root.main(({ children }) => {
     children
       .input(el => {
@@ -21,4 +21,4 @@ export default function view(root: HTMLBuilder) {
           .textNode("Increment!")
       })
   })
-}
+})

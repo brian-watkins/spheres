@@ -1,5 +1,5 @@
 import { GetState, State, container, rule, use, write } from "@spheres/store";
-import { HTMLBuilder } from "@src/index";
+import { HTMLView, htmlTemplate } from "@src/index";
 
 interface Person {
   name: string
@@ -39,41 +39,42 @@ const incrementTicker = rule(get => {
   return write(ticker, get(ticker) + 1)
 })
 
-function peopleView(root: HTMLBuilder, get: GetState) {
+function peopleView(get: GetState): HTMLView {
   const list = get(people)
 
-  root.div(el => {
-    el.children
-      .h1(el => {
-        el.children.textNode(`There are ${list.length} people!`)
-      })
-      .button(el => {
-        el.config
-          .dataAttribute("reorder")
-          .on("click", () => use(shiftPeopleRule))
-        el.children
-          .textNode("Reorder People")
-      })
-      .button(el => {
-        el.config
-          .dataAttribute("increment-ticker")
-          .on("click", () => use(incrementTicker))
-        el.children
-          .textNode("Increment")
-      })
-      .hr()
-      .ul(el => {
-        for (const person of list) {
-          el.children.zoneWithState(personViewWithoutKey(person), {
-            key: person
-          })
-        }
-      })
-  })
+  return root =>
+    root.div(el => {
+      el.children
+        .h1(el => {
+          el.children.textNode(`There are ${list.length} people!`)
+        })
+        .button(el => {
+          el.config
+            .dataAttribute("reorder")
+            .on("click", () => use(shiftPeopleRule))
+          el.children
+            .textNode("Reorder People")
+        })
+        .button(el => {
+          el.config
+            .dataAttribute("increment-ticker")
+            .on("click", () => use(incrementTicker))
+          el.children
+            .textNode("Increment")
+        })
+        .hr()
+        .ul(el => {
+          for (const person of list) {
+            el.children.zone(personViewWithoutKey(person), {
+              key: person
+            })
+          }
+        })
+    })
 }
 
-function personViewWithoutKey(person: State<Person>): (root: HTMLBuilder, get: GetState) => void {
-  return (root, get) =>
+function personViewWithoutKey(person: State<Person>): (get: GetState) => HTMLView {
+  return (get) => root =>
     root.li(el => {
       el.children
         .h1(el => {
@@ -83,9 +84,9 @@ function personViewWithoutKey(person: State<Person>): (root: HTMLBuilder, get: G
     })
 }
 
-export default function (root: HTMLBuilder) {
+export default htmlTemplate(() => root => {
   root.div(el => {
     el.config.id("reorder-list")
-    el.children.zoneWithState(peopleView)
+    el.children.zone(peopleView)
   })
-}
+})

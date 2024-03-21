@@ -1,5 +1,5 @@
 import { GetState, State, container, rule, use, write } from "@spheres/store";
-import { HTMLBuilder, WithProps } from "@src/index";
+import { HTMLView, WithProps, htmlTemplate } from "@src/index";
 
 interface Person {
   name: string
@@ -39,52 +39,54 @@ const incrementTicker = rule(get => {
   return write(ticker, get(ticker) + 1)
 })
 
-function peopleView(root: HTMLBuilder, get: GetState) {
+function peopleView(get: GetState): HTMLView {
   const list = get(people)
 
-  root.div(el => {
-    el.children
-      .h1(el => {
-        el.children.textNode(`There are ${list.length} people!`)
-      })
-      .button(el => {
-        el.config
-          .dataAttribute("reorder")
-          .on("click", () => use(shiftPeopleRule))
-        el.children
-          .textNode("Reorder People")
-      })
-      .button(el => {
-        el.config
-          .dataAttribute("increment-ticker")
-          .on("click", () => use(incrementTicker))
-        el.children
-          .textNode("Increment")
-      })
-      .hr()
-      .ul(el => {
-        for (const person of list) {
-          el.children.zoneWithTemplate(personViewWithStatefultextNode, person, {
-            key: person
-          })
-        }
-      })
-  })
+  return root =>
+    root.div(el => {
+      el.children
+        .h1(el => {
+          el.children.textNode(`There are ${list.length} people!`)
+        })
+        .button(el => {
+          el.config
+            .dataAttribute("reorder")
+            .on("click", () => use(shiftPeopleRule))
+          el.children
+            .textNode("Reorder People")
+        })
+        .button(el => {
+          el.config
+            .dataAttribute("increment-ticker")
+            .on("click", () => use(incrementTicker))
+          el.children
+            .textNode("Increment")
+        })
+        .hr()
+        .ul(el => {
+          for (const person of list) {
+            el.children.zone(personViewWithStatefultextNode(person), {
+              key: person
+            })
+          }
+        })
+    })
 }
 
-function personViewWithStatefultextNode(root: HTMLBuilder, withProps: WithProps<State<Person>>) {
-  root.li(el => {
-    el.children
-      .h1(el => {
-        el.config.dataAttribute("person")
-        el.children.textNode(withProps((props, get) => `${get(props).name} is ${get(props).age} years old: ${get(ticker)}`))
-      })
-  })
-}
+const personViewWithStatefultextNode = htmlTemplate((withProps: WithProps<State<Person>>) => {
+  return root =>
+    root.li(el => {
+      el.children
+        .h1(el => {
+          el.config.dataAttribute("person")
+          el.children.textNode(withProps((props, get) => `${get(props).name} is ${get(props).age} years old: ${get(ticker)}`))
+        })
+    })
+})
 
-export default function (root: HTMLBuilder) {
+export default htmlTemplate(() => root => {
   root.div(el => {
     el.config.id("reorder-list")
-    el.children.zoneWithState(peopleView)
+    el.children.zone(peopleView)
   })
-}
+})

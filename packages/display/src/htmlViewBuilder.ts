@@ -57,8 +57,6 @@ export interface SpecialHTMLElements {
   zone(view: HTMLDisplay, options?: ViewOptions): this
 }
 
-const configBuilder = new BasicElementConfig()
-
 class HTMLElementConfig extends BasicElementConfig {
   class(value: string | Stateful<string>): this {
     if (typeof value === "function") {
@@ -70,6 +68,8 @@ class HTMLElementConfig extends BasicElementConfig {
     return this
   }
 }
+
+const configBuilder = new HTMLElementConfig()
 
 class InputElementConfig extends HTMLElementConfig {
   value(val: string | Stateful<string>) {

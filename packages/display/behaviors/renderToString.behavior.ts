@@ -11,7 +11,7 @@ export default behavior("Render view to HTML string", [
   }),
   renderTest("render view with properties and attributes", (renderer) => {
     const actual = renderer.renderView(appWithPropertiesAndAttributes({ name: "Awesome Person", age: 99 }))
-    expect(actual, is(equalTo(`<div id="element-1"><div class="my-class another-class" data-person="Awesome Person">99 years old</div></div>`)))
+    expect(actual, is(equalTo(`<div id="element-1"><div data-person="Awesome Person" class="my-class another-class">99 years old</div></div>`)))
   }),
   renderTest("render view with data attribute that has no value", (renderer) => {
     const actual = renderer.renderView(appWithDataAttributesNoValue({ name: "Funny Dude", age: 11 }))

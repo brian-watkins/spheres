@@ -1,4 +1,4 @@
-import { Store } from "@spheres/store";
+import { GetState, ReactiveQuery, Store } from "@spheres/store";
 import { StringRenderer } from "./render.js";
 import { ElementNode, NodeType, StatefulTextNode, StatefulNode, TextNode, VirtualNode } from "./virtualNode.js";
 
@@ -54,27 +54,32 @@ function stringifyElement(store: Store, node: ElementNode): string {
   return `<${node.tag}${attrs}>${children.join("")}</${node.tag}>`
 }
 
+class GetValueQuery<M> extends ReactiveQuery {
+  value!: M
+
+  constructor(private generator: (get: GetState) => M) {
+    super()
+  }
+
+  run(get: GetState): void {
+    this.value = this.generator(get)
+  }
+}
+
 function stringifyStatefulNode(store: Store, node: StatefulNode): string {
-  let statefulNode: VirtualNode
-  store.useEffect({
-    run: (get) => {
-      statefulNode = node.generator(get)
-    }
-  })
-  return stringifyVirtualNode(store, statefulNode!)
+  const query = new GetValueQuery(node.generator)
+  store.useQuery(query)
+  
+  return stringifyVirtualNode(store, query.value)
 }
 
 function stringifyReactiveText(store: Store, node: StatefulTextNode): string {
-  let textValue: string | undefined = undefined
-  store.useEffect({
-    run: (get) => {
-      textValue = node.generator(get)
-    }
-  })
+  const query = new GetValueQuery(node.generator)
+  store.useQuery(query)
 
   return stringifyTextNode({
     type: NodeType.TEXT,
-    value: textValue ?? "",
+    value: query.value ?? "",
     node: undefined
   })
 }

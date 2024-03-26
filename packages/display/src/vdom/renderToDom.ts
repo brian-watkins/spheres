@@ -47,13 +47,13 @@ function createNode(store: Store, vnode: VirtualNode): Node {
     case NodeType.STATEFUL_TEXT: {
       const textNode = document.createTextNode("")
       const textEffect = new UpdateTextEffect(textNode, vnode.generator)
-      store.useEffect(textEffect)
+      store.useQuery(textEffect)
       return textNode
     }
 
     case NodeType.STATEFUL: {
-      const query = new PatchZoneEffect(store, undefined, vnode.generator, vnode)
-      store.useEffect(query)
+      const query = new PatchZoneEffect(undefined, vnode.generator, vnode)
+      store.useQuery(query)
       return query.node
     }
 
@@ -79,7 +79,7 @@ function createNode(store: Store, vnode: VirtualNode): Node {
       for (const attr in statefulAttrs) {
         const stateful = statefulAttrs[attr]
         const attributeEffect = new UpdateAttributeEffect(element, attr, stateful.generator)
-        store.useEffect(attributeEffect)
+        store.useQuery(attributeEffect)
         stateful.effect = attributeEffect
       }
 
@@ -93,7 +93,7 @@ function createNode(store: Store, vnode: VirtualNode): Node {
       for (const prop in statefulProps) {
         const stateful = statefulProps[prop]
         const propertyEffect = new UpdatePropertyEffect(element, prop, stateful.generator)
-        store.useEffect(propertyEffect)
+        store.useQuery(propertyEffect)
         stateful.effect = propertyEffect
       }
 
@@ -163,7 +163,7 @@ function patchStatefulProperties(store: Store, oldVNode: ElementNode, newVNode: 
     } else if (oldProps[key] === undefined) {
       const stateful = newProps[key]
       const propertyEffect = new UpdatePropertyEffect(oldVNode.node!, key, stateful.generator)
-      store.useEffect(propertyEffect)
+      store.useQuery(propertyEffect)
       stateful.effect = propertyEffect
     }
   }
@@ -179,7 +179,7 @@ function patchStatefulAttributes(store: Store, oldVNode: ElementNode, newVNode: 
     } else if (oldAttr[key] === undefined) {
       const stateful = newAttr![key]
       const attributeEffect = new UpdateAttributeEffect(oldVNode.node!, key, stateful.generator)
-      store.useEffect(attributeEffect)
+      store.useQuery(attributeEffect)
       stateful.effect = attributeEffect
     }
   }

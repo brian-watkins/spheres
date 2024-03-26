@@ -66,7 +66,7 @@ class TextEffectTemplate implements EffectTemplate {
 
   attach(store: Store, root: Node, props: any) {
     const effect = new UpdateTextEffect(this.findNode(root) as Text, this.generator, props)
-    store.useEffect(effect)
+    store.useQuery(effect)
   }
 }
 
@@ -75,7 +75,7 @@ class AttributeEffectTemplate implements EffectTemplate {
 
   attach(store: Store, root: Node, props: any) {
     const effect = new UpdateAttributeEffect(this.findNode(root) as Element, this.attribute, this.generator, props)
-    store.useEffect(effect)
+    store.useQuery(effect)
   }
 }
 
@@ -84,7 +84,7 @@ class PropertyEffectTemplate implements EffectTemplate {
 
   attach(store: Store, root: Node, props: any) {
     const effect = new UpdatePropertyEffect(this.findNode(root) as Element, this.property, this.generator, props)
-    store.useEffect(effect)
+    store.useQuery(effect)
   }
 }
 
@@ -104,8 +104,8 @@ class StatefulZoneEffectTemplate implements EffectTemplate {
   constructor(private generator: EffectGenerator<VirtualNode>, private nodeReference: NodeReference, private findNode: (root: Node) => Node) { }
 
   attach(store: Store, root: Node, props: any): void {
-    const effect = new PatchZoneEffect(store, this.findNode(root), this.generator, this.nodeReference, props)
-    store.useEffect(effect)
+    const effect = new PatchZoneEffect(this.findNode(root), this.generator, this.nodeReference, props)
+    store.useQuery(effect)
   }
 }
 

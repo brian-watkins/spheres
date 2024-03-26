@@ -174,7 +174,7 @@ export function makeStatefulTextNode(generator: Stateful<string>, node?: Node): 
 export type WithProps<T> =
   <S>(generator: (props: T, get: GetState) => S) => (get: GetState) => S
 
-export class  VirtualTemplate<T> {
+export class VirtualTemplate<T> {
   protected props!: T
   virtualNode!: VirtualNode
 

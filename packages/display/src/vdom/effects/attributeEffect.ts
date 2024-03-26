@@ -1,18 +1,10 @@
-import { Effect, EffectSubscription, GetState } from "@spheres/store";
+import { GetState, ReactiveQuery } from "@spheres/store";
 import { EffectHandle } from "../virtualNode.js";
 import { EffectGenerator } from "./effectGenerator.js";
 
-export class UpdateAttributeEffect implements Effect, EffectHandle {
-  private subscription: EffectSubscription | undefined;
-
-  constructor(private element: Element, private attribute: string, private generator: EffectGenerator<string | undefined>, private context: any = undefined) { }
-
-  onSubscribe(subscription: EffectSubscription): void {
-    this.subscription = subscription
-  }
-
-  unsubscribe(): void {
-    this.subscription?.unsubscribe()
+export class UpdateAttributeEffect extends ReactiveQuery implements EffectHandle {
+  constructor(private element: Element, private attribute: string, private generator: EffectGenerator<string | undefined>, private context: any = undefined) {
+    super()
   }
 
   init(get: GetState): void {

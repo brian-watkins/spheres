@@ -1,4 +1,4 @@
-import { Container, Effect, EffectSubscription, GetState, container } from "@src/index.js"
+import { Container, GetState, ReactiveQuery, container } from "@src/index.js"
 import { ConfigurableExample, behavior, effect, example, fact, step } from "esbehavior"
 import { equalTo, expect, is } from "great-expectations"
 import { testStoreContext } from "helpers/testStore.js"
@@ -59,7 +59,7 @@ interface HiddenDepsContext {
 }
 
 const effectWithHiddenDependencies: ConfigurableExample =
-  (m) => m.pick() && example(testStoreContext<HiddenDepsContext>())
+  example(testStoreContext<HiddenDepsContext>())
     .description("effect with hidden dependents")
     .script({
       suppose: [
@@ -146,7 +146,7 @@ const unsubscribingEffect: ConfigurableExample =
           })
         }),
         fact("an effect is registered", (context) => {
-          context.store.useEffect(new UnsubscribingEffect(context.tokens.collector, (get) => {
+          context.store.useQuery(new UnsubscribingEffect(context.tokens.collector, (get) => {
             return get(context.tokens.container) !== "unsub"
           }))
         })
@@ -172,18 +172,14 @@ const unsubscribingEffect: ConfigurableExample =
       ]
     })
 
-class UnsubscribingEffect implements Effect {
-  private subscription: EffectSubscription | undefined
-
-  constructor(public collector: Array<string>, private runner: (get: GetState) => boolean) { }
-
-  onSubscribe(subscription: EffectSubscription): void {
-    this.subscription = subscription
+class UnsubscribingEffect extends ReactiveQuery {
+  constructor(public collector: Array<string>, private runner: (get: GetState) => boolean) {
+    super()
   }
 
   run(get: GetState): void {
     if (!this.runner(get)) {
-      this.subscription?.unsubscribe()
+      this.unsubscribe()
     } else {
       this.collector.push("RUN!")
     }
@@ -191,7 +187,7 @@ class UnsubscribingEffect implements Effect {
 }
 
 const initializingEffectExample: ConfigurableExample =
-  (m) => m.pick() && example(testStoreContext<CollectingEffectContext>())
+  example(testStoreContext<CollectingEffectContext>())
     .description("an effect with an initializer")
     .script({
       suppose: [
@@ -202,7 +198,7 @@ const initializingEffectExample: ConfigurableExample =
           })
         }),
         fact("an effect is registered", (context) => {
-          context.store.useEffect(new InitializingEffect(context.tokens.collector, (get) => {
+          context.store.useQuery(new InitializingEffect(context.tokens.collector, (get) => {
             return get(context.tokens.container)
           }))
         })
@@ -230,8 +226,10 @@ const initializingEffectExample: ConfigurableExample =
       ]
     })
 
-class InitializingEffect implements Effect {
-  constructor(private collector: Array<string>, private runner: (get: GetState) => string) { }
+class InitializingEffect extends ReactiveQuery {
+  constructor(private collector: Array<string>, private runner: (get: GetState) => string) {
+    super()
+  }
 
   init(get: GetState): void {
     this.collector.push(`INIT: ${this.runner(get)}`)

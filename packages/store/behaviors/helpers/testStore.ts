@@ -1,4 +1,4 @@
-import { Rule, Container, State, Store, write, RuleArg, StoreMessage, batch, GetState, Effect, use, reset, Command, CommandActions, ContainerHooks } from "@src/index.js"
+import { Rule, Container, State, Store, write, RuleArg, StoreMessage, batch, GetState, use, reset, Command, CommandActions, ContainerHooks, ReactiveQuery } from "@src/index.js"
 import { Context } from "esbehavior"
 
 export function testStoreContext<T>(): Context<TestStore<T>> {
@@ -7,10 +7,12 @@ export function testStoreContext<T>(): Context<TestStore<T>> {
   }
 }
 
-class StoreValuesEffect implements Effect {
+class StoreValuesEffect extends ReactiveQuery {
   values: Array<any> = []
 
-  constructor(private definition: (get: GetState) => any) { }
+  constructor(private definition: (get: GetState) => any) {
+    super()
+  }
 
   run(get: GetState): void {
     this.values.push(this.definition(get))
@@ -29,13 +31,13 @@ export class TestStore<T> {
   registerEffect(definition: (get: GetState) => any, name: string) {
     const effect = new StoreValuesEffect(definition)
     this.values.set(name, effect)
-    this.store.useEffect(effect)
+    this.store.useQuery(effect)
   }
 
   subscribeTo<S, N>(token: State<S, N>, name: string) {
     const query = new StoreValuesEffect((get) => get(token))
     this.values.set(name, query)
-    this.store.useEffect(query)
+    this.store.useQuery(query)
   }
 
   useCommand<M>(command: Command<M>, handler: (message: M, actions: CommandActions) => void) {

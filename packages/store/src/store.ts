@@ -29,16 +29,6 @@ export interface ContainerHooks<T, M, E = unknown> {
   onPublish?(value: T, actions: PublishHookActions): void
 }
 
-export interface EffectSubscription {
-  unsubscribe(): void
-}
-
-export interface Effect {
-  onSubscribe?(subscription: EffectSubscription): void
-  init?(get: GetState): void
-  run(get: GetState): void
-}
-
 export interface ConstraintActions<T> {
   get: GetState,
   current: T
@@ -165,19 +155,14 @@ export class Container<T, M = T, E = any> extends State<T, M> {
   }
 
   [registerState](store: Store): StateController<T, M> {
-    const controller = new StateController(this.initialValue, this.reducer)
-
     if (this.query === undefined) {
-      return controller
+      return new StateController(this.initialValue, this.reducer)
     }
 
-    const reactiveConstraint = new ReactiveConstraint(store, controller, this.query)
+    const controller = new ConstrainedStateController(this.initialValue, this.reducer)
 
-    controller.setQuery((current, next) => {
-      return reactiveConstraint.runQuery(current, next)
-    })
-
-    reactiveConstraint.run()
+    const constraint = new ReactiveConstraint(this.query, controller)
+    store.useQuery(constraint)
 
     return controller
   }
@@ -218,62 +203,109 @@ class ReactiveValue<T, M> extends AbstractReactiveQuery {
   }
 }
 
-class ReactiveEffect extends AbstractReactiveQuery {
-  private deps = new Set<State<any>>()
-  private isQueued = false
+const initForStore = Symbol()
 
-  constructor(store: Store, private effect: Effect) {
-    super(store)
+export abstract class ReactiveQuery<T = undefined> implements StateListener {
+  private deps = new Set<StateController<any>>()
+  private isQueued = false
+  protected store!: Store
+
+  [initForStore](store: Store) {
+    this.store = store
+
+    if (this.init !== undefined) {
+      this.init((state) => {
+        return this.getValue(state)
+      })
+    } else {
+      this.run((state) => {
+        return this.getValue(state)
+      })
+    }
   }
 
-  update() {
+  init?(get: GetState): void
+
+  abstract run(get: GetState): void
+
+  private getValue<S, N>(state: State<S, N>): S {
+    const controller = this.store[getController](state)
+    controller.addListener(this)
+    this.deps.add(controller)
+    return controller.value
+  }
+
+  update(): void {
     if (!this.isQueued) {
       queueMicrotask(() => {
         this.unsubscribe()
-        this.run()
+        this.run((state) => {
+          return this.getValue(state)
+        })
         this.isQueued = false
       })
       this.isQueued = true
     }
   }
 
-  init() {
-    if (this.effect.init !== undefined) {
-      this.effect.init((state) => {
-        this.deps.add(state)
-        return this.getValue(state)
-      })
-    } else {
-      this.run()
-    }
-  }
+  runWith?(get: GetState, param: T): void
 
-  run() {
-    this.effect.run((state) => {
-      this.deps.add(state)
-      return this.getValue(state)
-    })
+  execute(param: T) {
+    this.runWith?.((state) => this.getValue(state), param)
   }
 
   unsubscribe() {
-    this.deps.forEach(state => {
-      this.store[getController](state).removeListener(this)
-    })
+    for (const controller of this.deps) {
+      controller.removeListener(this)
+    }
     this.deps.clear()
   }
 }
 
-class ReactiveConstraint<T, M> extends ReactiveEffect {
-  constructor(store: Store, controller: StateController<T, M>, private query: ((actions: ConstraintActions<T>, nextValue?: M) => M)) {
-    super(store, {
-      run: () => {
-        controller.writeConstrained(this.runQuery(controller.value, undefined))
-      }
-    })
+class ReactiveConstraint<T, M> extends ReactiveQuery<M | undefined> {
+  constructor(private query: ((actions: ConstraintActions<T>, nextValue?: M) => M), private controller: ConstrainedStateController<T, M>) {
+    super()
+
+    this.controller.setConstraint(this)
   }
 
-  runQuery(current: T, next: M | undefined): M {
-    return this.query!({ get: (state) => this.getValue(state), current }, next)
+  run(get: GetState): void {
+    this.runWith(get, undefined)
+  }
+
+  runWith(get: GetState, next: M | undefined) {
+    const constrainedValue = this.query({ get, current: this.controller.value }, next)
+    this.controller.writeConstrained(constrainedValue)
+  }
+}
+
+class ConstrainedStateController<T, M = T> extends StateController<T, M> {
+  private constraint!: ReactiveConstraint<T, M>
+
+  setConstraint(constraint: ReactiveConstraint<T, M>) {
+    this.constraint = constraint
+  }
+
+  write(message: M) {
+    this.constraint.execute(message)
+  }
+
+  writeConstrained(message: M) {
+    super.write(message)
+  }
+}
+
+class DispatchCommandQuery<M> extends ReactiveQuery {
+  constructor(private command: Command<M>, private trigger: (get: GetState) => M) {
+    super()
+  }
+
+  run(get: GetState): void {
+    this.store.dispatch({
+      type: "exec",
+      command: this.command,
+      message: this.trigger!((state) => get(state))
+    })
   }
 }
 
@@ -282,15 +314,7 @@ export class Command<M> {
 
   [initializeCommand](store: Store): void {
     if (this.trigger !== undefined) {
-      store.useEffect({
-        run: (get) => {
-          store.dispatch({
-            type: "exec",
-            command: this,
-            message: this.trigger!((state) => get(state))
-          })
-        }
-      })
+      store.useQuery(new DispatchCommandQuery(this, this.trigger))
     }
   }
 }
@@ -344,10 +368,8 @@ export class Store {
     this.hooks = hooks
   }
 
-  useEffect(effect: Effect): void {
-    const reactiveEffect = new ReactiveEffect(this, effect)
-    effect.onSubscribe?.(reactiveEffect)
-    reactiveEffect.init()
+  useQuery(query: ReactiveQuery): void {
+    query[initForStore](this)
   }
 
   useCommand<M>(command: Command<M>, handler: CommandManager<M>) {

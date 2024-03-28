@@ -1,4 +1,4 @@
-import { StateController, StateListener } from "./controller.js"
+import { MessageBasedStateController, SimpleStateController, StateController, StateListener } from "./controller.js"
 import { Meta, error, ok, pending } from "./meta.js"
 
 export type GetState = <S, N = S>(state: State<S, N>) => S
@@ -104,9 +104,13 @@ export class MetaState<T, M, E = unknown> extends State<Meta<M, E>> {
   [registerState](store: Store): StateController<Meta<M, E>> {
     const tokenController = store[getController](this.token)
 
-    const controller = new StateController<Meta<M, E>>(ok(), (val) => val)
+    const controller = new SimpleStateController<Meta<M, E>>(ok())
 
-    tokenController.setMeta(controller)
+    tokenController.addListener({
+      update: () => {
+        controller.write(ok())
+      }
+    })
 
     return controller
   }
@@ -132,7 +136,7 @@ export class SuppliedState<T, M = any, E = any> extends State<T, M> {
   }
 
   [registerState](_: Store): StateController<T, M> {
-    return new StateController(this.initialValue, undefined)
+    return new SimpleStateController(this.initialValue)
   }
 
   get meta(): MetaState<T, M, E> {
@@ -161,16 +165,15 @@ export class Container<T, M = T, E = any> extends State<T, M> {
   }
 
   [registerState](store: Store): StateController<T, M> {
+    const controller = this.reducer ?
+      new MessageBasedStateController(this.initialValue, this.reducer) :
+      new SimpleStateController(this.initialValue)
+
     if (this.query === undefined) {
-      return new StateController(this.initialValue, this.reducer)
+      return controller
     }
 
-    const controller = new ConstrainedStateController(this.initialValue, this.reducer)
-
-    const constraint = new ReactiveConstraint(this.query, controller)
-    store.useQuery(constraint)
-
-    return controller
+    return new ConstrainedStateController(store, this, controller, this.query)
   }
 
   get meta(): MetaState<T, M, E> {
@@ -190,7 +193,7 @@ export class DerivedState<T> extends State<T> {
     const reactiveQuery = new ReactiveValue(store, this, this.derivation)
     const initialValue = reactiveQuery.run(undefined)
 
-    return new StateController(initialValue, undefined)
+    return new SimpleStateController(initialValue)
   }
 }
 
@@ -201,7 +204,7 @@ class ReactiveValue<T, M> extends AbstractReactiveQuery {
 
   update(): void {
     const derivedController = this.store[getController](this.state)
-    derivedController.update(this.run(derivedController.value))
+    derivedController.accept(this.run(derivedController.value))
   }
 
   run(currentValue: T | undefined): M {
@@ -281,10 +284,13 @@ export abstract class ReactiveQuery<T = undefined> implements StateListener {
 }
 
 class ReactiveConstraint<T, M> extends ReactiveQuery<M | undefined> {
-  constructor(private query: ((actions: ConstraintActions<T>, nextValue?: M) => M), private controller: ConstrainedStateController<T, M>) {
+  constructor(private query: ((actions: ConstraintActions<T>, nextValue?: M) => M), private container: Container<T, M>, private controller: StateController<T, M>) {
     super()
+  }
 
-    this.controller.setConstraint(this)
+  init(get: GetState): void {
+    const constrainedValue = this.query({ get, current: this.controller.value }, undefined)
+    this.controller.accept(constrainedValue)  
   }
 
   run(get: GetState): void {
@@ -292,24 +298,42 @@ class ReactiveConstraint<T, M> extends ReactiveQuery<M | undefined> {
   }
 
   runWith(get: GetState, next: M | undefined) {
-    const constrainedValue = this.query({ get, current: this.controller.value }, next)
-    this.controller.writeConstrained(constrainedValue)
+    const controller = this.store[getController](this.container)
+    const constrainedValue = this.query({ get, current: controller.value }, next)
+    controller.accept(constrainedValue)
   }
 }
 
-class ConstrainedStateController<T, M = T> extends StateController<T, M> {
-  private constraint!: ReactiveConstraint<T, M>
+class ConstrainedStateController<T, M> implements StateController<T, M> {
+  private constraint: ReactiveConstraint<T, M>
 
-  setConstraint(constraint: ReactiveConstraint<T, M>) {
-    this.constraint = constraint
+  constructor(store: Store, container: Container<T, M>, private controller: StateController<T, M>, query: ((actions: ConstraintActions<T>, nextValue?: M) => M)) {
+    this.constraint = new ReactiveConstraint(query, container, controller)
+    store.useQuery(this.constraint)
+  }
+  
+  addListener(listener: StateListener): void {
+    this.controller.addListener(listener)
   }
 
-  write(message: M) {
-    this.constraint.execute(message)
+  removeListener(listener: StateListener): void {
+    this.controller.removeListener(listener)
   }
-
-  writeConstrained(message: M) {
-    super.write(message)
+  
+  write(message: M): void {
+    this.constraint.execute(message)  
+  }
+  
+  accept(message: M): void {
+    this.controller.accept(message)
+  }
+  
+  publish(value: T): void {
+    this.controller.publish(value)
+  }
+  
+  get value(): T {
+    return this.controller.value
   }
 }
 
@@ -419,40 +443,59 @@ export class Store {
         return this[getController](state).value
       },
       ok: (message) => {
-        controller.update(message)
+        controller.accept(message)
       },
       pending: (message) => {
-        this[getController](container.meta).publish(pending(message))
+        this[getController](container.meta).write(pending(message))
       },
       error: (message, reason) => {
-        this[getController](container.meta).publish(error(message, reason))
+        this[getController](container.meta).write(error(message, reason))
       },
       current: controller.value
     }
   }
 
   useContainerHooks<T, M, E>(container: Container<T, M>, hooks: ContainerHooks<T, M, E>) {
-    const controller = this[getController](container)
-
-    if (hooks.onWrite !== undefined) {
-      controller.setWriter((message) => {
-        hooks.onWrite!(message, this.containerWriteActions(container, controller))
-      })
-    }
+    const controllerWithHooks = this.stateControllerWithHooks(container, this[getController](container), hooks)
+    this.registry.set(this.getKeyForToken(container), controllerWithHooks)
 
     if (hooks.onReady !== undefined) {
-      hooks.onReady(this.containerReadyActions(container, controller))
+      hooks.onReady(this.containerReadyActions(container, controllerWithHooks))
     }
+  }
 
-    if (hooks.onPublish !== undefined) {
-      controller.setPublishHook(() => {
-        hooks.onPublish!(controller.value, {
-          get: (state) => {
-            return this[getController](state).value
+  private stateControllerWithHooks<T, M, E>(container: Container<T, M, E>, controller: StateController<T, M>, hooks: ContainerHooks<T, M, E>): StateController<T, M> {
+    let withHooks: StateController<T, M> = controller
+    if (hooks.onPublish) {
+      withHooks = new Proxy(withHooks, {
+        get: (target, prop, receiver) => {
+          if (prop === "accept") {
+            return (message: any) => {
+              target.publish(message)
+              hooks.onPublish!(target.value, {
+                get: (state) => {
+                  return this[getController](state).value
+                }
+              })
+            }
           }
-        })
+          return Reflect.get(target, prop, receiver)
+        }
       })
     }
+    if (hooks.onWrite) {
+      withHooks = new Proxy(withHooks, {
+        get: (target, prop, receiver) => {
+          if (prop === "accept") {
+            return (message: any) => {
+              hooks.onWrite!(message, this.containerWriteActions(container, target))
+            }
+          }
+          return Reflect.get(target, prop, receiver)
+        }
+      })
+    }
+    return withHooks
   }
 
   dispatch(message: StoreMessage<any>) {
@@ -473,10 +516,10 @@ export class Store {
             this[getController](token).publish(value)
           },
           pending: (token, message) => {
-            this[getController](token.meta).publish(pending(message))
+            this[getController](token.meta).write(pending(message))
           },
           error: (token, message, reason) => {
-            this[getController](token.meta).publish(error(message, reason))
+            this[getController](token.meta).write(error(message, reason))
           }
         })
         break

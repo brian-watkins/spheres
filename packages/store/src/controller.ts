@@ -1,28 +1,21 @@
-import { Meta, ok } from "./meta.js"
 
 export interface StateListener {
   update(): void
 }
 
-export class StateController<T, M = T> {
+export interface StateController<T, M = T> {
+  addListener(listener: StateListener): void
+  removeListener(listener: StateListener): void
+  write(message: M): void
+  accept(message: M): void
+  publish(value: T): void
+  value: T
+}
+
+export class SimpleStateController<T> implements StateController<T> {
   private listeners: Set<StateListener> = new Set()
-  private writer: ((value: M) => void) | undefined
-  private onPublish: (() => void) | undefined
-  private metaController: StateController<Meta<M, any>> | undefined
 
-  constructor(private _value: T, private reducer: ((message: M, current: T) => T) | undefined) { }
-
-  setWriter(writer: (value: M) => void) {
-    this.writer = writer
-  }
-
-  setPublishHook(onPublish: () => void) {
-    this.onPublish = onPublish
-  }
-
-  setMeta(controller: StateController<Meta<M, any>>) {
-    this.metaController = controller
-  }
+  constructor(private _value: T) { }
 
   addListener(listener: StateListener) {
     this.listeners.add(listener)
@@ -32,22 +25,15 @@ export class StateController<T, M = T> {
     this.listeners.delete(listener)
   }
 
-  write(message: M) {
-    if (this.writer === undefined) {
-      this.update(message)
-    } else {
-      this.writer(message)
-    }
+  write(value: any) {
+    this.accept(value)
   }
 
-  update(message: M) {
-    this.publish(this.nextValue(message))
-    this.onPublish?.()
+  accept(value: any) {
+    this.publish(value)
   }
 
   publish(value: T) {
-    this.metaController?.publish(ok())
-
     if (Object.is(this._value, value)) return
 
     this._value = value
@@ -57,15 +43,17 @@ export class StateController<T, M = T> {
     }
   }
 
-  private nextValue(message: M) {
-    if (this.reducer === undefined) {
-      return message as unknown as T
-    } else {
-      return this.reducer(message, this._value)
-    }
-  }
-
   get value(): T {
     return this._value
+  }
+}
+
+export class MessageBasedStateController<T, M> extends SimpleStateController<T> implements StateController<T, M> {
+  constructor(initialValue: T, private reducer: ((message: M, current: T) => T)) {
+    super(initialValue)
+  }
+
+  accept(message: M): void {
+    this.publish(this.reducer(message, this.value))
   }
 }

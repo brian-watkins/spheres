@@ -40,6 +40,12 @@ export interface WriteMessage<T, M = T> {
   value: M
 }
 
+export interface UpdateMessage<T, M = T> {
+  type: "update"
+  container: Container<T, M>
+  generator: (current: T) => M
+}
+
 export interface ExecMessage<M> {
   type: "exec"
   command: Command<M>
@@ -71,7 +77,7 @@ export interface BatchMessage {
   messages: Array<StoreMessage<any>>
 }
 
-export type StoreMessage<T, M = T> = WriteMessage<T, M> | ResetMessage<T, M> | UseMessage | BatchMessage | RunMessage | ExecMessage<M>
+export type StoreMessage<T, M = T> = WriteMessage<T, M> | UpdateMessage<T, M> | ResetMessage<T, M> | UseMessage | BatchMessage | RunMessage | ExecMessage<M>
 
 const registerState = Symbol("registerState")
 const initializeCommand = Symbol("initializeCommand")
@@ -453,6 +459,10 @@ export class Store {
     switch (message.type) {
       case "write":
         this[getController](message.container).write(message.value)
+        break
+      case "update":
+        const controller = this[getController](message.container)
+        controller.write(message.generator(controller.value))
         break
       case "exec":
         this.commandRegistry.get(message.command)?.exec(message.message, {

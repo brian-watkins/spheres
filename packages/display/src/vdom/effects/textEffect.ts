@@ -7,7 +7,7 @@ export class UpdateTextEffect extends ReactiveQuery {
   }
 
   init(get: GetState): void {
-    this.node.data = this.generator(get, this.context) ?? ""
+    this.node.nodeValue = this.generator(get, this.context) ?? ""
   }
 
   run(get: GetState): void {
@@ -15,6 +15,6 @@ export class UpdateTextEffect extends ReactiveQuery {
       return
     }
 
-    this.node.data = this.generator(get, this.context) ?? ""
+    this.node.nodeValue = this.generator(get, this.context) ?? ""
   }
 }

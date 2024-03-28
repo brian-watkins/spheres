@@ -1,4 +1,4 @@
-import { HTMLBuilder, HTMLView, htmlTemplate } from "@src/index.js"
+import { HTMLView, htmlTemplate } from "@src/index.js"
 import { GetState, container, rule, use, write } from "@spheres/store"
 
 const clickCount = container({ initialValue: 0 })

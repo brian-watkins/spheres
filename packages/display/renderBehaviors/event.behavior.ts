@@ -118,8 +118,8 @@ export default behavior("event handlers", [
         fact("there is a container", (context) => {
           context.setState(container({
             initialValue: 0,
-            reducer: (amount, current) => {
-              return current + amount
+            update: (amount, current) => {
+              return { value: current + amount }
             }
           }))
         }),

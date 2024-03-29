@@ -1,6 +1,6 @@
 import { behavior, effect, example, fact, step } from "esbehavior";
 import { equalTo, expect, is } from "great-expectations";
-import { Container, container } from "@src/index.js";
+import { Container, container, write } from "@src/index.js";
 import { testStoreContext } from "./helpers/testStore.js";
 
 interface UpdateContainerContext {
@@ -19,19 +19,20 @@ interface FancyReset {
 type FancyMessage = FancyInsert | FancyReset
 
 export default behavior("update container", [
+
   example(testStoreContext<UpdateContainerContext>())
-    .description("custom update function")
+    .description("update function that produces a value")
     .script({
       suppose: [
-        fact("there is a container with a custom update function", (context) => {
+        fact("there is a container with an update function", (context) => {
           const fancyContainer = container({
             initialValue: "hello",
-            reducer: (message: FancyMessage, current) => {
+            update: (message: FancyMessage, current) => {
               switch (message.type) {
                 case "insert":
-                  return `${current} ${message.value}`
+                  return { value: `${current} ${message.value}` }
                 case "reset":
-                  return "reset!"
+                  return { value: "reset!" }
               }
             }
           })
@@ -66,5 +67,81 @@ export default behavior("update container", [
           ])))
         })
       ]
+    }),
+
+  example(testStoreContext<UpdateWithMessageContext>())
+    .description("update function that produces a value and message")
+    .script({
+      suppose: [
+        fact("there is a container with an update function", (context) => {
+          const otherContainer = container({ initialValue: "" })
+
+          context.setTokens({
+            updatableContainer: container({
+              initialValue: 0,
+              update(message: string, current) {
+                switch (message) {
+                  case "add":
+                    return {
+                      value: current + 1,
+                      message: write(otherContainer, `Added 1 to ${current}`)
+                    }
+                  default:
+                    return {
+                      value: current,
+                      message: write(otherContainer, `Did nothing to ${current}`)
+                    }
+                }
+              }
+            }),
+            otherContainer
+          })
+        }),
+        fact("there is a subscriber to the updateable container", (context) => {
+          context.subscribeTo(context.tokens.updatableContainer, "sub")
+        }),
+        fact("there is a subscriber to the other container", (context) => {
+          context.subscribeTo(context.tokens.otherContainer, "other-sub")
+        })
+      ],
+      perform: [
+        step("send add message to the updateable container", (context) => {
+          context.writeTo(context.tokens.updatableContainer, "add")
+        }),
+        step("send add message to the updateable container", (context) => {
+          context.writeTo(context.tokens.updatableContainer, "add")
+        }),
+        step("send add message to the updateable container", (context) => {
+          context.writeTo(context.tokens.updatableContainer, "add")
+        }),
+        step("send some other message to the updateable container", (context) => {
+          context.writeTo(context.tokens.updatableContainer, "something-else")
+        })
+      ],
+      observe: [
+        effect("the updateable container subscriber received the expected values", (context) => {
+          expect(context.valuesForSubscriber("sub"), is([
+            0,
+            1,
+            2,
+            3
+          ]))
+        }),
+        effect("the other container received messages sent by the updateable container", (context) => {
+          expect(context.valuesForSubscriber("other-sub"), is([
+            "",
+            "Added 1 to 0",
+            "Added 1 to 1",
+            "Added 1 to 2",
+            "Did nothing to 3"
+          ]))
+        })
+      ]
     })
+
 ])
+
+interface UpdateWithMessageContext {
+  updatableContainer: Container<number, string>
+  otherContainer: Container<string>
+}

@@ -111,8 +111,8 @@ function containerGenerator(id: string): Container<string> {
   return container({
     id,
     initialValue: "",
-    reducer: (message, current) => {
-      return `${current} ${message}`.trim()
+    update: (message, current) => {
+      return { value: `${current} ${message}`.trim() }
     }
   })
 }

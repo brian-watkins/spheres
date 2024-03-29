@@ -47,13 +47,3 @@ export class SimpleStateController<T> implements StateController<T> {
     return this._value
   }
 }
-
-export class MessageBasedStateController<T, M> extends SimpleStateController<T> implements StateController<T, M> {
-  constructor(initialValue: T, private reducer: ((message: M, current: T) => T)) {
-    super(initialValue)
-  }
-
-  accept(message: M): void {
-    this.publish(this.reducer(message, this.value))
-  }
-}

@@ -318,9 +318,9 @@ const containerHooksWithReducer: ConfigurableExample =
         fact("there is a container with a reducer", (context) => {
           const myContainer = container({
             initialValue: 27,
-            reducer: (message: string, current) => {
-              if (message === "add") return current + 1
-              return current
+            update: (message: string, current) => {
+              if (message === "add") return { value: current + 1 }
+              return { value: current }
             }
           })
           context.setTokens({ container: myContainer })

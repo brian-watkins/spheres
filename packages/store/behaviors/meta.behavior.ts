@@ -44,8 +44,8 @@ const metaContainerWithReducer: ConfigurableExample =
           context.setTokens({
             reducerContainer: container({
               initialValue: 41,
-              reducer: (message, current) => {
-                return message === "add" ? current + 1 : current - 1
+              update: (message, current) => {
+                return { value: message === "add" ? current + 1 : current - 1 }
               }
             })
           })

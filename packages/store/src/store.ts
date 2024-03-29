@@ -1,4 +1,4 @@
-import { MessageBasedStateController, SimpleStateController, StateController, StateListener } from "./controller.js"
+import { SimpleStateController, StateController, StateListener } from "./controller.js"
 import { Meta, error, ok, pending } from "./meta.js"
 
 export type GetState = <S, N = S>(state: State<S, N>) => S
@@ -149,7 +149,7 @@ export class Container<T, M = T, E = any> extends State<T, M> {
     id: string | undefined,
     name: string | undefined,
     private initialValue: T,
-    private reducer: ((message: M, current: T) => T) | undefined,
+    private update: ((message: M, current: T) => UpdateResult<T>) | undefined,
   ) {
     super(id, name)
   }
@@ -158,9 +158,9 @@ export class Container<T, M = T, E = any> extends State<T, M> {
     return this.initialValue
   }
 
-  [registerState](): StateController<T, M> {
-    return this.reducer ?
-      new MessageBasedStateController(this.initialValue, this.reducer) :
+  [registerState](store: Store): StateController<T, M> {
+    return this.update ?
+      new MessagePassingStateController(store, this.initialValue, this.update) :
       new SimpleStateController(this.initialValue)
   }
 
@@ -477,6 +477,26 @@ export class Store {
           this.dispatch(message.messages[i])
         }
         break
+    }
+  }
+}
+
+
+export interface UpdateResult<T> {
+  value: T
+  message?: StoreMessage<any>
+}
+
+export class MessagePassingStateController<T, M> extends SimpleStateController<T> implements StateController<T, M> { 
+  constructor(private store: Store, initialValue: T, private update: ((message: M, current: T) => UpdateResult<T>)) {
+    super(initialValue)
+  }
+
+  accept(message: M): void {
+    const result = this.update(message, this.value)
+    this.publish(result.value)
+    if (result.message !== undefined) {
+      this.store.dispatch(result.message)
     }
   }
 }

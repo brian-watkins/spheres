@@ -3,15 +3,15 @@ import { HTMLView, htmlTemplate } from "@src/index";
 
 const toggleState = container<boolean, string>({
   initialValue: false,
-  reducer: (_, current) => {
-    return !current
+  update: (_, current) => {
+    return { value: !current }
   }
 })
 
 const visibilityState = container<boolean, string>({
   initialValue: true,
-  reducer: (_, current) => {
-    return !current
+  update: (_, current) => {
+    return { value: !current }
   }
 })
 

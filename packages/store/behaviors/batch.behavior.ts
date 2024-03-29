@@ -20,8 +20,8 @@ export default behavior("batched store messages", [
             numberContainer: container({ initialValue: 0 }),
             stringContainer: container({ initialValue: "hello" }),
             reducerContainer: container({
-              initialValue: [0], reducer: (message, current) => {
-                return [...current, message.length]
+              initialValue: [0], update: (message, current) => {
+                return { value: [...current, message.length] }
               }
             })
           })

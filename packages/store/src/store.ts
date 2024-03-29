@@ -29,11 +29,6 @@ export interface ContainerHooks<T, M, E = unknown> {
   onPublish?(value: T, actions: PublishHookActions): void
 }
 
-export interface ConstraintActions<T> {
-  get: GetState,
-  current: T
-}
-
 export interface WriteMessage<T, M = T> {
   type: "write"
   container: Container<T, M>
@@ -155,7 +150,6 @@ export class Container<T, M = T, E = any> extends State<T, M> {
     name: string | undefined,
     private initialValue: T,
     private reducer: ((message: M, current: T) => T) | undefined,
-    private query: ((actions: ConstraintActions<T>, nextValue?: M) => M) | undefined
   ) {
     super(id, name)
   }
@@ -164,16 +158,10 @@ export class Container<T, M = T, E = any> extends State<T, M> {
     return this.initialValue
   }
 
-  [registerState](store: Store): StateController<T, M> {
-    const controller = this.reducer ?
+  [registerState](): StateController<T, M> {
+    return this.reducer ?
       new MessageBasedStateController(this.initialValue, this.reducer) :
       new SimpleStateController(this.initialValue)
-
-    if (this.query === undefined) {
-      return controller
-    }
-
-    return new ConstrainedStateController(store, this, controller, this.query)
   }
 
   get meta(): MetaState<T, M, E> {
@@ -280,60 +268,6 @@ export abstract class ReactiveQuery<T = undefined> implements StateListener {
       controller.removeListener(this)
     }
     this.deps.clear()
-  }
-}
-
-class ReactiveConstraint<T, M> extends ReactiveQuery<M | undefined> {
-  constructor(private query: ((actions: ConstraintActions<T>, nextValue?: M) => M), private container: Container<T, M>, private controller: StateController<T, M>) {
-    super()
-  }
-
-  init(get: GetState): void {
-    const constrainedValue = this.query({ get, current: this.controller.value }, undefined)
-    this.controller.accept(constrainedValue)  
-  }
-
-  run(get: GetState): void {
-    this.runWith(get, undefined)
-  }
-
-  runWith(get: GetState, next: M | undefined) {
-    const controller = this.store[getController](this.container)
-    const constrainedValue = this.query({ get, current: controller.value }, next)
-    controller.accept(constrainedValue)
-  }
-}
-
-class ConstrainedStateController<T, M> implements StateController<T, M> {
-  private constraint: ReactiveConstraint<T, M>
-
-  constructor(store: Store, container: Container<T, M>, private controller: StateController<T, M>, query: ((actions: ConstraintActions<T>, nextValue?: M) => M)) {
-    this.constraint = new ReactiveConstraint(query, container, controller)
-    store.useQuery(this.constraint)
-  }
-  
-  addListener(listener: StateListener): void {
-    this.controller.addListener(listener)
-  }
-
-  removeListener(listener: StateListener): void {
-    this.controller.removeListener(listener)
-  }
-  
-  write(message: M): void {
-    this.constraint.execute(message)  
-  }
-  
-  accept(message: M): void {
-    this.controller.accept(message)
-  }
-  
-  publish(value: T): void {
-    this.controller.publish(value)
-  }
-  
-  get value(): T {
-    return this.controller.value
   }
 }
 

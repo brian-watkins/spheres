@@ -203,9 +203,9 @@ class ReactiveValue<T, M> extends AbstractReactiveQuery {
 const initForStore = Symbol()
 const runQuery = Symbol()
 
-const queriesToUpdate = new Set<ReactiveQuery<any>>()
+const queriesToUpdate = new Set<ReactiveQuery>()
 
-function queueQueryForUpdate(query: ReactiveQuery<any>) {
+function queueQueryForUpdate(query: ReactiveQuery) {
   if (queriesToUpdate.size === 0) {
     queueMicrotask(() => {
       for (const query of queriesToUpdate) {
@@ -217,7 +217,7 @@ function queueQueryForUpdate(query: ReactiveQuery<any>) {
   queriesToUpdate.add(query)
 }
 
-export abstract class ReactiveQuery<T = undefined> implements StateListener {
+export abstract class ReactiveQuery implements StateListener {
   private deps = new Set<StateController<any>>()
   protected store!: Store
 
@@ -255,12 +255,6 @@ export abstract class ReactiveQuery<T = undefined> implements StateListener {
 
   update(): void {
     queueQueryForUpdate(this)
-  }
-
-  runWith?(get: GetState, param: T): void
-
-  execute(param: T) {
-    this.runWith?.((state) => this.getValue(state), param)
   }
 
   unsubscribe() {

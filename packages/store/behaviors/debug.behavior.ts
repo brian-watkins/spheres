@@ -1,14 +1,18 @@
-import { State, container, derived } from "@src/index.js";
+import { Container, DerivedState, container, derived } from "@src/index.js";
 import { behavior, effect, example, fact } from "esbehavior";
 import { expect, is } from "great-expectations";
 import { testStoreContext } from "helpers/testStore.js";
 
-interface SimpleTokenContext {
-  stringState: State<string>
+interface ContainerTokenContext {
+  stringState: Container<string>
+}
+
+interface DerivedTokenContext {
+  stringState: DerivedState<string>
 }
 
 export default behavior("debug name", [
-  example(testStoreContext<SimpleTokenContext>())
+  example(testStoreContext<ContainerTokenContext>())
     .description("container with debug name")
     .script({
       suppose: [
@@ -27,7 +31,7 @@ export default behavior("debug name", [
         })
       ]
     }),
-  example(testStoreContext<SimpleTokenContext>())
+  example(testStoreContext<ContainerTokenContext>())
     .description("no debug name is provided for a container")
     .script({
       suppose: [
@@ -43,7 +47,7 @@ export default behavior("debug name", [
         })
       ]
     }),
-  example(testStoreContext<SimpleTokenContext>())
+  example(testStoreContext<DerivedTokenContext>())
     .description("value with debug name")
     .script({
       suppose: [
@@ -62,7 +66,7 @@ export default behavior("debug name", [
         })
       ]
     }),
-  example(testStoreContext<SimpleTokenContext>())
+  example(testStoreContext<DerivedTokenContext>())
     .description("no debug name is provided for a value")
     .script({
       suppose: [
@@ -78,7 +82,7 @@ export default behavior("debug name", [
         })
       ]
     }),
-  example(testStoreContext<SimpleTokenContext>())
+  example(testStoreContext<ContainerTokenContext>())
     .description("the meta token's name")
     .script({
       suppose: [

@@ -1,5 +1,5 @@
 import { Container, GetState, container, rule, use, write } from "@spheres/store"
-import { HTMLView, WithProps, htmlTemplate } from "@src/index"
+import { HTMLView, WithArgs, htmlTemplate } from "@src/index"
 
 const message = container({ initialValue: "Find the secret!" })
 
@@ -22,7 +22,7 @@ const incrementRule = rule((get, provider: (get: GetState) => Container<number>)
   return write(counterContainer, get(counterContainer) + 1)
 })
 
-const funZone = htmlTemplate((withProps: WithProps<Context>) => {
+const funZone = htmlTemplate((withArgs: WithArgs<Context>) => {
   return root =>
     root.div(el => {
       el.children
@@ -35,23 +35,23 @@ const funZone = htmlTemplate((withProps: WithProps<Context>) => {
         })
         .button(el => {
           el.config
-            .dataAttribute("counter", withProps(props => `${props.id}`))
-            .on("click", () => use(incrementRule, withProps((props) => props.counter)))
+            .dataAttribute("counter", withArgs(props => `${props.id}`))
+            .on("click", () => use(incrementRule, withArgs((props) => props.counter)))
           el.children
             .textNode("Increment!")
         })
-        .zone(withProps(description))
+        .zone(withArgs(description))
     })
 })
 
-const title = htmlTemplate((withProps: WithProps<string>) => {
+const title = htmlTemplate((withArgs: WithArgs<string>) => {
   return root =>
     root.div(el => {
       el.children
         .hr()
         .h3(el => {
           el.config.on("click", () => write(message, "You found it!"))
-          el.children.textNode(withProps((props) => props))
+          el.children.textNode(withArgs((props) => props))
         })
     })
 })

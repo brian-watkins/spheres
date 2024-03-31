@@ -1,5 +1,5 @@
 import { Container, StoreMessage, container, reset, rule, use, write } from "@spheres/store";
-import { WithProps, htmlTemplate } from "@src/index";
+import { WithArgs, htmlTemplate } from "@src/index";
 
 interface Context {
   id: number
@@ -28,7 +28,7 @@ const incrementRule = rule((get, counterContainer: Container<number>) => {
   return write(counterContainer, get(counterContainer) + 1)
 })
 
-const funZone = htmlTemplate((withProps: WithProps<Context>) => {
+const funZone = htmlTemplate((withArgs: WithArgs<Context>) => {
   return root =>
     root.div(el => {
       el.children
@@ -37,9 +37,9 @@ const funZone = htmlTemplate((withProps: WithProps<Context>) => {
           el.children
             .div(el => {
               el.config
-                .dataAttribute("counter", withProps(props => `${props.id}`))
+                .dataAttribute("counter", withArgs(props => `${props.id}`))
               el.children
-                .textNode(withProps((props, get) => `${props.name} - ${get(clickCounter)} clicks!`))
+                .textNode(withArgs((props, get) => `${props.name} - ${get(clickCounter)} clicks!`))
             })
         })
         .div(el => {
@@ -59,14 +59,14 @@ interface ButtonContext {
   label: string
 }
 
-const button = htmlTemplate((withProps: WithProps<ButtonContext>) => {
+const button = htmlTemplate((withArgs: WithArgs<ButtonContext>) => {
   return root =>
     root.button(el => {
       el.config
-        .dataAttribute("button-name", withProps(props => props.name))
-        .on("click", (evt) => use(rule(withProps((props) => props.handler(evt)))))
+        .dataAttribute("button-name", withArgs(props => props.name))
+        .on("click", (evt) => use(rule(withArgs((props) => props.handler(evt)))))
       el.children
-        .textNode(withProps(props => props.label))
+        .textNode(withArgs(props => props.label))
     })
 })
 

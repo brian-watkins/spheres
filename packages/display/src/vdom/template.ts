@@ -19,7 +19,7 @@ export function createTemplateInstance(store: Store, vnode: TemplateNode): Node 
   const root = template.element.content.cloneNode(true)
 
   for (const effect of template.effects) {
-    effect.attach(store, root, vnode.props)
+    effect.attach(store, root, vnode.args)
   }
 
   return root.firstChild!
@@ -94,7 +94,7 @@ class EventEffectTemplate implements EffectTemplate {
   attach(store: Store, root: Node, context: any) {
     const element = this.findNode(root) as Element
     element.addEventListener(this.event, (evt) => {
-      this.template.setProps(context)
+      this.template.setArgs(context)
       store.dispatch(this.handler(evt))
     })
   }
@@ -125,10 +125,10 @@ function findEffectLocations(template: VirtualTemplate<any>, vnode: VirtualNode,
       return []
 
     case NodeType.STATEFUL_TEXT:
-      return [new TextEffectTemplate(template.useWithProps(vnode.generator), location.findNode)]
+      return [new TextEffectTemplate(template.useWithArgs(vnode.generator), location.findNode)]
 
     case NodeType.STATEFUL:
-      return [new StatefulZoneEffectTemplate(template.useWithProps(vnode.generator), vnode, location.findNode)]
+      return [new StatefulZoneEffectTemplate(template.useWithArgs(vnode.generator), vnode, location.findNode)]
 
     case NodeType.BLOCK:
       return findEffectLocations(template, vnode.generator!(), location)
@@ -141,12 +141,12 @@ function findEffectLocations(template: VirtualTemplate<any>, vnode: VirtualNode,
 
       const statefulAttrs = vnode.data.statefulAttrs
       for (const attr in statefulAttrs) {
-        effects.push(new AttributeEffectTemplate(template.useWithProps(statefulAttrs[attr].generator), attr, location.findNode))
+        effects.push(new AttributeEffectTemplate(template.useWithArgs(statefulAttrs[attr].generator), attr, location.findNode))
       }
 
       const statefulProps = vnode.data.statefulProps
       for (const prop in statefulProps) {
-        effects.push(new PropertyEffectTemplate(template.useWithProps(statefulProps[prop].generator), prop, location.findNode))
+        effects.push(new PropertyEffectTemplate(template.useWithArgs(statefulProps[prop].generator), prop, location.findNode))
       }
 
       const events = vnode.data.on

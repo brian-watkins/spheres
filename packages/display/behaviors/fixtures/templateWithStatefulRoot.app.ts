@@ -1,5 +1,5 @@
 import { Container, GetState, container } from "@spheres/store"
-import { HTMLView, WithProps, htmlTemplate } from "@src/index"
+import { HTMLView, WithArgs, htmlTemplate } from "@src/index"
 
 interface Context {
   id: number
@@ -15,9 +15,9 @@ export default htmlTemplate(() => root => {
   })
 })
 
-const funZone = htmlTemplate((withProps: WithProps<Context>) => {
+const funZone = htmlTemplate((withArgs: WithArgs<Context>) => {
   return root =>
-    root.zone(withProps(statefulFunZone))
+    root.zone(withArgs(statefulFunZone))
 })
 
 function statefulFunZone(props: Context, get: GetState): HTMLView {

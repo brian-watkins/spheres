@@ -1,18 +1,18 @@
 import { GetState } from "@spheres/store"
-import { Stateful, VirtualNode, VirtualNodeConfig, VirtualTemplate, WithProps, makeStatefulElement, makeTemplate, makeVirtualElement, setNamespace, virtualNodeConfig } from "./vdom/virtualNode.js"
+import { Stateful, VirtualNode, VirtualNodeConfig, VirtualTemplate, WithArgs, makeStatefulElement, makeTemplate, makeVirtualElement, setNamespace, virtualNodeConfig } from "./vdom/virtualNode.js"
 import { SVGBuilder, SVGElements, SVGElementAttributes, svgAttributeNames } from "./svgElements.js"
-import { ConfigurableElement, ViewBuilder, ViewOptions, ViewProps } from "./viewBuilder.js"
+import { ConfigurableElement, ViewBuilder, ViewOptions, ViewProps as ViewArgs } from "./viewBuilder.js"
 import { BasicElementConfig, SpecialElementAttributes } from "./viewConfig.js"
 
 export type SVGView = (root: SVGBuilder) => void
 export type ReactiveSvgViewFunction = (get: GetState) => void
 
 const template: unique symbol = Symbol();
-const templateProps: unique symbol = Symbol();
+const templateArgs: unique symbol = Symbol();
 
 export interface SVGTemplateView<T> {
   [template]: SVGVirtualTemplate<T>
-  [templateProps]: T
+  [templateArgs]: T
 }
 
 export interface SpecialSVGElements {
@@ -57,7 +57,7 @@ export class SvgViewBuilder extends ViewBuilder<SpecialElementAttributes, SVGEle
     if (typeof view === "function") {
       this.storeNode(makeStatefulElement((get) => toReactiveVirtualNode(view, get), options?.key))
     } else {
-      this.storeNode(makeTemplate(view[template], view[templateProps], options?.key))
+      this.storeNode(makeTemplate(view[template], view[templateArgs], options?.key))
     }
 
     return this
@@ -69,14 +69,14 @@ export class SvgViewBuilder extends ViewBuilder<SpecialElementAttributes, SVGEle
 }
 
 export class SVGVirtualTemplate<T> extends VirtualTemplate<T> {
-  constructor(generator: (withProps: WithProps<T>) => SVGView, protected props: T) {
+  constructor(generator: (withArgs: WithArgs<T>) => SVGView, protected args: T) {
     super()
 
     const builder = new SvgViewBuilder()
 
     generator((handler) => {
       return (get) => {
-        return handler(this.props, get)
+        return handler(this.args, get)
       }
     })(builder as unknown as SVGBuilder)
 
@@ -84,19 +84,19 @@ export class SVGVirtualTemplate<T> extends VirtualTemplate<T> {
   }
 }
 
-export function svgTemplate<P = undefined>(definition: (withProps: WithProps<P>) => SVGView): (...props: ViewProps<P>) => SVGTemplateView<P> {
+export function svgTemplate<P = undefined>(definition: (withProps: WithArgs<P>) => SVGView): (...props: ViewArgs<P>) => SVGTemplateView<P> {
   let virtualTemplate: SVGVirtualTemplate<P> | undefined
 
-  return (...props: ViewProps<P>) => {
-    const viewProps: any = props.length == 0 ? undefined : props[0]
+  return (...args: ViewArgs<P>) => {
+    const viewArgs: any = args.length == 0 ? undefined : args[0]
 
     if (virtualTemplate === undefined) {
-      virtualTemplate = new SVGVirtualTemplate(definition, viewProps)
+      virtualTemplate = new SVGVirtualTemplate(definition, viewArgs)
     }
 
     return {
       [template]: virtualTemplate,
-      [templateProps]: viewProps
+      [templateArgs]: viewArgs
     }
   }
 }

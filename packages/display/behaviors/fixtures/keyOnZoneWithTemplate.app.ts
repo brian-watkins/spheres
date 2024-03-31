@@ -1,5 +1,5 @@
 import { GetState, State, container, rule, use, write } from "@spheres/store";
-import { HTMLView, WithProps, htmlTemplate } from "@src/index";
+import { HTMLView, WithArgs, htmlTemplate } from "@src/index";
 
 interface Person {
   name: string
@@ -73,13 +73,13 @@ function peopleView(get: GetState): HTMLView {
     })
 }
 
-const personViewWithStatefultextNode = htmlTemplate((withProps: WithProps<State<Person>>) => {
+const personViewWithStatefultextNode = htmlTemplate((withArgs: WithArgs<State<Person>>) => {
   return root =>
     root.li(el => {
       el.children
         .h1(el => {
           el.config.dataAttribute("person")
-          el.children.textNode(withProps((props, get) => `${get(props).name} is ${get(props).age} years old: ${get(ticker)}`))
+          el.children.textNode(withArgs((props, get) => `${get(props).name} is ${get(props).age} years old: ${get(ticker)}`))
         })
     })
 })

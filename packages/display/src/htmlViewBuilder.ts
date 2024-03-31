@@ -1,11 +1,11 @@
 import { GetState, Store } from "@spheres/store"
-import { VirtualNode, makeStatefulElement, Stateful, makeTemplate, addStatefulProperty, addProperty, VirtualTemplate, WithProps } from "./vdom/virtualNode.js"
+import { VirtualNode, makeStatefulElement, Stateful, makeTemplate, addStatefulProperty, addProperty, VirtualTemplate, WithArgs } from "./vdom/virtualNode.js"
 import { HTMLElements, HTMLBuilder } from "./htmlElements.js"
 import { createStringRenderer } from "./vdom/renderToString.js"
 import { createDOMRenderer } from "./vdom/renderToDom.js"
 import { SVGElements } from "./svgElements.js"
 import { BasicElementConfig, SpecialElementAttributes } from "./viewConfig.js"
-import { ConfigurableElement, ViewBuilder, ViewOptions, ViewProps } from "./viewBuilder.js"
+import { ConfigurableElement, ViewBuilder, ViewOptions, ViewProps as ViewArgs } from "./viewBuilder.js"
 import { buildSvgElement } from "./svgViewBuilder.js"
 
 // Renderers
@@ -42,11 +42,11 @@ export function renderToString(store: Store, view: HTMLDisplay): string {
 export type HTMLView = (root: HTMLBuilder) => void
 
 const template: unique symbol = Symbol();
-const templateProps: unique symbol = Symbol();
+const templateArgs: unique symbol = Symbol();
 
 export interface HTMLTemplateView<T> {
   [template]: HTMLVirtualTemplate<T>
-  [templateProps]: T
+  [templateArgs]: T
 }
 
 export type HTMLDisplay = HTMLTemplateView<any> | ((get: GetState) => HTMLView)
@@ -102,7 +102,7 @@ class HtmlViewBuilder extends ViewBuilder<SpecialElementAttributes, HTMLElements
     if (typeof view === "function") {
       this.storeNode(makeStatefulElement((get) => toReactiveVirtualNode(view, get), options?.key))
     } else {
-      this.storeNode(makeTemplate(view[template], view[templateProps], options?.key))
+      this.storeNode(makeTemplate(view[template], view[templateArgs], options?.key))
     }
 
     return this
@@ -123,14 +123,14 @@ class HtmlViewBuilder extends ViewBuilder<SpecialElementAttributes, HTMLElements
 }
 
 export class HTMLVirtualTemplate<T> extends VirtualTemplate<T> {
-  constructor(generator: (withProps: WithProps<T>) => HTMLView, protected props: T) {
+  constructor(generator: (withProps: WithArgs<T>) => HTMLView, protected args: T) {
     super()
 
     const builder = new HtmlViewBuilder()
 
     generator((handler) => {
       return (get) => {
-        return handler(this.props, get)
+        return handler(this.args, get)
       }
     })(builder as unknown as HTMLBuilder)
 
@@ -139,19 +139,19 @@ export class HTMLVirtualTemplate<T> extends VirtualTemplate<T> {
 }
 
 
-export function htmlTemplate<P = undefined>(definition: (withProps: WithProps<P>) => HTMLView): (...props: ViewProps<P>) => HTMLTemplateView<P> {
+export function htmlTemplate<P = undefined>(definition: (withArgs: WithArgs<P>) => HTMLView): (...props: ViewArgs<P>) => HTMLTemplateView<P> {
   let virtualTemplate: HTMLVirtualTemplate<P> | undefined
 
-  return (...props: ViewProps<P>) => {
-    const viewProps: any = props.length == 0 ? undefined : props[0]
+  return (...args: ViewArgs<P>) => {
+    const viewArgs: any = args.length == 0 ? undefined : args[0]
 
     if (virtualTemplate === undefined) {
-      virtualTemplate = new HTMLVirtualTemplate(definition, viewProps)
+      virtualTemplate = new HTMLVirtualTemplate(definition, viewArgs)
     }
 
     return {
       [template]: virtualTemplate,
-      [templateProps]: viewProps
+      [templateArgs]: viewArgs
     }
   }
 }

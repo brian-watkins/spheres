@@ -56,7 +56,7 @@ export interface BlockNode {
 export interface TemplateNode {
   type: NodeType.TEMPLATE
   template: VirtualTemplate<any>
-  props: any
+  args: any
   key?: VirtualNodeKey
   node: Node | undefined
 }
@@ -171,30 +171,30 @@ export function makeStatefulTextNode(generator: Stateful<string>, node?: Node): 
   }
 }
 
-export type WithProps<T> =
-  <S>(generator: (props: T, get: GetState) => S) => (get: GetState) => S
+export type WithArgs<T> =
+  <S>(generator: (args: T, get: GetState) => S) => (get: GetState) => S
 
 export class VirtualTemplate<T> {
-  protected props!: T
+  protected args!: T
   virtualNode!: VirtualNode
 
-  setProps(props: T) {
-    this.props = props
+  setArgs(args: T) {
+    this.args = args
   }
 
-  useWithProps<S>(generator: (get: GetState) => S): (get: GetState, props: T) => S {
-    return (get, props) => {
-      this.props = props
+  useWithArgs<S>(generator: (get: GetState) => S): (get: GetState, args: T) => S {
+    return (get, args) => {
+      this.args = args
       return generator(get)
     }
   }
 }
 
-export function makeTemplate(template: VirtualTemplate<any>, props: any, key?: VirtualNodeKey): TemplateNode {
+export function makeTemplate(template: VirtualTemplate<any>, args: any, key?: VirtualNodeKey): TemplateNode {
   return {
     type: NodeType.TEMPLATE,
     template,
-    props,
+    args: args,
     key,
     node: undefined
   }

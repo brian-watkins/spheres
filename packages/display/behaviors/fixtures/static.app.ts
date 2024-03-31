@@ -1,6 +1,6 @@
 import { container, GetState } from "@spheres/store";
 import { HTMLBuilder } from "@src/htmlElements";
-import { htmlTemplate, HTMLView, WithProps } from "@src/index";
+import { htmlTemplate, HTMLView, WithArgs } from "@src/index";
 
 interface StaticViewProps {
   name: string
@@ -131,8 +131,8 @@ interface TitleProps {
   title: string
 }
 
-const titleTemplate = htmlTemplate((withProps: WithProps<TitleProps>) => {
+const titleTemplate = htmlTemplate((withArgs: WithArgs<TitleProps>) => {
   return root => root.h1(el => {
-    el.children.textNode(withProps((props) => props.title))
+    el.children.textNode(withArgs((props) => props.title))
   })
 })

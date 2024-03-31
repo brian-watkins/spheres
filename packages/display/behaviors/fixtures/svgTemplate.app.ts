@@ -1,5 +1,5 @@
 import { Container, GetState, container, rule, use, write } from "@spheres/store";
-import { WithProps, htmlTemplate, svgTemplate } from "@src/index";
+import { WithArgs, htmlTemplate, svgTemplate } from "@src/index";
 
 export default htmlTemplate(() => root => {
   root.main(el => {
@@ -29,29 +29,29 @@ interface CircleProps {
   label: Container<number>
 }
 
-const circle = svgTemplate((withProps: WithProps<CircleProps>) => {
+const circle = svgTemplate((withArgs: WithArgs<CircleProps>) => {
   return root =>
     root.g(el => {
       el.config
-        .dataAttribute("circle-button", withProps((props) => `${props.id}`))
-        .on("click", () => use(rule(withProps((props, get) => incrementCount(get, props.label)))))
+        .dataAttribute("circle-button", withArgs((props) => `${props.id}`))
+        .on("click", () => use(rule(withArgs((props, get) => incrementCount(get, props.label)))))
       el.children
         .circle(el => {
           el.config
-            .cx(withProps((props) => `${props.x}`))
-            .cy(withProps((props) => `${props.y}`))
+            .cx(withArgs((props) => `${props.x}`))
+            .cy(withArgs((props) => `${props.y}`))
             .r("50")
             .fill("blue")
         })
         .text(el => {
           el.config
-            .x(withProps((props) => `${props.x}`))
-            .y(withProps((props) => `${props.y + 20}`))
+            .x(withArgs((props) => `${props.x}`))
+            .y(withArgs((props) => `${props.y + 20}`))
             .fontSize("60")
             .textAnchor("middle")
             .fill("white")
           el.children
-            .textNode(withProps((props, get) => `${get(props.label)}`))
+            .textNode(withArgs((props, get) => `${get(props.label)}`))
         })
     })
 })

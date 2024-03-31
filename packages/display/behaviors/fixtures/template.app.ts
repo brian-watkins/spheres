@@ -1,6 +1,5 @@
 import { Container, container, rule, use, write } from "@spheres/store";
-import { htmlTemplate } from "@src/index";
-import { WithProps } from "@src/vdom/virtualNode";
+import { WithArgs, htmlTemplate } from "@src/index";
 
 const greeting = container({
   initialValue: "Hello"
@@ -27,7 +26,7 @@ export default htmlTemplate(() => root => {
   })
 })
 
-const funZone = htmlTemplate((withProps: WithProps<Context>) => {
+const funZone = htmlTemplate((withArgs: WithArgs<Context>) => {
   return root =>
     root.div(el => {
       el.children
@@ -36,24 +35,24 @@ const funZone = htmlTemplate((withProps: WithProps<Context>) => {
           el.children
             .div(el => {
               el.config
-                .dataAttribute("greeting", withProps((props) => `${props.id}`))
+                .dataAttribute("greeting", withArgs((props) => `${props.id}`))
               el.children
-                .textNode(withProps((props, get) => `${get(greeting)}, ${props.name}!`))
+                .textNode(withArgs((props, get) => `${get(greeting)}, ${props.name}!`))
             })
             .div(el => {
               el.config
-                .dataAttribute("counter", withProps((props) => `${props.id}`))
+                .dataAttribute("counter", withArgs((props) => `${props.id}`))
               el.children
-                .textNode(withProps((props, get) => `${get(props.counter)} clicks!`))
+                .textNode(withArgs((props, get) => `${get(props.counter)} clicks!`))
             })
         })
         .div(el => {
           el.children
             .button(el => {
               el.config
-                .dataAttribute("increment-counter", withProps((props) => `${props.id}`))
+                .dataAttribute("increment-counter", withArgs((props) => `${props.id}`))
                 .on("click", () => {
-                  return use(rule(withProps((props, get) => {
+                  return use(rule(withArgs((props, get) => {
                     return write(props.counter, get(props.counter) + 1)
                   })))
                 })

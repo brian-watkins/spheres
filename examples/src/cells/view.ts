@@ -1,7 +1,7 @@
 import { batch, container, rule, run, use, write } from "@spheres/store";
 import { cellContainer } from "./state";
 import { CellErrorType } from "./formula";
-import { WithProps, htmlTemplate } from "@spheres/display";
+import { WithArgs, htmlTemplate } from "@spheres/display";
 
 const showInput = container({ initialValue: "" })
 
@@ -49,7 +49,7 @@ export const cells = htmlTemplate(() => root =>
     }
   }))
 
-const cell = htmlTemplate((withId: WithProps<string>) => root =>
+const cell = htmlTemplate((withId: WithArgs<string>) => root =>
   root.div(({ config, children }) => {
     config
       .dataAttribute("cell", withId(id => id))

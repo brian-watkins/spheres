@@ -1,7 +1,7 @@
 import { GetState, use, write } from "@spheres/store";
 import { createRecord, deleteSelected, filterPrefix, filteredRecords, records, selectedRecord, updateSelected } from "./state.js";
 import { names, useValue } from "../helpers/helpers.js";
-import { HTMLView, WithProps, htmlTemplate } from "@spheres/display";
+import { HTMLView, WithArgs, htmlTemplate } from "@spheres/display";
 
 export const crud = htmlTemplate(() => root => {
   root.main(({ config, children }) => {
@@ -91,16 +91,16 @@ interface InputViewAttributes {
   name: string
 }
 
-const inputView = htmlTemplate((withProps: WithProps<InputViewAttributes>) => root =>
+const inputView = htmlTemplate((withArgs: WithArgs<InputViewAttributes>) => root =>
   root.label(el => {
     el.children
-      .textNode(withProps(props => props.label))
+      .textNode(withArgs(props => props.label))
       .input(el => {
         el.config
           .type("text")
           .required(true)
           .class(`${inputClasses()} ml-2 w-48`)
-          .name(withProps(props => props.name))
+          .name(withArgs(props => props.name))
       })
   }))
 

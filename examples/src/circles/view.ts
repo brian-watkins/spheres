@@ -1,7 +1,7 @@
 import { GetState, batch, write, run, container, StoreMessage, use, rule } from "@spheres/store";
 import { Circle, CircleContainer, addCircleRule, adjustRadius, adjustRadiusRule, canRedo, canUndo, circleData, deselectCircle, redoRule, selectCircle, undoRule } from "./state";
 import { useValue } from "../helpers/helpers";
-import { HTMLView, SVGView, WithProps, htmlTemplate } from "@spheres/display";
+import { HTMLView, SVGView, WithArgs, htmlTemplate } from "@spheres/display";
 
 export const circles = htmlTemplate(() => root =>
   root.main(({ children }) => {
@@ -146,7 +146,7 @@ function closeDialog(evt: Event): StoreMessage<any> {
     batch([])
 }
 
-const adjustRadiusView = htmlTemplate((withCircle: WithProps<CircleContainer>) => root =>
+const adjustRadiusView = htmlTemplate((withCircle: WithArgs<CircleContainer>) => root =>
   root.div(({ config, children }) => {
     config
       .class("w-96")

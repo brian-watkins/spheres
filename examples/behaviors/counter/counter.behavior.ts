@@ -4,7 +4,7 @@ import { testAppContext } from "../helpers/testApp.js";
 
 export default behavior("counter", [
   example(testAppContext)
-    .description("just a test")
+    .description("counting")
     .script({
       suppose: [
         fact("the counter app is displayed", async (context) => {

@@ -1,10 +1,7 @@
 import { htmlTemplate } from "@spheres/display";
-import { container, write } from "@spheres/store";
+import { container, update } from "@spheres/store";
 
-const clickCount = container({
-  initialValue: 0,
-  update: (_: string, current) => ({ value: current + 1 })
-})
+const clickCount = container({ initialValue: 0 })
 
 export default htmlTemplate(() => root => {
   root.main(el => {
@@ -14,7 +11,7 @@ export default htmlTemplate(() => root => {
         el.children.textNode((get) => `Clicks: ${get(clickCount)}`)
       })
       .button(el => {
-        el.config.on("click", () => write(clickCount, "increment"))
+        el.config.on("click", () => update(clickCount, (count) => count + 1))
         el.children.textNode("Count!")
       })
   })

@@ -1,11 +1,6 @@
 import { Rule, command, container, rule, derived, write } from "@spheres/store";
 
-export const elapsedTime = container({
-  initialValue: 0,
-  constraint: ({ get, current }, next) => {
-    return Math.min(get(duration) * 1000, next ?? current)
-  }
-})
+export const elapsedTime = container({ initialValue: 0 })
 
 export const duration = container({ initialValue: 0 })
 
@@ -22,12 +17,16 @@ export interface RepeaterCommand {
   interval: number
 }
 
+const updateElapsedTimeRule = rule((get) => {
+  return write(elapsedTime, Math.min(get(duration) * 1000, get(elapsedTime) + 100))
+})
+
 export const runTimerCommand = command<RepeaterCommand>({
   trigger: (get) => {
     return {
       shouldRun: get(duration) > 0 && get(elapsedTime) < (get(duration) * 1000),
       interval: 100,
-      rule: rule((get) => write(elapsedTime, get(elapsedTime) + 100))
+      rule: updateElapsedTimeRule
     }
   }
 })

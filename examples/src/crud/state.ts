@@ -48,14 +48,20 @@ let idSequence = 0
 
 export const records: Container<Array<DataRecord>, DataMessage> = container({
   initialValue: new Array<DataRecord>(),
-  reducer: (message, current) => {
+  update: (message, current) => {
     switch (message.type) {
       case "create":
-        return [...current, { id: idSequence++, ...message.record }]
+        return {
+          value: [...current, { id: idSequence++, ...message.record }]
+        }
       case "update":
-        return current.map(r => r.id === message.record.id ? message.record : r)
+        return {
+          value: current.map(r => r.id === message.record.id ? message.record : r)
+        }
       case "delete":
-        return current.filter(r => r.id !== message.id)
+        return {
+          value: current.filter(r => r.id !== message.id)
+        }
     }
   }
 })

@@ -1,4 +1,4 @@
-import { timer } from "./view.js";
+import timer from "./view.js";
 import { Store } from "@spheres/store";
 import { runTimerCommand } from "./state.js";
 import { RepeaterCommandManager } from "./systemRepeater.js";

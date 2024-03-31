@@ -3,7 +3,7 @@ import { container, write } from "@spheres/store";
 
 const clickCount = container({
   initialValue: 0,
-  reducer: (_: string, current) => current + 1
+  update: (_: string, current) => ({ value: current + 1 })
 })
 
 export default htmlTemplate(() => root => {

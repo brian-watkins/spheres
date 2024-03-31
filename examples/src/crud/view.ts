@@ -1,120 +1,128 @@
-import { ConfigurableElement, HTMLElements, InputElementAttributes, View, htmlView } from "@spheres/display";
 import { GetState, use, write } from "@spheres/store";
 import { createRecord, deleteSelected, filterPrefix, filteredRecords, records, selectedRecord, updateSelected } from "./state.js";
 import { names, useValue } from "../helpers/helpers.js";
+import { HTMLView, WithProps, htmlTemplate } from "@spheres/display";
 
-export default function crud(): View {
-  return htmlView(root => {
-    root.main(({ config, children }) => {
-      config
-        .class("m-4")
-      children
-        .zone(inputView("Filter:", ({ config }) => {
-          config
-            .dataAttribute("filter-input")
-            .on("input", useValue((val) => write(filterPrefix, val)))
-        }))
-        .div(({ config, children }) => {
-          config
-            .class(names([
-              "flex",
-              "gap-4",
-              "my-4"
-            ]))
-          children
-            .zone(recordsView)
-            .zone(recordForm)
-        })
-        .div(({ config, children }) => {
-          config
-            .class("flex gap-4")
-          children
-            .button(({ config, children }) => {
-              config
-                .dataAttribute("action", "create")
-                .form("record-form")
-                .type("submit")
-                .class(buttonClasses())
-              children.textNode("Create")
-            })
-            .button(({ config, children }) => {
-              config
-                .dataAttribute("action", "update")
-                .form("record-form")
-                .type("submit")
-                .disabled((get) => get(selectedRecord) === -1)
-                .class(buttonClasses())
-              children.textNode("Update")
-            })
-            .button(({ config, children }) => {
-              config
-                .dataAttribute("action", "delete")
-                .disabled((get) => get(selectedRecord) === -1)
-                .on("click", () => use(deleteSelected))
-                .class(buttonClasses())
-              children.textNode("Delete")
-            })
-        })
-    })
+export const crud = htmlTemplate(() => root => {
+  root.main(({ config, children }) => {
+    config
+      .class("m-4")
+    children
+      .zone(filterInputView())
+      .div(({ config, children }) => {
+        config
+          .class(names([
+            "flex",
+            "gap-4",
+            "my-4"
+          ]))
+        children
+          .zone(recordsView)
+          .zone(recordForm())
+      })
+      .div(({ config, children }) => {
+        config
+          .class("flex gap-4")
+        children
+          .button(({ config, children }) => {
+            config
+              .dataAttribute("action", "create")
+              .form("record-form")
+              .type("submit")
+              .class(buttonClasses())
+            children.textNode("Create")
+          })
+          .button(({ config, children }) => {
+            config
+              .dataAttribute("action", "update")
+              .form("record-form")
+              .type("submit")
+              .disabled((get) => get(selectedRecord) === -1)
+              .class(buttonClasses())
+            children.textNode("Update")
+          })
+          .button(({ config, children }) => {
+            config
+              .dataAttribute("action", "delete")
+              .disabled((get) => get(selectedRecord) === -1)
+              .on("click", () => use(deleteSelected))
+              .class(buttonClasses())
+            children.textNode("Delete")
+          })
+      })
   })
+})
+
+
+const recordForm = htmlTemplate(() => root => {
+  root.form(({ config, children }) => {
+    config
+      .id("record-form")
+      .class(names([
+        "flex",
+        "flex-col",
+        "gap-4"
+      ]))
+      .on("submit", (evt) => {
+        evt.preventDefault();
+        const data = new FormData(evt.target as HTMLFormElement)
+        const firstName = data.get("firstName")!.toString()
+        const lastName = data.get("lastName")!.toString()
+        if (submissionAction(evt) === "create") {
+          return write(records, createRecord({ firstName, lastName }))
+        } else {
+          return use(updateSelected, { firstName, lastName })
+        }
+      })
+    children
+      .zone(inputView({
+        label: "First Name:",
+        name: "firstName"
+      }))
+      .zone(inputView({
+        label: "Last Name:",
+        name: "lastName"
+      }))
+  })
+})
+
+interface InputViewAttributes {
+  label: string
+  name: string
 }
 
-const recordForm =
-  htmlView(root => {
-    root.form(({ config, children }) => {
-      config
-        .id("record-form")
-        .class(names([
-          "flex",
-          "flex-col",
-          "gap-4"
-        ]))
-        .on("submit", (evt) => {
-          evt.preventDefault();
-          const data = new FormData(evt.target as HTMLFormElement)
-          const firstName = data.get("firstName")!.toString()
-          const lastName = data.get("lastName")!.toString()
-          if (submissionAction(evt) === "create") {
-            return write(records, createRecord({ firstName, lastName }))
-          } else {
-            return use(updateSelected, { firstName, lastName })
-          }
-        })
-      children
-        .zone(inputView("First Name:", ({ config }) => {
-          config
-            .name("firstName")
-            .dataAttribute("first-name-input")
-        }))
-        .zone(inputView("Last Name:", ({ config }) => {
-          config
-            .name("lastName")
-            .dataAttribute("last-name-input")
-        }))
-    })
-  })
+const inputView = htmlTemplate((withProps: WithProps<InputViewAttributes>) => root =>
+  root.label(el => {
+    el.children
+      .textNode(withProps(props => props.label))
+      .input(el => {
+        el.config
+          .type("text")
+          .required(true)
+          .class(`${inputClasses()} ml-2 w-48`)
+          .name(withProps(props => props.name))
+      })
+  }))
+
+const filterInputView = htmlTemplate(() => root =>
+  root.label(el => {
+    el.children
+      .textNode("Filter:")
+      .input(el => {
+        el.config
+          .type("text")
+          .required(true)
+          .class(`${inputClasses()} ml-2 w-48`)
+          .dataAttribute("filter-input")
+          .on("input", useValue((val) => write(filterPrefix, val)))
+      })
+  }))
 
 
-function inputView(label: string, builder: (el: ConfigurableElement<InputElementAttributes, HTMLElements>) => void): View {
-  return htmlView(root => {
-    root.label(el => {
-      el.children
-        .textNode(label)
-        .input(el => {
-          el.config
-            .type("text")
-            .required(true)
-            .class(`${inputClasses()} ml-2 w-48`)
-          builder(el)
-        })
-    })
-  })
-}
-
-function recordsView(get: GetState): View {
+function recordsView(get: GetState): HTMLView {
   const data = get(filteredRecords)
 
-  return htmlView(root => {
+  return root => {
     root.select(({ config, children }) => {
       config
         .size("5")
@@ -137,7 +145,7 @@ function recordsView(get: GetState): View {
           })
       }
     })
-  })
+  }
 }
 
 function submissionAction(evt: Event): string {

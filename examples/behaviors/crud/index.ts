@@ -1,4 +1,4 @@
-import crud from "../../src/crud/view.js";
+import { crud } from "../../src/crud/view.js";
 import { Store, write } from "@spheres/store";
 import { DataRecord, createRecord, records } from "../../src/crud/state.js";
 import { renderToDOM } from "@spheres/display";

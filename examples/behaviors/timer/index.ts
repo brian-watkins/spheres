@@ -1,4 +1,4 @@
-import { timer } from "../../src/timer/view.js"
+import timer from "../../src/timer/view.js"
 import { Store } from "@spheres/store"
 import { TestRepeaterManager } from "./testRepeater.js"
 import { runTimerCommand } from "../../src/timer/state.js"

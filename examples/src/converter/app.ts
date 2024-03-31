@@ -1,11 +1,11 @@
 import { use } from "@spheres/store";
 import { celsiusInvalid, celsiusTemperature, farenheitInvalid, farenheitTemperature, temperatureUpdate } from "./state.js";
 import { names, useValue } from "../helpers/helpers.js";
-import { View, htmlView } from "@spheres/display";
+import { htmlTemplate } from "@spheres/display";
 
 
-export function converter(): View {
-  return htmlView(root => root.main(el => {
+export const converter = htmlTemplate(() => root =>
+  root.main(el => {
     el.children
       .div(el => {
         el.children
@@ -13,7 +13,7 @@ export function converter(): View {
             el.config.for("celsius")
             el.children.textNode("Celsius")
           })
-          .zone(celsiusInput)
+          .zone(celsiusInput())
       })
       .div(el => {
         el.children
@@ -21,13 +21,13 @@ export function converter(): View {
             el.config.for("farenheit")
             el.children.textNode("Farenheit")
           })
-          .zone(farenheitInput)
+          .zone(farenheitInput())
       })
   }))
-}
 
-const celsiusInput =
-  htmlView(root => root.input(el => {
+
+const celsiusInput = htmlTemplate(() => root =>
+  root.input(el => {
     el.config
       .id("celsius")
       .type("text")
@@ -37,8 +37,8 @@ const celsiusInput =
   }))
 
 
-const farenheitInput =
-  htmlView(root => root.input(el => {
+const farenheitInput = htmlTemplate(() => root =>
+  root.input(el => {
     el.config
       .id("farenheit")
       .type("text")

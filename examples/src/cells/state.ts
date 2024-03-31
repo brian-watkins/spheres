@@ -12,21 +12,25 @@ export function cellContainer(id: string): CellContainer {
     initialValue: derived<Result<string, CellError>>({
       query: () => Result.ok("")
     }),
-    reducer: (definition: string) => {
+    update: (definition: string) => {
       const result = cellDefinition(definition)
 
       if (result.type === "failure") {
-        return derived<Result<string, CellError>>({
-          query: () => Result.err(new ParseFailure(definition))
-        })
+        return {
+          value: derived<Result<string, CellError>>({
+            query: () => Result.err(new ParseFailure(definition))
+          })
+        }
       }
 
-      return derived({
-        query: (get) => {
-          return result.value((identifier) => get(get(cellContainer(identifier))))
-            .mapError<CellError>(() => new UnableToCalculate())
-        }
-      })
+      return {
+        value: derived({
+          query: (get) => {
+            return result.value((identifier) => get(get(cellContainer(identifier))))
+              .mapError<CellError>(() => new UnableToCalculate())
+          }
+        })
+      }
     }
   })
 }

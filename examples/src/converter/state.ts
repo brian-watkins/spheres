@@ -14,37 +14,37 @@ export const temperatureUpdate = rule((_, input: TemperatureUpdate) => {
 
 export const celsiusTemperature = container({
   initialValue: "",
-  reducer: (update: TemperatureUpdate, current) => {
-    if (update.celsius) return update.celsius
+  update: (update: TemperatureUpdate, current) => {
+    if (update.celsius) return { value: update.celsius }
 
     if (update.farenheit) {
       const farenheitValue = Number(update.farenheit)
       if (Number.isNaN(farenheitValue)) {
-        return current
+        return { value: current }
       }
 
-      return ((farenheitValue - 32) * (5 / 9)).toFixed(1)
+      return { value: ((farenheitValue - 32) * (5 / 9)).toFixed(1) }
     }
 
-    return ""
+    return { value: "" }
   }
 })
 
 export const farenheitTemperature = container({
   initialValue: "",
-  reducer: (update: TemperatureUpdate, current) => {
-    if (update.farenheit) return update.farenheit
+  update: (update: TemperatureUpdate, current) => {
+    if (update.farenheit) return { value: update.farenheit }
 
     if (update.celsius) {
       const celsiusValue = Number(update.celsius)
       if (Number.isNaN(celsiusValue)) {
-        return current
+        return { value: current }
       }
 
-      return (celsiusValue * (9 / 5) + 32).toFixed(1)
+      return { value: (celsiusValue * (9 / 5) + 32).toFixed(1) }
     }
 
-    return ""
+    return { value: "" }
   }
 })
 

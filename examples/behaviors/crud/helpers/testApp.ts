@@ -28,11 +28,11 @@ export class CrudDisplay {
   constructor(private display: TestDisplay) { }
 
   get firstNameInput(): DisplayElement {
-    return this.display.selectElement("[data-first-name-input]")
+    return this.display.selectElement("input[name='firstName']")
   }
 
   get lastNameInput(): DisplayElement {
-    return this.display.selectElement("[data-last-name-input]")
+    return this.display.selectElement("input[name='lastName']")
   }
 
   get filterInput(): DisplayElement {

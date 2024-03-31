@@ -54,12 +54,16 @@ function circleContainer(center: Coordinate): CircleContainer {
   return container({
     initialValue: { center, radius: 20, selected: true },
     name: `Circle at (${center.x},${center.y})`,
-    reducer: (message, current: Circle) => {
+    update: (message, current: Circle) => {
       switch (message.type) {
         case "circle-selection":
-          return { ...current, selected: message.selected }
+          return {
+            value: { ...current, selected: message.selected }
+          }
         case "circle-adjust-radius":
-          return { ...current, radius: message.radius }
+          return {
+            value: { ...current, radius: message.radius }
+          }
       }
     }
   })

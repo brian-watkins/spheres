@@ -12,7 +12,7 @@ export interface ViewOptions {
   key?: string | number | State<any>
 }
 
-export type ViewProps<P> = P extends undefined ? [] : [P]
+export type ViewArgs<P> = P extends undefined ? [] : [P]
 
 const templateNodeRegistry = new WeakMap<Function, VirtualTemplate<any>>()
 

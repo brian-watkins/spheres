@@ -1,7 +1,7 @@
 import { GetState } from "@spheres/store"
 import { Stateful, VirtualNode, VirtualNodeConfig, VirtualTemplate, WithArgs, makeStatefulElement, makeTemplate, makeVirtualElement, setNamespace, virtualNodeConfig } from "./vdom/virtualNode.js"
 import { SVGBuilder, SVGElements, SVGElementAttributes, svgAttributeNames } from "./svgElements.js"
-import { ConfigurableElement, ViewBuilder, ViewOptions, ViewProps as ViewArgs } from "./viewBuilder.js"
+import { ConfigurableElement, ViewBuilder, ViewOptions, ViewArgs } from "./viewBuilder.js"
 import { BasicElementConfig, SpecialElementAttributes } from "./viewConfig.js"
 
 export type SVGView = (root: SVGBuilder) => void

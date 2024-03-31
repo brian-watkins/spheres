@@ -5,7 +5,7 @@ import { createStringRenderer } from "./vdom/renderToString.js"
 import { createDOMRenderer } from "./vdom/renderToDom.js"
 import { SVGElements } from "./svgElements.js"
 import { BasicElementConfig, SpecialElementAttributes } from "./viewConfig.js"
-import { ConfigurableElement, ViewBuilder, ViewOptions, ViewProps as ViewArgs } from "./viewBuilder.js"
+import { ConfigurableElement, ViewBuilder, ViewOptions, ViewArgs } from "./viewBuilder.js"
 import { buildSvgElement } from "./svgViewBuilder.js"
 
 // Renderers

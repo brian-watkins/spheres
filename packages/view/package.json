@@ -1,7 +1,7 @@
 {
-  "name": "@spheres/display",
+  "name": "@spheres/view",
   "version": "1.0.0",
-  "description": "Easy browser-based displays",
+  "description": "Easy browser-based views",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "type": "module",

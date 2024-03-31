@@ -1,7 +1,7 @@
 import { use } from "@spheres/store";
 import { celsiusInvalid, celsiusTemperature, farenheitInvalid, farenheitTemperature, temperatureUpdate } from "./state.js";
 import { names, useValue } from "../helpers/helpers.js";
-import { htmlTemplate } from "@spheres/display";
+import { htmlTemplate } from "@spheres/view";
 
 
 export const converter = htmlTemplate(() => root =>

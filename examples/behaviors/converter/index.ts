@@ -1,4 +1,4 @@
-import { renderToDOM } from "@spheres/display";
+import { renderToDOM } from "@spheres/view";
 import { converter } from "../../src/converter/app.js";
 import { Store } from "@spheres/store";
 

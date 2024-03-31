@@ -1,4 +1,4 @@
-import { htmlTemplate } from "@spheres/display";
+import { htmlTemplate } from "@spheres/view";
 import { container, update } from "@spheres/store";
 
 const clickCount = container({ initialValue: 0 })

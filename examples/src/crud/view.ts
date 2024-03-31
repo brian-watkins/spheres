@@ -1,7 +1,7 @@
 import { GetState, use, write } from "@spheres/store";
 import { createRecord, deleteSelected, filterPrefix, filteredRecords, records, selectedRecord, updateSelected } from "./state.js";
 import { names, useValue } from "../helpers/helpers.js";
-import { HTMLView, WithArgs, htmlTemplate } from "@spheres/display";
+import { HTMLView, WithArgs, htmlTemplate } from "@spheres/view";
 
 export const crud = htmlTemplate(() => root => {
   root.main(({ config, children }) => {

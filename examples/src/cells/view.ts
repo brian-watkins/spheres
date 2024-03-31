@@ -1,7 +1,7 @@
 import { batch, container, rule, run, use, write } from "@spheres/store";
 import { cellContainer } from "./state";
 import { CellErrorType } from "./formula";
-import { WithArgs, htmlTemplate } from "@spheres/display";
+import { WithArgs, htmlTemplate } from "@spheres/view";
 
 const showInput = container({ initialValue: "" })
 

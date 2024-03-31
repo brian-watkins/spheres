@@ -15,7 +15,7 @@
   ],
   "references": [
     { "path": "../" },
-    { "path": "../../packages/display" },
+    { "path": "../../packages/view" },
     { "path": "../../packages/store" }
   ]
 }

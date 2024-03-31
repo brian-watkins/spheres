@@ -108,6 +108,6 @@
   },
   "references": [
     { "path": "../packages/store" },
-    { "path": "../packages/display" },
+    { "path": "../packages/view" },
   ]
 }

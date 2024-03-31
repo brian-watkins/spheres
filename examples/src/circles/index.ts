@@ -1,4 +1,4 @@
-import { renderToDOM } from "@spheres/display";
+import { renderToDOM } from "@spheres/view";
 import { circles } from "./view";
 import { Store } from "@spheres/store";
 

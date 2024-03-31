@@ -1,7 +1,7 @@
 import { reset, write } from "@spheres/store";
 import { duration, elapsedTime, percentComplete } from "./state.js";
 import { names, useValue } from "../helpers/helpers.js";
-import { htmlTemplate } from "@spheres/display";
+import { htmlTemplate } from "@spheres/view";
 
 export default htmlTemplate(() => {
   return root =>

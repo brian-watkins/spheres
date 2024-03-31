@@ -1,7 +1,7 @@
 import { crud } from "../../src/crud/view.js";
 import { Store, write } from "@spheres/store";
 import { DataRecord, createRecord, records } from "../../src/crud/state.js";
-import { renderToDOM } from "@spheres/display";
+import { renderToDOM } from "@spheres/view";
 
 
 window.startApp = (testData: Array<DataRecord>) => {

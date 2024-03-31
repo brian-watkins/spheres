@@ -21,17 +21,19 @@ functions. No async code is used in the construction of a view.
 Furthermore, all state is handled in terms of `@spheres/store` State Tokens.
 There are no components.
 
-Views depend on state in two ways.
+Views may depend on state in two ways.
 
-First, the value of any element attribute can be specified in terms of a
-function that depends on state. In such a case, the attribute's value -- and
+First, if the *structure* of some view depends on state, then a function
+can be provided that defines a view based on state. Whenever the referenced
+state tokens come to represent a new value, the function will be run and
+the view will be patched to match the newly generated view.
+
+Second, if the *value* of some element attribute or text node depends on
+state, then a function can be provided that generates this value based on
+state. In such a case, the attribute's value -- and
 only the attribute's value -- will be updated whenever the referenced
 state tokens come to represent a new value. The same is true for text
-associated with an element.
-
-Second, segments of a view may be designated as 'zones' that depend on state.
-Within a zone, the View itself can depend on state and will be patched
-whenever the referenced state tokens come to represent a new value.
+nodes associated with an element.
 
 In these ways, the areas of the View that depend on state can be specified
 precisely and updates will be performed in those areas only. This is what
@@ -42,7 +44,7 @@ updates.
 ## An Example
 
 Consider a simple counter appliction. The application logic consists of
-a single `Container` with a reducer that increments the counter value. The
+a single `Container` that holds the counter value. The
 view shows text with the current counter value. A button is defined with
 an event handler that produces a message to update the counter. As the
 button is clicked, the text with the counter value is the only part of the
@@ -50,35 +52,25 @@ view that will be re-rendered.
 
 
 ```
-import { View, htmlView } from "@spheres/display";
-import { container, write } from "@spheres/store";
+import { htmlTemplate, renderToDOM } from "@spheres/display";
+import { container, update } from "@spheres/store";
 
-const clickCount = container({
-  initialValue: 0,
-  reducer: (message: string, current) => {
-    if (message === "increment") {
-      return current + 1
-    } else {
-      return current
-    }
-  }
-})
+const clickCount = container({ initialValue: 0 })
 
-function counter(): View {
-  return htmlView().main(el => {
+const counter = htmlTemplate(() => root =>
+  root.main(el => {
     el.children
       .p(el => {
         el.children.textNode((get) => `Clicks: ${get(clickCount)}`)
       })
       .button(el => {
-        el.config.on("click", () => write(clickCount, "increment"))
+        el.config.on("click", () => update(clickCount, (current) => current + 1))
         el.children.textNode("Count!")
       })
   })
-}
+)
 
-const display = createDisplay()
-display.mount(document.getElementById("app")!, counter())
+renderToDOM(new Store(), document.getElementById("app")!, counter())
 ```
 
 See more examples [here](https://github.com/brian-watkins/spheres/tree/main/examples).
@@ -90,44 +82,103 @@ of HTML or SVG elements.
 
 ### Building Views
 
-To build a view begin with the `htmlView()` or `svgView()` functions, which
-each expose an object with functions named for the HTML or SVG
+In `@spheres/display` views are composed of *functions*. Think of these functions
+as *templates* that are used to generate HTML as necessary when a view is
+rendered -- either to the DOM in a web browser or to a string when rendered
+on the server.
+
+In general, views are created by calling functions on an `HTMLBuilder` or
+`SVGBuilder` to build up a view. 
+
+```
+type HTMLView = (root: HTMLBuilder) => void
+type SVGView = (root: SVGBuilder) => void
+```
+
+Both `HTMLBuilder` and `SVGBuilder` expose functions named for HTML or SVG
 elements, respectively. Each element function takes a configuration function
-that has one argument, `ConfigurableElement`. A ConfigurableElement exposes
+that has one argument, `ConfigurableElement`. A `ConfigurableElement` exposes
 two properties `config` and `children` which allow for setting the attributes
 of the element and its child elements. Chain attributes to add more. To build
 child elements, chain calls to the appropriate element function and follow
 the same procedure for each, passing in to the element function a configuration
-function. Here's an example:
+function.
+
+View functions can be used in two ways to build a template. Let's consider an
+example to show how this works. Suppose we'd like to build a view that displays
+a list of items. 
+
+First let's build a view template to display an item. We will use
+`htmlTemplate` to generate a function that can be called to produce
+the item view. We'll specify that this template function should take
+one argument, which is the Item itself.
 
 ```
-htmlView().main(({ config, children }) => {
-  config
-    .id("main-element")
-    .class("bg-red-500")
-  children
-    .p(({ config, children }) => {
-      children.textNode("Hello!")
+const itemView = htmlTemplate((withArgs: WithArgs<Item>) => {
+  return (root: HTMLBuilder) => {
+    root.div(el => {
+      el.config
+        .class("bg-red-500")
+      el.children
+        .textNode(withArgs(item => item.name))
     })
-    .p(({ config, children }) => {
-      children.textNode("Another paragraph!")
-    })
+  }
 })
-
-// Generates ...
-//
-// <main id="main-element" class="bg-red-500">
-//   <p>Hello!</p>
-//   <p>Another paragraph!</p>
-// </main>
 ```
+
+The value of `itemView` is a function that we can call with any expected
+arguments, to produce an `HTMLTemplateView` (or `SVGTemplateView`), which
+can be rendered via the `zone` function.
+
+Now let's create the view for the list of items. In this case, the
+HTML structure depends on state -- the list of items. So, we'll write a
+function that generates an `HTMLView` based on this state:
+
+```
+function listView(get: GetState): HTMLView {
+  const items = get(myItems)
+
+  return (root: HTMLBuilder) => {
+    root.ul(el => {
+      for (const item of items) {
+        el.children.li(el => {
+          el.children
+            .zone(itemView(item))
+        })
+      }
+    })
+  }
+}
+```
+
+Each time the `myItems` state token comes to reference a new value, this
+function will be executed to generate a view and the existing view will be
+patched accordingly. Note that we are calling our `itemView` template with
+each item and adding the result to our list view via the `zone` function.
+
+Now we have a view that will automatically re-render as the list of items
+referenced by the `myItems` state token changes. We render this in a browser
+like so:
+
+```
+const root = document.getElementById("my-app")
+renderToDom(new Store(), root, listView)
+```
+
+Notice that we provided a reference to a store to the `renderToDOM` function.
+This `Store` holds the values referenced by state tokens used within the
+view to be rendered. When events occur, any messages that are dispatched will
+be processed by this particular `Store`. It's possible to have multiple
+`Stores` associated with different views within the same application, if it
+makes sense to do so.
+
 
 ### Special Element Functions
 
-When constructing an element (either from `htmlView()`, `svgView()`, or the
-`children` property of some ConfigurableElement), besides functions that
-create elements of a specific type (like `a`, `p`, `div`, etc), there are
-a few special functions to note.
+Builder functions (either `HTMLBuilder`, `SVGBuilder`, or the
+`children` property of some ConfigurableElement), expose functions for
+creating elements of a specific type (like `a`, `p`, `div`, etc). In addition,
+there are a few special functions to note.
 
 #### element
 
@@ -135,8 +186,8 @@ Use the `element` function to create an element with an arbitrary tag name,
 useful for working with custom elements.
 
 ```
-htmlView()
-  .element("my-cool-element", ({ config, children }) => {
+(root: HTMLBuilder) =>
+  root.element("my-cool-element", ({ config, children }) => {
     ...
   })
 ```
@@ -146,18 +197,19 @@ htmlView()
 To add text call the `textNode` function
 
 ```
-htmlView()
-  .p(({ config, children }) => {
-    children.textNode("My paragraph!")
+(root: HTMLBuilder) =>
+  root.p(el => {
+    el.children.textNode("My paragraph!")
   })
 ```
 
 A textNode may take a string value or a `Stateful<string>`, which is a function
-based on state that produces a string: `(get: GetState) => string`. For example:
+based on state that produces a string: `(get: GetState) => string | undefined`.
+For example:
 
 ```
-htmlView()
-  .p(({ config, children }) => {
+(root: HTMLBuilder) =>
+  root.p(({ config, children }) => {
     children.textNode((get) => get(content))
   })
 ```
@@ -176,42 +228,23 @@ with respect to other content. If the parent element needs to reorder
 zone elements, a key must be provided when defining the zones -- otherwise
 the renderer will not be able to distinguish these elements.
 
-A `zone` function can either take a function that produces a view:
+`zone` can take a function that produces a view based on state:
 ```
-() => View
-```
-or a function that produces a view based on state:
-```
-(get: GetState) => View
+(get: GetState) => HTMLView
+(get: GetState) => SVGView
 ```
 where `GetState` is a function of the type `(state: State<T, M>) => T`
 that provides a way to get values from `@spheres/store` State Tokens.
 
-When a zone is created with a function that produces a view based on
-state, that function will re-run to produce an updated View each time
-the referenced State Tokens come to represent a new value, and the
-DOM will be patched accordingly.
+Alternatively, `zone` takes the result of calling a template function
+generated via `htmlTemplate` or `svgTemplate`.
 
-By using the `zone` function, `@spheres/display` circumscribes the area
-of the DOM needed for patching based on state updates, so that only
-those parts of the view that should be updated will be updated.
+In either case, whenever the referenced state tokens come to represent
+a new value, the view will update and the DOM will be patched accordingly.
 
-Here's an example that creates a select element with options
-determined by state
-
-```
-htmlView().zone((get) => {
-  return htmlView().select(({ config, children }) => {
-      for (const record of get(myData)) {
-        children
-          .option(({ config, children }) => {
-            config.value(`${record.id}`)
-            children.textNode(`${record.lastName}, ${record.firstName}`)
-          })
-      }
-    })
-})
-```
+The `zone` function circumscribes an area of the DOM needed for patching
+based on state updates, so that only those parts of the view that should
+be updated will be updated.
 
 
 ### Stateful Attributes
@@ -227,9 +260,11 @@ which is just a function based on state that produces a value. For example,
 to change the class of an element based on some state:
 
 ```
-htmlView().div({ config } => {
-  config.class((get) => get(isError) ? "error-class" : "ok-class")
-})
+(root: HTMLBuilder) =>
+  root.div({ config } => {
+    config
+      .class((get) => get(isError) ? "error-class" : "ok-class")
+  })
 ```
 
 Once this View is rendered, the class attribute -- and only the class
@@ -250,9 +285,11 @@ Create an arbitrary attribute by providing a name and string or `Stateful<string
 value to the `attribute` function.
 
 ```
-htmlView().div({ config } => {
-  config.attribute("my-attr", "my-value")
-})
+(root: HTMLBuilder) =>
+  root.div({ config } => {
+    config
+      .attribute("my-attr", "my-value")
+  })
 
 // Generates
 //
@@ -265,9 +302,11 @@ Provide a data attribute with the `dataAttribute` function. The value may be
 a `Stateful<string>`.
 
 ```
-htmlView().div({ config } => {
-  config.dataAttribute("sports", "bowling")
-})
+(root: HTMLBuilder) =>
+  root.div({ config } => {
+    config
+      .dataAttribute("sports", "bowling")
+  })
 
 // Generates
 //
@@ -284,9 +323,11 @@ element. Any children set on the element will be ignored.
 Provide an aria attribute and value or `Stateful<string>` via the `aria` function.
 
 ```
-htmlView().div(({ config }) => {
-  config.aria("hidden", "true")
-})
+(root: HTMLBuilder) =>
+  root.div(({ config }) => {
+    config
+      .aria("hidden", "true")
+  })
 
 // Generates
 //
@@ -297,10 +338,38 @@ htmlView().div(({ config }) => {
 
 To add an event handler to an element, use the `on` function and provide
 the appropriate event type. The event handler function must return a `StoreMessage`
-that will be automatically dispatched to the Store associated with this Display.
+that will be automatically dispatched to the Store associated with this view via
+`renderToDOM` or `renderToString`.
 
 ```
-htmlView().button(({ config }) => {
-  config.on("click", () => write(myContainer, "some text"))
-})
+(root: HTMLBuilder) =>
+  root.button(({ config }) => {
+    config
+      .on("click", () => write(myContainer, "some text"))
+  })
+```
+
+### Rendering Views
+
+To render a view in a web browser, use `renderToDOM`. Specify the
+`Store` that will manage state token values and process any messages dispatched
+as a result of events. Then specify an element in the DOM to replace with
+the rendered view. Finally, specify a view function or template view. `renderToDOM`
+returns a `RenderResult` that provides a reference to the root node and a function
+to call to unmount the view.
+
+```
+interface RenderResult {
+  root: Node
+  unmount: () => void
+}
+
+function renderToDOM(store: Store, element: Element, view: HTMLDisplay): RenderResult
+```
+
+To render a view to a string, call `renderToString`. Specify a `Store` to
+use and a view to render. The function will return an HTML string.
+
+```
+function renderToString(store: Store, view: HTMLDisplay): string
 ```

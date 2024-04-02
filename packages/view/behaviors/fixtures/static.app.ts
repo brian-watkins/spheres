@@ -136,3 +136,12 @@ const titleTemplate = htmlTemplate((withArgs: WithArgs<TitleProps>) => {
     el.children.textNode(withArgs((props) => props.title))
   })
 })
+
+export function appWithReactiveAttributes(root: HTMLBuilder) {
+  root.div(el => {
+    el.config
+      .dataAttribute("name", (get) => get(nameState))
+    el.children
+      .textNode("This is your name!")
+  })
+}

@@ -34,12 +34,20 @@ function stringifyTextNode(node: TextNode): string {
 
 function stringifyElement(store: Store, node: ElementNode): string {
   const attributes = node.data.attrs
-  
+  const statefulAttributes = node.data.statefulAttrs
+
   if (node.data.props?.className) {
     attributes["class"] = node.data.props?.className
   }
 
   let attrs = Object.keys(attributes).map(key => ` ${key}="${node.data.attrs[key]}"`).join("")
+
+  for (const attr in statefulAttributes) {
+    const generator = statefulAttributes[attr].generator
+    const query = new GetValueQuery(generator)
+    store.useQuery(query)
+    attrs += ` ${attr}="${query.value}"`
+  }
 
   if (node.data.props?.innerHTML) {
     return `<${node.tag}${attrs}>${node.data.props.innerHTML}</${node.tag}>`

@@ -1,7 +1,7 @@
 import { HTMLView, htmlTemplate, renderToString } from "../src/index.js";
 import { behavior, effect, example, Example } from "esbehavior";
 import { equalTo, expect, is } from "great-expectations";
-import { appWithBlock, appWithDataAttributesNoValue, appWithDeeplyNestedState, appWithInnerHTML, appWithNestedState, appWithPropertiesAndAttributes, appWithReactiveText, appWithSimpleState, appWithTemplates, staticApp } from "./fixtures/static.app.js";
+import { appWithBlock, appWithDataAttributesNoValue, appWithDeeplyNestedState, appWithInnerHTML, appWithNestedState, appWithPropertiesAndAttributes, appWithReactiveAttributes, appWithReactiveText, appWithSimpleState, appWithTemplates, staticApp } from "./fixtures/static.app.js";
 import { Store } from "@spheres/store"
 
 export default behavior("Render view to HTML string", [
@@ -36,6 +36,10 @@ export default behavior("Render view to HTML string", [
   renderTest("render view with reactive text", (renderer) => {
     const actual = renderer.renderView(appWithReactiveText)
     expect(actual, is(equalTo("<div>98 years old!</div>")))
+  }),
+  renderTest("render view with reactive attribute", (renderer) => {
+    const actual = renderer.renderView(appWithReactiveAttributes)
+    expect(actual, is(equalTo(`<div data-name="Cool Person!">This is your name!</div>`)))
   }),
   renderTest("render view with innerHTML property", (renderer) => {
     const actual = renderer.renderView(appWithInnerHTML)

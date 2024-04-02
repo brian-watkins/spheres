@@ -481,7 +481,7 @@ export interface UpdateResult<T> {
   message?: StoreMessage<any>
 }
 
-export class MessagePassingStateController<T, M> extends SimpleStateController<T> implements StateController<T, M> { 
+class MessagePassingStateController<T, M> extends SimpleStateController<T> implements StateController<T, M> { 
   constructor(private store: Store, initialValue: T, private update: ((message: M, current: T) => UpdateResult<T>)) {
     super(initialValue)
   }

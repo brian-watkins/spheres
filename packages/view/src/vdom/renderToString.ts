@@ -34,10 +34,14 @@ function stringifyTextNode(node: TextNode): string {
 
 function stringifyElement(store: Store, node: ElementNode): string {
   const attributes = node.data.attrs
-  const statefulAttributes = node.data.statefulAttrs
+  const statefulAttributes = node.data.statefulAttrs ?? {}
 
   if (node.data.props?.className) {
     attributes["class"] = node.data.props?.className
+  }
+
+  if (node.data.statefulProps?.className) {
+    statefulAttributes["class"] = node.data.statefulProps.className
   }
 
   let attrs = Object.keys(attributes).map(key => ` ${key}="${node.data.attrs[key]}"`).join("")

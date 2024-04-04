@@ -145,3 +145,12 @@ export function appWithReactiveAttributes(root: HTMLBuilder) {
       .textNode("This is your name!")
   })
 }
+
+export function appWithReactiveClass(root: HTMLBuilder) {
+  root.div(el => {
+    el.config
+      .class((get) => `bg-red-${get(ageState)}`)
+    el.children
+      .textNode("Look at this!")
+  })
+}

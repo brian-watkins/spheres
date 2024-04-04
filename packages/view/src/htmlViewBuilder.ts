@@ -138,6 +138,15 @@ export class HTMLVirtualTemplate<T> extends VirtualTemplate<T> {
   }
 }
 
+class HTMLTemplateDetails<P> implements HTMLTemplateView<P> {
+  [template]: HTMLVirtualTemplate<P>
+  [templateArgs]: any
+
+  constructor(temp: HTMLVirtualTemplate<P>, args: any) {
+    this[template] = temp
+    this[templateArgs] = args
+  }
+}
 
 export function htmlTemplate<P = undefined>(definition: (withArgs: WithArgs<P>) => HTMLView): (...props: ViewArgs<P>) => HTMLTemplateView<P> {
   let virtualTemplate: HTMLVirtualTemplate<P> | undefined
@@ -149,9 +158,6 @@ export function htmlTemplate<P = undefined>(definition: (withArgs: WithArgs<P>) 
       virtualTemplate = new HTMLVirtualTemplate(definition, viewArgs)
     }
 
-    return {
-      [template]: virtualTemplate,
-      [templateArgs]: viewArgs
-    }
+    return new HTMLTemplateDetails(virtualTemplate, viewArgs)
   }
 }

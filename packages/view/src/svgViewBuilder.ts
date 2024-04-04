@@ -84,6 +84,17 @@ export class SVGVirtualTemplate<T> extends VirtualTemplate<T> {
   }
 }
 
+class SVGTemplateDetails<P> implements SVGTemplateView<P> {
+  [template]: SVGVirtualTemplate<P>
+  [templateArgs]: any
+
+  constructor(temp: SVGVirtualTemplate<P>, args: any) {
+    this[template] = temp
+    this[templateArgs] = args
+  }
+}
+
+
 export function svgTemplate<P = undefined>(definition: (withProps: WithArgs<P>) => SVGView): (...props: ViewArgs<P>) => SVGTemplateView<P> {
   let virtualTemplate: SVGVirtualTemplate<P> | undefined
 
@@ -94,9 +105,6 @@ export function svgTemplate<P = undefined>(definition: (withProps: WithArgs<P>) 
       virtualTemplate = new SVGVirtualTemplate(definition, viewArgs)
     }
 
-    return {
-      [template]: virtualTemplate,
-      [templateArgs]: viewArgs
-    }
+    return new SVGTemplateDetails(virtualTemplate, viewArgs)
   }
 }

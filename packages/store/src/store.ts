@@ -202,20 +202,7 @@ class ReactiveValue<T, M> extends AbstractReactiveQuery {
 
 const initForStore = Symbol()
 const runQuery = Symbol()
-
-const queriesToUpdate = new Set<ReactiveQuery>()
-
-function queueQueryForUpdate(query: ReactiveQuery) {
-  if (queriesToUpdate.size === 0) {
-    queueMicrotask(() => {
-      for (const query of queriesToUpdate) {
-        query[runQuery]()
-      }
-      queriesToUpdate.clear()
-    })
-  }
-  queriesToUpdate.add(query)
-}
+const queueQueryForUpdate = Symbol()
 
 export abstract class ReactiveQuery implements StateListener {
   private deps = new Set<StateController<any>>()
@@ -254,7 +241,7 @@ export abstract class ReactiveQuery implements StateListener {
   }
 
   update(): void {
-    queueQueryForUpdate(this)
+    this.store[queueQueryForUpdate](this)
   }
 
   unsubscribe() {
@@ -309,6 +296,7 @@ export class Store {
   private commandRegistry: Map<Command<any>, CommandManager<any>> = new Map()
   private hooks: StoreHooks | undefined
   private tokenIdMap: Map<string, StoreRegistryKey> = new Map();
+  private queriesToUpdate = new Set<ReactiveQuery>()
 
   private getKeyForToken(token: State<any>): StoreRegistryKey {
     if (token.id === undefined) return token
@@ -332,6 +320,18 @@ export class Store {
       }
     }
     return controller
+  }
+
+  [queueQueryForUpdate](query: ReactiveQuery) {
+    if (this.queriesToUpdate.size === 0) {
+      queueMicrotask(() => {
+        for (const query of this.queriesToUpdate) {
+          query[runQuery]()
+        }
+        this.queriesToUpdate.clear()
+      })
+    }
+    this.queriesToUpdate.add(query)
   }
 
   useHooks(hooks: StoreHooks) {

@@ -16,7 +16,6 @@ export class UpdateAttributeEffect extends ReactiveQuery implements EffectHandle
 
   run(get: GetState): void {
     if (!this.element.isConnected) {
-      this.unsubscribe()
       return
     }
 

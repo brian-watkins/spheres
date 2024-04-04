@@ -245,6 +245,11 @@ function patchChildren(store: Store, oldVNode: ElementNode, newVNode: ElementNod
   }
 
   if (newHead > newTail) {
+    // removing all nodes
+    if (oldHead === 0 && newTail === -1) {
+      parent.textContent = ""
+      return
+    }
     // then there are more old kids than new ones and we got through
     // everything so remove from the end of the list
     while (oldHead <= oldTail) {

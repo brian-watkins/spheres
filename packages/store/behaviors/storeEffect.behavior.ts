@@ -1,4 +1,4 @@
-import { Container, GetState, ReactiveQuery, container } from "@src/index.js"
+import { Container, DerivedState, GetState, ReactiveEffect, ReactiveEffectHandle, container, derived } from "@src/index.js"
 import { ConfigurableExample, behavior, effect, example, fact, step } from "esbehavior"
 import { equalTo, expect, is } from "great-expectations"
 import { testStoreContext } from "helpers/testStore.js"
@@ -131,6 +131,7 @@ const effectWithHiddenDependencies: ConfigurableExample =
 
 interface CollectingEffectContext {
   container: Container<string>
+  handle?: ReactiveEffectHandle
   collector: Array<string>
 }
 
@@ -146,7 +147,7 @@ const unsubscribingEffect: ConfigurableExample =
           })
         }),
         fact("an effect is registered", (context) => {
-          context.store.useQuery(new UnsubscribingEffect(context.tokens.collector, (get) => {
+          context.tokens.handle = context.store.useEffect(new UnsubscribingEffect(context.tokens.collector, (get) => {
             return get(context.tokens.container) !== "unsub"
           }))
         })
@@ -155,8 +156,8 @@ const unsubscribingEffect: ConfigurableExample =
         step("the container is updated", (context) => {
           context.writeTo(context.tokens.container, "yo yo!")
         }),
-        step("the container is updated to trigger the unsubscribe", (context) => {
-          context.writeTo(context.tokens.container, "unsub")
+        step("the effect is unsubscribed", (context) => {
+          context.tokens.handle?.unsubscribe()
         }),
         step("the container updates again", (context) => {
           context.writeTo(context.tokens.container, "Hello again!")
@@ -172,19 +173,75 @@ const unsubscribingEffect: ConfigurableExample =
       ]
     })
 
-class UnsubscribingEffect extends ReactiveQuery {
-  constructor(public collector: Array<string>, private runner: (get: GetState) => boolean) {
-    super()
-  }
+class UnsubscribingEffect implements ReactiveEffect {
+  constructor(public collector: Array<string>, private runner: (get: GetState) => boolean) { }
 
   run(get: GetState): void {
-    if (!this.runner(get)) {
-      this.unsubscribe()
-    } else {
+    if (this.runner(get)) {
       this.collector.push("RUN!")
     }
   }
 }
+
+interface MultipleDepContext {
+  stringContainer: Container<string>
+  numberContainer: Container<number>
+  derivedFirst: DerivedState<boolean>
+  derivedSecond: DerivedState<boolean>
+  effectRuns: Array<string>
+}
+
+const multipleDependencyEffect: ConfigurableExample =
+  example(testStoreContext<MultipleDepContext>())
+    .description("effect with multiple dependencies")
+    .script({
+      suppose: [
+        fact("there are multiple derived state", (context) => {
+          context.setTokens({
+            stringContainer: container({ initialValue: "hello!" }),
+            numberContainer: container({ initialValue: 0 }),
+            derivedFirst: derived({ query: (get) => get(context.tokens.stringContainer).length % 2 === 0 }),
+            derivedSecond: derived({ query: (get) => get(context.tokens.numberContainer) %2 === 0 }),
+            effectRuns: []
+          })
+        }),
+        fact("there is an effect with multiple dependencies", (context) => {
+          context.store.useEffect({
+            run: (get) => {
+              if (get(context.tokens.derivedFirst) && get(context.tokens.derivedSecond)) {
+                context.tokens.effectRuns.push("All true")
+              } else {
+                context.tokens.effectRuns.push("Not all true")
+              }
+            },
+          })
+        })
+      ],
+      perform: [
+        step("write to number container", (context) => {
+          context.writeTo(context.tokens.numberContainer, 1)
+        }),
+        step("write to number container", (context) => {
+          context.writeTo(context.tokens.numberContainer, 2)
+        }),
+        step("write to number container", (context) => {
+          context.writeTo(context.tokens.numberContainer, 4)
+        }),
+        step("write to number container", (context) => {
+          context.writeTo(context.tokens.numberContainer, 1)
+        }),
+      ],
+      observe: [
+        effect("the effect is called as expected", (context) => {
+          expect(context.tokens.effectRuns, is([
+            "All true",
+            "Not all true",
+            "All true",
+            "Not all true"
+          ]))
+        })
+      ]
+    })
 
 const initializingEffectExample: ConfigurableExample =
   example(testStoreContext<CollectingEffectContext>())
@@ -198,7 +255,7 @@ const initializingEffectExample: ConfigurableExample =
           })
         }),
         fact("an effect is registered", (context) => {
-          context.store.useQuery(new InitializingEffect(context.tokens.collector, (get) => {
+          context.store.useEffect(new InitializingEffect(context.tokens.collector, (get) => {
             return get(context.tokens.container)
           }))
         })
@@ -226,10 +283,8 @@ const initializingEffectExample: ConfigurableExample =
       ]
     })
 
-class InitializingEffect extends ReactiveQuery {
-  constructor(private collector: Array<string>, private runner: (get: GetState) => string) {
-    super()
-  }
+class InitializingEffect implements ReactiveEffect {
+  constructor(private collector: Array<string>, private runner: (get: GetState) => string) { }
 
   init(get: GetState): void {
     this.collector.push(`INIT: ${this.runner(get)}`)
@@ -244,5 +299,6 @@ export default behavior("effect", [
   basicEffect,
   effectWithHiddenDependencies,
   unsubscribingEffect,
+  multipleDependencyEffect,
   initializingEffectExample
 ])

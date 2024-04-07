@@ -1,4 +1,4 @@
-import { GetState, ReactiveQuery, Store, write } from "@spheres/store";
+import { GetState, ReactiveEffect, Store, write } from "@spheres/store";
 import { Context } from "esbehavior";
 import { CellContainer, cellContainer } from "../../../../src/cells/state";
 import { Result } from "../../../../src/cells/result";
@@ -10,12 +10,10 @@ export function testStoreContext(): Context<TestStore> {
   }
 }
 
-class CellValueQuery extends ReactiveQuery {
+class CellValueEffect implements ReactiveEffect {
   cellValue!: Result<string, CellError>
 
-  constructor(private cell: CellContainer) {
-    super()
-  }
+  constructor(private cell: CellContainer) { }
 
   run(get: GetState): void {
     try {
@@ -29,14 +27,14 @@ class CellValueQuery extends ReactiveQuery {
 
 export class TestStore {
   private store = new Store()
-  private cellValues = new Map<string, CellValueQuery>()
+  private cellValues = new Map<string, CellValueEffect>()
 
   defineCell(id: string, definition: string) {
     const cell = cellContainer(id)
     this.store.dispatch(write(cell, definition))
-    const query = new CellValueQuery(cell)
-    this.cellValues.set(id, query)
-    this.store.useQuery(query)
+    const effect = new CellValueEffect(cell)
+    this.cellValues.set(id, effect)
+    this.store.useEffect(effect)
   }
 
   updateCell(id: string, value: string) {

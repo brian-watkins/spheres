@@ -1,4 +1,4 @@
-import { GetState, ReactiveQuery } from "@spheres/store"
+import { GetState, ReactiveEffect, Store } from "@spheres/store"
 import { patch, virtualize } from "../renderToDom.js"
 import { VirtualNode } from "../virtualNode.js"
 import { EffectGenerator } from "./effectGenerator.js"
@@ -7,11 +7,10 @@ export interface NodeReference {
   node: Node | undefined
 }
 
-export class PatchZoneEffect extends ReactiveQuery {
+export class PatchZoneEffect implements ReactiveEffect {
   private current: VirtualNode | null = null
 
-  constructor(placeholderNode: Node | undefined, private generator: EffectGenerator<VirtualNode>, private nodeReference: NodeReference, private context: any = undefined) {
-    super()
+  constructor(private store: Store, placeholderNode: Node | undefined, private generator: EffectGenerator<VirtualNode>, private nodeReference: NodeReference, private context: any = undefined) {
     if (placeholderNode !== undefined) {
       this.current = virtualize(placeholderNode)
     }

@@ -1,18 +1,22 @@
 
 export interface StateListener {
-  update(): void
+  notify(): void
+  update(hasChanged: boolean): void
 }
 
-export interface StateController<T, M = T> {
+export interface StateController<T> {
   addListener(listener: StateListener): void
   removeListener(listener: StateListener): void
-  write(message: M): void
-  accept(message: M): void
-  publish(value: T): void
   value: T
 }
 
-export class SimpleStateController<T> implements StateController<T> {
+export interface ContainerController<T, M = T> extends StateController<T> {
+  write(message: M): void
+  accept(message: M): void
+  publish(value: T): void
+}
+
+export class SimpleStateController<T> implements ContainerController<T> {
   private listeners: Set<StateListener> = new Set()
 
   constructor(private _value: T) { }
@@ -39,7 +43,11 @@ export class SimpleStateController<T> implements StateController<T> {
     this._value = value
 
     for (const listener of this.listeners) {
-      listener.update()
+      listener.notify()
+    }
+
+    for (const listener of new Set(this.listeners)) {
+      listener.update(true)
     }
   }
 

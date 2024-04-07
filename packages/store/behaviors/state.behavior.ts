@@ -211,6 +211,74 @@ const derivedState: ConfigurableExample =
       ]
     })
 
+interface DerivedStateHiddenDepsContext {
+  numberContainer: Container<number>
+  stringContainer: Container<string>
+  derived: DerivedState<string>
+  calls: number
+}
+
+const derivedStateWithHiddenDependencies: ConfigurableExample =
+  example(testStoreContext<DerivedStateHiddenDepsContext>())
+    .description("derived state with hidden dependencies")
+    .script({
+      suppose: [
+        fact("there is derived state with hidden dependencies", (context) => {
+          context.setTokens({
+            numberContainer: container({ initialValue: 0 }),
+            stringContainer: container({ initialValue: "hello" }),
+            derived: derived({
+              query: (get) => {
+                context.tokens.calls++
+                if (get(context.tokens.stringContainer) === "show-number") {
+                  return `Number: ${get(context.tokens.numberContainer)}`
+                } else {
+                  return get(context.tokens.stringContainer)
+                }
+              }
+            }),
+            calls: 0
+          })
+        }),
+        fact("there is a subscriber", (context) => {
+          context.subscribeTo(context.tokens.derived, "sub-one")
+        })
+      ],
+      perform: [
+        step("the hidden dependency is written to", (context) => {
+          context.writeTo(context.tokens.numberContainer, 34)
+        }),
+        step("the hidden dependency is exposed", (context) => {
+          context.writeTo(context.tokens.stringContainer, "show-number")
+        }),
+        step("the hidden dependency is written to", (context) => {
+          context.writeTo(context.tokens.numberContainer, 11)
+        }),
+        step("the hidden dependency is hidden", (context) => {
+          context.writeTo(context.tokens.stringContainer, "goodbye")
+        }),
+        step("the hidden dependency is written to", (context) => {
+          context.writeTo(context.tokens.numberContainer, 67)
+        }),
+        step("the hidden dependency is written to again", (context) => {
+          context.writeTo(context.tokens.numberContainer, 68)
+        })
+      ],
+      observe: [
+        effect("the subscriber gets the expected messages", (context) => {
+          expect(context.valuesForSubscriber("sub-one"), is([
+            "hello",
+            "Number: 34",
+            "Number: 11",
+            "goodbye"
+          ]))
+        }),
+        effect("the minimum number of calls occurred", (context) => {
+          expect(context.tokens.calls, is(4))
+        })
+      ]
+    })
+
 interface MultipleSourceState {
   numberAtom: Container<number>
   stringAtom: Container<string>
@@ -241,13 +309,21 @@ const multipleSourceState: ConfigurableExample =
         }),
         step("a root state is updated", (context) => {
           context.writeTo(context.tokens.stringAtom, "JUMP")
-        })
+        }),
+        step("another root state is updated", (context) => {
+          context.writeTo(context.tokens.numberAtom, 14)
+        }),
+        step("another root state is updated", (context) => {
+          context.writeTo(context.tokens.anotherAtom, "STOP")
+        }),
       ],
       observe: [
         effect("the subscriber gets the initial state and then the update", (context) => {
           expectValuesFor(context, "subscriber-one", [
             "hello 27 times. And then next!",
-            "JUMP 27 times. And then next!"
+            "JUMP 27 times. And then next!",
+            "JUMP 14 times. And then next!",
+            "JUMP 14 times. And then STOP!",
           ])
         })
       ]
@@ -427,5 +503,6 @@ export default
     multipleSourceState,
     reactiveQueryCount,
     deferredDependency,
-    recursiveDerivedState
+    recursiveDerivedState,
+    derivedStateWithHiddenDependencies
   ])

@@ -1,10 +1,8 @@
-import { GetState, ReactiveQuery } from "@spheres/store"
+import { GetState, ReactiveEffect } from "@spheres/store"
 import { EffectGenerator } from "./effectGenerator.js"
 
-export class UpdateTextEffect extends ReactiveQuery {
-  constructor(private node: Text, private generator: EffectGenerator<string | undefined>, private context?: any) {
-    super()
-  }
+export class UpdateTextEffect implements ReactiveEffect {
+  constructor(private node: Text, private generator: EffectGenerator<string | undefined>, private context?: any) { }
 
   init(get: GetState): void {
     this.node.nodeValue = this.generator(get, this.context) ?? ""

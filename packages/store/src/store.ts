@@ -1,7 +1,7 @@
-import { SimpleStateController, StateController, StateListener } from "./controller.js"
+import { ContainerController, SimpleStateController, StateController, StateListener } from "./controller.js"
 import { Meta, error, ok, pending } from "./meta.js"
 
-export type GetState = <S, N = S>(state: State<S, N>) => S
+export type GetState = <S>(state: State<S>) => S
 
 export interface ReadyHookActions<T, M, E> {
   get: GetState
@@ -77,14 +77,15 @@ export type StoreMessage<T, M = T> = WriteMessage<T, M> | UpdateMessage<T, M> | 
 const registerState = Symbol("registerState")
 const initializeCommand = Symbol("initializeCommand")
 const getController = Symbol("getController")
+const getContainerController = Symbol("getContainerController")
 const initialValue = Symbol("initialValue")
 
 type StoreRegistryKey = State<any>
 
-export abstract class State<T, M = T> {
+export abstract class State<T> {
   constructor(readonly id: string | undefined, readonly name: string | undefined) { }
 
-  abstract [registerState](store: Store): StateController<T, M>
+  abstract [registerState](store: Store): StateController<T>
 
   toString() {
     return this.name && this.id ? `${this.name}-${this.id}` : (this.name ?? this.id ?? "State")
@@ -92,7 +93,7 @@ export abstract class State<T, M = T> {
 }
 
 export class MetaState<T, M, E = unknown> extends State<Meta<M, E>> {
-  constructor(private token: State<T, M>) {
+  constructor(private token: State<T>) {
     super(token.id ? `meta[${token.id}]` : undefined, `meta[${token.toString()}]`)
   }
 
@@ -102,6 +103,7 @@ export class MetaState<T, M, E = unknown> extends State<Meta<M, E>> {
     const controller = new SimpleStateController<Meta<M, E>>(ok())
 
     tokenController.addListener({
+      notify() { },
       update: () => {
         controller.write(ok())
       }
@@ -111,26 +113,14 @@ export class MetaState<T, M, E = unknown> extends State<Meta<M, E>> {
   }
 }
 
-abstract class AbstractReactiveQuery implements StateListener {
-  constructor(protected store: Store) { }
-
-  protected getValue<S, N>(state: State<S, N>): S {
-    const controller = this.store[getController](state)
-    controller.addListener(this)
-    return controller.value
-  }
-
-  abstract update(): void
-}
-
-export class SuppliedState<T, M = any, E = any> extends State<T, M> {
+export class SuppliedState<T, M = any, E = any> extends State<T> {
   private _meta: MetaState<T, M, E> | undefined
 
   constructor(id: string | undefined, name: string | undefined, private initialValue: T) {
     super(id, name)
   }
 
-  [registerState](_: Store): StateController<T, M> {
+  [registerState](_: Store): ContainerController<T, M> {
     return new SimpleStateController(this.initialValue)
   }
 
@@ -142,7 +132,7 @@ export class SuppliedState<T, M = any, E = any> extends State<T, M> {
   }
 }
 
-export class Container<T, M = T, E = any> extends State<T, M> {
+export class Container<T, M = T, E = any> extends State<T> {
   private _meta: MetaState<T, M, E> | undefined
 
   constructor(
@@ -158,7 +148,7 @@ export class Container<T, M = T, E = any> extends State<T, M> {
     return this.initialValue
   }
 
-  [registerState](store: Store): StateController<T, M> {
+  [registerState](store: Store): ContainerController<T, M> {
     return this.update ?
       new MessagePassingStateController(store, this.initialValue, this.update) :
       new SimpleStateController(this.initialValue)
@@ -177,85 +167,157 @@ export class DerivedState<T> extends State<T> {
     super(id, name)
   }
 
-  [registerState](store: Store): StateController<T, T> {
-    const reactiveQuery = new ReactiveValue(store, this, this.derivation)
-    const initialValue = reactiveQuery.run(undefined)
-
-    return new SimpleStateController(initialValue)
+  [registerState](store: Store): StateController<T> {
+    return new DerivedStateController(store, this.derivation)
   }
 }
 
-class ReactiveValue<T, M> extends AbstractReactiveQuery {
-  constructor(store: Store, private state: DerivedState<any>, private definition: (get: GetState, current: T | undefined) => M) {
-    super(store)
+class DependencyTrackingStateListener implements StateListener {
+  private dependencies: Set<StateController<any>> = new Set()
+  private notifications = 0
+  private hasChanged = false
+
+  notify(): void {
+    if (this.notifications === 0) {
+      this.dependenciesWillUpdate()
+    }
+    this.notifications = this.notifications + 1
   }
 
-  update(): void {
-    const derivedController = this.store[getController](this.state)
-    derivedController.accept(this.run(derivedController.value))
-  }
-
-  run(currentValue: T | undefined): M {
-    return this.definition((state) => this.getValue(state), currentValue)
-  }
-}
-
-const initForStore = Symbol()
-const runQuery = Symbol()
-const queueQueryForUpdate = Symbol()
-
-export abstract class ReactiveQuery implements StateListener {
-  private deps = new Set<StateController<any>>()
-  protected store!: Store
-
-  [initForStore](store: Store) {
-    this.store = store
-
-    if (this.init !== undefined) {
-      this.init((state) => {
-        return this.getValue(state)
-      })
-    } else {
-      this.run((state) => {
-        return this.getValue(state)
-      })
+  update(hasChanged: boolean): void {
+    this.notifications = this.notifications - 1
+    if (hasChanged) this.hasChanged = true
+    if (this.notifications === 0) {
+      this.dependenciesHaveUpdated(this.hasChanged)
+      this.hasChanged = false
     }
   }
 
-  init?(get: GetState): void
+  protected addDependency(controller: StateController<any>) {
+    this.dependencies.add(controller)
+  }
 
-  abstract run(get: GetState): void
+  protected dependenciesWillUpdate(): void {
 
-  private getValue<S, N>(state: State<S, N>): S {
+  }
+
+  protected dependenciesHaveUpdated(_: boolean): void {
+
+  }
+
+  unsubscribe(): void {
+    for (const dep of this.dependencies) {
+      dep.removeListener(this)
+    }
+    this.dependencies.clear()
+  }
+}
+
+export class DerivedStateController<T> extends DependencyTrackingStateListener implements StateController<T> {
+  private listeners: Set<StateListener> = new Set()
+  private _value: T
+
+  constructor(private store: Store, private derivation: (get: GetState, current: T | undefined) => T) {
+    super()
+    this._value = this.deriveValue()
+  }
+
+  addListener(listener: StateListener): void {
+    this.listeners.add(listener)
+  }
+
+  removeListener(listener: StateListener): void {
+    this.listeners.delete(listener)
+  }
+
+  private deriveValue() {
+    return this.derivation((state) => {
+      const controller = this.store[getController](state)
+      controller.addListener(this)
+      this.addDependency(controller)
+      return controller.value
+    }, this._value)
+  }
+
+  dependenciesWillUpdate(): void {
+    for (const listener of this.listeners) {
+      listener.notify()
+    }
+  }
+
+  private updateListeners(hasChanged: boolean) {
+    for (const listener of new Set(this.listeners)) {
+      listener.update(hasChanged)
+    }
+  }
+
+  dependenciesHaveUpdated(hasChanged: boolean): void {
+    if (!hasChanged) {
+      this.updateListeners(false)
+      return
+    }
+
+    this.unsubscribe()
+    const derived = this.deriveValue()
+
+    const derivedValueIsNew = !Object.is(derived, this._value)
+
+    this._value = derived
+
+    this.updateListeners(derivedValueIsNew)
+  }
+
+  get value(): T {
+    return this._value
+  }
+}
+
+export class ReactiveEffectController extends DependencyTrackingStateListener {
+  constructor(private store: Store, private effect: ReactiveEffect) {
+    super()
+    this.init()
+  }
+
+  private getValue<S>(state: State<S>): S {
     const controller = this.store[getController](state)
     controller.addListener(this)
-    this.deps.add(controller)
+    this.addDependency(controller)
     return controller.value
   }
 
-  [runQuery](): void {
+  private init(): void {
+    if (this.effect.init) {
+      this.effect.init((state) => {
+        return this.getValue(state)
+      })
+    } else {
+      this.effect.run((state) => {
+        return this.getValue(state)
+      })
+    }
+  }
+
+  dependenciesHaveUpdated(hasChanged: boolean): void {
+    if (!hasChanged) return
+
     this.unsubscribe()
-    this.run((state) => {
+    this.effect.run((state) => {
       return this.getValue(state)
     })
   }
-
-  update(): void {
-    this.store[queueQueryForUpdate](this)
-  }
-
-  unsubscribe() {
-    for (const controller of this.deps) {
-      controller.removeListener(this)
-    }
-    this.deps.clear()
-  }
 }
 
-class DispatchCommandQuery<M> extends ReactiveQuery {
-  constructor(private command: Command<M>, private trigger: (get: GetState) => M) {
-    super()
-  }
+export interface ReactiveEffect {
+  init?: (get: GetState) => void
+  run: (get: GetState) => void
+}
+
+export interface ReactiveEffectHandle {
+  unsubscribe: () => void
+}
+
+class DispatchCommandQuery<M> implements ReactiveEffect {
+  constructor(private store: Store, private command: Command<M>, private trigger: (get: GetState) => M) { }
 
   run(get: GetState): void {
     this.store.dispatch({
@@ -271,13 +333,13 @@ export class Command<M> {
 
   [initializeCommand](store: Store): void {
     if (this.trigger !== undefined) {
-      store.useQuery(new DispatchCommandQuery(this, this.trigger))
+      store.useEffect(new DispatchCommandQuery(store, this, this.trigger))
     }
   }
 }
 
 export interface CommandActions {
-  get<T, M>(state: State<T, M>): T
+  get<T>(state: State<T>): T
   supply<T, M, E>(state: SuppliedState<T, M, E>, value: T): void
   pending<T, M, E>(state: SuppliedState<T, M, E>, message: M): void
   error<T, M, E>(state: SuppliedState<T, M, E>, message: M, reason: E): void
@@ -292,11 +354,10 @@ export interface StoreHooks {
 }
 
 export class Store {
-  private registry: WeakMap<StoreRegistryKey, StateController<any, any>> = new WeakMap();
+  private registry: WeakMap<StoreRegistryKey, StateController<any>> = new WeakMap();
   private commandRegistry: Map<Command<any>, CommandManager<any>> = new Map()
   private hooks: StoreHooks | undefined
   private tokenIdMap: Map<string, StoreRegistryKey> = new Map();
-  private queriesToUpdate = new Set<ReactiveQuery>()
 
   private getKeyForToken(token: State<any>): StoreRegistryKey {
     if (token.id === undefined) return token
@@ -309,7 +370,7 @@ export class Store {
     return key
   }
 
-  [getController]<T, M>(token: State<T, M>): StateController<T, M> {
+  [getController]<T>(token: State<T>): StateController<T> {
     const key = this.getKeyForToken(token)
     let controller = this.registry.get(key)
     if (controller === undefined) {
@@ -322,24 +383,16 @@ export class Store {
     return controller
   }
 
-  [queueQueryForUpdate](query: ReactiveQuery) {
-    if (this.queriesToUpdate.size === 0) {
-      queueMicrotask(() => {
-        for (const query of this.queriesToUpdate) {
-          query[runQuery]()
-        }
-        this.queriesToUpdate.clear()
-      })
-    }
-    this.queriesToUpdate.add(query)
+  [getContainerController]<T, M>(token: State<T>): ContainerController<T, M> {
+    return this[getController](token) as ContainerController<T, M>
   }
 
   useHooks(hooks: StoreHooks) {
     this.hooks = hooks
   }
 
-  useQuery(query: ReactiveQuery): void {
-    query[initForStore](this)
+  useEffect(effect: ReactiveEffect): ReactiveEffectHandle {
+    return new ReactiveEffectController(this, effect)
   }
 
   useCommand<M>(command: Command<M>, handler: CommandManager<M>) {
@@ -347,7 +400,7 @@ export class Store {
     command[initializeCommand](this)
   }
 
-  private containerReadyActions<T, M, E>(container: Container<T, M>, controller: StateController<T, M>): ReadyHookActions<T, M, E> {
+  private containerReadyActions<T, M, E>(container: Container<T, M>, controller: ContainerController<T, M>): ReadyHookActions<T, M, E> {
     return {
       get: (state) => {
         return this[getController](state).value
@@ -356,16 +409,16 @@ export class Store {
         controller.publish(value)
       },
       pending: (message) => {
-        this[getController](container.meta).publish(pending(message))
+        this[getContainerController](container.meta).publish(pending(message))
       },
       error: (message, reason) => {
-        this[getController](container.meta).publish(error(message, reason))
+        this[getContainerController](container.meta).publish(error(message, reason))
       },
       current: controller.value
     }
   }
 
-  private containerWriteActions<T, M, E>(container: Container<T, M>, controller: StateController<T, M>): WriteHookActions<T, M, E> {
+  private containerWriteActions<T, M, E>(container: Container<T, M>, controller: ContainerController<T, M>): WriteHookActions<T, M, E> {
     return {
       get: (state) => {
         return this[getController](state).value
@@ -374,17 +427,17 @@ export class Store {
         controller.accept(message)
       },
       pending: (message) => {
-        this[getController](container.meta).write(pending(message))
+        this[getContainerController](container.meta).write(pending(message))
       },
       error: (message, reason) => {
-        this[getController](container.meta).write(error(message, reason))
+        this[getContainerController](container.meta).write(error(message, reason))
       },
       current: controller.value
     }
   }
 
   useContainerHooks<T, M, E>(container: Container<T, M>, hooks: ContainerHooks<T, M, E>) {
-    const controllerWithHooks = this.stateControllerWithHooks(container, this[getController](container), hooks)
+    const controllerWithHooks = this.containerControllerWithHooks(container, this[getContainerController](container), hooks)
     this.registry.set(this.getKeyForToken(container), controllerWithHooks)
 
     if (hooks.onReady !== undefined) {
@@ -392,8 +445,8 @@ export class Store {
     }
   }
 
-  private stateControllerWithHooks<T, M, E>(container: Container<T, M, E>, controller: StateController<T, M>, hooks: ContainerHooks<T, M, E>): StateController<T, M> {
-    let withHooks: StateController<T, M> = controller
+  private containerControllerWithHooks<T, M, E>(container: Container<T, M, E>, controller: ContainerController<T, M>, hooks: ContainerHooks<T, M, E>): ContainerController<T, M> {
+    let withHooks: ContainerController<T, M> = controller
     if (hooks.onPublish) {
       withHooks = new Proxy(withHooks, {
         get: (target, prop, receiver) => {
@@ -429,10 +482,10 @@ export class Store {
   dispatch(message: StoreMessage<any>) {
     switch (message.type) {
       case "write":
-        this[getController](message.container).write(message.value)
+        this[getContainerController](message.container).write(message.value)
         break
       case "update":
-        const controller = this[getController](message.container)
+        const controller = this[getContainerController](message.container)
         controller.write(message.generator(controller.value))
         break
       case "exec":
@@ -441,13 +494,13 @@ export class Store {
             return this[getController](state).value
           },
           supply: (token, value) => {
-            this[getController](token).publish(value)
+            this[getContainerController](token).publish(value)
           },
           pending: (token, message) => {
-            this[getController](token.meta).write(pending(message))
+            this[getContainerController](token.meta).write(pending(message))
           },
           error: (token, message, reason) => {
-            this[getController](token.meta).write(error(message, reason))
+            this[getContainerController](token.meta).write(error(message, reason))
           }
         })
         break
@@ -481,7 +534,7 @@ export interface UpdateResult<T> {
   message?: StoreMessage<any>
 }
 
-class MessagePassingStateController<T, M> extends SimpleStateController<T> implements StateController<T, M> { 
+class MessagePassingStateController<T, M> extends SimpleStateController<T> implements ContainerController<T, M> {
   constructor(private store: Store, initialValue: T, private update: ((message: M, current: T) => UpdateResult<T>)) {
     super(initialValue)
   }

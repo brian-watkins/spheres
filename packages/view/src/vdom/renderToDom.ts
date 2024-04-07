@@ -47,13 +47,13 @@ function createNode(store: Store, vnode: VirtualNode): Node {
     case NodeType.STATEFUL_TEXT: {
       const textNode = document.createTextNode("")
       const textEffect = new UpdateTextEffect(textNode, vnode.generator)
-      store.useQuery(textEffect)
+      store.useEffect(textEffect)
       return textNode
     }
 
     case NodeType.STATEFUL: {
-      const query = new PatchZoneEffect(undefined, vnode.generator, vnode)
-      store.useQuery(query)
+      const query = new PatchZoneEffect(store, undefined, vnode.generator, vnode)
+      store.useEffect(query)
       return query.node
     }
 
@@ -79,8 +79,8 @@ function createNode(store: Store, vnode: VirtualNode): Node {
       for (const attr in statefulAttrs) {
         const stateful = statefulAttrs[attr]
         const attributeEffect = new UpdateAttributeEffect(element, attr, stateful.generator)
-        store.useQuery(attributeEffect)
-        stateful.effect = attributeEffect
+        const handle = store.useEffect(attributeEffect)
+        stateful.effect = handle
       }
 
       const props = vnode.data.props
@@ -93,8 +93,8 @@ function createNode(store: Store, vnode: VirtualNode): Node {
       for (const prop in statefulProps) {
         const stateful = statefulProps[prop]
         const propertyEffect = new UpdatePropertyEffect(element, prop, stateful.generator)
-        store.useQuery(propertyEffect)
-        stateful.effect = propertyEffect
+        const handle = store.useEffect(propertyEffect)
+        stateful.effect = handle
       }
 
       const events = vnode.data.on
@@ -163,8 +163,8 @@ function patchStatefulProperties(store: Store, oldVNode: ElementNode, newVNode: 
     } else if (oldProps[key] === undefined) {
       const stateful = newProps[key]
       const propertyEffect = new UpdatePropertyEffect(oldVNode.node!, key, stateful.generator)
-      store.useQuery(propertyEffect)
-      stateful.effect = propertyEffect
+      const handle = store.useEffect(propertyEffect)
+      stateful.effect = handle
     }
   }
 }
@@ -179,8 +179,8 @@ function patchStatefulAttributes(store: Store, oldVNode: ElementNode, newVNode: 
     } else if (oldAttr[key] === undefined) {
       const stateful = newAttr![key]
       const attributeEffect = new UpdateAttributeEffect(oldVNode.node!, key, stateful.generator)
-      store.useQuery(attributeEffect)
-      stateful.effect = attributeEffect
+      const handle = store.useEffect(attributeEffect)
+      stateful.effect = handle
     }
   }
 }

@@ -1,11 +1,8 @@
-import { GetState, ReactiveQuery } from "@spheres/store";
-import { EffectHandle } from "../virtualNode.js";
+import { GetState, ReactiveEffect } from "@spheres/store";
 import { EffectGenerator } from "./effectGenerator.js";
 
-export class UpdateAttributeEffect extends ReactiveQuery implements EffectHandle {
-  constructor(private element: Element, private attribute: string, private generator: EffectGenerator<string | undefined>, private context: any = undefined) {
-    super()
-  }
+export class UpdateAttributeEffect implements ReactiveEffect {
+  constructor(private element: Element, private attribute: string, private generator: EffectGenerator<string | undefined>, private context: any = undefined) { }
 
   init(get: GetState): void {
     const val = this.generator(get, this.context)

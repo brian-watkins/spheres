@@ -1,4 +1,4 @@
-import { GetState, ReactiveQuery, Store } from "@spheres/store";
+import { GetState, ReactiveEffect, Store } from "@spheres/store";
 import { StringRenderer } from "./render.js";
 import { ElementNode, NodeType, StatefulTextNode, StatefulNode, TextNode, VirtualNode } from "./virtualNode.js";
 
@@ -49,7 +49,7 @@ function stringifyElement(store: Store, node: ElementNode): string {
   for (const attr in statefulAttributes) {
     const generator = statefulAttributes[attr].generator
     const query = new GetValueQuery(generator)
-    store.useQuery(query)
+    store.useEffect(query)
     attrs += ` ${attr}="${query.value}"`
   }
 
@@ -66,12 +66,10 @@ function stringifyElement(store: Store, node: ElementNode): string {
   return `<${node.tag}${attrs}>${children.join("")}</${node.tag}>`
 }
 
-class GetValueQuery<M> extends ReactiveQuery {
+class GetValueQuery<M> implements ReactiveEffect {
   value!: M
 
-  constructor(private generator: (get: GetState) => M) {
-    super()
-  }
+  constructor(private generator: (get: GetState) => M) { }
 
   run(get: GetState): void {
     this.value = this.generator(get)
@@ -80,14 +78,14 @@ class GetValueQuery<M> extends ReactiveQuery {
 
 function stringifyStatefulNode(store: Store, node: StatefulNode): string {
   const query = new GetValueQuery(node.generator)
-  store.useQuery(query)
+  store.useEffect(query)
   
   return stringifyVirtualNode(store, query.value)
 }
 
 function stringifyReactiveText(store: Store, node: StatefulTextNode): string {
   const query = new GetValueQuery(node.generator)
-  store.useQuery(query)
+  store.useEffect(query)
 
   return stringifyTextNode({
     type: NodeType.TEXT,

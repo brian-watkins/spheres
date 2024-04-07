@@ -177,6 +177,8 @@ class DependencyTrackingStateListener implements StateListener {
   private notifications = 0
   private hasChanged = false
 
+  constructor(private store: Store) { }
+
   notify(): void {
     if (this.notifications === 0) {
       this.dependenciesWillUpdate()
@@ -193,8 +195,11 @@ class DependencyTrackingStateListener implements StateListener {
     }
   }
 
-  protected addDependency(controller: StateController<any>) {
+  protected getValue<S>(state: State<S>): S {
+    const controller = this.store[getController](state)
+    controller.addListener(this)
     this.dependencies.add(controller)
+    return controller.value
   }
 
   protected dependenciesWillUpdate(): void {
@@ -217,8 +222,8 @@ export class DerivedStateController<T> extends DependencyTrackingStateListener i
   private listeners: Set<StateListener> = new Set()
   private _value: T
 
-  constructor(private store: Store, private derivation: (get: GetState, current: T | undefined) => T) {
-    super()
+  constructor(store: Store, private derivation: (get: GetState, current: T | undefined) => T) {
+    super(store)
     this._value = this.deriveValue()
   }
 
@@ -231,12 +236,7 @@ export class DerivedStateController<T> extends DependencyTrackingStateListener i
   }
 
   private deriveValue() {
-    return this.derivation((state) => {
-      const controller = this.store[getController](state)
-      controller.addListener(this)
-      this.addDependency(controller)
-      return controller.value
-    }, this._value)
+    return this.derivation((state) => this.getValue(state), this._value)
   }
 
   dependenciesWillUpdate(): void {
@@ -273,16 +273,9 @@ export class DerivedStateController<T> extends DependencyTrackingStateListener i
 }
 
 export class ReactiveEffectController extends DependencyTrackingStateListener {
-  constructor(private store: Store, private effect: ReactiveEffect) {
-    super()
+  constructor(store: Store, private effect: ReactiveEffect) {
+    super(store)
     this.init()
-  }
-
-  private getValue<S>(state: State<S>): S {
-    const controller = this.store[getController](state)
-    controller.addListener(this)
-    this.addDependency(controller)
-    return controller.value
   }
 
   private init(): void {

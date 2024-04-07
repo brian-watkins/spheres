@@ -218,7 +218,7 @@ class DependencyTrackingStateListener implements StateListener {
   }
 }
 
-export class DerivedStateController<T> extends DependencyTrackingStateListener implements StateController<T> {
+class DerivedStateController<T> extends DependencyTrackingStateListener implements StateController<T> {
   private listeners: Set<StateListener> = new Set()
   private _value: T
 
@@ -239,7 +239,7 @@ export class DerivedStateController<T> extends DependencyTrackingStateListener i
     return this.derivation((state) => this.getValue(state), this._value)
   }
 
-  dependenciesWillUpdate(): void {
+  protected dependenciesWillUpdate(): void {
     for (const listener of this.listeners) {
       listener.notify()
     }
@@ -251,7 +251,7 @@ export class DerivedStateController<T> extends DependencyTrackingStateListener i
     }
   }
 
-  dependenciesHaveUpdated(hasChanged: boolean): void {
+  protected dependenciesHaveUpdated(hasChanged: boolean): void {
     if (!hasChanged) {
       this.updateListeners(false)
       return
@@ -272,7 +272,7 @@ export class DerivedStateController<T> extends DependencyTrackingStateListener i
   }
 }
 
-export class ReactiveEffectController extends DependencyTrackingStateListener {
+class ReactiveEffectController extends DependencyTrackingStateListener {
   constructor(store: Store, private effect: ReactiveEffect) {
     super(store)
     this.init()
@@ -290,7 +290,7 @@ export class ReactiveEffectController extends DependencyTrackingStateListener {
     }
   }
 
-  dependenciesHaveUpdated(hasChanged: boolean): void {
+  protected dependenciesHaveUpdated(hasChanged: boolean): void {
     if (!hasChanged) return
 
     this.unsubscribe()

@@ -118,7 +118,9 @@ do anything with this value? We can define an *effect* on the store that
 logs the current counter value:
 
 ```
-store.useEffect((get) => console.log(`Count: ${get(counter)}`))
+store.useEffect({
+  run: (get) => console.log(`Count: ${get(counter)}`)
+})
 ```
 
 Now, each time the store receives a new message to increment the counter,
@@ -233,30 +235,24 @@ Set the `M` and `E` types in order to properly type the supplied state's Meta st
 #### Container
 
 ```
-interface ConstraintActions<T> {
-  get: GetState,
-  current: T
+export interface UpdateResult<T> {
+  value: T
+  message?: StoreMessage<any>
 }
 
 interface ContainerInitializer<T, M> {
   id?: string,
   name?: string
   initialValue: T,
-  constraint?: (actions: ConstraintActions<T>, next?: M) => M
-  reducer?: (message: M, current: T) => T
+  update?: (message: M, current: T) => UpdateResult<T>
 }
 
 function container<T, M = T, E = any>(initializer: ContainerInitializer<T, M>): Container<T, M, E>
 ```
 
-Define a reducer if this container should accept messages of type `M` that it
-will convert to values of type `T`. A reducer is optional.
-
-Use the optional `constraint` property to define a *reactive* calculation
-that will run to produce a message that is sent to the container any time
-any of the referenced state tokens comes to represent a new value. The constraint
-function will also be run any time a message is dispatched to the store that
-references this container.
+Define an `update` function if this container should accept messages of type
+`M` that it will convert to values of type `T` and return along with an
+optional `StoreMessage`. An `update` function is optional.
 
 `Container` has one attribute: `meta` that provides access to the state's
 meta token.
@@ -269,7 +265,7 @@ class Store {
   useHooks(hooks: StoreHooks)
   useContainerHooks<T, M, E>(container: Container<T, M>, hooks: ContainerHooks<T, M, E>)
   useCommand<M>(command: Command<M>, handler: CommandManager<M>)
-  useEffect(effect: Effect): EffectHandle
+  useEffect(effect: ReactiveEffect): ReactiveEffectHandle
   dispatch(message: StoreMessage<any>)
 }
 ```
@@ -331,9 +327,8 @@ is registered with a particular Container. Use the `onReady` hook to
 supply a value to the container or set's the container's meta status on
 app startup.
 - The `onWrite` hook is run whenever a *message* is written to the container
-either by dispatching a message to the Store or whenever the container's
-`constraint` generates a new message. The `onWrite` hook is not called
-when the `onPublish` hook supplies a value for the container.
+by dispatching a message to the Store. The `onWrite` hook is not called
+when the `onReady` hook supplies a value for the container.
 - The `onPublish` hook is run whenever a new *value* is published as a
 result of processing some message written to the container. The `onPublish`
 hook is not called when a value is supplied by the `onReady` hook, but
@@ -390,26 +385,26 @@ a reference to the Store and calling `dispatch` explicitly.
 ### Effects
 
 ```
-export interface EffectSubscription {
+export interface ReactiveEffectHandle {
   unsubscribe(): void
 }
 
-interface Effect {
-  onSubscribe?(subscription: EffectSubscription): void
-  init?(get: GetState): void
-  run(get: GetState): void
+interface ReactiveEffect {
+  init?: (get: GetState) => void
+  run: (get: GetState) => void
 }
 ```
 
-Register an `Effect` with the Store via the `useEffect` method. The optional `onSubscribe`
-function will be called with an `EffectSubscription` that allows for unsubscribing the
-Effect, if necessry. An `Effect` implements an optional `init` function and a required `run`
+Use `ReactiveEffects` to perform side effects on state changes.
+
+Register a `ReactiveEffect` with the Store via the `useEffect` method, which returns
+a `ReactiveEffectHandle` that provides a method for unsubscribing the effect from
+future updates.
+
+A `ReactiveEffect` implements an optional `init` function and a required `run`
 function that defines a *reactive* query. The `init` function is run after `onSubscribe`
 when the Effect is registered with the store via `useEffect`. The `run` function will be
 executed anytime the state tokens referenced in the definition come to represent a new value.
-
-Use `Effects` to perform side effects on state changes.
-
 
 ### Store Messages
 
@@ -424,6 +419,17 @@ write<T, M = T>(container: Container<T, M>, value: M): WriteMessage<T, M>
 
 Generate a `WriteMessage` with the `write` function. Use this to send a
 message to a Container.
+
+#### UpdateMessage
+
+```
+update<T, M = T>(container: Container<T, M>, generator: (current: T) => M): UpdateMessage<T, M>
+```
+
+Generate an `UpdateMessage` with the `update` function. Use this to send a
+message to a container that will write a new message to the container based
+on its current state.
+
 
 #### ResetMessage
 

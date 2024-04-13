@@ -19,7 +19,7 @@
     "test:view:debug": "DEBUG=true npm run test:view",
     "change:add": "changeset add",
     "change:version": "changeset version",
-    "change:release": "npm run build && changeset publish && git push --follow-tags"
+    "change:release": "npm run clean && npm run build && changeset publish && git push --follow-tags"
   },
   "workspaces": [
     "packages/store",

@@ -25,8 +25,8 @@
   "author": "Brian Watkins",
   "license": "MIT",
   "dependencies": {
-    "@spheres/store": "^1.0.0",
-    "@spheres/view": "^1.0.0",
+    "@spheres/store": "^0.9.0",
+    "@spheres/view": "^0.9.0",
     "luxon": "^3.4.0"
   }
 }

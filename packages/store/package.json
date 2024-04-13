@@ -1,6 +1,6 @@
 {
   "name": "@spheres/store",
-  "version": "1.0.0",
+  "version": "0.9.0",
   "description": "Easy state management",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

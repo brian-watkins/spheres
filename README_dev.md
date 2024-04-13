@@ -1,9 +1,8 @@
 ### Adding a Changeset
 
-`$ npx changeset`
+`$ npm run change:add`
 
 ### Publishing
 
-1. `$ npx changeset version`
-2. `$ npx changeset publish`
-3. `git push --follow-tags`
+1. `$ npm run change:version`
+2. `$ npm run change:release`

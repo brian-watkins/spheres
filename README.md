@@ -14,7 +14,7 @@ import { container, update, Store } from "spheres/store";
 
 const clickCount = container({ initialValue: 0 })
 
-export default htmlTemplate(() => root => {
+const counter = htmlTemplate(() => root => {
   root.main(el => {
     el.children
       .p(el => {

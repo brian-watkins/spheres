@@ -1,5 +1,0 @@
----
-"spheres": minor
----
-
-Fixed distribution

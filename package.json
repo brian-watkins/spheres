@@ -13,6 +13,9 @@
     "./store": "./dist/store/index.js",
     "./view": "./dist/view/index.js"
   },
+  "files": [
+    "dist/"
+  ],
   "scripts": {
     "generate:htmlElements": "tsx ./codegen/generateHtmlElements.ts",
     "generate:svgElements": "tsx ./codegen/generateSVGElements.ts",

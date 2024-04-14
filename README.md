@@ -2,9 +2,9 @@
 
 Write browser-based web applications. Spheres features:
 - state management that separates application logic from state storage details
-- a declarative view framework that supports fine-grained reactive updates.
+- a declarative view framework that supports fine-grained reactive updates
 
-Check out the [examples](./examples/).
+Check out the [documentation](https://github.com/brian-watkins/spheres/wiki).
 
 Here's a simple counter app:
 
@@ -30,3 +30,6 @@ export default htmlTemplate(() => root => {
 
 renderToDOM(new Store(), document.getElementById("app"), counter())
 ```
+
+Find [more examples here](https://github.com/brian-watkins/spheres/tree/main/examples).
+

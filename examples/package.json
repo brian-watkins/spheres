@@ -19,14 +19,13 @@
   },
   "scripts": {
     "start": "vite --open",
-    "test": "best --behaviors './behaviors/**/*.behavior.ts' --runInBrowser '**/cells/formula/**/*' --failFast",
+    "test": "best",
     "test:debug": "npm run test -- --showBrowser"
   },
   "author": "Brian Watkins",
   "license": "MIT",
   "dependencies": {
-    "@spheres/store": "^0.10.0",
-    "@spheres/view": "^0.10.0",
-    "luxon": "^3.4.0"
+    "luxon": "^3.4.0",
+    "spheres": "^0.7.0"
   }
 }

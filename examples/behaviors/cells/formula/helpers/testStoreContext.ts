@@ -1,4 +1,4 @@
-import { GetState, ReactiveEffect, Store, write } from "@spheres/store";
+import { GetState, ReactiveEffect, Store, write } from "spheres/store";
 import { Context } from "esbehavior";
 import { CellContainer, cellContainer } from "../../../../src/cells/state";
 import { Result } from "../../../../src/cells/result";

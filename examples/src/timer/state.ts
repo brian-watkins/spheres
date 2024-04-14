@@ -1,4 +1,4 @@
-import { Rule, command, container, rule, derived, write } from "@spheres/store";
+import { Rule, command, container, rule, derived, write } from "spheres/store";
 
 export const elapsedTime = container({ initialValue: 0 })
 

@@ -1,4 +1,4 @@
-import { Container, GetState, StoreMessage, batch, container, rule, derived, write } from "@spheres/store";
+import { Container, GetState, StoreMessage, batch, container, rule, derived, write } from "spheres/store";
 
 export interface Coordinate {
   x: number

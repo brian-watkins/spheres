@@ -1,4 +1,4 @@
-import { batch, container, rule, derived, write } from "@spheres/store"
+import { batch, container, rule, derived, write } from "spheres/store"
 
 export interface TemperatureUpdate {
   celsius?: string

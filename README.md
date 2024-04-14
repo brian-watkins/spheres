@@ -1,15 +1,32 @@
 # Spheres
 
-Write browser-based web applications using 
-- [@spheres/store](./packages/store/README.md) -- state management
-that separates application logic from state storage details.
-- [@spheres/view](./packages/view/README.md) -- a declarative view
-framework that supports fine-grained reactive updates.
+Write browser-based web applications. Spheres features:
+- state management that separates application logic from state storage details
+- a declarative view framework that supports fine-grained reactive updates.
 
 Check out the [examples](./examples/).
 
-To get started with development, install all the dependencies:
+Here's a simple counter app:
 
 ```
-$ npm install --workspaces
+import { htmlTemplate, renderToDOM } from "spheres/view";
+import { container, update, Store } from "spheres/store";
+
+const clickCount = container({ initialValue: 0 })
+
+export default htmlTemplate(() => root => {
+  root.main(el => {
+    el.children
+      .p(el => {
+        el.config.dataAttribute("counter-text")
+        el.children.textNode((get) => `Clicks: ${get(clickCount)}`)
+      })
+      .button(el => {
+        el.config.on("click", () => update(clickCount, (count) => count + 1))
+        el.children.textNode("Count!")
+      })
+  })
+})
+
+renderToDOM(new Store(), document.getElementById("app"), counter())
 ```

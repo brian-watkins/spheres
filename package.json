@@ -1,6 +1,6 @@
 {
   "name": "spheres",
-  "version": "1.0.0",
+  "version": "0.7.0",
   "description": "Tools to create web-based applications",
   "author": "Brian Watkins",
   "license": "MIT",
@@ -9,27 +9,49 @@
     "url": "https://github.com/brian-watkins/spheres"
   },
   "type": "module",
+  "exports": {
+    "./store": "./dist/store/index.js",
+    "./view": "./dist/view/index.js"
+  },
   "scripts": {
+    "generate:htmlElements": "tsx ./codegen/generateHtmlElements.ts",
+    "generate:svgElements": "tsx ./codegen/generateSVGElements.ts",
     "build": "tsc --build --verbose",
-    "clean": "npm run clean --workspaces --if-present",
-    "test": "npm run test --workspaces",
+    "clean": "rm -rf ./dist && rm ./tsconfig.tsbuildinfo",
+    "test": "best",
     "test:examples": "npm run clean && npm run build && npm run test -w examples",
-    "test:store": "npm run test -w @spheres/store",
-    "test:view": "npm run test -w @spheres/view",
+    "test:store": "best --behaviors './behaviors/store/**/*.behavior.ts'",
+    "test:view": "best --behaviors './behaviors/view/**/*.behavior.ts'",
+    "test:vdom": "best --behaviors './behaviors/vdom/**/*.behavior.ts'",
     "test:view:debug": "DEBUG=true npm run test:view",
     "change:add": "changeset add",
     "change:version": "changeset version",
     "change:release": "npm run clean && npm run build && changeset publish && git push --follow-tags"
   },
   "workspaces": [
-    "packages/store",
-    "packages/view",
-    "examples"
+    "examples",
+    "."
   ],
   "volta": {
     "node": "20.10.0"
   },
   "devDependencies": {
-    "@changesets/cli": "^2.27.1"
+    "@changesets/cli": "^2.27.1",
+    "@types/express": "^4.17.21",
+    "aria-attributes": "^2.0.1",
+    "best-behavior": "^0.6.3",
+    "esbehavior": "^4.2.3",
+    "express": "^4.19.2",
+    "great-expectations": "^1.5.1",
+    "html-element-attributes": "^3.4.0",
+    "html-tags": "^3.3.1",
+    "playwright": "^1.43.1",
+    "svg-element-attributes": "^2.1.0",
+    "svg-tag-names": "^3.0.1",
+    "ts-morph": "^22.0.0",
+    "tsx": "^4.7.2",
+    "typescript": "^5.4.5",
+    "vite": "^5.2.8",
+    "vite-tsconfig-paths": "^4.3.2"
   }
 }

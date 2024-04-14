@@ -1,0 +1,22 @@
+{
+  "extends": "../../tsconfig.common.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "rootDir": "./",
+    "baseUrl": "./",
+    "paths": {
+      "@src/*": [
+        "../../src/view/*"
+      ],
+      "@spheres/store": [
+        "../../src/store/index.js"
+      ]
+    },
+  },
+  "include": [
+    "./**/*",
+  ],
+  "references": [
+    { "path": "../../" }
+  ]
+}

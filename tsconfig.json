@@ -1,7 +1,13 @@
 {
-  "files": [],
-  "references": [
-    { "path": "./packages/store" },
-    { "path": "./packages/view" }
+  "extends": "./tsconfig.common.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist"
+  },
+  "include": [
+    "./src"
+  ],
+  "exclude": [
+    "node_modules"
   ]
 }

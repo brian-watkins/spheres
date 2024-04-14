@@ -1,4 +1,4 @@
-import { Container, batch, container, rule, derived, write } from "@spheres/store";
+import { Container, batch, container, rule, derived, write } from "spheres/store";
 
 export interface DataRecord {
   id?: number

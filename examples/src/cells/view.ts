@@ -1,7 +1,7 @@
-import { Container, StoreMessage, batch, container, rule, run, use, write } from "@spheres/store";
-import { cellContainer } from "./state";
-import { CellErrorType } from "./formula";
-import { WithArgs, htmlTemplate } from "@spheres/view";
+import { Container, StoreMessage, batch, container, rule, run, use, write } from "spheres/store";
+import { WithArgs, htmlTemplate } from "spheres/view";
+import { cellContainer } from "./state.js";
+import { CellErrorType } from "./formula.js";
 
 const editableCell = container<Container<boolean> | undefined>({ initialValue: undefined })
 

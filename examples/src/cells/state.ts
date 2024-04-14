@@ -1,4 +1,4 @@
-import { Container, DerivedState, container, derived } from "@spheres/store";
+import { Container, DerivedState, container, derived } from "spheres/store";
 import { CellError, ParseFailure, UnableToCalculate, cellDefinition } from "./formula";
 import { Result } from "./result";
 

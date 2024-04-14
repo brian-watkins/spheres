@@ -1,4 +1,4 @@
-import { CommandManager, Store, use } from "@spheres/store";
+import { CommandManager, Store, use } from "spheres/store";
 import { RepeaterCommand } from "./state";
 
 export class RepeaterCommandManager implements CommandManager<RepeaterCommand> {

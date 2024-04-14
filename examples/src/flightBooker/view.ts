@@ -1,7 +1,7 @@
-import { use, write } from "@spheres/store";
+import { use, write } from "spheres/store";
 import { FlightTypes, allowReturnDate, bookFlight, bookingAllowed, flightType, returnDate, returnDateIsValid, startDate, startDateIsValid } from "./state.js";
 import { names, useValue } from "../helpers/helpers.js";
-import { htmlTemplate } from "@spheres/view";
+import { htmlTemplate } from "spheres/view";
 
 export const flightBooker = htmlTemplate(() => root =>
   root.main(el => {

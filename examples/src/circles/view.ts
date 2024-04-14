@@ -1,7 +1,7 @@
-import { GetState, batch, write, run, container, StoreMessage, use, rule } from "@spheres/store";
+import { GetState, batch, write, run, container, StoreMessage, use, rule } from "spheres/store";
 import { Circle, CircleContainer, addCircleRule, adjustRadius, adjustRadiusRule, canRedo, canUndo, circleData, deselectCircle, redoRule, selectCircle, undoRule } from "./state";
 import { useValue } from "../helpers/helpers";
-import { HTMLView, SVGView, WithArgs, htmlTemplate } from "@spheres/view";
+import { HTMLView, SVGView, WithArgs, htmlTemplate } from "spheres/view";
 
 export const circles = htmlTemplate(() => root =>
   root.main(({ children }) => {

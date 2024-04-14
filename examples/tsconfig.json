@@ -107,7 +107,6 @@
     "skipLibCheck": true                                 /* Skip type checking all .d.ts files. */
   },
   "references": [
-    { "path": "../packages/store" },
-    { "path": "../packages/view" },
+    { "path": "../" },
   ]
 }

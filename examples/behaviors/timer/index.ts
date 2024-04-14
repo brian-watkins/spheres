@@ -1,8 +1,8 @@
 import timer from "../../src/timer/view.js"
-import { Store } from "@spheres/store"
+import { Store } from "spheres/store"
 import { TestRepeaterManager } from "./testRepeater.js"
 import { runTimerCommand } from "../../src/timer/state.js"
-import { renderToDOM } from "@spheres/view"
+import { renderToDOM } from "spheres/view"
 
 const store = new Store()
 window.__testRepeater = new TestRepeaterManager(store)

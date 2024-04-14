@@ -1,5 +1,11 @@
 # spheres
 
+## 0.9.1
+
+### Patch Changes
+
+- a8bd20d: Fixed example in README
+
 ## 0.9.0
 
 ### Minor Changes

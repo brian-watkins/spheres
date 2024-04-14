@@ -1,9 +1,24 @@
-import { batch, container, rule, run, use, write } from "@spheres/store";
+import { Container, StoreMessage, batch, container, rule, run, use, write } from "@spheres/store";
 import { cellContainer } from "./state";
 import { CellErrorType } from "./formula";
 import { WithArgs, htmlTemplate } from "@spheres/view";
 
-const showInput = container({ initialValue: "" })
+const editableCell = container<Container<boolean> | undefined>({ initialValue: undefined })
+
+const makeEditable = rule((get, id: string) => {
+  const editState = get(cellContainer(id)).editable
+  const currentEditState = get(editableCell)
+
+  let messages: Array<StoreMessage<any>> = [
+    write(editState, true)
+  ]
+  if (currentEditState !== undefined) {
+    messages.push(write(currentEditState, false))
+  }
+  messages.push(write(editableCell, editState))
+
+  return batch(messages)
+})
 
 const startLetter = 65
 const totalColumns = 26
@@ -54,24 +69,25 @@ const cell = htmlTemplate((withId: WithArgs<string>) => root =>
     config
       .dataAttribute("cell", withId(id => id))
       .class(withId((id, get) => {
-        if (get(get(cellContainer(id))).isErr) {
+        const cellDetails = get(cellContainer(id))
+        if (get(cellDetails.cellValue).isErr) {
           return "shrink-0 h-8 w-40 bg-fuchsia-300 relative italic"
         } else {
-          return `shrink-0 h-8 w-40 ${get(showInput) === id ? "bg-slate-100" : "bg-slate-200"} relative`
+          return `shrink-0 h-8 w-40 ${get(cellDetails.editable) ? "bg-slate-100" : "bg-slate-200"} relative`
         }
       }))
       .on("click", () => use(rule(withId(id => batch([
-        write(showInput, id),
+        use(makeEditable, id),
         run(() => (document.querySelector(`input[name='${id}']`) as HTMLInputElement)?.focus())
       ])))))
     children
       .div(({ config, children }) => {
         config
           .class("px-1 py-1")
-          .hidden(withId((id, get) => get(showInput) === id ? "hidden" : undefined))
+          .hidden(withId((id, get) => get(get(cellContainer(id)).editable) ? "hidden" : undefined))
         children
           .textNode(withId((id, get) => {
-            const cellValue = get(get(cellContainer(id)))
+            const cellValue = get(get(cellContainer(id)).cellValue)
             return cellValue.resolve({
               ok: (val) => val,
               err: (error) => {
@@ -88,13 +104,14 @@ const cell = htmlTemplate((withId: WithArgs<string>) => root =>
       .form(({ config, children }) => {
         config
           .class("absolute top-1 left-0")
-          .hidden(withId((id, get) => get(showInput) === id ? undefined : "hidden"))
+          .hidden(withId((id, get) => get(get(cellContainer(id)).editable) ? undefined : "hidden"))
           .on("submit", (evt) => {
             evt.preventDefault()
-            return use(rule(withId(id => {
+            return use(rule(withId((id, get) => {
               const cellDefinition = ((evt.target as HTMLFormElement).elements.namedItem(id) as HTMLInputElement).value
               return batch([
-                write(showInput, ""),
+                write(editableCell, undefined),
+                write(get(cellContainer(id)).editable, false),
                 write(cellContainer(id), cellDefinition)
               ])
             })))

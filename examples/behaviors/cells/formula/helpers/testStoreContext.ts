@@ -17,7 +17,7 @@ class CellValueEffect implements ReactiveEffect {
 
   run(get: GetState): void {
     try {
-      this.cellValue = get(get(this.cell))
+      this.cellValue = get(get(this.cell).cellValue)
     } catch (err) {
       console.log("Erro", err)
       throw err

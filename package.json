@@ -42,7 +42,7 @@
     "@changesets/cli": "^2.27.1",
     "@types/express": "^4.17.21",
     "aria-attributes": "^2.0.1",
-    "best-behavior": "^0.6.3",
+    "best-behavior": "^0.6.4",
     "esbehavior": "^4.2.3",
     "express": "^4.19.2",
     "great-expectations": "^1.5.1",

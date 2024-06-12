@@ -201,7 +201,7 @@ const multipleDependencyEffect: ConfigurableExample =
             stringContainer: container({ initialValue: "hello!" }),
             numberContainer: container({ initialValue: 0 }),
             derivedFirst: derived({ query: (get) => get(context.tokens.stringContainer).length % 2 === 0 }),
-            derivedSecond: derived({ query: (get) => get(context.tokens.numberContainer) %2 === 0 }),
+            derivedSecond: derived({ query: (get) => get(context.tokens.numberContainer) % 2 === 0 }),
             effectRuns: []
           })
         }),
@@ -224,7 +224,7 @@ const multipleDependencyEffect: ConfigurableExample =
         step("write to number container", (context) => {
           context.writeTo(context.tokens.numberContainer, 2)
         }),
-        step("write to number container", (context) => {
+        step("write to number container without changing derived value", (context) => {
           context.writeTo(context.tokens.numberContainer, 4)
         }),
         step("write to number container", (context) => {
@@ -232,7 +232,7 @@ const multipleDependencyEffect: ConfigurableExample =
         }),
       ],
       observe: [
-        effect("the effect is called as expected", (context) => {
+        effect("the effect is called when the derived values change", (context) => {
           expect(context.tokens.effectRuns, is([
             "All true",
             "Not all true",

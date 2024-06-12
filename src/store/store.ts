@@ -103,11 +103,11 @@ export class MetaState<T, M, E = unknown> extends State<Meta<M, E>> {
     const controller = new SimpleStateController<Meta<M, E>>(ok())
 
     tokenController.addListener({
-      notify() { },
+      notify: () => true,
       update: () => {
         controller.write(ok())
       }
-    })
+    }, 0)
 
     return controller
   }
@@ -172,54 +172,81 @@ export class DerivedState<T> extends State<T> {
   }
 }
 
+interface UpdateTracker {
+  notifications: number
+  hasChanged: boolean
+}
+
 class DependencyTrackingStateListener implements StateListener {
-  private dependencies: Set<StateController<any>> = new Set()
-  private notifications = 0
-  private hasChanged = false
+  private version = 0
+  private updateTracker: UpdateTracker | undefined
 
   constructor(private store: Store) { }
 
-  notify(): void {
-    if (this.notifications === 0) {
+  notify(version: number): boolean {
+    if (version !== this.version) return false
+
+    if (this.updateTracker === undefined) {
+      this.startDependencyUpdate()
       this.dependenciesWillUpdate()
     }
-    this.notifications = this.notifications + 1
+
+    this.dependencyDidNotify()
+
+    return true
   }
 
   update(hasChanged: boolean): void {
-    this.notifications = this.notifications - 1
-    if (hasChanged) this.hasChanged = true
-    if (this.notifications === 0) {
-      this.dependenciesHaveUpdated(this.hasChanged)
-      this.hasChanged = false
+    this.dependencyDidUpdate(hasChanged)
+
+    if (this.allDependenciesUpdated()) {
+      this.dependenciesHaveUpdated(this.shouldUpdate())
+      this.dependencyUpdateComplete()
     }
   }
 
   protected getValue<S>(state: State<S>): S {
     const controller = this.store[getController](state)
-    controller.addListener(this)
-    this.dependencies.add(controller)
+    controller.addListener(this, this.version)
     return controller.value
   }
 
-  protected dependenciesWillUpdate(): void {
+  protected dependenciesWillUpdate(): void { }
 
+  protected dependenciesHaveUpdated(_: boolean): void { }
+
+  resetDependencies(): void {
+    this.version = this.version + 1
   }
 
-  protected dependenciesHaveUpdated(_: boolean): void {
-
+  private startDependencyUpdate() {
+    this.updateTracker = { notifications: 0, hasChanged: false }
   }
 
-  unsubscribe(): void {
-    for (const dep of this.dependencies) {
-      dep.removeListener(this)
-    }
-    this.dependencies.clear()
+  private dependencyUpdateComplete() {
+    this.updateTracker = undefined
+  }
+
+  private dependencyDidNotify() {
+    this.updateTracker!.notifications++
+  }
+
+  private dependencyDidUpdate(hasChanged: boolean) {
+    this.updateTracker!.notifications--
+    if (hasChanged) this.updateTracker!.hasChanged = true
+  }
+
+  private allDependenciesUpdated(): boolean {
+    return this.updateTracker!.notifications === 0
+  }
+
+  private shouldUpdate(): boolean {
+    return this.updateTracker!.hasChanged
   }
 }
 
 class DerivedStateController<T> extends DependencyTrackingStateListener implements StateController<T> {
-  private listeners: Set<StateListener> = new Set()
+  private listeners: Map<StateListener, number> = new Map()
   private _value: T
 
   constructor(store: Store, private derivation: (get: GetState, current: T | undefined) => T) {
@@ -227,8 +254,8 @@ class DerivedStateController<T> extends DependencyTrackingStateListener implemen
     this._value = this.deriveValue()
   }
 
-  addListener(listener: StateListener): void {
-    this.listeners.add(listener)
+  addListener(listener: StateListener, version: number): void {
+    this.listeners.set(listener, version)
   }
 
   removeListener(listener: StateListener): void {
@@ -240,13 +267,16 @@ class DerivedStateController<T> extends DependencyTrackingStateListener implemen
   }
 
   protected dependenciesWillUpdate(): void {
-    for (const listener of this.listeners) {
-      listener.notify()
+    for (const [listener, version] of this.listeners) {
+      const accepted = listener.notify(version)
+      if (!accepted) {
+        this.removeListener(listener)
+      }
     }
   }
 
   private updateListeners(hasChanged: boolean) {
-    for (const listener of new Set(this.listeners)) {
+    for (const listener of this.listeners.keys()) {
       listener.update(hasChanged)
     }
   }
@@ -257,7 +287,7 @@ class DerivedStateController<T> extends DependencyTrackingStateListener implemen
       return
     }
 
-    this.unsubscribe()
+    this.resetDependencies()
     const derived = this.deriveValue()
 
     const derivedValueIsNew = !Object.is(derived, this._value)
@@ -293,10 +323,14 @@ class ReactiveEffectController extends DependencyTrackingStateListener {
   protected dependenciesHaveUpdated(hasChanged: boolean): void {
     if (!hasChanged) return
 
-    this.unsubscribe()
+    this.resetDependencies()
     this.effect.run((state) => {
       return this.getValue(state)
     })
+  }
+
+  unsubscribe() {
+    this.resetDependencies()
   }
 }
 

@@ -1,11 +1,11 @@
 
 export interface StateListener {
-  notify(): void
+  notify(version: number): boolean
   update(hasChanged: boolean): void
 }
 
 export interface StateController<T> {
-  addListener(listener: StateListener): void
+  addListener(listener: StateListener, version: number): void
   removeListener(listener: StateListener): void
   value: T
 }
@@ -17,12 +17,12 @@ export interface ContainerController<T, M = T> extends StateController<T> {
 }
 
 export class SimpleStateController<T> implements ContainerController<T> {
-  private listeners: Set<StateListener> = new Set()
+  private listeners: Map<StateListener, number> = new Map()
 
   constructor(private _value: T) { }
 
-  addListener(listener: StateListener) {
-    this.listeners.add(listener)
+  addListener(listener: StateListener, version: number) {
+    this.listeners.set(listener, version)
   }
 
   removeListener(listener: StateListener) {
@@ -42,11 +42,14 @@ export class SimpleStateController<T> implements ContainerController<T> {
 
     this._value = value
 
-    for (const listener of this.listeners) {
-      listener.notify()
+    for (const [listener, version] of this.listeners) {
+      const accepted = listener.notify(version)
+      if (!accepted) {
+        this.removeListener(listener)
+      }
     }
 
-    for (const listener of new Set(this.listeners)) {
+    for (const listener of this.listeners.keys()) {
       listener.update(true)
     }
   }

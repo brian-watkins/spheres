@@ -266,12 +266,12 @@ const derivedStateWithHiddenDependencies: ConfigurableExample =
       ],
       observe: [
         effect("the subscriber gets the expected messages", (context) => {
-          expect(context.valuesForSubscriber("sub-one"), is([
+          expectValuesFor(context, "sub-one", [
             "hello",
             "Number: 34",
             "Number: 11",
             "goodbye"
-          ]))
+          ])
         }),
         effect("the minimum number of calls occurred", (context) => {
           expect(context.tokens.calls, is(4))
@@ -374,11 +374,11 @@ const reactiveQueryCount: ConfigurableExample =
       ],
       observe: [
         effect("the reactive query executes once for each update", (context) => {
-          expect(context.valuesForSubscriber("sub-one"), is(equalTo([
+          expectValuesFor(context, "sub-one", [
             "1 => hello 27 times. And then next!",
             "2 => hello 31 times. And then next!",
             "3 => Some fun 31 times. And then next!",
-          ])))
+          ])
         })
       ]
     })
@@ -386,7 +386,8 @@ const reactiveQueryCount: ConfigurableExample =
 interface DeferredDependencyContext {
   numberState: Container<number>,
   stringState: Container<string>,
-  derivedState: DerivedState<number>
+  derivedState: DerivedState<number>,
+  queryCount: number
 }
 
 const deferredDependency: ConfigurableExample =
@@ -399,6 +400,7 @@ const deferredDependency: ConfigurableExample =
           const stringState = container({ initialValue: "hello" })
           const derivedState = derived({
             query: (get) => {
+              context.tokens.queryCount = context.tokens.queryCount + 1
               if (get(stringState) === "now") {
                 return get(numberState)
               } else {
@@ -409,7 +411,8 @@ const deferredDependency: ConfigurableExample =
           context.setTokens({
             numberState,
             stringState,
-            derivedState
+            derivedState,
+            queryCount: 0
           })
         }),
         fact("there is a subscriber", (context) => {
@@ -417,6 +420,9 @@ const deferredDependency: ConfigurableExample =
         })
       ],
       perform: [
+        step("the number state updates", (context) => {
+          context.writeTo(context.tokens.numberState, 11)
+        }),
         step("the state is updated to expose the number", (context) => {
           context.writeTo(context.tokens.stringState, "now")
         }),
@@ -428,16 +434,20 @@ const deferredDependency: ConfigurableExample =
         }),
         step("the number state updates again, which does not result in a new value", (context) => {
           context.writeTo(context.tokens.numberState, 14)
+          context.writeTo(context.tokens.numberState, 27)
         })
       ],
       observe: [
         effect("the subscriber gets all the updates", (context) => {
-          expect(context.valuesForSubscriber("sub-one"), is(equalTo([
+          expectValuesFor(context, "sub-one", [
             0,
-            6,
+            11,
             27,
             0
-          ])))
+          ])
+        }),
+        effect("the query is executed only when currently subscribed dependencies update", (context) => {
+          expect(context.tokens.queryCount, is(4))
         })
       ]
     })
@@ -470,9 +480,9 @@ const recursiveDerivedState: ConfigurableExample =
       ],
       observe: [
         effect("the subscriber gets the initial state", (context) => {
-          expect(context.valuesForSubscriber("sub-one"), is(equalTo([
+          expectValuesFor(context, "sub-one", [
             6
-          ])))
+          ])
         })
       ]
     }).andThen({
@@ -483,10 +493,105 @@ const recursiveDerivedState: ConfigurableExample =
       ],
       observe: [
         effect("the subscriber gets the updated derived state", (context) => {
-          expect(context.valuesForSubscriber("sub-one"), is(equalTo([
+          expectValuesFor(context, "sub-one", [
             6,
             24
-          ])))
+          ])
+        })
+      ]
+    })
+
+interface DerivedStateSubscribersContext {
+  stringContainer: Container<string>
+  numberContainer: Container<number>
+  ultimateState: DerivedState<string>
+  queryCount: number
+}
+
+const derivedStateSubscribers: ConfigurableExample =
+  example(testStoreContext<DerivedStateSubscribersContext>())
+    .description("derived state with subscribers that are sometimes hidden")
+    .script({
+      suppose: [
+        fact("there is derived state that depends on other derived state sometimes", (context) => {
+          const stringContainer = container({ initialValue: "hello" })
+          const numberContainer = container({ initialValue: 0 })
+          const derivedStringContainer = derived({ query: (get) => `derived from: ${get(stringContainer)}` })
+          const derivedNumberContainer = derived({ query: (get) => get(numberContainer) + 100 })
+          const ultimateState = derived({ query: (get) => {
+            context.tokens.queryCount++
+            if (get(derivedStringContainer).includes("show")) {
+              return `The count is ${get(derivedNumberContainer)}`
+            } else {
+              return `The message is ${get(derivedStringContainer)}`
+            }
+          }})
+          context.setTokens({
+            stringContainer,
+            numberContainer,
+            ultimateState,
+            queryCount: 0
+          })
+        }),
+        fact("there is a subscriber to the ultimate state", (context) => {
+          context.subscribeTo(context.tokens.ultimateState, "sub-one")
+        })
+      ],
+      perform: [
+        step("the number container updates", (context) => {
+          context.writeTo(context.tokens.numberContainer, 1)
+          context.writeTo(context.tokens.numberContainer, 3)
+        }),
+        step("the string container updates and the ultimate state subscribes to the number container also", (context) => {
+          context.writeTo(context.tokens.stringContainer, "show me")
+        }),
+        step("the number container updates", (context) => {
+          context.writeTo(context.tokens.numberContainer, 6)
+        }),
+        step("the string container updates and the ultimate state forgets the number container dependency", (context) => {
+          context.writeTo(context.tokens.stringContainer, "hide it")
+        }),
+        step("the number container updates", (context) => {
+          context.writeTo(context.tokens.numberContainer, 4)
+          context.writeTo(context.tokens.numberContainer, 9)
+          context.writeTo(context.tokens.numberContainer, 17)
+        })
+      ],
+      observe: [
+        effect("the subscriber receives the expected values", (context) => {
+          expectValuesFor(context, "sub-one", [
+            "The message is derived from: hello",
+            "The count is 103",
+            "The count is 106",
+            "The message is derived from: hide it"
+          ])
+        }),
+        effect("the ultimate query is called only when current dependencies are updated", (context) => {
+          expect(context.tokens.queryCount, is(4))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the string container updates and the ultimate state resubscribes to the number container", (context) => {
+          context.writeTo(context.tokens.stringContainer, "show me")
+        }),
+        step("the number container updates", (context) => {
+          context.writeTo(context.tokens.numberContainer, 27)
+        })
+      ],
+      observe: [
+        effect("the subscriber receives the latest values derived from the number container", (context) => {
+          expectValuesFor(context, "sub-one", [
+            "The message is derived from: hello",
+            "The count is 103",
+            "The count is 106",
+            "The message is derived from: hide it",
+            "The count is 117",
+            "The count is 127"
+          ])
+        }),
+        effect("the ultimate query is called only when current dependencies are updated", (context) => {
+          expect(context.tokens.queryCount, is(6))
         })
       ]
     })
@@ -504,5 +609,6 @@ export default
     reactiveQueryCount,
     deferredDependency,
     recursiveDerivedState,
-    derivedStateWithHiddenDependencies
+    derivedStateWithHiddenDependencies,
+    derivedStateSubscribers
   ])

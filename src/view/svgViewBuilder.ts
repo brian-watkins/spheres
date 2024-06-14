@@ -1,4 +1,4 @@
-import { GetState } from "@spheres/store"
+import { GetState } from "../store/index.js"
 import { Stateful, VirtualNode, VirtualNodeConfig, VirtualTemplate, WithArgs, makeStatefulElement, makeTemplate, makeVirtualElement, setNamespace, virtualNodeConfig } from "./vdom/virtualNode.js"
 import { SVGBuilder, SVGElements, SVGElementAttributes, svgAttributeNames } from "./svgElements.js"
 import { ConfigurableElement, ViewBuilder, ViewOptions, ViewArgs } from "./viewBuilder.js"

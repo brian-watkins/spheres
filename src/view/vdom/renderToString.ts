@@ -1,4 +1,4 @@
-import { GetState, ReactiveEffect, Store } from "@spheres/store";
+import { GetState, ReactiveEffect, Store } from "../../store/index.js";
 import { StringRenderer } from "./render.js";
 import { ElementNode, NodeType, StatefulTextNode, StatefulNode, TextNode, VirtualNode } from "./virtualNode.js";
 

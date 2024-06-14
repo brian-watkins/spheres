@@ -1,4 +1,4 @@
-import { State } from "@spheres/store"
+import { State } from "../store/index.js"
 import { BasicElementConfig, SpecialElementAttributes } from "./viewConfig.js"
 import { Stateful, VirtualNode, VirtualTemplate, makeStatefulTextNode, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "./vdom/virtualNode.js"
 export type { Stateful } from "./vdom/virtualNode.js"

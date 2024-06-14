@@ -1,4 +1,4 @@
-import { Store } from "@spheres/store";
+import { Store } from "../../store/index.js";
 import { DOMRenderer } from "./render.js";
 import { ElementNode, NodeType, TextNode, VirtualNode, VirtualNodeKey, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "./virtualNode.js";
 import { EventHandler } from "./eventHandler.js";

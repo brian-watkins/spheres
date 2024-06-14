@@ -1,4 +1,4 @@
-import { StoreMessage } from "@spheres/store"
+import { StoreMessage } from "../store/index.js"
 import { AriaAttribute, booleanAttributes } from "./htmlElements.js"
 import { Stateful, VirtualNodeConfig, addAttribute, addProperty, addStatefulAttribute, addStatefulProperty, setEventHandler, virtualNodeConfig } from "./vdom/virtualNode.js"
 

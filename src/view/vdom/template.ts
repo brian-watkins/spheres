@@ -1,4 +1,4 @@
-import { Store, StoreMessage } from "@spheres/store"
+import { Store, StoreMessage } from "../../store/index.js"
 import { NodeType, TemplateNode, VirtualNode, VirtualTemplate } from "./virtualNode.js"
 import { UpdateAttributeEffect } from "./effects/attributeEffect.js"
 import { UpdatePropertyEffect } from "./effects/propertyEffect.js"

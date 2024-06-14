@@ -1,4 +1,4 @@
-import { GetState, State, StoreMessage } from "@spheres/store";
+import { GetState, State, StoreMessage } from "../../store/index.js";
 import { EventHandler } from "./eventHandler.js";
 
 export type Stateful<T> = (get: GetState) => T | undefined

@@ -1,4 +1,4 @@
-import { GetState, Store } from "@spheres/store"
+import { GetState, Store } from "../store/index.js"
 import { VirtualNode, makeStatefulElement, Stateful, makeTemplate, addStatefulProperty, addProperty, VirtualTemplate, WithArgs } from "./vdom/virtualNode.js"
 import { HTMLElements, HTMLBuilder } from "./htmlElements.js"
 import { createStringRenderer } from "./vdom/renderToString.js"

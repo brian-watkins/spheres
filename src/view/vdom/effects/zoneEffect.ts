@@ -1,4 +1,4 @@
-import { GetState, ReactiveEffect, Store } from "@spheres/store"
+import { GetState, ReactiveEffect, Store } from "../../../store/index.js"
 import { patch, virtualize } from "../renderToDom.js"
 import { VirtualNode } from "../virtualNode.js"
 import { EffectGenerator } from "./effectGenerator.js"

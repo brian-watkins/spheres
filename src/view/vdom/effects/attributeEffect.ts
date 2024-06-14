@@ -1,4 +1,4 @@
-import { GetState, ReactiveEffect } from "../../../store";
+import { GetState, ReactiveEffect } from "../../../store/index.js"
 import { EffectGenerator } from "./effectGenerator.js";
 
 export class UpdateAttributeEffect implements ReactiveEffect {

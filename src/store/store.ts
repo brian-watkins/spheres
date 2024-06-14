@@ -187,21 +187,22 @@ class DependencyTrackingStateListener implements StateListener {
     if (version !== this.version) return false
 
     if (this.updateTracker === undefined) {
-      this.startDependencyUpdate()
+      this.updateTracker = { notifications: 0, hasChanged: false }
       this.dependenciesWillUpdate()
     }
 
-    this.dependencyDidNotify()
+    this.updateTracker!.notifications++
 
     return true
   }
 
   update(hasChanged: boolean): void {
-    this.dependencyDidUpdate(hasChanged)
+    this.updateTracker!.notifications--
+    if (hasChanged) this.updateTracker!.hasChanged = true
 
-    if (this.allDependenciesUpdated()) {
-      this.dependenciesHaveUpdated(this.shouldUpdate())
-      this.dependencyUpdateComplete()
+    if (this.updateTracker!.notifications === 0) {
+      this.dependenciesHaveUpdated(this.updateTracker!.hasChanged)
+      this.updateTracker = undefined
     }
   }
 
@@ -217,31 +218,6 @@ class DependencyTrackingStateListener implements StateListener {
 
   resetDependencies(): void {
     this.version = this.version + 1
-  }
-
-  private startDependencyUpdate() {
-    this.updateTracker = { notifications: 0, hasChanged: false }
-  }
-
-  private dependencyUpdateComplete() {
-    this.updateTracker = undefined
-  }
-
-  private dependencyDidNotify() {
-    this.updateTracker!.notifications++
-  }
-
-  private dependencyDidUpdate(hasChanged: boolean) {
-    this.updateTracker!.notifications--
-    if (hasChanged) this.updateTracker!.hasChanged = true
-  }
-
-  private allDependenciesUpdated(): boolean {
-    return this.updateTracker!.notifications === 0
-  }
-
-  private shouldUpdate(): boolean {
-    return this.updateTracker!.hasChanged
   }
 }
 

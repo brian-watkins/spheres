@@ -13,7 +13,8 @@ export enum NodeType {
   STATEFUL = 15,
   STATEFUL_TEXT = 16,
   BLOCK = 17,
-  TEMPLATE = 18
+  TEMPLATE = 18,
+  TEMPLATE_LIST = 19,
 }
 
 export interface TextNode {
@@ -61,7 +62,16 @@ export interface TemplateNode {
   node: Node | undefined
 }
 
-export type VirtualNode = TextNode | StatefulTextNode | ElementNode | StatefulNode | BlockNode | TemplateNode
+export interface TemplateListNode {
+  type: NodeType.TEMPLATE_LIST
+  id: string
+  templateGenerator: (args: any) => TemplateNode
+  argList: (get: GetState) => Array<any>
+  key?: VirtualNodeKey
+  node: Node | undefined
+}
+
+export type VirtualNode = TextNode | StatefulTextNode | ElementNode | StatefulNode | BlockNode | TemplateNode | TemplateListNode
 
 export interface StatefulValue<T> {
   generator: Stateful<T>
@@ -196,6 +206,18 @@ export function makeTemplate(template: VirtualTemplate<any>, args: any, key?: Vi
     template,
     args: args,
     key,
+    node: undefined
+  }
+}
+
+let templateListId = 0
+
+export function makeTemplateList(templateGenerator: (args: any) => TemplateNode, argList: (get: GetState) => Array<any>): TemplateListNode {
+  return {
+    type: NodeType.TEMPLATE_LIST,
+    id: `${templateListId++}`,
+    templateGenerator,
+    argList,
     node: undefined
   }
 }

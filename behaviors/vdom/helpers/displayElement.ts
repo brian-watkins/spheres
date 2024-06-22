@@ -19,6 +19,10 @@ export class DisplayElementList {
     return usePage((page, selector) => page.locator(selector).count(), this.selector)
   }
 
+  at(index: number): DisplayElement {
+    return new DisplayElement(this.selector, index)
+  }
+
   async map<T>(handler: (element: DisplayElement) => Promise<T>): Promise<Array<T>> {
     const count = await this.count()
     const results: Array<T> = []

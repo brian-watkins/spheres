@@ -24,6 +24,8 @@ function stringifyVirtualNode(store: Store, vnode: VirtualNode): string {
     case NodeType.TEMPLATE:
       vnode.template.setArgs(vnode.args)
       return stringifyVirtualNode(store, vnode.template.virtualNode)
+    case NodeType.TEMPLATE_LIST:
+      return "NOT DONE YET"
   }
 }
 

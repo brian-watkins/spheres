@@ -1,5 +1,5 @@
 import { GetState, Store } from "../store/index.js"
-import { VirtualNode, makeStatefulElement, Stateful, makeTemplate, addStatefulProperty, addProperty, VirtualTemplate, WithArgs } from "./vdom/virtualNode.js"
+import { VirtualNode, makeStatefulElement, Stateful, makeTemplate, addStatefulProperty, addProperty, VirtualTemplate, WithArgs, makeTemplateList } from "./vdom/virtualNode.js"
 import { HTMLElements, HTMLBuilder } from "./htmlElements.js"
 import { createStringRenderer } from "./vdom/renderToString.js"
 import { createDOMRenderer } from "./vdom/renderToDom.js"
@@ -55,6 +55,7 @@ export interface SpecialHTMLElements {
   element(tag: string, builder?: (element: ConfigurableElement<SpecialElementAttributes, HTMLElements>) => void): this
   textNode(value: string | Stateful<string>): this
   zone(view: HTMLDisplay, options?: ViewOptions): this
+  zones<T>(data: Stateful<Array<T>>, viewGenerator: (args: T) => HTMLTemplateView<T>): this
 }
 
 class HTMLElementConfig extends BasicElementConfig {
@@ -104,6 +105,15 @@ class HtmlViewBuilder extends ViewBuilder<SpecialElementAttributes, HTMLElements
     } else {
       this.storeNode(makeTemplate(view[template], view[templateArgs], options?.key))
     }
+
+    return this
+  }
+
+  zones<T>(data: (get: GetState) => Array<T>, viewGenerator: (args: T) => HTMLTemplateView<T>): this {
+    this.storeNode(makeTemplateList((args) => {
+      const tempInstance = viewGenerator(args)
+      return makeTemplate(tempInstance[template], tempInstance[templateArgs], args)
+    }, data))
 
     return this
   }

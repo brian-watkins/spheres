@@ -65,6 +65,9 @@ function createNode(store: Store, vnode: VirtualNode): Node {
     case NodeType.TEMPLATE:
       return createTemplateInstance(store, vnode)
 
+    case NodeType.TEMPLATE_LIST:
+      return document.createTextNode("__TEMPLATE_LIST__")
+
     default:
       const element = vnode.data.namespace ?
         document.createElementNS(vnode.data.namespace, vnode.tag) :

@@ -1,187 +1,117 @@
-import { behavior, effect, example, fact, step } from "esbehavior"
+import { behavior, effect, example } from "esbehavior"
 import { renderContext } from "./helpers/renderContext.js";
-import { makeVirtualElement, virtualNodeConfig } from "@src/vdom/virtualNode.js";
-import { blockChildElement, childElement, statefulChildElement } from "helpers/index.js";
 import { selectElements } from "helpers/displayElement.js";
 import { equalTo, expect, is } from "great-expectations";
+import { ListExamplesState, childElementText, renderAppBasedOnState, updateState } from "helpers/listHelpers.js";
 
 export default behavior("reorder list", [
-  example(renderContext())
+
+  example(renderContext<ListExamplesState>())
     .description("reorder from front to back")
     .script({
-      suppose: [
-        fact("there is an element with several children", (context) => {
-          context.mount(makeVirtualElement("div", virtualNodeConfig(), [
-            childElement(1),
-            childElement(2),
-            childElement(3),
-            childElement(4),
-            childElement(5),
-          ]))
-        })
-      ],
+      suppose: renderAppBasedOnState(["one", "two", "three", "four", "five"]),
       perform: [
-        step("the list is reordered", (context) => {
-          context.patch(makeVirtualElement("div", virtualNodeConfig(), [
-            childElement(5),
-            childElement(4),
-            childElement(3),
-            childElement(2),
-            childElement(1),
-          ]))
-        })
+        updateState("the list is reordered", [
+          "five", "four", "three", "two", "one"
+        ])
       ],
       observe: [
-        effect("the elements are in the expected order", async () => {
-          const texts = await selectElements("[data-child]").map(el => el.text())
-          expect(texts, is(equalTo([
-            "child 5",
-            "child 4",
-            "child 3",
-            "child 2",
-            "child 1",
-          ])))
-        })
+        childElementText("the elements are in the expected order", [
+          "five",
+          "four",
+          "three",
+          "two",
+          "one",
+        ])
       ]
     }),
-  example(renderContext())
-    .description("reorder block elements")
+
+  example(renderContext<ListExamplesState>())
+    .description("reorder")
     .script({
-      suppose: [
-        fact("there are block elements in a list", (context) => {
-          context.mount(makeVirtualElement("div", virtualNodeConfig(), [
-            blockChildElement(1),
-            blockChildElement(2),
-            blockChildElement(3),
-            blockChildElement(4),
-            blockChildElement(5),
-          ]))
-        })
-      ],
+      suppose: renderAppBasedOnState(["one", "two", "three", "four", "five"]),
       perform: [
-        step("the list is reordered", (context) => {
-          context.patch(makeVirtualElement("div", virtualNodeConfig(), [
-            blockChildElement(2),
-            blockChildElement(4),
-            blockChildElement(1),
-            blockChildElement(5),
-            blockChildElement(3),
-          ]))
-        })
+        updateState("the list is reordered", [
+          "four", "one", "five", "three", "two"
+        ])
       ],
       observe: [
-        effect("the elements are in the expected order", async () => {
-          const texts = await selectElements("[data-block-child]").map(el => el.text())
-          expect(texts, is(equalTo([
-            "block child 2",
-            "block child 4",
-            "block child 1",
-            "block child 5",
-            "block child 3",
-          ])))
-        })
+        childElementText("the elements are in the expected order", [
+          "four", "one", "five", "three", "two"
+        ])
       ]
     }),
-  example(renderContext())
-    .description("reorder keyed stateful elements")
+
+  example(renderContext<ListExamplesState>())
+    .description("swap")
     .script({
-      suppose: [
-        fact("there are stateful elements", (context) => {
-          context.mount(makeVirtualElement("div", virtualNodeConfig(), [
-            statefulChildElement(1),
-            statefulChildElement(2),
-            statefulChildElement(3),
-            statefulChildElement(8),
-            statefulChildElement(9),
-            statefulChildElement(4),
-            statefulChildElement(5),
-          ]))
-        })
-      ],
+      suppose: renderAppBasedOnState(["one", "two", "three", "four", "five", "six", "seven"]),
       perform: [
-        step("the list is reordered", (context) => {
-          context.patch(makeVirtualElement("div", virtualNodeConfig(), [
-            statefulChildElement(1),
-            statefulChildElement(4),
-            statefulChildElement(3),
-            statefulChildElement(8),
-            statefulChildElement(9),
-            statefulChildElement(2),
-            statefulChildElement(5),
-          ]))
-        })
+        updateState("swap two elements", [
+          "one", "six", "three", "four", "five", "two", "seven"
+        ])
       ],
       observe: [
-        effect("the elements are in the expected order", async () => {
-          const texts = await selectElements("[data-stateful-child]").map(el => el.text())
-          expect(texts, is(equalTo([
-            "stateful child 1",
-            "stateful child 4",
-            "stateful child 3",
-            "stateful child 8",
-            "stateful child 9",
-            "stateful child 2",
-            "stateful child 5",
-          ])))
-        })
+        childElementText("the elements are swapped", [
+          "one", "six", "three", "four", "five", "two", "seven"
+        ])
       ]
     }),
-  example(renderContext())
-    .description("replace all keyed stateful elements")
+
+  example(renderContext<ListExamplesState>())
+    .description("replace all items")
     .script({
-      suppose: [
-        fact("there are stateful elements", (context) => {
-          context.mount(makeVirtualElement("div", virtualNodeConfig(), [
-            statefulChildElement(1),
-            statefulChildElement(2),
-            statefulChildElement(3),
-            statefulChildElement(4),
-            statefulChildElement(5),
-          ]))
-        })
-      ],
-      perform: [
-        step("the list is replaced with all new elements", (context) => {
-          context.patch(makeVirtualElement("div", virtualNodeConfig(), [
-            statefulChildElement(6),
-            statefulChildElement(7),
-            statefulChildElement(8),
-            statefulChildElement(9),
-          ]))
-        })
-      ],
+      suppose: renderAppBasedOnState(["one", "two", "three", "four", "five"]),
       observe: [
         effect("the elements are in the expected order", async () => {
-          const texts = await selectElements("[data-stateful-child]").map(el => el.text())
+          const texts = await selectElements("p").map(el => el.text())
           expect(texts, is(equalTo([
-            "stateful child 6",
-            "stateful child 7",
-            "stateful child 8",
-            "stateful child 9",
+            "one",
+            "two",
+            "three",
+            "four",
+            "five",
           ])))
-        })
+        }),
       ]
     }).andThen({
       perform: [
-        step("the list is replaced again", (context) => {
-          context.patch(makeVirtualElement("div", virtualNodeConfig(), [
-            statefulChildElement(10),
-            statefulChildElement(11),
-            statefulChildElement(12),
-            statefulChildElement(13),
-          ]))
-        })
+        updateState("the list items are all replaced", [
+          "six",
+          "seven",
+          "eight"
+        ])
       ],
       observe: [
         effect("the elements are in the expected order", async () => {
-          const texts = await selectElements("[data-stateful-child]").map(el => el.text())
+          const texts = await selectElements("p").map(el => el.text())
           expect(texts, is(equalTo([
-            "stateful child 10",
-            "stateful child 11",
-            "stateful child 12",
-            "stateful child 13",
+            "six",
+            "seven",
+            "eight"
           ])))
-        })
+        }),
       ]
-    }),
+    }).andThen({
+      perform: [
+        updateState("the list items are all replaced again", [
+          "12",
+          "13",
+          "14",
+          "15",
+        ])
+      ],
+      observe: [
+        effect("the elements are in the expected order", async () => {
+          const texts = await selectElements("p").map(el => el.text())
+          expect(texts, is(equalTo([
+            "12",
+            "13",
+            "14",
+            "15",
+          ])))
+        }),
+      ]
+    })
+
 ])

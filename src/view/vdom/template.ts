@@ -1,10 +1,11 @@
 import { Store, StoreMessage } from "../../store/index.js"
-import { NodeType, TemplateNode, VirtualNode, VirtualTemplate } from "./virtualNode.js"
+import { NodeType, TemplateListNode, TemplateNode, VirtualNode, VirtualTemplate } from "./virtualNode.js"
 import { UpdateAttributeEffect } from "./effects/attributeEffect.js"
 import { UpdatePropertyEffect } from "./effects/propertyEffect.js"
 import { UpdateTextEffect } from "./effects/textEffect.js"
 import { NodeReference, PatchZoneEffect } from "./effects/zoneEffect.js"
 import { EffectGenerator } from "./effects/effectGenerator.js"
+import { ListEffect } from "./effects/listEffect.js"
 
 const templateRegistry = new WeakMap<VirtualTemplate<any>, DOMTemplate>()
 
@@ -46,7 +47,11 @@ function getTemplate(vnode: TemplateNode): DOMTemplate {
 }
 
 class EffectLocation {
-  constructor(readonly findNode: (root: Node) => Node) { }
+  constructor(private findNode: (root: Node) => Node) { }
+
+  find(root: Node): Node {
+    return this.findNode(root)
+  }
 
   nextSibling(): EffectLocation {
     return new EffectLocation((root) => this.findNode(root).nextSibling!)
@@ -55,6 +60,16 @@ class EffectLocation {
   firstChild(): EffectLocation {
     return new EffectLocation((root) => this.findNode(root).firstChild!)
   }
+
+  nextCommentSiblingMatching(commentValue: string): EffectLocation {
+    return new EffectLocation((root) => {
+      let next = this.findNode(root)
+      while (next.nodeValue !== commentValue) {
+        next = next.nextSibling!
+      }
+      return next
+    })
+  }
 }
 
 interface EffectTemplate {
@@ -62,37 +77,37 @@ interface EffectTemplate {
 }
 
 class TextEffectTemplate implements EffectTemplate {
-  constructor(private generator: EffectGenerator<string | undefined>, private findNode: (root: Node) => Node) { }
+  constructor(private generator: EffectGenerator<string | undefined>, private location: EffectLocation) { }
 
   attach(store: Store, root: Node, props: any) {
-    const effect = new UpdateTextEffect(this.findNode(root) as Text, this.generator, props)
+    const effect = new UpdateTextEffect(this.location.find(root) as Text, this.generator, props)
     store.useEffect(effect)
   }
 }
 
 class AttributeEffectTemplate implements EffectTemplate {
-  constructor(private generator: EffectGenerator<string | undefined>, private attribute: string, private findNode: (root: Node) => Node) { }
+  constructor(private generator: EffectGenerator<string | undefined>, private attribute: string, private location: EffectLocation) { }
 
   attach(store: Store, root: Node, props: any) {
-    const effect = new UpdateAttributeEffect(this.findNode(root) as Element, this.attribute, this.generator, props)
+    const effect = new UpdateAttributeEffect(this.location.find(root) as Element, this.attribute, this.generator, props)
     store.useEffect(effect)
   }
 }
 
 class PropertyEffectTemplate implements EffectTemplate {
-  constructor(private generator: EffectGenerator<string | undefined>, private property: string, private findNode: (root: Node) => Node) { }
+  constructor(private generator: EffectGenerator<string | undefined>, private property: string, private location: EffectLocation) { }
 
   attach(store: Store, root: Node, props: any) {
-    const effect = new UpdatePropertyEffect(this.findNode(root) as Element, this.property, this.generator, props)
+    const effect = new UpdatePropertyEffect(this.location.find(root) as Element, this.property, this.generator, props)
     store.useEffect(effect)
   }
 }
 
 class EventEffectTemplate implements EffectTemplate {
-  constructor(private template: VirtualTemplate<any>, private event: string, private handler: (evt: Event) => StoreMessage<any>, private findNode: (root: Node) => Node) { }
+  constructor(private template: VirtualTemplate<any>, private event: string, private handler: (evt: Event) => StoreMessage<any>, private location: EffectLocation) { }
 
   attach(store: Store, root: Node, context: any) {
-    const element = this.findNode(root) as Element
+    const element = this.location.find(root) as Element
     element.addEventListener(this.event, (evt) => {
       this.template.setArgs(context)
       store.dispatch(this.handler(evt))
@@ -101,21 +116,31 @@ class EventEffectTemplate implements EffectTemplate {
 }
 
 class StatefulZoneEffectTemplate implements EffectTemplate {
-  constructor(private generator: EffectGenerator<VirtualNode>, private nodeReference: NodeReference, private findNode: (root: Node) => Node) { }
+  constructor(private generator: EffectGenerator<VirtualNode>, private nodeReference: NodeReference, private location: EffectLocation) { }
 
-  attach(store: Store, root: Node, props: any): void {
-    const effect = new PatchZoneEffect(store, this.findNode(root), this.generator, this.nodeReference, props)
+  attach(store: Store, root: Node, props: any) {
+    const effect = new PatchZoneEffect(store, this.location.find(root), this.generator, this.nodeReference, props)
     store.useEffect(effect)
   }
 }
 
 class TemplateTemplate implements EffectTemplate {
-  constructor(private vnode: TemplateNode, private findNode: (root: Node) => Node) { }
+  constructor(private vnode: TemplateNode, private location: EffectLocation) { }
 
-  attach(store: Store, root: Node, _: any): void {
-    const placeholder = this.findNode(root)
+  attach(store: Store, root: Node, _: any) {
+    const placeholder = this.location.find(root)
     const templateNode = createTemplateInstance(store, this.vnode)
     placeholder.parentNode?.replaceChild(templateNode, placeholder)
+  }
+}
+
+class ListEffectTemplate implements EffectTemplate {
+  constructor(private vnode: TemplateListNode, private location: EffectLocation) { }
+
+  attach(store: Store, root: Node, _: any) {
+    const listStartIndicatorNode = this.location.find(root)
+    const effect = new ListEffect(store, this.vnode, listStartIndicatorNode, createTemplateInstance)
+    store.useEffect(effect)
   }
 }
 
@@ -125,33 +150,37 @@ function findEffectLocations(template: VirtualTemplate<any>, vnode: VirtualNode,
       return []
 
     case NodeType.STATEFUL_TEXT:
-      return [new TextEffectTemplate(template.useWithArgs(vnode.generator), location.findNode)]
+      return [new TextEffectTemplate(template.useWithArgs(vnode.generator), location)]
 
     case NodeType.STATEFUL:
-      return [new StatefulZoneEffectTemplate(template.useWithArgs(vnode.generator), vnode, location.findNode)]
+      return [new StatefulZoneEffectTemplate(template.useWithArgs(vnode.generator), vnode, location)]
 
     case NodeType.BLOCK:
       return findEffectLocations(template, vnode.generator!(), location)
 
     case NodeType.TEMPLATE:
-      return [new TemplateTemplate(vnode, location.findNode)]
+      return [new TemplateTemplate(vnode, location)]
+
+    case NodeType.TEMPLATE_LIST:
+      const markerLocation = location.nextCommentSiblingMatching(`template-list-${vnode.id}`)
+      return [new ListEffectTemplate(vnode, markerLocation)]
 
     case NodeType.ELEMENT:
       let effects: Array<EffectTemplate> = []
 
       const statefulAttrs = vnode.data.statefulAttrs
       for (const attr in statefulAttrs) {
-        effects.push(new AttributeEffectTemplate(template.useWithArgs(statefulAttrs[attr].generator), attr, location.findNode))
+        effects.push(new AttributeEffectTemplate(template.useWithArgs(statefulAttrs[attr].generator), attr, location))
       }
 
       const statefulProps = vnode.data.statefulProps
       for (const prop in statefulProps) {
-        effects.push(new PropertyEffectTemplate(template.useWithArgs(statefulProps[prop].generator), prop, location.findNode))
+        effects.push(new PropertyEffectTemplate(template.useWithArgs(statefulProps[prop].generator), prop, location))
       }
 
       const events = vnode.data.on
       for (const k in events) {
-        effects.push(new EventEffectTemplate(template, k, events[k].handler, location.findNode))
+        effects.push(new EventEffectTemplate(template, k, events[k].handler, location))
       }
 
       for (var i = 0; i < vnode.children.length; i++) {
@@ -163,7 +192,7 @@ function findEffectLocations(template: VirtualTemplate<any>, vnode: VirtualNode,
   }
 }
 
-function createTemplateNode(vnode: VirtualNode): Node {
+export function createTemplateNode(vnode: VirtualNode): Node {
   switch (vnode.type) {
     case NodeType.TEXT:
       return document.createTextNode(vnode.value)
@@ -181,6 +210,9 @@ function createTemplateNode(vnode: VirtualNode): Node {
 
     case NodeType.TEMPLATE:
       return document.createElement("nested-template")
+
+    case NodeType.TEMPLATE_LIST:
+      return document.createComment(`template-list-${vnode.id}`)
 
     default:
       const element = vnode.data.namespace ?

@@ -1,5 +1,6 @@
 import { patch, virtualize } from "@src/vdom/renderToDom.js"
 import { VirtualNode } from "@src/vdom/virtualNode.js"
+import { HTMLView, htmlTemplate, renderToDOM } from "@src/htmlViewBuilder.js"
 import { Context } from "esbehavior"
 import { Container, Store, StoreMessage, write } from "@spheres/store"
 
@@ -19,6 +20,16 @@ export class RenderApp<T> {
 
   writeTo<S, M = S>(token: Container<S, M>, value: M) {
     this.store.dispatch(write(token, value))
+  }
+
+  mountView(view: HTMLView) {
+    const base = document.createElement("div")
+    document.body.appendChild(base)
+
+    const template = htmlTemplate(() => view)
+    const renderResult = renderToDOM(this.store, base, template())
+
+    this.unmount = renderResult.unmount
   }
 
   mount(vnode: VirtualNode) {

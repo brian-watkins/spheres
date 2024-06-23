@@ -1,45 +1,57 @@
 import { GetState, ReactiveEffect, Store } from "../../../store"
-import { TemplateListNode, TemplateNode, VirtualNode, VirtualNodeKey } from "../virtualNode"
+import { TemplateListNode, TemplateNode, VirtualNodeKey } from "../virtualNode"
 
 export type TemplateNodeGenerator = (store: Store, virtualNode: TemplateNode) => Node
 
+interface VirtualListItem {
+  key: VirtualNodeKey
+  node: Node | undefined
+}
+
 export class ListEffect implements ReactiveEffect {
-  private vnodes: Array<TemplateNode> = []
+  private templateVNode: TemplateNode | undefined
+  private vnodes: Array<VirtualListItem> = []
 
   constructor(private store: Store, private vnode: TemplateListNode, private listStartNode: Node, private templateNodeGenerator: TemplateNodeGenerator) { }
 
   init(get: GetState) {
+
     const data = this.vnode.argList(get)
 
     const parent = this.listStartNode.parentNode!
     for (let i = 0; i < data.length; i++) {
-      const templateVnode = this.vnode.templateGenerator(data[i])
-      const templateNode = this.createNode(this.store, templateVnode)
+      const virtualItem: VirtualListItem = { key: data[i], node: undefined }
+      const templateNode = this.createNode(this.store, virtualItem)
       parent.insertBefore(templateNode, this.listStartNode)
-      templateVnode.node = templateNode
-      this.vnodes.push(templateVnode)
+      virtualItem.node = templateNode
+      this.vnodes.push(virtualItem)
     }
   }
 
   run(get: GetState) {
     const data = this.vnode.argList(get)
 
-    const updatedVnodes: Array<TemplateNode> = []
-    for (let i = 0; i < data.length; i++) {
-      const templateVnode = this.vnode.templateGenerator(data[i])
-      updatedVnodes.push(templateVnode)
+    const updatedList: Array<VirtualListItem> = data.map(item => ({
+      key: item,
+      node: undefined
+    }))
+
+    this.patchList(updatedList)
+
+    this.vnodes = updatedList
+  }
+
+  createNode(store: Store, vnode: VirtualListItem): Node {
+    if (this.templateVNode === undefined) {
+      this.templateVNode = this.vnode.templateGenerator(vnode.key)
+    } else {
+      this.templateVNode.args = vnode.key
     }
 
-    this.patchList(updatedVnodes)
-
-    this.vnodes = updatedVnodes
+    return this.templateNodeGenerator(store, this.templateVNode)
   }
 
-  createNode(store: Store, vnode: TemplateNode): Node {
-    return this.templateNodeGenerator(store, vnode)
-  }
-
-  patchList(newVKids: Array<TemplateNode>) {
+  patchList(newVKids: Array<VirtualListItem>) {
     let parent = this.listStartNode.parentNode!
 
     let oldVKids = this.vnodes
@@ -71,9 +83,10 @@ export class ListEffect implements ReactiveEffect {
 
     if (oldHead > oldTail) {
       // then we got through everything old and we are adding new children to the beginning
+      const firstNode = oldVKids[oldHead]?.node ?? this.listStartNode
       while (newHead <= newTail) {
         const newVKid = newVKids[newHead]
-        newVKid.node = parent.insertBefore(this.createNode(this.store, newVKid), oldVKids[oldHead]?.node ?? this.listStartNode)
+        newVKid.node = parent.insertBefore(this.createNode(this.store, newVKid), firstNode)
         newHead++
       }
 
@@ -89,7 +102,7 @@ export class ListEffect implements ReactiveEffect {
       return
     }
 
-    const keyed = new Map<VirtualNodeKey, VirtualNode>()
+    const keyed = new Map<VirtualNodeKey, VirtualListItem>()
     const newKeyed = new Set<VirtualNodeKey>()
 
     // store the old nodes by key
@@ -130,6 +143,7 @@ export class ListEffect implements ReactiveEffect {
           newKeyed.add(newKey)
         } else {
           // we're adding a new keyed element
+          // console.log("inserting new b")
           newVKid.node = parent.insertBefore(this.createNode(this.store, newVKid), (oldVKid && oldVKid.node) ?? this.listStartNode)
         }
       }
@@ -148,16 +162,16 @@ export class ListEffect implements ReactiveEffect {
 
 }
 
-function getKey(vnode: VirtualNode | undefined) {
+function getKey(vnode: VirtualListItem | undefined): any {
   // @ts-ignore
   return vnode?.key
 }
 
-function removeNode(parent: Node, vnode: VirtualNode) {
+function removeNode(parent: Node, vnode: VirtualListItem) {
   parent.removeChild(vnode.node!)
 }
 
-export function patch(oldVNode: VirtualNode, newVNode: VirtualNode): VirtualNode {
+export function patch(oldVNode: VirtualListItem, newVNode: VirtualListItem): VirtualListItem {
   newVNode.node = oldVNode.node
   return newVNode
 }

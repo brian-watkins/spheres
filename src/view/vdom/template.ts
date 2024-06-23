@@ -47,11 +47,7 @@ function getTemplate(vnode: TemplateNode): DOMTemplate {
 }
 
 class EffectLocation {
-  constructor(private findNode: (root: Node) => Node) { }
-
-  find(root: Node): Node {
-    return this.findNode(root)
-  }
+  constructor(readonly findNode: (root: Node) => Node) { }
 
   nextSibling(): EffectLocation {
     return new EffectLocation((root) => this.findNode(root).nextSibling!)
@@ -80,7 +76,7 @@ class TextEffectTemplate implements EffectTemplate {
   constructor(private generator: EffectGenerator<string | undefined>, private location: EffectLocation) { }
 
   attach(store: Store, root: Node, props: any) {
-    const effect = new UpdateTextEffect(this.location.find(root) as Text, this.generator, props)
+    const effect = new UpdateTextEffect(this.location.findNode(root) as Text, this.generator, props)
     store.useEffect(effect)
   }
 }
@@ -89,7 +85,7 @@ class AttributeEffectTemplate implements EffectTemplate {
   constructor(private generator: EffectGenerator<string | undefined>, private attribute: string, private location: EffectLocation) { }
 
   attach(store: Store, root: Node, props: any) {
-    const effect = new UpdateAttributeEffect(this.location.find(root) as Element, this.attribute, this.generator, props)
+    const effect = new UpdateAttributeEffect(this.location.findNode(root) as Element, this.attribute, this.generator, props)
     store.useEffect(effect)
   }
 }
@@ -98,7 +94,7 @@ class PropertyEffectTemplate implements EffectTemplate {
   constructor(private generator: EffectGenerator<string | undefined>, private property: string, private location: EffectLocation) { }
 
   attach(store: Store, root: Node, props: any) {
-    const effect = new UpdatePropertyEffect(this.location.find(root) as Element, this.property, this.generator, props)
+    const effect = new UpdatePropertyEffect(this.location.findNode(root) as Element, this.property, this.generator, props)
     store.useEffect(effect)
   }
 }
@@ -107,7 +103,7 @@ class EventEffectTemplate implements EffectTemplate {
   constructor(private template: VirtualTemplate<any>, private event: string, private handler: (evt: Event) => StoreMessage<any>, private location: EffectLocation) { }
 
   attach(store: Store, root: Node, context: any) {
-    const element = this.location.find(root) as Element
+    const element = this.location.findNode(root) as Element
     element.addEventListener(this.event, (evt) => {
       this.template.setArgs(context)
       store.dispatch(this.handler(evt))
@@ -119,7 +115,7 @@ class StatefulZoneEffectTemplate implements EffectTemplate {
   constructor(private generator: EffectGenerator<VirtualNode>, private nodeReference: NodeReference, private location: EffectLocation) { }
 
   attach(store: Store, root: Node, props: any) {
-    const effect = new PatchZoneEffect(store, this.location.find(root), this.generator, this.nodeReference, props)
+    const effect = new PatchZoneEffect(store, this.location.findNode(root), this.generator, this.nodeReference, props)
     store.useEffect(effect)
   }
 }
@@ -128,7 +124,7 @@ class TemplateTemplate implements EffectTemplate {
   constructor(private vnode: TemplateNode, private location: EffectLocation) { }
 
   attach(store: Store, root: Node, _: any) {
-    const placeholder = this.location.find(root)
+    const placeholder = this.location.findNode(root)
     const templateNode = createTemplateInstance(store, this.vnode)
     placeholder.parentNode?.replaceChild(templateNode, placeholder)
   }
@@ -138,7 +134,7 @@ class ListEffectTemplate implements EffectTemplate {
   constructor(private vnode: TemplateListNode, private location: EffectLocation) { }
 
   attach(store: Store, root: Node, _: any) {
-    const listStartIndicatorNode = this.location.find(root)
+    const listStartIndicatorNode = this.location.findNode(root)
     const effect = new ListEffect(store, this.vnode, listStartIndicatorNode, createTemplateInstance)
     store.useEffect(effect)
   }

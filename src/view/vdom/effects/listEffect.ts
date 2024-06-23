@@ -96,9 +96,10 @@ export class ListEffect implements ReactiveEffect {
     if (newHead > newTail) {
       // then there are more old kids than new ones and we got through
       // everything so remove from the end of the list
-      while (oldHead <= oldTail) {
-        removeNode(parent, oldVKids[oldHead++])
-      }
+      const range = new Range()
+      range.setStartBefore(oldVKids[oldHead].node!)
+      range.setEndAfter(oldVKids[oldTail].node!)
+      range.deleteContents()
       return
     }
 

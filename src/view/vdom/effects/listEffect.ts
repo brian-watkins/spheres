@@ -15,7 +15,6 @@ export class ListEffect implements ReactiveEffect {
   constructor(private store: Store, private vnode: TemplateListNode, private listStartNode: Node, private templateNodeGenerator: TemplateNodeGenerator) { }
 
   init(get: GetState) {
-
     const data = this.vnode.argList(get)
 
     const parent = this.listStartNode.parentNode!

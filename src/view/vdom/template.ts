@@ -10,9 +10,15 @@ import { EffectLocation } from "./effectLocation.js"
 
 const templateRegistry = new WeakMap<VirtualTemplate<any>, DOMTemplate>()
 
+// Move these to virtual node and replace the `on` param with an EventMap
+// Do we even need the EventHandler object anymore?
+type StoreEventHandler<T> = (evt: Event) => StoreMessage<T>
+type EventMap = Map<string, StoreEventHandler<any>>
+
 interface DOMTemplate {
   element: HTMLTemplateElement
   effects: Array<EffectTemplate>
+  events: Map<string, EventMap>
 }
 
 export function createTemplateInstance(store: Store, vnode: TemplateNode): Node {
@@ -24,7 +30,28 @@ export function createTemplateInstance(store: Store, vnode: TemplateNode): Node 
     effect.attach(store, root, vnode.args)
   }
 
-  return root.firstChild!
+  const rootElement = root.firstChild!
+  attachEvents(template, vnode, store, rootElement)
+
+  return rootElement
+}
+
+function attachEvents(template: DOMTemplate, vnode: TemplateNode, store: Store, rootElement: Node) {
+  for (const eventType of template.events.keys()) {
+    const args = vnode.args
+    const virtualTemplate = vnode.template
+    const eventMap = template.events.get(eventType)!
+    rootElement.addEventListener(eventType, (evt) => {
+      //@ts-ignore
+      const node = evt.target!.closest(`[data-spheres-${eventType}]`) as Element
+      if (node) {
+        const handler = eventMap.get(node.getAttribute(`data-spheres-${eventType}`)!)!
+        virtualTemplate.setArgs(args)
+        store.dispatch(handler(evt))
+        evt.stopPropagation()
+      }
+    })
+  }
 }
 
 function getTemplate(vnode: TemplateNode): DOMTemplate {
@@ -36,9 +63,13 @@ function getTemplate(vnode: TemplateNode): DOMTemplate {
     const element = document.createElement("template")
     element.content.appendChild(createTemplateNode(virtualNode))
 
+    const eventMap = new Map<string, EventMap>()
+    findEvents(eventMap, virtualNode)
+
     template = {
       element,
-      effects: findEffectLocations(vnode.template, virtualNode, new EffectLocation((root) => root.firstChild!))
+      effects: findEffectLocations(vnode.template, virtualNode, new EffectLocation((root) => root.firstChild!)),
+      events: eventMap
     }
 
     templateRegistry.set(vnode.template, template)
@@ -78,18 +109,6 @@ class PropertyEffectTemplate implements EffectTemplate {
   }
 }
 
-class EventEffectTemplate implements EffectTemplate {
-  constructor(private template: VirtualTemplate<any>, private event: string, private handler: (evt: Event) => StoreMessage<any>, private location: EffectLocation) { }
-
-  attach(store: Store, root: Node, context: any) {
-    const element = this.location.findNode(root) as Element
-    element.addEventListener(this.event, (evt) => {
-      this.template.setArgs(context)
-      store.dispatch(this.handler(evt))
-    })
-  }
-}
-
 class StatefulZoneEffectTemplate implements EffectTemplate {
   constructor(private generator: EffectGenerator<VirtualNode>, private nodeReference: NodeReference, private location: EffectLocation) { }
 
@@ -116,6 +135,25 @@ class ListEffectTemplate implements EffectTemplate {
     const listStartIndicatorNode = this.location.findNode(root)
     const effect = new ListEffect(store, this.vnode, listStartIndicatorNode, createTemplateInstance)
     store.useEffect(effect)
+  }
+}
+
+function findEvents(events: Map<string, EventMap>, vnode: VirtualNode) {
+  switch (vnode.type) {
+    case NodeType.ELEMENT:
+      // We could make the `on` object a EventMap, right?
+      const elementEvents = vnode.data.on
+      for (const k in elementEvents) {
+        let map = events.get(k)
+        if (map === undefined) {
+          map = new Map<string, StoreEventHandler<any>>()
+          events.set(k, map)
+        }
+        map.set(vnode.data.eventId!, elementEvents[k].handler)
+      }
+      for (var i = 0; i < vnode.children.length; i++) {
+        findEvents(events, vnode.children[i])
+      }
   }
 }
 
@@ -151,11 +189,6 @@ function findEffectLocations(template: VirtualTemplate<any>, vnode: VirtualNode,
       const statefulProps = vnode.data.statefulProps
       for (const prop in statefulProps) {
         effects.push(new PropertyEffectTemplate(template.useWithArgs(statefulProps[prop].generator), prop, location))
-      }
-
-      const events = vnode.data.on
-      for (const k in events) {
-        effects.push(new EventEffectTemplate(template, k, events[k].handler, location))
       }
 
       for (var i = 0; i < vnode.children.length; i++) {
@@ -197,6 +230,12 @@ export function createTemplateNode(vnode: VirtualNode): Node {
       const attrs = vnode.data.attrs
       for (const attr in attrs) {
         element.setAttribute(attr, attrs[attr])
+      }
+
+      const events = vnode.data.on
+
+      for (const k in events) {
+        element.setAttribute(`data-spheres-${k}`, vnode.data.eventId!)
       }
 
       const props = vnode.data.props

@@ -37,7 +37,6 @@ export interface ElementNode {
   data: VirtualNodeConfig
   children: Array<VirtualNode>
   node: Element | undefined
-  // key?: VirtualNodeKey
 }
 
 export interface StatefulNode {
@@ -85,6 +84,7 @@ export interface VirtualNodeConfig {
   statefulAttrs?: Record<string, StatefulValue<string>>
   namespace?: string
   on?: { [index: string]: EventHandler }
+  eventId: string
   key?: VirtualNodeKey
 }
 
@@ -92,9 +92,10 @@ export interface StoreContext {
   generator: (get: GetState) => VirtualNode
 }
 
-export function virtualNodeConfig(): VirtualNodeConfig {
+export function virtualNodeConfig(eventId: number = 0): VirtualNodeConfig {
   return {
-    attrs: {}
+    attrs: {},
+    eventId: `${eventId}`
   }
 }
 
@@ -126,7 +127,9 @@ export function addStatefulAttribute(config: VirtualNodeConfig, name: string, ge
 }
 
 export function setEventHandler(config: VirtualNodeConfig, event: string, handler: (evt: Event) => StoreMessage<any, any>) {
-  if (!config.on) { config.on = {} }
+  if (!config.on) {
+    config.on = {}
+  }
 
   config.on[event] = new EventHandler(handler)
 }

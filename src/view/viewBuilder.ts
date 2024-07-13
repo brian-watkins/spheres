@@ -16,8 +16,17 @@ export type ViewArgs<P> = P extends undefined ? [] : [P]
 
 const templateNodeRegistry = new WeakMap<Function, VirtualTemplate<any>>()
 
+class Sequence {
+  private val: number = 0
+
+  next(): number {
+    return this.val++
+  }
+}
+
 export abstract class ViewBuilder<A extends SpecialElementAttributes, B> {
   nodes: Array<VirtualNode> = []
+  eventId: Sequence = new Sequence()
 
   storeNode(node: VirtualNode) {
     this.nodes.push(node)
@@ -46,7 +55,7 @@ export abstract class ViewBuilder<A extends SpecialElementAttributes, B> {
     let storedNodes = this.nodes
     let childNodes: Array<VirtualNode> = []
     this.nodes = childNodes
-    const config = virtualNodeConfig()
+    const config = virtualNodeConfig(this.eventId.next())
     configBuilder.resetConfig(config)
     builder?.({
       config: configBuilder as unknown as A,

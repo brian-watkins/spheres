@@ -82,4 +82,11 @@ export class DisplayElement {
       index: this.index
     })
   }
+
+  focus(): Promise<void> {
+    return usePage((page, opt) => page.locator(opt.selector).nth(opt.index).focus({ timeout: 200 }), {
+      selector: this.selector,
+      index: this.index
+    })
+  }
 }

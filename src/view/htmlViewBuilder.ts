@@ -55,6 +55,7 @@ export interface SpecialHTMLElements {
   element(tag: string, builder?: (element: ConfigurableElement<SpecialElementAttributes, HTMLElements>) => void): this
   textNode(value: string | Stateful<string>): this
   zone(view: HTMLDisplay, options?: ViewOptions): this
+  zoneShow(when: (get: GetState) => boolean, view: HTMLView): this
   zones<T>(data: Stateful<Array<T>>, viewGenerator: (args: T) => HTMLTemplateView<T>): this
 }
 
@@ -105,6 +106,14 @@ class HtmlViewBuilder extends ViewBuilder<SpecialElementAttributes, HTMLElements
     } else {
       this.storeNode(makeTemplate(view[template], view[templateArgs], options?.key))
     }
+
+    return this
+  }
+
+  zoneShow(when: (get: GetState) => boolean, view: HTMLView): this {
+    this.storeNode(makeStatefulElement((get) => toReactiveVirtualNode((get) => {
+      return when(get) ? view : root => root.textNode("")
+    }, get), undefined))
 
     return this
   }

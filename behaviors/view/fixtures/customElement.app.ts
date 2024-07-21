@@ -1,9 +1,9 @@
 import { container, write } from "@spheres/store";
-import { htmlTemplate } from "@src/index";
+import { HTMLBuilder } from "@src/index";
 
 const coolMessage = container({ initialValue: "NOTHING!" })
 
-export default htmlTemplate(() => root => {
+export default function (root: HTMLBuilder) {
   root.main(({ config, children }) => {
     config
       .on("cool-event", (evt) => {
@@ -20,7 +20,7 @@ export default htmlTemplate(() => root => {
           .attribute("cool-stuff", "camels")
       })
   })
-})
+}
 
 class CoolElement extends HTMLElement {
   static observedAttributes = ["cool-stuff"];

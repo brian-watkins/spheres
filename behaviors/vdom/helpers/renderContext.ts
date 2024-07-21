@@ -1,8 +1,8 @@
-import { patch, virtualize } from "@src/vdom/renderToDom.js"
+// import { patch, virtualize } from "@src/vdom/renderToDom.js"
 import { VirtualNode } from "@src/vdom/virtualNode.js"
-import { HTMLView, htmlTemplate, renderToDOM } from "@src/htmlViewBuilder.js"
+import { HTMLView, renderToDOM } from "@src/htmlViewBuilder.js"
 import { Context } from "esbehavior"
-import { Container, Store, StoreMessage, write } from "@spheres/store"
+import { Container, Store, write } from "@spheres/store"
 
 export class RenderApp<T> {
   private unmount: (() => void) | undefined
@@ -26,32 +26,32 @@ export class RenderApp<T> {
     const base = document.createElement("div")
     document.body.appendChild(base)
 
-    const template = htmlTemplate(() => view)
-    const renderResult = renderToDOM(this.store, base, template())
+    // const template = htmlTemplate(() => view)
+    const renderResult = renderToDOM(this.store, base, view)
 
     this.unmount = renderResult.unmount
   }
 
-  mount(vnode: VirtualNode) {
-    const base = document.createElement("div")
-    document.body.appendChild(base)
+  // mount(vnode: VirtualNode) {
+  //   const base = document.createElement("div")
+  //   document.body.appendChild(base)
 
-    const renderResult = patch(this.store, virtualize(base), vnode)
-    this.current = renderResult
+  //   const renderResult = patch(this.store, virtualize(base), vnode)
+  //   this.current = renderResult
 
-    this.current.node?.addEventListener("displayMessage", (evt: Event) => {
-      const displayMessageEvent = evt as CustomEvent<StoreMessage<any>>
-      this.store.dispatch(displayMessageEvent.detail)
-    })
+  //   this.current.node?.addEventListener("displayMessage", (evt: Event) => {
+  //     const displayMessageEvent = evt as CustomEvent<StoreMessage<any>>
+  //     this.store.dispatch(displayMessageEvent.detail)
+  //   })
 
-    this.unmount = () => {
-      this.current!.node?.parentNode?.removeChild(this.current!.node)
-    }
-  }
+  //   this.unmount = () => {
+  //     this.current!.node?.parentNode?.removeChild(this.current!.node)
+  //   }
+  // }
 
-  patch(vnode: VirtualNode) {
-    this.current = patch(this.store, this.current!, vnode)
-  }
+  // patch(vnode: VirtualNode) {
+  //   this.current = patch(this.store, this.current!, vnode)
+  // }
 
   destroy() {
     this.unmount?.()

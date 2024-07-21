@@ -1,4 +1,4 @@
-import { htmlTemplate } from "@src/index";
+import { HTMLBuilder } from "@src/index";
 import { container, reset, write } from "@spheres/store";
 
 const fruits = [
@@ -12,7 +12,7 @@ const fruits = [
 
 const selectedFruit = container({ initialValue: "grapes" })
 
-export default htmlTemplate(() => root => {
+export default function (root: HTMLBuilder) {
   root.main(({ children }) => {
     children
       .form(({ children }) => {
@@ -50,4 +50,4 @@ export default htmlTemplate(() => root => {
         children.textNode(get => `Selected Option: ${get(selectedFruit)}`)
       })
   })
-})
+}

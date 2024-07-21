@@ -1,4 +1,4 @@
-import { GetState, State, StoreMessage } from "../../store/index.js";
+import { Container, container, GetState, reactiveVariable, ReactiveVariable, State, StoreMessage, variable, Variable } from "../../store/index.js";
 import { EventHandler } from "./eventHandler.js";
 
 export type Stateful<T> = (get: GetState) => T | undefined
@@ -14,7 +14,7 @@ export enum NodeType {
   STATEFUL_TEXT = 16,
   BLOCK = 17,
   TEMPLATE = 18,
-  TEMPLATE_LIST = 19,
+  ZONE_LIST = 19,
 }
 
 export interface TextNode {
@@ -61,16 +61,19 @@ export interface TemplateNode {
   node: Node | undefined
 }
 
-export interface TemplateListNode {
-  type: NodeType.TEMPLATE_LIST
+export interface ZoneListNode {
+  type: NodeType.ZONE_LIST
   id: string
-  templateGenerator: (args: any) => TemplateNode
+  template: VirtualTemplate<any>
   argList: (get: GetState) => Array<any>
-  key?: VirtualNodeKey
   node: Node | undefined
+  // templateGenerator: (args: any) => TemplateNode
+  // argList: (get: GetState) => Array<any>
+  // key?: VirtualNodeKey
+  // node: Node | undefined
 }
 
-export type VirtualNode = TextNode | StatefulTextNode | ElementNode | StatefulNode | BlockNode | TemplateNode | TemplateListNode
+export type VirtualNode = TextNode | StatefulTextNode | ElementNode | StatefulNode | BlockNode | TemplateNode | ZoneListNode
 
 export interface StatefulValue<T> {
   generator: Stateful<T>
@@ -188,17 +191,46 @@ export type WithArgs<T> =
   <S>(generator: (args: T, get: GetState) => S) => (get: GetState) => S
 
 export class VirtualTemplate<T> {
-  protected args!: T
+  // protected args!: T
+  protected itemToken: Variable<T | undefined> = variable({ initialValue: undefined })
+  // private itemValue!: T
+  // private itemIndex: number = -1
+  protected indexToken: ReactiveVariable<number> = reactiveVariable({ initialValue: container({ initialValue: -1 }) })
   virtualNode!: VirtualNode
+  public usesIndex = true
 
-  setArgs(args: T) {
-    this.args = args
+  // Note that this is used in renderToString and in the event handler for the template
+  // setArgs(args: T) {
+  //   this.args = args
+  // }
+
+  setItem(item: T, index: Container<number>) {
+    this.itemToken.assignValue(item)
+    this.indexToken.assignState(index)
   }
 
-  useWithArgs<S>(generator: (get: GetState) => S): (get: GetState, args: T) => S {
-    return (get, args) => {
-      this.args = args
-      return generator(get)
+  useWithArgs<S>(generator: (get: GetState) => S): (get: GetState, args: any) => S {
+    if (this.usesIndex) {
+      return (get, args) => {
+        // this.args = args
+        // this is really sketchy but we are assuming args has this shape right now
+        // console.log("Running effect with args", args)
+        // this.setItemAndIndex(args.item, args.index)
+        this.itemToken.assignValue(args.item)
+        this.indexToken.assignState(args.index)
+    
+        // we might need to capture subscribers to the index token here?
+        return generator(get)
+      }  
+    } else {
+      return (get, args) => {
+        // this.args = args
+        // this is really sketchy but we are assuming args has this shape right now
+        // console.log("Running effect with args", args)
+        this.itemToken.assignValue(args.item)
+        // we might need to capture subscribers to the index token here?
+        return generator(get)
+      }
     }
   }
 }
@@ -215,11 +247,21 @@ export function makeTemplate(template: VirtualTemplate<any>, args: any, key?: Vi
 
 let templateListId = 0
 
-export function makeTemplateList(templateGenerator: (args: any) => TemplateNode, argList: (get: GetState) => Array<any>): TemplateListNode {
+// export function makeTemplateList(templateGenerator: (args: any) => TemplateNode, argList: (get: GetState) => Array<any>): TemplateListNode {
+//   return {
+//     type: NodeType.TEMPLATE_LIST,
+//     id: `${templateListId++}`,
+//     templateGenerator,
+//     argList,
+//     node: undefined
+//   }
+// }
+
+export function makeZoneList(virtualTemplate: VirtualTemplate<any>, argList: (get: GetState) => Array<any>): ZoneListNode {
   return {
-    type: NodeType.TEMPLATE_LIST,
+    type: NodeType.ZONE_LIST,
     id: `${templateListId++}`,
-    templateGenerator,
+    template: virtualTemplate,
     argList,
     node: undefined
   }

@@ -1,9 +1,9 @@
 import { container, run, write } from "@spheres/store";
-import { htmlTemplate } from "@src/index";
+import { HTMLBuilder } from "@src/index";
 
 const secretMessage = container({ initialValue: "" })
 
-export default htmlTemplate(() => root => {
+export default function (root: HTMLBuilder) {
   root.main(({ config, children }) => {
     config
       .on("super-secret-message", (evt) => {
@@ -33,4 +33,4 @@ export default htmlTemplate(() => root => {
           .textNode("Send Message!")
       })
   })
-})
+}

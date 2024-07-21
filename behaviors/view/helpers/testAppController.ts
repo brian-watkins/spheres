@@ -18,14 +18,14 @@ export class TestAppController {
 
   constructor() {}
 
-  async loadApp<T>(appName: string, context?: T) {
+  async loadApp(appName: string) {
     this.browser = await useBrowser()
 
     await this.browser.page.evaluate(async (args) => {
       const { TestApp } = await import("./testApp.js")
       window.esdisplay_testApp = new TestApp()
-      await window.esdisplay_testApp.startApp(args.appName, args.context)
-    }, { appName, context })
+      await window.esdisplay_testApp.startApp(args.appName)
+    }, { appName })
   }
 
   get display(): TestAppDisplay {

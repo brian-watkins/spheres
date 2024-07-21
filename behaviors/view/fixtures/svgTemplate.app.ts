@@ -1,7 +1,7 @@
 import { Container, GetState, container, rule, use, write } from "@spheres/store";
-import { WithArgs, htmlTemplate, svgTemplate } from "@src/index";
+import { HTMLBuilder, WithArgs, svgTemplate } from "@src/index";
 
-export default htmlTemplate(() => root => {
+export default function (root: HTMLBuilder) {
   root.main(el => {
     el.children.
       svg(el => {
@@ -20,7 +20,7 @@ export default htmlTemplate(() => root => {
           .zone(circle({ id: 3, x: 400, y: 150, label: container({ initialValue: 0 }) }))
       })
   })
-})
+}
 
 interface CircleProps {
   id: number

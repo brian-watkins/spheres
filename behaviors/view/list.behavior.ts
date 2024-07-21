@@ -15,9 +15,24 @@ export default behavior("lists of views", [
       observe: [
         effect("the views in the list are displayed", async (context) => {
           await expect(context.display.selectAll("li").map(el => el.text()), resolvesTo([
-            "apple",
-            "grapes",
-            "dragonfruit"
+            "apple is at index 0",
+            "grapes is at index 1",
+            "dragonfruit is at index 2"
+          ]))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the button is clicked to swap the last two elements", async (context) => {
+          await context.display.select("[data-swap-elements]").click()
+        })
+      ],
+      observe: [
+        effect("the elements are swapped", async (context) => {
+          await expect(context.display.selectAll("li").map(el => el.text()), resolvesTo([
+            "apple is at index 0",
+            "dragonfruit is at index 1",
+            "grapes is at index 2"
           ]))
         })
       ]
@@ -31,12 +46,14 @@ export default behavior("lists of views", [
       observe: [
         effect("the elements are rearranged", async (context) => {
           await expect(context.display.selectAll("li").map(el => el.text()), resolvesTo([
-            "dragonfruit",
-            "apple",
-            "grapes"
+            "grapes is at index 0",
+            "apple is at index 1",
+            "dragonfruit is at index 2"
           ]))
         })
       ]
     })
+
+  // need an example where we start with nothing and then add items
 
 ])

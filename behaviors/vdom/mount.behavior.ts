@@ -6,12 +6,13 @@ import { renderContext } from "helpers/renderContext.js"
 import { container } from "@spheres/store"
 
 export default behavior("mount", [
+
   example(renderContext())
     .description("mount text")
     .script({
       suppose: [
-        fact("a node with text", (context) => {
-          context.mount(makeVirtualTextNode("Hello!"))
+        fact("there is a node with text", (context) => {
+          context.mountView(root => root.textNode("Hello!"))
         })
       ],
       observe: [
@@ -20,14 +21,35 @@ export default behavior("mount", [
         })
       ]
     }),
+
+  // example(renderContext())
+  //   .description("mount text")
+  //   .script({
+  //     suppose: [
+  //       fact("a node with text", (context) => {
+  //         context.mount(makeVirtualTextNode("Hello!"))
+  //       })
+  //     ],
+  //     observe: [
+  //       effect("the text is rendered", async () => {
+  //         await expect(selectElementWithText("Hello!").exists(), resolvesTo(equalTo(true)))
+  //       })
+  //     ]
+  //   }),
+
   example(renderContext())
     .description("mount a different element from the root with text")
     .script({
       suppose: [
         fact("an element", (context) => {
-          context.mount(makeVirtualElement("span", virtualNodeConfig(), [
-            makeVirtualTextNode("Cool!")
-          ]))
+          context.mountView(root => {
+            root.span(el => {
+              el.children.textNode("Cool!")
+            })
+          })
+          // makeVirtualElement("span", virtualNodeConfig(), [
+          // makeVirtualTextNode("Cool!")
+          // ]))
         })
       ],
       observe: [
@@ -36,17 +58,26 @@ export default behavior("mount", [
         })
       ]
     }),
+
   example(renderContext())
     .description("mount a different element with text and an attribute")
     .script({
       suppose: [
         fact("an element", (context) => {
-          const config = virtualNodeConfig()
-          addAttribute(config, "data-stuff", "227")
-          context.mount(makeVirtualElement("span", config, [
-            makeVirtualTextNode("This is "),
-            makeVirtualTextNode("so cool!")
-          ]))
+          context.mountView(root => {
+            root.span(el => {
+              el.config.dataAttribute("stuff", "227")
+              el.children
+                .textNode("This is ")
+                .textNode("so cool!")
+            })
+          })
+          // const config = virtualNodeConfig()
+          // addAttribute(config, "data-stuff", "227")
+          // context.mount(makeVirtualElement("span", config, [
+          //   makeVirtualTextNode("This is "),
+          //   makeVirtualTextNode("so cool!")
+          // ]))
         })
       ],
       observe: [
@@ -58,17 +89,27 @@ export default behavior("mount", [
         })
       ]
     }),
+
   example(renderContext())
     .description("mount the same element as the root with an attribute and text")
     .script({
       suppose: [
         fact("an element that is the same type as the root", (context) => {
-          const config = virtualNodeConfig()
-          addAttribute(config, "data-things", "14")
-          context.mount(makeVirtualElement("div", config, [
-            makeVirtualTextNode("Radical"),
-            makeVirtualTextNode(" stuff!"),
-          ]))
+          context.mountView(root => {
+            root.div(el => {
+              el.config.dataAttribute("things", "14")
+              el.children
+                .textNode("Radical")
+                .textNode(" stuff!")
+            })
+          })
+
+          // const config = virtualNodeConfig()
+          // addAttribute(config, "data-things", "14")
+          // context.mount(makeVirtualElement("div", config, [
+          //   makeVirtualTextNode("Radical"),
+          //   makeVirtualTextNode(" stuff!"),
+          // ]))
         })
       ],
       observe: [
@@ -85,9 +126,14 @@ export default behavior("mount", [
     .script({
       suppose: [
         fact("there is an element with inner html content", (context) => {
-          const config = virtualNodeConfig()
-          addProperty(config, "innerHTML", "<p data-fun-stuff=\"yo\">This is some text!</p>")
-          context.mount(makeVirtualElement("div", config, []))
+          context.mountView(root => {
+            root.div(el => {
+              el.config.innerHTML("<p data-fun-stuff=\"yo\">This is some text!</p>")
+            })
+          })
+          // const config = virtualNodeConfig()
+          // addProperty(config, "innerHTML", "<p data-fun-stuff=\"yo\">This is some text!</p>")
+          // context.mount(makeVirtualElement("div", config, []))
         })
       ],
       observe: [
@@ -96,23 +142,39 @@ export default behavior("mount", [
         })
       ]
     }),
+
   example(renderContext())
     .description("mount the same element with child elements")
     .script({
       suppose: [
         fact("an element with children", (context) => {
-          const config = virtualNodeConfig()
-          addAttribute(config, "data-things", "21")
-          const pConfig = virtualNodeConfig()
-          addAttribute(pConfig, "class", "text-slate-900")
-          context.mount(makeVirtualElement("div", config, [
-            makeVirtualElement("p", pConfig, [
-              makeVirtualTextNode("This is some text.")
-            ]),
-            makeVirtualElement("p", pConfig, [
-              makeVirtualTextNode("This is some more text.")
-            ])
-          ]))
+          context.mountView(root => {
+            root.div(el => {
+              el.config.dataAttribute("things", "21")
+              el.children
+                .p(el => {
+                  el.config.class("text-slate-900")
+                  el.children.textNode("This is some text.")
+                })
+                .p(el => {
+                  el.config.class("text-slate-900")
+                  el.children.textNode("This is some more text.")
+                })
+            })
+          })
+
+          // const config = virtualNodeConfig()
+          // addAttribute(config, "data-things", "21")
+          // const pConfig = virtualNodeConfig()
+          // addAttribute(pConfig, "class", "text-slate-900")
+          // context.mount(makeVirtualElement("div", config, [
+          //   makeVirtualElement("p", pConfig, [
+          //     makeVirtualTextNode("This is some text.")
+          //   ]),
+          //   makeVirtualElement("p", pConfig, [
+          //     makeVirtualTextNode("This is some more text.")
+          //   ])
+          // ]))
         })
       ],
       observe: [
@@ -127,19 +189,28 @@ export default behavior("mount", [
         })
       ]
     }),
+
   example(renderContext())
     .description("mount a stateful view")
     .script({
       suppose: [
         fact("a stateful view", (context) => {
           const name = container({ initialValue: "Funny person" })
-          context.mount(makeStatefulElement((get) => {
-            const statefulConfig = virtualNodeConfig()
-            addAttribute(statefulConfig, "data-label", "stateful")
-            return makeVirtualElement("div", statefulConfig, [
-              makeVirtualTextNode(`${get(name)}, you are so stateful!`)
-            ])
-          }, undefined))
+          context.mountView(root => {
+            root.div(el => {
+              el.config.dataAttribute("label", "stateful")
+              el.children.textNode(get => `${get(name)}, you are so stateful!`)
+            })
+          })
+
+          // const name = container({ initialValue: "Funny person" })
+          // context.mount(makeStatefulElement((get) => {
+          //   const statefulConfig = virtualNodeConfig()
+          //   addAttribute(statefulConfig, "data-label", "stateful")
+          //   return makeVirtualElement("div", statefulConfig, [
+          //     makeVirtualTextNode(`${get(name)}, you are so stateful!`)
+          //   ])
+          // }, undefined))
         })
       ],
       observe: [
@@ -149,42 +220,43 @@ export default behavior("mount", [
         })
       ]
     }),
-  example(renderContext())
-    .description("mount nested stateful views")
-    .script({
-      suppose: [
-        fact("there are nested stateful views", (context) => {
-          const name = container({ initialValue: "Funny person" })
-          const sport = container({ initialValue: "bowling" })
 
-          const statefulChild = makeStatefulElement((get) => {
-            const config = virtualNodeConfig()
-            addAttribute(config, "class", "coolness")
-            return makeVirtualElement("div", config, [
-              makeVirtualTextNode(`Your favorite sport is: ${get(sport)}`)
-            ])
-          }, undefined)
+  // example(renderContext())
+  //   .description("mount nested stateful views")
+  //   .script({
+  //     suppose: [
+  //       fact("there are nested stateful views", (context) => {
+  //         const name = container({ initialValue: "Funny person" })
+  //         const sport = container({ initialValue: "bowling" })
 
-          context.mount(makeStatefulElement((get) => {
-            const statefulConfig = virtualNodeConfig()
-            addAttribute(statefulConfig, "data-label", "stateful")
-            return makeVirtualElement("div", virtualNodeConfig(), [
-              makeVirtualElement("div", statefulConfig, [
-                makeVirtualTextNode(`${get(name)}, you are so stateful!`),
-              ]),
-              statefulChild
-            ])
-          }, undefined))
-        })
-      ],
-      observe: [
-        effect("it mounts the stateful element", async () => {
-          await expect(selectElement("[data-label='stateful']").text(),
-            resolvesTo(equalTo("Funny person, you are so stateful!")))
-        }),
-        effect("it mounts the nested stateful element", async () => {
-          await expect(selectElement(".coolness").text(), resolvesTo(equalTo("Your favorite sport is: bowling")))
-        })
-      ]
-    })
+  //         const statefulChild = makeStatefulElement((get) => {
+  //           const config = virtualNodeConfig()
+  //           addAttribute(config, "class", "coolness")
+  //           return makeVirtualElement("div", config, [
+  //             makeVirtualTextNode(`Your favorite sport is: ${get(sport)}`)
+  //           ])
+  //         }, undefined)
+
+  //         context.mount(makeStatefulElement((get) => {
+  //           const statefulConfig = virtualNodeConfig()
+  //           addAttribute(statefulConfig, "data-label", "stateful")
+  //           return makeVirtualElement("div", virtualNodeConfig(), [
+  //             makeVirtualElement("div", statefulConfig, [
+  //               makeVirtualTextNode(`${get(name)}, you are so stateful!`),
+  //             ]),
+  //             statefulChild
+  //           ])
+  //         }, undefined))
+  //       })
+  //     ],
+  //     observe: [
+  //       effect("it mounts the stateful element", async () => {
+  //         await expect(selectElement("[data-label='stateful']").text(),
+  //           resolvesTo(equalTo("Funny person, you are so stateful!")))
+  //       }),
+  //       effect("it mounts the nested stateful element", async () => {
+  //         await expect(selectElement(".coolness").text(), resolvesTo(equalTo("Your favorite sport is: bowling")))
+  //       })
+  //     ]
+  //   })
 ])

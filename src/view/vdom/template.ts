@@ -1,9 +1,9 @@
 import { Store, StoreMessage } from "../../store/index.js"
-import { NodeType, TemplateListNode, TemplateNode, VirtualNode, VirtualTemplate } from "./virtualNode.js"
+import { NodeType, TemplateNode, VirtualNode, VirtualTemplate, ZoneListNode } from "./virtualNode.js"
 import { UpdateAttributeEffect } from "./effects/attributeEffect.js"
 import { UpdatePropertyEffect } from "./effects/propertyEffect.js"
 import { UpdateTextEffect } from "./effects/textEffect.js"
-import { NodeReference, PatchZoneEffect } from "./effects/zoneEffect.js"
+import { NodeReference, ZoneEffect } from "./effects/zoneEffect.js"
 import { EffectGenerator } from "./effects/effectGenerator.js"
 import { ListEffect } from "./effects/listEffect.js"
 import { EffectLocation } from "./effectLocation.js"
@@ -30,6 +30,13 @@ export function createTemplateInstance(store: Store, vnode: TemplateNode): Node 
     effect.attach(store, root, vnode.args)
   }
 
+  // Note that at this point all the effects have run once so presumably
+  // we could know the subscribers to the index token and we could store it
+  // on the template node. potentially.
+  // But I don't know if that would help if an effect only subscribed to the
+  // index token later due to change in other state. We might have to
+  // do something in useWithArgs
+
   const rootElement = root.firstChild!
   attachEvents(template, vnode, store, rootElement)
 
@@ -46,7 +53,10 @@ function attachEvents(template: DOMTemplate, vnode: TemplateNode, store: Store, 
       const node = evt.target!.closest(`[data-spheres-${eventType}]`) as Element
       if (node) {
         const handler = eventMap.get(node.getAttribute(`data-spheres-${eventType}`)!)!
-        virtualTemplate.setArgs(args)
+        // virtualTemplate.setArgs(args)
+        // note that we are basically only supporting list items with a template
+        // now
+        virtualTemplate.setItem(args.item, args.index)
         store.dispatch(handler(evt))
         evt.stopPropagation()
       }
@@ -113,7 +123,8 @@ class StatefulZoneEffectTemplate implements EffectTemplate {
   constructor(private generator: EffectGenerator<VirtualNode>, private nodeReference: NodeReference, private location: EffectLocation) { }
 
   attach(store: Store, root: Node, props: any) {
-    const effect = new PatchZoneEffect(store, this.location.findNode(root), this.generator, this.nodeReference, props)
+    // const effect = new PatchZoneEffect(store, this.location.findNode(root), this.generator, this.nodeReference, props)
+    const effect = new ZoneEffect(store, this.location.findNode(root), this.generator, this.nodeReference, props)
     store.useEffect(effect)
   }
 }
@@ -129,7 +140,7 @@ class TemplateTemplate implements EffectTemplate {
 }
 
 class ListEffectTemplate implements EffectTemplate {
-  constructor(private vnode: TemplateListNode, private location: EffectLocation) { }
+  constructor(private vnode: ZoneListNode, private location: EffectLocation) { }
 
   attach(store: Store, root: Node, _: any) {
     const listStartIndicatorNode = this.location.findNode(root)
@@ -174,8 +185,8 @@ function findEffectLocations(template: VirtualTemplate<any>, vnode: VirtualNode,
     case NodeType.TEMPLATE:
       return [new TemplateTemplate(vnode, location)]
 
-    case NodeType.TEMPLATE_LIST:
-      const markerLocation = location.nextCommentSiblingMatching(`template-list-${vnode.id}`)
+    case NodeType.ZONE_LIST:
+      const markerLocation = location.nextCommentSiblingMatching(`zone-list-${vnode.id}`)
       return [new ListEffectTemplate(vnode, markerLocation)]
 
     case NodeType.ELEMENT:
@@ -219,8 +230,8 @@ export function createTemplateNode(vnode: VirtualNode): Node {
     case NodeType.TEMPLATE:
       return document.createElement("nested-template")
 
-    case NodeType.TEMPLATE_LIST:
-      return document.createComment(`template-list-${vnode.id}`)
+    case NodeType.ZONE_LIST:
+      return document.createComment(`zone-list-${vnode.id}`)
 
     default:
       const element = vnode.data.namespace ?

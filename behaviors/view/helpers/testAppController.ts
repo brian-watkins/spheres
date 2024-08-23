@@ -8,23 +8,19 @@ export interface DisplayBehaviorOptions {
 }
 
 export function browserAppContext(): Context<TestAppController> {
-  return {
-    init: () => new TestAppController()
-  }
+  return useBrowser({
+    init: (browser) => new TestAppController(browser)
+  })
 }
 
 export class TestAppController {
-  private browser: BrowserTestInstrument | undefined
-
-  constructor() {}
+  constructor(private browser: BrowserTestInstrument) { }
 
   async loadApp<T>(appName: string, context?: T) {
-    this.browser = await useBrowser()
-
     await this.browser.page.evaluate(async (args) => {
       const { TestApp } = await import("./testApp.js")
       window.esdisplay_testApp = new TestApp()
-      await window.esdisplay_testApp.startApp(args.appName, args.context)
+      await window.esdisplay_testApp.startApp(args.appName)
     }, { appName, context })
   }
 

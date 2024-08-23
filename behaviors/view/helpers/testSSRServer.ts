@@ -17,12 +17,10 @@ export interface SSRTestAppContext {
 }
 
 export function ssrTestAppContext(): Context<SSRTestAppContext> {
-  return {
-    init: async () => {
+  return useBrowser({
+    init: async (browser) => {
       const server = new TestSSRServer()
       await server.start()
-
-      const browser = await useBrowser()
 
       return {
         server: server,
@@ -33,7 +31,7 @@ export function ssrTestAppContext(): Context<SSRTestAppContext> {
       await context.browser.browser.page.close()
       await context.server.close()
     }
-  }
+  })
 }
 
 

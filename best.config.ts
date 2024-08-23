@@ -1,4 +1,4 @@
-import { defineConfig } from "best-behavior";
+import { defineConfig, MonocartCoverageReporter } from "best-behavior";
 
 export default defineConfig({
   behaviorGlobs: [
@@ -10,6 +10,16 @@ export default defineConfig({
       "**/vdom/*"
     ]
   },
+  coverageReporter: new MonocartCoverageReporter({
+    reports: [
+      "v8",
+      "text"
+    ],
+    entryFilter: (entry) => {
+      return entry.url.includes("src") && !entry.url.includes("node_modules")
+    },
+    clean: true
+  }),
   failFast: true,
   viteConfig: "./behaviors/vite.config.js"
 })

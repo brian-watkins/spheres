@@ -1,6 +1,5 @@
 import { behavior, effect, example, fact, step } from "esbehavior";
 import { equalTo, expect, is, resolvesTo } from "great-expectations";
-import { InputAppProps } from "./fixtures/input.app.js";
 import { browserAppContext } from "./helpers/testAppController.js";
 
 export default behavior("Input Element Properties", [
@@ -9,7 +8,7 @@ export default behavior("Input Element Properties", [
     .script({
       suppose: [
         fact("there is an app with an input that has a default value", async (controller) => {
-          await controller.loadApp<InputAppProps>("input.app")
+          await controller.loadApp("input.app")
         })
       ],
       observe: [

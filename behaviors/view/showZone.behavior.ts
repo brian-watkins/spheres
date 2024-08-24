@@ -43,6 +43,54 @@ export default behavior("show and hide zone", [
           await expect(context.display.selectAll("hr").count(), resolvesTo(2))
         })
       ]
+    }),
+
+  // Also need a test here about a zoneShow that's inside a template
+  example(browserAppContext())
+    .description("showing and hiding a zone within a template")
+    .script({
+      suppose: [
+        fact("there is a view", async (context) => {
+          await context.loadApp("showHideTemplate.app")
+        })
+      ],
+      observe: [
+        effect("the views show the templatized text", async (context) => {
+          await expect(context.display.selectAll("[data-toggleable-view]").map(el => el.text()), resolvesTo([
+            "You are cool!",
+            "You are awesome!",
+            "You are fun!",
+            "You are great!",
+          ]))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("click to hide the views", async (context) => {
+          await context.display.select("button").click()
+        })
+      ],
+      observe: [
+        effect("the toggleable views are hidden", async (context) => {
+          await expect(context.display.selectAll("[data-toggleable-view]").count(), resolvesTo(0))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("click to show the views", async (context) => {
+          await context.display.select("button").click()
+        })
+      ],
+      observe: [
+        effect("the views are shown with the templatized text", async (context) => {
+          await expect(context.display.selectAll("[data-toggleable-view]").map(el => el.text()), resolvesTo([
+            "You are cool!",
+            "You are awesome!",
+            "You are fun!",
+            "You are great!",
+          ]))
+        })
+      ]
     })
-  
+
 ])

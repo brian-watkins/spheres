@@ -73,6 +73,9 @@ export class TestSSRServer {
     const app = express()
 
     this.viteDevServer = await createViteServer({
+      optimizeDeps: {
+        noDiscovery: true
+      },
       server: {
         port: 9898,
         middlewareMode: true,

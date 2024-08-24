@@ -1,9 +1,9 @@
 import { GetState, container, write } from "@spheres/store";
-import { SVGView, htmlTemplate } from "@src/index";
+import { HTMLBuilder, SVGView } from "@src/index";
 
 const message = container({ initialValue: "SVG" })
 
-export default htmlTemplate(() => root => {
+export default function (root: HTMLBuilder) {
   root.main(({ children }) => {
     children
       .form(({ children }) => {
@@ -36,7 +36,7 @@ export default htmlTemplate(() => root => {
           .zone(circle)
       })
   })
-})
+}
 
 function circle(get: GetState): SVGView {
   const text = get(message)

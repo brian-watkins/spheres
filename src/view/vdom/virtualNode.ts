@@ -1,4 +1,4 @@
-import { GetState, State, StoreMessage } from "../../store/index.js";
+import { Container, container, GetState, reactiveVariable, ReactiveVariable, State, StoreMessage, variable, Variable } from "../../store/index.js";
 import { EventHandler } from "./eventHandler.js";
 
 export type Stateful<T> = (get: GetState) => T | undefined
@@ -14,7 +14,7 @@ export enum NodeType {
   STATEFUL_TEXT = 16,
   BLOCK = 17,
   TEMPLATE = 18,
-  TEMPLATE_LIST = 19,
+  ZONE_LIST = 19,
 }
 
 export interface TextNode {
@@ -53,24 +53,25 @@ export interface BlockNode {
   node: Node | undefined
 }
 
+// This might should be a ZoneListItemNode ... since that's all it's used for I think
 export interface TemplateNode {
   type: NodeType.TEMPLATE
   template: VirtualTemplate<any>
+  // couldn't args be something more particular -- like { item: T, index: number }?
   args: any
   key?: VirtualNodeKey
   node: Node | undefined
 }
 
-export interface TemplateListNode {
-  type: NodeType.TEMPLATE_LIST
+export interface ZoneListNode {
+  type: NodeType.ZONE_LIST
   id: string
-  templateGenerator: (args: any) => TemplateNode
+  template: VirtualTemplate<any>
   argList: (get: GetState) => Array<any>
-  key?: VirtualNodeKey
   node: Node | undefined
 }
 
-export type VirtualNode = TextNode | StatefulTextNode | ElementNode | StatefulNode | BlockNode | TemplateNode | TemplateListNode
+export type VirtualNode = TextNode | StatefulTextNode | ElementNode | StatefulNode | BlockNode | TemplateNode | ZoneListNode
 
 export interface StatefulValue<T> {
   generator: Stateful<T>
@@ -184,22 +185,31 @@ export function makeStatefulTextNode(generator: Stateful<string>, node?: Node): 
   }
 }
 
-export type WithArgs<T> =
-  <S>(generator: (args: T, get: GetState) => S) => (get: GetState) => S
+// export type WithArgs<T> =
+  // <S>(generator: (args: T, get: GetState) => S) => (get: GetState) => S
 
+// Probably need to rename this to reflect that it's really a virtualListItemTemplate?
 export class VirtualTemplate<T> {
-  protected args!: T
-  virtualNode!: VirtualNode
+  protected itemToken: Variable<T | undefined> = variable({ initialValue: undefined })
+  readonly indexToken: ReactiveVariable<number> = reactiveVariable({ initialValue: container({ initialValue: -1 }) })
+  public virtualNode!: VirtualNode
+  public usesIndex = true
 
-  setArgs(args: T) {
-    this.args = args
+  setItem(item: T, index: Container<number>) {
+    this.itemToken.assignValue(item)
+    this.indexToken.assignState(index)
   }
 
-  useWithArgs<S>(generator: (get: GetState) => S): (get: GetState, args: T) => S {
+  // Note that args is NOT any ... it has a specific shape ...
+  // BECAUSE this is only used to represent an item in a list
+  useWithArgs<S>(generator: (get: GetState) => S): (get: GetState, args: any) => S {
     return (get, args) => {
-      this.args = args
+      this.itemToken.assignValue(args.item)
+      if (this.usesIndex) {
+        this.indexToken.assignState(args.index)
+      }
       return generator(get)
-    }
+    } 
   }
 }
 
@@ -213,13 +223,14 @@ export function makeTemplate(template: VirtualTemplate<any>, args: any, key?: Vi
   }
 }
 
+// Hmm ... any way to remove this?
 let templateListId = 0
 
-export function makeTemplateList(templateGenerator: (args: any) => TemplateNode, argList: (get: GetState) => Array<any>): TemplateListNode {
+export function makeZoneList(virtualTemplate: VirtualTemplate<any>, argList: (get: GetState) => Array<any>): ZoneListNode {
   return {
-    type: NodeType.TEMPLATE_LIST,
+    type: NodeType.ZONE_LIST,
     id: `${templateListId++}`,
-    templateGenerator,
+    template: virtualTemplate,
     argList,
     node: undefined
   }

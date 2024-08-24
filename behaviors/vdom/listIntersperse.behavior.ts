@@ -1,8 +1,6 @@
-import { Observation, behavior, effect, example, fact } from "esbehavior";
-import { expect, is } from "great-expectations";
-import { selectElements } from "helpers/displayElement";
+import { behavior, example, fact } from "esbehavior";
 import { ListExamplesState, childElementText, containerWithList, itemView, otherItemView, updateState } from "helpers/listHelpers";
-import { RenderApp, renderContext } from "helpers/renderContext";
+import { renderContext } from "helpers/renderContext";
 
 export default behavior("lists interspersed among other children", [
 

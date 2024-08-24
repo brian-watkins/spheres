@@ -1,6 +1,5 @@
-import { HTMLBuilder, HTMLView, htmlTemplate } from "@src/index.js"
+import { HTMLBuilder } from "@src/index.js"
 import { clickCount } from "../state.js"
-import { GetState } from "@spheres/store"
 
 function evenCounterDisplay(root: HTMLBuilder) {
   root.p(el => {
@@ -17,18 +16,14 @@ function oddCounterDisplay(root: HTMLBuilder) {
     el.config
       .dataAttribute("click-count")
     el.children
-      .textNode(get => `You've clicked the button ${get(clickCount)} times!`)
+      .textNode(get => `Odd! You've clicked the button ${get(clickCount)} times!`)
   })
 }
 
-function evenOddZone(get: GetState): HTMLView {
-  if (get(clickCount) % 2 === 0) {
-    return root => evenCounterDisplay(root)
-  } else {
-    return root => oddCounterDisplay(root)
-  }
+export default function(root: HTMLBuilder) {
+  root.div(el => {
+    el.children
+      .zoneShow(get => get(clickCount) % 2 === 0, evenCounterDisplay)
+      .zoneShow(get => get(clickCount) % 2 !== 0, oddCounterDisplay)
+  })
 }
-
-export default htmlTemplate(() => root => {
-  root.zone(evenOddZone)
-})

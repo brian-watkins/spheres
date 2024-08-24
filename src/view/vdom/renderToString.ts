@@ -22,9 +22,10 @@ function stringifyVirtualNode(store: Store, vnode: VirtualNode): string {
     case NodeType.BLOCK:
       return stringifyVirtualNode(store, vnode.generator!())
     case NodeType.TEMPLATE:
-      vnode.template.setArgs(vnode.args)
+      // NOTE -- NOT DONE YET!
+      // vnode.template.setArgs(vnode.args)
       return stringifyVirtualNode(store, vnode.template.virtualNode)
-    case NodeType.TEMPLATE_LIST:
+    case NodeType.ZONE_LIST:
       return "NOT DONE YET"
   }
 }

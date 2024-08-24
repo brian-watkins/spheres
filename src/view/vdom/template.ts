@@ -1,9 +1,9 @@
 import { Store, StoreMessage } from "../../store/index.js"
-import { NodeType, TemplateListNode, TemplateNode, VirtualNode, VirtualTemplate } from "./virtualNode.js"
+import { NodeType, TemplateNode, VirtualNode, VirtualTemplate, ZoneListNode } from "./virtualNode.js"
 import { UpdateAttributeEffect } from "./effects/attributeEffect.js"
 import { UpdatePropertyEffect } from "./effects/propertyEffect.js"
 import { UpdateTextEffect } from "./effects/textEffect.js"
-import { NodeReference, PatchZoneEffect } from "./effects/zoneEffect.js"
+import { NodeReference, ZoneEffect } from "./effects/zoneEffect.js"
 import { EffectGenerator } from "./effects/effectGenerator.js"
 import { ListEffect } from "./effects/listEffect.js"
 import { EffectLocation } from "./effectLocation.js"
@@ -42,11 +42,13 @@ function attachEvents(template: DOMTemplate, vnode: TemplateNode, store: Store, 
     const virtualTemplate = vnode.template
     const eventMap = template.events.get(eventType)!
     rootElement.addEventListener(eventType, (evt) => {
-      //@ts-ignore
-      const node = evt.target!.closest(`[data-spheres-${eventType}]`) as Element
+      const targetElement = evt.target as Element
+      const node = targetElement.closest(`[data-spheres-${eventType}]`) as Element
       if (node) {
         const handler = eventMap.get(node.getAttribute(`data-spheres-${eventType}`)!)!
-        virtualTemplate.setArgs(args)
+        // NOTE: We are assuming args has a certain shape here ... we should make
+        // that explicit. I guess TemplateNode is really a ZoneListItemNode?
+        virtualTemplate.setItem(args.item, args.index)
         store.dispatch(handler(evt))
         evt.stopPropagation()
       }
@@ -113,7 +115,7 @@ class StatefulZoneEffectTemplate implements EffectTemplate {
   constructor(private generator: EffectGenerator<VirtualNode>, private nodeReference: NodeReference, private location: EffectLocation) { }
 
   attach(store: Store, root: Node, props: any) {
-    const effect = new PatchZoneEffect(store, this.location.findNode(root), this.generator, this.nodeReference, props)
+    const effect = new ZoneEffect(store, this.location.findNode(root), this.generator, this.nodeReference, props)
     store.useEffect(effect)
   }
 }
@@ -129,7 +131,7 @@ class TemplateTemplate implements EffectTemplate {
 }
 
 class ListEffectTemplate implements EffectTemplate {
-  constructor(private vnode: TemplateListNode, private location: EffectLocation) { }
+  constructor(private vnode: ZoneListNode, private location: EffectLocation) { }
 
   attach(store: Store, root: Node, _: any) {
     const listStartIndicatorNode = this.location.findNode(root)
@@ -174,8 +176,8 @@ function findEffectLocations(template: VirtualTemplate<any>, vnode: VirtualNode,
     case NodeType.TEMPLATE:
       return [new TemplateTemplate(vnode, location)]
 
-    case NodeType.TEMPLATE_LIST:
-      const markerLocation = location.nextCommentSiblingMatching(`template-list-${vnode.id}`)
+    case NodeType.ZONE_LIST:
+      const markerLocation = location.nextCommentSiblingMatching(`zone-list-${vnode.id}`)
       return [new ListEffectTemplate(vnode, markerLocation)]
 
     case NodeType.ELEMENT:
@@ -219,8 +221,8 @@ export function createTemplateNode(vnode: VirtualNode): Node {
     case NodeType.TEMPLATE:
       return document.createElement("nested-template")
 
-    case NodeType.TEMPLATE_LIST:
-      return document.createComment(`template-list-${vnode.id}`)
+    case NodeType.ZONE_LIST:
+      return document.createComment(`zone-list-${vnode.id}`)
 
     default:
       const element = vnode.data.namespace ?

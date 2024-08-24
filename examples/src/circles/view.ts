@@ -129,6 +129,7 @@ function optionsView(get: GetState): HTMLView {
 
           if (dialogData.showDiameterSlider) {
             children
+              // I guess this could just get the dialog data like above
               .zone(adjustRadiusView(dialogData.circle))
           } else {
             children

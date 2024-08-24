@@ -1,10 +1,10 @@
+import { HTMLBuilder } from "@src/index.js"
 import superIsland from "./nestedIsland.js"
-import { htmlTemplate } from "@src/htmlViewBuilder.js"
 
-export default htmlTemplate(() => root => {
+export default function (root: HTMLBuilder) {
   root.div(el => {
     el.children
       .h1(el => el.children.textNode("This is the click counter!"))
-      .zone(superIsland())
+      .zone(superIsland)
   })
-})
+}

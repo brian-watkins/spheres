@@ -185,8 +185,8 @@ export function makeStatefulTextNode(generator: Stateful<string>, node?: Node): 
   }
 }
 
-// export type WithArgs<T> =
-  // <S>(generator: (args: T, get: GetState) => S) => (get: GetState) => S
+export type WithArgs<T> =
+  <S>(generator: (args: T, get: GetState) => S) => (get: GetState) => S
 
 // Probably need to rename this to reflect that it's really a virtualListItemTemplate?
 export class VirtualTemplate<T> {

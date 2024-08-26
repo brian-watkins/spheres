@@ -1,5 +1,5 @@
 import { GetState, State, Store } from "../store/index.js"
-import { makeStatefulElement, Stateful, addStatefulProperty, addProperty, VirtualTemplate, makeVirtualTextNode, makeZoneList } from "./vdom/virtualNode.js"
+import { makeStatefulElement, Stateful, addStatefulProperty, addProperty, makeVirtualTextNode, makeZoneList, VirtualListItemTemplate } from "./vdom/virtualNode.js"
 import { HTMLElements, HTMLBuilder } from "./htmlElements.js"
 import { createStringRenderer } from "./vdom/renderToString.js"
 import { createDOMRenderer } from "./vdom/renderToDom.js"
@@ -107,7 +107,7 @@ class HtmlViewBuilder extends ViewBuilder<SpecialElementAttributes, HTMLElements
   }
 
   zones<T>(data: (get: GetState) => Array<T>, viewGenerator: (item: State<T>, index: State<number>) => HTMLView): this {
-    const virtualTemplate = new HTMLVirtualTemplate(viewGenerator)
+    const virtualTemplate = new HTMLVirtualListItemTemplate(viewGenerator)
     this.storeNode(makeZoneList(virtualTemplate, data))
 
     return this
@@ -127,7 +127,7 @@ class HtmlViewBuilder extends ViewBuilder<SpecialElementAttributes, HTMLElements
   }
 }
 
-export class HTMLVirtualTemplate<T> extends VirtualTemplate<T> {
+export class HTMLVirtualListItemTemplate<T> extends VirtualListItemTemplate<T> {
   constructor(generator: (item: State<T>, index: State<number>) => HTMLView) {
     super()
 

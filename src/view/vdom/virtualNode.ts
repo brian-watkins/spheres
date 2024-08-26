@@ -66,7 +66,7 @@ export interface TemplateNode {
 export interface ZoneListNode {
   type: NodeType.ZONE_LIST
   id: string
-  template: VirtualTemplate<any>
+  template: VirtualListItemTemplate<any>
   argList: (get: GetState) => Array<any>
   node: Node | undefined
 }
@@ -188,32 +188,20 @@ export function makeStatefulTextNode(generator: Stateful<string>, node?: Node): 
 export type WithArgs<T> =
   <S>(generator: (args: T, get: GetState) => S) => (get: GetState) => S
 
-// Probably need to rename this to reflect that it's really a virtualListItemTemplate?
-export class VirtualTemplate<T> {
-  protected itemToken: Variable<T | undefined> = variable({ initialValue: undefined })
-  readonly indexToken: ReactiveVariable<number> = reactiveVariable({ initialValue: container({ initialValue: -1 }) })
+export abstract class VirtualTemplate<T> {
   public virtualNode!: VirtualNode
-  public usesIndex = true
+  
+  abstract setArgs(args: T): void
 
-  setItem(item: T, index: Container<number>) {
-    this.itemToken.assignValue(item)
-    this.indexToken.assignState(index)
-  }
-
-  // Note that args is NOT any ... it has a specific shape ...
-  // BECAUSE this is only used to represent an item in a list
-  useWithArgs<S>(generator: (get: GetState) => S): (get: GetState, args: any) => S {
+  useWithArgs<S>(generator: (get: GetState) => S): (get: GetState, args: T) => S {
     return (get, args) => {
-      this.itemToken.assignValue(args.item)
-      if (this.usesIndex) {
-        this.indexToken.assignState(args.index)
-      }
+      this.setArgs(args)
       return generator(get)
     } 
   }
 }
 
-export function makeTemplate(template: VirtualTemplate<any>, args: any, key?: VirtualNodeKey): TemplateNode {
+export function makeTemplate<T>(template: VirtualTemplate<T>, args: T, key?: VirtualNodeKey): TemplateNode {
   return {
     type: NodeType.TEMPLATE,
     template,
@@ -223,10 +211,28 @@ export function makeTemplate(template: VirtualTemplate<any>, args: any, key?: Vi
   }
 }
 
+export interface VirtualListItemTemplateArgs<T> {
+  item: T
+  index?: Container<number>
+}
+
+export class VirtualListItemTemplate<T> extends VirtualTemplate<VirtualListItemTemplateArgs<T>> {
+  protected itemToken: Variable<T | undefined> = variable({ initialValue: undefined })
+  protected indexToken: ReactiveVariable<number> = reactiveVariable({ initialValue: container({ initialValue: -1 }) })
+  public usesIndex = true
+
+  setArgs(args: VirtualListItemTemplateArgs<T>): void {
+    this.itemToken.assignValue(args.item)
+    if (args.index) {
+      this.indexToken.assignState(args.index)
+    }
+  }
+}
+
 // Hmm ... any way to remove this?
 let templateListId = 0
 
-export function makeZoneList(virtualTemplate: VirtualTemplate<any>, argList: (get: GetState) => Array<any>): ZoneListNode {
+export function makeZoneList<T>(virtualTemplate: VirtualListItemTemplate<T>, argList: (get: GetState) => Array<T>): ZoneListNode {
   return {
     type: NodeType.ZONE_LIST,
     id: `${templateListId++}`,

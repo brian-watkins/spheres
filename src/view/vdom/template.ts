@@ -46,9 +46,7 @@ function attachEvents(template: DOMTemplate, vnode: TemplateNode, store: Store, 
       const node = targetElement.closest(`[data-spheres-${eventType}]`) as Element
       if (node) {
         const handler = eventMap.get(node.getAttribute(`data-spheres-${eventType}`)!)!
-        // NOTE: We are assuming args has a certain shape here ... we should make
-        // that explicit. I guess TemplateNode is really a ZoneListItemNode?
-        virtualTemplate.setItem(args.item, args.index)
+        virtualTemplate.setArgs(args)
         store.dispatch(handler(evt))
         evt.stopPropagation()
       }

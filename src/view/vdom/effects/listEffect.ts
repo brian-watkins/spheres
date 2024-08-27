@@ -11,15 +11,17 @@ interface VirtualListItem {
 }
 
 export class ListEffect implements ReactiveEffect {
-  private templateVNode: TemplateNode | undefined
+  private templateVNode: TemplateNode
   private vnodes: Array<VirtualListItem> = []
 
-  constructor(private store: Store, private vnode: ZoneListNode, private listStartNode: Node, private templateNodeGenerator: TemplateNodeGenerator) { }
+  constructor(private store: Store, private vnode: ZoneListNode, private listStartNode: Node, private templateNodeGenerator: TemplateNodeGenerator) {
+    this.templateVNode = makeTemplate(this.vnode.template, { item: undefined }, undefined)
+  }
 
   init(get: GetState) {
     const data = this.vnode.argList(get)
     const parent = this.listStartNode.parentNode!
-
+    
     for (let i = 0; i < data.length; i++) {
       const virtualItem = this.virtualListItemAt(data, i)
       const templateNode = this.createNode(this.store, virtualItem)
@@ -63,12 +65,7 @@ export class ListEffect implements ReactiveEffect {
   }
 
   createNode(store: Store, vnode: VirtualListItem): Node {
-    if (this.templateVNode === undefined) {
-      this.templateVNode = makeTemplate(this.vnode.template, { item: vnode.key, index: vnode.indexState }, vnode.key)
-    } else {
-      this.templateVNode.args = { item: vnode.key, index: vnode.indexState }
-    }
-
+    this.templateVNode.args = { item: vnode.key, index: vnode.indexState }
     return this.templateNodeGenerator(store, this.templateVNode)
   }
 

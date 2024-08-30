@@ -168,9 +168,6 @@ function findEffectLocations(template: VirtualTemplate<any>, vnode: VirtualNode,
     case NodeType.STATEFUL:
       return [new StatefulZoneEffectTemplate(template.useWithArgs(vnode.generator), vnode, location)]
 
-    case NodeType.BLOCK:
-      return findEffectLocations(template, vnode.generator!(), location)
-
     case NodeType.TEMPLATE:
       return [new TemplateTemplate(vnode, location)]
 
@@ -212,9 +209,6 @@ export function createTemplateNode(vnode: VirtualNode): Node {
     case NodeType.STATEFUL: {
       return document.createElement("reactive-zone")
     }
-
-    case NodeType.BLOCK:
-      return createTemplateNode(vnode.generator!())
 
     case NodeType.TEMPLATE:
       return document.createElement("nested-template")

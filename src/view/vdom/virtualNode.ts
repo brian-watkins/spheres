@@ -12,7 +12,6 @@ export enum NodeType {
   ELEMENT = 1,
   STATEFUL = 15,
   STATEFUL_TEXT = 16,
-  BLOCK = 17,
   TEMPLATE = 18,
   ZONE_LIST = 19,
 }
@@ -46,18 +45,9 @@ export interface StatefulNode {
   node: Node | undefined
 }
 
-export interface BlockNode {
-  type: NodeType.BLOCK
-  key?: VirtualNodeKey
-  generator?: () => VirtualNode
-  node: Node | undefined
-}
-
-// This might should be a ZoneListItemNode ... since that's all it's used for I think
 export interface TemplateNode {
   type: NodeType.TEMPLATE
   template: VirtualTemplate<any>
-  // couldn't args be something more particular -- like { item: T, index: number }?
   args: any
   key?: VirtualNodeKey
   node: Node | undefined
@@ -71,7 +61,7 @@ export interface ZoneListNode {
   node: Node | undefined
 }
 
-export type VirtualNode = TextNode | StatefulTextNode | ElementNode | StatefulNode | BlockNode | TemplateNode | ZoneListNode
+export type VirtualNode = TextNode | StatefulTextNode | ElementNode | StatefulNode | TemplateNode | ZoneListNode
 
 export interface StatefulValue<T> {
   generator: Stateful<T>
@@ -144,17 +134,6 @@ export function makeStatefulElement(generator: (get: GetState) => VirtualNode, k
   }
 
   return element
-}
-
-export function makeBlockElement(generator: () => VirtualNode, key: VirtualNodeKey | undefined, node?: Element): VirtualNode {
-  const blockNode: BlockNode = {
-    type: NodeType.BLOCK,
-    generator,
-    key,
-    node
-  }
-
-  return blockNode
 }
 
 export function makeVirtualElement(tag: string, config: VirtualNodeConfig, children: Array<VirtualNode>, node?: Element): ElementNode {

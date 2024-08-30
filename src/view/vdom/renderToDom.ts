@@ -59,11 +59,7 @@ export function createNode(store: Store, vnode: VirtualNode): Node {
       return query.node
     }
 
-    case NodeType.BLOCK:
-      const blockNode = createNode(store, vnode.generator!())
-      vnode.generator = undefined
-      return blockNode
-
+    // Note this does not seem to be used by anything anymore
     case NodeType.TEMPLATE:
       return createTemplateInstance(store, vnode)
 

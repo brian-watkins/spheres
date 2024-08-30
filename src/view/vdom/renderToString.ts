@@ -19,8 +19,6 @@ function stringifyVirtualNode(store: Store, vnode: VirtualNode): string {
       return stringifyReactiveText(store, vnode)
     case NodeType.STATEFUL:
       return stringifyStatefulNode(store, vnode)
-    case NodeType.BLOCK:
-      return stringifyVirtualNode(store, vnode.generator!())
     case NodeType.TEMPLATE:
       // NOTE -- NOT DONE YET!
       // vnode.template.setArgs(vnode.args)

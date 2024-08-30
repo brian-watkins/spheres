@@ -52,6 +52,44 @@ export default behavior("lists of views", [
           ]))
         })
       ]
+    }),
+
+  example(browserAppContext())
+    .description("a view with a dynamic svg list")
+    .script({
+      suppose: [
+        fact("there is a view with a dynamic svg list", async (context) => {
+          await context.loadApp("svgList.app")
+        })
+      ],
+      observe: [
+        effect("the list is displayed", async (context) => {
+          await expect(context.display.selectAll("[data-circle-button]").map(el => el.text()),
+            resolvesTo([
+              "apple",
+              "grapes",
+              "pizza"
+            ])
+          )
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("click a button to send to the front", async (context) => {
+          await context.display.select("[data-circle-button='2']").click()
+        })
+      ],
+      observe: [
+        effect("the clicked item is first in the list", async (context) => {
+          await expect(context.display.selectAll("[data-circle-button]").map(el => el.text()),
+            resolvesTo([
+              "pizza",
+              "apple",
+              "grapes"
+            ])
+          )
+        })
+      ]
     })
 
   // need an example where we start with nothing and then add items

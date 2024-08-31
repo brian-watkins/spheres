@@ -164,9 +164,6 @@ export function makeStatefulTextNode(generator: Stateful<string>, node?: Node): 
   }
 }
 
-export type WithArgs<T> =
-  <S>(generator: (args: T, get: GetState) => S) => (get: GetState) => S
-
 export abstract class VirtualTemplate<T> {
   public virtualNode!: VirtualNode
   
@@ -202,8 +199,8 @@ export class VirtualListItemTemplate<T> extends VirtualTemplate<VirtualListItemT
 
   setArgs(args: VirtualListItemTemplateArgs<T>): void {
     this.itemToken.assignValue(args.item)
-    if (args.index) {
-      this.indexToken.assignState(args.index)
+    if (this.usesIndex) {
+      this.indexToken.assignState(args.index!)
     }
   }
 }

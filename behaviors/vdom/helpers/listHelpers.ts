@@ -3,7 +3,6 @@ import { Container, State } from "../../../src/store/store"
 import { RenderApp } from "./renderContext"
 import { container } from "../../../src/store/container"
 import { HTMLView } from "@src/htmlViewBuilder"
-import { WithArgs } from "@src/vdom/virtualNode"
 import { selectElements } from "./displayElement"
 import { expect, is } from "great-expectations"
 
@@ -34,14 +33,7 @@ export function renderAppBasedOnState(data: Array<string>): Array<Presupposition
   ]
 }
 
-// export const itemView = htmlTemplate((withArgs: WithArgs<string>) => root => {
-//   root.p(el => {
-//     el.config.dataAttribute("child")
-//     el.children.textNode(withArgs(args => args))
-//   })
-// })
-
-export function itemView(item: State<string>, index: State<number>): HTMLView {
+export function itemView(item: State<string>): HTMLView {
   return (root) => {
     root.p(el => {
       el.config.dataAttribute("child")
@@ -49,13 +41,6 @@ export function itemView(item: State<string>, index: State<number>): HTMLView {
     })
   }
 }
-
-// export const otherItemView = htmlTemplate((withArgs: WithArgs<string>) => root => {
-//   root.h1(el => {
-//     el.config.dataAttribute("child")
-//     el.children.textNode(withArgs(args => `Other ${args}`))
-//   })
-// })
 
 export function otherItemView(item: State<string>): HTMLView {
   return root => {

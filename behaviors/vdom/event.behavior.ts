@@ -1,9 +1,8 @@
-import { WithArgs } from "@src/vdom/virtualNode.js";
 import { behavior, effect, example, fact, step } from "esbehavior";
 import { equalTo, expect, resolvesTo } from "great-expectations";
 import { selectElement } from "helpers/displayElement.js";
 import { renderContext } from "helpers/renderContext.js";
-import { Container, container, GetState, rule, State, update, use, write } from "@spheres/store";
+import { Container, container, rule, State, update, use, write } from "@spheres/store";
 import { HTMLBuilder } from "@src/htmlElements";
 import { HTMLView } from "@src/htmlViewBuilder";
 
@@ -258,7 +257,6 @@ export default behavior("event handlers", [
             return write(context.state.message, get(nameToken))
           })
 
-          // const viewZone = htmlTemplate((withArgs: WithArgs<string>) => root => {
           function viewZone(name: State<string>): HTMLView {
             return root =>
               root.li(el => {

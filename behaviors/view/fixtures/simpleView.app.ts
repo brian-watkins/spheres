@@ -20,7 +20,6 @@ function peopleView(root: HTMLBuilder) {
   })
 }
 
-// const personView = htmlTemplate((withArgs: WithArgs<Person>) => root => {
 function personView(person: State<Person>): HTMLView {
   return root => {
     root.li(el => {

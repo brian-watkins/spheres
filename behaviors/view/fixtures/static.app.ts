@@ -142,12 +142,6 @@ function titleTemplate(props: TitleProps): HTMLView {
   }
 }
 
-// const titleTemplate = htmlTemplate((withArgs: WithArgs<TitleProps>) => {
-//   return root => root.h1(el => {
-//     el.children.textNode(withArgs((props) => props.title))
-//   })
-// })
-
 export function appWithReactiveAttributes(root: HTMLBuilder) {
   root.div(el => {
     el.config

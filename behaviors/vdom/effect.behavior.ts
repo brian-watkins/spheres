@@ -163,9 +163,6 @@ export default behavior("reactive dom effects", [
           context.setState(container({ initialValue: "cool" }))
         }),
         fact("there are nested zones", (context) => {
-          // const template = htmlTemplate((withArgs: WithArgs<string>) => root =>
-            // root.h2(el => el.children.textNode(withArgs(name => name)))
-          // )
           const funZone = (name: string) => (root: HTMLBuilder) => {
             root.h2(el => el.children.textNode(name))
           }

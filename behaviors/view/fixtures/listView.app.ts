@@ -49,12 +49,6 @@ export default function (root: HTMLBuilder) {
   })
 }
 
-// const fruitView = htmlTemplate((withArgs: WithArgs<Fruit>) => root => {
-//   root.li(el => {
-//     el.children.textNode(withArgs(fruit => fruit.name))
-//   })
-// })
-
 function fruitView(item: State<Fruit>, index: State<number>): HTMLView {
   return root => {
     root.li(el => {

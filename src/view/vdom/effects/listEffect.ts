@@ -21,9 +21,10 @@ export class ListEffect implements ReactiveEffect {
   init(get: GetState) {
     const data = this.vnode.argList(get)
     const parent = this.listStartNode.parentNode!
+    const builder = this.vnode.template.usesIndex ? buildListItemWithIndexState : buildListItem
     
     for (let i = 0; i < data.length; i++) {
-      const virtualItem = this.virtualListItemAt(data, i)
+      const virtualItem = builder(data[i], i)
       const templateNode = this.createNode(this.store, virtualItem)
       parent.insertBefore(templateNode, this.listStartNode)
       virtualItem.node = templateNode
@@ -31,36 +32,10 @@ export class ListEffect implements ReactiveEffect {
     }
   }
 
-  private virtualListItemAt(data: Array<any>, index: number): VirtualListItem {
-    return this.vnode.template.usesIndex ?
-      {
-        key: data[index],
-        actualIndex: index,
-        indexState: container({ initialValue: index }),
-        node: undefined
-      } : {
-        key: data[index],
-        node: undefined
-      }
-  }
-
   run(get: GetState) {
-    const data = this.vnode.argList(get)
-
-    const updatedList: Array<VirtualListItem> = this.vnode.template.usesIndex ?
-      data.map((item, index) => ({
-        key: item,
-        actualIndex: index,
-        indexState: container({ initialValue: index }),
-        node: undefined
-      })) :
-      data.map((item) => ({
-        key: item,
-        node: undefined
-      }))
-
+    const builder = this.vnode.template.usesIndex ? buildListItemWithIndex : buildListItem
+    const updatedList = this.vnode.argList(get).map(builder)
     this.patchList(updatedList)
-
     this.vnodes = updatedList
   }
 
@@ -180,10 +155,10 @@ export class ListEffect implements ReactiveEffect {
 
   patch(oldVNode: VirtualListItem, newVNode: VirtualListItem): VirtualListItem {
     newVNode.node = oldVNode.node
+    newVNode.indexState = oldVNode.indexState
 
-    if (this.vnode.template.usesIndex) {
+    if (oldVNode.actualIndex !== newVNode.actualIndex) {
       this.store.dispatch(write(oldVNode.indexState!, newVNode.actualIndex!))
-      newVNode.indexState = oldVNode.indexState
     }
 
     return newVNode
@@ -200,3 +175,26 @@ function removeNode(parent: Node, vnode: VirtualListItem) {
   parent.removeChild(vnode.node!)
 }
 
+function buildListItemWithIndexState(item: any, index: number): VirtualListItem {
+  return {
+    key: item,
+    actualIndex: index,
+    indexState: container({ initialValue: index }),
+    node: undefined
+  }
+}
+
+function buildListItemWithIndex(item: any, index: number): VirtualListItem {
+  return {
+    key: item,
+    actualIndex: index,
+    node: undefined
+  }
+}
+
+function buildListItem(item: any, _: number): VirtualListItem {
+  return {
+    key: item,
+    node: undefined
+  }
+}

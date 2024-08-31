@@ -2,14 +2,15 @@ import { container, State, update } from "@spheres/store";
 import { HTMLBuilder } from "@src/htmlElements";
 import { HTMLView } from "@src/index";
 
-// const funTemplate = htmlTemplate((withArgs: WithArgs<string>) => root => {
 function funTemplate(name: State<string>): HTMLView {
   return root => {
-    root.zoneShow(get => get(showLabels), (root) => {
-      root.h3(el => {
-        el.config.dataAttribute("toggleable-view")
-        el.children.textNode(get => `You are ${get(name)}!`)
-      })
+    root.zoneWhich(get => get(showLabels) ? "view" : undefined, {
+      view: (root) => {
+        root.h3(el => {
+          el.config.dataAttribute("toggleable-view")
+          el.children.textNode(get => `You are ${get(name)}!`)
+        })
+      }
     })
   }
 }

@@ -13,7 +13,9 @@ export default function (root: HTMLBuilder) {
           .textNode("Click to toggle the view!")
       })
       .hr()
-      .zoneShow(get => get(showView), funView)
+      .zoneWhich(get => get(showView) ? "funView" : undefined, {
+        funView
+      })
       .hr()
   })
 }

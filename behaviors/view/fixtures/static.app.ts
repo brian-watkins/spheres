@@ -67,18 +67,8 @@ export function appWithNestedState(root: HTMLBuilder) {
 }
 
 function nestedAge(root: HTMLBuilder) {
-  root.zoneShow(get => get(ageState) < 100, nameView)
+  root.zoneWhich(get => get(ageState) < 100 ? "nameView" : undefined, { nameView })
 }
-
-// function nestedAge(get: GetState): HTMLView {
-//   const age = get(ageState)
-//   if (age < 100) {
-//     return root => root.zone(nameView)
-//   } else {
-//     return root => root.p(el => el.children.textNode("You are old!"))
-//   }
-// }
-
 
 function firstLevelZone(root: HTMLBuilder) {
   root.div(el => {

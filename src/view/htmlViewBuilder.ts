@@ -45,7 +45,7 @@ export interface SpecialHTMLElements {
   element(tag: string, builder?: (element: ConfigurableElement<SpecialElementAttributes, HTMLElements>) => void): this
   textNode(value: string | Stateful<string>): this
   zone(view: HTMLView, options?: ViewOptions): this
-  zoneShow(when: (get: GetState) => boolean, view: HTMLView): this
+  zoneWhich<T extends { [key: string]: HTMLView }>(selector: Stateful<keyof T>, zones: T): this
   zones<T>(data: Stateful<Array<T>>, viewGenerator: (item: State<T>, index: State<number>) => HTMLView): this
 }
 
@@ -92,15 +92,19 @@ class HtmlViewBuilder extends ViewBuilder<SpecialElementAttributes, HTMLElements
     return this
   }
 
-  zoneShow(when: (get: GetState) => boolean, view: HTMLView): this {
-    const viewBuilder = new HtmlViewBuilder()
-    view(viewBuilder as unknown as HTMLBuilder)
-    const viewVirtualNode = viewBuilder.toVirtualNode()
-
+  zoneWhich<T extends { [key: string]: HTMLView }>(selector: Stateful<keyof T>, zones: T): this {
     const emptyTextNode = makeVirtualTextNode("")
 
     this.storeNode(makeStatefulElement(get => {
-      return when(get) ? viewVirtualNode : emptyTextNode
+      const zoneKey = selector(get)
+      if (zoneKey !== undefined) {
+        const zone = zones[zoneKey]
+        const viewBuilder = new HtmlViewBuilder()
+        zone(viewBuilder as unknown as HTMLBuilder)
+        return viewBuilder.toVirtualNode()
+      } else {
+        return emptyTextNode
+      }
     }, undefined))
 
     return this

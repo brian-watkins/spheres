@@ -20,7 +20,9 @@ function nameView(root: HTMLBuilder) {
         el.config.dataAttribute("name")
         el.children.textNode(get => `My name is: ${get(nameState)}`)
       })
-      .zoneShow(get => get(nameState) !== "AGELESS PERSON", ageView)
+      .zoneWhich(get => get(nameState) !== "AGELESS PERSON" ? "ageView" : undefined, {
+        ageView
+      })
   })
 }
 

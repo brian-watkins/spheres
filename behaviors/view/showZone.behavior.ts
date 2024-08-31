@@ -45,7 +45,6 @@ export default behavior("show and hide zone", [
       ]
     }),
 
-  // Also need a test here about a zoneShow that's inside a template
   example(browserAppContext())
     .description("showing and hiding a zone within a template")
     .script({

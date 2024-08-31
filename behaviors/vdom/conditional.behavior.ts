@@ -24,7 +24,9 @@ export default behavior("conditional zone", [
           context.mountView(root => {
             root.div(el => {
               el.children
-                .zoneShow(get => get(context.state), conditionalView)
+                .zoneWhich(get => get(context.state) ? "conditionalView" : undefined, {
+                  conditionalView
+                })
             })
           })
         })
@@ -75,7 +77,9 @@ export default behavior("conditional zone", [
           context.mountView(root => {
             root.div(el => {
               el.children
-                .zoneShow(get => get(context.state) % 2 === 0, conditionalView)
+                .zoneWhich(get => get(context.state) % 2 === 0 ? "conditionalView" : undefined, {
+                  conditionalView
+                })
             })
           })
         })

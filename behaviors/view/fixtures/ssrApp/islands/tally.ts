@@ -21,9 +21,8 @@ function oddCounterDisplay(root: HTMLBuilder) {
 }
 
 export default function(root: HTMLBuilder) {
-  root.div(el => {
-    el.children
-      .zoneShow(get => get(clickCount) % 2 === 0, evenCounterDisplay)
-      .zoneShow(get => get(clickCount) % 2 !== 0, oddCounterDisplay)
+  root.zoneWhich(get => get(clickCount) % 2 === 0 ? "even" : "odd", {
+    even: evenCounterDisplay,
+    odd: oddCounterDisplay
   })
 }

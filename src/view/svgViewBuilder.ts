@@ -1,5 +1,5 @@
 import { GetState, State } from "../store/index.js"
-import { Stateful, VirtualListItemTemplate, VirtualNodeConfig, makeVirtualElement, makeZoneList, setNamespace, virtualNodeConfig } from "./vdom/virtualNode.js"
+import { Stateful, VirtualListItemTemplate, VirtualNodeConfig, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, makeZoneList, setNamespace, virtualNodeConfig } from "./vdom/virtualNode.js"
 import { SVGBuilder, SVGElements, SVGElementAttributes, svgAttributeNames } from "./svgElements.js"
 import { ConfigurableElement, ViewBuilder, ViewOptions } from "./viewBuilder.js"
 import { BasicElementConfig, SpecialElementAttributes } from "./viewConfig.js"
@@ -10,6 +10,7 @@ export interface SpecialSVGElements {
   element(tag: string, builder?: (element: ConfigurableElement<SpecialElementAttributes, SVGElements>) => void): this
   textNode(value: string | Stateful<string>): this
   zone(view: SVGView, options?: ViewOptions): this
+  zoneWhich<T extends { [key: string]: SVGView }>(selector: Stateful<keyof T>, zones: T): this
   // Note that Stateful could return undefined??
   zones<T>(data: Stateful<Array<T>>, viewGenerator: (item: State<T>, index: State<number>) => SVGView): this
 }
@@ -45,6 +46,24 @@ export class SvgViewBuilder extends ViewBuilder<SpecialElementAttributes, SVGEle
     const builder = new SvgViewBuilder()
     view(builder as unknown as SVGBuilder)
     this.storeNode(builder.toVirtualNode())
+    return this
+  }
+
+  zoneWhich<T extends { [key: string]: SVGView }>(selector: Stateful<keyof T>, zones: T): this {
+    const emptyTextNode = makeVirtualTextNode("")
+
+    this.storeNode(makeStatefulElement(get => {
+      const zoneKey = selector(get)
+      if (zoneKey !== undefined) {
+        const zone = zones[zoneKey]
+        const viewBuilder = new SvgViewBuilder()
+        zone(viewBuilder as unknown as SVGBuilder)
+        return viewBuilder.toVirtualNode()
+      } else {
+        return emptyTextNode
+      }
+    }, undefined))
+
     return this
   }
 

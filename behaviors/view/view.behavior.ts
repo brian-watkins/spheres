@@ -213,21 +213,50 @@ const simpleRouter = (context: Context<TestAppController>): ConfigurableExample 
           await expect(context.display.select("h3").exists(), resolvesTo(false))
         })
       ]
-    // }).andThen({
-    //   perform: [
-    //     step("show the root view", async (context) => {
-    //       await context.display.select("[data-visibility]").click()
-    //     }),
-    //     step("click the toggle", async (context) => {
-    //       await context.display.select("[data-toggle]").click()
-    //     })
-    //   ],
-    //   observe: [
-    //     effect("the root is visible and is a p element once again", async (context) => {
-    //       const text = await context.display.select("p").text()
-    //       expect(text, is("Regular text!"))
-    //     })
-    //   ]
+    })
+
+const svgRouter = (context: Context<TestAppController>): ConfigurableExample =>
+  example(context)
+    .description("simple router with svg zones")
+    .script({
+      suppose: [
+        fact("there is a view", async (context) => {
+          await context.loadApp("svgRouter.app")
+        })
+      ],
+      observe: [
+        effect("no shape is shown", async (context) => {
+          await expect(context.display.select("[data-shape='square']").exists(), resolvesTo(false))
+          await expect(context.display.select("[data-shape='circle']").exists(), resolvesTo(false))
+          await expect(context.display.select("[data-shape='rectangle']").exists(), resolvesTo(false))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the circle is selected", async (context) => {
+          await context.display.select("select").selectOption("Circle")
+        })
+      ],
+      observe: [
+        effect("the circle is displayed", async (context) => {
+          await expect(context.display.select("[data-shape='square']").exists(), resolvesTo(false))
+          await expect(context.display.select("[data-shape='circle']").exists(), resolvesTo(true))
+          await expect(context.display.select("[data-shape='rectangle']").exists(), resolvesTo(false))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the rectangle is selected", async (context) => {
+          await context.display.select("select").selectOption("Rectangle")
+        })
+      ],
+      observe: [
+        effect("the circle is displayed", async (context) => {
+          await expect(context.display.select("[data-shape='square']").exists(), resolvesTo(false))
+          await expect(context.display.select("[data-shape='circle']").exists(), resolvesTo(false))
+          await expect(context.display.select("[data-shape='rectangle']").exists(), resolvesTo(true))
+        })
+      ]
     })
 
 export default behavior("view", [
@@ -235,5 +264,6 @@ export default behavior("view", [
   innerHTMLViewBehavior(browserAppContext()),
   reactiveInnerHTMLViewBehavior(browserAppContext()),
   nestedViewsBehavior(browserAppContext()),
-  simpleRouter(browserAppContext())
+  simpleRouter(browserAppContext()),
+  svgRouter(browserAppContext())
 ])

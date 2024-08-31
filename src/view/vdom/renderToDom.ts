@@ -1,6 +1,6 @@
 import { Store } from "../../store/index.js";
 import { DOMRenderer } from "./render.js";
-import { NodeType, VirtualNode, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "./virtualNode.js";
+import { NodeType, VirtualNode } from "./virtualNode.js";
 import { EventHandler } from "./eventHandler.js";
 import { UpdateTextEffect } from "./effects/textEffect.js";
 import { UpdateAttributeEffect } from "./effects/attributeEffect.js";
@@ -8,26 +8,6 @@ import { UpdatePropertyEffect } from "./effects/propertyEffect.js";
 import { createTemplateInstance } from "./template.js";
 import { ZoneEffect } from "./effects/zoneEffect.js";
 import { ListEffect } from "./effects/listEffect.js";
-
-export function virtualize(element: Node): VirtualNode {
-  if (element.nodeType === NodeType.TEXT) {
-    const virtual = makeVirtualTextNode(element.nodeValue!, element)
-    virtual.node = element
-    return virtual
-  } else {
-    let children: Array<VirtualNode> = []
-    element.childNodes.forEach((child) => {
-      children.push(virtualize(child))
-    })
-
-    // note that we are not getting the attributes here ... is that
-    // because we just use virtualize when mounting an element and we
-    // don't care? What about for rehydrating?
-    const virtual = makeVirtualElement(element.nodeName.toLowerCase(), virtualNodeConfig(), children, element as Element)
-    virtual.node = element as Element
-    return virtual
-  }
-}
 
 export function createDOMRenderer(store: Store): DOMRenderer {
   return (element, node) => {

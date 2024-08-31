@@ -1,4 +1,8 @@
-import { behavior, example, fact } from "esbehavior";
+import { Container, container, State } from "@spheres/store";
+import { HTMLView } from "@src/htmlViewBuilder";
+import { behavior, effect, example, fact, step } from "esbehavior";
+import { expect, is } from "great-expectations";
+import { selectElements } from "helpers/displayElement";
 import { ListExamplesState, childElementText, containerWithList, itemView, otherItemView, updateState } from "helpers/listHelpers";
 import { renderContext } from "helpers/renderContext";
 
@@ -203,7 +207,7 @@ export default behavior("lists interspersed among other children", [
           "child-2",
           "Other child-1",
           "Other child-2",
-        ]) 
+        ])
       ]
     }).andThen({
       perform: [
@@ -223,7 +227,85 @@ export default behavior("lists interspersed among other children", [
           "Other child-3",
         ])
       ]
+    }),
+
+  example(renderContext<NestedListExamplesState>())
+    .description("nested lists")
+    .script({
+      suppose: [
+        fact("there is stateful list data", (context) => {
+          context.setState({
+            mainList: container({ initialValue: [ "one", "two", "three" ]}),
+            secondaryList: container({ initialValue: [ "a", "b", "c" ]})
+          })
+        }),
+        fact("there is a view with nested lists", (context) => {
+          context.mountView((root) => {
+            root.main(el => {
+              el.children
+                .zones(get => get(context.state.mainList), (item, index) => {
+                  return (root) => {
+                    root.div(el => {
+                      el.children
+                        .h3(el => el.children.textNode(get => get(item)))
+                        .ul(el => {
+                          el.config
+                            .dataAttribute("sub-list", get => `${get(index)}`)
+                          el.children
+                            .zones(get => get(context.state.secondaryList), liView)
+                            .zones(get => get(context.state.secondaryList), anotherLiView)
+                        })
+                    })
+                  }
+                })
+            })
+          })
+        })
+      ],
+      observe: [
+        effect("the lists are rendered", async () => {
+          const texts = await selectElements("[data-sub-list='1'] li").map(el => el.text())
+          expect(texts, is([
+            "a", "b", "c",
+            "Also a", "Also b", "Also c"
+          ]))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("update the nested lists", (context) => {
+          context.writeTo(context.state.secondaryList, [
+            "a", "c", "b", "f"
+          ])
+        })
+      ],
+      observe: [
+        effect("the nested lists update", async () => {
+          const texts = await selectElements("[data-sub-list='1'] li").map(el => el.text())
+          expect(texts, is([
+            "a", "c", "b", "f",
+            "Also a", "Also c", "Also b", "Also f"
+          ]))
+        })
+      ]
     })
+
 
 ])
 
+interface NestedListExamplesState {
+  mainList: Container<Array<string>>
+  secondaryList: Container<Array<string>>
+}
+
+function liView(subitem: State<string>): HTMLView {
+  return (root) => {
+    root.li(el => el.children.textNode(get => get(subitem)))
+  }
+}
+
+function anotherLiView(subitem: State<string>): HTMLView {
+  return (root) => {
+    root.li(el => el.children.textNode(get => `Also ${get(subitem)}`))
+  }
+}

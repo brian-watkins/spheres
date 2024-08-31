@@ -5,7 +5,7 @@ import { createStringRenderer } from "./vdom/renderToString.js"
 import { createDOMRenderer } from "./vdom/renderToDom.js"
 import { SVGElements } from "./svgElements.js"
 import { BasicElementConfig, SpecialElementAttributes } from "./viewConfig.js"
-import { ConfigurableElement, ViewBuilder, ViewOptions } from "./viewBuilder.js"
+import { ConfigurableElement, ViewBuilder } from "./viewBuilder.js"
 import { buildSvgElement } from "./svgViewBuilder.js"
 
 // Renderers
@@ -44,7 +44,7 @@ export type HTMLView = (root: HTMLBuilder) => void
 export interface SpecialHTMLElements {
   element(tag: string, builder?: (element: ConfigurableElement<SpecialElementAttributes, HTMLElements>) => void): this
   textNode(value: string | Stateful<string>): this
-  zone(view: HTMLView, options?: ViewOptions): this
+  zone(view: HTMLView): this
   zoneWhich<T extends { [key: string]: HTMLView }>(selector: Stateful<keyof T>, zones: T): this
   zones<T>(data: Stateful<Array<T>>, viewGenerator: (item: State<T>, index: State<number>) => HTMLView): this
 }
@@ -84,7 +84,7 @@ class InputElementConfig extends HTMLElementConfig {
 const inputConfigBuilder = new InputElementConfig()
 
 class HtmlViewBuilder extends ViewBuilder<SpecialElementAttributes, HTMLElements> implements SpecialHTMLElements {
-  zone(view: HTMLView, _?: ViewOptions | undefined): this {
+  zone(view: HTMLView): this {
     const builder = new HtmlViewBuilder()
     view(builder as unknown as HTMLBuilder)
     this.storeNode(builder.toVirtualNode())

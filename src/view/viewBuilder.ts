@@ -1,20 +1,11 @@
-import { State } from "../store/index.js"
 import { BasicElementConfig, SpecialElementAttributes } from "./viewConfig.js"
-import { Stateful, VirtualNode, VirtualTemplate, makeStatefulTextNode, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "./vdom/virtualNode.js"
+import { Stateful, VirtualNode, makeStatefulTextNode, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "./vdom/virtualNode.js"
 export type { Stateful } from "./vdom/virtualNode.js"
 
 export interface ConfigurableElement<A extends SpecialElementAttributes, B> {
   config: A
   children: B
 }
-
-export interface ViewOptions {
-  key?: string | number | State<any>
-}
-
-export type ViewArgs<P> = P extends undefined ? [] : [P]
-
-const templateNodeRegistry = new WeakMap<Function, VirtualTemplate<any>>()
 
 class Sequence {
   private val: number = 0
@@ -30,14 +21,6 @@ export abstract class ViewBuilder<A extends SpecialElementAttributes, B> {
 
   storeNode(node: VirtualNode) {
     this.nodes.push(node)
-  }
-
-  protected getVirtualTemplate(key: Function): VirtualTemplate<any> | undefined {
-    return templateNodeRegistry.get(key)
-  }
-
-  protected setVirtualTemplate(key: Function, value: VirtualTemplate<any>) {
-    templateNodeRegistry.set(key, value)
   }
 
   textNode(value: string | Stateful<string>) {

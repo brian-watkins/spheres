@@ -1,7 +1,7 @@
 import { GetState, State } from "../store/index.js"
 import { Stateful, VirtualListItemTemplate, VirtualNodeConfig, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, makeZoneList, setNamespace, virtualNodeConfig } from "./vdom/virtualNode.js"
 import { SVGBuilder, SVGElements, SVGElementAttributes, svgAttributeNames } from "./svgElements.js"
-import { ConfigurableElement, ViewBuilder, ViewOptions } from "./viewBuilder.js"
+import { ConfigurableElement, ViewBuilder } from "./viewBuilder.js"
 import { BasicElementConfig, SpecialElementAttributes } from "./viewConfig.js"
 
 export type SVGView = (root: SVGBuilder) => void
@@ -9,7 +9,7 @@ export type SVGView = (root: SVGBuilder) => void
 export interface SpecialSVGElements {
   element(tag: string, builder?: (element: ConfigurableElement<SpecialElementAttributes, SVGElements>) => void): this
   textNode(value: string | Stateful<string>): this
-  zone(view: SVGView, options?: ViewOptions): this
+  zone(view: SVGView): this
   zoneWhich<T extends { [key: string]: SVGView }>(selector: Stateful<keyof T>, zones: T): this
   // Note that Stateful could return undefined??
   zones<T>(data: Stateful<Array<T>>, viewGenerator: (item: State<T>, index: State<number>) => SVGView): this
@@ -41,8 +41,7 @@ export function buildSvgElement(builder?: (element: ConfigurableElement<SpecialE
 }
 
 export class SvgViewBuilder extends ViewBuilder<SpecialElementAttributes, SVGElements> implements SpecialSVGElements {
-  // DO we need to support keys?!?!
-  zone(view: SVGView, _?: ViewOptions): this {
+  zone(view: SVGView): this {
     const builder = new SvgViewBuilder()
     view(builder as unknown as SVGBuilder)
     this.storeNode(builder.toVirtualNode())

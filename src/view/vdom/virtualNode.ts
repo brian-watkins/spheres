@@ -1,5 +1,4 @@
 import { Container, container, GetState, reactiveVariable, ReactiveVariable, State, StoreMessage, variable, Variable } from "../../store/index.js";
-import { EventHandler } from "./eventHandler.js";
 
 export type Stateful<T> = (get: GetState) => T | undefined
 
@@ -60,13 +59,15 @@ export interface StatefulValue<T> {
   effect?: EffectHandle
 }
 
+export type StoreEventHandler<T> = (evt: Event) => StoreMessage<T>
+
 export interface VirtualNodeConfig {
   props?: Record<string, any>
   statefulProps?: Record<string, StatefulValue<any>>
   attrs: Record<string, string>
   statefulAttrs?: Record<string, StatefulValue<string>>
   namespace?: string
-  on?: { [index: string]: EventHandler }
+  on?: { [index: string]: StoreEventHandler<any> }
   eventId: string
   key?: VirtualNodeKey
 }
@@ -109,12 +110,12 @@ export function addStatefulAttribute(config: VirtualNodeConfig, name: string, ge
   }
 }
 
-export function setEventHandler(config: VirtualNodeConfig, event: string, handler: (evt: Event) => StoreMessage<any, any>) {
+export function setEventHandler(config: VirtualNodeConfig, event: string, handler: StoreEventHandler<any>) {
   if (!config.on) {
     config.on = {}
   }
 
-  config.on[event] = new EventHandler(handler)
+  config.on[event] = handler
 }
 
 export function makeStatefulElement(generator: (get: GetState) => VirtualNode, key: VirtualNodeKey | undefined, node?: Node): VirtualNode {

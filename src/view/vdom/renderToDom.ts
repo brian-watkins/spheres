@@ -1,7 +1,6 @@
-import { Store, StoreMessage } from "../../store/index.js";
+import { Store } from "../../store/index.js";
 import { DOMRenderer, TemplateData } from "./render.js";
-import { NodeType, VirtualNode, VirtualTemplate, ZoneListNode } from "./virtualNode.js";
-import { EventHandler } from "./eventHandler.js";
+import { NodeType, StoreEventHandler, VirtualNode, VirtualTemplate, ZoneListNode } from "./virtualNode.js";
 import { UpdateTextEffect } from "./effects/textEffect.js";
 import { UpdateAttributeEffect } from "./effects/attributeEffect.js";
 import { UpdatePropertyEffect } from "./effects/propertyEffect.js";
@@ -82,7 +81,7 @@ export function createNode(store: Store, vnode: VirtualNode): Node {
 
       const events = vnode.data.on
       for (const k in events) {
-        addEventListener(store, element, k, events![k])
+        addEventListener(store, element, k, events[k])
       }
 
       for (var i = 0; i < vnode.children.length; i++) {
@@ -93,9 +92,11 @@ export function createNode(store: Store, vnode: VirtualNode): Node {
   }
 }
 
-function addEventListener(store: Store, element: Element, event: string, handler: EventHandler) {
-  handler.connect(store)
-  element.addEventListener(event, handler)
+function addEventListener(store: Store, element: Element, event: string, handler: StoreEventHandler<any>) {
+  element.addEventListener(event, (evt) => {
+    const message = handler(evt)
+    store.dispatch(message)
+  })
 }
 
 
@@ -103,9 +104,6 @@ function addEventListener(store: Store, element: Element, event: string, handler
 
 const templateRegistry = new WeakMap<VirtualTemplate<any>, DOMTemplate>()
 
-// Move these to virtual node and replace the `on` param with an EventMap
-// Do we even need the EventHandler object anymore?
-type StoreEventHandler<T> = (evt: Event) => StoreMessage<T>
 type EventMap = Map<string, StoreEventHandler<any>>
 
 interface DOMTemplate {
@@ -130,10 +128,9 @@ export function createTemplateInstance(store: Store, templateData: TemplateData)
 }
 
 function attachEvents(template: DOMTemplate, templateData: TemplateData, store: Store, rootElement: Node) {
-  for (const eventType of template.events.keys()) {
+  for (const [eventType, eventMap] of template.events) {
     const args = templateData.args
     const virtualTemplate = templateData.template
-    const eventMap = template.events.get(eventType)!
     rootElement.addEventListener(eventType, (evt) => {
       const targetElement = evt.target as Element
       const node = targetElement.closest(`[data-spheres-${eventType}]`) as Element
@@ -224,7 +221,6 @@ class ListEffectTemplate implements EffectTemplate {
 function findEvents(events: Map<string, EventMap>, vnode: VirtualNode) {
   switch (vnode.type) {
     case NodeType.ELEMENT:
-      // We could make the `on` object a EventMap, right?
       const elementEvents = vnode.data.on
       for (const k in elementEvents) {
         let map = events.get(k)
@@ -232,8 +228,9 @@ function findEvents(events: Map<string, EventMap>, vnode: VirtualNode) {
           map = new Map<string, StoreEventHandler<any>>()
           events.set(k, map)
         }
-        map.set(vnode.data.eventId!, elementEvents[k].handler)
+        map.set(vnode.data.eventId, elementEvents[k])
       }
+
       for (var i = 0; i < vnode.children.length; i++) {
         findEvents(events, vnode.children[i])
       }
@@ -304,7 +301,6 @@ function createTemplateNode(vnode: VirtualNode): Node {
       }
 
       const events = vnode.data.on
-
       for (const k in events) {
         element.setAttribute(`data-spheres-${k}`, vnode.data.eventId!)
       }

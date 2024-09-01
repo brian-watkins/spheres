@@ -1,7 +1,6 @@
 import { container, Container, GetState, ReactiveEffect, Store, write } from "../../../store"
-import { makeTemplate, TemplateNode, VirtualNodeKey, ZoneListNode } from "../virtualNode"
-
-export type TemplateNodeGenerator = (store: Store, virtualNode: TemplateNode) => Node
+import { TemplateData, TemplateNodeRenderer } from "../render"
+import { VirtualNodeKey, ZoneListNode } from "../virtualNode"
 
 interface VirtualListItem {
   key: any
@@ -11,11 +10,11 @@ interface VirtualListItem {
 }
 
 export class ListEffect implements ReactiveEffect {
-  private templateVNode: TemplateNode
+  private templateData: TemplateData
   private vnodes: Array<VirtualListItem> = []
 
-  constructor(private store: Store, private vnode: ZoneListNode, private listStartNode: Node, private templateNodeGenerator: TemplateNodeGenerator) {
-    this.templateVNode = makeTemplate(this.vnode.template, { item: undefined }, undefined)
+  constructor(private store: Store, private vnode: ZoneListNode, private listStartNode: Node, private templateNodeGenerator: TemplateNodeRenderer) {
+    this.templateData = { template: this.vnode.template, args: { item: undefined } }
   }
 
   init(get: GetState) {
@@ -40,8 +39,8 @@ export class ListEffect implements ReactiveEffect {
   }
 
   createNode(store: Store, vnode: VirtualListItem): Node {
-    this.templateVNode.args = { item: vnode.key, index: vnode.indexState }
-    return this.templateNodeGenerator(store, this.templateVNode)
+    this.templateData.args = { item: vnode.key, index: vnode.indexState }
+    return this.templateNodeGenerator(store, this.templateData)
   }
 
   patchList(newVKids: Array<VirtualListItem>) {

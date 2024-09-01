@@ -19,10 +19,6 @@ function stringifyVirtualNode(store: Store, vnode: VirtualNode): string {
       return stringifyReactiveText(store, vnode)
     case NodeType.STATEFUL:
       return stringifyStatefulNode(store, vnode)
-    case NodeType.TEMPLATE:
-      // NOTE -- NOT DONE YET!
-      // vnode.template.setArgs(vnode.args)
-      return stringifyVirtualNode(store, vnode.template.virtualNode)
     case NodeType.ZONE_LIST:
       return "NOT DONE YET"
   }

@@ -45,14 +45,6 @@ export interface StatefulNode {
   node: Node | undefined
 }
 
-export interface TemplateNode {
-  type: NodeType.TEMPLATE
-  template: VirtualTemplate<any>
-  args: any
-  key?: VirtualNodeKey
-  node: Node | undefined
-}
-
 export interface ZoneListNode {
   type: NodeType.ZONE_LIST
   id: string
@@ -61,7 +53,7 @@ export interface ZoneListNode {
   node: Node | undefined
 }
 
-export type VirtualNode = TextNode | StatefulTextNode | ElementNode | StatefulNode | TemplateNode | ZoneListNode
+export type VirtualNode = TextNode | StatefulTextNode | ElementNode | StatefulNode | ZoneListNode
 
 export interface StatefulValue<T> {
   generator: Stateful<T>
@@ -174,16 +166,6 @@ export abstract class VirtualTemplate<T> {
       this.setArgs(args)
       return generator(get)
     } 
-  }
-}
-
-export function makeTemplate<T>(template: VirtualTemplate<T>, args: T, key?: VirtualNodeKey): TemplateNode {
-  return {
-    type: NodeType.TEMPLATE,
-    template,
-    args: args,
-    key,
-    node: undefined
   }
 }
 

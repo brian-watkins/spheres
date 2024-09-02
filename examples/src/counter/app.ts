@@ -1,9 +1,9 @@
-import { htmlTemplate } from "spheres/view";
 import { container, update } from "spheres/store";
+import { HTMLBuilder } from "../../../src/view";
 
 const clickCount = container({ initialValue: 0 })
 
-export default htmlTemplate(() => root => {
+export default function (root: HTMLBuilder) {
   root.main(el => {
     el.children
       .p(el => {
@@ -15,4 +15,4 @@ export default htmlTemplate(() => root => {
         el.children.textNode("Count!")
       })
   })
-})
+}

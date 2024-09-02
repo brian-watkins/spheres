@@ -1,14 +1,14 @@
-import { GetState, use, write } from "spheres/store";
-import { createRecord, deleteSelected, filterPrefix, filteredRecords, records, selectedRecord, updateSelected } from "./state.js";
+import { State, use, write } from "spheres/store";
+import { DataRecord, createRecord, deleteSelected, filterPrefix, filteredRecords, records, selectedRecord, updateSelected } from "./state.js";
 import { names, useValue } from "../helpers/helpers.js";
-import { HTMLView, WithArgs, htmlTemplate } from "spheres/view";
+import { HTMLBuilder, HTMLView } from "../../../src/view/index.js";
 
-export const crud = htmlTemplate(() => root => {
+export function crud(root: HTMLBuilder) {
   root.main(({ config, children }) => {
     config
       .class("m-4")
     children
-      .zone(filterInputView())
+      .zone(filterInputView)
       .div(({ config, children }) => {
         config
           .class(names([
@@ -18,7 +18,7 @@ export const crud = htmlTemplate(() => root => {
           ]))
         children
           .zone(recordsView)
-          .zone(recordForm())
+          .zone(recordForm)
       })
       .div(({ config, children }) => {
         config
@@ -51,10 +51,10 @@ export const crud = htmlTemplate(() => root => {
           })
       })
   })
-})
+}
 
 
-const recordForm = htmlTemplate(() => root => {
+function recordForm(root: HTMLBuilder) {
   root.form(({ config, children }) => {
     config
       .id("record-form")
@@ -84,27 +84,29 @@ const recordForm = htmlTemplate(() => root => {
         name: "lastName"
       }))
   })
-})
+}
 
 interface InputViewAttributes {
   label: string
   name: string
 }
 
-const inputView = htmlTemplate((withArgs: WithArgs<InputViewAttributes>) => root =>
-  root.label(el => {
-    el.children
-      .textNode(withArgs(props => props.label))
-      .input(el => {
-        el.config
-          .type("text")
-          .required(true)
-          .class(`${inputClasses()} ml-2 w-48`)
-          .name(withArgs(props => props.name))
-      })
-  }))
+function inputView(attr: InputViewAttributes): HTMLView {
+  return root =>
+    root.label(el => {
+      el.children
+        .textNode(attr.label)
+        .input(el => {
+          el.config
+            .type("text")
+            .required(true)
+            .class(`${inputClasses()} ml-2 w-48`)
+            .name(attr.name)
+        })
+    })
+}
 
-const filterInputView = htmlTemplate(() => root =>
+function filterInputView(root: HTMLBuilder) {
   root.label(el => {
     el.children
       .textNode("Filter:")
@@ -116,35 +118,36 @@ const filterInputView = htmlTemplate(() => root =>
           .dataAttribute("filter-input")
           .on("input", useValue((val) => write(filterPrefix, val)))
       })
-  }))
+  })
+}
 
 
-function recordsView(get: GetState): HTMLView {
-  const data = get(filteredRecords)
+function recordsView(root: HTMLBuilder) {
+  root.select(({ config, children }) => {
+    config
+      .size("5")
+      .dataAttribute("records")
+      .on("change", useValue((value) => write(selectedRecord, parseInt(value))))
+      .class(`${inputClasses()} w-64`)
 
-  return root => {
-    root.select(({ config, children }) => {
-      config
-        .size("5")
-        .dataAttribute("records")
-        .on("change", useValue((value) => write(selectedRecord, parseInt(value))))
-        .class(`${inputClasses()} w-64`)
-
-      children.option(({ config, children }) => {
-        config.value("-1")
-        children.textNode("")
-      })
-
-      for (const record of data) {
-        children
-          .option(({ config, children }) => {
-            config
-              .value(`${record.id}`)
-            children
-              .textNode(`${record.lastName}, ${record.firstName}`)
-          })
-      }
+    children.option(({ config, children }) => {
+      config.value("-1")
+      children.textNode("")
     })
+
+    children.zones(get => get(filteredRecords), optionView)
+  })
+}
+
+function optionView(record: State<DataRecord>): HTMLView {
+  return root => {
+    root
+      .option(({ config, children }) => {
+        config
+          .value(get => `${get(record).id}`)
+        children
+          .textNode(get => `${get(record).lastName}, ${get(record).firstName}`)
+      })
   }
 }
 

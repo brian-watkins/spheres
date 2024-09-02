@@ -11,6 +11,6 @@ window.startApp = (testData: Array<DataRecord>) => {
     store.dispatch(write(records, createRecord(record)))
   }
 
-  renderToDOM(store, document.getElementById("test-display")!, crud())
+  renderToDOM(store, document.getElementById("test-display")!, crud)
 }
 

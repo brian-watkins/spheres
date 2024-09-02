@@ -1,10 +1,10 @@
 import { use } from "spheres/store";
 import { celsiusInvalid, celsiusTemperature, farenheitInvalid, farenheitTemperature, temperatureUpdate } from "./state.js";
 import { names, useValue } from "../helpers/helpers.js";
-import { htmlTemplate } from "spheres/view";
+import { HTMLBuilder } from "../../../src/view/index.js";
 
 
-export const converter = htmlTemplate(() => root =>
+export function converter(root: HTMLBuilder) {
   root.main(el => {
     el.children
       .div(el => {
@@ -13,7 +13,7 @@ export const converter = htmlTemplate(() => root =>
             el.config.for("celsius")
             el.children.textNode("Celsius")
           })
-          .zone(celsiusInput())
+          .zone(celsiusInput)
       })
       .div(el => {
         el.children
@@ -21,12 +21,13 @@ export const converter = htmlTemplate(() => root =>
             el.config.for("farenheit")
             el.children.textNode("Farenheit")
           })
-          .zone(farenheitInput())
+          .zone(farenheitInput)
       })
-  }))
+  })
+}
 
 
-const celsiusInput = htmlTemplate(() => root =>
+function celsiusInput(root: HTMLBuilder) {
   root.input(el => {
     el.config
       .id("celsius")
@@ -34,10 +35,11 @@ const celsiusInput = htmlTemplate(() => root =>
       .value((get) => get(celsiusTemperature))
       .on("input", useValue((value) => use(temperatureUpdate, { celsius: value })))
       .class((get) => inputStyling(get(celsiusInvalid), get(farenheitInvalid)))
-  }))
+  })
+}
 
 
-const farenheitInput = htmlTemplate(() => root =>
+function farenheitInput(root: HTMLBuilder) {
   root.input(el => {
     el.config
       .id("farenheit")
@@ -45,7 +47,8 @@ const farenheitInput = htmlTemplate(() => root =>
       .value((get) => get(farenheitTemperature))
       .on("input", useValue((value) => use(temperatureUpdate, { farenheit: value })))
       .class((get) => inputStyling(get(farenheitInvalid), get(celsiusInvalid)))
-  }))
+  })
+}
 
 
 function inputStyling(isInvalid: boolean, isError: boolean): string {

@@ -2,12 +2,11 @@ import { Context } from "esbehavior";
 import { Locator, Page } from "playwright";
 import { BrowserTestInstrument, useBrowser } from "best-behavior/browser"
 
-export const testAppContext: Context<TestApp> = {
-  init: async () => {
-    const localBrowser = await useBrowser()
+export const testAppContext: Context<TestApp> = useBrowser({
+  init: async (localBrowser) => {
     return new TestApp(localBrowser)
   },
-}
+})
 
 export class TestApp {
   private testDisplay: TestDisplay | undefined

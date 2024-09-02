@@ -1,7 +1,7 @@
 import { Container, StoreMessage, batch, container, rule, run, use, write } from "spheres/store";
-import { WithArgs, htmlTemplate } from "spheres/view";
 import { cellContainer } from "./state.js";
 import { CellErrorType } from "./formula.js";
+import { HTMLBuilder, HTMLView } from "../../../src/view/index.js";
 
 const editableCell = container<Container<boolean> | undefined>({ initialValue: undefined })
 
@@ -24,7 +24,7 @@ const startLetter = 65
 const totalColumns = 26
 const totalRows = 50
 
-export const cells = htmlTemplate(() => root =>
+export function cells(root: HTMLBuilder) {
   root.main(({ config, children }) => {
     config
       .class("absolute bottom-0 top-32 left-0 right-0 overflow-auto")
@@ -62,66 +62,70 @@ export const cells = htmlTemplate(() => root =>
           }
         })
     }
-  }))
+  })
+}
 
-const cell = htmlTemplate((withId: WithArgs<string>) => root =>
-  root.div(({ config, children }) => {
-    config
-      .dataAttribute("cell", withId(id => id))
-      .class(withId((id, get) => {
-        const cellDetails = get(cellContainer(id))
-        if (get(cellDetails.cellValue).isErr) {
-          return "shrink-0 h-8 w-40 bg-fuchsia-300 relative italic"
-        } else {
-          return `shrink-0 h-8 w-40 ${get(cellDetails.editable) ? "bg-slate-100" : "bg-slate-200"} relative`
-        }
-      }))
-      .on("click", () => use(rule(withId(id => batch([
-        use(makeEditable, id),
-        run(() => (document.querySelector(`input[name='${id}']`) as HTMLInputElement)?.focus())
-      ])))))
-    children
-      .div(({ config, children }) => {
-        config
-          .class("px-1 py-1")
-          .hidden(withId((id, get) => get(get(cellContainer(id)).editable) ? "hidden" : undefined))
-        children
-          .textNode(withId((id, get) => {
-            const cellValue = get(get(cellContainer(id)).cellValue)
-            return cellValue.resolve({
-              ok: (val) => val,
-              err: (error) => {
-                switch (error.type) {
-                  case CellErrorType.ParseFailure:
-                    return error.value
-                  case CellErrorType.UnableToCalculate:
-                    return "NaN"
+function cell(id: string): HTMLView {
+  return root => {
+    root.div(({ config, children }) => {
+      config
+        .dataAttribute("cell", id)
+        .class(get => {
+          const cellDetails = get(cellContainer(id))
+          if (get(cellDetails.cellValue).isErr) {
+            return "shrink-0 h-8 w-40 bg-fuchsia-300 relative italic"
+          } else {
+            return `shrink-0 h-8 w-40 ${get(cellDetails.editable) ? "bg-slate-100" : "bg-slate-200"} relative`
+          }
+        })
+        .on("click", () => batch([
+          use(makeEditable, id),
+          run(() => (document.querySelector(`input[name='${id}']`) as HTMLInputElement)?.focus())
+        ]))
+      children
+        .div(({ config, children }) => {
+          config
+            .class("px-1 py-1")
+            .hidden(get => get(get(cellContainer(id)).editable) ? "hidden" : undefined)
+          children
+            .textNode(get => {
+              const cellValue = get(get(cellContainer(id)).cellValue)
+              return cellValue.resolve({
+                ok: (val) => val,
+                err: (error) => {
+                  switch (error.type) {
+                    case CellErrorType.ParseFailure:
+                      return error.value
+                    case CellErrorType.UnableToCalculate:
+                      return "NaN"
+                  }
                 }
-              }
+              })
             })
-          }))
-      })
-      .form(({ config, children }) => {
-        config
-          .class("absolute top-1 left-0")
-          .hidden(withId((id, get) => get(get(cellContainer(id)).editable) ? undefined : "hidden"))
-          .on("submit", (evt) => {
-            evt.preventDefault()
-            return use(rule(withId((id, get) => {
-              const cellDefinition = ((evt.target as HTMLFormElement).elements.namedItem(id) as HTMLInputElement).value
-              return batch([
-                write(editableCell, undefined),
-                write(get(cellContainer(id)).editable, false),
-                write(cellContainer(id), cellDefinition)
-              ])
-            })))
-          })
-        children
-          .input(({ config }) => {
-            config
-              .name(withId(id => id))
-              .type("text")
-              .class("w-full px-1 bg-slate-100 outline-none")
-          })
-      })
-  }))
+        })
+        .form(({ config, children }) => {
+          config
+            .class("absolute top-1 left-0")
+            .hidden(get => get(get(cellContainer(id)).editable) ? undefined : "hidden")
+            .on("submit", (evt) => {
+              evt.preventDefault()
+              return use(rule(get => {
+                const cellDefinition = ((evt.target as HTMLFormElement).elements.namedItem(id) as HTMLInputElement).value
+                return batch([
+                  write(editableCell, undefined),
+                  write(get(cellContainer(id)).editable, false),
+                  write(cellContainer(id), cellDefinition)
+                ])
+              }))
+            })
+          children
+            .input(({ config }) => {
+              config
+                .name(id)
+                .type("text")
+                .class("w-full px-1 bg-slate-100 outline-none")
+            })
+        })
+    })
+  }
+}

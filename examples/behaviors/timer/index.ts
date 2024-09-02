@@ -8,4 +8,4 @@ const store = new Store()
 window.__testRepeater = new TestRepeaterManager(store)
 store.useCommand(runTimerCommand, window.__testRepeater)
 
-renderToDOM(store, document.getElementById("test-display")!, timer())
+renderToDOM(store, document.getElementById("test-display")!, timer)

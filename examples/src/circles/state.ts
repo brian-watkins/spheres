@@ -102,21 +102,31 @@ export const addCircleRule = rule((get, center: Coordinate) => {
   return addActionMessage(get, addCircleAction)
 })
 
-export interface AdjustmentOptions {
+export interface DialogContents {
   circle: CircleContainer
   originalRadius: number
+  showDiameterSlider: boolean
 }
 
-export const adjustRadiusRule = rule((get, options: AdjustmentOptions) => {
-  const currentRadius = get(options.circle).radius
+export const dialog = container<DialogContents | undefined>({
+  initialValue: undefined
+})
 
-  if (currentRadius === options.originalRadius) {
+export const adjustRadiusRule = rule((get) => {
+  const dialogData = get(dialog)
+  if (dialogData === undefined) {
+    return batch([])
+  }
+
+  const currentRadius = get(dialogData.circle).radius
+
+  if (currentRadius === dialogData.originalRadius) {
     return batch([])
   }
 
   const adjustRadiusAction = {
-    execute: write(options.circle, adjustRadius(currentRadius)),
-    undo: write(options.circle, adjustRadius(options.originalRadius))
+    execute: write(dialogData.circle, adjustRadius(currentRadius)),
+    undo: write(dialogData.circle, adjustRadius(dialogData.originalRadius))
   }
 
   return addActionMessage(get, adjustRadiusAction)

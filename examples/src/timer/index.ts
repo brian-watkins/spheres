@@ -7,4 +7,4 @@ import { renderToDOM } from "spheres/view";
 const store = new Store()
 store.useCommand(runTimerCommand, new RepeaterCommandManager(store))
 
-renderToDOM(store, document.getElementById("app")!, timer())
+renderToDOM(store, document.getElementById("app")!, timer)

@@ -1,74 +1,73 @@
 import { reset, write } from "spheres/store";
 import { duration, elapsedTime, percentComplete } from "./state.js";
 import { names, useValue } from "../helpers/helpers.js";
-import { htmlTemplate } from "spheres/view";
+import { HTMLBuilder } from "../../../src/view/index.js";
 
-export default htmlTemplate(() => {
-  return root =>
-    root.section(el => {
-      el.config
-        .class(names([
-          "flex",
-          "flex-col",
-          "gap-2",
-          "w-96"
+export default function (root: HTMLBuilder) {
+  root.section(el => {
+    el.config
+      .class(names([
+        "flex",
+        "flex-col",
+        "gap-2",
+        "w-96"
+      ]))
+    el.children
+      .label(el => {
+        el.config.class(names([
+          "font-bold",
+          "text-slate-800"
         ]))
-      el.children
-        .label(el => {
-          el.config.class(names([
-            "font-bold",
-            "text-slate-800"
-          ]))
-          el.children
-            .textNode("Elapsed Time")
-            .zone(progressMeter())
-        })
-        .zone(timerValueLabel())
-        .label(el => {
-          el.config.class(names([
+        el.children
+          .textNode("Elapsed Time")
+          .zone(progressMeter)
+      })
+      .zone(timerValueLabel)
+      .label(el => {
+        el.config.class(names([
+          "mt-4",
+          "font-bold",
+          "text-slate-800"
+        ]))
+        el.children
+          .textNode("Duration")
+          .input(el => {
+            el.config
+              .class(names([
+                "block",
+                "w-full",
+                "mt-2"
+              ]))
+              .type("range")
+              .dataAttribute("duration")
+              .max("15")
+              .step("1")
+              .value("0")
+              .on("input", useValue((value) => write(duration, Number(value))))
+          })
+      })
+      .button(el => {
+        el.config
+          .dataAttribute("reset-button")
+          .class(names([
             "mt-4",
+            "bg-sky-600",
+            "text-slate-100",
             "font-bold",
-            "text-slate-800"
+            "text-xl",
+            "px-8",
+            "py-4",
+            "disabled:bg-slate-400",
+            "hover:bg-sky-800"
           ]))
-          el.children
-            .textNode("Duration")
-            .input(el => {
-              el.config
-                .class(names([
-                  "block",
-                  "w-full",
-                  "mt-2"
-                ]))
-                .type("range")
-                .dataAttribute("duration")
-                .max("15")
-                .step("1")
-                .value("0")
-                .on("input", useValue((value) => write(duration, Number(value))))
-            })
-        })
-        .button(el => {
-          el.config
-            .dataAttribute("reset-button")
-            .class(names([
-              "mt-4",
-              "bg-sky-600",
-              "text-slate-100",
-              "font-bold",
-              "text-xl",
-              "px-8",
-              "py-4",
-              "disabled:bg-slate-400",
-              "hover:bg-sky-800"
-            ]))
-            .on("click", () => reset(elapsedTime))
-          el.children
-            .textNode("Reset")
-        })
-    })
-})
+          .on("click", () => reset(elapsedTime))
+        el.children
+          .textNode("Reset")
+      })
+  })
+}
 
-const timerValueLabel = htmlTemplate(() => root => {
+function timerValueLabel(root: HTMLBuilder) {
   root.div(el => {
     el.config
       .dataAttribute("elapsed-time")
@@ -79,9 +78,9 @@ const timerValueLabel = htmlTemplate(() => root => {
     el.children
       .textNode((get) => formatTime(get(elapsedTime)))
   })
-})
+}
 
-const progressMeter = htmlTemplate(() => root =>
+function progressMeter(root: HTMLBuilder) {
   root.progress(el => {
     el.config
       .class(names([
@@ -95,7 +94,7 @@ const progressMeter = htmlTemplate(() => root =>
       ]))
       .value((get) => get(percentComplete))
   })
-)
+}
 
 function formatTime(millis: number): string {
   const timeInTenthsOfSecond = (millis / 1000).toFixed(1)

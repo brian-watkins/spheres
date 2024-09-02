@@ -11,7 +11,7 @@ window.startCircleApp = (testData: Array<FakeCircle>) => {
     dataStore.dispatch(use(addCircleRule, circle.center))
   }
 
-  renderToDOM(dataStore, document.getElementById("test-display")!, circles())
+  renderToDOM(dataStore, document.getElementById("test-display")!, circles)
 
   // to deselect all circles
   document.querySelectorAll("circle").forEach(circle => {

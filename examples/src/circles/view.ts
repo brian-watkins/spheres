@@ -1,9 +1,9 @@
-import { GetState, batch, write, run, container, StoreMessage, use, rule } from "spheres/store";
-import { Circle, CircleContainer, addCircleRule, adjustRadius, adjustRadiusRule, canRedo, canUndo, circleData, deselectCircle, redoRule, selectCircle, undoRule } from "./state";
+import { batch, write, run, StoreMessage, use, rule, State } from "spheres/store";
+import { CircleContainer, addCircleRule, adjustRadius, adjustRadiusRule, canRedo, canUndo, circleData, deselectCircle, dialog, redoRule, selectCircle, undoRule } from "./state";
 import { useValue } from "../helpers/helpers";
-import { HTMLView, SVGView, WithArgs, htmlTemplate } from "spheres/view";
+import { HTMLBuilder, SVGView } from "../../../src/view";
 
-export const circles = htmlTemplate(() => root =>
+export function circles(root: HTMLBuilder) {
   root.main(({ children }) => {
     children
       .div(({ config, children }) => {
@@ -35,108 +35,72 @@ export const circles = htmlTemplate(() => root =>
           .class("bg-slate-300 rounded")
           .on("click", (evt) => use(addCircleRule, { x: evt.offsetX, y: evt.offsetY }))
         children
-          .zone(circleViews)
+          .zones(get => get(circleData), circleView)
       })
       .zone(optionsView)
-  }))
-
-function circleViews(get: GetState): SVGView {
-  const data = get(circleData)
-
-  return root => {
-    root.g(({ children }) => {
-      for (const circle of data) {
-        children.zone(circleView(circle))
-      }
-    })
-  }
+  })
 }
 
-function circleView(circleContainer: CircleContainer): (get: GetState) => SVGView {
-  return (get: GetState) => {
-    const circle = get(circleContainer)
-    return root => root.circle(({ config }) => {
-      config
-        .fill(circle.selected ? "#333333" : "transparent")
+function circleView(circle: State<CircleContainer>): SVGView {
+  return root => {
+    root.circle(el => {
+      el.config
+        .fill(get => get(get(circle)).selected ? "#333333" : "transparent")
         .stroke("#555555")
         .strokeWidth("3")
-        .cx(`${circle.center.x}`)
-        .cy(`${circle.center.y}`)
-        .r(`${circle.radius}`)
-        .on("mouseover", () => write(circleContainer, selectCircle()))
+        .cx(get => `${get(get(circle)).center.x}`)
+        .cy(get => `${get(get(circle)).center.y}`)
+        .r(get => `${get(get(circle)).radius}`)
+        .on("mouseover", () => use(rule(get => write(get(circle), selectCircle()))))
         .on("click", (evt) => {
           evt.stopPropagation()
-          return batch([
+          return use(rule(get => batch([
             write(dialog, {
-              circle: circleContainer,
-              originalRadius: circle.radius,
+              circle: get(circle),
+              originalRadius: get(get(circle)).radius,
               showDiameterSlider: false,
             }),
             run(() => {
               document.querySelector("dialog")?.showModal()
             })
-          ])
+          ])))
         })
-
-      if (get(dialog)?.circle !== circleContainer) {
-        config.on("mouseout", () => write(circleContainer, deselectCircle()))
-      }
-    })
-  }
-}
-
-// local state for dialog
-
-interface DialogContents {
-  circle: CircleContainer
-  originalRadius: number
-  showDiameterSlider: boolean
-}
-
-const dialog = container<DialogContents | undefined>({
-  initialValue: undefined
-})
-
-function optionsView(get: GetState): HTMLView {
-  const dialogData = get(dialog)
-
-  if (dialogData === undefined) {
-    return root => root.dialog()
-  }
-
-  const circle = get(dialogData.circle)
-
-  return root => {
-    root.dialog(({ config, children }) => {
-      config
-        .class("backdrop:bg-gray-500/50 bg-slate-100 shadow-lg rounded")
-        .on("click", closeDialog)
-        .on("close", () => {
-          return batch([
-            use(adjustRadiusRule, {
-              circle: dialogData.circle,
-              originalRadius: dialogData.originalRadius
-            }),
-            write(dialogData.circle, deselectCircle()),
-            write(dialog, undefined),
-          ])
-        })
-      children
-        .div(({ config, children }) => {
-          config
-            .class("w-96 m-8 bg-slate-100 hover:text-sky-600 font-bold text-sky-800")
-            .on("click", () => write(dialog, { ...dialogData, showDiameterSlider: true }))
-
-          if (dialogData.showDiameterSlider) {
-            children
-              .zone(adjustRadiusView(dialogData.circle))
+        .on("mouseout", () => use(rule(get => {
+          if (get(dialog)?.circle !== get(circle)) {
+            return write(get(circle), deselectCircle())
           } else {
-            children
-              .textNode(adjustmentMessage(circle))
+            return batch([])
           }
-        })
+        })))
     })
   }
+}
+
+
+function optionsView(root: HTMLBuilder) {
+  root.dialog(({ config, children }) => {
+    config
+      .class("backdrop:bg-gray-500/50 bg-slate-100 shadow-lg rounded")
+      .on("click", closeDialog)
+      .on("close", () => {
+        return batch([
+          use(adjustRadiusRule),
+          use(rule(get => write(get(dialog)!.circle, deselectCircle()))),
+          write(dialog, undefined),
+        ])
+      })
+    children
+      .div(({ config, children }) => {
+        config
+          .class("w-96 m-8 bg-slate-100 hover:text-sky-600 font-bold text-sky-800")
+          .on("click", () => use(rule(get => write(dialog, { ...get(dialog)!, showDiameterSlider: true }))))
+        children
+          .zoneWhich(get => get(dialog)?.showDiameterSlider ? "adjustRadius" : "message", {
+            adjustRadius: adjustRadiusView,
+            message: adjustmentMessage
+          })
+      })
+  })
 }
 
 function closeDialog(evt: Event): StoreMessage<any> {
@@ -146,7 +110,7 @@ function closeDialog(evt: Event): StoreMessage<any> {
     batch([])
 }
 
-const adjustRadiusView = htmlTemplate((withCircle: WithArgs<CircleContainer>) => root =>
+function adjustRadiusView(root: HTMLBuilder) {
   root.div(({ config, children }) => {
     config
       .class("w-96")
@@ -155,7 +119,7 @@ const adjustRadiusView = htmlTemplate((withCircle: WithArgs<CircleContainer>) =>
         config
           .class("text-sky-800 mb-4")
         children
-          .textNode(withCircle((circle, get) => adjustmentMessage(get(circle))))
+          .zone(adjustmentMessage)
       })
       .input(({ config }) => {
         config
@@ -165,15 +129,24 @@ const adjustRadiusView = htmlTemplate((withCircle: WithArgs<CircleContainer>) =>
           .max("75")
           .min("2")
           .step("1")
-          .value(withCircle((circle, get) => `${get(circle).radius}`))
+          .value(get => `${get(get(dialog)!.circle).radius}`)
           .on("input", useValue(value => {
-            return use(rule(withCircle(circle => write(circle, adjustRadius(Number(value))))))
+            return use(rule(get => write(get(dialog)!.circle, adjustRadius(Number(value)))))
           }))
       })
-  }))
+  })
+}
 
-function adjustmentMessage(circle: Circle): string {
-  return `Adjust Diameter of circle at (${circle.center.x}, ${circle.center.y})`
+function adjustmentMessage(root: HTMLBuilder) {
+  root.textNode(get => {
+    const dialogData = get(dialog)
+    if (dialogData === undefined) {
+      return ""
+    } else {
+      const circle = get(dialogData.circle)
+      return `Adjust Diameter of circle at (${circle.center.x}, ${circle.center.y})`
+    }
+  })
 }
 
 const buttonStyle = "disabled:bg-slate-400 hover:bg-sky-800 px-8 py-4 bg-sky-600 text-slate-100 text-xl font-bold"

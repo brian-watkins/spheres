@@ -1,9 +1,9 @@
 import { use, write } from "spheres/store";
 import { FlightTypes, allowReturnDate, bookFlight, bookingAllowed, flightType, returnDate, returnDateIsValid, startDate, startDateIsValid } from "./state.js";
 import { names, useValue } from "../helpers/helpers.js";
-import { htmlTemplate } from "spheres/view";
+import { HTMLBuilder } from "../../../src/view/index.js";
 
-export const flightBooker = htmlTemplate(() => root =>
+export function flightBooker(root: HTMLBuilder) {
   root.main(el => {
     el.config
       .class(names([
@@ -13,13 +13,14 @@ export const flightBooker = htmlTemplate(() => root =>
         "w-96"
       ]))
     el.children
-      .zone(flightTypeSelect())
-      .zone(startDateInput())
-      .zone(returnDateInput())
-      .zone(bookFlightButton())
-  }))
+      .zone(flightTypeSelect)
+      .zone(startDateInput)
+      .zone(returnDateInput)
+      .zone(bookFlightButton)
+  })
+}
 
-const flightTypeSelect = htmlTemplate(() => root => {
+function flightTypeSelect(root: HTMLBuilder) {
   root.select(el => {
     el.config.on("change", useValue((value) => write(flightType, value)))
     el.children
@@ -30,9 +31,9 @@ const flightTypeSelect = htmlTemplate(() => root => {
         el.children.textNode(FlightTypes.RETURN)
       })
   })
-})
+}
 
-const bookFlightButton = htmlTemplate(() => root => {
+function bookFlightButton(root: HTMLBuilder) {
   root.button(el => {
     el.config
       .class(names([
@@ -50,10 +51,10 @@ const bookFlightButton = htmlTemplate(() => root => {
     el.children
       .textNode("Book Flight!")
   })
-})
+}
 
 
-const startDateInput = htmlTemplate(() => root => {
+function startDateInput(root: HTMLBuilder) {
   root.input(el => {
     el.config
       .dataAttribute("start-date")
@@ -61,9 +62,9 @@ const startDateInput = htmlTemplate(() => root => {
       .value((get) => get(startDate))
       .on("input", useValue((value) => write(startDate, value)))
   })
-})
+}
 
-const returnDateInput = htmlTemplate(() => root => {
+function returnDateInput(root: HTMLBuilder) {
   root.input(el => {
     el.config
       .dataAttribute("return-date")
@@ -72,7 +73,7 @@ const returnDateInput = htmlTemplate(() => root => {
       .disabled((get) => !get(allowReturnDate))
       .on("input", useValue((value) => write(returnDate, value)))
   })
-})
+}
 
 
 function textInputClasses(isValid: boolean): string {

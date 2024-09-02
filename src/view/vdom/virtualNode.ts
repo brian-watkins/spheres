@@ -1,5 +1,4 @@
-import { GetState, State, StoreMessage } from "../../store/index.js";
-import { EventHandler } from "./eventHandler.js";
+import { Container, container, GetState, reactiveVariable, ReactiveVariable, State, StoreMessage, variable, Variable } from "../../store/index.js";
 
 export type Stateful<T> = (get: GetState) => T | undefined
 
@@ -12,9 +11,8 @@ export enum NodeType {
   ELEMENT = 1,
   STATEFUL = 15,
   STATEFUL_TEXT = 16,
-  BLOCK = 17,
   TEMPLATE = 18,
-  TEMPLATE_LIST = 19,
+  ZONE_LIST = 19,
 }
 
 export interface TextNode {
@@ -46,36 +44,22 @@ export interface StatefulNode {
   node: Node | undefined
 }
 
-export interface BlockNode {
-  type: NodeType.BLOCK
-  key?: VirtualNodeKey
-  generator?: () => VirtualNode
-  node: Node | undefined
-}
-
-export interface TemplateNode {
-  type: NodeType.TEMPLATE
-  template: VirtualTemplate<any>
-  args: any
-  key?: VirtualNodeKey
-  node: Node | undefined
-}
-
-export interface TemplateListNode {
-  type: NodeType.TEMPLATE_LIST
+export interface ZoneListNode {
+  type: NodeType.ZONE_LIST
   id: string
-  templateGenerator: (args: any) => TemplateNode
+  template: VirtualListItemTemplate<any>
   argList: (get: GetState) => Array<any>
-  key?: VirtualNodeKey
   node: Node | undefined
 }
 
-export type VirtualNode = TextNode | StatefulTextNode | ElementNode | StatefulNode | BlockNode | TemplateNode | TemplateListNode
+export type VirtualNode = TextNode | StatefulTextNode | ElementNode | StatefulNode | ZoneListNode
 
 export interface StatefulValue<T> {
   generator: Stateful<T>
   effect?: EffectHandle
 }
+
+export type StoreEventHandler<T> = (evt: Event) => StoreMessage<T>
 
 export interface VirtualNodeConfig {
   props?: Record<string, any>
@@ -83,7 +67,7 @@ export interface VirtualNodeConfig {
   attrs: Record<string, string>
   statefulAttrs?: Record<string, StatefulValue<string>>
   namespace?: string
-  on?: { [index: string]: EventHandler }
+  on?: { [index: string]: StoreEventHandler<any> }
   eventId: string
   key?: VirtualNodeKey
 }
@@ -126,12 +110,12 @@ export function addStatefulAttribute(config: VirtualNodeConfig, name: string, ge
   }
 }
 
-export function setEventHandler(config: VirtualNodeConfig, event: string, handler: (evt: Event) => StoreMessage<any, any>) {
+export function setEventHandler(config: VirtualNodeConfig, event: string, handler: StoreEventHandler<any>) {
   if (!config.on) {
     config.on = {}
   }
 
-  config.on[event] = new EventHandler(handler)
+  config.on[event] = handler
 }
 
 export function makeStatefulElement(generator: (get: GetState) => VirtualNode, key: VirtualNodeKey | undefined, node?: Node): VirtualNode {
@@ -143,17 +127,6 @@ export function makeStatefulElement(generator: (get: GetState) => VirtualNode, k
   }
 
   return element
-}
-
-export function makeBlockElement(generator: () => VirtualNode, key: VirtualNodeKey | undefined, node?: Element): VirtualNode {
-  const blockNode: BlockNode = {
-    type: NodeType.BLOCK,
-    generator,
-    key,
-    node
-  }
-
-  return blockNode
 }
 
 export function makeVirtualElement(tag: string, config: VirtualNodeConfig, children: Array<VirtualNode>, node?: Element): ElementNode {
@@ -184,42 +157,45 @@ export function makeStatefulTextNode(generator: Stateful<string>, node?: Node): 
   }
 }
 
-export type WithArgs<T> =
-  <S>(generator: (args: T, get: GetState) => S) => (get: GetState) => S
-
-export class VirtualTemplate<T> {
-  protected args!: T
-  virtualNode!: VirtualNode
-
-  setArgs(args: T) {
-    this.args = args
-  }
+export abstract class VirtualTemplate<T> {
+  public virtualNode!: VirtualNode
+  
+  abstract setArgs(args: T): void
 
   useWithArgs<S>(generator: (get: GetState) => S): (get: GetState, args: T) => S {
     return (get, args) => {
-      this.args = args
+      this.setArgs(args)
       return generator(get)
+    } 
+  }
+}
+
+export interface VirtualListItemTemplateArgs<T> {
+  item: T
+  index?: Container<number>
+}
+
+export class VirtualListItemTemplate<T> extends VirtualTemplate<VirtualListItemTemplateArgs<T>> {
+  protected itemToken: Variable<T | undefined> = variable({ initialValue: undefined })
+  protected indexToken: ReactiveVariable<number> = reactiveVariable({ initialValue: container({ initialValue: -1 }) })
+  public usesIndex = true
+
+  setArgs(args: VirtualListItemTemplateArgs<T>): void {
+    this.itemToken.assignValue(args.item)
+    if (this.usesIndex) {
+      this.indexToken.assignState(args.index!)
     }
   }
 }
 
-export function makeTemplate(template: VirtualTemplate<any>, args: any, key?: VirtualNodeKey): TemplateNode {
-  return {
-    type: NodeType.TEMPLATE,
-    template,
-    args: args,
-    key,
-    node: undefined
-  }
-}
-
+// Hmm ... any way to remove this?
 let templateListId = 0
 
-export function makeTemplateList(templateGenerator: (args: any) => TemplateNode, argList: (get: GetState) => Array<any>): TemplateListNode {
+export function makeZoneList<T>(virtualTemplate: VirtualListItemTemplate<T>, argList: (get: GetState) => Array<T>): ZoneListNode {
   return {
-    type: NodeType.TEMPLATE_LIST,
+    type: NodeType.ZONE_LIST,
     id: `${templateListId++}`,
-    templateGenerator,
+    template: virtualTemplate,
     argList,
     node: undefined
   }

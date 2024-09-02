@@ -1,4 +1,4 @@
-import { HTMLView, htmlTemplate, renderToString } from "@src/index.js";
+import { HTMLView, renderToString } from "@src/index.js";
 import { behavior, effect, example, Example } from "esbehavior";
 import { equalTo, expect, is } from "great-expectations";
 import { appWithBlock, appWithDataAttributesNoValue, appWithDeeplyNestedState, appWithInnerHTML, appWithNestedState, appWithPropertiesAndAttributes, appWithReactiveAttributes, appWithReactiveClass, appWithReactiveText, appWithSimpleState, appWithTemplates, staticApp } from "./fixtures/static.app.js";
@@ -59,8 +59,7 @@ class TestRenderer {
   private store = new Store()
 
   renderView(view: HTMLView): string {
-    const template = htmlTemplate(() => view)
-    return renderToString(this.store, template())
+    return renderToString(this.store, view)
   }
 }
 

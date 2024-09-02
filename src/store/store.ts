@@ -1,4 +1,4 @@
-import { ContainerController, SimpleStateController, StateController, StateListener } from "./controller.js"
+import { ConstantStateController, ContainerController, SimpleStateController, StateController, StateListener } from "./controller.js"
 import { Meta, error, ok, pending } from "./meta.js"
 
 export type GetState = <S>(state: State<S>) => S
@@ -77,6 +77,7 @@ export type StoreMessage<T, M = T> = WriteMessage<T, M> | UpdateMessage<T, M> | 
 const registerState = Symbol("registerState")
 const initializeCommand = Symbol("initializeCommand")
 const getController = Symbol("getController")
+const setController = Symbol("setController")
 const getContainerController = Symbol("getContainerController")
 const initialValue = Symbol("initialValue")
 
@@ -89,6 +90,45 @@ export abstract class State<T> {
 
   toString() {
     return this.name && this.id ? `${this.name}-${this.id}` : (this.name ?? this.id ?? "State")
+  }
+}
+
+export class Variable<T> extends State<T> {
+  private controller: ConstantStateController<T>
+
+  constructor(private initialValue: T) {
+    super(undefined, undefined)
+    this.controller = new ConstantStateController(this.initialValue)
+  }
+
+  [registerState](_: Store): StateController<T> {
+    return this.controller
+  }
+
+  assignValue(value: T) {
+    this.controller.value = value
+  }
+}
+
+export class ReactiveVariable<T> extends State<T> {
+  private store: Store | undefined
+
+  constructor(private initialValue: State<T>) {
+    super(undefined, undefined)
+  }
+
+  [registerState](store: Store): StateController<T> {
+    this.store = store
+    return this.store[getController](this.initialValue)
+  }
+
+  assignState(token: Container<T>) {
+    if (!this.store) {
+      this.initialValue = token
+    } else {
+      const proxiedController = this.store[getController](token)
+      this.store[setController](this, proxiedController)
+    }
   }
 }
 
@@ -384,6 +424,13 @@ export class Store {
       }
     }
     return controller
+  }
+
+  [setController]<T>(token: State<T>, controller: StateController<T>) {
+    // NOTE -- This should probably use getKeyForToken probably
+    //         But we only use this now for list index tokens which do
+    //         not have an id.
+    this.registry.set(token, controller)
   }
 
   [getContainerController]<T, M>(token: State<T>): ContainerController<T, M> {

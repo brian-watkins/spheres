@@ -1,10 +1,9 @@
 import { container, update } from "@spheres/store";
 import { HTMLBuilder } from "@src/htmlElements";
-import { htmlTemplate } from "@src/htmlViewBuilder";
 
 const showView = container({ initialValue: false })
 
-export default htmlTemplate(() => root => {
+export default function (root: HTMLBuilder) {
   root.main(el => {
     el.children
       .button(el => {
@@ -14,10 +13,12 @@ export default htmlTemplate(() => root => {
           .textNode("Click to toggle the view!")
       })
       .hr()
-      .zoneShow(get => get(showView), funView)
+      .zoneWhich(get => get(showView) ? "funView" : undefined, {
+        funView
+      })
       .hr()
   })
-})
+}
 
 function funView(root: HTMLBuilder) {
   root.p(el => {

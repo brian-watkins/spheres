@@ -53,6 +53,16 @@ export class DisplayElement {
     return attributeValue ?? undefined
   }
 
+  async property(name: string): Promise<string | undefined> {
+    const propertyValue = await usePage((page, opt) => page.locator(opt.selector).nth(opt.index).evaluate((el, o) => el[o.name], { name: opt.name }), {
+      selector: this.selector,
+      index: this.index,
+      name
+    })
+
+    return propertyValue ?? undefined
+  }
+
   inputValue(): Promise<string> {
     return usePage((page, opt) => page.locator(opt.selector).nth(opt.index).inputValue({ timeout: 200 }), {
       selector: this.selector,

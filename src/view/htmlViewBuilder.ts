@@ -1,11 +1,11 @@
-import { GetState, Store } from "../store/index.js"
-import { VirtualNode, makeStatefulElement, Stateful, makeTemplate, addStatefulProperty, addProperty, VirtualTemplate, WithArgs, makeTemplateList } from "./vdom/virtualNode.js"
+import { GetState, State, Store } from "../store/index.js"
+import { makeStatefulElement, Stateful, addStatefulProperty, addProperty, makeVirtualTextNode, makeZoneList, VirtualListItemTemplate } from "./vdom/virtualNode.js"
 import { HTMLElements, HTMLBuilder } from "./htmlElements.js"
 import { createStringRenderer } from "./vdom/renderToString.js"
 import { createDOMRenderer } from "./vdom/renderToDom.js"
 import { SVGElements } from "./svgElements.js"
 import { BasicElementConfig, SpecialElementAttributes } from "./viewConfig.js"
-import { ConfigurableElement, ViewBuilder, ViewOptions, ViewArgs } from "./viewBuilder.js"
+import { ConfigurableElement, ViewBuilder } from "./viewBuilder.js"
 import { buildSvgElement } from "./svgViewBuilder.js"
 
 // Renderers
@@ -15,7 +15,7 @@ export interface RenderResult {
   unmount: () => void
 }
 
-export function renderToDOM(store: Store, element: Element, view: HTMLDisplay): RenderResult {
+export function renderToDOM(store: Store, element: Element, view: HTMLView): RenderResult {
   const render = createDOMRenderer(store)
   const builder = new HtmlViewBuilder()
   builder.zone(view)
@@ -29,7 +29,7 @@ export function renderToDOM(store: Store, element: Element, view: HTMLDisplay): 
   }
 }
 
-export function renderToString(store: Store, view: HTMLDisplay): string {
+export function renderToString(store: Store, view: HTMLView): string {
   const render = createStringRenderer(store)
   const builder = new HtmlViewBuilder()
   builder.zone(view)
@@ -41,22 +41,12 @@ export function renderToString(store: Store, view: HTMLDisplay): string {
 
 export type HTMLView = (root: HTMLBuilder) => void
 
-const template: unique symbol = Symbol();
-const templateArgs: unique symbol = Symbol();
-
-export interface HTMLTemplateView<T> {
-  [template]: HTMLVirtualTemplate<T>
-  [templateArgs]: T
-}
-
-export type HTMLDisplay = HTMLTemplateView<any> | ((get: GetState) => HTMLView)
-
 export interface SpecialHTMLElements {
   element(tag: string, builder?: (element: ConfigurableElement<SpecialElementAttributes, HTMLElements>) => void): this
   textNode(value: string | Stateful<string>): this
-  zone(view: HTMLDisplay, options?: ViewOptions): this
-  zoneShow(when: (get: GetState) => boolean, view: HTMLView): this
-  zones<T>(data: Stateful<Array<T>>, viewGenerator: (args: T) => HTMLTemplateView<T>): this
+  zone(view: HTMLView): this
+  zoneWhich<T extends { [key: string]: HTMLView }>(selector: Stateful<keyof T>, zones: T): this
+  zones<T>(data: (get: GetState) => Array<T>, viewGenerator: (item: State<T>, index: State<number>) => HTMLView): this
 }
 
 class HTMLElementConfig extends BasicElementConfig {
@@ -93,36 +83,36 @@ class InputElementConfig extends HTMLElementConfig {
 
 const inputConfigBuilder = new InputElementConfig()
 
-function toReactiveVirtualNode(generator: (get: GetState) => HTMLView, get: GetState): VirtualNode {
-  const builder = new HtmlViewBuilder()
-  generator(get)(builder as unknown as HTMLBuilder)
-  return builder.toVirtualNode()
-}
-
 class HtmlViewBuilder extends ViewBuilder<SpecialElementAttributes, HTMLElements> implements SpecialHTMLElements {
-  zone(view: HTMLDisplay, options?: ViewOptions | undefined): this {
-    if (typeof view === "function") {
-      this.storeNode(makeStatefulElement((get) => toReactiveVirtualNode(view, get), options?.key))
-    } else {
-      this.storeNode(makeTemplate(view[template], view[templateArgs], options?.key))
-    }
+  zone(view: HTMLView): this {
+    const builder = new HtmlViewBuilder()
+    view(builder as unknown as HTMLBuilder)
+    this.storeNode(builder.toVirtualNode())
 
     return this
   }
 
-  zoneShow(when: (get: GetState) => boolean, view: HTMLView): this {
-    this.storeNode(makeStatefulElement((get) => toReactiveVirtualNode((get) => {
-      return when(get) ? view : root => root.textNode("")
-    }, get), undefined))
+  zoneWhich<T extends { [key: string]: HTMLView }>(selector: Stateful<keyof T>, zones: T): this {
+    const emptyTextNode = makeVirtualTextNode("")
+
+    this.storeNode(makeStatefulElement(get => {
+      const zoneKey = selector(get)
+      if (zoneKey !== undefined) {
+        const zone = zones[zoneKey]
+        const viewBuilder = new HtmlViewBuilder()
+        zone(viewBuilder as unknown as HTMLBuilder)
+        return viewBuilder.toVirtualNode()
+      } else {
+        return emptyTextNode
+      }
+    }, undefined))
 
     return this
   }
 
-  zones<T>(data: (get: GetState) => Array<T>, viewGenerator: (args: T) => HTMLTemplateView<T>): this {
-    this.storeNode(makeTemplateList((args) => {
-      const tempInstance = viewGenerator(args)
-      return makeTemplate(tempInstance[template], tempInstance[templateArgs], args)
-    }, data))
+  zones<T>(data: (get: GetState) => Array<T>, viewGenerator: (item: State<T>, index: State<number>) => HTMLView): this {
+    const virtualTemplate = new HTMLVirtualListItemTemplate(viewGenerator)
+    this.storeNode(makeZoneList(virtualTemplate, data))
 
     return this
   }
@@ -141,42 +131,14 @@ class HtmlViewBuilder extends ViewBuilder<SpecialElementAttributes, HTMLElements
   }
 }
 
-export class HTMLVirtualTemplate<T> extends VirtualTemplate<T> {
-  constructor(generator: (withProps: WithArgs<T>) => HTMLView, protected args: T) {
+export class HTMLVirtualListItemTemplate<T> extends VirtualListItemTemplate<T> {
+  constructor(generator: (item: State<T>, index: State<number>) => HTMLView) {
     super()
 
+    this.usesIndex = generator.length == 2
+
     const builder = new HtmlViewBuilder()
-
-    generator((handler) => {
-      return (get) => {
-        return handler(this.args, get)
-      }
-    })(builder as unknown as HTMLBuilder)
-
+    generator(this.itemToken as State<T>, this.indexToken)(builder as unknown as HTMLBuilder)
     this.virtualNode = builder.toVirtualNode()
-  }
-}
-
-class HTMLTemplateDetails<P> implements HTMLTemplateView<P> {
-  [template]: HTMLVirtualTemplate<P>
-  [templateArgs]: any
-
-  constructor(temp: HTMLVirtualTemplate<P>, args: any) {
-    this[template] = temp
-    this[templateArgs] = args
-  }
-}
-
-export function htmlTemplate<P = undefined>(definition: (withArgs: WithArgs<P>) => HTMLView): (...props: ViewArgs<P>) => HTMLTemplateView<P> {
-  let virtualTemplate: HTMLVirtualTemplate<P> | undefined
-
-  return (...args: ViewArgs<P>) => {
-    const viewArgs: any = args.length == 0 ? undefined : args[0]
-
-    if (virtualTemplate === undefined) {
-      virtualTemplate = new HTMLVirtualTemplate(definition, viewArgs)
-    }
-
-    return new HTMLTemplateDetails(virtualTemplate, viewArgs)
   }
 }

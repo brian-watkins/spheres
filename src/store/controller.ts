@@ -10,6 +10,14 @@ export interface StateController<T> {
   value: T
 }
 
+export class ConstantStateController<T> implements StateController<T> {
+  constructor(public value: T) { }
+
+  addListener(): void { }
+
+  removeListener(): void { }
+}
+
 export interface ContainerController<T, M = T> extends StateController<T> {
   write(message: M): void
   accept(message: M): void
@@ -49,7 +57,7 @@ export class SimpleStateController<T> implements ContainerController<T> {
       }
     }
 
-    for (const listener of this.listeners.keys()) {
+    for (const listener of Array.from(this.listeners.keys())) {
       listener.update(true)
     }
   }

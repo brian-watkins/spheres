@@ -1,5 +1,5 @@
-import { htmlTemplate } from "@src/htmlViewBuilder"
+import { HTMLBuilder } from "@src/index"
 
-export default htmlTemplate(() => root => {
+export default function (root: HTMLBuilder) {
   root.div(el => el.config.innerHTML("<h3>Hello!!!</h3>"))
-})
+}

@@ -15,9 +15,24 @@ export default behavior("lists of views", [
       observe: [
         effect("the views in the list are displayed", async (context) => {
           await expect(context.display.selectAll("li").map(el => el.text()), resolvesTo([
-            "apple",
-            "grapes",
-            "dragonfruit"
+            "apple is at index 0",
+            "grapes is at index 1",
+            "dragonfruit is at index 2"
+          ]))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the button is clicked to swap the last two elements", async (context) => {
+          await context.display.select("[data-swap-elements]").click()
+        })
+      ],
+      observe: [
+        effect("the elements are swapped", async (context) => {
+          await expect(context.display.selectAll("li").map(el => el.text()), resolvesTo([
+            "apple is at index 0",
+            "dragonfruit is at index 1",
+            "grapes is at index 2"
           ]))
         })
       ]
@@ -31,10 +46,48 @@ export default behavior("lists of views", [
       observe: [
         effect("the elements are rearranged", async (context) => {
           await expect(context.display.selectAll("li").map(el => el.text()), resolvesTo([
-            "dragonfruit",
-            "apple",
-            "grapes"
+            "grapes is at index 0",
+            "apple is at index 1",
+            "dragonfruit is at index 2"
           ]))
+        })
+      ]
+    }),
+
+  example(browserAppContext())
+    .description("a view with a dynamic svg list")
+    .script({
+      suppose: [
+        fact("there is a view with a dynamic svg list", async (context) => {
+          await context.loadApp("svgList.app")
+        })
+      ],
+      observe: [
+        effect("the list is displayed", async (context) => {
+          await expect(context.display.selectAll("[data-circle-button]").map(el => el.text()),
+            resolvesTo([
+              "apple",
+              "grapes",
+              "pizza"
+            ])
+          )
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("click a button to send to the front", async (context) => {
+          await context.display.select("[data-circle-button='2']").click()
+        })
+      ],
+      observe: [
+        effect("the clicked item is first in the list", async (context) => {
+          await expect(context.display.selectAll("[data-circle-button]").map(el => el.text()),
+            resolvesTo([
+              "pizza",
+              "apple",
+              "grapes"
+            ])
+          )
         })
       ]
     })

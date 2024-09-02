@@ -162,57 +162,99 @@ const nestedViewsBehavior = (context: Context<TestAppController>): ConfigurableE
       ]
     })
 
-const changingRootBehavior = (context: Context<TestAppController>): ConfigurableExample =>
+const simpleRouter = (context: Context<TestAppController>): ConfigurableExample =>
   example(context)
-    .description("changing the root of a stateful zone")
+    .description("simple router with zone show")
     .script({
       suppose: [
         fact("there is a view", async (context) => {
-          await context.loadApp("changingStatefulRoot.app")
+          await context.loadApp("simpleRouter.app")
         })
       ],
       observe: [
-        effect("the root is a p", async (context) => {
-          const text = await context.display.select("p").text()
-          expect(text, is("Regular text!"))
-        })
-      ]
-    }).andThen({
-      perform: [
-        step("when the toggle is clicked", async (context) => {
-          await context.display.select("[data-toggle]").click()
-        })
-      ],
-      observe: [
-        effect("the new root is an h1", async (context) => {
-          const text = await context.display.select("h1").text()
-          expect(text, is("Big text!"))
-        })
-      ]
-    }).andThen({
-      perform: [
-        step("hide the root view", async (context) => {
-          await context.display.select("[data-visibility]").click()
-        })
-      ],
-      observe: [
-        effect("the root is gone", async (context) => {
+        effect("the home route is displayed", async (context) => {
+          const text = await context.display.select("h3").text()
+          expect(text, is("Welcome home!"))
+        }),
+        effect("no other route is displayed", async (context) => {
+          await expect(context.display.select("p").exists(), resolvesTo(false))
           await expect(context.display.select("h1").exists(), resolvesTo(false))
         })
       ]
     }).andThen({
       perform: [
-        step("show the root view", async (context) => {
-          await context.display.select("[data-visibility]").click()
-        }),
-        step("click the toggle", async (context) => {
-          await context.display.select("[data-toggle]").click()
+        step("when the big route is selected", async (context) => {
+          await context.display.select("select").selectOption("Big")
         })
       ],
       observe: [
-        effect("the root is visible and is a p element once again", async (context) => {
+        effect("the route is an h1", async (context) => {
+          const text = await context.display.select("h1").text()
+          expect(text, is("Big text!"))
+        }),
+        effect("the other routes are not displayed", async (context) => {
+          await expect(context.display.select("p").exists(), resolvesTo(false))
+          await expect(context.display.select("h3").exists(), resolvesTo(false))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("another route is selected", async (context) => {
+          await context.display.select("select").selectOption("Regular")
+        })
+      ],
+      observe: [
+        effect("the route is a p", async (context) => {
           const text = await context.display.select("p").text()
           expect(text, is("Regular text!"))
+        }),
+        effect("the other routes are not displayed", async (context) => {
+          await expect(context.display.select("h1").exists(), resolvesTo(false))
+          await expect(context.display.select("h3").exists(), resolvesTo(false))
+        })
+      ]
+    })
+
+const svgRouter = (context: Context<TestAppController>): ConfigurableExample =>
+  example(context)
+    .description("simple router with svg zones")
+    .script({
+      suppose: [
+        fact("there is a view", async (context) => {
+          await context.loadApp("svgRouter.app")
+        })
+      ],
+      observe: [
+        effect("no shape is shown", async (context) => {
+          await expect(context.display.select("[data-shape='square']").exists(), resolvesTo(false))
+          await expect(context.display.select("[data-shape='circle']").exists(), resolvesTo(false))
+          await expect(context.display.select("[data-shape='rectangle']").exists(), resolvesTo(false))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the circle is selected", async (context) => {
+          await context.display.select("select").selectOption("Circle")
+        })
+      ],
+      observe: [
+        effect("the circle is displayed", async (context) => {
+          await expect(context.display.select("[data-shape='square']").exists(), resolvesTo(false))
+          await expect(context.display.select("[data-shape='circle']").exists(), resolvesTo(true))
+          await expect(context.display.select("[data-shape='rectangle']").exists(), resolvesTo(false))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the rectangle is selected", async (context) => {
+          await context.display.select("select").selectOption("Rectangle")
+        })
+      ],
+      observe: [
+        effect("the circle is displayed", async (context) => {
+          await expect(context.display.select("[data-shape='square']").exists(), resolvesTo(false))
+          await expect(context.display.select("[data-shape='circle']").exists(), resolvesTo(false))
+          await expect(context.display.select("[data-shape='rectangle']").exists(), resolvesTo(true))
         })
       ]
     })
@@ -222,5 +264,6 @@ export default behavior("view", [
   innerHTMLViewBehavior(browserAppContext()),
   reactiveInnerHTMLViewBehavior(browserAppContext()),
   nestedViewsBehavior(browserAppContext()),
-  changingRootBehavior(browserAppContext())
+  simpleRouter(browserAppContext()),
+  svgRouter(browserAppContext())
 ])

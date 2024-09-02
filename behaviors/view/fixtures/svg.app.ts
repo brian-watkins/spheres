@@ -1,9 +1,9 @@
-import { GetState, container, write } from "@spheres/store";
-import { SVGView, htmlTemplate } from "@src/index";
+import { container, write } from "@spheres/store";
+import { HTMLBuilder, SVGBuilder } from "@src/index";
 
 const message = container({ initialValue: "SVG" })
 
-export default htmlTemplate(() => root => {
+export default function (root: HTMLBuilder) {
   root.main(({ children }) => {
     children
       .form(({ children }) => {
@@ -36,20 +36,17 @@ export default htmlTemplate(() => root => {
           .zone(circle)
       })
   })
-})
+}
 
-function circle(get: GetState): SVGView {
-  const text = get(message)
-
-  return root =>
-    root.text(({ config, children }) => {
-      config
-        .x("150")
-        .y("125")
-        .fontSize("60")
-        .textAnchor("middle")
-        .fill("white")
-      children
-        .textNode(text)
-    })
+function circle(root: SVGBuilder) {
+  root.text(({ config, children }) => {
+    config
+      .x("150")
+      .y("125")
+      .fontSize("60")
+      .textAnchor("middle")
+      .fill("white")
+    children
+      .textNode(get => get(message))
+  })
 }

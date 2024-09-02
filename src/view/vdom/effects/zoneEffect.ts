@@ -1,39 +1,38 @@
 import { GetState, ReactiveEffect, Store } from "../../../store/index.js"
-import { patch, virtualize } from "../renderToDom.js"
+import { DOMNodeRenderer } from "../render.js"
 import { VirtualNode } from "../virtualNode.js"
 import { EffectGenerator } from "./effectGenerator.js"
 
-export interface NodeReference {
-  node: Node | undefined
-}
+export class ZoneEffect implements ReactiveEffect {
+  private currentNode!: Node
 
-export class PatchZoneEffect implements ReactiveEffect {
-  private current: VirtualNode | null = null
-
-  constructor(private store: Store, placeholderNode: Node | undefined, private generator: EffectGenerator<VirtualNode>, private nodeReference: NodeReference, private context: any = undefined) {
-    if (placeholderNode !== undefined) {
-      this.current = virtualize(placeholderNode)
+  constructor(private store: Store, placeholderNode: Node | undefined, private generator: EffectGenerator<VirtualNode>, private createNode: DOMNodeRenderer, private context: any = undefined) {
+    if (placeholderNode) {
+      this.currentNode = placeholderNode
     }
   }
 
   get node(): Node {
-    return this.current!.node!
+    return this.currentNode
   }
 
-  init(get: GetState): void {
-    this.doPatch(get)
+  init(get: GetState) {
+    const initialVNode = this.generator(get, this.context)
+    const nextNode = this.createNode(this.store, initialVNode)
+    if (this.currentNode) {
+      this.currentNode.parentNode!.replaceChild(nextNode, this.currentNode)
+    }
+    this.currentNode = nextNode
   }
 
-  run(get: GetState): void {
-    if (!this.node?.isConnected) {
+  run(get: GetState) {
+    if (!this.currentNode.isConnected) {
       return
     }
 
-    this.doPatch(get)
-  }
-
-  private doPatch(get: GetState) {
-    this.current = patch(this.store, this.current, this.generator(get, this.context))
-    this.nodeReference.node = this.node
+    const nextVNode = this.generator(get, this.context)
+    const nextNode = this.createNode(this.store, nextVNode)
+    this.currentNode.parentNode!.replaceChild(nextNode, this.currentNode)
+    this.currentNode = nextNode
   }
 }

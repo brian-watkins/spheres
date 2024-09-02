@@ -1,30 +1,17 @@
-import { GetState } from "../store/index.js"
-import { Stateful, VirtualNode, VirtualNodeConfig, VirtualTemplate, WithArgs, makeStatefulElement, makeTemplate, makeVirtualElement, setNamespace, virtualNodeConfig } from "./vdom/virtualNode.js"
+import { GetState, State } from "../store/index.js"
+import { Stateful, VirtualListItemTemplate, VirtualNodeConfig, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, makeZoneList, setNamespace, virtualNodeConfig } from "./vdom/virtualNode.js"
 import { SVGBuilder, SVGElements, SVGElementAttributes, svgAttributeNames } from "./svgElements.js"
-import { ConfigurableElement, ViewBuilder, ViewOptions, ViewArgs } from "./viewBuilder.js"
+import { ConfigurableElement, ViewBuilder } from "./viewBuilder.js"
 import { BasicElementConfig, SpecialElementAttributes } from "./viewConfig.js"
 
 export type SVGView = (root: SVGBuilder) => void
-export type ReactiveSvgViewFunction = (get: GetState) => void
-
-const template: unique symbol = Symbol();
-const templateArgs: unique symbol = Symbol();
-
-export interface SVGTemplateView<T> {
-  [template]: SVGVirtualTemplate<T>
-  [templateArgs]: T
-}
 
 export interface SpecialSVGElements {
   element(tag: string, builder?: (element: ConfigurableElement<SpecialElementAttributes, SVGElements>) => void): this
   textNode(value: string | Stateful<string>): this
-  zone(view: SVGTemplateView<any> | ((get: GetState) => SVGView), options?: ViewOptions): this
-}
-
-function toReactiveVirtualNode(generator: (get: GetState) => SVGView, get: GetState): VirtualNode {
-  const builder = new SvgViewBuilder()
-  generator(get)(builder as unknown as SVGBuilder)
-  return builder.toVirtualNode()
+  zone(view: SVGView): this
+  zoneWhich<T extends { [key: string]: SVGView }>(selector: Stateful<keyof T>, zones: T): this
+  zones<T>(data: (get: GetState) => Array<T>, viewGenerator: (item: State<T>, index: State<number>) => SVGView): this
 }
 
 class SVGElementConfig extends BasicElementConfig {
@@ -53,12 +40,34 @@ export function buildSvgElement(builder?: (element: ConfigurableElement<SpecialE
 }
 
 export class SvgViewBuilder extends ViewBuilder<SpecialElementAttributes, SVGElements> implements SpecialSVGElements {
-  zone(view: SVGTemplateView<any> | ((get: GetState) => SVGView), options?: ViewOptions | undefined): this {
-    if (typeof view === "function") {
-      this.storeNode(makeStatefulElement((get) => toReactiveVirtualNode(view, get), options?.key))
-    } else {
-      this.storeNode(makeTemplate(view[template], view[templateArgs], options?.key))
-    }
+  zone(view: SVGView): this {
+    const builder = new SvgViewBuilder()
+    view(builder as unknown as SVGBuilder)
+    this.storeNode(builder.toVirtualNode())
+    return this
+  }
+
+  zoneWhich<T extends { [key: string]: SVGView }>(selector: Stateful<keyof T>, zones: T): this {
+    const emptyTextNode = makeVirtualTextNode("")
+
+    this.storeNode(makeStatefulElement(get => {
+      const zoneKey = selector(get)
+      if (zoneKey !== undefined) {
+        const zone = zones[zoneKey]
+        const viewBuilder = new SvgViewBuilder()
+        zone(viewBuilder as unknown as SVGBuilder)
+        return viewBuilder.toVirtualNode()
+      } else {
+        return emptyTextNode
+      }
+    }, undefined))
+
+    return this
+  }
+
+  zones<T>(data: (get: GetState) => Array<T>, viewGenerator: (item: State<T>, index: State<number>) => SVGView): this {
+    const virtualTemplate = new SVGVirtualListItemTemplate(viewGenerator)
+    this.storeNode(makeZoneList(virtualTemplate, data))
 
     return this
   }
@@ -68,43 +77,14 @@ export class SvgViewBuilder extends ViewBuilder<SpecialElementAttributes, SVGEle
   }
 }
 
-export class SVGVirtualTemplate<T> extends VirtualTemplate<T> {
-  constructor(generator: (withArgs: WithArgs<T>) => SVGView, protected args: T) {
+class SVGVirtualListItemTemplate<T> extends VirtualListItemTemplate<T> {
+  constructor(generator: (item: State<T>, index: State<number>) => SVGView) {
     super()
 
+    this.usesIndex = generator.length == 2
+
     const builder = new SvgViewBuilder()
-
-    generator((handler) => {
-      return (get) => {
-        return handler(this.args, get)
-      }
-    })(builder as unknown as SVGBuilder)
-
+    generator(this.itemToken as State<T>, this.indexToken)(builder as unknown as SVGBuilder)
     this.virtualNode = builder.toVirtualNode()
-  }
-}
-
-class SVGTemplateDetails<P> implements SVGTemplateView<P> {
-  [template]: SVGVirtualTemplate<P>
-  [templateArgs]: any
-
-  constructor(temp: SVGVirtualTemplate<P>, args: any) {
-    this[template] = temp
-    this[templateArgs] = args
-  }
-}
-
-
-export function svgTemplate<P = undefined>(definition: (withProps: WithArgs<P>) => SVGView): (...props: ViewArgs<P>) => SVGTemplateView<P> {
-  let virtualTemplate: SVGVirtualTemplate<P> | undefined
-
-  return (...args: ViewArgs<P>) => {
-    const viewArgs: any = args.length == 0 ? undefined : args[0]
-
-    if (virtualTemplate === undefined) {
-      virtualTemplate = new SVGVirtualTemplate(definition, viewArgs)
-    }
-
-    return new SVGTemplateDetails(virtualTemplate, viewArgs)
   }
 }

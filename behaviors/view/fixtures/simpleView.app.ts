@@ -1,26 +1,32 @@
-import { container, GetState, rule, use, write } from "@spheres/store"
+import { container, rule, State, use, write } from "@spheres/store"
 import { useValue } from "./helpers"
-import { htmlTemplate, HTMLView } from "@src/index"
+import { HTMLBuilder, HTMLView } from "@src/index"
 
-const peopleState = container({
+interface Person {
+  name: string
+  age: number
+}
+
+const peopleState = container<Array<Person>>({
   initialValue: [
     { name: "Cool Dude", age: 41 },
     { name: "Awesome Person", age: 28 }
   ]
 })
 
-function peopleView(get: GetState): HTMLView {
-  const people = get(peopleState)
+function peopleView(root: HTMLBuilder) {
+  root.ul(el => {
+    el.children.zones(get => get(peopleState), personView)
+  })
+}
 
-  return root =>
-    root.ul(el => {
-      for (const person of people) {
-        el.children.li(el => {
-          el.config.dataAttribute("person")
-          el.children.textNode(`${person.name} - ${person.age}`)
-        })
-      }
+function personView(person: State<Person>): HTMLView {
+  return root => {
+    root.li(el => {
+      el.config.dataAttribute("person")
+      el.children.textNode(get => `${get(person).name} - ${get(person).age}`)
     })
+  }
 }
 
 const localState = container({ initialValue: "" })
@@ -32,14 +38,14 @@ const writePeople = rule((get) => {
   }])
 })
 
-const updateButton = htmlTemplate(() => root => {
+function updateButton(root: HTMLBuilder) {
   root.button(el => {
     el.config.on("click", () => use(writePeople))
     el.children.textNode("Click me!")
   })
-})
+}
 
-export default htmlTemplate(() => root => {
+export default function (root: HTMLBuilder) {
   root.div(el => {
     el.children
       .p(el => el.children.textNode("Here is some person"))
@@ -48,6 +54,6 @@ export default htmlTemplate(() => root => {
       .input(el => {
         el.config.on("input", useValue((value) => write(localState, value)))
       })
-      .zone(updateButton())
+      .zone(updateButton)
   })
-})
+}

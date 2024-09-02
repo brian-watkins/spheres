@@ -1,25 +1,29 @@
-import { GetState, ReactiveEffect, Store } from "../../../store"
-import { TemplateListNode, TemplateNode, VirtualNodeKey } from "../virtualNode"
-
-export type TemplateNodeGenerator = (store: Store, virtualNode: TemplateNode) => Node
+import { container, Container, GetState, ReactiveEffect, Store, write } from "../../../store"
+import { TemplateData, TemplateNodeRenderer } from "../render"
+import { VirtualNodeKey, ZoneListNode } from "../virtualNode"
 
 interface VirtualListItem {
-  key: VirtualNodeKey
+  key: any
+  actualIndex?: number
+  indexState?: Container<number>
   node: Node | undefined
 }
 
 export class ListEffect implements ReactiveEffect {
-  private templateVNode: TemplateNode | undefined
+  private templateData: TemplateData
   private vnodes: Array<VirtualListItem> = []
 
-  constructor(private store: Store, private vnode: TemplateListNode, private listStartNode: Node, private templateNodeGenerator: TemplateNodeGenerator) { }
+  constructor(private store: Store, private vnode: ZoneListNode, private listStartNode: Node, private templateNodeGenerator: TemplateNodeRenderer) {
+    this.templateData = { template: this.vnode.template, args: { item: undefined } }
+  }
 
   init(get: GetState) {
     const data = this.vnode.argList(get)
-
     const parent = this.listStartNode.parentNode!
+    const builder = this.vnode.template.usesIndex ? buildListItemWithIndexState : buildListItem
+
     for (let i = 0; i < data.length; i++) {
-      const virtualItem: VirtualListItem = { key: data[i], node: undefined }
+      const virtualItem = builder(data[i], i)
       const templateNode = this.createNode(this.store, virtualItem)
       parent.insertBefore(templateNode, this.listStartNode)
       virtualItem.node = templateNode
@@ -28,26 +32,15 @@ export class ListEffect implements ReactiveEffect {
   }
 
   run(get: GetState) {
-    const data = this.vnode.argList(get)
-
-    const updatedList: Array<VirtualListItem> = data.map(item => ({
-      key: item,
-      node: undefined
-    }))
-
+    const builder = this.vnode.template.usesIndex ? buildListItemWithIndex : buildListItem
+    const updatedList = this.vnode.argList(get).map(builder)
     this.patchList(updatedList)
-
     this.vnodes = updatedList
   }
 
   createNode(store: Store, vnode: VirtualListItem): Node {
-    if (this.templateVNode === undefined) {
-      this.templateVNode = this.vnode.templateGenerator(vnode.key)
-    } else {
-      this.templateVNode.args = vnode.key
-    }
-
-    return this.templateNodeGenerator(store, this.templateVNode)
+    this.templateData.args = { item: vnode.key, index: vnode.indexState }
+    return this.templateNodeGenerator(store, this.templateData)
   }
 
   patchList(newVKids: Array<VirtualListItem>) {
@@ -68,7 +61,7 @@ export class ListEffect implements ReactiveEffect {
         break
       }
 
-      patch(oldVKids[oldHead++], newVKids[newHead++])
+      this.patch(oldVKids[oldHead++], newVKids[newHead++])
     }
 
     // now check from the end
@@ -77,7 +70,7 @@ export class ListEffect implements ReactiveEffect {
         break
       }
 
-      patch(oldVKids[oldTail--], newVKids[newTail--])
+      this.patch(oldVKids[oldTail--], newVKids[newTail--])
     }
 
     if (oldHead > oldTail) {
@@ -130,7 +123,7 @@ export class ListEffect implements ReactiveEffect {
       if (oldKey === newKey) {
         // then these are in the correct position so just patch
         // Note that patching sets the node on the newVKid
-        patch(oldVKid, newVKid)
+        this.patch(oldVKid, newVKid)
         newKeyed.add(newKey)
         oldHead++
       } else {
@@ -139,11 +132,10 @@ export class ListEffect implements ReactiveEffect {
           // we're reordering keyed elements -- first move the element to the right place
           tmpVKid.node = parent.insertBefore(tmpVKid.node!, (oldVKid && oldVKid.node) ?? this.listStartNode)
           // then patch it -- Note that patching sets the node on the newVKid
-          patch(tmpVKid, newVKid)
+          this.patch(tmpVKid, newVKid)
           newKeyed.add(newKey)
         } else {
           // we're adding a new keyed element
-          // console.log("inserting new b")
           newVKid.node = parent.insertBefore(this.createNode(this.store, newVKid), (oldVKid && oldVKid.node) ?? this.listStartNode)
         }
       }
@@ -160,6 +152,17 @@ export class ListEffect implements ReactiveEffect {
     }
   }
 
+  patch(oldVNode: VirtualListItem, newVNode: VirtualListItem): VirtualListItem {
+    newVNode.node = oldVNode.node
+    newVNode.indexState = oldVNode.indexState
+
+    if (oldVNode.actualIndex !== newVNode.actualIndex) {
+      this.store.dispatch(write(oldVNode.indexState!, newVNode.actualIndex!))
+    }
+
+    return newVNode
+  }
+
 }
 
 function getKey(vnode: VirtualListItem | undefined): any {
@@ -171,7 +174,26 @@ function removeNode(parent: Node, vnode: VirtualListItem) {
   parent.removeChild(vnode.node!)
 }
 
-export function patch(oldVNode: VirtualListItem, newVNode: VirtualListItem): VirtualListItem {
-  newVNode.node = oldVNode.node
-  return newVNode
+function buildListItemWithIndexState(item: any, index: number): VirtualListItem {
+  return {
+    key: item,
+    actualIndex: index,
+    indexState: container({ initialValue: index }),
+    node: undefined
+  }
+}
+
+function buildListItemWithIndex(item: any, index: number): VirtualListItem {
+  return {
+    key: item,
+    actualIndex: index,
+    node: undefined
+  }
+}
+
+function buildListItem(item: any, _: number): VirtualListItem {
+  return {
+    key: item,
+    node: undefined
+  }
 }

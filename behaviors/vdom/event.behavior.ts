@@ -241,7 +241,7 @@ export default behavior("event handlers", [
     }),
 
   example(renderContext<MultipleEventContext>())
-    .description("nested zone captures events")
+    .description("nested template captures events")
     .script({
       suppose: [
         fact("there is state", (context) => {
@@ -250,7 +250,7 @@ export default behavior("event handlers", [
             textMessage: container({ initialValue: "" })
           })
         }),
-        fact("there is a nested zone that handles the same event type as its parent, with same id", (context) => {
+        fact("there is a nested template that handles the same event type as its parent, with same id", (context) => {
           const nestedZone = (root: HTMLBuilder) => {
             root.div(el => {
               el.children
@@ -268,35 +268,37 @@ export default behavior("event handlers", [
           }
 
           context.mountView(root => {
-            root.div(el => {
-              el.children
-                .h3(el => {
-                  el.config.dataAttribute("parent-text")
-                  el.children.textNode(get => get(context.state.showFocus) ? "Clicked the outer button" : "No clicks on outer button!")
-                })
-                .button(el => {
-                  el.config
-                    .dataAttribute("parent-button")
-                    .on("click", () => write(context.state.showFocus, true))
-                  el.children.textNode("Parent Button")
-                })
-                .zone(nestedZone)
+            root.zones(() => ["yo"], () => zone => {
+              zone.div(el => {
+                el.children
+                  .h3(el => {
+                    el.config.dataAttribute("parent-text")
+                    el.children.textNode(get => get(context.state.showFocus) ? "Clicked the outer button" : "No clicks on outer button!")
+                  })
+                  .button(el => {
+                    el.config
+                      .dataAttribute("parent-button")
+                      .on("click", () => write(context.state.showFocus, true))
+                    el.children.textNode("Parent Button")
+                  })
+                  .zones(() => ["hey"], () => nestedZone)
+              })
             })
           })
         })
       ],
       perform: [
-        step("click the nested zone's button", async () => {
+        step("click the nested template's button", async () => {
           await selectElement("[data-nested-button]").click()
           await selectElement("[data-nested-button]").click()
           await selectElement("[data-nested-button]").click()
         })
       ],
       observe: [
-        effect("the nested zone handles the click events", async () => {
+        effect("the nested template handles the click events", async () => {
           await expect(selectElement("[data-nested-text]").text(), resolvesTo("Clicks: AAA"))
         }),
-        effect("the parent zone did not receive a click event", async () => {
+        effect("the parent template did not receive a click event", async () => {
           await expect(selectElement("[data-parent-text]").text(), resolvesTo("No clicks on outer button!"))
         })
       ]
@@ -307,17 +309,17 @@ export default behavior("event handlers", [
         })
       ],
       observe: [
-        effect("the nested zone did not receive a click", async () => {
+        effect("the nested template did not receive a click", async () => {
           await expect(selectElement("[data-nested-text]").text(), resolvesTo("Clicks: AAA"))
         }),
-        effect("the parent zone handles the click event", async () => {
+        effect("the parent template handles the click event", async () => {
           await expect(selectElement("[data-parent-text]").text(), resolvesTo("Clicked the outer button"))
         })
       ]
     }),
 
   example(renderContext<ListEventContext>())
-    .description("zones where each zone has event with stateful store message")
+    .description("zones where each template has event with stateful store message")
     .script({
       suppose: [
         fact("there is state", (context) => {
@@ -326,7 +328,7 @@ export default behavior("event handlers", [
             options: container({ initialValue: ["apples", "candy", "trees", "balloons"] })
           })
         }),
-        fact("these is a list of zones and each zone has an event that depends on state", (context) => {
+        fact("these is a list of templates and each template has an event that depends on state", (context) => {
           function viewZone(name: State<string>): HTMLView {
             return root =>
               root.li(el => {

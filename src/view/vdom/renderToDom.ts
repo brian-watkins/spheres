@@ -1,4 +1,4 @@
-import { Store } from "../../store/index.js";
+import { batch, rule, Store, StoreMessage, use } from "../../store/index.js";
 import { DOMRenderer, TemplateData } from "./render.js";
 import { NodeType, StoreEventHandler, VirtualNode, VirtualTemplate, ZoneListNode } from "./virtualNode.js";
 import { UpdateTextEffect } from "./effects/textEffect.js";
@@ -94,9 +94,20 @@ export function createNode(store: Store, vnode: VirtualNode): Node {
 
 function addEventListener(store: Store, element: Element, event: string, handler: StoreEventHandler<any>) {
   element.addEventListener(event, (evt) => {
-    const message = handler(evt)
-    store.dispatch(message)
+    store.dispatch(getEventMessage(handler, evt))
   })
+}
+
+function getEventMessage(handler: StoreEventHandler<any>, evt: Event): StoreMessage<any> {
+  const handlerResult = handler(evt)
+  if (typeof handlerResult === "function") {
+    return use(rule(get => {
+      const message = handlerResult(get)
+      return message === undefined ? batch([]) : message
+    }))
+  } else {
+    return handlerResult
+  }
 }
 
 
@@ -136,8 +147,10 @@ function attachEvents(template: DOMTemplate, templateData: TemplateData, store: 
       const node = targetElement.closest(`[data-spheres-${eventType}]`) as Element
       if (node) {
         const handler = eventMap.get(node.getAttribute(`data-spheres-${eventType}`)!)!
+
         virtualTemplate.setArgs(args)
-        store.dispatch(handler(evt))
+        store.dispatch(getEventMessage(handler, evt))
+
         evt.stopPropagation()
       }
     })

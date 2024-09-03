@@ -1,13 +1,13 @@
 import { StoreMessage } from "../store/index.js"
 import { AriaAttribute, booleanAttributes } from "./htmlElements.js"
-import { Stateful, VirtualNodeConfig, addAttribute, addProperty, addStatefulAttribute, addStatefulProperty, setEventHandler, virtualNodeConfig } from "./vdom/virtualNode.js"
+import { Stateful, StoreEventHandler, VirtualNodeConfig, addAttribute, addProperty, addStatefulAttribute, addStatefulProperty, setEventHandler, virtualNodeConfig } from "./vdom/virtualNode.js"
 
 export interface SpecialElementAttributes {
   attribute(name: string, value: string | Stateful<string>): this
   dataAttribute(name: string, value?: string | Stateful<string>): this
   innerHTML(html: string | Stateful<string>): this
   aria(name: AriaAttribute, value: string | Stateful<string>): this
-  on<E extends keyof HTMLElementEventMap | string>(event: E, handler: (evt: E extends keyof HTMLElementEventMap ? HTMLElementEventMap[E] : Event) => StoreMessage<any>): this
+  on<E extends keyof HTMLElementEventMap | string>(event: E, handler: (evt: E extends keyof HTMLElementEventMap ? HTMLElementEventMap[E] : Event) => (StoreMessage<any> | Stateful<StoreMessage<any>>)): this
 }
 
 export class BasicElementConfig implements SpecialElementAttributes {
@@ -84,8 +84,8 @@ export class BasicElementConfig implements SpecialElementAttributes {
     return this
   }
 
-  on<E extends keyof HTMLElementEventMap | string>(event: E, handler: (evt: E extends keyof HTMLElementEventMap ? HTMLElementEventMap[E] : Event) => StoreMessage<any>): this {
-    setEventHandler(this.config, event, handler as (evt: Event) => StoreMessage<any>)
+  on<E extends keyof HTMLElementEventMap | string>(event: E, handler: (evt: E extends keyof HTMLElementEventMap ? HTMLElementEventMap[E] : Event) => (StoreMessage<any> | Stateful<StoreMessage<any>>)): this {
+    setEventHandler(this.config, event, handler as StoreEventHandler<any>)
     return this
   }
 

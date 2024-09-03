@@ -51,6 +51,80 @@ export default behavior("event handlers", [
       ]
     }),
 
+  example(renderContext<Container<number>>())
+    .description("event with stateful store message")
+    .script({
+      suppose: [
+        fact("there is state with a number", (context) => {
+          context.setState(container({ initialValue: 0 }))
+        }),
+        fact("there is a view with an event that sends a stateful message to the store", (context) => {
+          context.mountView(root => {
+            root.div(el => {
+              el.children
+                .p(el => el.children.textNode(get => `You clicked ${get(context.state)} times!`))
+                .button(el => {
+                  el.config
+                    .dataAttribute("click")
+                    .on("click", () => get => write(context.state, get(context.state) + 1))
+                  el.children.textNode("Click me!")
+                })
+            })
+          })
+        })
+      ],
+      perform: [
+        step("the button is clicked multiple times", async () => {
+          await selectElement("button[data-click]").click()
+          await selectElement("button[data-click]").click()
+          await selectElement("button[data-click]").click()
+        })
+      ],
+      observe: [
+        effect("the message updates with the click count", async () => {
+          await expect(selectElement("p").text(),
+            resolvesTo(equalTo("You clicked 3 times!")))
+        })
+      ]
+    }),
+
+  example(renderContext<Container<number>>())
+    .description("event with stateful store message that returns undefined")
+    .script({
+      suppose: [
+        fact("there is state with a number", (context) => {
+          context.setState(container({ initialValue: 0 }))
+        }),
+        fact("there is a view with an event that sends undefined to the store", (context) => {
+          context.mountView(root => {
+            root.div(el => {
+              el.children
+                .p(el => el.children.textNode(get => `You clicked ${get(context.state)} times!`))
+                .button(el => {
+                  el.config
+                    .dataAttribute("click")
+                    .on("click", () => _ => undefined)
+                  el.children.textNode("Click me!")
+                })
+            })
+          })
+        })
+      ],
+      perform: [
+        step("the button is clicked multiple times", async () => {
+          await selectElement("button[data-click]").click()
+          await selectElement("button[data-click]").click()
+          await selectElement("button[data-click]").click()
+        })
+      ],
+      observe: [
+        effect("nothing changes", async () => {
+          await expect(selectElement("p").text(),
+            resolvesTo(equalTo("You clicked 0 times!")))
+        })
+      ]
+    }),
+
   example(renderContext<MultipleEventContext>())
     .description("mount an element with multiple event handlers")
     .script({
@@ -243,7 +317,7 @@ export default behavior("event handlers", [
     }),
 
   example(renderContext<ListEventContext>())
-    .description("zones where each zone has events")
+    .description("zones where each zone has event with stateful store message")
     .script({
       suppose: [
         fact("there is state", (context) => {
@@ -252,11 +326,7 @@ export default behavior("event handlers", [
             options: container({ initialValue: ["apples", "candy", "trees", "balloons"] })
           })
         }),
-        fact("these is a list of zones and each zone has an event that depends on args", (context) => {
-          const setNameValue = rule((get, nameToken: State<string>) => {
-            return write(context.state.message, get(nameToken))
-          })
-
+        fact("these is a list of zones and each zone has an event that depends on state", (context) => {
           function viewZone(name: State<string>): HTMLView {
             return root =>
               root.li(el => {
@@ -264,7 +334,13 @@ export default behavior("event handlers", [
                   .button(el => {
                     el.config
                       .dataAttribute("button-name", get => get(name))
-                      .on("click", () => use(setNameValue, name))
+                      .on("click", () => get => {
+                        if (get(name) === "trees") {
+                          return write(context.state.message, get(name))
+                        } else {
+                          return undefined
+                        }
+                      })
                     el.children.textNode(get => `Click to get ${get(name)}`)
                   })
               })
@@ -292,6 +368,17 @@ export default behavior("event handlers", [
       ],
       observe: [
         effect("the event is handled and the message is updated", async () => {
+          await expect(selectElement("p").text(), resolvesTo("You selected 'trees'"))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("click one of the options that returns undefined", async () => {
+          await selectElement("[data-button-name='apples']").click()
+        })
+      ],
+      observe: [
+        effect("nothing happens", async () => {
           await expect(selectElement("p").text(), resolvesTo("You selected 'trees'"))
         })
       ]

@@ -1,5 +1,5 @@
 import { batch, rule, Store, StoreMessage, use } from "../../store/index.js";
-import { DOMRenderer, TemplateData } from "./render.js";
+import { TemplateData } from "./render.js";
 import { NodeType, StoreEventHandler, VirtualNode, VirtualTemplate, ZoneListNode } from "./virtualNode.js";
 import { UpdateTextEffect } from "./effects/textEffect.js";
 import { UpdateAttributeEffect } from "./effects/attributeEffect.js";
@@ -8,17 +8,6 @@ import { ZoneEffect } from "./effects/zoneEffect.js";
 import { ListEffect } from "./effects/listEffect.js";
 import { EffectLocation } from "./effectLocation.js";
 import { EffectGenerator } from "./effects/effectGenerator.js";
-
-export function createDOMRenderer(store: Store): DOMRenderer {
-  return (element, node) => {
-    const rootNode = createNode(store, node)
-    element.parentNode?.replaceChild(rootNode, element)
-    return {
-      type: "element-root",
-      root: rootNode
-    }
-  }
-}
 
 export function createNode(store: Store, vnode: VirtualNode): Node {
   switch (vnode.type) {

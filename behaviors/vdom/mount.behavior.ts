@@ -1,8 +1,9 @@
-import { behavior, effect, example, fact } from "esbehavior"
+import { behavior, effect, example, fact, step } from "esbehavior"
 import { equalTo, expect, is, resolvesTo } from "great-expectations"
 import { selectElement, selectElementWithText, selectElements } from "helpers/displayElement.js"
 import { renderContext } from "helpers/renderContext.js"
-import { container } from "@spheres/store"
+import { container, State } from "@spheres/store"
+import { HTMLView } from "@src/index"
 
 export default behavior("mount", [
 
@@ -143,10 +144,10 @@ export default behavior("mount", [
     }),
 
   example(renderContext())
-    .description("mount a stateful view")
+    .description("mount a view with stateful text")
     .script({
       suppose: [
-        fact("a stateful view", (context) => {
+        fact("the view is mounted", (context) => {
           const name = container({ initialValue: "Funny person" })
           context.mountView(root => {
             root.div(el => {
@@ -157,10 +158,44 @@ export default behavior("mount", [
         })
       ],
       observe: [
-        effect("it mounts the stateful element", async () => {
+        effect("the text reflects the state", async () => {
           await expect(selectElement("[data-label='stateful']").text(),
             resolvesTo(equalTo("Funny person, you are so stateful!")))
         })
       ]
-    })
+    }),
+
+    example(renderContext())
+      .description("zones are mounted at the root")
+      .script({
+        suppose: [
+          fact("zones are mounted", (context) => {
+            const data = container({ initialValue: [ "apple", "pizza", "hotdog" ]})
+            const dataView = (name: State<string>): HTMLView => root => {
+              root.div(el => el.children.textNode(get => get(name)))
+            }
+            context.mountView(root => {
+              root.zones(get => get(data), dataView)
+            })
+          })
+        ],
+        observe: [
+          effect("the zones are rendered", async () => {
+            await expect(selectElements("div").map(el => el.text()), resolvesTo([
+              "apple", "pizza", "hotdog"
+            ]))
+          })
+        ]
+      }).andThen({
+        perform: [
+          step("the app is unmounted", (context) => {
+            context.destroy()
+          })
+        ],
+        observe: [
+          effect("the zones are removed from the DOM", async () => {
+            await expect(selectElements("div").count(), resolvesTo(0))
+          })
+        ]
+      })
 ])

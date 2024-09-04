@@ -1,8 +1,8 @@
 import { GetState, State, Store } from "../store/index.js"
-import { makeStatefulElement, Stateful, addStatefulProperty, addProperty, makeVirtualTextNode, makeZoneList, VirtualListItemTemplate } from "./vdom/virtualNode.js"
+import { makeStatefulElement, Stateful, addStatefulProperty, addProperty, makeVirtualTextNode, makeZoneList, VirtualListItemTemplate, NodeType } from "./vdom/virtualNode.js"
 import { HTMLElements, HTMLBuilder } from "./htmlElements.js"
 import { createStringRenderer } from "./vdom/renderToString.js"
-import { createDOMRenderer } from "./vdom/renderToDom.js"
+import { createNode } from "./vdom/renderToDom.js"
 import { SVGElements } from "./svgElements.js"
 import { BasicElementConfig, SpecialElementAttributes } from "./viewConfig.js"
 import { ConfigurableElement, ViewBuilder } from "./viewBuilder.js"
@@ -16,16 +16,39 @@ export interface RenderResult {
 }
 
 export function renderToDOM(store: Store, element: Element, view: HTMLView): RenderResult {
-  const render = createDOMRenderer(store)
   const builder = new HtmlViewBuilder()
   builder.zone(view)
-  const renderResult = render(element, builder.toVirtualNode())
+  const vnode = builder.toVirtualNode()
+
+  const rootNode = createNode(store, vnode)
+
+  let unmount: () => void
+
+  if (vnode.type === NodeType.ZONE_LIST) {
+    const fragment = rootNode as DocumentFragment
+    const firstNode = fragment.firstElementChild!
+    const lastNode = fragment.lastElementChild!
+
+    element.replaceWith(rootNode)
+
+    const range = new Range()
+    range.setStartBefore(firstNode)
+    range.setEndAfter(lastNode)
+
+    unmount = () => {
+      range.deleteContents()
+    }
+  } else {
+    element.replaceWith(rootNode)
+
+    unmount = () => {
+      rootNode.parentNode?.removeChild(rootNode)
+    }
+  }
 
   return {
-    root: renderResult.root,
-    unmount: () => {
-      renderResult.root.parentNode?.removeChild(renderResult.root)
-    }
+    root: rootNode,
+    unmount
   }
 }
 

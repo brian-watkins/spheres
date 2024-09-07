@@ -8,7 +8,7 @@
   "devDependencies": {
     "@types/luxon": "^3.3.1",
     "autoprefixer": "^10.4.14",
-    "best-behavior": "^0.7.3",
+    "best-behavior": "^0.8.1",
     "esbehavior": "^4.2.3",
     "great-expectations": "^1.5.1",
     "playwright": "^1.40.0",
@@ -26,6 +26,6 @@
   "license": "MIT",
   "dependencies": {
     "luxon": "^3.4.0",
-    "spheres": "^0.9.0"
+    "spheres": "^0.9.1"
   }
 }

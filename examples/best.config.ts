@@ -1,4 +1,4 @@
-import { defineConfig } from "best-behavior";
+import { defineConfig } from "best-behavior/config";
 
 export default defineConfig({
   behaviorGlobs: [

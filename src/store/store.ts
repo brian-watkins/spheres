@@ -57,22 +57,12 @@ export interface RunMessage {
   effect: () => void
 }
 
-export interface Rule<Argument = undefined> {
-  readonly definition: (get: GetState, input: Argument) => StoreMessage<any>
-}
-
-export interface UseMessage {
-  type: "use"
-  rule: Rule<any>
-  input: any
-}
-
 export interface BatchMessage {
   type: "batch"
   messages: Array<StoreMessage<any>>
 }
 
-export type StoreMessage<T, M = T> = WriteMessage<T, M> | UpdateMessage<T, M> | ResetMessage<T, M> | UseMessage | BatchMessage | RunMessage | ExecMessage<M>
+export type StoreMessage<T, M = T> = WriteMessage<T, M> | UpdateMessage<T, M> | ResetMessage<T, M> | BatchMessage | RunMessage | ExecMessage<M>
 
 const registerState = Symbol("registerState")
 const initializeCommand = Symbol("initializeCommand")
@@ -529,6 +519,12 @@ export class Store {
     return withHooks
   }
 
+  dispatchWith(generator: (get: GetState) => (StoreMessage<any> | undefined)) {
+    const get: GetState = (state) => this[getController](state).value
+    const message = generator(get) ?? { type: "batch", messages: [] }
+    this.dispatch(message)
+  }
+
   dispatch(message: StoreMessage<any>) {
     switch (message.type) {
       case "write":
@@ -560,11 +556,6 @@ export class Store {
           container: message.container,
           value: message.container[initialValue]
         })
-        break
-      case "use":
-        const get: GetState = (state) => this[getController](state).value
-        const result = message.rule.definition(get, message.input)
-        this.dispatch(result)
         break
       case "run":
         message.effect()

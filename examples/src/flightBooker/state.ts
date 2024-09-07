@@ -1,4 +1,4 @@
-import { batch, container, rule, derived } from "spheres/store";
+import { batch, container, derived, GetState } from "spheres/store";
 import { DateTime } from "luxon"
 
 export const DATE_FORMAT = "dd.MM.yyyy"
@@ -55,7 +55,7 @@ export const bookingAllowed = derived({
   }
 })
 
-export const bookFlight = rule((get) => {
+export const bookFlight = (get: GetState) => {
   switch (get(flightType)) {
     case FlightTypes.ONE_WAY:
       alert(`You have booked a one-way flight on ${get(startDate)}.`)
@@ -66,7 +66,7 @@ export const bookFlight = rule((get) => {
   }
 
   return batch([])
-})
+}
 
 function toDateTime(dateString: string): DateTime {
   return DateTime.fromFormat(dateString, DATE_FORMAT)

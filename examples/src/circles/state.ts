@@ -1,4 +1,4 @@
-import { Container, GetState, StoreMessage, batch, container, rule, derived, write } from "spheres/store";
+import { Container, GetState, StoreMessage, batch, container, derived, write } from "spheres/store";
 
 export interface Coordinate {
   x: number
@@ -91,7 +91,7 @@ function addActionMessage(get: GetState, message: Action): StoreMessage<any> {
   ])
 }
 
-export const addCircleRule = rule((get, center: Coordinate) => {
+export const addCircleRule = (center: Coordinate) => (get: GetState) => {
   const currentCircles = get(circleData)
 
   const addCircleAction = {
@@ -100,7 +100,7 @@ export const addCircleRule = rule((get, center: Coordinate) => {
   }
 
   return addActionMessage(get, addCircleAction)
-})
+}
 
 export interface DialogContents {
   circle: CircleContainer
@@ -112,7 +112,7 @@ export const dialog = container<DialogContents | undefined>({
   initialValue: undefined
 })
 
-export const adjustRadiusRule = rule((get) => {
+export const adjustRadiusRule = (get: GetState) => {
   const dialogData = get(dialog)
   if (dialogData === undefined) {
     return batch([])
@@ -130,9 +130,9 @@ export const adjustRadiusRule = rule((get) => {
   }
 
   return addActionMessage(get, adjustRadiusAction)
-})
+}
 
-export const undoRule = rule(get => {
+export const undoRule = (get: GetState) => {
   const actionIndex = get(currentAction)
   const action = get(actions)[actionIndex]
 
@@ -140,9 +140,9 @@ export const undoRule = rule(get => {
     action.undo,
     write(currentAction, actionIndex - 1)
   ])
-})
+}
 
-export const redoRule = rule(get => {
+export const redoRule = (get: GetState) => {
   const actionIndex = get(currentAction)
   const action = get(actions)[actionIndex + 1]
 
@@ -150,7 +150,7 @@ export const redoRule = rule(get => {
     action.execute,
     write(currentAction, actionIndex + 1)
   ])
-})
+}
 
 export const canUndo = derived({
   query: (get) => get(currentAction) > -1

@@ -15,7 +15,7 @@ export class TestCirclesApp {
 
   async renderAppWithCircles(circles: Array<Circle>) {
     await this.testApp.renderApp("circles")
-    await this.testApp.page?.evaluate((circles) => {
+    await this.testApp.page.evaluate((circles) => {
       window.startCircleApp(circles)
     }, circles)
   }

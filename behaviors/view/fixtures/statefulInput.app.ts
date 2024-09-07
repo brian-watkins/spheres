@@ -1,9 +1,9 @@
-import { container, rule, use, write } from "@spheres/store"
+import { container, GetState, write } from "@spheres/store"
 import { HTMLBuilder } from "@src/index"
 
 const inputValue = container({ initialValue: 17 })
 
-const incrementValue = rule((get) => write(inputValue, get(inputValue) + 1))
+const incrementValue = (get: GetState) => write(inputValue, get(inputValue) + 1)
 
 export default function (root: HTMLBuilder) {
   root.main(({ children }) => {
@@ -16,7 +16,7 @@ export default function (root: HTMLBuilder) {
       })
       .button(el => {
         el.config
-          .on("click", () => use(incrementValue))
+          .on("click", () => incrementValue)
         el.children
           .textNode("Increment!")
       })

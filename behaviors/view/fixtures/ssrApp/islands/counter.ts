@@ -1,8 +1,8 @@
 import { HTMLBuilder } from "@src/index.js"
 import { clickCount } from "../state.js"
-import { rule, use, write } from "@spheres/store"
+import { GetState, write } from "@spheres/store"
 
-const incrementCount = rule(get => write(clickCount, get(clickCount) + 1))
+const incrementCount = (get: GetState) => write(clickCount, get(clickCount) + 1)
 
 export default function(root: HTMLBuilder) {
   root.div(el => {
@@ -11,7 +11,7 @@ export default function(root: HTMLBuilder) {
     el.children
       .button(el => {
         el.config
-          .on("click", () => use(incrementCount))
+          .on("click", () => incrementCount)
         el.children
           .textNode("Click me!")
       })

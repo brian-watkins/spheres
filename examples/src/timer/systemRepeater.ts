@@ -1,4 +1,4 @@
-import { CommandManager, Store, use } from "spheres/store";
+import { CommandManager, Store } from "spheres/store";
 import { RepeaterCommand } from "./state";
 
 export class RepeaterCommandManager implements CommandManager<RepeaterCommand> {
@@ -16,7 +16,7 @@ export class RepeaterCommandManager implements CommandManager<RepeaterCommand> {
     }
     if (!this.timerId && message.shouldRun) {
       this.timerId = setInterval(() => {
-        this.store.dispatch(use(message.rule))
+        this.store.dispatchWith(message.rule)
       }, message.interval)
     }
   }

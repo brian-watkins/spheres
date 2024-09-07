@@ -1,4 +1,4 @@
-import { Container, batch, container, rule, derived, write } from "spheres/store";
+import { Container, GetState, batch, container, derived, write } from "spheres/store";
 
 export interface DataRecord {
   id?: number
@@ -70,7 +70,7 @@ export const selectedRecord = container({
   initialValue: -1
 })
 
-export const updateSelected = rule((get, record: DataRecord) => {
+export const updateSelected = (get: GetState, record: DataRecord) => {
   const selectedIndex = get(selectedRecord)
 
   if (selectedIndex == -1) {
@@ -78,9 +78,9 @@ export const updateSelected = rule((get, record: DataRecord) => {
   }
 
   return write(records, updateRecord({ id: selectedIndex, ...record }))
-})
+}
 
-export const deleteSelected = rule(get => {
+export const deleteSelected = (get: GetState) => {
   const selectedIndex = get(selectedRecord)
 
   if (selectedIndex === -1) {
@@ -88,7 +88,7 @@ export const deleteSelected = rule(get => {
   }
 
   return write(records, deleteRecord(selectedIndex))
-})
+}
 
 export const filterPrefix = container({
   initialValue: ""

@@ -2,7 +2,7 @@ import { behavior, effect, example, fact, step } from "esbehavior";
 import { equalTo, expect, resolvesTo } from "great-expectations";
 import { selectElement } from "helpers/displayElement.js";
 import { renderContext } from "helpers/renderContext.js";
-import { Container, container, rule, State, update, use, write } from "@spheres/store";
+import { Container, container, State, update, write } from "@spheres/store";
 import { HTMLBuilder } from "@src/htmlElements";
 import { HTMLView } from "@src/htmlViewBuilder";
 

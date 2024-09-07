@@ -1,4 +1,4 @@
-import { Rule, Container, State, Store, write, RuleArg, StoreMessage, batch, GetState, use, reset, Command, CommandActions, ContainerHooks, ReactiveEffect } from "@src/index.js"
+import { Container, State, Store, write, StoreMessage, batch, GetState, reset, Command, CommandActions, ContainerHooks, ReactiveEffect } from "@src/index.js"
 import { Context } from "esbehavior"
 
 export function testStoreContext<T>(): Context<TestStore<T>> {
@@ -44,10 +44,6 @@ export class TestStore<T> {
 
   useContainerHooks<T, M>(token: Container<T, M>, hooks: ContainerHooks<T, M, any>) {
     this.store.useContainerHooks(token, hooks)
-  }
-
-  useRule<A>(rule: Rule<A>, ...input: RuleArg<A>) {
-    this.store.dispatch(use(rule, ...input))
   }
 
   writeTo<S, M = S>(token: Container<S, M>, value: M) {

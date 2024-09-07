@@ -11,13 +11,10 @@ export function browserAppContext(): Context<TestAppController> {
   return useBrowser({
     init: (browser) => new TestAppController(browser)
   })
-  return useBrowser({
-    init: (browser) => new TestAppController(browser)
-  })
 }
 
 export class TestAppController {
-  constructor(private browser: BrowserTestInstrument) {}
+  constructor(private browser: BrowserTestInstrument) { }
 
   async loadApp(appName: string) {
     await this.browser.page.evaluate(async (args) => {

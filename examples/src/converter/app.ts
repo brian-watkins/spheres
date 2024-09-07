@@ -1,4 +1,3 @@
-import { use } from "spheres/store";
 import { celsiusInvalid, celsiusTemperature, farenheitInvalid, farenheitTemperature, temperatureUpdate } from "./state.js";
 import { names, useValue } from "../helpers/helpers.js";
 import { HTMLBuilder } from "../../../src/view/index.js";
@@ -33,7 +32,7 @@ function celsiusInput(root: HTMLBuilder) {
       .id("celsius")
       .type("text")
       .value((get) => get(celsiusTemperature))
-      .on("input", useValue((value) => use(temperatureUpdate, { celsius: value })))
+      .on("input", useValue((value) => temperatureUpdate({ celsius: value })))
       .class((get) => inputStyling(get(celsiusInvalid), get(farenheitInvalid)))
   })
 }
@@ -45,7 +44,7 @@ function farenheitInput(root: HTMLBuilder) {
       .id("farenheit")
       .type("text")
       .value((get) => get(farenheitTemperature))
-      .on("input", useValue((value) => use(temperatureUpdate, { farenheit: value })))
+      .on("input", useValue((value) => temperatureUpdate({ farenheit: value })))
       .class((get) => inputStyling(get(farenheitInvalid), get(celsiusInvalid)))
   })
 }

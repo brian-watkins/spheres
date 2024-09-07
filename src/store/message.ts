@@ -1,4 +1,4 @@
-import { BatchMessage, Container, RunMessage, UseMessage, StoreMessage, WriteMessage, Rule, ResetMessage, UpdateMessage } from "./store"
+import { BatchMessage, Container, RunMessage, StoreMessage, WriteMessage, ResetMessage, UpdateMessage } from "./store"
 
 export function write<T, M = T>(container: Container<T, M>, value: M): WriteMessage<T, M> {
   return {
@@ -34,15 +34,5 @@ export function batch(messages: Array<StoreMessage<any>>): BatchMessage {
   return {
     type: "batch",
     messages
-  }
-}
-
-export type RuleArg<Q> = Q extends undefined ? [] : [Q]
-
-export function use<Q = undefined>(rule: Rule<Q>, ...input: RuleArg<Q>): UseMessage {
-  return {
-    type: "use",
-    rule,
-    input: input.length === 0 ? undefined : input[0]
   }
 }

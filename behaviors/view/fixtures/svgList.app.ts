@@ -1,4 +1,4 @@
-import { State, container, rule, use, write } from "@spheres/store";
+import { State, container, write } from "@spheres/store";
 import { HTMLBuilder, SVGView } from "@src/index";
 
 interface Circle {
@@ -51,7 +51,7 @@ function circleView(data: State<Circle>, index: State<number>): SVGView {
     root.g(el => {
       el.config
         .dataAttribute("circle-button", (get) => `${get(index)}`)
-        .on("click", () => use(rule(get => write(circleData, putFirst(get(index))))))
+        .on("click", () => get => write(circleData, putFirst(get(index))))
       el.children
         .circle(el => {
           el.config

@@ -1,4 +1,4 @@
-import { use, write } from "spheres/store";
+import { write } from "spheres/store";
 import { FlightTypes, allowReturnDate, bookFlight, bookingAllowed, flightType, returnDate, returnDateIsValid, startDate, startDateIsValid } from "./state.js";
 import { names, useValue } from "../helpers/helpers.js";
 import { HTMLBuilder } from "../../../src/view/index.js";
@@ -46,7 +46,7 @@ function bookFlightButton(root: HTMLBuilder) {
         "disabled:bg-slate-400",
         "hover:bg-sky-800"
       ]))
-      .on("click", () => use(bookFlight))
+      .on("click", () => bookFlight)
       .disabled((get) => !get(bookingAllowed))
     el.children
       .textNode("Book Flight!")

@@ -1,16 +1,16 @@
-import { batch, container, rule, derived, write } from "spheres/store"
+import { batch, container, derived, write } from "spheres/store"
 
 export interface TemperatureUpdate {
   celsius?: string
   farenheit?: string
 }
 
-export const temperatureUpdate = rule((_, input: TemperatureUpdate) => {
+export const temperatureUpdate = (input: TemperatureUpdate) => {
   return batch([
     write(celsiusTemperature, input),
     write(farenheitTemperature, input)
   ])
-})
+}
 
 export const celsiusTemperature = container({
   initialValue: "",

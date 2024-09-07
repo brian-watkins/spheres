@@ -1,4 +1,4 @@
-import { State, use, write } from "spheres/store";
+import { State, write } from "spheres/store";
 import { DataRecord, createRecord, deleteSelected, filterPrefix, filteredRecords, records, selectedRecord, updateSelected } from "./state.js";
 import { names, useValue } from "../helpers/helpers.js";
 import { HTMLBuilder, HTMLView } from "../../../src/view/index.js";
@@ -45,7 +45,7 @@ export function crud(root: HTMLBuilder) {
             config
               .dataAttribute("action", "delete")
               .disabled((get) => get(selectedRecord) === -1)
-              .on("click", () => use(deleteSelected))
+              .on("click", () => deleteSelected)
               .class(buttonClasses())
             children.textNode("Delete")
           })
@@ -63,7 +63,7 @@ function recordForm(root: HTMLBuilder) {
         "flex-col",
         "gap-4"
       ]))
-      .on("submit", (evt) => {
+      .on("submit", (evt) => get => {
         evt.preventDefault();
         const data = new FormData(evt.target as HTMLFormElement)
         const firstName = data.get("firstName")!.toString()
@@ -71,7 +71,7 @@ function recordForm(root: HTMLBuilder) {
         if (submissionAction(evt) === "create") {
           return write(records, createRecord({ firstName, lastName }))
         } else {
-          return use(updateSelected, { firstName, lastName })
+          return updateSelected(get, { firstName, lastName })
         }
       })
     children

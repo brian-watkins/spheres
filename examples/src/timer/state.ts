@@ -1,4 +1,4 @@
-import { Rule, command, container, rule, derived, write } from "spheres/store";
+import { command, container, derived, GetState, StoreMessage, write } from "spheres/store";
 
 export const elapsedTime = container({ initialValue: 0 })
 
@@ -13,13 +13,13 @@ export const percentComplete = derived({
 
 export interface RepeaterCommand {
   shouldRun: boolean
-  rule: Rule
+  rule: (get: GetState) => StoreMessage<any>
   interval: number
 }
 
-const updateElapsedTimeRule = rule((get) => {
+const updateElapsedTimeRule = (get: GetState) => {
   return write(elapsedTime, Math.min(get(duration) * 1000, get(elapsedTime) + 100))
-})
+}
 
 export const runTimerCommand = command<RepeaterCommand>({
   trigger: (get) => {

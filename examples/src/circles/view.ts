@@ -1,4 +1,4 @@
-import { batch, write, run, StoreMessage, use, rule, State } from "spheres/store";
+import { batch, write, run, StoreMessage, State } from "spheres/store";
 import { CircleContainer, addCircleRule, adjustRadius, adjustRadiusRule, canRedo, canUndo, circleData, deselectCircle, dialog, redoRule, selectCircle, undoRule } from "./state";
 import { useValue } from "../helpers/helpers";
 import { HTMLBuilder, SVGView } from "../../../src/view";
@@ -14,7 +14,7 @@ export function circles(root: HTMLBuilder) {
             config
               .class(`${buttonStyle} grow`)
               .disabled(get => !get(canUndo))
-              .on("click", () => use(undoRule))
+              .on("click", () => undoRule)
             children
               .textNode("Undo")
           })
@@ -22,7 +22,7 @@ export function circles(root: HTMLBuilder) {
             config
               .class(`${buttonStyle} grow`)
               .disabled(get => !get(canRedo))
-              .on("click", () => use(redoRule))
+              .on("click", () => redoRule)
             children
               .textNode("Redo")
           })
@@ -33,7 +33,7 @@ export function circles(root: HTMLBuilder) {
           .width("100%")
           .height("400")
           .class("bg-slate-300 rounded")
-          .on("click", (evt) => use(addCircleRule, { x: evt.offsetX, y: evt.offsetY }))
+          .on("click", (evt) => addCircleRule({ x: evt.offsetX, y: evt.offsetY }))
         children
           .zones(get => get(circleData), circleView)
       })
@@ -51,10 +51,10 @@ function circleView(circle: State<CircleContainer>): SVGView {
         .cx(get => `${get(get(circle)).center.x}`)
         .cy(get => `${get(get(circle)).center.y}`)
         .r(get => `${get(get(circle)).radius}`)
-        .on("mouseover", () => use(rule(get => write(get(circle), selectCircle()))))
+        .on("mouseover", () => get => write(get(circle), selectCircle()))
         .on("click", (evt) => {
           evt.stopPropagation()
-          return use(rule(get => batch([
+          return get => batch([
             write(dialog, {
               circle: get(circle),
               originalRadius: get(get(circle)).radius,
@@ -63,15 +63,15 @@ function circleView(circle: State<CircleContainer>): SVGView {
             run(() => {
               document.querySelector("dialog")?.showModal()
             })
-          ])))
+          ])
         })
-        .on("mouseout", () => use(rule(get => {
+        .on("mouseout", () => get => {
           if (get(dialog)?.circle !== get(circle)) {
             return write(get(circle), deselectCircle())
           } else {
             return batch([])
           }
-        })))
+        })
     })
   }
 }
@@ -82,10 +82,10 @@ function optionsView(root: HTMLBuilder) {
     config
       .class("backdrop:bg-gray-500/50 bg-slate-100 shadow-lg rounded")
       .on("click", closeDialog)
-      .on("close", () => {
+      .on("close", () => get => {
         return batch([
-          use(adjustRadiusRule),
-          use(rule(get => write(get(dialog)!.circle, deselectCircle()))),
+          adjustRadiusRule(get),
+          write(get(dialog)!.circle, deselectCircle()),
           write(dialog, undefined),
         ])
       })
@@ -93,7 +93,7 @@ function optionsView(root: HTMLBuilder) {
       .div(({ config, children }) => {
         config
           .class("w-96 m-8 bg-slate-100 hover:text-sky-600 font-bold text-sky-800")
-          .on("click", () => use(rule(get => write(dialog, { ...get(dialog)!, showDiameterSlider: true }))))
+          .on("click", () => get => write(dialog, { ...get(dialog)!, showDiameterSlider: true }))
         children
           .zoneWhich(get => get(dialog)?.showDiameterSlider ? "adjustRadius" : "message", {
             adjustRadius: adjustRadiusView,
@@ -131,7 +131,7 @@ function adjustRadiusView(root: HTMLBuilder) {
           .step("1")
           .value(get => `${get(get(dialog)!.circle).radius}`)
           .on("input", useValue(value => {
-            return use(rule(get => write(get(dialog)!.circle, adjustRadius(Number(value)))))
+            return get => write(get(dialog)!.circle, adjustRadius(Number(value)))
           }))
       })
   })

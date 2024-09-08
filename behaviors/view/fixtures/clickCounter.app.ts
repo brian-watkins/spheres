@@ -1,5 +1,5 @@
 import { HTMLBuilder } from "@src/index.js"
-import { container, GetState, write } from "@spheres/store"
+import { container, GetState, use, write } from "@spheres/store"
 
 const clickCount = container({ initialValue: 0 })
 
@@ -9,7 +9,7 @@ function clickCounterView(root: HTMLBuilder) {
   root.div(div => {
     div.children
       .button(b => {
-        b.config.on("click", () => incrementCount)
+        b.config.on("click", () => use(incrementCount))
         b.children.textNode("Click me!")
       })
       .p(p => {

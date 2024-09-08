@@ -70,7 +70,7 @@ export const selectedRecord = container({
   initialValue: -1
 })
 
-export const updateSelected = (get: GetState, record: DataRecord) => {
+export const updateSelected = (record: DataRecord) => (get: GetState) => {
   const selectedIndex = get(selectedRecord)
 
   if (selectedIndex == -1) {

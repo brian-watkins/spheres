@@ -1,4 +1,4 @@
-import { CommandManager, Store } from "spheres/store";
+import { CommandManager, Store, use } from "spheres/store";
 import { RepeaterCommand } from "../../src/timer/state";
 
 export class TestRepeaterManager implements CommandManager<RepeaterCommand> {
@@ -20,7 +20,7 @@ export class TestRepeaterManager implements CommandManager<RepeaterCommand> {
     const loops = Math.floor(millis / this.current.interval)
 
     for (let i = 0; i < loops; i++) {
-      this.store.dispatchWith(this.current.rule)
+      this.store.dispatch(use(this.current.rule))
     }
   }
 }

@@ -1,5 +1,5 @@
 import { HTMLBuilder } from "@src/index.js";
-import { container, GetState, write } from "@spheres/store";
+import { container, GetState, use, write } from "@spheres/store";
 
 const clicks = container({ initialValue: 0 })
 const isDisabled = container({ initialValue: false })
@@ -28,7 +28,7 @@ export default function (root: HTMLBuilder) {
       .button(el => {
         el.config
           .dataAttribute("action", "increment")
-          .on("click", () => incrementClicks)
+          .on("click", () => use(incrementClicks))
         el.children.textNode("Click to increment!")
       })
       .button(el => {

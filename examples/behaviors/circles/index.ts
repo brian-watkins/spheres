@@ -1,4 +1,4 @@
-import { Store } from "spheres/store"
+import { Store, use } from "spheres/store"
 import { circles } from "../../src/circles/view"
 import { addCircleRule } from "../../src/circles/state"
 import { FakeCircle } from "./helpers/fakeCircle"
@@ -8,7 +8,7 @@ window.startCircleApp = (testData: Array<FakeCircle>) => {
   const dataStore = new Store()
 
   for (const circle of testData) {
-    dataStore.dispatchWith(addCircleRule(circle.center))
+    dataStore.dispatch(use(addCircleRule(circle.center)))
   }
 
   renderToDOM(dataStore, document.getElementById("test-display")!, circles)

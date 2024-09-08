@@ -83,17 +83,8 @@ export function createNode(store: Store, vnode: VirtualNode): Node {
 
 function addEventListener(store: Store, element: Element, event: string, handler: StoreEventHandler<any>) {
   element.addEventListener(event, (evt) => {
-    dispatchEventResult(store, handler, evt)
+    store.dispatch(handler(evt))
   })
-}
-
-function dispatchEventResult(store: Store, handler: StoreEventHandler<any>, evt: Event) {
-  const handlerResult = handler(evt)
-  if (typeof handlerResult === "function") {
-    store.dispatchWith(handlerResult)
-  } else {
-    store.dispatch(handlerResult)
-  }
 }
 
 
@@ -135,7 +126,7 @@ function attachEvents(template: DOMTemplate, templateData: TemplateData, store: 
         const handler = eventMap.get(node.getAttribute(`data-spheres-${eventType}`)!)!
 
         virtualTemplate.setArgs(args)
-        dispatchEventResult(store, handler, evt)
+        store.dispatch(handler(evt))
 
         evt.stopPropagation()
       }

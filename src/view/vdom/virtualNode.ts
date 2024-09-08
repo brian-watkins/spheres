@@ -59,7 +59,7 @@ export interface StatefulValue<T> {
   effect?: EffectHandle
 }
 
-export type StoreEventHandler<T> = (evt: Event) => (StoreMessage<T> | Stateful<StoreMessage<T>>)
+export type StoreEventHandler<T> = (evt: Event) => StoreMessage<T>
 
 export interface VirtualNodeConfig {
   props?: Record<string, any>

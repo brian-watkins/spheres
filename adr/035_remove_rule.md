@@ -22,29 +22,51 @@ The problem with this is that in writing event handlers, it felt too
 verbose and potentially awkward to use `use(rule(get => ...))` all over
 the place.
 
+### Options
+
+We could remove the `use` message and the `rule` concept altogether and change
+event handlers so that they return either a `StoreMessage<any>` or a
+`Stateful<StoreMessage<any>>`. 
+
+We tried this option and there were some downsides. (1) Maybe a *slight*
+degradation in performance. (2) There are other use cases for the `use`
+message besides event handlers so in order to support these we would need to
+add another method to the Store that allowed dispatching `Stateful<StoreMessage<any>>`.
+(3) Some of the event handler logic in the examples became more complicate to
+write. (4) Without the `use` message the update function on a container becomes
+a little less powerful.
+
+So, another option would be to leave use message around and just update the
+event handlers so it could return a `Stateful<StoreMessage<any>>` which would be
+wrapped in a `use` message under the covers. But to allow this would mean there
+are two ways to do something, and this leads to the worry of which way is better.
+We want to avoid this.
+
+We could just remove the `rule` concept and have the `use` message take a
+`Stateful<StoreMessage<any>>` directly. This seems ok. The `rule` was an interface
+we introduced in case one wanted to create an object that stored some state. But
+really if you are interacting with the store, it's the store that should hold state.
+
+
 ### Decision
 
-To improve the ease of working with view event handlers, we will allow
-event handlers to return a `StoreMessage<any>` or a `Stateful<StoreMessage<any>>`.
-This means that when we need to get some existing state to determine what
-StoreMessage to create, we can do something like this:
+To improve the ease of working with view event handlers, we will remove
+the concept of a rule and just have the `use` message accept a
+`Stateful<StoreMessage<any>>`. This means that when we need to get some
+existing state to determine what StoreMessage to create, we can do
+something like this:
 
 ```
-el.config.on("click", () => get => get(token) + 1)
+el.config.on("click", () => use(get => get(token) + 1))
 ```
 
-This feels easier to work with. It also means that we can return `undefined` from
-an event handler to do nothing, if we need to, instead of having programmers
-remember that `batch([])` will do nothing.
+This feels a little easier to work with. It also means that we can return
+`undefined` from an event handler to do nothing, if we need to, instead
+of having programmers remember that `batch([])` will do nothing.
 
-But once we made this change, it became clear that we no longer need the concept
-of a rule, since a 'rule' is just a `Stateful<StoreMessage<any>>`. We can still
-abstract these into functions as it makes sense.
-
-We also will remove the `use` message for running rules. Instead, we will add a
-new function on the store called `dispatchWith(message: Stateful<StoreMessage<any>>)`
-which allows us to dispatch a Stateful StoreMessage explicitly if we need to.
-
-We don't want to continue to have a `use` message since that would mean that
-there would be two ways to do the same thing from an event handler. And we want
-there to only be one way to do things, as much as possible.
+There is some overlap between the `use` and `update` messages, in that
+`update` can be accomplished simply by using a `use` message. Nevertheless,
+we will keep these both around for now, since they don't do exactly the
+same thing ... and using `update` is a tiny bit faster. The alternative
+would be to generalize the `write` message so that it could take a function
+that uses the current value to produce the next message.

@@ -1,4 +1,4 @@
-import { container, GetState, State, write } from "@spheres/store"
+import { container, GetState, State, use, write } from "@spheres/store"
 import { useValue } from "./helpers"
 import { HTMLBuilder, HTMLView } from "@src/index"
 
@@ -40,7 +40,7 @@ const writePeople = (get: GetState) => {
 
 function updateButton(root: HTMLBuilder) {
   root.button(el => {
-    el.config.on("click", () => writePeople)
+    el.config.on("click", () => use(writePeople))
     el.children.textNode("Click me!")
   })
 }

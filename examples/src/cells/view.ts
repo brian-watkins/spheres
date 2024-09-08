@@ -1,11 +1,11 @@
-import { Container, GetState, StoreMessage, batch, container, run, write } from "spheres/store";
+import { Container, GetState, StoreMessage, batch, container, run, use, write } from "spheres/store";
 import { cellContainer } from "./state.js";
 import { CellErrorType } from "./formula.js";
 import { HTMLBuilder, HTMLView } from "../../../src/view/index.js";
 
 const editableCell = container<Container<boolean> | undefined>({ initialValue: undefined })
 
-const makeEditable = (get: GetState, id: string) => {
+const makeEditable = (id: string) => (get: GetState) => {
   const editState = get(cellContainer(id)).editable
   const currentEditState = get(editableCell)
 
@@ -78,8 +78,8 @@ function cell(id: string): HTMLView {
             return `shrink-0 h-8 w-40 ${get(cellDetails.editable) ? "bg-slate-100" : "bg-slate-200"} relative`
           }
         })
-        .on("click", () => get => batch([
-          makeEditable(get, id),
+        .on("click", () => batch([
+          use(makeEditable(id)),
           run(() => (document.querySelector(`input[name='${id}']`) as HTMLInputElement)?.focus())
         ]))
       children
@@ -107,12 +107,12 @@ function cell(id: string): HTMLView {
           config
             .class("absolute top-1 left-0")
             .hidden(get => get(get(cellContainer(id)).editable) ? undefined : "hidden")
-            .on("submit", (evt) => get => {
+            .on("submit", (evt) => {
               evt.preventDefault()
               const cellDefinition = ((evt.target as HTMLFormElement).elements.namedItem(id) as HTMLInputElement).value
               return batch([
                 write(editableCell, undefined),
-                write(get(cellContainer(id)).editable, false),
+                use(get => write(get(cellContainer(id)).editable, false)),
                 write(cellContainer(id), cellDefinition)
               ])
             })

@@ -1,6 +1,6 @@
 import { HTMLBuilder } from "@src/index.js"
 import { clickCount, nameState } from "../state.js"
-import { GetState, write } from "@spheres/store"
+import { GetState, use, write } from "@spheres/store"
 
 export function view(root: HTMLBuilder) {
   root.div(el => {
@@ -23,7 +23,7 @@ function counterView(root: HTMLBuilder) {
   root.div(el => {
     el.children
       .button(el => {
-        el.config.on("click", () => incrementCount)
+        el.config.on("click", () => use(incrementCount))
         el.children.textNode("Click me!")
       })
   })

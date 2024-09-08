@@ -2,7 +2,7 @@ import { behavior, effect, example, fact, step } from "esbehavior";
 import { equalTo, expect, resolvesTo } from "great-expectations";
 import { selectElement } from "helpers/displayElement.js";
 import { renderContext } from "helpers/renderContext.js";
-import { Container, container, State, update, write } from "@spheres/store";
+import { Container, container, State, update, use, write } from "@spheres/store";
 import { HTMLBuilder } from "@src/htmlElements";
 import { HTMLView } from "@src/htmlViewBuilder";
 
@@ -66,7 +66,7 @@ export default behavior("event handlers", [
                 .button(el => {
                   el.config
                     .dataAttribute("click")
-                    .on("click", () => get => write(context.state, get(context.state) + 1))
+                    .on("click", () => use(get => write(context.state, get(context.state) + 1)))
                   el.children.textNode("Click me!")
                 })
             })
@@ -103,7 +103,7 @@ export default behavior("event handlers", [
                 .button(el => {
                   el.config
                     .dataAttribute("click")
-                    .on("click", () => _ => undefined)
+                    .on("click", () => use(() => undefined))
                   el.children.textNode("Click me!")
                 })
             })
@@ -336,13 +336,13 @@ export default behavior("event handlers", [
                   .button(el => {
                     el.config
                       .dataAttribute("button-name", get => get(name))
-                      .on("click", () => get => {
+                      .on("click", () => use(get => {
                         if (get(name) === "trees") {
                           return write(context.state.message, get(name))
                         } else {
                           return undefined
                         }
-                      })
+                      }))
                     el.children.textNode(get => `Click to get ${get(name)}`)
                   })
               })

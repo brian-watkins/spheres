@@ -9,12 +9,12 @@ Check out the [documentation](https://github.com/brian-watkins/spheres/wiki).
 Here's a simple counter app:
 
 ```
-import { htmlTemplate, renderToDOM } from "spheres/view";
+import { renderToDOM } from "spheres/view";
 import { container, update, Store } from "spheres/store";
 
 const clickCount = container({ initialValue: 0 })
 
-const counter = htmlTemplate(() => root => {
+function counter (root: HTMLBuilder) {
   root.main(el => {
     el.children
       .p(el => {
@@ -26,9 +26,9 @@ const counter = htmlTemplate(() => root => {
         el.children.textNode("Count!")
       })
   })
-})
+}
 
-renderToDOM(new Store(), document.getElementById("app"), counter())
+renderToDOM(new Store(), document.getElementById("app"), counter)
 ```
 
 Find [more examples here](https://github.com/brian-watkins/spheres/tree/main/examples).

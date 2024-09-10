@@ -1,5 +1,6 @@
-import { container, derived, reactiveVariable, variable } from "@src/index";
+import { container, derived } from "@src/index";
 import { Container, DerivedState, ReactiveVariable, Variable } from "@src/store";
+import { reactiveVariable, variable } from "@src/variable";
 import { behavior, effect, example, fact, step } from "esbehavior";
 import { expect, is } from "great-expectations";
 import { testStoreContext } from "helpers/testStore";

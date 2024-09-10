@@ -1,4 +1,6 @@
-import { Container, container, GetState, reactiveVariable, ReactiveVariable, State, StoreMessage, variable, Variable } from "../../store/index.js";
+import { container } from "../../store/container.js";
+import { Container, GetState, ReactiveVariable, State, StoreMessage, Variable } from "../../store/store.js";
+import { reactiveVariable, variable } from "../../store/variable.js";
 
 export type Stateful<T> = (get: GetState) => T | undefined
 

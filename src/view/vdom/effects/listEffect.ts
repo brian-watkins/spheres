@@ -18,7 +18,7 @@ export class ListEffect implements ReactiveEffect {
   }
 
   init(get: GetState) {
-    const data = this.vnode.argList(get)
+    const data = this.vnode.query(get)
     const parent = this.listStartNode.parentNode!
     const builder = this.vnode.template.usesIndex ? buildListItemWithIndexState : buildListItem
 
@@ -33,7 +33,7 @@ export class ListEffect implements ReactiveEffect {
 
   run(get: GetState) {
     const builder = this.vnode.template.usesIndex ? buildListItemWithIndex : buildListItem
-    const updatedList = this.vnode.argList(get).map(builder)
+    const updatedList = this.vnode.query(get).map(builder)
     this.patchList(updatedList)
     this.vnodes = updatedList
   }

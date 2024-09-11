@@ -50,7 +50,7 @@ export interface ZoneListNode {
   type: NodeType.ZONE_LIST
   id: string
   template: VirtualListItemTemplate<any>
-  argList: (get: GetState) => Array<any>
+  query: (get: GetState) => Array<any>
   node: Node | undefined
 }
 
@@ -198,7 +198,7 @@ export function makeZoneList<T>(virtualTemplate: VirtualListItemTemplate<T>, arg
     type: NodeType.ZONE_LIST,
     id: `${templateListId++}`,
     template: virtualTemplate,
-    argList,
+    query: argList,
     node: undefined
   }
 }

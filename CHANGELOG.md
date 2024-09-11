@@ -1,5 +1,11 @@
 # spheres
 
+## 0.10.0
+
+### Minor Changes
+
+- dd6b980: Simplified, purely reactive view API
+
 ## 0.9.1
 
 ### Patch Changes

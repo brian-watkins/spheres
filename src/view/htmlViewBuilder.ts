@@ -1,12 +1,12 @@
 import { GetState, State, Store } from "../store/index.js"
 import { makeStatefulElement, Stateful, addStatefulProperty, addProperty, makeVirtualTextNode, makeZoneList, VirtualListItemTemplate, NodeType } from "./vdom/virtualNode.js"
 import { HTMLElements, HTMLBuilder } from "./htmlElements.js"
-import { createStringRenderer } from "./vdom/renderToString.js"
 import { createNode } from "./vdom/renderToDom.js"
 import { SVGElements } from "./svgElements.js"
 import { BasicElementConfig, SpecialElementAttributes } from "./viewConfig.js"
 import { ConfigurableElement, ViewBuilder } from "./viewBuilder.js"
 import { buildSvgElement } from "./svgViewBuilder.js"
+import { stringifyVirtualNode } from "./vdom/renderToString.js"
 
 // Renderers
 
@@ -53,10 +53,9 @@ export function renderToDOM(store: Store, element: Element, view: HTMLView): Ren
 }
 
 export function renderToString(store: Store, view: HTMLView): string {
-  const render = createStringRenderer(store)
   const builder = new HtmlViewBuilder()
   builder.zone(view)
-  return render(builder.toVirtualNode())
+  return stringifyVirtualNode(store, builder.toVirtualNode())
 }
 
 

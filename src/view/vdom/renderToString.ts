@@ -1,15 +1,8 @@
-import { GetState, ReactiveEffect, Store } from "../../store/index.js";
-import { StringRenderer } from "./render.js";
-import { ElementNode, NodeType, StatefulTextNode, StatefulNode, TextNode, VirtualNode } from "./virtualNode.js";
+import { container, GetState, ReactiveEffect, Store } from "../../store/index.js";
+import { ElementNode, NodeType, StatefulTextNode, StatefulNode, TextNode, VirtualNode, ZoneListNode } from "./virtualNode.js";
 
 
-export function createStringRenderer(store: Store): StringRenderer {
-  return (node: VirtualNode) => {
-    return stringifyVirtualNode(store, node)
-  }
-}
-
-function stringifyVirtualNode(store: Store, vnode: VirtualNode): string {
+export function stringifyVirtualNode(store: Store, vnode: VirtualNode): string {
   switch (vnode.type) {
     case NodeType.ELEMENT:
       return stringifyElement(store, vnode)
@@ -20,7 +13,7 @@ function stringifyVirtualNode(store: Store, vnode: VirtualNode): string {
     case NodeType.STATEFUL:
       return stringifyStatefulNode(store, vnode)
     case NodeType.ZONE_LIST:
-      return "NOT DONE YET"
+      return stringifyZoneList(store, vnode)
   }
 }
 
@@ -76,7 +69,7 @@ class GetValueQuery<M> implements ReactiveEffect {
 function stringifyStatefulNode(store: Store, node: StatefulNode): string {
   const query = new GetValueQuery(node.generator)
   store.useEffect(query)
-  
+
   return stringifyVirtualNode(store, query.value)
 }
 
@@ -89,4 +82,19 @@ function stringifyReactiveText(store: Store, node: StatefulTextNode): string {
     value: query.value ?? "",
     node: undefined
   })
+}
+
+function stringifyZoneList(store: Store, node: ZoneListNode): string {
+  const query = new GetValueQuery(node.query)
+  store.useEffect(query)
+
+  const data = query.value
+
+  let html = ""
+  for (let i = 0; i < data.length; i++) {
+    node.template.setArgs({ item: data[i], index: container({ initialValue: i }) })
+    html += stringifyVirtualNode(store, node.template.virtualNode)
+  }
+
+  return html
 }

@@ -1,7 +1,7 @@
 import { HTMLView, renderToString } from "@src/index.js";
 import { behavior, effect, example, Example } from "esbehavior";
 import { equalTo, expect, is } from "great-expectations";
-import { appWithBlock, appWithDataAttributesNoValue, appWithDeeplyNestedState, appWithInnerHTML, appWithNestedState, appWithPropertiesAndAttributes, appWithReactiveAttributes, appWithReactiveClass, appWithReactiveText, appWithSimpleState, appWithTemplates, staticApp } from "./fixtures/static.app.js";
+import { appWithZone, appWithDataAttributesNoValue, appWithDeeplyNestedState, appWithInnerHTML, appWithNestedState, appWithPropertiesAndAttributes, appWithReactiveAttributes, appWithReactiveClass, appWithReactiveText, appWithSimpleState, appWithZones, staticApp, appWithZoneWhich } from "./fixtures/static.app.js";
 import { Store } from "@spheres/store"
 
 export default behavior("Render view to HTML string", [
@@ -29,8 +29,8 @@ export default behavior("Render view to HTML string", [
     const actual = renderer.renderView(appWithDeeplyNestedState)
     expect(actual, is(equalTo(`<div><div><h2>Cool Person!</h2><p>98 years!</p></div></div>`)))
   }),
-  renderTest("render with block view", (renderer) => {
-    const actual = renderer.renderView(appWithBlock)
+  renderTest("render with zone", (renderer) => {
+    const actual = renderer.renderView(appWithZone)
     expect(actual, is(equalTo("<div><h1>Hello!</h1></div>")))
   }),
   renderTest("render view with reactive text", (renderer) => {
@@ -49,9 +49,13 @@ export default behavior("Render view to HTML string", [
     const actual = renderer.renderView(appWithInnerHTML)
     expect(actual, is(equalTo(`<div><div><h1>HELLO!!!</h1></div></div>`)))
   }),
-  renderTest("render view with templates", (renderer) => {
-    const actual = renderer.renderView(appWithTemplates)
-    expect(actual, is(equalTo("<div><h1>One</h1><h1>Two</h1><h1>Three</h1></div>")))
+  renderTest("render view with zones", (renderer) => {
+    const actual = renderer.renderView(appWithZones)
+    expect(actual, is(equalTo("<div><h1>cat is at index 0</h1><h1>dog is at index 1</h1><h1>snake is at index 2</h1><h1>eagle is at index 3</h1></div>")))
+  }),
+  renderTest("render view with zoneWhich", (renderer) => {
+    const actual = renderer.renderView(appWithZoneWhich)
+    expect(actual, is(equalTo("<div><h3>Fun!</h3></div>")))
   })
 ])
 

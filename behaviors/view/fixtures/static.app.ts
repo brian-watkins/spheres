@@ -1,4 +1,4 @@
-import { container } from "@spheres/store";
+import { container, State } from "@spheres/store";
 import { HTMLBuilder } from "@src/htmlElements";
 import { HTMLView } from "@src/index";
 
@@ -93,7 +93,7 @@ function superZone(root: HTMLBuilder) {
   })
 }
 
-export function appWithBlock(root: HTMLBuilder) {
+export function appWithZone(root: HTMLBuilder) {
   root.zone(superZone)
 }
 
@@ -112,25 +112,34 @@ export function appWithInnerHTML(root: HTMLBuilder) {
   })
 }
 
-export function appWithTemplates(root: HTMLBuilder) {
+const things = container({ initialValue: [ "cat", "dog", "snake", "eagle" ]})
+
+export function appWithZones(root: HTMLBuilder) {
   root.div(el => {
     el.children
-      .zone(titleTemplate({ title: "One" }))
-      .zone(titleTemplate({ title: "Two" }))
-      .zone(titleTemplate({ title: "Three" }))
+      .zones(get => get(things), thingView)
   })
 }
 
-interface TitleProps {
-  title: string
-}
-
-function titleTemplate(props: TitleProps): HTMLView {
+function thingView(thing: State<string>, index: State<number>): HTMLView {
   return root => {
     root.h1(el => {
-      el.children.textNode(props.title)
+      el.children.textNode(get => `${get(thing)} is at index ${get(index)}`)
     })
   }
+}
+
+type Selector = "awesome" | "fun" | "cool"
+const selectors = container<Selector>({ initialValue: "fun" })
+
+export function appWithZoneWhich(root: HTMLBuilder) {
+  root.div(el => {
+    el.children.zoneWhich(get => get(selectors), {
+      awesome: root => root.h1(el => el.children.textNode("Awesome!")),
+      fun: root => root.h3(el => el.children.textNode("Fun!")),
+      cool: root => root.h2(el => el.children.textNode("Cool!")),
+    })
+  })
 }
 
 export function appWithReactiveAttributes(root: HTMLBuilder) {

@@ -8,6 +8,7 @@ import tsConfigPaths from "vite-tsconfig-paths"
 import { Context } from 'esbehavior'
 import { TestAppDisplay } from './testDisplay.js'
 import { BrowserTestInstrument, useBrowser } from 'best-behavior/browser'
+import { useModule } from "best-behavior/transpiler"
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -100,7 +101,7 @@ export class TestSSRServer {
 
         template = await this.viteDevServer!.transformIndexHtml(url, template)
 
-        const viewRenderer = await this.viteDevServer!.ssrLoadModule(this.contentView)
+        const viewRenderer = await useModule(this.contentView)
         const appHtml = viewRenderer.default()
 
         const html = template.replace(`<!-- SSR-CONTENT -->`, appHtml)

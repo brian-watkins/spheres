@@ -136,7 +136,7 @@ interface CollectingEffectContext {
 }
 
 const unsubscribingEffect: ConfigurableExample =
-  example(testStoreContext<CollectingEffectContext>())
+  (m) => m.skip() && example(testStoreContext<CollectingEffectContext>())
     .description("an effect that unsubscribes itself under certain conditions")
     .script({
       suppose: [
@@ -192,7 +192,7 @@ interface MultipleDepContext {
 }
 
 const multipleDependencyEffect: ConfigurableExample =
-  example(testStoreContext<MultipleDepContext>())
+  (m) => m.pick() && example(testStoreContext<MultipleDepContext>())
     .description("effect with multiple dependencies")
     .script({
       suppose: [

@@ -1,4 +1,4 @@
-import { ConstantStateController, ContainerController, SimpleStateController, StateController, StateListener } from "./controller.js"
+import { ConstantStateController, ContainerController, DerivedListener, EffectListener, SimpleStateController, StateController, StateListener, UpdatePlan, versionMap } from "./controller.js"
 import { Meta, error, ok, pending } from "./meta.js"
 
 export type GetState = <S>(state: State<S>) => S
@@ -135,13 +135,17 @@ export class MetaState<T, M, E = unknown> extends State<Meta<M, E>> {
   [registerState](store: Store): StateController<Meta<M, E>> {
     const tokenController = store[getController](this.token)
 
-    const controller = new SimpleStateController<Meta<M, E>>(ok())
+    const controller = new SimpleStateController<Meta<M, E>>(ok(), (token) => store[getController](token))
+
+    // tokenController.addListener({
+    //   notify: () => true,
+    //   update: () => {
+    //     controller.write(ok())
+    //   }
+    // }, 0)
 
     tokenController.addListener({
-      notify: () => true,
-      update: () => {
-        controller.write(ok())
-      }
+      run: () => { controller.write(ok()) }
     }, 0)
 
     return controller
@@ -155,8 +159,8 @@ export class SuppliedState<T, M = any, E = any> extends State<T> {
     super(id, name)
   }
 
-  [registerState](_: Store): ContainerController<T, M> {
-    return new SimpleStateController(this.initialValue)
+  [registerState](store: Store): ContainerController<T, M> {
+    return new SimpleStateController(this.initialValue, (token) => store[getController](token))
   }
 
   get meta(): MetaState<T, M, E> {
@@ -186,7 +190,7 @@ export class Container<T, M = T, E = any> extends State<T> {
   [registerState](store: Store): ContainerController<T, M> {
     return this.update ?
       new MessagePassingStateController(store, this.initialValue, this.update) :
-      new SimpleStateController(this.initialValue)
+      new SimpleStateController(this.initialValue, (token) => store[getController](token))
   }
 
   get meta(): MetaState<T, M, E> {
@@ -207,143 +211,239 @@ export class DerivedState<T> extends State<T> {
   }
 }
 
-interface UpdateTracker {
-  notifications: number
-  hasChanged: boolean
-}
+// interface UpdateTracker {
+//   notifications: number
+//   hasChanged: boolean
+// }
 
-class DependencyTrackingStateListener implements StateListener {
-  private version = 0
-  private updateTracker: UpdateTracker | undefined
+// class DependencyTrackingStateListener implements StateListener {
+//   private version = 0
+//   private updateTracker: UpdateTracker | undefined
 
-  constructor(private store: Store) { }
+//   constructor(private store: Store) { }
 
-  notify(version: number): boolean {
-    if (version !== this.version) return false
+//   notify(version: number): boolean {
+//     // This could potentially return the update tracker or undefined
+//     // if we don't accept it. Or it could return an array (stack) of
+//     // update trackers. If dependenciesWillUpdate returns an array of trackers
+//     if (version !== this.version) return false
 
-    if (this.updateTracker === undefined) {
-      this.updateTracker = { notifications: 0, hasChanged: false }
-      this.dependenciesWillUpdate()
-    }
+//     if (this.updateTracker === undefined) {
+//       this.updateTracker = { notifications: 0, hasChanged: false }
+//       // could return an array of trackers
+//       this.dependenciesWillUpdate()
+//     }
 
-    this.updateTracker!.notifications++
+//     this.updateTracker!.notifications++
 
-    return true
-  }
+//     return true
+//   }
 
-  update(hasChanged: boolean): void {
-    this.updateTracker!.notifications--
-    if (hasChanged) this.updateTracker!.hasChanged = true
+//   update(hasChanged: boolean): void {
+//     this.updateTracker!.notifications--
+//     if (hasChanged) this.updateTracker!.hasChanged = true
 
-    if (this.updateTracker!.notifications === 0) {
-      this.dependenciesHaveUpdated(this.updateTracker!.hasChanged)
-      this.updateTracker = undefined
-    }
-  }
+//     if (this.updateTracker!.notifications === 0) {
+//       this.dependenciesHaveUpdated(this.updateTracker!.hasChanged)
+//       this.updateTracker = undefined
+//     }
+//   }
 
-  protected getValue<S>(state: State<S>): S {
-    const controller = this.store[getController](state)
-    controller.addListener(this, this.version)
-    return controller.value
-  }
+//   protected getValue<S>(state: State<S>): S {
+//     const controller = this.store[getController](state)
+//     controller.addListener(this, this.version)
+//     return controller.value
+//   }
 
-  protected dependenciesWillUpdate(): void { }
+//   protected dependenciesWillUpdate(): void { }
 
-  protected dependenciesHaveUpdated(_: boolean): void { }
+//   protected dependenciesHaveUpdated(_: boolean): void { }
 
-  resetDependencies(): void {
-    this.version = this.version + 1
-  }
-}
+//   resetDependencies(): void {
+//     this.version = this.version + 1
+//   }
+// }
 
-class DerivedStateController<T> extends DependencyTrackingStateListener implements StateController<T> {
-  private listeners: Map<StateListener, number> = new Map()
+// class DerivedStateController<T> extends DependencyTrackingStateListener implements StateController<T> {
+//   private listeners: Map<StateListener, number> = new Map()
+//   private _value: T
+
+//   constructor(store: Store, private derivation: (get: GetState, current: T | undefined) => T) {
+//     super(store)
+//     this._value = this.deriveValue()
+//   }
+
+//   addListener(listener: StateListener, version: number): void {
+//     this.listeners.set(listener, version)
+//   }
+
+//   removeListener(listener: StateListener): void {
+//     this.listeners.delete(listener)
+//   }
+
+//   private deriveValue() {
+//     return this.derivation((get) => this.getValue(get), this._value)
+//   }
+
+//   protected dependenciesWillUpdate(): void {
+//     for (const [listener, version] of this.listeners) {
+//       const accepted = listener.notify(version)
+//       if (!accepted) {
+//         this.removeListener(listener)
+//       }
+//     }
+//   }
+
+//   private updateListeners(hasChanged: boolean) {
+//     for (const listener of this.listeners.keys()) {
+//       listener.update(hasChanged)
+//     }
+//   }
+
+//   protected dependenciesHaveUpdated(hasChanged: boolean): void {
+//     if (!hasChanged) {
+//       this.updateListeners(false)
+//       return
+//     }
+
+//     this.resetDependencies()
+//     const derived = this.deriveValue()
+
+//     const derivedValueIsNew = !Object.is(derived, this._value)
+
+//     this._value = derived
+
+//     this.updateListeners(derivedValueIsNew)
+//   }
+
+//   get value(): T {
+//     return this._value
+//   }
+// }
+
+class DerivedStateController<T> implements StateController<T>, DerivedListener {
+  listeners: Map<StateListener, number> = new Map()
+  // derivedListeners: Map<DerivedListener, number> = new Map()
+  // effects: Map<EffectListener, number> = new Map()
+  // children: Set<StateListener> = new Set()
+  //@ts-ignore
   private _value: T
 
   constructor(store: Store, private derivation: (get: GetState, current: T | undefined) => T) {
-    super(store)
-    this._value = this.deriveValue()
+    // super(store)
+    // this._value = this.deriveValue()
+    // listenerUpdater(store)(this)
+    this._value = this.derivation((state) => {
+      const controller = store[getController](state)
+      versionMap.set(this, 0)
+      controller.addListener(this, 0)
+      return controller.value   
+    }, undefined)
   }
 
   addListener(listener: StateListener, version: number): void {
     this.listeners.set(listener, version)
+    // this.children.add(listener)
   }
 
   removeListener(listener: StateListener): void {
+    // this.children.delete(listener)
     this.listeners.delete(listener)
   }
 
-  private deriveValue() {
-    return this.derivation((state) => this.getValue(state), this._value)
-  }
+  // private getValue<S>(state: State<S>): S {
+  //   const controller = this.store[getController](state)
+  //   controller.addListener(this, 0)
+  //   return controller.value
+  // }
 
-  protected dependenciesWillUpdate(): void {
+  // private deriveValue() {
+  // return this.derivation((get) => this.getValue(get), this._value)
+  // }
+
+  update(plan: UpdatePlan) {
+    // add this to the plan
+    // plan.addEffect(this)
+
     for (const [listener, version] of this.listeners) {
-      const accepted = listener.notify(version)
-      if (!accepted) {
+      if (plan.addEffect(this, listener as EffectListener, version)) {
+        if ("update" in listener) {
+          listener.update(plan)
+        }
+      } else {
         this.removeListener(listener)
       }
     }
   }
 
-  private updateListeners(hasChanged: boolean) {
-    for (const listener of this.listeners.keys()) {
-      listener.update(hasChanged)
-    }
-  }
-
-  protected dependenciesHaveUpdated(hasChanged: boolean): void {
-    if (!hasChanged) {
-      this.updateListeners(false)
-      return
-    }
-
-    this.resetDependencies()
-    const derived = this.deriveValue()
+  derive(get: GetState): boolean {
+    const derived = this.derivation(get, this._value)
 
     const derivedValueIsNew = !Object.is(derived, this._value)
 
     this._value = derived
 
-    this.updateListeners(derivedValueIsNew)
+    return derivedValueIsNew
   }
+
+  // run(get: GetState): void {
+  //   // const derived = this.deriveValue(get)
+  //   const derived = this.derivation(get, this._value)
+
+  //   // we need to know whether the updated value is different or not
+  //   // so we know whether to propogate the changes to listeners
+  //   // it would be better if this DerivedState could just handle notifying
+  //   // it's listeners. There are two cases
+  //   // 1. Other derived state
+  //   // 2. Reactive Effects, which themselves don't have listeners
+  //   // But if both conform to the run(get: GetState) => void interface
+  //   // then it would be fine. but I guess DerivedState need to know
+  //   // if there was a change so they can still update their dependencies
+  //   // to know they don't have to care about waiting for an update anymore.
+  //   const derivedValueIsNew = !Object.is(derived, this._value)
+
+  //   this._value = derived
+
+  //   // this.updateListeners(derivedValueIsNew)
+  // }
 
   get value(): T {
     return this._value
   }
 }
 
-class ReactiveEffectController extends DependencyTrackingStateListener {
-  constructor(store: Store, private effect: ReactiveEffect) {
-    super(store)
-    this.init()
-  }
 
-  private init(): void {
-    if (this.effect.init) {
-      this.effect.init((state) => {
-        return this.getValue(state)
-      })
-    } else {
-      this.effect.run((state) => {
-        return this.getValue(state)
-      })
-    }
-  }
+// class ReactiveEffectController extends DependencyTrackingStateListener {
+//   constructor(store: Store, private effect: ReactiveEffect) {
+//     super(store)
+//     this.init()
+//   }
 
-  protected dependenciesHaveUpdated(hasChanged: boolean): void {
-    if (!hasChanged) return
+//   private init(): void {
+//     if (this.effect.init) {
+//       this.effect.init((state) => {
+//         return this.getValue(state)
+//       })
+//     } else {
+//       this.effect.run((state) => {
+//         return this.getValue(state)
+//       })
+//     }
+//   }
 
-    this.resetDependencies()
-    this.effect.run((state) => {
-      return this.getValue(state)
-    })
-  }
+//   protected dependenciesHaveUpdated(hasChanged: boolean): void {
+//     if (!hasChanged) return
 
-  unsubscribe() {
-    this.resetDependencies()
-  }
-}
+//     this.resetDependencies()
+//     this.effect.run((state) => {
+//       return this.getValue(state)
+//     })
+//   }
+
+//   unsubscribe() {
+//     this.resetDependencies()
+//   }
+// }
 
 export interface ReactiveEffect {
   init?: (get: GetState) => void
@@ -436,8 +536,55 @@ export class Store {
     this.hooks = hooks
   }
 
+  // Note that we could have another version of this function for
+  // effects ... and a version for DerivedState -- because the 'listener'
+  // here is either an Effect or a DerivedState
+  getValue<S>(listener: StateListener, token: State<S>): S {
+    // const controller = this[getController](state)
+    // controller.addListener(listener, 0)
+    // return controller.value
+    const controller = this[getController](token)
+
+    let version = versionMap.get(listener)
+    if (version === undefined) {
+      version = 0
+      versionMap.set(listener, 0)
+    }
+    // need to pass the real version here
+    controller.addListener(listener, version)
+
+    return controller.value
+  }
+
+
   useEffect(effect: ReactiveEffect): ReactiveEffectHandle {
-    return new ReactiveEffectController(this, effect)
+    // return new ReactiveEffectController(this, effect)
+    // const listener: StateListener = {
+    //   children: new Set(),
+    //   update: () => {
+    //     effect.run((get) => {
+    //       return this.getValue(listener, get)
+    //     })
+    //   }
+    // }
+
+    if (effect.init) {
+      effect.init((state) => {
+        return this.getValue(effect, state)
+      })
+    } else {
+      // listener.update()
+      // listenerUpdater(this)(effect)
+      effect.run((state) => {
+        return this.getValue(effect, state)
+      })
+    }
+
+    // Note that we don't seem to actually use this anywhere, so
+    // could probably remove it for now?
+    return {
+      unsubscribe: () => { }
+    }
   }
 
   useCommand<M>(command: Command<M>, handler: CommandManager<M>) {
@@ -579,9 +726,17 @@ export interface UpdateResult<T> {
   message?: StoreMessage<any>
 }
 
+// function listenerUpdater(store: Store): (listener: StateListener) => void {
+//   return (listener) => {
+//     listener.run((token) => {
+//       return store.getValue(listener, token)
+//     })
+//   }
+// }
+
 class MessagePassingStateController<T, M> extends SimpleStateController<T> implements ContainerController<T, M> {
   constructor(private store: Store, initialValue: T, private update: ((message: M, current: T) => UpdateResult<T>)) {
-    super(initialValue)
+    super(initialValue, (token) => store[getController](token))
   }
 
   accept(message: M): void {

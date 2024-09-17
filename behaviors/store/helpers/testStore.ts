@@ -12,7 +12,10 @@ class StoreValuesEffect implements ReactiveEffect {
 
   constructor(private definition: (get: GetState) => any) { }
 
+  derivation = "store-values"
+
   run(get: GetState): void {
+    console.log("Store values effect running!")
     this.values.push(this.definition(get))
   }
 }

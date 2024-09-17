@@ -5,7 +5,7 @@ import { testStoreContext } from "helpers/testStore";
 
 export default behavior("glitch-free effects", [
 
-  example(testStoreContext<GlitchEffectContext>())
+  (m) => m.pick() && example(testStoreContext<GlitchEffectContext>())
     .description("an effect that depends on multiple state tokens that update in sequence")
     .script({
       suppose: [

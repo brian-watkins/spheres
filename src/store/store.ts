@@ -101,7 +101,7 @@ const initialValue = Symbol("initialValue")
 
 type StoreRegistryKey = State<any>
 
-export interface ContainerController<T, M = T> extends StateController<T> {
+interface ContainerController<T, M = T> extends StateController<T> {
   write(message: M): void
   accept(message: M): void
   publish(value: T): void
@@ -298,7 +298,7 @@ export class DerivedState<T> extends State<T> {
   }
 }
 
-export class ConstantStateController<T> implements StateController<T> {
+class ConstantStateController<T> implements StateController<T> {
   constructor(public value: T) { }
 
   addListener(): void { }

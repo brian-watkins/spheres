@@ -2,14 +2,14 @@ import { Meta, error, ok, pending } from "./meta.js"
 
 export type GetState = <S>(state: State<S>) => S
 
-const effectVersion = Symbol("versions")
-const effectParent = Symbol("parent")
-const notify = Symbol("notify")
+const listenerVersion = Symbol("listener-version")
+const listenerParent = Symbol("listener-parent")
+const notifyListeners = Symbol("notify-listeners")
 
 export interface StateListener {
-  [effectVersion]?: number
-  [effectParent]?: StateController<any>
-  [notify]?: () => void
+  [listenerVersion]?: number
+  [listenerParent]?: StateEventSource
+  [notifyListeners]?: () => void
   run: (get: GetState) => void
 }
 
@@ -17,9 +17,12 @@ export interface ReactiveEffect extends StateListener {
   init?: (get: GetState) => void
 }
 
-export interface StateController<T> {
-  addListener(listener: StateListener, version: number): void
+interface StateEventSource {
+  addListener(listener: StateListener): void
   removeListener(listener: StateListener): void
+}
+
+interface StateController<T> extends StateEventSource {
   value: T
 }
 
@@ -104,17 +107,44 @@ export interface ContainerController<T, M = T> extends StateController<T> {
   publish(value: T): void
 }
 
-export class SimpleStateController<T> implements ContainerController<T> {
+class SimpleStateEventSource implements StateEventSource {
   private listeners: Map<StateListener, number> = new Map()
 
-  constructor(protected store: Store, private _value: T) { }
+  constructor(protected store: Store) { }
 
-  addListener(listener: StateListener, version: number) {
-    this.listeners.set(listener, version)
+  addListener(listener: StateListener) {
+    this.listeners.set(listener, listener[listenerVersion]!)
   }
 
   removeListener(listener: StateListener) {
     this.listeners.delete(listener)
+  }
+
+  [notifyListeners]() {
+    for (const [listener, version] of this.listeners) {
+      if (version === listener[listenerVersion]) {
+        listener[listenerParent] = this
+        listener[notifyListeners]?.()
+      } else {
+        this.removeListener(listener)
+      }
+    }
+  }
+
+  protected runListeners() {
+    for (const listener of this.listeners.keys()) {
+      if (listener[listenerParent] === this) {
+        listener[listenerVersion] = listener[listenerVersion]! + 1
+        listener.run((token) => this.store.getValue(listener, token))
+        listener[listenerParent] = undefined
+      }
+    }
+  }
+}
+
+class SimpleStateController<T> extends SimpleStateEventSource implements ContainerController<T> {  
+  constructor(protected store: Store, private _value: T) {
+    super(store)
   }
 
   write(value: any) {
@@ -130,21 +160,9 @@ export class SimpleStateController<T> implements ContainerController<T> {
 
     this._value = value
 
-    for (const [listener, version] of this.listeners) {
-      if (listener[effectVersion] === version) {
-        listener[effectParent] = this
-        listener[notify]?.()
-      } else {
-        this.removeListener(listener)
-      }
-    }
+    this[notifyListeners]()
 
-    for (const listener of this.listeners.keys()) {
-      if (listener[effectParent] === this) {
-        listener[effectVersion] = listener[effectVersion]! + 1
-        listener.run((token) => this.store.getValue(listener, token))
-      }
-    }
+    this.runListeners()
   }
 
   get value(): T {
@@ -211,18 +229,11 @@ export class MetaState<T, M, E = unknown> extends State<Meta<M, E>> {
 
     const controller = new SimpleStateController<Meta<M, E>>(store, ok())
 
-    // Note that if this doesn't reference the token in its run method
-    // it will get unsubscribed. Is there a better way to do this?
-    // Not sure how this worked before ...
-    // It worked before because `update` was in charge of increasing the
-    // version ... so it never did that and so it would never unsubscribe ...
-    // could be interesting ... but I think we can't do that since we just
-    // have to take the run function for the effect as is ... unless we
-    // wrap it ... but I assume that would be slower ...
     tokenController.addListener({
-      [effectVersion]: 0,
-      run: (get) => { get(this.token); controller.write(ok()) }
-    }, 0)
+      get [listenerVersion]() { return 0 },
+      set [listenerVersion](_: number) { },
+      run: () => { controller.write(ok()) }
+    })
 
     return controller
   }
@@ -295,34 +306,13 @@ export class ConstantStateController<T> implements StateController<T> {
   removeListener(): void { }
 }
 
-class DerivedStateController<T> implements StateController<T>, StateListener {
-  private listeners: Map<StateListener, number> = new Map()
+class DerivedStateController<T> extends SimpleStateEventSource implements StateController<T>, StateListener {
   private _value: T
-  [effectVersion] = 0
+  [listenerVersion] = 0
 
-  constructor(private store: Store, private derivation: (get: GetState, current: T | undefined) => T) {
-    this._value = this.derivation((token) => store.getValue(this, token), undefined)
-  }
-
-  addListener(listener: StateListener, version: number): void {
-    this.listeners.set(listener, version)
-  }
-
-  removeListener(listener: StateListener): void {
-    this.listeners.delete(listener)
-  }
-
-  // Note that this is exactly the same as for the simple state controller
-  // when it publishes
-  [notify]() {
-    for (const [listener, version] of this.listeners) {
-      if (version === listener[effectVersion]) {
-        listener[effectParent] = this
-        listener[notify]?.()
-      } else {
-        this.removeListener(listener)
-      }
-    }
+  constructor(store: Store, private derivation: (get: GetState, current: T | undefined) => T) {
+    super(store)
+    this._value = this.derivation((token) => this.store.getValue(this, token), undefined)
   }
 
   run(get: GetState): void {
@@ -333,14 +323,7 @@ class DerivedStateController<T> implements StateController<T>, StateListener {
     this._value = derived
 
     if (derivedValueIsNew) {
-      // And this is exactly the same for the simple state controller
-      // when it publishes
-      for (const listener of this.listeners.keys()) {
-        if (listener[effectParent] === this) {
-          listener[effectVersion] = listener[effectVersion]! + 1
-          listener.run((token) => this.store.getValue(listener, token))
-        }
-      }
+      this.runListeners()
     }
   }
 
@@ -437,15 +420,14 @@ export class Store {
 
   getValue<S>(listener: StateListener, token: State<S>, ): S {
     const controller = this[getController](token)
-    const version = listener[effectVersion]!
-    controller.addListener(listener, version)
+    controller.addListener(listener)
 
     return controller.value
   }
 
 
   useEffect(effect: ReactiveEffect): ReactiveEffectHandle {
-    effect[effectVersion] = 0
+    effect[listenerVersion] = 0
 
     if (effect.init !== undefined) {
       effect.init((state) => this.getValue(effect, state))
@@ -455,7 +437,7 @@ export class Store {
 
     return {
       unsubscribe: () => {
-        effect[effectVersion] = effect[effectVersion]! + 1
+        effect[listenerVersion] = effect[listenerVersion]! + 1
       }
     }
   }

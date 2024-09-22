@@ -136,7 +136,7 @@ interface CollectingEffectContext {
 }
 
 const unsubscribingEffect: ConfigurableExample =
-  (m) => m.skip() && example(testStoreContext<CollectingEffectContext>())
+  example(testStoreContext<CollectingEffectContext>())
     .description("an effect that unsubscribes itself under certain conditions")
     .script({
       suppose: [

@@ -15,7 +15,6 @@ class StoreValuesEffect implements ReactiveEffect {
   derivation = "store-values"
 
   run(get: GetState): void {
-    console.log("Store values effect running!")
     this.values.push(this.definition(get))
   }
 }

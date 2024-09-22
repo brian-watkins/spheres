@@ -1,7 +1,30 @@
-import { ConstantStateController, ContainerController, SimpleStateController, StateController, StateListener } from "./controller.js"
 import { Meta, error, ok, pending } from "./meta.js"
 
 export type GetState = <S>(state: State<S>) => S
+
+const listenerVersion = Symbol("listener-version")
+const listenerParent = Symbol("listener-parent")
+const notifyListeners = Symbol("notify-listeners")
+
+export interface StateListener {
+  [listenerVersion]?: number
+  [listenerParent]?: StateEventSource
+  [notifyListeners]?: () => void
+  run: (get: GetState) => void
+}
+
+export interface ReactiveEffect extends StateListener {
+  init?: (get: GetState) => void
+}
+
+interface StateEventSource {
+  addListener(listener: StateListener): void
+  removeListener(listener: StateListener): void
+}
+
+interface StateController<T> extends StateEventSource {
+  value: T
+}
 
 export interface ReadyHookActions<T, M, E> {
   get: GetState
@@ -78,6 +101,75 @@ const initialValue = Symbol("initialValue")
 
 type StoreRegistryKey = State<any>
 
+interface ContainerController<T, M = T> extends StateController<T> {
+  write(message: M): void
+  accept(message: M): void
+  publish(value: T): void
+}
+
+class SimpleStateEventSource implements StateEventSource {
+  private listeners: Map<StateListener, number> = new Map()
+
+  constructor(protected store: Store) { }
+
+  addListener(listener: StateListener) {
+    this.listeners.set(listener, listener[listenerVersion]!)
+  }
+
+  removeListener(listener: StateListener) {
+    this.listeners.delete(listener)
+  }
+
+  [notifyListeners]() {
+    for (const [listener, version] of this.listeners) {
+      if (version === listener[listenerVersion]) {
+        listener[listenerParent] = this
+        listener[notifyListeners]?.()
+      } else {
+        this.removeListener(listener)
+      }
+    }
+  }
+
+  protected runListeners() {
+    for (const listener of this.listeners.keys()) {
+      if (listener[listenerParent] === this) {
+        listener[listenerVersion] = listener[listenerVersion]! + 1
+        listener.run((token) => this.store.getValue(listener, token))
+        listener[listenerParent] = undefined
+      }
+    }
+  }
+}
+
+class SimpleStateController<T> extends SimpleStateEventSource implements ContainerController<T> {  
+  constructor(protected store: Store, private _value: T) {
+    super(store)
+  }
+
+  write(value: any) {
+    this.accept(value)
+  }
+
+  accept(value: any) {
+    this.publish(value)
+  }
+
+  publish(value: T) {
+    if (Object.is(this._value, value)) return
+
+    this._value = value
+
+    this[notifyListeners]()
+
+    this.runListeners()
+  }
+
+  get value(): T {
+    return this._value
+  }
+}
+
 export abstract class State<T> {
   constructor(readonly id: string | undefined, readonly name: string | undefined) { }
 
@@ -135,14 +227,13 @@ export class MetaState<T, M, E = unknown> extends State<Meta<M, E>> {
   [registerState](store: Store): StateController<Meta<M, E>> {
     const tokenController = store[getController](this.token)
 
-    const controller = new SimpleStateController<Meta<M, E>>(ok())
+    const controller = new SimpleStateController<Meta<M, E>>(store, ok())
 
     tokenController.addListener({
-      notify: () => true,
-      update: () => {
-        controller.write(ok())
-      }
-    }, 0)
+      get [listenerVersion]() { return 0 },
+      set [listenerVersion](_: number) { },
+      run: () => { controller.write(ok()) }
+    })
 
     return controller
   }
@@ -155,8 +246,8 @@ export class SuppliedState<T, M = any, E = any> extends State<T> {
     super(id, name)
   }
 
-  [registerState](_: Store): ContainerController<T, M> {
-    return new SimpleStateController(this.initialValue)
+  [registerState](store: Store): ContainerController<T, M> {
+    return new SimpleStateController(store, this.initialValue)
   }
 
   get meta(): MetaState<T, M, E> {
@@ -186,7 +277,7 @@ export class Container<T, M = T, E = any> extends State<T> {
   [registerState](store: Store): ContainerController<T, M> {
     return this.update ?
       new MessagePassingStateController(store, this.initialValue, this.update) :
-      new SimpleStateController(this.initialValue)
+      new SimpleStateController(store, this.initialValue)
   }
 
   get meta(): MetaState<T, M, E> {
@@ -207,147 +298,38 @@ export class DerivedState<T> extends State<T> {
   }
 }
 
-interface UpdateTracker {
-  notifications: number
-  hasChanged: boolean
+class ConstantStateController<T> implements StateController<T> {
+  constructor(public value: T) { }
+
+  addListener(): void { }
+
+  removeListener(): void { }
 }
 
-class DependencyTrackingStateListener implements StateListener {
-  private version = 0
-  private updateTracker: UpdateTracker | undefined
-
-  constructor(private store: Store) { }
-
-  notify(version: number): boolean {
-    if (version !== this.version) return false
-
-    if (this.updateTracker === undefined) {
-      this.updateTracker = { notifications: 0, hasChanged: false }
-      this.dependenciesWillUpdate()
-    }
-
-    this.updateTracker!.notifications++
-
-    return true
-  }
-
-  update(hasChanged: boolean): void {
-    this.updateTracker!.notifications--
-    if (hasChanged) this.updateTracker!.hasChanged = true
-
-    if (this.updateTracker!.notifications === 0) {
-      this.dependenciesHaveUpdated(this.updateTracker!.hasChanged)
-      this.updateTracker = undefined
-    }
-  }
-
-  protected getValue<S>(state: State<S>): S {
-    const controller = this.store[getController](state)
-    controller.addListener(this, this.version)
-    return controller.value
-  }
-
-  protected dependenciesWillUpdate(): void { }
-
-  protected dependenciesHaveUpdated(_: boolean): void { }
-
-  resetDependencies(): void {
-    this.version = this.version + 1
-  }
-}
-
-class DerivedStateController<T> extends DependencyTrackingStateListener implements StateController<T> {
-  private listeners: Map<StateListener, number> = new Map()
+class DerivedStateController<T> extends SimpleStateEventSource implements StateController<T>, StateListener {
   private _value: T
+  [listenerVersion] = 0;
 
   constructor(store: Store, private derivation: (get: GetState, current: T | undefined) => T) {
     super(store)
-    this._value = this.deriveValue()
+    this._value = this.derivation((token) => this.store.getValue(this, token), undefined)
   }
 
-  addListener(listener: StateListener, version: number): void {
-    this.listeners.set(listener, version)
-  }
-
-  removeListener(listener: StateListener): void {
-    this.listeners.delete(listener)
-  }
-
-  private deriveValue() {
-    return this.derivation((state) => this.getValue(state), this._value)
-  }
-
-  protected dependenciesWillUpdate(): void {
-    for (const [listener, version] of this.listeners) {
-      const accepted = listener.notify(version)
-      if (!accepted) {
-        this.removeListener(listener)
-      }
-    }
-  }
-
-  private updateListeners(hasChanged: boolean) {
-    for (const listener of this.listeners.keys()) {
-      listener.update(hasChanged)
-    }
-  }
-
-  protected dependenciesHaveUpdated(hasChanged: boolean): void {
-    if (!hasChanged) {
-      this.updateListeners(false)
-      return
-    }
-
-    this.resetDependencies()
-    const derived = this.deriveValue()
+  run(get: GetState): void {
+    const derived = this.derivation(get, this._value)
 
     const derivedValueIsNew = !Object.is(derived, this._value)
 
     this._value = derived
 
-    this.updateListeners(derivedValueIsNew)
+    if (derivedValueIsNew) {
+      this.runListeners()
+    }
   }
 
   get value(): T {
     return this._value
   }
-}
-
-class ReactiveEffectController extends DependencyTrackingStateListener {
-  constructor(store: Store, private effect: ReactiveEffect) {
-    super(store)
-    this.init()
-  }
-
-  private init(): void {
-    if (this.effect.init) {
-      this.effect.init((state) => {
-        return this.getValue(state)
-      })
-    } else {
-      this.effect.run((state) => {
-        return this.getValue(state)
-      })
-    }
-  }
-
-  protected dependenciesHaveUpdated(hasChanged: boolean): void {
-    if (!hasChanged) return
-
-    this.resetDependencies()
-    this.effect.run((state) => {
-      return this.getValue(state)
-    })
-  }
-
-  unsubscribe() {
-    this.resetDependencies()
-  }
-}
-
-export interface ReactiveEffect {
-  init?: (get: GetState) => void
-  run: (get: GetState) => void
 }
 
 export interface ReactiveEffectHandle {
@@ -436,8 +418,28 @@ export class Store {
     this.hooks = hooks
   }
 
+  getValue<S>(listener: StateListener, token: State<S>, ): S {
+    const controller = this[getController](token)
+    controller.addListener(listener)
+
+    return controller.value
+  }
+
+
   useEffect(effect: ReactiveEffect): ReactiveEffectHandle {
-    return new ReactiveEffectController(this, effect)
+    effect[listenerVersion] = 0
+
+    if (effect.init !== undefined) {
+      effect.init((state) => this.getValue(effect, state))
+    } else {
+      effect.run((state) => this.getValue(effect, state))
+    }
+
+    return {
+      unsubscribe: () => {
+        effect[listenerVersion] = effect[listenerVersion]! + 1
+      }
+    }
   }
 
   useCommand<M>(command: Command<M>, handler: CommandManager<M>) {
@@ -580,8 +582,8 @@ export interface UpdateResult<T> {
 }
 
 class MessagePassingStateController<T, M> extends SimpleStateController<T> implements ContainerController<T, M> {
-  constructor(private store: Store, initialValue: T, private update: ((message: M, current: T) => UpdateResult<T>)) {
-    super(initialValue)
+  constructor(store: Store, initialValue: T, private update: ((message: M, current: T) => UpdateResult<T>)) {
+    super(store, initialValue)
   }
 
   accept(message: M): void {

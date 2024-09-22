@@ -1,6 +1,6 @@
 import { Container, DerivedState, command, container, derived } from "@src/index";
 import { behavior, effect, example, fact, step } from "esbehavior";
-import { expect, is } from "great-expectations";
+import { equalTo, expect, is } from "great-expectations";
 import { testStoreContext } from "helpers/testStore";
 
 export default behavior("glitch-free effects", [
@@ -19,13 +19,13 @@ export default behavior("glitch-free effects", [
           })
           context.setTokens({
             rootContainer: root,
-            thirdDerived: derived({
+            complexDerived: derived({
               query: (get) => `${get(first)} & ${get(second)}`
             })
           })
         }),
         fact("there is an effect that observes the derived state", (context) => {
-          context.subscribeTo(context.tokens.thirdDerived, "sub")
+          context.subscribeTo(context.tokens.complexDerived, "sub")
         })
       ],
       perform: [
@@ -39,6 +39,40 @@ export default behavior("glitch-free effects", [
             "root + first & root + second",
             "primary + first & primary + second"
           ]))
+        })
+      ]
+    }),
+
+  example(testStoreContext<GlitchEffectContext>())
+    .description("dependency tree with child that depends on parent from another branch")
+    .script({
+      suppose: [
+        fact("there is derived state that depends on state from another branch", (context) => {
+          const root = container({ initialValue: "hello" })
+          const first = derived({ query: (get) => `First ${get(root)} + ${get(third)}` })
+          const second = derived({ query: (get) => `Second ${get(root)}`})
+          const third = derived({ query: (get) => `Third ${get(second)}`})
+          const fourth = derived({ query: (get) => `Complex '${get(first)}' + '${get(third)}'`})
+          context.setTokens({
+            rootContainer: root,
+            complexDerived: fourth
+          })
+        }),
+        fact("there is a subscriber to the third derived state", (context) => {
+          context.subscribeTo(context.tokens.complexDerived, "sub-1")
+        })
+      ],
+      perform: [
+        step("a message is written to the root container", (context) => {
+          context.writeTo(context.tokens.rootContainer, "Yo!")
+        })
+      ],
+      observe: [
+        effect("the subscriber receives the expected messages", (context) => {
+          expect(context.valuesForSubscriber("sub-1"), is(equalTo([
+            "Complex 'First hello + Third Second hello' + 'Third Second hello'",
+            "Complex 'First Yo! + Third Second Yo!' + 'Third Second Yo!'"
+          ])))
         })
       ]
     }),
@@ -92,5 +126,5 @@ interface GlitchCommandContext {
 
 interface GlitchEffectContext {
   rootContainer: Container<string>
-  thirdDerived: DerivedState<string>
+  complexDerived: DerivedState<string>
 }

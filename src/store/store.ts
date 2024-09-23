@@ -98,6 +98,7 @@ const getController = Symbol("getController")
 const setController = Symbol("setController")
 const getContainerController = Symbol("getContainerController")
 const initialValue = Symbol("initialValue")
+const getValue = Symbol("getValue")
 
 type StoreRegistryKey = State<any>
 
@@ -135,7 +136,7 @@ class SimpleStateEventSource implements StateEventSource {
     for (const listener of this.listeners.keys()) {
       if (listener[listenerParent] === this) {
         listener[listenerVersion] = listener[listenerVersion]! + 1
-        listener.run((token) => this.store.getValue(listener, token))
+        listener.run((token) => this.store[getValue](listener, token))
         listener[listenerParent] = undefined
       }
     }
@@ -312,7 +313,7 @@ class DerivedStateController<T> extends SimpleStateEventSource implements StateC
 
   constructor(store: Store, private derivation: (get: GetState, current: T | undefined) => T) {
     super(store)
-    this._value = this.derivation((token) => this.store.getValue(this, token), undefined)
+    this._value = this.derivation((token) => this.store[getValue](this, token), undefined)
   }
 
   run(get: GetState): void {
@@ -418,21 +419,20 @@ export class Store {
     this.hooks = hooks
   }
 
-  getValue<S>(listener: StateListener, token: State<S>, ): S {
+  [getValue]<S>(listener: StateListener, token: State<S>, ): S {
     const controller = this[getController](token)
     controller.addListener(listener)
 
     return controller.value
   }
 
-
   useEffect(effect: ReactiveEffect): ReactiveEffectHandle {
     effect[listenerVersion] = 0
 
     if (effect.init !== undefined) {
-      effect.init((state) => this.getValue(effect, state))
+      effect.init((state) => this[getValue](effect, state))
     } else {
-      effect.run((state) => this.getValue(effect, state))
+      effect.run((state) => this[getValue](effect, state))
     }
 
     return {

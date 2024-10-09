@@ -1,11 +1,9 @@
-import { VirtualNode } from "@src/vdom/virtualNode.js"
-import { HTMLView, renderToDOM } from "@src/htmlViewBuilder.js"
+import { activateView, HTMLView, RenderResult, renderToDOM, renderToString } from "@src/index.js"
 import { Context } from "esbehavior"
 import { Container, Store, write } from "@spheres/store"
 
 export class RenderApp<T> {
-  private unmount: (() => void) | undefined
-  private current: VirtualNode | undefined
+  private renderResult: RenderResult | undefined
   private store: Store = new Store()
   private _state: T | undefined
 
@@ -22,16 +20,26 @@ export class RenderApp<T> {
   }
 
   mountView(view: HTMLView) {
-    const base = document.createElement("div")
-    document.body.appendChild(base)
+    this.renderResult = renderToDOM(this.store, document.body, view)
+  }
 
-    const renderResult = renderToDOM(this.store, base, view)
+  ssrAndActivate(view: HTMLView) {
+    const htmlString = renderToString(this.store, view)
+    document.write(htmlString)
+    activateView(this.store, document.body.firstChild as Element, view)
 
-    this.unmount = renderResult.unmount
+    this.renderResult = {
+      root: document.body.firstChild,
+      unmount: () => {
+        while (document.body.hasChildNodes()) {
+          document.body.removeChild(document.body.lastChild)
+        }
+      }
+    }
   }
 
   destroy() {
-    this.unmount?.()
+    this.renderResult?.unmount()
   }
 }
 

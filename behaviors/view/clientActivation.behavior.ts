@@ -1,5 +1,5 @@
 import { behavior, effect, example, fact, step } from "esbehavior";
-import { arrayWith, assignedWith, equalTo, expect, is, stringContaining } from "great-expectations";
+import { arrayWith, assignedWith, equalTo, expect, is, resolvesTo, stringContaining } from "great-expectations";
 import { ssrTestAppContext } from "./helpers/testSSRServer.js";
 
 export default behavior("client activation of server rendered views", [
@@ -150,6 +150,57 @@ export default behavior("client activation of server rendered views", [
     }),
 
   example(ssrTestAppContext())
+    .description("app with stateful list to activate")
+    .script({
+      suppose: [
+        fact("the app is loaded in the browser", async (context) => {
+          context.server.setContent({
+            template: "../fixtures/ssrApp/islandWithList/template.html",
+            view: "./behaviors/view/fixtures/ssrApp/islandWithList/server.ts"
+          })
+          await context.browser.loadApp()
+        })
+      ],
+      observe: [
+        effect("the default list is loaded", async (context) => {
+          await expect(context.browser.display.selectAll("[data-item-name]").map(el => el.text()), resolvesTo([
+            "Apple, red",
+            "Banana, yellow"
+          ]))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("delete a server-rendered item", async (context) => {
+          await context.browser.display.select("[data-delete-item='Apple']").click()
+        })
+      ],
+      observe: [
+        effect("the item is deleted", async (context) => {
+          await expect(context.browser.display.selectAll("[data-item-name]").map(el => el.text()), resolvesTo([
+            "Banana, yellow"
+          ]))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("create an item", async (context) => {
+          await context.browser.display.select("input[name='item-name']").type("Dust")
+          await context.browser.display.select("input[name='item-color']").type("gray")
+          await context.browser.display.selectWithText("Save Item").click()
+        })
+      ],
+      observe: [
+        effect("the list is updated with the new item", async (context) => {
+          await expect(context.browser.display.selectAll("[data-item-name]").map(el => el.text()), resolvesTo([
+            "Dust, gray",
+            "Banana, yellow"
+          ]))
+        })
+      ]
+    }),
+
+  example(ssrTestAppContext())
     .description("app with view fragments nested under the island")
     .script({
       suppose: [
@@ -163,8 +214,15 @@ export default behavior("client activation of server rendered views", [
       ],
       observe: [
         effect("the default state from the server is loaded", async (context) => {
-          const clickText = await context.browser.display.select("[data-click-count]").text()
-          expect(clickText, is(equalTo("You've clicked the button 0 times!")))
+          const counters = context.browser.display.selectAll("[data-click-count='0']")
+          await expect(counters.map(el => el.text()), resolvesTo(equalTo([
+            "You've clicked the button 0 times!",
+            "You've clicked the button 0 times!"
+          ])))
+          await expect(counters.map(el => el.classes()), resolvesTo([
+            ["even-style"],
+            ["even-style"]
+          ]))
         })
       ]
     }).andThen({
@@ -177,11 +235,15 @@ export default behavior("client activation of server rendered views", [
       ],
       observe: [
         effect("both click tally islands are updated", async (context) => {
-          const counterTexts = await context.browser.display.selectAll("[data-click-count]").map(el => el.text())
-          expect(counterTexts, is(arrayWith([
-            stringContaining("3 times"),
-            stringContaining("3 times"),
+          const counters = context.browser.display.selectAll("[data-click-count='3']")
+          await expect(counters.map(el => el.text()), resolvesTo(equalTo([
+            "You've clicked the button 3 times!",
+            "You've clicked the button 3 times!"
           ])))
+          await expect(counters.map(el => el.classes()), resolvesTo([
+            ["odd-style"],
+            ["odd-style"]
+          ]))
         })
       ]
     })

@@ -1,61 +1,40 @@
 import { GetState, State, Store } from "../store/index.js"
-import { makeStatefulElement, Stateful, addStatefulProperty, addProperty, makeVirtualTextNode, makeZoneList, VirtualListItemTemplate, NodeType } from "./vdom/virtualNode.js"
+import { makeStatefulElement, Stateful, addStatefulProperty, addProperty, makeVirtualTextNode, makeZoneList, VirtualListItemTemplate } from "./vdom/virtualNode.js"
 import { HTMLElements, HTMLBuilder } from "./htmlElements.js"
-import { createNode } from "./vdom/renderToDom.js"
 import { SVGElements } from "./svgElements.js"
 import { BasicElementConfig, SpecialElementAttributes } from "./viewConfig.js"
 import { ConfigurableElement, ViewBuilder } from "./viewBuilder.js"
 import { buildSvgElement } from "./svgViewBuilder.js"
 import { stringifyVirtualNode } from "./vdom/renderToString.js"
+import { DOMRoot } from "./vdom/renderToDom.js"
+import { RenderResult } from "./vdom/render.js"
+import { IdentifierGenerator } from "./vdom/idGenerator.js"
+export type { RenderResult } from "./vdom/render.js"
 
-// Renderers
+export function activateView(store: Store, element: Element, view: HTMLView) {
+  const builder = new HtmlViewBuilder()
+  view(builder as unknown as HTMLBuilder)
+  const vnode = builder.toVirtualNode()
 
-export interface RenderResult {
-  root: Node
-  unmount: () => void
+  const root = new DOMRoot(store, element)
+  root.activate(vnode)
 }
 
 export function renderToDOM(store: Store, element: Element, view: HTMLView): RenderResult {
   const builder = new HtmlViewBuilder()
-  builder.zone(view)
+  view(builder as unknown as HTMLBuilder)
   const vnode = builder.toVirtualNode()
 
-  const rootNode = createNode(store, vnode)
+  const root = new DOMRoot(store, element)
+  root.mount(vnode)
 
-  let unmount: () => void
-
-  if (vnode.type === NodeType.ZONE_LIST) {
-    const fragment = rootNode as DocumentFragment
-    const firstNode = fragment.firstElementChild!
-    const lastNode = fragment.lastElementChild!
-
-    element.replaceWith(rootNode)
-
-    const range = new Range()
-    range.setStartBefore(firstNode)
-    range.setEndAfter(lastNode)
-
-    unmount = () => {
-      range.deleteContents()
-    }
-  } else {
-    element.replaceWith(rootNode)
-
-    unmount = () => {
-      rootNode.parentNode?.removeChild(rootNode)
-    }
-  }
-
-  return {
-    root: rootNode,
-    unmount
-  }
+  return root
 }
 
 export function renderToString(store: Store, view: HTMLView): string {
   const builder = new HtmlViewBuilder()
   builder.zone(view)
-  return stringifyVirtualNode(store, builder.toVirtualNode())
+  return stringifyVirtualNode(store, new IdentifierGenerator(), builder.toVirtualNode())
 }
 
 
@@ -161,6 +140,6 @@ export class HTMLVirtualListItemTemplate<T> extends VirtualListItemTemplate<T> {
 
     const builder = new HtmlViewBuilder()
     generator(this.itemToken as State<T>, this.indexToken)(builder as unknown as HTMLBuilder)
-    this.virtualNode = builder.toVirtualNode()
+    this.setVirtualNode(builder.toVirtualNode())
   }
 }

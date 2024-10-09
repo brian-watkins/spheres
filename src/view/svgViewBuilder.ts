@@ -85,6 +85,6 @@ class SVGVirtualListItemTemplate<T> extends VirtualListItemTemplate<T> {
 
     const builder = new SvgViewBuilder()
     generator(this.itemToken as State<T>, this.indexToken)(builder as unknown as SVGBuilder)
-    this.virtualNode = builder.toVirtualNode()
+    this.setVirtualNode(builder.toVirtualNode())
   }
 }

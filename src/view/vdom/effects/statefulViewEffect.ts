@@ -1,12 +1,13 @@
-import { GetState, ReactiveEffect, Store } from "../../../store/index.js"
-import { DOMNodeRenderer } from "../render.js"
+import { GetState, ReactiveEffect } from "../../../store/index.js"
+import { IdentifierGenerator } from "../idGenerator.js"
+import { DOMNodeRenderer, Zone } from "../render.js"
 import { VirtualNode } from "../virtualNode.js"
 import { EffectGenerator } from "./effectGenerator.js"
 
-export class ZoneEffect implements ReactiveEffect {
+export class StatefulViewEffect implements ReactiveEffect {
   private currentNode!: Node
 
-  constructor(private store: Store, placeholderNode: Node | undefined, private generator: EffectGenerator<VirtualNode>, private createNode: DOMNodeRenderer, private context: any = undefined) {
+  constructor(private zone: Zone, placeholderNode: Node | undefined, private generator: EffectGenerator<VirtualNode>, private createNode: DOMNodeRenderer, private context: any = undefined) {
     if (placeholderNode) {
       this.currentNode = placeholderNode
     }
@@ -18,7 +19,7 @@ export class ZoneEffect implements ReactiveEffect {
 
   init(get: GetState) {
     const initialVNode = this.generator(get, this.context)
-    const nextNode = this.createNode(this.store, initialVNode)
+    const nextNode = this.createNode(this.zone, new IdentifierGenerator("NOT DONE YET"), initialVNode)
     if (this.currentNode) {
       this.currentNode.parentNode!.replaceChild(nextNode, this.currentNode)
     }
@@ -31,7 +32,7 @@ export class ZoneEffect implements ReactiveEffect {
     }
 
     const nextVNode = this.generator(get, this.context)
-    const nextNode = this.createNode(this.store, nextVNode)
+    const nextNode = this.createNode(this.zone, new IdentifierGenerator("NOT DONE YET"), nextVNode)
     this.currentNode.parentNode!.replaceChild(nextNode, this.currentNode)
     this.currentNode = nextNode
   }

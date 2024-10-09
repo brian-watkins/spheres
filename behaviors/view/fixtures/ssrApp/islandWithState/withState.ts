@@ -31,7 +31,10 @@ function counterView(root: HTMLBuilder) {
 
 function tallyView(root: HTMLBuilder) {
   root.p(el => {
-    el.config.dataAttribute("click-count")
-    el.children.textNode(get => `You've clicked the button ${get(clickCount)} times!`)
+    el.config
+      .dataAttribute("click-count", get => `${get(clickCount)}`)
+      .class(get => get(clickCount) % 2 === 0 ? "even-style" : "odd-style")
+    el.children
+      .textNode(get => `You've clicked the button ${get(clickCount)} times!`)
   })
 }

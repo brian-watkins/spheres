@@ -6,10 +6,49 @@ import { selectElement, selectElements } from "helpers/displayElement";
 import { renderContext } from "helpers/renderContext";
 
 interface ListContext {
-  items: Container<Array<String>>
+  items: Container<Array<string>>
 }
 
 export default behavior("list effects", [
+
+  example(renderContext<ListContext>())
+    .description("some list with text nodes for the view")
+    .script({
+      suppose: [
+        fact("there is state", (context) => {
+          context.setState({
+            items: container({ initialValue: ["1", "2", "3"] })
+          })
+        }),
+        fact("a list of text nodes is displayed based on the state", (context) => {
+          context.mountView((root) => {
+            root.div(el => {
+              el.children.zones(get => get(context.state.items), (item) => {
+                return root => root.textNode(get => get(item))
+              })
+            })
+          })
+        })
+      ],
+      observe: [
+        effect("the text nodes are rendered", async () => {
+          const text = await selectElement("div").text()
+          expect(text, is("123"))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the state is updated", (context) => {
+          context.writeTo(context.state.items, ["1", "2", "A", "B"])
+        })
+      ],
+      observe: [
+        effect("the text nodes are updated", async () => {
+          const text = await selectElement("div").text()
+          expect(text, is("12AB"))
+        })
+      ]
+    }),
 
   example(renderContext<ListContext>())
     .description("simple list with text")

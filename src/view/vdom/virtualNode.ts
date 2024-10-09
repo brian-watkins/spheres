@@ -14,7 +14,7 @@ export enum NodeType {
   STATEFUL = 15,
   STATEFUL_TEXT = 16,
   TEMPLATE = 18,
-  ZONE_LIST = 19,
+  STATEFUL_LIST = 19,
 }
 
 export interface TextNode {
@@ -46,15 +46,15 @@ export interface StatefulNode {
   node: Node | undefined
 }
 
-export interface ZoneListNode {
-  type: NodeType.ZONE_LIST
-  id: string
+export interface StatefulListNode {
+  type: NodeType.STATEFUL_LIST
+  id?: string
   template: VirtualListItemTemplate<any>
   query: (get: GetState) => Array<any>
   node: Node | undefined
 }
 
-export type VirtualNode = TextNode | StatefulTextNode | ElementNode | StatefulNode | ZoneListNode
+export type VirtualNode = TextNode | StatefulTextNode | ElementNode | StatefulNode | StatefulListNode
 
 export interface StatefulValue<T> {
   generator: Stateful<T>
@@ -70,7 +70,6 @@ export interface VirtualNodeConfig {
   statefulAttrs?: Record<string, StatefulValue<string>>
   namespace?: string
   on?: { [index: string]: StoreEventHandler<any> }
-  eventId: string
   key?: VirtualNodeKey
 }
 
@@ -78,10 +77,9 @@ export interface StoreContext {
   generator: (get: GetState) => VirtualNode
 }
 
-export function virtualNodeConfig(eventId: number = 0): VirtualNodeConfig {
+export function virtualNodeConfig(): VirtualNodeConfig {
   return {
-    attrs: {},
-    eventId: `${eventId}`
+    attrs: {}
   }
 }
 
@@ -120,7 +118,7 @@ export function setEventHandler(config: VirtualNodeConfig, event: string, handle
   config.on[event] = handler
 }
 
-export function makeStatefulElement(generator: (get: GetState) => VirtualNode, key: VirtualNodeKey | undefined, node?: Node): VirtualNode {
+export function makeStatefulElement(generator: (get: GetState) => VirtualNode, key: VirtualNodeKey | undefined, node?: Node): StatefulNode {
   const element: StatefulNode = {
     type: NodeType.STATEFUL,
     generator,
@@ -134,7 +132,7 @@ export function makeStatefulElement(generator: (get: GetState) => VirtualNode, k
 export function makeVirtualElement(tag: string, config: VirtualNodeConfig, children: Array<VirtualNode>, node?: Element): ElementNode {
   const element: ElementNode = {
     type: NodeType.ELEMENT,
-    tag: tag,
+    tag,
     data: config,
     children,
     node
@@ -160,8 +158,20 @@ export function makeStatefulTextNode(generator: Stateful<string>, node?: Node): 
 }
 
 export abstract class VirtualTemplate<T> {
-  public virtualNode!: VirtualNode
+  private _vnode!: VirtualNode
   
+  protected setVirtualNode(vnode: VirtualNode) {
+    switch (vnode.type) {
+      case NodeType.ELEMENT:
+        addAttribute(vnode.data, "data-spheres-template", "")
+    }
+    this._vnode = vnode
+  }
+
+  get virtualNode(): VirtualNode {
+    return this._vnode
+  }
+
   abstract setArgs(args: T): void
 
   useWithArgs<S>(generator: (get: GetState) => S): (get: GetState, args: T) => S {
@@ -190,13 +200,9 @@ export class VirtualListItemTemplate<T> extends VirtualTemplate<VirtualListItemT
   }
 }
 
-// Hmm ... any way to remove this?
-let templateListId = 0
-
-export function makeZoneList<T>(virtualTemplate: VirtualListItemTemplate<T>, argList: (get: GetState) => Array<T>): ZoneListNode {
+export function makeZoneList<T>(virtualTemplate: VirtualListItemTemplate<T>, argList: (get: GetState) => Array<T>): StatefulListNode {
   return {
-    type: NodeType.ZONE_LIST,
-    id: `${templateListId++}`,
+    type: NodeType.STATEFUL_LIST,
     template: virtualTemplate,
     query: argList,
     node: undefined

@@ -1,4 +1,4 @@
-import { container, State } from "@spheres/store";
+import { batch, container, State } from "@spheres/store";
 import { HTMLBuilder } from "@src/htmlElements";
 import { HTMLView } from "@src/index";
 
@@ -112,7 +112,23 @@ export function appWithInnerHTML(root: HTMLBuilder) {
   })
 }
 
-const things = container({ initialValue: [ "cat", "dog", "snake", "eagle" ]})
+export function appWithEvents(root: HTMLBuilder) {
+  root.div(el => {
+    el.children
+      .div(el => {
+        el.children
+          .div(el => {
+            el.config
+              .on("click", () => batch([]))
+              .on("focus", () => batch([]))
+            el.children
+              .textNode("Element with events!")
+          })
+      })
+  })
+}
+
+const things = container({ initialValue: ["snake", "eagle"] })
 
 export function appWithZones(root: HTMLBuilder) {
   root.div(el => {
@@ -123,8 +139,15 @@ export function appWithZones(root: HTMLBuilder) {
 
 function thingView(thing: State<string>, index: State<number>): HTMLView {
   return root => {
-    root.h1(el => {
-      el.children.textNode(get => `${get(thing)} is at index ${get(index)}`)
+    root.div(el => {
+      el.children
+        .h1(el => el.children.textNode(get => `${get(thing)} is at index ${get(index)}`))
+        .button(el => {
+          el.config
+            .on("click", () => batch([]))
+            .on("focus", () => batch([]))
+          el.children.textNode("Click me!")
+        })
     })
   }
 }

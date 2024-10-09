@@ -1,7 +1,7 @@
-import { behavior, effect, example, fact, step } from "esbehavior";
+import { behavior, effect, Example, example, fact, step } from "esbehavior";
 import { equalTo, expect, resolvesTo } from "great-expectations";
 import { selectElement } from "helpers/displayElement.js";
-import { renderContext } from "helpers/renderContext.js";
+import { RenderApp, renderContext } from "helpers/renderContext.js";
 import { Container, container, State, update, use, write } from "@spheres/store";
 import { HTMLBuilder } from "@src/htmlElements";
 import { HTMLView } from "@src/htmlViewBuilder";
@@ -384,9 +384,108 @@ export default behavior("event handlers", [
           await expect(selectElement("p").text(), resolvesTo("You selected 'trees'"))
         })
       ]
-    })
+    }),
+
+  elementWithNonBubblingEvent((context, view) => context.mountView(view)),
+  elementWithNonBubblingEvent((context, view) => context.ssrAndActivate(view)),
+
+  templateInstanceWithNonBubblingEvent((context, view) => context.mountView(view)),
+  templateInstanceWithNonBubblingEvent((context, view) => context.ssrAndActivate(view)),
 
 ])
+
+function elementWithNonBubblingEvent(renderer: (context: RenderApp<Container<string>>, view: HTMLView) => void): Example {
+  return example(renderContext<Container<string>>())
+    .description("element with an event that does not bubble")
+    .script({
+      suppose: [
+        fact("there is state that changes with the event", (context) => {
+          context.setState(container({ initialValue: "Hello!" }))
+        }),
+        fact("there is a view with a non-bubbling focus event", (context) => {
+          renderer(context, (root) => {
+            root.main(el => {
+              el.children
+                .h3(el => el.children.textNode(get => get(context.state)))
+                .form(el => {
+                  el.children.label(el => {
+                    el.children
+                      .textNode("Name")
+                      .input(el => {
+                        el.config
+                          .type("text")
+                          .on("focus", () => write(context.state, "Hello! (Focused)"))
+                      })
+                  })
+                })
+            })
+          })
+        })
+      ],
+      perform: [
+        step("trigger the focus event", async () => {
+          await selectElement("input").focus()
+        })
+      ],
+      observe: [
+        effect("the text updates in response to the event", async () => {
+          await expect(selectElement("h3").text(), resolvesTo("Hello! (Focused)"))
+        })
+      ]
+    })
+}
+
+function templateInstanceWithNonBubblingEvent(renderer: (context: RenderApp<ListEventContext>, view: HTMLView) => void): Example {
+  return example(renderContext<ListEventContext>())
+    .description("list view where template instance contains non-bubbling event")
+    .script({
+      suppose: [
+        fact("there is state", (context) => {
+          context.setState({
+            message: container({ initialValue: "Hello" }),
+            options: container({ initialValue: ["Name", "Age", "Height"] })
+          })
+        }),
+        fact("there is a list view with a focus event, which does not bubble", (context) => {
+          function optionView(option: State<string>): HTMLView {
+            return (root) => {
+              root.form(el => {
+                el.children.label(el => {
+                  el.children
+                    .textNode(get => get(option))
+                    .input(el => {
+                      el.config
+                        .name(get => get(option).toLowerCase())
+                        .on("focus", () => use(get => write(context.state.message, `${get(option)} is focused!`)))
+                    })
+                })
+              })
+            }
+          }
+
+          renderer(context, (root) => {
+            root.main(el => {
+              el.children
+                .h3(el => el.children.textNode(get => get(context.state.message)))
+                .ol(el => {
+                  el.children.zones(get => get(context.state.options), optionView)
+                })
+            })
+          })
+        })
+      ],
+      perform: [
+        step("select the age field", async () => {
+          await selectElement("input[name='age']").focus()
+        })
+      ],
+      observe: [
+        effect("the message updates in response to the focus event", async () => {
+          await expect(selectElement("h3").text(), resolvesTo("Age is focused!"))
+        })
+      ]
+    })
+}
 
 interface MultipleEventContext {
   showFocus: Container<boolean>

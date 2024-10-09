@@ -1,19 +1,21 @@
 import { container, GetState, ReactiveEffect, Store } from "../../store/index.js";
-import { ElementNode, NodeType, StatefulTextNode, StatefulNode, TextNode, VirtualNode, ZoneListNode } from "./virtualNode.js";
+import { IdentifierGenerator } from "./idGenerator.js";
+import { EventsToDelegate } from "./render.js";
+import { ElementNode, NodeType, StatefulTextNode, StatefulNode, TextNode, VirtualNode, StatefulListNode } from "./virtualNode.js";
 
 
-export function stringifyVirtualNode(store: Store, vnode: VirtualNode): string {
+export function stringifyVirtualNode(store: Store, idGenerator: IdentifierGenerator, vnode: VirtualNode): string {
   switch (vnode.type) {
     case NodeType.ELEMENT:
-      return stringifyElement(store, vnode)
+      return stringifyElement(store, idGenerator, vnode)
     case NodeType.TEXT:
       return stringifyTextNode(vnode)
     case NodeType.STATEFUL_TEXT:
       return stringifyReactiveText(store, vnode)
     case NodeType.STATEFUL:
-      return stringifyStatefulNode(store, vnode)
-    case NodeType.ZONE_LIST:
-      return stringifyZoneList(store, vnode)
+      return stringifyStatefulNode(store, idGenerator, vnode)
+    case NodeType.STATEFUL_LIST:
+      return stringifyViewList(store, idGenerator, vnode)
   }
 }
 
@@ -22,7 +24,7 @@ function stringifyTextNode(node: TextNode): string {
   return node.value.replace(/"/g, "&quot;")
 }
 
-function stringifyElement(store: Store, node: ElementNode): string {
+function stringifyElement(store: Store, idGenerator: IdentifierGenerator, node: ElementNode): string {
   const attributes = node.data.attrs
   const statefulAttributes = node.data.statefulAttrs ?? {}
 
@@ -32,6 +34,13 @@ function stringifyElement(store: Store, node: ElementNode): string {
 
   if (node.data.statefulProps?.className) {
     statefulAttributes["class"] = node.data.statefulProps.className
+  }
+
+  const eventId = idGenerator.next
+  for (const k in node.data.on) {
+    if (EventsToDelegate.has(k)) {
+      attributes[`data-spheres-${k}`] = eventId
+    }
   }
 
   let attrs = Object.keys(attributes).map(key => ` ${key}="${node.data.attrs[key]}"`).join("")
@@ -51,7 +60,7 @@ function stringifyElement(store: Store, node: ElementNode): string {
     return `<${node.tag}${attrs} />`
   }
 
-  const children = node.children.map(child => stringifyVirtualNode(store, child))
+  const children = node.children.map(child => stringifyVirtualNode(store, idGenerator, child))
 
   return `<${node.tag}${attrs}>${children.join("")}</${node.tag}>`
 }
@@ -66,11 +75,11 @@ class GetValueQuery<M> implements ReactiveEffect {
   }
 }
 
-function stringifyStatefulNode(store: Store, node: StatefulNode): string {
+function stringifyStatefulNode(store: Store, idGenerator: IdentifierGenerator, node: StatefulNode): string {
   const query = new GetValueQuery(node.generator)
   store.useEffect(query)
 
-  return stringifyVirtualNode(store, query.value)
+  return stringifyVirtualNode(store, new IdentifierGenerator(idGenerator.next), query.value)
 }
 
 function stringifyReactiveText(store: Store, node: StatefulTextNode): string {
@@ -84,17 +93,20 @@ function stringifyReactiveText(store: Store, node: StatefulTextNode): string {
   })
 }
 
-function stringifyZoneList(store: Store, node: ZoneListNode): string {
+function stringifyViewList(store: Store, idGenerator: IdentifierGenerator, node: StatefulListNode): string {
   const query = new GetValueQuery(node.query)
   store.useEffect(query)
 
   const data = query.value
 
-  let html = ""
+  const eventId = idGenerator.next
+
+  let html = `<!--list-start-${eventId}-->`
   for (let i = 0; i < data.length; i++) {
     node.template.setArgs({ item: data[i], index: container({ initialValue: i }) })
-    html += stringifyVirtualNode(store, node.template.virtualNode)
+    html += stringifyVirtualNode(store, new IdentifierGenerator(eventId), node.template.virtualNode)
   }
+  html += `<!--list-end-->`
 
   return html
 }

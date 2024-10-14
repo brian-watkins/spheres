@@ -1,7 +1,7 @@
 import { container, GetState, ReactiveEffect, Store } from "../../store/index.js";
 import { IdentifierGenerator } from "./idGenerator.js";
 import { EventsToDelegate } from "./render.js";
-import { ElementNode, NodeType, StatefulTextNode, StatefulNode, TextNode, VirtualNode, StatefulListNode } from "./virtualNode.js";
+import { ElementNode, NodeType, StatefulTextNode, StatefulNode, TextNode, VirtualNode, StatefulListNode, StatefulSwitchNode } from "./virtualNode.js";
 
 
 export function stringifyVirtualNode(store: Store, idGenerator: IdentifierGenerator, vnode: VirtualNode): string {
@@ -14,6 +14,8 @@ export function stringifyVirtualNode(store: Store, idGenerator: IdentifierGenera
       return stringifyReactiveText(store, vnode)
     case NodeType.STATEFUL:
       return stringifyStatefulNode(store, idGenerator, vnode)
+    case NodeType.STATEFUL_SWITCH:
+      return stringifyStatefulSwitch(store, idGenerator, vnode)
     case NodeType.STATEFUL_LIST:
       return stringifyViewList(store, idGenerator, vnode)
   }
@@ -80,6 +82,17 @@ function stringifyStatefulNode(store: Store, idGenerator: IdentifierGenerator, n
   store.useEffect(query)
 
   return stringifyVirtualNode(store, new IdentifierGenerator(idGenerator.next), query.value)
+}
+
+function stringifyStatefulSwitch(store: Store, idGenerator: IdentifierGenerator, node: StatefulSwitchNode): string {
+  const selector = new GetValueQuery(node.selector)
+  store.useEffect(selector)
+
+  const eventId = idGenerator.next
+
+  // Note: need to handle the case where the selector returns undefined
+
+  return stringifyVirtualNode(store, new IdentifierGenerator(eventId), node.views[selector.value].virtualNode)
 }
 
 function stringifyReactiveText(store: Store, node: StatefulTextNode): string {

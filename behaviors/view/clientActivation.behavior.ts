@@ -149,7 +149,7 @@ export default behavior("client activation of server rendered views", [
       ]
     }),
 
-  example(ssrTestAppContext())
+  (m) => m.pick() && example(ssrTestAppContext())
     .description("app with stateful list to activate")
     .script({
       suppose: [

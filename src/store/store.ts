@@ -527,6 +527,7 @@ export class Store {
   }
 
   dispatch(message: StoreMessage<any>) {
+    console.log("Dispatching message", message)
     switch (message.type) {
       case "write":
         this[getContainerController](message.container).write(message.value)

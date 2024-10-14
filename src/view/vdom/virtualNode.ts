@@ -13,8 +13,8 @@ export enum NodeType {
   ELEMENT = 1,
   STATEFUL = 15,
   STATEFUL_TEXT = 16,
-  TEMPLATE = 18,
-  STATEFUL_LIST = 19,
+  STATEFUL_LIST = 17,
+  STATEFUL_SWITCH = 18
 }
 
 export interface TextNode {
@@ -41,8 +41,16 @@ export interface ElementNode {
 
 export interface StatefulNode {
   type: NodeType.STATEFUL
+  id?: string
   key?: VirtualNodeKey
   generator: (get: GetState) => VirtualNode
+  node: Node | undefined
+}
+
+export interface StatefulSwitchNode {
+  type: NodeType.STATEFUL_SWITCH
+  selector: (get: GetState) => any
+  views: { [key: string]: VirtualTemplate<any> }
   node: Node | undefined
 }
 
@@ -51,10 +59,10 @@ export interface StatefulListNode {
   id?: string
   template: VirtualListItemTemplate<any>
   query: (get: GetState) => Array<any>
-  node: Node | undefined
+  node: Node | undefined // what does this actually refer to? The document fragment? I don't think it's actually ever used
 }
 
-export type VirtualNode = TextNode | StatefulTextNode | ElementNode | StatefulNode | StatefulListNode
+export type VirtualNode = TextNode | StatefulTextNode | ElementNode | StatefulNode | StatefulSwitchNode | StatefulListNode
 
 export interface StatefulValue<T> {
   generator: Stateful<T>
@@ -129,6 +137,15 @@ export function makeStatefulElement(generator: (get: GetState) => VirtualNode, k
   return element
 }
 
+export function makeStatefulSwitch(selector: (get: GetState) => any, views: { [key: string]: VirtualTemplate<any> }): StatefulSwitchNode {
+  return {
+    type: NodeType.STATEFUL_SWITCH,
+    selector,
+    views,
+    node: undefined
+  }
+}
+
 export function makeVirtualElement(tag: string, config: VirtualNodeConfig, children: Array<VirtualNode>, node?: Element): ElementNode {
   const element: ElementNode = {
     type: NodeType.ELEMENT,
@@ -162,6 +179,7 @@ export abstract class VirtualTemplate<T> {
   
   protected setVirtualNode(vnode: VirtualNode) {
     switch (vnode.type) {
+      // hmm ... what if it's not an element but a stateful list or switch?
       case NodeType.ELEMENT:
         addAttribute(vnode.data, "data-spheres-template", "")
     }
@@ -173,6 +191,14 @@ export abstract class VirtualTemplate<T> {
   }
 
   abstract setArgs(args: T): void
+
+  useWithConsumedArgs<S>(generator: (get: GetState) => S): (args: T) => (get: GetState) => S {
+    return (args) => (get) => {
+      console.log("Setting args", args)
+      this.setArgs(args)
+      return generator(get)
+    }
+  }
 
   useWithArgs<S>(generator: (get: GetState) => S): (get: GetState, args: T) => S {
     return (get, args) => {

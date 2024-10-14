@@ -229,7 +229,7 @@ export default behavior("lists interspersed among other children", [
       ]
     }),
 
-  example(renderContext<NestedListExamplesState>())
+  (m) => m.pick() && example(renderContext<NestedListExamplesState>())
     .description("nested lists")
     .script({
       suppose: [
@@ -252,8 +252,8 @@ export default behavior("lists interspersed among other children", [
                           el.config
                             .dataAttribute("sub-list", get => `${get(index)}`)
                           el.children
-                            .zones(get => get(context.state.secondaryList), liView)
-                            .zones(get => get(context.state.secondaryList), anotherLiView)
+                            .zones(get => get(context.state.secondaryList), liView(item))
+                            .zones(get => get(context.state.secondaryList), anotherLiView(item))
                         })
                     })
                   }
@@ -266,8 +266,8 @@ export default behavior("lists interspersed among other children", [
         effect("the lists are rendered", async () => {
           const texts = await selectElements("[data-sub-list='1'] li").map(el => el.text())
           expect(texts, is([
-            "a", "b", "c",
-            "Also a", "Also b", "Also c"
+            "two => a", "two => b", "two => c",
+            "Also two => a", "Also two => b", "Also two => c"
           ]))
         })
       ]
@@ -281,15 +281,14 @@ export default behavior("lists interspersed among other children", [
       ],
       observe: [
         effect("the nested lists update", async () => {
-          const texts = await selectElements("[data-sub-list='1'] li").map(el => el.text())
+          const texts = await selectElements("[data-sub-list='2'] li").map(el => el.text())
           expect(texts, is([
-            "a", "c", "b", "f",
-            "Also a", "Also c", "Also b", "Also f"
+            "three => a", "three => c", "three => b", "three => f",
+            "Also three => a", "Also three => c", "Also three => b", "Also three => f"
           ]))
         })
       ]
     })
-
 
 ])
 
@@ -298,14 +297,14 @@ interface NestedListExamplesState {
   secondaryList: Container<Array<string>>
 }
 
-function liView(subitem: State<string>): HTMLView {
-  return (root) => {
-    root.li(el => el.children.textNode(get => get(subitem)))
+function liView(item: State<string>): (subItem: State<string>) => HTMLView {
+  return (subItem) => (root) => {
+    root.li(el => el.children.textNode(get => `${get(item)} => ${get(subItem)}`))
   }
 }
 
-function anotherLiView(subitem: State<string>): HTMLView {
-  return (root) => {
-    root.li(el => el.children.textNode(get => `Also ${get(subitem)}`))
+function anotherLiView(item: State<string>): (subItem: State<string>) => HTMLView {
+  return (subItem) => (root) => {
+    root.li(el => el.children.textNode(get => `Also ${get(item)} => ${get(subItem)}`))
   }
 }

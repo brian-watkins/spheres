@@ -1,11 +1,12 @@
 import { GetState, ReactiveEffect } from "../../../store/index.js"
+import { Stateful } from "../virtualNode.js";
 import { EffectGenerator } from "./effectGenerator.js";
 
 export class UpdateAttributeEffect implements ReactiveEffect {
-  constructor(private element: Element, private attribute: string, private generator: EffectGenerator<string | undefined>, private context: any = undefined) { }
+  constructor(private element: Element, private attribute: string, private generator: Stateful<string>) { }
 
   init(get: GetState): void {
-    const val = this.generator(get, this.context)
+    const val = this.generator(get)
     if (val !== undefined) {
       this.element.setAttribute(this.attribute, val)
     }
@@ -16,7 +17,7 @@ export class UpdateAttributeEffect implements ReactiveEffect {
       return
     }
 
-    const val = this.generator(get, this.context)
+    const val = this.generator(get)
     if (val === undefined) {
       this.element.removeAttribute(this.attribute)
     } else {

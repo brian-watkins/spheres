@@ -1,11 +1,12 @@
 import { GetState, ReactiveEffect } from "../../../store/index.js"
+import { Stateful } from "../virtualNode.js"
 import { EffectGenerator } from "./effectGenerator.js"
 
 export class UpdateTextEffect implements ReactiveEffect {
-  constructor(private node: Text, private generator: EffectGenerator<string | undefined>, private context?: any) { }
+  constructor(private node: Text, private generator: Stateful<string>) { }
 
   init(get: GetState): void {
-    this.node.nodeValue = this.generator(get, this.context) ?? ""
+    this.node.nodeValue = this.generator(get) ?? ""
   }
 
   run(get: GetState): void {
@@ -13,6 +14,6 @@ export class UpdateTextEffect implements ReactiveEffect {
       return
     }
 
-    this.node.nodeValue = this.generator(get, this.context) ?? ""
+    this.node.nodeValue = this.generator(get) ?? ""
   }
 }

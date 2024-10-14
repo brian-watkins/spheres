@@ -1,5 +1,5 @@
 import { GetState, State, Store } from "../store/index.js"
-import { makeStatefulElement, Stateful, addStatefulProperty, addProperty, makeVirtualTextNode, makeZoneList, VirtualListItemTemplate } from "./vdom/virtualNode.js"
+import { makeStatefulElement, Stateful, addStatefulProperty, addProperty, makeVirtualTextNode, makeZoneList, VirtualListItemTemplate, makeStatefulSwitch, VirtualTemplate, VirtualNode } from "./vdom/virtualNode.js"
 import { HTMLElements, HTMLBuilder } from "./htmlElements.js"
 import { SVGElements } from "./svgElements.js"
 import { BasicElementConfig, SpecialElementAttributes } from "./viewConfig.js"
@@ -94,19 +94,34 @@ class HtmlViewBuilder extends ViewBuilder<SpecialElementAttributes, HTMLElements
   }
 
   zoneWhich<T extends { [key: string]: HTMLView }>(selector: Stateful<keyof T>, zones: T): this {
-    const emptyTextNode = makeVirtualTextNode("")
+    // const emptyTextNode = makeVirtualTextNode("")
 
-    this.storeNode(makeStatefulElement(get => {
-      const zoneKey = selector(get)
-      if (zoneKey !== undefined) {
-        const zone = zones[zoneKey]
-        const viewBuilder = new HtmlViewBuilder()
-        zone(viewBuilder as unknown as HTMLBuilder)
-        return viewBuilder.toVirtualNode()
-      } else {
-        return emptyTextNode
-      }
-    }, undefined))
+    const templates: { [key: string]: VirtualTemplate<any> } = {}
+
+    for (const key in zones) {
+      const view = zones[key]
+      const viewBuilder = new HtmlViewBuilder()
+      view(viewBuilder as unknown as HTMLBuilder)
+      const vnode = viewBuilder.toVirtualNode()
+      templates[key] = new HTMLViewTemplate(vnode)
+    }
+    
+    this.storeNode(makeStatefulSwitch(selector, templates))
+
+    // here basically need to go through and create virtual templates
+    // for each case of the view object.
+
+    // this.storeNode(makeStatefulElement(get => {
+    //   const zoneKey = selector(get)
+    //   if (zoneKey !== undefined) {
+    //     const zone = zones[zoneKey]
+    //     const viewBuilder = new HtmlViewBuilder()
+    //     zone(viewBuilder as unknown as HTMLBuilder)
+    //     return viewBuilder.toVirtualNode()
+    //   } else {
+    //     return emptyTextNode
+    //   }
+    // }, undefined))
 
     return this
   }
@@ -130,6 +145,15 @@ class HtmlViewBuilder extends ViewBuilder<SpecialElementAttributes, HTMLElements
   input(builder?: (element: ConfigurableElement<SpecialElementAttributes, HTMLElements>) => void) {
     return this.buildElement("input", inputConfigBuilder, builder)
   }
+}
+
+export class HTMLViewTemplate extends VirtualTemplate<undefined> {
+  constructor(vnode: VirtualNode) {
+    super()
+    this.setVirtualNode(vnode)
+  }
+
+  setArgs(): void { }
 }
 
 export class HTMLVirtualListItemTemplate<T> extends VirtualListItemTemplate<T> {

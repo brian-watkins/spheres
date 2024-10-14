@@ -1,13 +1,13 @@
 import { GetState, ReactiveEffect } from "../../../store/index.js"
 import { IdentifierGenerator } from "../idGenerator.js"
 import { DOMNodeRenderer, Zone } from "../render.js"
-import { VirtualNode } from "../virtualNode.js"
+import { StatefulNode, VirtualNode } from "../virtualNode.js"
 import { EffectGenerator } from "./effectGenerator.js"
 
 export class StatefulViewEffect implements ReactiveEffect {
   private currentNode!: Node
 
-  constructor(private zone: Zone, placeholderNode: Node | undefined, private generator: EffectGenerator<VirtualNode>, private createNode: DOMNodeRenderer, private context: any = undefined) {
+  constructor(private zone: Zone, private vnode: StatefulNode, placeholderNode: Node | undefined, private generator: EffectGenerator<VirtualNode>, private createNode: DOMNodeRenderer, private context: any = undefined) {
     if (placeholderNode) {
       this.currentNode = placeholderNode
     }
@@ -19,7 +19,7 @@ export class StatefulViewEffect implements ReactiveEffect {
 
   init(get: GetState) {
     const initialVNode = this.generator(get, this.context)
-    const nextNode = this.createNode(this.zone, new IdentifierGenerator("NOT DONE YET"), initialVNode)
+    const nextNode = this.createNode(this.zone, new IdentifierGenerator(this.vnode.id), initialVNode)
     if (this.currentNode) {
       this.currentNode.parentNode!.replaceChild(nextNode, this.currentNode)
     }
@@ -32,7 +32,11 @@ export class StatefulViewEffect implements ReactiveEffect {
     }
 
     const nextVNode = this.generator(get, this.context)
-    const nextNode = this.createNode(this.zone, new IdentifierGenerator("NOT DONE YET"), nextVNode)
+    // this will just create the node
+    // but that means that any events will be normal element events
+    // so if we're inside a template we need to know that and do
+    // something different
+    const nextNode = this.createNode(this.zone, new IdentifierGenerator(this.vnode.id), nextVNode)
     this.currentNode.parentNode!.replaceChild(nextNode, this.currentNode)
     this.currentNode = nextNode
   }

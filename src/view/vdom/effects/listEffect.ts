@@ -1,6 +1,7 @@
 import { container, Container, GetState, ReactiveEffect, write } from "../../../store"
 import { IdentifierGenerator } from "../idGenerator"
-import { spheresTemplateData, TemplateData, TemplateNodeRenderer, Zone } from "../render"
+import { spheresTemplateData, TemplateData, TemplateNodeRenderer, UseWithArgs, Zone } from "../render"
+import { generatorGenerator } from "../renderToDom"
 import { VirtualNodeKey, StatefulListNode } from "../virtualNode"
 
 interface VirtualListItem {
@@ -17,6 +18,7 @@ export class ListEffect implements ReactiveEffect {
 
   constructor(
     protected zone: Zone,
+    private statefulGenerator: UseWithArgs<any, any>,
     protected listVnode: StatefulListNode,
     protected listStart: Node,
     protected listEnd: Node,
@@ -40,7 +42,7 @@ export class ListEffect implements ReactiveEffect {
       this.vnodes.push(virtualItem)
       this.templateData.args = { item: virtualItem.key, index: virtualItem.indexState }
       // @ts-ignore
-      existingNode[spheresTemplateData] = { ...this.templateData };
+      existingNode[spheresTemplateData] = { ...this.templateData, statefulWrapper: this.statefulGenerator };
       // this is bad should refactor somehow
       this.templateNodeActivator!(existingNode, this.templateData)
       existingNode = existingNode.nextSibling!
@@ -66,7 +68,11 @@ export class ListEffect implements ReactiveEffect {
   createNode(vnode: VirtualListItem): Node {
     this.idGenerator.reset()
     this.templateData.args = { item: vnode.key, index: vnode.indexState }
-    return this.templateNodeGenerator(this.zone, this.idGenerator, this.templateData)
+    // const generator = (gen: (get: GetState) => any) => {
+      // return this.statefulGenerator(gen)({ item: vnode.key, index: vnode.indexState })
+    // }
+    // const generator = generatorGenerator(this.listVnode.template, this.statefulGenerator, this.templateData.args)
+    return this.templateNodeGenerator(this.zone, this.idGenerator, this.statefulGenerator, vnode, this.templateData)
   }
 
   patchList(newVKids: Array<VirtualListItem>) {
@@ -114,7 +120,9 @@ export class ListEffect implements ReactiveEffect {
     if (newHead > newTail) {
       // then there are more old kids than new ones and we got through
       // everything so remove from the end of the list
+      // Maybe we could use StaticRange here as it's supposed to be more performant?
       const range = new Range()
+      console.log("old node", oldVKids[oldHead].node?.parentElement)
       range.setStartBefore(oldVKids[oldHead].node!)
       range.setEndAfter(oldVKids[oldTail].node!)
       range.deleteContents()
@@ -183,6 +191,8 @@ export class ListEffect implements ReactiveEffect {
     newVNode.indexState = oldVNode.indexState
 
     if (oldVNode.actualIndex !== newVNode.actualIndex) {
+      // is there really always an index state? if we don't use indices maybe
+      // we can skip this?
       this.zone.store.dispatch(write(oldVNode.indexState!, newVNode.actualIndex!))
     }
 

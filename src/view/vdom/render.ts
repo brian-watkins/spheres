@@ -1,4 +1,4 @@
-import { Store } from "../../store/index.js"
+import { GetState, Store } from "../../store/index.js"
 import { IdentifierGenerator } from "./idGenerator.js"
 import { StoreEventHandler, VirtualNode, VirtualTemplate } from "./virtualNode.js"
 
@@ -25,12 +25,24 @@ export type DOMNodeRenderer = (zone: Zone, idGenerator: IdentifierGenerator, vno
 export interface TemplateData {
   template: VirtualTemplate<any>
   args: any
+  statefulWrapper?: UseWithArgs<any, any>
 }
 
-export type TemplateNodeRenderer = (zone: Zone, idGenerator: IdentifierGenerator, templateData: TemplateData) => Node
+export type UseWithArgs<T, S> = (generator: (get: GetState) => S) => (args: T) => (get: GetState) => S
+
+export interface NodeReference {
+  node: Node | undefined
+}
+
+export type TemplateNodeRenderer = (zone: Zone, idGenerator: IdentifierGenerator, statefulGenerator: UseWithArgs<any, any>, nodeReference: NodeReference, templateData: TemplateData) => Node
+
+export interface EffectOptions {
+  generator?: UseWithArgs<any, any>
+  nodeReference?: NodeReference
+}
 
 export interface EffectTemplate {
-  attach(zone: Zone, root: Node, context: any): void
+  attach(zone: Zone, root: Node, context: any, options?: EffectOptions): void
 }
 
 export interface DOMTemplate {

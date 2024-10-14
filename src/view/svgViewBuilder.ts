@@ -1,5 +1,5 @@
 import { GetState, State } from "../store/index.js"
-import { Stateful, VirtualListItemTemplate, VirtualNodeConfig, makeStatefulElement, makeVirtualElement, makeVirtualTextNode, makeZoneList, setNamespace, virtualNodeConfig } from "./vdom/virtualNode.js"
+import { Stateful, VirtualListItemTemplate, VirtualNode, VirtualNodeConfig, VirtualTemplate, makeStatefulElement, makeStatefulSwitch, makeVirtualElement, makeVirtualTextNode, makeZoneList, setNamespace, virtualNodeConfig } from "./vdom/virtualNode.js"
 import { SVGBuilder, SVGElements, SVGElementAttributes, svgAttributeNames } from "./svgElements.js"
 import { ConfigurableElement, ViewBuilder } from "./viewBuilder.js"
 import { BasicElementConfig, SpecialElementAttributes } from "./viewConfig.js"
@@ -48,19 +48,33 @@ export class SvgViewBuilder extends ViewBuilder<SpecialElementAttributes, SVGEle
   }
 
   zoneWhich<T extends { [key: string]: SVGView }>(selector: Stateful<keyof T>, zones: T): this {
-    const emptyTextNode = makeVirtualTextNode("")
+    // const emptyTextNode = makeVirtualTextNode("")
 
-    this.storeNode(makeStatefulElement(get => {
-      const zoneKey = selector(get)
-      if (zoneKey !== undefined) {
-        const zone = zones[zoneKey]
-        const viewBuilder = new SvgViewBuilder()
-        zone(viewBuilder as unknown as SVGBuilder)
-        return viewBuilder.toVirtualNode()
-      } else {
-        return emptyTextNode
-      }
-    }, undefined))
+    // this.storeNode(makeStatefulElement(get => {
+    //   const zoneKey = selector(get)
+    //   if (zoneKey !== undefined) {
+    //     const zone = zones[zoneKey]
+    //     const viewBuilder = new SvgViewBuilder()
+    //     zone(viewBuilder as unknown as SVGBuilder)
+    //     return viewBuilder.toVirtualNode()
+    //   } else {
+    //     return emptyTextNode
+    //   }
+    // }, undefined))
+
+    // return this
+
+    const templates: { [key: string]: VirtualTemplate<any> } = {}
+
+    for (const key in zones) {
+      const view = zones[key]
+      const viewBuilder = new SvgViewBuilder()
+      view(viewBuilder as unknown as SVGBuilder)
+      const vnode = viewBuilder.toVirtualNode()
+      templates[key] = new SVGViewTemplate(vnode)
+    }
+    
+    this.storeNode(makeStatefulSwitch(selector, templates))
 
     return this
   }
@@ -76,6 +90,16 @@ export class SvgViewBuilder extends ViewBuilder<SpecialElementAttributes, SVGEle
     return this.buildElement(tag, svgConfigBuilder, builder)
   }
 }
+
+class SVGViewTemplate extends VirtualTemplate<undefined> {
+  constructor(vnode: VirtualNode) {
+    super()
+    this.setVirtualNode(vnode)
+  }
+
+  setArgs(): void { }
+}
+
 
 class SVGVirtualListItemTemplate<T> extends VirtualListItemTemplate<T> {
   constructor(generator: (item: State<T>, index: State<number>) => SVGView) {

@@ -11,10 +11,9 @@ export interface EffectHandle {
 export enum NodeType {
   TEXT = 3,
   ELEMENT = 1,
-  STATEFUL = 15,
   STATEFUL_TEXT = 16,
-  TEMPLATE = 18,
-  STATEFUL_LIST = 19,
+  STATEFUL_LIST = 17,
+  STATEFUL_SWITCH = 18
 }
 
 export interface TextNode {
@@ -39,10 +38,10 @@ export interface ElementNode {
   node: Element | undefined
 }
 
-export interface StatefulNode {
-  type: NodeType.STATEFUL
-  key?: VirtualNodeKey
-  generator: (get: GetState) => VirtualNode
+export interface StatefulSwitchNode {
+  type: NodeType.STATEFUL_SWITCH
+  selector: (get: GetState) => any
+  views: { [key: string]: VirtualTemplate<any> }
   node: Node | undefined
 }
 
@@ -54,7 +53,7 @@ export interface StatefulListNode {
   node: Node | undefined
 }
 
-export type VirtualNode = TextNode | StatefulTextNode | ElementNode | StatefulNode | StatefulListNode
+export type VirtualNode = TextNode | StatefulTextNode | ElementNode | StatefulSwitchNode | StatefulListNode
 
 export interface StatefulValue<T> {
   generator: Stateful<T>
@@ -118,15 +117,13 @@ export function setEventHandler(config: VirtualNodeConfig, event: string, handle
   config.on[event] = handler
 }
 
-export function makeStatefulElement(generator: (get: GetState) => VirtualNode, key: VirtualNodeKey | undefined, node?: Node): StatefulNode {
-  const element: StatefulNode = {
-    type: NodeType.STATEFUL,
-    generator,
-    key,
-    node
+export function makeStatefulSwitch(selector: (get: GetState) => any, views: { [key: string]: VirtualTemplate<any> }): StatefulSwitchNode {
+  return {
+    type: NodeType.STATEFUL_SWITCH,
+    selector,
+    views,
+    node: undefined
   }
-
-  return element
 }
 
 export function makeVirtualElement(tag: string, config: VirtualNodeConfig, children: Array<VirtualNode>, node?: Element): ElementNode {
@@ -162,6 +159,7 @@ export abstract class VirtualTemplate<T> {
   
   protected setVirtualNode(vnode: VirtualNode) {
     switch (vnode.type) {
+      // hmm ... what if it's not an element but a stateful list or switch?
       case NodeType.ELEMENT:
         addAttribute(vnode.data, "data-spheres-template", "")
     }
@@ -173,13 +171,6 @@ export abstract class VirtualTemplate<T> {
   }
 
   abstract setArgs(args: T): void
-
-  useWithArgs<S>(generator: (get: GetState) => S): (get: GetState, args: T) => S {
-    return (get, args) => {
-      this.setArgs(args)
-      return generator(get)
-    } 
-  }
 }
 
 export interface VirtualListItemTemplateArgs<T> {
@@ -192,10 +183,12 @@ export class VirtualListItemTemplate<T> extends VirtualTemplate<VirtualListItemT
   protected indexToken: ReactiveVariable<number> = reactiveVariable({ initialValue: container({ initialValue: -1 }) })
   public usesIndex = true
 
-  setArgs(args: VirtualListItemTemplateArgs<T>): void {
-    this.itemToken.assignValue(args.item)
+  setArgs(args: any): void {
     if (this.usesIndex) {
+      this.itemToken.assignValue(args.item)
       this.indexToken.assignState(args.index!)
+    } else {
+      this.itemToken.assignValue(args)
     }
   }
 }

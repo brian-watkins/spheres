@@ -1,7 +1,7 @@
 import { container, GetState, ReactiveEffect, Store } from "../../store/index.js";
 import { IdentifierGenerator } from "./idGenerator.js";
 import { EventsToDelegate } from "./render.js";
-import { ElementNode, NodeType, StatefulTextNode, StatefulNode, TextNode, VirtualNode, StatefulListNode } from "./virtualNode.js";
+import { ElementNode, NodeType, StatefulTextNode, TextNode, VirtualNode, StatefulListNode, StatefulSwitchNode } from "./virtualNode.js";
 
 
 export function stringifyVirtualNode(store: Store, idGenerator: IdentifierGenerator, vnode: VirtualNode): string {
@@ -12,8 +12,8 @@ export function stringifyVirtualNode(store: Store, idGenerator: IdentifierGenera
       return stringifyTextNode(vnode)
     case NodeType.STATEFUL_TEXT:
       return stringifyReactiveText(store, vnode)
-    case NodeType.STATEFUL:
-      return stringifyStatefulNode(store, idGenerator, vnode)
+    case NodeType.STATEFUL_SWITCH:
+      return stringifyStatefulSwitch(store, idGenerator, vnode)
     case NodeType.STATEFUL_LIST:
       return stringifyViewList(store, idGenerator, vnode)
   }
@@ -75,11 +75,15 @@ class GetValueQuery<M> implements ReactiveEffect {
   }
 }
 
-function stringifyStatefulNode(store: Store, idGenerator: IdentifierGenerator, node: StatefulNode): string {
-  const query = new GetValueQuery(node.generator)
-  store.useEffect(query)
+function stringifyStatefulSwitch(store: Store, idGenerator: IdentifierGenerator, node: StatefulSwitchNode): string {
+  const selector = new GetValueQuery(node.selector)
+  store.useEffect(selector)
 
-  return stringifyVirtualNode(store, new IdentifierGenerator(idGenerator.next), query.value)
+  const eventId = idGenerator.next
+
+  // Note: need to handle the case where the selector returns undefined
+
+  return stringifyVirtualNode(store, new IdentifierGenerator(eventId), node.views[selector.value].virtualNode)
 }
 
 function stringifyReactiveText(store: Store, node: StatefulTextNode): string {
@@ -103,7 +107,12 @@ function stringifyViewList(store: Store, idGenerator: IdentifierGenerator, node:
 
   let html = `<!--list-start-${eventId}-->`
   for (let i = 0; i < data.length; i++) {
-    node.template.setArgs({ item: data[i], index: container({ initialValue: i }) })
+    if (node.template.usesIndex) {
+      node.template.setArgs({ item: data[i], index: container({ initialValue: i }) })
+    } else {
+      node.template.setArgs(data[i])
+    }
+
     html += stringifyVirtualNode(store, new IdentifierGenerator(eventId), node.template.virtualNode)
   }
   html += `<!--list-end-->`

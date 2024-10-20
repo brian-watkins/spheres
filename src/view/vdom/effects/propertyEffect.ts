@@ -1,11 +1,13 @@
 import { GetState, ReactiveEffect } from "../../../store/index.js";
-import { EffectGenerator } from "./effectGenerator.js";
+import { ArgsController } from "../render.js";
+import { Stateful } from "../virtualNode.js";
 
 export class UpdatePropertyEffect implements ReactiveEffect {
-  constructor(private element: Element, private property: string, private generator: EffectGenerator<string | undefined>, private context: any = undefined) { }
+  constructor(private element: Element, private property: string, private generator: Stateful<string>, private argsController: ArgsController | undefined, private args: any) { }
 
   init(get: GetState): void {
-    const val = this.generator(get, this.context)
+    this.argsController?.setArgs(this.args)
+    const val = this.generator(get)
     if (val !== undefined) {
       //@ts-ignore
       this.element[this.property] = val
@@ -17,7 +19,8 @@ export class UpdatePropertyEffect implements ReactiveEffect {
       return
     }
 
+    this.argsController?.setArgs(this.args)
     // @ts-ignore
-    this.element[this.property] = this.generator(get, this.context) ?? ""
+    this.element[this.property] = this.generator(get) ?? ""
   }
 }

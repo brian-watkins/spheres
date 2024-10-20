@@ -9,7 +9,6 @@ export interface DOMEvent {
   handler: StoreEventHandler<any>
 }
 
-
 export interface Zone {
   readonly store: Store
   addEvent(location: DOMEvent["location"], elementId: string, eventType: string, handler: StoreEventHandler<any>): void
@@ -20,17 +19,18 @@ export interface RenderResult {
   unmount: () => void
 }
 
-export type DOMNodeRenderer = (zone: Zone, idGenerator: IdentifierGenerator, vnode: VirtualNode) => Node
+export type GetDOMTemplate = (zone: Zone, idGenerator: IdentifierGenerator, virtualTemplate: VirtualTemplate<any>) => DOMTemplate
 
-export interface TemplateData {
-  template: VirtualTemplate<any>
-  args: any
+export interface ArgsController {
+  setArgs(args: any): void
 }
 
-export type TemplateNodeRenderer = (zone: Zone, idGenerator: IdentifierGenerator, templateData: TemplateData) => Node
+export interface NodeReference {
+  node: Node | undefined
+}
 
 export interface EffectTemplate {
-  attach(zone: Zone, root: Node, context: any): void
+  attach(zone: Zone, root: Node, argsController: ArgsController, args: any, nodeReference?: NodeReference): void
 }
 
 export interface DOMTemplate {

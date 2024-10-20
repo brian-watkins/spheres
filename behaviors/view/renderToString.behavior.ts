@@ -23,7 +23,7 @@ export default behavior("Render view to HTML string", [
   }),
   renderTest("render view with nested stateful views", (renderer) => {
     const actual = renderer.renderView(appWithNestedState)
-    expect(actual, is(equalTo(`<div><h2>Cool Person!</h2></div>`)))
+    expect(actual, is(equalTo(`<div><h2 data-spheres-template="">Cool Person!</h2></div>`)))
   }),
   renderTest("render view with deeply nested stateful views", (renderer) => {
     const actual = renderer.renderView(appWithDeeplyNestedState)
@@ -57,9 +57,9 @@ export default behavior("Render view to HTML string", [
     const actual = renderer.renderView(appWithEvents)
     expect(actual, is(equalTo(`<div><div><div data-spheres-click="0.3">Element with events!</div></div></div>`)))
   }),
-  renderTest("render view with zoneWhich", (renderer) => {
+  renderTest("render view with switch view", (renderer) => {
     const actual = renderer.renderView(appWithZoneWhich)
-    expect(actual, is(equalTo("<div><h3>Fun!</h3></div>")))
+    expect(actual, is(equalTo(`<div><h3 data-spheres-template="">Fun!</h3></div>`)))
   })
 ])
 

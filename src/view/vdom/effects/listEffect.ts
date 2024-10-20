@@ -1,7 +1,8 @@
 import { container, Container, GetState, ReactiveEffect, write } from "../../../store"
 import { IdentifierGenerator } from "../idGenerator"
-import { spheresTemplateData, TemplateData, TemplateNodeRenderer, Zone } from "../render"
+import { ArgsController, DOMTemplate, GetDOMTemplate, spheresTemplateData, Zone } from "../render"
 import { VirtualNodeKey, StatefulListNode } from "../virtualNode"
+import { TemplateEffect } from "./templateEffect"
 
 interface VirtualListItem {
   key: any
@@ -10,45 +11,56 @@ interface VirtualListItem {
   node: Node | undefined
 }
 
-export class ListEffect implements ReactiveEffect {
-  private templateData: TemplateData
+export class ListEffect extends TemplateEffect implements ReactiveEffect {
   private vnodes: Array<VirtualListItem> = []
-  private idGenerator: IdentifierGenerator
+  private domTemplate: DOMTemplate | undefined
+  private usesIndex: boolean
 
   constructor(
-    protected zone: Zone,
-    protected listVnode: StatefulListNode,
-    protected listStart: Node,
-    protected listEnd: Node,
-    private templateNodeGenerator: TemplateNodeRenderer,
-    private templateNodeActivator?: (node: Node, templateData: TemplateData) => void
+    zone: Zone,
+    private listVnode: StatefulListNode,
+    private argsConroller: ArgsController,
+    private listStart: Node,
+    private listEnd: Node,
+    private getDomTemplate: GetDOMTemplate,
   ) {
-    this.idGenerator = new IdentifierGenerator(this.listVnode.id)
-    this.templateData = { template: this.listVnode.template, args: { item: undefined } }
+    super(zone)
+
+    this.usesIndex = this.listVnode.template.usesIndex
   }
 
   init(get: GetState) {
     const data = this.listVnode.query(get)
     const parent = this.listStart.parentNode!
-    const builder = this.listVnode.template.usesIndex ? buildListItemWithIndexState : buildListItem
 
     let dataStart = 0
     let existingNode = this.listStart.nextSibling!
     while (existingNode !== this.listEnd) {
-      const virtualItem = builder(data[dataStart], dataStart)
+      const virtualItem = buildListItem(data[dataStart], dataStart)
       virtualItem.node = existingNode
       this.vnodes.push(virtualItem)
-      this.templateData.args = { item: virtualItem.key, index: virtualItem.indexState }
+      const args = this.usesIndex ? 
+        { item: virtualItem.key, index: virtualItem.indexState } :
+        virtualItem.key
+      
+      const template = this.listVnode.template
       // @ts-ignore
-      existingNode[spheresTemplateData] = { ...this.templateData };
-      // this is bad should refactor somehow
-      this.templateNodeActivator!(existingNode, this.templateData)
+      existingNode[spheresTemplateData] = function() {
+        template.setArgs(args)
+      }
+
+      this.domTemplate = this.getDomTemplate(this.zone, new IdentifierGenerator(this.listVnode.id), this.listVnode.template)
+
+      for (const effect of this.domTemplate.effects) {
+        effect.attach(this.zone, existingNode, this.argsConroller, args)
+      }
+
       existingNode = existingNode.nextSibling!
       dataStart = dataStart + 1
     }
 
     for (let i = dataStart; i < data.length; i++) {
-      const virtualItem = builder(data[i], i)
+      const virtualItem = buildListItem(data[i], i)
       const templateNode = this.createNode(virtualItem)
       parent.insertBefore(templateNode, this.listEnd)
       virtualItem.node = templateNode
@@ -57,16 +69,25 @@ export class ListEffect implements ReactiveEffect {
   }
 
   run(get: GetState) {
-    const builder = this.listVnode.template.usesIndex ? buildListItemWithIndex : buildListItem
-    const updatedList = this.listVnode.query(get).map(builder)
+    const updatedList = this.listVnode.query(get).map(buildListItem)
     this.patchList(updatedList)
     this.vnodes = updatedList
   }
 
   createNode(vnode: VirtualListItem): Node {
-    this.idGenerator.reset()
-    this.templateData.args = { item: vnode.key, index: vnode.indexState }
-    return this.templateNodeGenerator(this.zone, this.idGenerator, this.templateData)
+    let args: any
+    if (this.usesIndex) {
+      vnode.indexState = container({ initialValue: vnode.actualIndex! })
+      args = { item: vnode.key, index: vnode.indexState }
+    } else {
+      args = vnode.key
+    }
+    
+    if (this.domTemplate === undefined) {
+      this.domTemplate = this.getDomTemplate(this.zone, new IdentifierGenerator(this.listVnode.id), this.listVnode.template)
+    }
+
+    return this.renderTemplateInstance(this.domTemplate, this.argsConroller, args, vnode)
   }
 
   patchList(newVKids: Array<VirtualListItem>) {
@@ -182,7 +203,7 @@ export class ListEffect implements ReactiveEffect {
     newVNode.node = oldVNode.node
     newVNode.indexState = oldVNode.indexState
 
-    if (oldVNode.actualIndex !== newVNode.actualIndex) {
+    if (this.usesIndex && oldVNode.actualIndex !== newVNode.actualIndex) {
       this.zone.store.dispatch(write(oldVNode.indexState!, newVNode.actualIndex!))
     }
 
@@ -200,26 +221,10 @@ function removeNode(parent: Node, vnode: VirtualListItem) {
   parent.removeChild(vnode.node!)
 }
 
-function buildListItemWithIndexState(item: any, index: number): VirtualListItem {
+function buildListItem(item: any, index: number): VirtualListItem {
   return {
     key: item,
     actualIndex: index,
-    indexState: container({ initialValue: index }),
-    node: undefined
-  }
-}
-
-function buildListItemWithIndex(item: any, index: number): VirtualListItem {
-  return {
-    key: item,
-    actualIndex: index,
-    node: undefined
-  }
-}
-
-function buildListItem(item: any, _: number): VirtualListItem {
-  return {
-    key: item,
     node: undefined
   }
 }

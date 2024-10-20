@@ -386,17 +386,17 @@ export default behavior("event handlers", [
       ]
     }),
 
-  elementWithNonBubblingEvent((context, view) => context.mountView(view)),
-  elementWithNonBubblingEvent((context, view) => context.ssrAndActivate(view)),
+  elementWithNonBubblingEvent("client", (context, view) => context.mountView(view)),
+  elementWithNonBubblingEvent("ssr", (context, view) => context.ssrAndActivate(view)),
 
-  templateInstanceWithNonBubblingEvent((context, view) => context.mountView(view)),
-  templateInstanceWithNonBubblingEvent((context, view) => context.ssrAndActivate(view)),
+  templateInstanceWithNonBubblingEvent("client", (context, view) => context.mountView(view)),
+  templateInstanceWithNonBubblingEvent("ssr", (context, view) => context.ssrAndActivate(view)),
 
 ])
 
-function elementWithNonBubblingEvent(renderer: (context: RenderApp<Container<string>>, view: HTMLView) => void): Example {
+function elementWithNonBubblingEvent(title: string, renderer: (context: RenderApp<Container<string>>, view: HTMLView) => void): Example {
   return example(renderContext<Container<string>>())
-    .description("element with an event that does not bubble")
+    .description(`element with an event that does not bubble (${title})`)
     .script({
       suppose: [
         fact("there is state that changes with the event", (context) => {
@@ -435,9 +435,9 @@ function elementWithNonBubblingEvent(renderer: (context: RenderApp<Container<str
     })
 }
 
-function templateInstanceWithNonBubblingEvent(renderer: (context: RenderApp<ListEventContext>, view: HTMLView) => void): Example {
+function templateInstanceWithNonBubblingEvent(title: string, renderer: (context: RenderApp<ListEventContext>, view: HTMLView) => void): Example {
   return example(renderContext<ListEventContext>())
-    .description("list view where template instance contains non-bubbling event")
+    .description(`list view where template instance contains non-bubbling event (${title})`)
     .script({
       suppose: [
         fact("there is state", (context) => {

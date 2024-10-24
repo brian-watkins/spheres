@@ -8,58 +8,8 @@ import { RenderApp, renderContext } from "helpers/renderContext";
 
 export default behavior("conditional zone", [
 
-  example(renderContext<Container<boolean>>())
-    .description("start hidden, then show")
-    .script({
-      suppose: [
-        fact("there is boolean state", (context) => {
-          context.setState(container({ initialValue: false }))
-        }),
-        fact("there is a view that is conditional", (context) => {
-          function conditionalView(root: HTMLBuilder) {
-            root.p(el => {
-              el.children.textNode("I am visible now!")
-            })
-          }
-
-          context.mountView(root => {
-            root.div(el => {
-              el.children
-                .zoneWhich(get => get(context.state) ? "conditionalView" : undefined, {
-                  conditionalView
-                })
-            })
-          })
-        })
-      ],
-      observe: [
-        effect("the view is not visible", async () => {
-          await expect(selectElement("p").exists(), resolvesTo(false))
-        })
-      ]
-    }).andThen({
-      perform: [
-        step("the state changes to show the view", (context) => {
-          context.writeTo(context.state, true)
-        })
-      ],
-      observe: [
-        effect("the view is visible", async () => {
-          await expect(selectElement("p").text(), resolvesTo("I am visible now!"))
-        })
-      ]
-    }).andThen({
-      perform: [
-        step("the state changes to hide the view", (context) => {
-          context.writeTo(context.state, false)
-        })
-      ],
-      observe: [
-        effect("the view is no longer visible", async () => {
-          await expect(selectElement("p").exists(), resolvesTo(false))
-        })
-      ]
-    }),
+  basicSwitchEmptyAtFirst("client rendered", (context, view) => context.mountView(view)),
+  basicSwitchEmptyAtFirst("server rendered", (context, view) => context.ssrAndActivate(view)),
 
   example(renderContext<Container<number>>())
     .description("conditional zone that depends on state in the query")
@@ -184,6 +134,61 @@ export default behavior("conditional zone", [
   multipleSwitchFragmentsExample("server rendered", (context, view) => context.ssrAndActivate(view))
 
 ])
+
+function basicSwitchEmptyAtFirst(name: string, renderer: (context: RenderApp<Container<boolean>>, view: HTMLView) => void) {
+  return example(renderContext<Container<boolean>>())
+    .description(`start hidden, then show (${name})`)
+    .script({
+      suppose: [
+        fact("there is boolean state", (context) => {
+          context.setState(container({ initialValue: false }))
+        }),
+        fact("there is a view that is conditional", (context) => {
+          function conditionalView(root: HTMLBuilder) {
+            root.p(el => {
+              el.children.textNode("I am visible now!")
+            })
+          }
+
+          renderer(context, root => {
+            root.div(el => {
+              el.children
+                .zoneWhich(get => get(context.state) ? "conditionalView" : undefined, {
+                  conditionalView
+                })
+            })
+          })
+        })
+      ],
+      observe: [
+        effect("the view is not visible", async () => {
+          await expect(selectElement("p").exists(), resolvesTo(false))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the state changes to show the view", (context) => {
+          context.writeTo(context.state, true)
+        })
+      ],
+      observe: [
+        effect("the view is visible", async () => {
+          await expect(selectElement("p").text(), resolvesTo("I am visible now!"))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the state changes to hide the view", (context) => {
+          context.writeTo(context.state, false)
+        })
+      ],
+      observe: [
+        effect("the view is no longer visible", async () => {
+          await expect(selectElement("p").exists(), resolvesTo(false))
+        })
+      ]
+    })
+}
 
 interface MultipleSwitchFragmentContext {
   items: Container<Array<string>>

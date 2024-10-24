@@ -82,10 +82,10 @@ function stringifyStatefulSwitch(store: Store, idSequence: IdSequence, node: Sta
 
   const elementId = idSequence.next
 
-  // Note: need to handle the case where the selector returns undefined
-
   let html = `<!--${switchStartIndicator(elementId)}-->`
-  html += stringifyVirtualNode(store, new IdSequence(elementId), node.views[selector.value].virtualNode)
+  if (selector.value !== undefined) {
+    html += stringifyVirtualNode(store, new IdSequence(elementId), node.views[selector.value].virtualNode)    
+  }
   html += `<!--${switchEndIndicator(elementId)}-->` 
 
   return html

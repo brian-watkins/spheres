@@ -1,9 +1,9 @@
 import { container, Container, State } from "@spheres/store";
 import { HTMLView } from "@src/index";
 import { behavior, effect, example, fact, step } from "esbehavior";
-import { expect, is } from "great-expectations";
+import { expect, is, resolvesTo } from "great-expectations";
 import { selectElement, selectElements } from "helpers/displayElement";
-import { renderContext } from "helpers/renderContext";
+import { RenderApp, renderContext } from "helpers/renderContext";
 
 interface ListContext {
   items: Container<Array<string>>
@@ -135,9 +135,62 @@ export default behavior("list effects", [
           expect(className, is("style-dog"))
         })
       ]
-    })
+    }),
+
+  listOfSwitchExample("client rendered", (context, view) => context.mountView(view)),
+  listOfSwitchExample("server rendered", (context, view) => context.ssrAndActivate(view))
 
 ])
+
+function itemToggle(id: number): Container<boolean> {
+  return container({ initialValue: true, id: `toggle-${id}` })
+}
+
+function listOfSwitchExample(name: string, renderer: (context: RenderApp<ListContext>, view: HTMLView) => void) {
+  return example(renderContext<ListContext>())
+    .description(`list with switch views at root (${name})`)
+    .script({
+      suppose: [
+        fact("there is a list of strings", (context) => {
+          context.setState({
+            items: container({ initialValue: ["one", "two", "three"] })
+          })
+        }),
+        fact("there is a view with a list where items are switch views", (context) => {
+          function itemView(item: State<string>, index: State<number>): HTMLView {
+            return root => {
+              root.zoneWhich(get => get(itemToggle(get(index))) ? "view" : undefined, {
+                view: root => {
+                  root.div(el => {
+                    el.children
+                      .h4(el => {
+                        el.children.textNode(get => `${get(item)} (${get(index)})`)
+                      })
+                  })
+                }
+              })
+            }
+          }
+
+          renderer(context, root => {
+            root.main(el => {
+              el.children.zones(get => get(context.state.items), itemView)
+            })
+          })
+        })
+      ],
+      observe: [
+        effect("it renders the list", async () => {
+          await expect(selectElements("h4").map(el => el.text()), resolvesTo([
+            "one (0)",
+            "two (1)",
+            "three (2)",
+          ]))
+        })
+      ]
+    })
+}
+
 
 function liView(item: State<string>): HTMLView {
   return (root) => {

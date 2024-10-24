@@ -8,8 +8,14 @@ export default function(root: HTMLBuilder) {
       .h1(el => el.children.textNode("This is the click counter!"))
       .zone(counterIsland)
       .hr()
-      .zone(tallyIsland)
+      .div(el => {
+        el.config.dataAttribute("tally")
+        el.children.zone(tallyIsland)
+      })
       .hr()
-      .zone(tallyIsland)
+      .div(el => {
+        el.config.dataAttribute("tally")
+        el.children.zone(tallyIsland)
+      })
   })
 }

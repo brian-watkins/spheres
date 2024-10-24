@@ -1,13 +1,15 @@
 import { Store } from "../../store/index.js";
-import { DOMEvent, EventsToDelegate, RenderResult, spheresTemplateData, Zone } from "./render.js";
+import { DOMEvent, EventsToDelegate, RenderResult, Zone } from "./render.js";
 import { NodeType, StoreEventHandler, VirtualNode } from "./virtualNode.js";
 import { UpdateTextEffect } from "./effects/textEffect.js";
 import { UpdateAttributeEffect } from "./effects/attributeEffect.js";
 import { UpdatePropertyEffect } from "./effects/propertyEffect.js";
 import { ListEffect } from "./effects/listEffect.js";
-import { IdentifierGenerator } from "./idGenerator.js";
+import { IdSequence } from "./idSequence.js";
 import { SwitchViewEffect } from "./effects/switchViewEffect.js";
 import { getDOMTemplate } from "./template.js";
+import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementId, listEndIndicator, listStartIndicator, switchEndIndicator, switchStartIndicator } from "./fragmentHelpers.js";
+import { getEventAttribute, getNearestElementHandlingEvent, setEventAttribute, setNearestTemplateArgs } from "./eventHelpers.js";
 
 export class DOMRoot implements Zone, RenderResult {
   private activeDocumentEvents = new Set<string>()
@@ -24,7 +26,7 @@ export class DOMRoot implements Zone, RenderResult {
 
   mount(vnode: VirtualNode) {
     this.clearRoot()
-    this.root.appendChild(createNode(this, new IdentifierGenerator(), vnode))
+    this.root.appendChild(createNode(this, new IdSequence(), vnode))
   }
 
   activate(vnode: VirtualNode) {
@@ -51,18 +53,16 @@ export class DOMRoot implements Zone, RenderResult {
   private createEventListener(eventType: string) {
     return (evt: Event) => {
       const targetElement = evt.target as Element
-      const node = targetElement.closest(`[data-spheres-${eventType}]`) as Element
-      if (node) {
-        const elementId = node.getAttribute(`data-spheres-${eventType}`)!
+      const element = getNearestElementHandlingEvent(targetElement, eventType)
+      if (element) {
+        const elementId = getEventAttribute(element, eventType)
         const domEvent = this.events.get(`${eventType}-${elementId}`)
         switch (domEvent?.location) {
           case "element":
             this.store.dispatch(domEvent.handler(evt))
             break
           case "template":
-            const root = node.closest(`[data-spheres-template]`)!
-            //@ts-ignore
-            root[spheresTemplateData]?.()
+            setNearestTemplateArgs(element)
             this.store.dispatch(domEvent.handler(evt))
             break
         }
@@ -77,7 +77,7 @@ export class DOMRoot implements Zone, RenderResult {
   }
 }
 
-export function createNode(zone: Zone, idGenerator: IdentifierGenerator, vnode: VirtualNode): Node {
+export function createNode(zone: Zone, idSequence: IdSequence, vnode: VirtualNode): Node {
   switch (vnode.type) {
 
     case NodeType.TEXT:
@@ -91,18 +91,26 @@ export function createNode(zone: Zone, idGenerator: IdentifierGenerator, vnode: 
     }
 
     case NodeType.STATEFUL_SWITCH: {
-      const query = new SwitchViewEffect(zone, vnode, idGenerator.next, undefined, undefined, { node: undefined }, getDOMTemplate)
+      vnode.id = idSequence.next
+      const fragment = document.createDocumentFragment()
+      let startNode = document.createComment(switchStartIndicator(vnode.id))
+      let endNode = document.createComment(switchEndIndicator(vnode.id))
+      fragment.appendChild(startNode)
+      fragment.appendChild(endNode)
+
+      const query = new SwitchViewEffect(zone, vnode, idSequence.next, startNode, endNode, undefined, undefined, getDOMTemplate)
       zone.store.useEffect(query)
-      return query.node
+      return fragment
     }
 
     case NodeType.STATEFUL_LIST:
-      vnode.id = idGenerator.next
-      const listStartNode = document.createComment(`list-start-${vnode.id}`)
-      const listEndNode = document.createComment('list-end')
+      vnode.id = idSequence.next
+      const listStartNode = document.createComment(listStartIndicator(vnode.id))
+      const listEndNode = document.createComment(listEndIndicator(vnode.id))
       const parentFrag = document.createDocumentFragment()
       parentFrag.appendChild(listStartNode)
       parentFrag.appendChild(listEndNode)
+
       const effect = new ListEffect(zone, vnode, vnode.template, listStartNode, listEndNode, getDOMTemplate)
       zone.store.useEffect(effect)
       return parentFrag
@@ -140,10 +148,10 @@ export function createNode(zone: Zone, idGenerator: IdentifierGenerator, vnode: 
       }
 
       const events = vnode.data.on
-      const elementId = idGenerator.next
+      const elementId = idSequence.next
       for (const k in events) {
         if (EventsToDelegate.has(k)) {
-          element.setAttribute(`data-spheres-${k}`, elementId)
+          setEventAttribute(element, k, elementId)
           zone.addEvent("element", elementId, k, events[k])
         } else {
           const handler = events[k]
@@ -154,41 +162,41 @@ export function createNode(zone: Zone, idGenerator: IdentifierGenerator, vnode: 
       }
 
       for (var i = 0; i < vnode.children.length; i++) {
-        vnode.children[i].node = element.appendChild(createNode(zone, idGenerator, vnode.children[i]))
+        element.appendChild(createNode(zone, idSequence, vnode.children[i]))
       }
 
       return element
   }
 }
 
-function activateEffects(zone: Zone, vnode: VirtualNode, node: Node) {
+function activateEffects(zone: Zone, vnode: VirtualNode, node: Node): Node {
   switch (vnode.type) {
     case NodeType.STATEFUL_TEXT: {
       const effect = new UpdateTextEffect(node as Text, vnode.generator, undefined, undefined)
       zone.store.useEffect(effect)
-      break
+      return node
     }
 
     case NodeType.STATEFUL_LIST: {
-      const startNode = node
-      vnode.id = startNode.nodeValue!.substring(11)
-      let end = node.nextSibling
-      while (end && end.nodeValue !== `list-end`) {
-        end = end.nextSibling
-      }
+      vnode.id = getListElementId(node)
+      let end = findListEndNode(node, vnode.id)
 
-      const effect = new ListEffect(zone, vnode, vnode.template, startNode, end!, getDOMTemplate)
+      const effect = new ListEffect(zone, vnode, vnode.template, node, end, getDOMTemplate)
       zone.store.useEffect(effect)
-      break
+      return end
     }
 
     case NodeType.STATEFUL_SWITCH: {
-      const effect = new SwitchViewEffect(zone, vnode, "not done yet", undefined, undefined, { node }, getDOMTemplate)
+      vnode.id = getSwitchElementId(node)
+      let end = findSwitchEndNode(node, vnode.id)
+
+      const effect = new SwitchViewEffect(zone, vnode, vnode.id, node, end, undefined, undefined, getDOMTemplate)
       zone.store.useEffect(effect)
-      break
+
+      return end
     }
 
-    case NodeType.ELEMENT:
+    case NodeType.ELEMENT: {
       const element = node as HTMLElement
 
       const statefulAttrs = vnode.data.statefulAttrs
@@ -210,7 +218,7 @@ function activateEffects(zone: Zone, vnode: VirtualNode, node: Node) {
       const elementEvents = vnode.data.on
       for (const k in elementEvents) {
         if (EventsToDelegate.has(k)) {
-          const elementId = element.getAttribute(`data-spheres-${k}`)!
+          const elementId = getEventAttribute(element, k)
           zone.addEvent("element", elementId, k, elementEvents[k])
         } else {
           const handler = elementEvents[k]
@@ -220,10 +228,18 @@ function activateEffects(zone: Zone, vnode: VirtualNode, node: Node) {
         }
       }
 
+      let childNode = element.firstChild
       for (var i = 0; i < vnode.children.length; i++) {
-        activateEffects(zone, vnode.children[i], element.childNodes.item(i))
+        const lastChild = activateEffects(zone, vnode.children[i], childNode!)
+        childNode = lastChild.nextSibling
       }
-      break
+      
+      return node
+    }
+
+    default: {
+      return node
+    }
   }
 }
 

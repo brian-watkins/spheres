@@ -1,5 +1,5 @@
 import { Store } from "../../store/index.js"
-import { IdentifierGenerator } from "./idGenerator.js"
+import { IdSequence } from "./idSequence.js"
 import { StoreEventHandler, VirtualNode, VirtualTemplate } from "./virtualNode.js"
 
 export type StringRenderer = (node: VirtualNode) => string
@@ -19,21 +19,18 @@ export interface RenderResult {
   unmount: () => void
 }
 
-export type GetDOMTemplate = (zone: Zone, idGenerator: IdentifierGenerator, virtualTemplate: VirtualTemplate<any>) => DOMTemplate
+export type GetDOMTemplate = (zone: Zone, idSequence: IdSequence, virtualTemplate: VirtualTemplate<any>) => DOMTemplate
 
 export interface ArgsController {
   setArgs(args: any): void
 }
 
-export interface NodeReference {
-  node: Node | undefined
-}
-
 export interface EffectTemplate {
-  attach(zone: Zone, root: Node, argsController: ArgsController, args: any, nodeReference?: NodeReference): void
+  attach(zone: Zone, root: Node, argsController: ArgsController, args: any): void
 }
 
 export interface DOMTemplate {
+  isFragment: boolean
   element: HTMLTemplateElement
   effects: Array<EffectTemplate>
 }

@@ -7,6 +7,9 @@ export default function (root: HTMLBuilder) {
     el.children
       .h1(el => el.children.textNode("This is a click counter!"))
       .zone(counterIsland)
-      .zone(tallyIsland)
+      .div(el => {
+        el.config.dataAttribute("tally")
+        el.children.zone(tallyIsland)
+      })
   })
 }

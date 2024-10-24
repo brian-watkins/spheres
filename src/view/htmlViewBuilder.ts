@@ -8,7 +8,7 @@ import { buildSvgElement } from "./svgViewBuilder.js"
 import { stringifyVirtualNode } from "./vdom/renderToString.js"
 import { DOMRoot } from "./vdom/renderToDom.js"
 import { RenderResult } from "./vdom/render.js"
-import { IdentifierGenerator } from "./vdom/idGenerator.js"
+import { IdSequence } from "./vdom/idSequence.js"
 export type { RenderResult } from "./vdom/render.js"
 
 export function activateView(store: Store, element: Element, view: HTMLView) {
@@ -34,7 +34,7 @@ export function renderToDOM(store: Store, element: Element, view: HTMLView): Ren
 export function renderToString(store: Store, view: HTMLView): string {
   const builder = new HtmlViewBuilder()
   builder.zone(view)
-  return stringifyVirtualNode(store, new IdentifierGenerator(), builder.toVirtualNode())
+  return stringifyVirtualNode(store, new IdSequence(), builder.toVirtualNode())
 }
 
 

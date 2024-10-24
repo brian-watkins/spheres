@@ -19,13 +19,11 @@ export enum NodeType {
 export interface TextNode {
   type: NodeType.TEXT
   value: string
-  node: Node | undefined
 }
 
 export interface StatefulTextNode {
   type: NodeType.STATEFUL_TEXT
   generator: Stateful<string>
-  node: Node | undefined
 }
 
 export type VirtualNodeKey = string | number | State<any>
@@ -35,14 +33,13 @@ export interface ElementNode {
   tag: string
   data: VirtualNodeConfig
   children: Array<VirtualNode>
-  node: Element | undefined
 }
 
 export interface StatefulSwitchNode {
   type: NodeType.STATEFUL_SWITCH
+  id?: string
   selector: (get: GetState) => any
   views: { [key: string]: VirtualTemplate<any> }
-  node: Node | undefined
 }
 
 export interface StatefulListNode {
@@ -50,7 +47,6 @@ export interface StatefulListNode {
   id?: string
   template: VirtualListItemTemplate<any>
   query: (get: GetState) => Array<any>
-  node: Node | undefined
 }
 
 export type VirtualNode = TextNode | StatefulTextNode | ElementNode | StatefulSwitchNode | StatefulListNode
@@ -122,35 +118,31 @@ export function makeStatefulSwitch(selector: (get: GetState) => any, views: { [k
     type: NodeType.STATEFUL_SWITCH,
     selector,
     views,
-    node: undefined
   }
 }
 
-export function makeVirtualElement(tag: string, config: VirtualNodeConfig, children: Array<VirtualNode>, node?: Element): ElementNode {
+export function makeVirtualElement(tag: string, config: VirtualNodeConfig, children: Array<VirtualNode>): ElementNode {
   const element: ElementNode = {
     type: NodeType.ELEMENT,
     tag,
     data: config,
     children,
-    node
   }
 
   return element
 }
 
-export function makeVirtualTextNode(text: string, node?: Node): TextNode {
+export function makeVirtualTextNode(text: string): TextNode {
   return {
     type: NodeType.TEXT,
     value: text,
-    node
   }
 }
 
-export function makeStatefulTextNode(generator: Stateful<string>, node?: Node): StatefulTextNode {
+export function makeStatefulTextNode(generator: Stateful<string>): StatefulTextNode {
   return {
     type: NodeType.STATEFUL_TEXT,
     generator,
-    node
   }
 }
 
@@ -159,7 +151,6 @@ export abstract class VirtualTemplate<T> {
   
   protected setVirtualNode(vnode: VirtualNode) {
     switch (vnode.type) {
-      // hmm ... what if it's not an element but a stateful list or switch?
       case NodeType.ELEMENT:
         addAttribute(vnode.data, "data-spheres-template", "")
     }
@@ -198,6 +189,5 @@ export function makeZoneList<T>(virtualTemplate: VirtualListItemTemplate<T>, arg
     type: NodeType.STATEFUL_LIST,
     template: virtualTemplate,
     query: argList,
-    node: undefined
   }
 }

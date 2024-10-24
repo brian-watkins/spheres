@@ -4,22 +4,25 @@ import { ListEffect } from "./effects/listEffect"
 import { UpdatePropertyEffect } from "./effects/propertyEffect"
 import { SwitchViewEffect } from "./effects/switchViewEffect"
 import { UpdateTextEffect } from "./effects/textEffect"
-import { IdentifierGenerator } from "./idGenerator"
-import { ArgsController, DOMTemplate, EffectTemplate, EventsToDelegate, NodeReference, Zone } from "./render"
+import { setEventAttribute } from "./eventHelpers"
+import { findListEndNode, findSwitchEndNode, listEndIndicator, listStartIndicator, switchEndIndicator, switchStartIndicator } from "./fragmentHelpers"
+import { IdSequence } from "./idSequence"
+import { ArgsController, DOMTemplate, EffectTemplate, EventsToDelegate, Zone } from "./render"
 import { NodeType, Stateful, StatefulListNode, StatefulSwitchNode, StoreEventHandler, VirtualNode, VirtualTemplate } from "./virtualNode"
 
 const templateRegistry = new WeakMap<VirtualTemplate<any>, DOMTemplate>()
 
-export function getDOMTemplate(zone: Zone, idGenerator: IdentifierGenerator, virtualTemplate: VirtualTemplate<any>): DOMTemplate {
+export function getDOMTemplate(zone: Zone, idSequence: IdSequence, virtualTemplate: VirtualTemplate<any>): DOMTemplate {
   let template = templateRegistry.get(virtualTemplate)
 
   if (template === undefined) {
     const virtualNode = virtualTemplate.virtualNode
 
     const element = document.createElement("template")
-    element.content.appendChild(createTemplateNode(zone, idGenerator, virtualNode))
+    element.content.appendChild(createTemplateNode(zone, idSequence, virtualNode))
 
     template = {
+      isFragment: virtualNode.type === NodeType.STATEFUL_LIST || virtualNode.type === NodeType.STATEFUL_SWITCH,
       element,
       effects: findEffectLocations(virtualNode, new EffectLocation((root) => root)),
     }
@@ -52,7 +55,6 @@ class PropertyEffectTemplate implements EffectTemplate {
   constructor(private generator: Stateful<string>, private property: string, private location: EffectLocation) { }
 
   attach(zone: Zone, root: Node, argsConroller: ArgsController, args: any) {
-    // Need to write a test with nested ArgsController!
     const effect = new UpdatePropertyEffect(this.location.findNode(root) as Element, this.property, this.generator, argsConroller, args)
     zone.store.useEffect(effect)
   }
@@ -61,10 +63,11 @@ class PropertyEffectTemplate implements EffectTemplate {
 class StatefulSwitchEffectTemplate implements EffectTemplate {
   constructor(private vnode: StatefulSwitchNode, private location: EffectLocation) { }
 
-  attach(zone: Zone, root: Node, argsController: ArgsController, args: any, nodeReference: NodeReference): void {
-    nodeReference!.node = this.location.findNode(root)
-    // NOTE: Not done yet!
-    const effect = new SwitchViewEffect(zone, this.vnode, "not done yet", argsController, args, nodeReference, getDOMTemplate)
+  attach(zone: Zone, root: Node, argsController: ArgsController, args: any): void {
+    const startNode = this.location.findNode(root)
+    const endNode = findSwitchEndNode(startNode, this.vnode.id!)
+
+    const effect = new SwitchViewEffect(zone, this.vnode, this.vnode.id!, startNode, endNode, argsController, args, getDOMTemplate)
     zone.store.useEffect(effect)
   }
 }
@@ -73,8 +76,8 @@ class ListEffectTemplate implements EffectTemplate {
   constructor(private vnode: StatefulListNode, private location: EffectLocation) { }
 
   attach(zone: Zone, root: Node, argsController: ArgsController, args: any) {
-    const listStartIndicatorNode = this.location.findNode(root)
-    let end = listStartIndicatorNode.nextSibling!
+    const listStartIndicatorNode = this.location.findNode(root)    
+    const end = findListEndNode(listStartIndicatorNode, this.vnode.id!)
 
     const template = this.vnode.template
 
@@ -111,12 +114,13 @@ function findEffectLocations(vnode: VirtualNode, location: EffectLocation): Arra
     case NodeType.STATEFUL_TEXT:
       return [new TextEffectTemplate(vnode.generator, location)]
 
-    case NodeType.STATEFUL_SWITCH:
+    case NodeType.STATEFUL_SWITCH: {
       return [new StatefulSwitchEffectTemplate(vnode, location)]
+    }
 
-    case NodeType.STATEFUL_LIST:
-      const markerLocation = location.nextCommentSiblingMatching(`list-start-${vnode.id}`)
-      return [new ListEffectTemplate(vnode, markerLocation)]
+    case NodeType.STATEFUL_LIST: {
+      return [new ListEffectTemplate(vnode, location)]
+    }
 
     case NodeType.ELEMENT:
       let effects: Array<EffectTemplate> = []
@@ -138,16 +142,27 @@ function findEffectLocations(vnode: VirtualNode, location: EffectLocation): Arra
         }
       }
 
+      let lastChild: VirtualNode | undefined
       for (var i = 0; i < vnode.children.length; i++) {
-        location = i === 0 ? location.firstChild() : location.nextSibling()
+        if (i === 0) {
+          location = location.firstChild()
+        } else if (lastChild && lastChild.type === NodeType.STATEFUL_SWITCH) {
+          location = location.nextCommentSiblingMatching(switchEndIndicator(lastChild.id!)).nextSibling()
+        } else if (lastChild && lastChild.type === NodeType.STATEFUL_LIST) {
+          location = location.nextCommentSiblingMatching(listEndIndicator(lastChild.id!)).nextSibling()
+        } else {
+          location = location.nextSibling()
+        }
+
         effects = effects.concat(findEffectLocations(vnode.children[i], location))
+        lastChild = vnode.children[i]
       }
 
       return effects
   }
 }
 
-function createTemplateNode(zone: Zone, idGenerator: IdentifierGenerator, vnode: VirtualNode): Node {
+function createTemplateNode(zone: Zone, idSequence: IdSequence, vnode: VirtualNode): Node {
   switch (vnode.type) {
     case NodeType.TEXT:
       return document.createTextNode(vnode.value)
@@ -157,14 +172,18 @@ function createTemplateNode(zone: Zone, idGenerator: IdentifierGenerator, vnode:
     }
 
     case NodeType.STATEFUL_SWITCH: {
-      return document.createElement("stateful-view")
+      vnode.id = idSequence.next
+      const fragment = document.createDocumentFragment()
+      fragment.appendChild(document.createComment(switchStartIndicator(vnode.id)))
+      fragment.appendChild(document.createComment(switchEndIndicator(vnode.id)))
+      return fragment
     }
 
     case NodeType.STATEFUL_LIST:
-      vnode.id = idGenerator.next
+      vnode.id = idSequence.next
       const fragment = document.createDocumentFragment()
-      fragment.appendChild(document.createComment(`list-start-${vnode.id}`))
-      fragment.appendChild(document.createComment('list-end'))
+      fragment.appendChild(document.createComment(listStartIndicator(vnode.id)))
+      fragment.appendChild(document.createComment(listEndIndicator(vnode.id)))
       return fragment
 
     default:
@@ -178,10 +197,10 @@ function createTemplateNode(zone: Zone, idGenerator: IdentifierGenerator, vnode:
       }
 
       const events = vnode.data.on
-      const elementId = idGenerator.next
+      const elementId = idSequence.next
       for (const k in events) {
         if (EventsToDelegate.has(k)) {
-          element.setAttribute(`data-spheres-${k}`, elementId)
+          setEventAttribute(element, k, elementId)
           zone.addEvent("template", elementId, k, events[k])
         }
       }
@@ -193,7 +212,7 @@ function createTemplateNode(zone: Zone, idGenerator: IdentifierGenerator, vnode:
       }
 
       for (var i = 0; i < vnode.children.length; i++) {
-        vnode.children[i].node = element.appendChild(createTemplateNode(zone, idGenerator, vnode.children[i]))
+        element.appendChild(createTemplateNode(zone, idSequence, vnode.children[i]))
       }
 
       return element

@@ -125,15 +125,28 @@ export default behavior("show and hide zone", [
       perform: [
         step("delete one of the items", async (context) => {
           await context.display.select("[data-delete-button='fun']").click()
+        }),
+        step("delete another item", async (context) => {
+          await context.display.select("[data-delete-button='awesome']").click()
         })
       ],
       observe: [
-        effect("the event is handled correctly and the item is removed", async (context) => {
+        effect("the event is handled correctly and the items are removed", async (context) => {
           await expect(context.display.selectAll("[data-toggleable-view]").map(el => el.text()), resolvesTo([
             "You are cool!",
-            "You are awesome!",
             "You are great!"
           ]))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("toggle the views", async (context) => {
+          await context.display.select("[data-toggle-button]").click()
+        })
+      ],
+      observe: [
+        effect("the toggleable views are hidden", async (context) => {
+          await expect(context.display.selectAll("[data-toggleable-view]").count(), resolvesTo(0))
         })
       ]
     })

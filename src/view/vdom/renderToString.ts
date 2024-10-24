@@ -1,21 +1,22 @@
 import { container, GetState, ReactiveEffect, Store } from "../../store/index.js";
-import { IdentifierGenerator } from "./idGenerator.js";
+import { listEndIndicator, listStartIndicator, switchEndIndicator, switchStartIndicator } from "./fragmentHelpers.js";
+import { IdSequence } from "./idSequence.js";
 import { EventsToDelegate } from "./render.js";
 import { ElementNode, NodeType, StatefulTextNode, TextNode, VirtualNode, StatefulListNode, StatefulSwitchNode } from "./virtualNode.js";
 
 
-export function stringifyVirtualNode(store: Store, idGenerator: IdentifierGenerator, vnode: VirtualNode): string {
+export function stringifyVirtualNode(store: Store, idSequence: IdSequence, vnode: VirtualNode): string {
   switch (vnode.type) {
     case NodeType.ELEMENT:
-      return stringifyElement(store, idGenerator, vnode)
+      return stringifyElement(store, idSequence, vnode)
     case NodeType.TEXT:
       return stringifyTextNode(vnode)
     case NodeType.STATEFUL_TEXT:
       return stringifyReactiveText(store, vnode)
     case NodeType.STATEFUL_SWITCH:
-      return stringifyStatefulSwitch(store, idGenerator, vnode)
+      return stringifyStatefulSwitch(store, idSequence, vnode)
     case NodeType.STATEFUL_LIST:
-      return stringifyViewList(store, idGenerator, vnode)
+      return stringifyViewList(store, idSequence, vnode)
   }
 }
 
@@ -24,7 +25,7 @@ function stringifyTextNode(node: TextNode): string {
   return node.value.replace(/"/g, "&quot;")
 }
 
-function stringifyElement(store: Store, idGenerator: IdentifierGenerator, node: ElementNode): string {
+function stringifyElement(store: Store, idSequence: IdSequence, node: ElementNode): string {
   const attributes = node.data.attrs
   const statefulAttributes = node.data.statefulAttrs ?? {}
 
@@ -36,10 +37,10 @@ function stringifyElement(store: Store, idGenerator: IdentifierGenerator, node: 
     statefulAttributes["class"] = node.data.statefulProps.className
   }
 
-  const eventId = idGenerator.next
+  const elementId = idSequence.next
   for (const k in node.data.on) {
     if (EventsToDelegate.has(k)) {
-      attributes[`data-spheres-${k}`] = eventId
+      attributes[`data-spheres-${k}`] = elementId
     }
   }
 
@@ -60,7 +61,7 @@ function stringifyElement(store: Store, idGenerator: IdentifierGenerator, node: 
     return `<${node.tag}${attrs} />`
   }
 
-  const children = node.children.map(child => stringifyVirtualNode(store, idGenerator, child))
+  const children = node.children.map(child => stringifyVirtualNode(store, idSequence, child))
 
   return `<${node.tag}${attrs}>${children.join("")}</${node.tag}>`
 }
@@ -75,15 +76,19 @@ class GetValueQuery<M> implements ReactiveEffect {
   }
 }
 
-function stringifyStatefulSwitch(store: Store, idGenerator: IdentifierGenerator, node: StatefulSwitchNode): string {
+function stringifyStatefulSwitch(store: Store, idSequence: IdSequence, node: StatefulSwitchNode): string {
   const selector = new GetValueQuery(node.selector)
   store.useEffect(selector)
 
-  const eventId = idGenerator.next
+  const elementId = idSequence.next
 
   // Note: need to handle the case where the selector returns undefined
 
-  return stringifyVirtualNode(store, new IdentifierGenerator(eventId), node.views[selector.value].virtualNode)
+  let html = `<!--${switchStartIndicator(elementId)}-->`
+  html += stringifyVirtualNode(store, new IdSequence(elementId), node.views[selector.value].virtualNode)
+  html += `<!--${switchEndIndicator(elementId)}-->` 
+
+  return html
 }
 
 function stringifyReactiveText(store: Store, node: StatefulTextNode): string {
@@ -93,19 +98,18 @@ function stringifyReactiveText(store: Store, node: StatefulTextNode): string {
   return stringifyTextNode({
     type: NodeType.TEXT,
     value: query.value ?? "",
-    node: undefined
   })
 }
 
-function stringifyViewList(store: Store, idGenerator: IdentifierGenerator, node: StatefulListNode): string {
+function stringifyViewList(store: Store, idSequence: IdSequence, node: StatefulListNode): string {
   const query = new GetValueQuery(node.query)
   store.useEffect(query)
 
   const data = query.value
 
-  const eventId = idGenerator.next
+  const elementId = idSequence.next
 
-  let html = `<!--list-start-${eventId}-->`
+  let html = `<!--${listStartIndicator(elementId)}-->`
   for (let i = 0; i < data.length; i++) {
     if (node.template.usesIndex) {
       node.template.setArgs({ item: data[i], index: container({ initialValue: i }) })
@@ -113,9 +117,9 @@ function stringifyViewList(store: Store, idGenerator: IdentifierGenerator, node:
       node.template.setArgs(data[i])
     }
 
-    html += stringifyVirtualNode(store, new IdentifierGenerator(eventId), node.template.virtualNode)
+    html += stringifyVirtualNode(store, new IdSequence(elementId), node.template.virtualNode)
   }
-  html += `<!--list-end-->`
+  html += `<!--${listEndIndicator(elementId)}-->`
 
   return html
 }

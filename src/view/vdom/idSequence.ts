@@ -1,4 +1,4 @@
-export class IdentifierGenerator {
+export class IdSequence {
   private val: number = 0
 
   constructor(private prefix: string = "0") { }

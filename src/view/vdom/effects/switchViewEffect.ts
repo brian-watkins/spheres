@@ -1,6 +1,6 @@
 import { GetState, ReactiveEffect } from "../../../store";
-import { IdentifierGenerator } from "../idGenerator";
-import { ArgsController, GetDOMTemplate, NodeReference, Zone } from "../render";
+import { IdSequence } from "../idSequence";
+import { ArgsController, GetDOMTemplate, Zone } from "../render";
 import { StatefulSwitchNode, VirtualTemplate } from "../virtualNode";
 import { TemplateEffect } from "./templateEffect";
 
@@ -10,46 +10,54 @@ export class SwitchViewEffect extends TemplateEffect implements ReactiveEffect {
     zone: Zone,
     private vnode: StatefulSwitchNode,
     private id: string,
+    public startNode: Node,
+    public endNode: Node,
     private argsController: ArgsController | undefined,
     private args: any,
-    private nodeReference: NodeReference,
     private getDOMTemplate: GetDOMTemplate
   ) {
     super(zone)
   }
 
-  get node(): Node {
-    return this.nodeReference.node!
-  }
-
   init(get: GetState): void {
+    // NOTE -- if we are activating then we recreate the view here
+    // Maybe we should just try to activate it instead? Like we do with a list?
+
     this.switchView(get)
   }
 
   run(get: GetState): void {
-    if (!this.node.isConnected) {
+    if (!this.startNode?.isConnected) {
       return
     }
+
     this.switchView(get)
   }
 
   private switchView(get: GetState): void {
     const key = this.vnode.selector(get)
-    let node
-    if (key === undefined) {
-      node = document.createTextNode("")
-    } else {
-      const template = this.vnode.views[key]
-      const domTemplate = this.getDOMTemplate(this.zone, new IdentifierGenerator(`${this.id}.${key}`), template)
-      const nextArgsController = this.getNextArgsController(template)
-      node = this.renderTemplateInstance(domTemplate, nextArgsController, undefined, this.nodeReference)
-    }
-
-    if (this.nodeReference.node) {
-      this.node.parentNode!.replaceChild(node, this.node)
-    }
     
-    this.nodeReference.node = node
+    const node = key === undefined ? 
+      document.createTextNode("") : 
+      this.getNodeForViewWithKey(key)
+
+    this.clearView()
+
+    this.startNode.parentNode?.insertBefore(node, this.endNode!)
+  }
+
+  private getNodeForViewWithKey(key: string): Node {
+    const template = this.vnode.views[key]
+    const domTemplate = this.getDOMTemplate(this.zone, new IdSequence(`${this.id}.${key}`), template)
+    const nextArgsController = this.getNextArgsController(template)
+    return this.renderTemplateInstance(domTemplate, nextArgsController, undefined)
+  }
+
+  private clearView() {
+    const range = new Range()
+    range.setStartAfter(this.startNode!)
+    range.setEndBefore(this.endNode!)
+    range.deleteContents()
   }
 
   private getNextArgsController(template: VirtualTemplate<any>): ArgsController {

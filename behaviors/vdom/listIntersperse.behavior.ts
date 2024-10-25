@@ -193,7 +193,10 @@ export default behavior("lists interspersed among other children", [
   nestedListsExample("server rendered", (context, view) => context.ssrAndActivate(view)),
 
   listOfListExample("client rendered", (context, view) => context.mountView(view)),
-  listOfListExample("server rendered", (context, view) => context.ssrAndActivate(view))
+  listOfListExample("server rendered", (context, view) => context.ssrAndActivate(view)),
+
+  nestedListSelectorExample("client rendered", (context, view) => context.mountView(view)),
+  nestedListSelectorExample("server rendered", (context, view) => context.ssrAndActivate(view))
 
 ])
 
@@ -283,6 +286,85 @@ function nestedListsExample(name: string, renderer: (context: RenderApp<NestedLi
         })
       ]
     })
+}
+
+interface NestedListSelectorState {
+  mainList: Container<Array<string>>
+}
+
+function nestedListData(id: string): Container<Array<string>> {
+  return container({ initialValue: [], id })
+}
+
+function nestedListSelectorExample(name: string, renderer: (context: RenderApp<NestedListSelectorState>, view: HTMLView) => void) {
+    return example(renderContext<NestedListSelectorState>())
+      .description(`nested lists selector (${name})`)
+      .script({
+        suppose: [
+          fact("there is stateful list data", (context) => {
+            context.setState({
+              mainList: container({ initialValue: ["one", "two", "three"] }),
+            })
+          }),
+          fact("for each main list item there is a sub list", (context) => {
+            context.writeTo(nestedListData("sub-one"), ["apple", "airline", "autumn"])
+            context.writeTo(nestedListData("sub-two"), ["basket", "beet", "berry"])
+            context.writeTo(nestedListData("sub-three"), ["cat", "column", "cataract"])
+          }),
+          fact("there is a view with nested list and nested selector", (context) => {
+            function simpleView(item: State<string>): (subItem: State<string>) => HTMLView {
+              return (subItem) => root => {
+                root.li(el => el.children.textNode(get => `${get(item)} => ${get(subItem)}`))
+              }
+            }
+            renderer(context, (root) => {
+              root.main(el => {
+                el.children
+                  .zones(get => get(context.state.mainList), (item, index) => {
+                    return (root) => {
+                      root.div(el => {
+                        el.children
+                          .h3(el => el.children.textNode(get => get(item)))
+                          .ul(el => {
+                            el.config
+                              .dataAttribute("sub-list", get => `${get(index)}`)
+                            el.children
+                              .zones(get => get(nestedListData(`sub-${get(item)}`)), simpleView(item))
+                          })
+                      })
+                    }
+                  })
+              })
+            })
+          })
+        ],
+        observe: [
+          effect("the lists are rendered", async () => {
+            const texts = await selectElements("li").map(el => el.text())
+            expect(texts, is([
+              "one => apple", "one => airline", "one => autumn",
+              "two => basket", "two => beet", "two => berry",
+              "three => cat", "three => column", "three => cataract"
+            ]))
+          })
+        ]
+      }).andThen({
+        perform: [
+          step("update a sublist state", (context) => {
+            context.writeTo(nestedListData("sub-two"), ["funny", "fair", "fabulous", "fascinating"])
+          })
+        ],
+        observe: [
+          effect("the sublist updates as expected", async () => {
+            const texts = await selectElements("li").map(el => el.text())
+            expect(texts, is([
+              "one => apple", "one => airline", "one => autumn",
+              "two => funny", "two => fair", "two => fabulous", "two => fascinating",
+              "three => cat", "three => column", "three => cataract"
+            ]))
+          })
+        ]
+      })
 }
 
 function siblingListsExample(name: string, renderer: (context: RenderApp<ListExamplesState>, view: HTMLView) => void) {

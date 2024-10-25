@@ -111,7 +111,7 @@ export function createNode(zone: Zone, idSequence: IdSequence, vnode: VirtualNod
       parentFrag.appendChild(listStartNode)
       parentFrag.appendChild(listEndNode)
 
-      const effect = new ListEffect(zone, vnode, vnode.template, listStartNode, listEndNode, getDOMTemplate)
+      const effect = new ListEffect(zone, vnode, undefined, undefined, listStartNode, listEndNode, getDOMTemplate)
       zone.store.useEffect(effect)
       return parentFrag
 
@@ -181,7 +181,7 @@ function activateEffects(zone: Zone, vnode: VirtualNode, node: Node): Node {
       vnode.id = getListElementId(node)
       let end = findListEndNode(node, vnode.id)
 
-      const effect = new ListEffect(zone, vnode, vnode.template, node, end, getDOMTemplate)
+      const effect = new ListEffect(zone, vnode, undefined, undefined, node, end, getDOMTemplate)
       zone.store.useEffect(effect)
       return end
     }
@@ -233,7 +233,7 @@ function activateEffects(zone: Zone, vnode: VirtualNode, node: Node): Node {
         const lastChild = activateEffects(zone, vnode.children[i], childNode!)
         childNode = lastChild.nextSibling
       }
-      
+
       return node
     }
 
@@ -242,4 +242,3 @@ function activateEffects(zone: Zone, vnode: VirtualNode, node: Node): Node {
     }
   }
 }
-

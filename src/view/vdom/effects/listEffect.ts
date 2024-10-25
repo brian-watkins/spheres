@@ -23,7 +23,8 @@ export class ListEffect extends TemplateEffect implements ReactiveEffect {
   constructor(
     zone: Zone,
     private listVnode: StatefulListNode,
-    private argsController: ArgsController,
+    private argsController: ArgsController | undefined,
+    private args: any,
     private listStart: Node,
     private listEnd: Node,
     getDomTemplate: GetDOMTemplate,
@@ -36,11 +37,12 @@ export class ListEffect extends TemplateEffect implements ReactiveEffect {
   }
 
   init(get: GetState) {
+    this.argsController?.setArgs(this.args)
     const data = this.listVnode.query(get)
 
     if (this.listStart.nextSibling !== this.listEnd) {
       // Note that this assumes the data is the same on the client
-      // as was on the server ... 
+      // as was on the server ...
       this.activateExistingItems(data)
     } else {
       const updatedList = data.map(buildListItem)
@@ -56,6 +58,8 @@ export class ListEffect extends TemplateEffect implements ReactiveEffect {
       const virtualItem = buildListItem(data[dataStart], dataStart)
       this.vnodes.push(virtualItem)
 
+      const argsController = this.argsController ?? this.listVnode.template
+
       let args
       if (this.usesIndex) {
         virtualItem.indexState = container({ initialValue: virtualItem.actualIndex! })
@@ -65,7 +69,7 @@ export class ListEffect extends TemplateEffect implements ReactiveEffect {
       }
 
       for (const effect of this.domTemplate.effects) {
-        effect.attach(this.zone, existingNode, this.argsController, args)
+        effect.attach(this.zone, existingNode, argsController, args)
       }
 
       switch (this.templateNodeType) {
@@ -84,7 +88,7 @@ export class ListEffect extends TemplateEffect implements ReactiveEffect {
         default: {
           virtualItem.node = existingNode
           // @ts-ignore
-          existingNode[spheresTemplateData] = () => this.argsController.setArgs(args)
+          existingNode[spheresTemplateData] = () => argsController.setArgs(args)
           existingNode = existingNode.nextSibling!
         }
       }
@@ -98,6 +102,7 @@ export class ListEffect extends TemplateEffect implements ReactiveEffect {
       return
     }
 
+    this.argsController?.setArgs(this.args)
     const updatedList = this.listVnode.query(get).map(buildListItem)
     this.patchList(updatedList)
     this.vnodes = updatedList
@@ -112,7 +117,7 @@ export class ListEffect extends TemplateEffect implements ReactiveEffect {
       args = vnode.key
     }
 
-    const node = this.renderTemplateInstance(this.domTemplate, this.argsController, args)
+    const node = this.renderTemplateInstance(this.domTemplate, this.argsController ?? this.listVnode.template, args)
 
     if (this.domTemplate.isFragment) {
       vnode.firstNode = node.firstChild!

@@ -76,7 +76,7 @@ class ListEffectTemplate implements EffectTemplate {
   constructor(private vnode: StatefulListNode, private location: EffectLocation) { }
 
   attach(zone: Zone, root: Node, argsController: ArgsController, args: any) {
-    const listStartIndicatorNode = this.location.findNode(root)    
+    const listStartIndicatorNode = this.location.findNode(root)
     const end = findListEndNode(listStartIndicatorNode, this.vnode.id!)
 
     const template = this.vnode.template
@@ -88,7 +88,7 @@ class ListEffectTemplate implements EffectTemplate {
       },
     }
 
-    const effect = new ListEffect(zone, this.vnode, nextArgsController, listStartIndicatorNode, end, getDOMTemplate)
+    const effect = new ListEffect(zone, this.vnode, nextArgsController, args, listStartIndicatorNode, end, getDOMTemplate)
     zone.store.useEffect(effect)
   }
 }

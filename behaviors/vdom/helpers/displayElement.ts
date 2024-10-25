@@ -23,6 +23,10 @@ export class DisplayElementList {
     return new DisplayElement(this.selector, index)
   }
 
+  async texts(): Promise<Array<string>> {
+    return this.map(el => el.text())
+  }
+
   async map<T>(handler: (element: DisplayElement) => Promise<T>): Promise<Array<T>> {
     const count = await this.count()
     const results: Array<T> = []

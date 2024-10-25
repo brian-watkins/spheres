@@ -35,10 +35,11 @@ export class SwitchViewEffect extends TemplateEffect implements ReactiveEffect {
   }
 
   private switchView(get: GetState): void {
+    this.argsController?.setArgs(this.args)
     const key = this.vnode.selector(get)
-    
-    const node = key === undefined ? 
-      document.createTextNode("") : 
+
+    const node = key === undefined ?
+      document.createTextNode("") :
       this.getNodeForViewWithKey(key)
 
     this.clearView()

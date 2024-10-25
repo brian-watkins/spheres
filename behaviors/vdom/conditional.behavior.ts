@@ -131,7 +131,10 @@ export default behavior("conditional zone", [
   siblingSwitchViewExample("server rendered", (context, view) => context.ssrAndActivate(view)),
 
   multipleSwitchFragmentsExample("client rendered", (context, view) => context.mountView(view)),
-  multipleSwitchFragmentsExample("server rendered", (context, view) => context.ssrAndActivate(view))
+  multipleSwitchFragmentsExample("server rendered", (context, view) => context.ssrAndActivate(view)),
+
+  nestedSwitchSelectorExample("client rendered", (context, view) => context.mountView(view)),
+  nestedSwitchSelectorExample("server rendered", (context, view) => context.ssrAndActivate(view))
 
 ])
 
@@ -528,6 +531,73 @@ function siblingSwitchViewExample(name: string, renderer: (context: RenderApp<Ne
             resolvesTo("first total: 2"))
           await expect(selectElement("[data-counter-text='second']").text(),
             resolvesTo("second total: 5"))
+        })
+      ]
+    })
+}
+
+type SwitchOptions = "fruit" | "fruits" | "sport" | "sports" | "book" | "books"
+
+interface NestedSwitchSelectorContext {
+  items: Container<Array<SwitchOptions>>
+  modifier: Container<string>
+}
+
+function nestedSwitchSelectorExample(name: string, renderer: (context: RenderApp<NestedSwitchSelectorContext>, view: HTMLView) => void) {
+  return example(renderContext<NestedSwitchSelectorContext>())
+    .description("nested switch with selector that uses parent args")
+    .script({
+      suppose: [
+        fact("there is state", (context) => {
+          context.setState({
+            items: container({ initialValue: [ "fruit", "sport", "book" ]}),
+            modifier: container({ initialValue: "" })
+          })
+        }),
+        fact("there is a nested switch that uses parent args", (context) => {
+          function itemView(item: State<SwitchOptions>): HTMLView {
+            return root => {
+              //@ts-ignore
+              root.zoneWhich(get => `${get(item)}${get(context.state.modifier)}`, {
+                fruit: (root) => { root.div(el => el.children.textNode("This is a fruit!")) },
+                fruits: (root) => { root.div(el => el.children.textNode("These are fruits!")) },
+                sport: (root) => { root.div(el => el.children.textNode("This is a sport!")) },
+                sports: (root) => { root.div(el => el.children.textNode("These are sports!")) },
+                book: (root) => { root.div(el => el.children.textNode("This is a book!")) },
+                books: (root) => { root.div(el => el.children.textNode("These are books!")) }
+              })
+            }
+          }
+
+          renderer(context, root => {
+            root.main(el => {
+              el.children.zones(get => get(context.state.items), itemView)
+            })
+          })
+        })
+      ],
+      observe: [
+        effect("it renders the default values", async () => {
+          await expect(selectElements("div").texts(), resolvesTo([
+            "This is a fruit!",
+            "This is a sport!",
+            "This is a book!"
+          ]))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("update a switch view", (context) => {
+          context.writeTo(context.state.modifier, "s")
+        })
+      ],
+      observe: [
+        effect("it updates the switch views", async () => {
+          await expect(selectElements("div").texts(), resolvesTo([
+            "These are fruits!",
+            "These are sports!",
+            "These are books!"
+          ]))
         })
       ]
     })

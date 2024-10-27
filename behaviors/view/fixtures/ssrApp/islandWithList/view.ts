@@ -5,9 +5,9 @@ import { Item, items } from "./item";
 export function view(root: HTMLBuilder) {
   root.main(el => {
     el.children
-      .zone(itemInput)
+      .subview(itemInput)
       .hr()
-      .zone(itemList)
+      .subview(itemList)
   })
 }
 
@@ -26,8 +26,8 @@ export function itemInput(root: HTMLBuilder) {
           .style("display: flex; flex-direction: column; gap: 10px;")
           .on("submit", (evt) => { evt.preventDefault(); return submitForm(new FormData(evt.target as HTMLFormElement)); })
         el.children
-          .zone(textField("item-name", "Name"))
-          .zone(textField("item-color", "Color"))
+          .subview(textField("item-name", "Name"))
+          .subview(textField("item-color", "Color"))
           .div(el => {
             el.children
               .button(el => {

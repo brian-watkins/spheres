@@ -14,7 +14,7 @@ export interface SVGViewSelector {
 export interface SpecialSVGElements {
   element(tag: string, builder?: (element: ConfigurableElement<SpecialElementAttributes, SVGElements>) => void): this
   textNode(value: string | Stateful<string>): this
-  zone(view: SVGView): this
+  subview(view: SVGView): this
   subviewOf(selectorGenerator: (selector: SVGViewSelector) => void): this
   zones<T>(data: (get: GetState) => Array<T>, viewGenerator: (item: State<T>, index: State<number>) => SVGView): this
 }
@@ -45,7 +45,7 @@ export function buildSvgElement(builder?: (element: ConfigurableElement<SpecialE
 }
 
 export class SvgViewBuilder extends ViewBuilder<SpecialElementAttributes, SVGElements> implements SpecialSVGElements {
-  zone(view: SVGView): this {
+  subview(view: SVGView): this {
     const builder = new SvgViewBuilder()
     view(builder as unknown as SVGBuilder)
     this.storeNode(builder.toVirtualNode())

@@ -9,11 +9,11 @@ export function view(root: HTMLBuilder) {
       .h1(el => {
         el.children.textNode(get => `This is ${get(nameState)}'s stuff!`)
       })
-      .zone(counterView)
+      .subview(counterView)
       .hr()
-      .zone(tallyView)
+      .subview(tallyView)
       .hr()
-      .zone(tallyView)
+      .subview(tallyView)
   })
 }
 

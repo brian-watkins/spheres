@@ -8,7 +8,7 @@ export function crud(root: HTMLBuilder) {
     config
       .class("m-4")
     children
-      .zone(filterInputView)
+      .subview(filterInputView)
       .div(({ config, children }) => {
         config
           .class(names([
@@ -17,8 +17,8 @@ export function crud(root: HTMLBuilder) {
             "my-4"
           ]))
         children
-          .zone(recordsView)
-          .zone(recordForm)
+          .subview(recordsView)
+          .subview(recordForm)
       })
       .div(({ config, children }) => {
         config
@@ -75,11 +75,11 @@ function recordForm(root: HTMLBuilder) {
         }
       })
     children
-      .zone(inputView({
+      .subview(inputView({
         label: "First Name:",
         name: "firstName"
       }))
-      .zone(inputView({
+      .subview(inputView({
         label: "Last Name:",
         name: "lastName"
       }))

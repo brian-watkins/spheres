@@ -30,7 +30,7 @@ export default function (root: HTMLBuilder) {
   root.div(el => {
     el.children
       .h1(el => el.children.textNode("This is only a test!"))
-      .zone(nameView)
+      .subview(nameView)
       .hr()
       .input(({ config }) => {
         config

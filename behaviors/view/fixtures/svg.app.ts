@@ -33,7 +33,7 @@ export default function (root: HTMLBuilder) {
               .r("80")
               .fill("green")
           })
-          .zone(circle)
+          .subview(circle)
       })
   })
 }

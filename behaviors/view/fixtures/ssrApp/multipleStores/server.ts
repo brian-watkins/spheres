@@ -13,11 +13,11 @@ function template(root: HTMLBuilder) {
     el.children
       .div(el => {
         el.config.id("fragment-a")
-        el.children.zone(viewGenerator)
+        el.children.subview(viewGenerator)
       })
       .div(el => {
         el.config.id("fragment-b")
-        el.children.zone(viewGenerator)
+        el.children.subview(viewGenerator)
       })
   })
 }

@@ -170,9 +170,9 @@ export default behavior("reactive dom effects", [
           context.mountView(root => {
             root.div(el => {
               el.children
-                .zone(funZone("Fun!"))
-                .zone(funZone("Awesome!"))
-                .zone(funZone("Great!"))
+                .subview(funZone("Fun!"))
+                .subview(funZone("Awesome!"))
+                .subview(funZone("Great!"))
             })
           })
         })

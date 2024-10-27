@@ -7,7 +7,6 @@ export default function (root: HTMLBuilder) {
       .h1(el => {
         el.children.textNode("THis is the click counter!")
       })
-      .zone(view)
+      .subview(view)
   })
 }
-

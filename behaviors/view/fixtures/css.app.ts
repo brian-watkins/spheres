@@ -23,7 +23,7 @@ export default function (root: HTMLBuilder) {
         el.children
           .textNode("This is only a test!")
       })
-      .zone(funView)
+      .subview(funView)
       .hr()
       .input(el => {
         el.config
@@ -32,4 +32,3 @@ export default function (root: HTMLBuilder) {
       })
   })
 }
-

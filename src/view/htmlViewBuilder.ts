@@ -33,7 +33,7 @@ export function renderToDOM(store: Store, element: Element, view: HTMLView): Ren
 
 export function renderToString(store: Store, view: HTMLView): string {
   const builder = new HtmlViewBuilder()
-  builder.zone(view)
+  builder.subview(view)
   return stringifyVirtualNode(store, new IdSequence(), builder.toVirtualNode())
 }
 
@@ -50,7 +50,7 @@ export interface HTMLViewSelector {
 export interface SpecialHTMLElements {
   element(tag: string, builder?: (element: ConfigurableElement<SpecialElementAttributes, HTMLElements>) => void): this
   textNode(value: string | Stateful<string>): this
-  zone(view: HTMLView): this
+  subview(view: HTMLView): this
   subviewOf(selectorGenerator: (selector: HTMLViewSelector) => void): this
   zones<T>(data: (get: GetState) => Array<T>, viewGenerator: (item: State<T>, index: State<number>) => HTMLView): this
 }
@@ -90,7 +90,7 @@ class InputElementConfig extends HTMLElementConfig {
 const inputConfigBuilder = new InputElementConfig()
 
 class HtmlViewBuilder extends ViewBuilder<SpecialElementAttributes, HTMLElements> implements SpecialHTMLElements {
-  zone(view: HTMLView): this {
+  subview(view: HTMLView): this {
     const builder = new HtmlViewBuilder()
     view(builder as unknown as HTMLBuilder)
     this.storeNode(builder.toVirtualNode())

@@ -20,9 +20,9 @@ export default function (root: HTMLBuilder) {
         ]))
         el.children
           .textNode("Elapsed Time")
-          .zone(progressMeter)
+          .subview(progressMeter)
       })
-      .zone(timerValueLabel)
+      .subview(timerValueLabel)
       .label(el => {
         el.config.class(names([
           "mt-4",

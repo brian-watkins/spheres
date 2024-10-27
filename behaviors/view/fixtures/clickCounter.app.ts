@@ -23,7 +23,6 @@ export default function (root: HTMLBuilder) {
   root.div(div => {
     div.children
       .h1(h1 => h1.children.textNode("This is the click counter!"))
-      .zone(clickCounterView)
+      .subview(clickCounterView)
   })
 }
-

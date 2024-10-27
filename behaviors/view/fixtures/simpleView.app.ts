@@ -49,11 +49,11 @@ export default function (root: HTMLBuilder) {
   root.div(el => {
     el.children
       .p(el => el.children.textNode("Here is some person"))
-      .zone(peopleView)
+      .subview(peopleView)
       .hr()
       .input(el => {
         el.config.on("input", useValue((value) => write(localState, value)))
       })
-      .zone(updateButton)
+      .subview(updateButton)
   })
 }

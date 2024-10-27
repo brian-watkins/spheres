@@ -13,10 +13,10 @@ export function flightBooker(root: HTMLBuilder) {
         "w-96"
       ]))
     el.children
-      .zone(flightTypeSelect)
-      .zone(startDateInput)
-      .zone(returnDateInput)
-      .zone(bookFlightButton)
+      .subview(flightTypeSelect)
+      .subview(startDateInput)
+      .subview(returnDateInput)
+      .subview(bookFlightButton)
   })
 }
 

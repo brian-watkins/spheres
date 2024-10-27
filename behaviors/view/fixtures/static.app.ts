@@ -56,13 +56,13 @@ function nameView(root: HTMLBuilder) {
 
 export function appWithSimpleState(root: HTMLBuilder) {
   root.div(el => {
-    el.children.zone(nameView)
+    el.children.subview(nameView)
   })
 }
 
 export function appWithNestedState(root: HTMLBuilder) {
   root.div(el => {
-    el.children.zone(nestedAge)
+    el.children.subview(nestedAge)
   })
 }
 
@@ -73,14 +73,14 @@ function nestedAge(root: HTMLBuilder) {
 function firstLevelZone(root: HTMLBuilder) {
   root.div(el => {
     el.children
-      .zone(nameView)
+      .subview(nameView)
       .p(el => el.children.textNode(get => `${get(ageState)} years!`))
   })
 }
 
 export function appWithDeeplyNestedState(root: HTMLBuilder) {
   root.div(el => {
-    el.children.zone(firstLevelZone)
+    el.children.subview(firstLevelZone)
   })
 }
 
@@ -94,7 +94,7 @@ function superZone(root: HTMLBuilder) {
 }
 
 export function appWithZone(root: HTMLBuilder) {
-  root.zone(superZone)
+  root.subview(superZone)
 }
 
 export function appWithReactiveText(root: HTMLBuilder) {

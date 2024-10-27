@@ -12,7 +12,7 @@ export function converter(root: HTMLBuilder) {
             el.config.for("celsius")
             el.children.textNode("Celsius")
           })
-          .zone(celsiusInput)
+          .subview(celsiusInput)
       })
       .div(el => {
         el.children
@@ -20,7 +20,7 @@ export function converter(root: HTMLBuilder) {
             el.config.for("farenheit")
             el.children.textNode("Farenheit")
           })
-          .zone(farenheitInput)
+          .subview(farenheitInput)
       })
   })
 }

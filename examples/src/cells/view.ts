@@ -58,7 +58,7 @@ export function cells(root: HTMLBuilder) {
             })
           for (let col = startLetter; col < startLetter + totalColumns; col++) {
             children
-              .zone(cell(`${String.fromCharCode(col)}${row}`))
+              .subview(cell(`${String.fromCharCode(col)}${row}`))
           }
         })
     }

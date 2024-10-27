@@ -13,6 +13,6 @@ for (const element of tallyElements) {
 
 function tallyView(root: HTMLBuilder) {
   root.div(el => {
-    el.children.zone(tally)
+    el.children.subview(tally)
   })
 }

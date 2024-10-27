@@ -5,6 +5,6 @@ export default function (root: HTMLBuilder) {
   root.div(el => {
     el.children
       .h1(el => el.children.textNode("This is the click counter!"))
-      .zone(superIsland)
+      .subview(superIsland)
   })
 }

@@ -13,6 +13,6 @@ activateView(secondStore, document.querySelector("#fragment-b [data-tally]")!, t
 
 function tallyView(root: HTMLBuilder) {
   root.div(el => {
-    el.children.zone(tally)
+    el.children.subview(tally)
   })
 }

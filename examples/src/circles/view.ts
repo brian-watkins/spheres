@@ -37,7 +37,7 @@ export function circles(root: HTMLBuilder) {
         children
           .zones(get => get(circleData), circleView)
       })
-      .zone(optionsView)
+      .subview(optionsView)
   })
 }
 
@@ -119,7 +119,7 @@ function adjustRadiusView(root: HTMLBuilder) {
         config
           .class("text-sky-800 mb-4")
         children
-          .zone(adjustmentMessage)
+          .subview(adjustmentMessage)
       })
       .input(({ config }) => {
         config

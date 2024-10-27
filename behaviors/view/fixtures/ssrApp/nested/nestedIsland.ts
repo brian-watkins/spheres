@@ -8,10 +8,10 @@ export default function (root: HTMLBuilder) {
     el.config.id("super-island")
     el.children
       .h1(el => el.children.textNode(get => `This is for ${get(nameState)}!`))
-      .zone(counterIsland)
+      .subview(counterIsland)
       .hr()
-      .zone(tallyIsland)
+      .subview(tallyIsland)
       .hr()
-      .zone(tallyIsland)
+      .subview(tallyIsland)
   })
 }

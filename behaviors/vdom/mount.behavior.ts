@@ -175,7 +175,7 @@ export default behavior("mount", [
               root.div(el => el.children.textNode(get => get(name)))
             }
             context.mountView(root => {
-              root.zones(get => get(data), dataView)
+              root.subviews(get => get(data), dataView)
             })
           })
         ],

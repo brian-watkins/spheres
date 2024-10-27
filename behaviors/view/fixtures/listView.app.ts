@@ -44,7 +44,7 @@ export default function (root: HTMLBuilder) {
       .hr()
       .ul(el => {
         el.children
-          .zones((get) => get(fruitState), fruitView)
+          .subviews((get) => get(fruitState), fruitView)
       })
   })
 }

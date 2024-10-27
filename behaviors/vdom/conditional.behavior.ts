@@ -300,7 +300,7 @@ function multipleSelectFragmentsExample(name: string, renderer: (context: Render
 
           function fragmentView(name: string): HTMLView {
             return root =>
-              root.zones(get => get(context.state.items), item => root => {
+              root.subviews(get => get(context.state.items), item => root => {
                 root.div(el => {
                   el.config.dataAttribute("item-text")
                   el.children.textNode(get => `${name} => ${get(item)}`)
@@ -447,7 +447,7 @@ function nestedSiblingSelectViewExample(name: string, renderer: (context: Render
           renderer(context, root => {
             root.main(el => {
               el.children
-                .zones((get) => get(context.state.listItems), itemView)
+                .subviews((get) => get(context.state.listItems), itemView)
             })
           })
         })
@@ -661,7 +661,7 @@ function nestedSelectorExample(name: string, renderer: (context: RenderApp<Neste
 
           renderer(context, root => {
             root.main(el => {
-              el.children.zones(get => get(context.state.items), itemView)
+              el.children.subviews(get => get(context.state.items), itemView)
             })
           })
         })

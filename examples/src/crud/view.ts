@@ -135,7 +135,7 @@ function recordsView(root: HTMLBuilder) {
       children.textNode("")
     })
 
-    children.zones(get => get(filteredRecords), optionView)
+    children.subviews(get => get(filteredRecords), optionView)
   })
 }
 

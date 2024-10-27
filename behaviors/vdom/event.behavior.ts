@@ -268,7 +268,7 @@ export default behavior("event handlers", [
           }
 
           context.mountView(root => {
-            root.zones(() => ["yo"], () => zone => {
+            root.subviews(() => ["yo"], () => zone => {
               zone.div(el => {
                 el.children
                   .h3(el => {
@@ -281,7 +281,7 @@ export default behavior("event handlers", [
                       .on("click", () => write(context.state.showFocus, true))
                     el.children.textNode("Parent Button")
                   })
-                  .zones(() => ["hey"], () => nestedZone)
+                  .subviews(() => ["hey"], () => nestedZone)
               })
             })
           })
@@ -353,7 +353,7 @@ export default behavior("event handlers", [
               el.children
                 .ul(el => {
                   el.children
-                    .zones((get) => get(context.state.options), viewZone)
+                    .subviews((get) => get(context.state.options), viewZone)
                 })
                 .hr()
                 .p(el => {
@@ -468,7 +468,7 @@ function templateInstanceWithNonBubblingEvent(title: string, renderer: (context:
               el.children
                 .h3(el => el.children.textNode(get => get(context.state.message)))
                 .ol(el => {
-                  el.children.zones(get => get(context.state.options), optionView)
+                  el.children.subviews(get => get(context.state.options), optionView)
                 })
             })
           })

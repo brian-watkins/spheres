@@ -25,7 +25,7 @@ export default behavior("lists interspersed among other children", [
                   el.config.dataAttribute("child", "-1")
                   el.children.textNode("Some text")
                 })
-                .zones(get => get(context.state.listContainer), itemView)
+                .subviews(get => get(context.state.listContainer), itemView)
             })
           })
         })
@@ -84,7 +84,7 @@ export default behavior("lists interspersed among other children", [
           context.mountView((root) => {
             root.main(el => {
               el.children
-                .zones(get => get(context.state.listContainer), itemView)
+                .subviews(get => get(context.state.listContainer), itemView)
                 .p(el => {
                   el.config.dataAttribute("child", "-1")
                   el.children.textNode("Some text")
@@ -216,7 +216,7 @@ function nestedListsExample(name: string, renderer: (context: RenderApp<NestedLi
           renderer(context, (root) => {
             root.main(el => {
               el.children
-                .zones(get => get(context.state.mainList), (item, index) => {
+                .subviews(get => get(context.state.mainList), (item, index) => {
                   return (root) => {
                     root.div(el => {
                       el.children
@@ -225,8 +225,8 @@ function nestedListsExample(name: string, renderer: (context: RenderApp<NestedLi
                           el.config
                             .dataAttribute("sub-list", get => `${get(index)}`)
                           el.children
-                            .zones(get => get(context.state.secondaryList), liView(message, item))
-                            .zones(get => get(context.state.secondaryList), anotherLiView(item))
+                            .subviews(get => get(context.state.secondaryList), liView(message, item))
+                            .subviews(get => get(context.state.secondaryList), anotherLiView(item))
                             .hr()
                             .h3(el => el.children.textNode(get => `There are ${get(context.state.secondaryList).length} subItems`))
                         })
@@ -320,7 +320,7 @@ function nestedListSelectorExample(name: string, renderer: (context: RenderApp<N
             renderer(context, (root) => {
               root.main(el => {
                 el.children
-                  .zones(get => get(context.state.mainList), (item, index) => {
+                  .subviews(get => get(context.state.mainList), (item, index) => {
                     return (root) => {
                       root.div(el => {
                         el.children
@@ -329,7 +329,7 @@ function nestedListSelectorExample(name: string, renderer: (context: RenderApp<N
                             el.config
                               .dataAttribute("sub-list", get => `${get(index)}`)
                             el.children
-                              .zones(get => get(nestedListData(`sub-${get(item)}`)), simpleView(item))
+                              .subviews(get => get(nestedListData(`sub-${get(item)}`)), simpleView(item))
                           })
                       })
                     }
@@ -377,8 +377,8 @@ function siblingListsExample(name: string, renderer: (context: RenderApp<ListExa
           renderer(context, (root) => {
             root.main(el => {
               el.children
-                .zones(get => get(context.state.listContainer), itemView)
-                .zones(get => get(context.state.listContainer), otherItemView)
+                .subviews(get => get(context.state.listContainer), itemView)
+                .subviews(get => get(context.state.listContainer), otherItemView)
                 .hr()
                 .h3(el => {
                   el.children.textNode(get => `There are ${get(context.state.listContainer).length} items!`)
@@ -437,9 +437,9 @@ function listOfListExample(name: string, renderer: (context: RenderApp<NestedLis
           renderer(context, (root) => {
             root.main(el => {
               el.children
-                .zones(get => get(context.state.mainList), (item, index) => {
+                .subviews(get => get(context.state.mainList), (item, index) => {
                   return (root) => {
-                    root.zones(get => get(context.state.secondaryList), divView(item, index))
+                    root.subviews(get => get(context.state.secondaryList), divView(item, index))
                   }
                 })
             })

@@ -133,7 +133,7 @@ const things = container({ initialValue: ["snake", "eagle"] })
 export function appWithZones(root: HTMLBuilder) {
   root.div(el => {
     el.children
-      .zones(get => get(things), thingView)
+      .subviews(get => get(things), thingView)
   })
 }
 

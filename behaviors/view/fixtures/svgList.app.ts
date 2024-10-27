@@ -41,7 +41,7 @@ export default function (root: HTMLBuilder) {
               .height("100%")
               .fill("red")
           })
-          .zones(get => get(circleData), circleView)
+          .subviews(get => get(circleData), circleView)
       })
   })
 }

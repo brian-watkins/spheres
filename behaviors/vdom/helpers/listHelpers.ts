@@ -26,7 +26,7 @@ export function renderAppBasedOnState(data: Array<string>): Array<Presupposition
     fact("there is a view that renders based on the list", (context) => {
       context.mountView(root => {
         root.div(el => {
-          el.children.zones(get => get(context.state.listContainer), itemView)
+          el.children.subviews(get => get(context.state.listContainer), itemView)
         })
       })
     }),

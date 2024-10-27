@@ -35,7 +35,7 @@ export function circles(root: HTMLBuilder) {
           .class("bg-slate-300 rounded")
           .on("click", (evt) => use(addCircleRule({ x: evt.offsetX, y: evt.offsetY })))
         children
-          .zones(get => get(circleData), circleView)
+          .subviews(get => get(circleData), circleView)
       })
       .subview(optionsView)
   })

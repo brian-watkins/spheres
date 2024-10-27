@@ -30,7 +30,7 @@ const showLabels = container({ initialValue: true })
 export default function (root: HTMLBuilder) {
   root.main(el => {
     el.children
-      .zones(get => get(names), funTemplate)
+      .subviews(get => get(names), funTemplate)
       .hr()
       .button(el => {
         el.config

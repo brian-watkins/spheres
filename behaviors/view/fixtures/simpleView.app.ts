@@ -16,7 +16,7 @@ const peopleState = container<Array<Person>>({
 
 function peopleView(root: HTMLBuilder) {
   root.ul(el => {
-    el.children.zones(get => get(peopleState), personView)
+    el.children.subviews(get => get(peopleState), personView)
   })
 }
 

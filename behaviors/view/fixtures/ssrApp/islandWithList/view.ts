@@ -13,7 +13,7 @@ export function view(root: HTMLBuilder) {
 
 export function itemList(root: HTMLBuilder) {
   root.ol(el => {
-    el.children.zones(get => get(items), itemView)
+    el.children.subviews(get => get(items), itemView)
   })
 }
 

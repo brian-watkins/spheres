@@ -23,7 +23,7 @@ export default behavior("list effects", [
         fact("a list of text nodes is displayed based on the state", (context) => {
           context.mountView((root) => {
             root.div(el => {
-              el.children.zones(get => get(context.state.items), (item) => {
+              el.children.subviews(get => get(context.state.items), (item) => {
                 return root => root.textNode(get => get(item))
               })
             })
@@ -62,7 +62,7 @@ export default behavior("list effects", [
         fact("a list is displayed based on the state", (context) => {
           context.mountView((root) => {
             root.ul(el => {
-              el.children.zones(get => get(context.state.items), liView)
+              el.children.subviews(get => get(context.state.items), liView)
             })
           })
         })
@@ -108,7 +108,7 @@ export default behavior("list effects", [
         fact("a list is displayed based on the state", (context) => {
           context.mountView((root) => {
             root.ul(el => {
-              el.children.zones(get => get(context.state.items), liStyledView)
+              el.children.subviews(get => get(context.state.items), liStyledView)
             })
           })
         })
@@ -174,7 +174,7 @@ function listOfSwitchExample(name: string, renderer: (context: RenderApp<ListCon
 
           renderer(context, root => {
             root.main(el => {
-              el.children.zones(get => get(context.state.items), itemView)
+              el.children.subviews(get => get(context.state.items), itemView)
             })
           })
         })

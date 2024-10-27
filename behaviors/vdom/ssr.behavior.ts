@@ -38,7 +38,7 @@ export default behavior("ssr", [
             root.div(el => [
               el.children
                 .div(el => {
-                  el.children.zones(get => get(context.state.options), itemView)
+                  el.children.subviews(get => get(context.state.options), itemView)
                 })
             ])
           })

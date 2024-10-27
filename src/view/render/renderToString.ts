@@ -1,7 +1,7 @@
 import { container, GetState, ReactiveEffect, Store } from "../../store/index.js";
 import { listEndIndicator, listStartIndicator, switchEndIndicator, switchStartIndicator } from "./fragmentHelpers.js";
 import { IdSequence } from "./idSequence.js";
-import { EventsToDelegate } from "./render.js";
+import { EventsToDelegate } from "./index.js";
 import { ElementNode, NodeType, StatefulTextNode, TextNode, VirtualNode, StatefulListNode, StatefulSelectorNode } from "./virtualNode.js";
 
 

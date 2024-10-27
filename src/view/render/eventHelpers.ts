@@ -1,4 +1,4 @@
-import { spheresTemplateData } from "./render"
+import { spheresTemplateData } from "./index.js"
 
 export function setEventAttribute(element: Element, eventType: string, elementId: string) {
   element.setAttribute(`data-spheres-${eventType}`, elementId)

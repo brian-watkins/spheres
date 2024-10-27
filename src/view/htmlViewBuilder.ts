@@ -1,15 +1,15 @@
 import { GetState, State, Store } from "../store/index.js"
-import { Stateful, addStatefulProperty, addProperty, makeZoneList, VirtualListItemTemplate, VirtualTemplate, VirtualNode, ViewSelector, makeStatefulSelector, StatefulSelectorNode } from "./vdom/virtualNode.js"
+import { Stateful, addStatefulProperty, addProperty, makeZoneList, VirtualListItemTemplate, VirtualTemplate, VirtualNode, ViewSelector, makeStatefulSelector, StatefulSelectorNode } from "./render/virtualNode.js"
 import { HTMLElements, HTMLBuilder } from "./htmlElements.js"
 import { SVGElements } from "./svgElements.js"
 import { BasicElementConfig, SpecialElementAttributes } from "./viewConfig.js"
 import { ConfigurableElement, ViewBuilder } from "./viewBuilder.js"
 import { buildSvgElement } from "./svgViewBuilder.js"
-import { stringifyVirtualNode } from "./vdom/renderToString.js"
-import { DOMRoot } from "./vdom/renderToDom.js"
-import { RenderResult } from "./vdom/render.js"
-import { IdSequence } from "./vdom/idSequence.js"
-export type { RenderResult } from "./vdom/render.js"
+import { stringifyVirtualNode } from "./render/renderToString.js"
+import { DOMRoot } from "./render/renderToDom.js"
+import { RenderResult } from "./render/index.js"
+import { IdSequence } from "./render/idSequence.js"
+export type { RenderResult } from "./render/index.js"
 
 export function activateView(store: Store, element: Element, view: HTMLView) {
   const builder = new HtmlViewBuilder()

@@ -1,6 +1,6 @@
 import { BasicElementConfig, SpecialElementAttributes } from "./viewConfig.js"
-import { Stateful, VirtualNode, makeStatefulTextNode, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "./vdom/virtualNode.js"
-export type { Stateful } from "./vdom/virtualNode.js"
+import { Stateful, VirtualNode, makeStatefulTextNode, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "./render/virtualNode.js"
+export type { Stateful } from "./render/virtualNode.js"
 
 export interface ConfigurableElement<A extends SpecialElementAttributes, B> {
   config: A
@@ -39,7 +39,7 @@ export abstract class ViewBuilder<A extends SpecialElementAttributes, B> {
     this.nodes = storedNodes
     return this
   }
-  
+
   toVirtualNode(): VirtualNode {
     return this.nodes[0]
   }

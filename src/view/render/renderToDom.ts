@@ -1,5 +1,5 @@
 import { Store } from "../../store/index.js";
-import { DOMEvent, EventsToDelegate, RenderResult, Zone } from "./render.js";
+import { DOMEvent, EventsToDelegate, RenderResult, Zone } from "./index.js";
 import { NodeType, StoreEventHandler, VirtualNode } from "./virtualNode.js";
 import { UpdateTextEffect } from "./effects/textEffect.js";
 import { UpdateAttributeEffect } from "./effects/attributeEffect.js";

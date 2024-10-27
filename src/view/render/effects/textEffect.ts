@@ -1,5 +1,5 @@
 import { GetState, ReactiveEffect } from "../../../store/index.js"
-import { ArgsController } from "../render.js"
+import { ArgsController } from "../index.js"
 import { Stateful } from "../virtualNode.js"
 
 export class UpdateTextEffect implements ReactiveEffect {

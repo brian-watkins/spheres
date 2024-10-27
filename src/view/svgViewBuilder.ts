@@ -1,5 +1,5 @@
 import { GetState, State } from "../store/index.js"
-import { Stateful, StatefulSelectorNode, ViewSelector, VirtualListItemTemplate, VirtualNode, VirtualNodeConfig, VirtualTemplate, makeStatefulSelector, makeVirtualElement, makeZoneList, setNamespace, virtualNodeConfig } from "./vdom/virtualNode.js"
+import { Stateful, StatefulSelectorNode, ViewSelector, VirtualListItemTemplate, VirtualNode, VirtualNodeConfig, VirtualTemplate, makeStatefulSelector, makeVirtualElement, makeZoneList, setNamespace, virtualNodeConfig } from "./render/virtualNode.js"
 import { SVGBuilder, SVGElements, SVGElementAttributes, svgAttributeNames } from "./svgElements.js"
 import { ConfigurableElement, ViewBuilder } from "./viewBuilder.js"
 import { BasicElementConfig, SpecialElementAttributes } from "./viewConfig.js"

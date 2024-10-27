@@ -1,6 +1,6 @@
 import { StoreMessage } from "../store/index.js"
 import { AriaAttribute, booleanAttributes } from "./htmlElements.js"
-import { Stateful, StoreEventHandler, VirtualNodeConfig, addAttribute, addProperty, addStatefulAttribute, addStatefulProperty, setEventHandler, virtualNodeConfig } from "./vdom/virtualNode.js"
+import { Stateful, StoreEventHandler, VirtualNodeConfig, addAttribute, addProperty, addStatefulAttribute, addStatefulProperty, setEventHandler, virtualNodeConfig } from "./render/virtualNode.js"
 
 export interface SpecialElementAttributes {
   attribute(name: string, value: string | Stateful<string>): this

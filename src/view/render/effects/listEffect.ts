@@ -1,9 +1,9 @@
-import { container, Container, GetState, ReactiveEffect, write } from "../../../store"
-import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementId } from "../fragmentHelpers"
-import { IdSequence } from "../idSequence"
-import { ArgsController, DOMTemplate, GetDOMTemplate, spheresTemplateData, Zone } from "../render"
-import { VirtualNodeKey, StatefulListNode, NodeType } from "../virtualNode"
-import { TemplateEffect } from "./templateEffect"
+import { container, Container, GetState, ReactiveEffect, write } from "../../../store/index.js"
+import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementId } from "../fragmentHelpers.js"
+import { IdSequence } from "../idSequence.js"
+import { ArgsController, DOMTemplate, GetDOMTemplate, spheresTemplateData, Zone } from "../index.js"
+import { VirtualNodeKey, StatefulListNode, NodeType } from "../virtualNode.js"
+import { TemplateEffect } from "./templateEffect.js"
 
 interface VirtualListItem {
   key: any

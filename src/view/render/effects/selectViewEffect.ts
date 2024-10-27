@@ -1,8 +1,8 @@
-import { GetState, ReactiveEffect } from "../../../store";
-import { IdSequence } from "../idSequence";
-import { ArgsController, GetDOMTemplate, Zone } from "../render";
-import { StatefulSelectorNode, VirtualTemplate } from "../virtualNode";
-import { TemplateEffect } from "./templateEffect";
+import { GetState, ReactiveEffect } from "../../../store/index.js";
+import { IdSequence } from "../idSequence.js";
+import { ArgsController, GetDOMTemplate, Zone } from "../index.js";
+import { StatefulSelectorNode, VirtualTemplate } from "../virtualNode.js";
+import { TemplateEffect } from "./templateEffect.js";
 
 export class SelectViewEffect extends TemplateEffect implements ReactiveEffect {
 

@@ -4,25 +4,23 @@ import { HTMLView } from "@src/index";
 
 function funTemplate(name: State<string>): HTMLView {
   return root => {
-    root.zoneWhich(get => get(showLabels) ? "view" : undefined, {
-      view: (root) => {
-        root.div(el => {
-          el.children
-            .h3(el => {
-              el.config.dataAttribute("toggleable-view")
-              el.children.textNode(get => `You are ${get(name)}!`)
-            })
-            .button(el => {
-              el.config
-                .dataAttribute("delete-button", get => get(name))
-                .on("click", () => use(get => {
-                  return write(names, get(names).filter(n => n !== get(name)))
-                }))
-              el.children.textNode("Delete")
-            })
-        })
-      }
-    })
+    root.subviewOf(select => select.when(get => get(showLabels), root => {
+      root.div(el => {
+        el.children
+          .h3(el => {
+            el.config.dataAttribute("toggleable-view")
+            el.children.textNode(get => `You are ${get(name)}!`)
+          })
+          .button(el => {
+            el.config
+              .dataAttribute("delete-button", get => get(name))
+              .on("click", () => use(get => {
+                return write(names, get(names).filter(n => n !== get(name)))
+              }))
+            el.children.textNode("Delete")
+          })
+      })
+    }))
   }
 }
 

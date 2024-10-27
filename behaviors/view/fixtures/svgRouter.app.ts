@@ -81,18 +81,11 @@ export default function (root: HTMLBuilder) {
         el.config
           .width("300")
           .height("200")
-        el.children.zoneWhich(get => {
-          const shape = get(currentShape)
-          if (shape === Shape.None) {
-            return undefined
-          } else {
-            return shape
-          }
-        }, {
-          square: squareView,
-          circle: circleView,
-          rectangle: rectangleView
-        })
+        el.children.subviewOf(select => select
+          .when(get => get(currentShape) === "square", squareView)
+          .when(get => get(currentShape) === "circle", circleView)
+          .when(get => get(currentShape) === "rectangle", rectangleView)
+        )
       })
   })
 }

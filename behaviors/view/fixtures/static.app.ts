@@ -67,7 +67,7 @@ export function appWithNestedState(root: HTMLBuilder) {
 }
 
 function nestedAge(root: HTMLBuilder) {
-  root.zoneWhich(get => get(ageState) < 100 ? "nameView" : undefined, { nameView })
+  root.subviewOf(select => select.when(get => get(ageState) < 100, nameView))
 }
 
 function firstLevelZone(root: HTMLBuilder) {
@@ -155,13 +155,13 @@ function thingView(thing: State<string>, index: State<number>): HTMLView {
 type Selector = "awesome" | "fun" | "cool"
 const selectors = container<Selector>({ initialValue: "fun" })
 
-export function appWithZoneWhich(root: HTMLBuilder) {
+export function appWithViewSelector(root: HTMLBuilder) {
   root.div(el => {
-    el.children.zoneWhich(get => get(selectors), {
-      awesome: root => root.h1(el => el.children.textNode("Awesome!")),
-      fun: root => root.h3(el => el.children.textNode("Fun!")),
-      cool: root => root.h2(el => el.children.textNode("Cool!")),
-    })
+    el.children.subviewOf(select => select
+      .when(get => get(selectors) === "awesome", root => root.h1(el => el.children.textNode("Awesome!")))
+      .when(get => get(selectors) === "fun", root => root.h3(el => el.children.textNode("Fun!")))
+      .when(get => get(selectors) === "cool", root => root.h2(el => el.children.textNode("Cool!")))
+    )
   })
 }
 

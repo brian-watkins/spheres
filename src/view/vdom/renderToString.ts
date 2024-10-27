@@ -2,7 +2,7 @@ import { container, GetState, ReactiveEffect, Store } from "../../store/index.js
 import { listEndIndicator, listStartIndicator, switchEndIndicator, switchStartIndicator } from "./fragmentHelpers.js";
 import { IdSequence } from "./idSequence.js";
 import { EventsToDelegate } from "./render.js";
-import { ElementNode, NodeType, StatefulTextNode, TextNode, VirtualNode, StatefulListNode, StatefulSwitchNode } from "./virtualNode.js";
+import { ElementNode, NodeType, StatefulTextNode, TextNode, VirtualNode, StatefulListNode, StatefulSelectorNode } from "./virtualNode.js";
 
 
 export function stringifyVirtualNode(store: Store, idSequence: IdSequence, vnode: VirtualNode): string {
@@ -13,8 +13,8 @@ export function stringifyVirtualNode(store: Store, idSequence: IdSequence, vnode
       return stringifyTextNode(vnode)
     case NodeType.STATEFUL_TEXT:
       return stringifyReactiveText(store, vnode)
-    case NodeType.STATEFUL_SWITCH:
-      return stringifyStatefulSwitch(store, idSequence, vnode)
+    case NodeType.STATEFUL_SELECTOR:
+      return stringifyStatefulSelect(store, idSequence, vnode)
     case NodeType.STATEFUL_LIST:
       return stringifyViewList(store, idSequence, vnode)
   }
@@ -76,17 +76,20 @@ class GetValueQuery<M> implements ReactiveEffect {
   }
 }
 
-function stringifyStatefulSwitch(store: Store, idSequence: IdSequence, node: StatefulSwitchNode): string {
-  const selector = new GetValueQuery(node.selector)
-  store.useEffect(selector)
+function stringifyStatefulSelect(store: Store, idSequence: IdSequence, node: StatefulSelectorNode): string {
+  const templateQuery = new GetValueQuery((get) => {
+    return node.selectors.findIndex(selector => selector.select(get))
+  })
+  store.useEffect(templateQuery)
 
   const elementId = idSequence.next
 
   let html = `<!--${switchStartIndicator(elementId)}-->`
-  if (selector.value !== undefined) {
-    html += stringifyVirtualNode(store, new IdSequence(elementId), node.views[selector.value].virtualNode)    
+  if (templateQuery.value !== -1) {
+    const template = node.selectors[templateQuery.value].template
+    html += stringifyVirtualNode(store, new IdSequence(`${elementId}.${templateQuery.value}`), template.virtualNode)
   }
-  html += `<!--${switchEndIndicator(elementId)}-->` 
+  html += `<!--${switchEndIndicator(elementId)}-->`
 
   return html
 }

@@ -13,7 +13,7 @@ export enum NodeType {
   ELEMENT = 1,
   STATEFUL_TEXT = 16,
   STATEFUL_LIST = 17,
-  STATEFUL_SWITCH = 18
+  STATEFUL_SELECTOR = 18
 }
 
 export interface TextNode {
@@ -35,11 +35,15 @@ export interface ElementNode {
   children: Array<VirtualNode>
 }
 
-export interface StatefulSwitchNode {
-  type: NodeType.STATEFUL_SWITCH
+export interface ViewSelector {
+  select: (get: GetState) => boolean
+  template: VirtualTemplate<any>
+}
+
+export interface StatefulSelectorNode {
+  type: NodeType.STATEFUL_SELECTOR
   id?: string
-  selector: (get: GetState) => any
-  views: { [key: string]: VirtualTemplate<any> }
+  selectors: Array<ViewSelector>
 }
 
 export interface StatefulListNode {
@@ -49,7 +53,7 @@ export interface StatefulListNode {
   query: (get: GetState) => Array<any>
 }
 
-export type VirtualNode = TextNode | StatefulTextNode | ElementNode | StatefulSwitchNode | StatefulListNode
+export type VirtualNode = TextNode | StatefulTextNode | ElementNode | StatefulSelectorNode | StatefulListNode
 
 export interface StatefulValue<T> {
   generator: Stateful<T>
@@ -113,11 +117,10 @@ export function setEventHandler(config: VirtualNodeConfig, event: string, handle
   config.on[event] = handler
 }
 
-export function makeStatefulSwitch(selector: (get: GetState) => any, views: { [key: string]: VirtualTemplate<any> }): StatefulSwitchNode {
+export function makeStatefulSelector(selectors: Array<ViewSelector>): StatefulSelectorNode {
   return {
-    type: NodeType.STATEFUL_SWITCH,
-    selector,
-    views,
+    type: NodeType.STATEFUL_SELECTOR,
+    selectors
   }
 }
 
@@ -148,7 +151,7 @@ export function makeStatefulTextNode(generator: Stateful<string>): StatefulTextN
 
 export abstract class VirtualTemplate<T> {
   private _vnode!: VirtualNode
-  
+
   protected setVirtualNode(vnode: VirtualNode) {
     switch (vnode.type) {
       case NodeType.ELEMENT:

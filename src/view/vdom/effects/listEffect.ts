@@ -79,7 +79,7 @@ export class ListEffect extends TemplateEffect implements ReactiveEffect {
           existingNode = virtualItem.lastNode!.nextSibling!
           break
         }
-        case NodeType.STATEFUL_SWITCH: {
+        case NodeType.STATEFUL_SELECTOR: {
           virtualItem.firstNode = existingNode
           virtualItem.lastNode = findSwitchEndNode(existingNode, getSwitchElementId(existingNode))
           existingNode = virtualItem.lastNode!.nextSibling!

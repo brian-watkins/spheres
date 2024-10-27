@@ -148,7 +148,7 @@ function itemToggle(id: number): Container<boolean> {
 
 function listOfSwitchExample(name: string, renderer: (context: RenderApp<ListContext>, view: HTMLView) => void) {
   return example(renderContext<ListContext>())
-    .description(`list with switch views at root (${name})`)
+    .description(`list with conditional views at root (${name})`)
     .script({
       suppose: [
         fact("there is a list of strings", (context) => {
@@ -156,19 +156,19 @@ function listOfSwitchExample(name: string, renderer: (context: RenderApp<ListCon
             items: container({ initialValue: ["one", "two", "three"] })
           })
         }),
-        fact("there is a view with a list where items are switch views", (context) => {
+        fact("there is a view with a list where items are conditional views", (context) => {
           function itemView(item: State<string>, index: State<number>): HTMLView {
             return root => {
-              root.zoneWhich(get => get(itemToggle(get(index))) ? "view" : undefined, {
-                view: root => {
+              root.subviewOf(select => select
+                .when(get => get(itemToggle(get(index))), root => {
                   root.div(el => {
                     el.children
                       .h4(el => {
                         el.children.textNode(get => `${get(item)} (${get(index)})`)
                       })
                   })
-                }
-              })
+                })
+              )
             }
           }
 

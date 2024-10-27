@@ -2,13 +2,13 @@ import { EffectLocation } from "./effectLocation"
 import { UpdateAttributeEffect } from "./effects/attributeEffect"
 import { ListEffect } from "./effects/listEffect"
 import { UpdatePropertyEffect } from "./effects/propertyEffect"
-import { SwitchViewEffect } from "./effects/switchViewEffect"
+import { SelectViewEffect } from "./effects/selectViewEffect"
 import { UpdateTextEffect } from "./effects/textEffect"
 import { setEventAttribute } from "./eventHelpers"
 import { findListEndNode, findSwitchEndNode, listEndIndicator, listStartIndicator, switchEndIndicator, switchStartIndicator } from "./fragmentHelpers"
 import { IdSequence } from "./idSequence"
 import { ArgsController, DOMTemplate, EffectTemplate, EventsToDelegate, Zone } from "./render"
-import { NodeType, Stateful, StatefulListNode, StatefulSwitchNode, StoreEventHandler, VirtualNode, VirtualTemplate } from "./virtualNode"
+import { NodeType, Stateful, StatefulListNode, StatefulSelectorNode, StoreEventHandler, VirtualNode, VirtualTemplate } from "./virtualNode"
 
 const templateRegistry = new WeakMap<VirtualTemplate<any>, DOMTemplate>()
 
@@ -17,14 +17,15 @@ export function getDOMTemplate(zone: Zone, idSequence: IdSequence, virtualTempla
 
   if (template === undefined) {
     const virtualNode = virtualTemplate.virtualNode
+    const templateInfo = createTemplateInfo(zone, idSequence, virtualNode, new EffectLocation(root => root))
 
     const element = document.createElement("template")
-    element.content.appendChild(createTemplateNode(zone, idSequence, virtualNode))
+    element.content.appendChild(templateInfo.node)
 
     template = {
-      isFragment: virtualNode.type === NodeType.STATEFUL_LIST || virtualNode.type === NodeType.STATEFUL_SWITCH,
+      isFragment: virtualNode.type === NodeType.STATEFUL_LIST || virtualNode.type === NodeType.STATEFUL_SELECTOR,
       element,
-      effects: findEffectLocations(virtualNode, new EffectLocation((root) => root)),
+      effects: templateInfo.effects
     }
 
     templateRegistry.set(virtualTemplate, template)
@@ -60,16 +61,16 @@ class PropertyEffectTemplate implements EffectTemplate {
   }
 }
 
-class StatefulSwitchEffectTemplate implements EffectTemplate {
-  constructor(private vnode: StatefulSwitchNode, private location: EffectLocation) { }
+class StatefulSelectEffectTemplate implements EffectTemplate {
+    constructor(private vnode: StatefulSelectorNode, private location: EffectLocation) { }
 
-  attach(zone: Zone, root: Node, argsController: ArgsController, args: any): void {
-    const startNode = this.location.findNode(root)
-    const endNode = findSwitchEndNode(startNode, this.vnode.id!)
+    attach(zone: Zone, root: Node, argsController: ArgsController, args: any): void {
+      const startNode = this.location.findNode(root)
+      const endNode = findSwitchEndNode(startNode, this.vnode.id!)
 
-    const effect = new SwitchViewEffect(zone, this.vnode, this.vnode.id!, startNode, endNode, argsController, args, getDOMTemplate)
-    zone.store.useEffect(effect)
-  }
+      const effect = new SelectViewEffect(zone, this.vnode, startNode, endNode, argsController, args, getDOMTemplate)
+      zone.store.useEffect(effect)
+    }
 }
 
 class ListEffectTemplate implements EffectTemplate {
@@ -106,77 +107,35 @@ class EventEffectTemplate implements EffectTemplate {
   }
 }
 
-function findEffectLocations(vnode: VirtualNode, location: EffectLocation): Array<EffectTemplate> {
-  switch (vnode.type) {
-    case NodeType.TEXT:
-      return []
-
-    case NodeType.STATEFUL_TEXT:
-      return [new TextEffectTemplate(vnode.generator, location)]
-
-    case NodeType.STATEFUL_SWITCH: {
-      return [new StatefulSwitchEffectTemplate(vnode, location)]
-    }
-
-    case NodeType.STATEFUL_LIST: {
-      return [new ListEffectTemplate(vnode, location)]
-    }
-
-    case NodeType.ELEMENT:
-      let effects: Array<EffectTemplate> = []
-
-      const statefulAttrs = vnode.data.statefulAttrs
-      for (const attr in statefulAttrs) {
-        effects.push(new AttributeEffectTemplate(statefulAttrs[attr].generator, attr, location))
-      }
-
-      const statefulProps = vnode.data.statefulProps
-      for (const prop in statefulProps) {
-        effects.push(new PropertyEffectTemplate(statefulProps[prop].generator, prop, location))
-      }
-
-      const events = vnode.data.on
-      for (const k in events) {
-        if (!EventsToDelegate.has(k)) {
-          effects.push(new EventEffectTemplate(k, events[k], location))
-        }
-      }
-
-      let lastChild: VirtualNode | undefined
-      for (var i = 0; i < vnode.children.length; i++) {
-        if (i === 0) {
-          location = location.firstChild()
-        } else if (lastChild && lastChild.type === NodeType.STATEFUL_SWITCH) {
-          location = location.nextCommentSiblingMatching(switchEndIndicator(lastChild.id!)).nextSibling()
-        } else if (lastChild && lastChild.type === NodeType.STATEFUL_LIST) {
-          location = location.nextCommentSiblingMatching(listEndIndicator(lastChild.id!)).nextSibling()
-        } else {
-          location = location.nextSibling()
-        }
-
-        effects = effects.concat(findEffectLocations(vnode.children[i], location))
-        lastChild = vnode.children[i]
-      }
-
-      return effects
-  }
+interface TemplateInfo {
+  node: Node
+  effects: Array<EffectTemplate>
 }
 
-function createTemplateNode(zone: Zone, idSequence: IdSequence, vnode: VirtualNode): Node {
+function createTemplateInfo(zone: Zone, idSequence: IdSequence, vnode: VirtualNode, location: EffectLocation): TemplateInfo {
   switch (vnode.type) {
     case NodeType.TEXT:
-      return document.createTextNode(vnode.value)
+      return {
+        node: document.createTextNode(vnode.value),
+        effects: []
+      }
 
     case NodeType.STATEFUL_TEXT: {
-      return document.createTextNode("")
+      return {
+        node: document.createTextNode(""),
+        effects: [new TextEffectTemplate(vnode.generator, location)]
+      }
     }
 
-    case NodeType.STATEFUL_SWITCH: {
+    case NodeType.STATEFUL_SELECTOR: {
       vnode.id = idSequence.next
       const fragment = document.createDocumentFragment()
       fragment.appendChild(document.createComment(switchStartIndicator(vnode.id)))
       fragment.appendChild(document.createComment(switchEndIndicator(vnode.id)))
-      return fragment
+      return {
+        node: fragment,
+        effects: [new StatefulSelectEffectTemplate(vnode, location)]
+      }
     }
 
     case NodeType.STATEFUL_LIST:
@@ -184,9 +143,14 @@ function createTemplateNode(zone: Zone, idSequence: IdSequence, vnode: VirtualNo
       const fragment = document.createDocumentFragment()
       fragment.appendChild(document.createComment(listStartIndicator(vnode.id)))
       fragment.appendChild(document.createComment(listEndIndicator(vnode.id)))
-      return fragment
+      return {
+        node: fragment,
+        effects: [new ListEffectTemplate(vnode, location)]
+      }
 
     default:
+      let effects: Array<EffectTemplate> = []
+
       const element = vnode.data.namespace ?
         document.createElementNS(vnode.data.namespace, vnode.tag) :
         document.createElement(vnode.tag)
@@ -196,13 +160,9 @@ function createTemplateNode(zone: Zone, idSequence: IdSequence, vnode: VirtualNo
         element.setAttribute(attr, attrs[attr])
       }
 
-      const events = vnode.data.on
-      const elementId = idSequence.next
-      for (const k in events) {
-        if (EventsToDelegate.has(k)) {
-          setEventAttribute(element, k, elementId)
-          zone.addEvent("template", elementId, k, events[k])
-        }
+      const statefulAttrs = vnode.data.statefulAttrs
+      for (const attr in statefulAttrs) {
+        effects.push(new AttributeEffectTemplate(statefulAttrs[attr].generator, attr, location))
       }
 
       const props = vnode.data.props
@@ -211,10 +171,44 @@ function createTemplateNode(zone: Zone, idSequence: IdSequence, vnode: VirtualNo
         element[prop] = props[prop]
       }
 
-      for (var i = 0; i < vnode.children.length; i++) {
-        element.appendChild(createTemplateNode(zone, idSequence, vnode.children[i]))
+      const statefulProps = vnode.data.statefulProps
+      for (const prop in statefulProps) {
+        effects.push(new PropertyEffectTemplate(statefulProps[prop].generator, prop, location))
       }
 
-      return element
+      const events = vnode.data.on
+      const elementId = idSequence.next
+      for (const k in events) {
+        if (EventsToDelegate.has(k)) {
+          setEventAttribute(element, k, elementId)
+          zone.addEvent("template", elementId, k, events[k])
+        } else {
+          effects.push(new EventEffectTemplate(k, events[k], location))
+        }
+      }
+
+      let lastChild: VirtualNode | undefined
+      for (var i = 0; i < vnode.children.length; i++) {
+        if (i === 0) {
+          location = location.firstChild()
+        } else if (lastChild && lastChild.type === NodeType.STATEFUL_SELECTOR) {
+          location = location.nextCommentSiblingMatching(switchEndIndicator(lastChild.id!)).nextSibling()
+        } else if (lastChild && lastChild.type === NodeType.STATEFUL_LIST) {
+          location = location.nextCommentSiblingMatching(listEndIndicator(lastChild.id!)).nextSibling()
+        } else {
+          location = location.nextSibling()
+        }
+
+        const childTemplateInfo = createTemplateInfo(zone, idSequence, vnode.children[i], location)
+        element.appendChild(childTemplateInfo.node)
+        effects = effects.concat(childTemplateInfo.effects)
+
+        lastChild = vnode.children[i]
+      }
+
+      return {
+        node: element,
+        effects: effects
+      }
   }
 }

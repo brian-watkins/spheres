@@ -6,10 +6,10 @@ import { UpdateAttributeEffect } from "./effects/attributeEffect.js";
 import { UpdatePropertyEffect } from "./effects/propertyEffect.js";
 import { ListEffect } from "./effects/listEffect.js";
 import { IdSequence } from "./idSequence.js";
-import { SwitchViewEffect } from "./effects/switchViewEffect.js";
 import { getDOMTemplate } from "./template.js";
 import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementId, listEndIndicator, listStartIndicator, switchEndIndicator, switchStartIndicator } from "./fragmentHelpers.js";
 import { getEventAttribute, getNearestElementHandlingEvent, setEventAttribute, setNearestTemplateArgs } from "./eventHelpers.js";
+import { SelectViewEffect } from "./effects/selectViewEffect.js";
 
 export class DOMRoot implements Zone, RenderResult {
   private activeDocumentEvents = new Set<string>()
@@ -90,7 +90,7 @@ export function createNode(zone: Zone, idSequence: IdSequence, vnode: VirtualNod
       return textNode
     }
 
-    case NodeType.STATEFUL_SWITCH: {
+    case NodeType.STATEFUL_SELECTOR: {
       vnode.id = idSequence.next
       const fragment = document.createDocumentFragment()
       let startNode = document.createComment(switchStartIndicator(vnode.id))
@@ -98,7 +98,7 @@ export function createNode(zone: Zone, idSequence: IdSequence, vnode: VirtualNod
       fragment.appendChild(startNode)
       fragment.appendChild(endNode)
 
-      const query = new SwitchViewEffect(zone, vnode, idSequence.next, startNode, endNode, undefined, undefined, getDOMTemplate)
+      const query = new SelectViewEffect(zone, vnode, startNode, endNode, undefined, undefined, getDOMTemplate)
       zone.store.useEffect(query)
       return fragment
     }
@@ -186,11 +186,11 @@ function activateEffects(zone: Zone, vnode: VirtualNode, node: Node): Node {
       return end
     }
 
-    case NodeType.STATEFUL_SWITCH: {
+    case NodeType.STATEFUL_SELECTOR: {
       vnode.id = getSwitchElementId(node)
       let end = findSwitchEndNode(node, vnode.id)
 
-      const effect = new SwitchViewEffect(zone, vnode, vnode.id, node, end, undefined, undefined, getDOMTemplate)
+      const effect = new SelectViewEffect(zone, vnode, node, end, undefined, undefined, getDOMTemplate)
       zone.store.useEffect(effect)
 
       return end

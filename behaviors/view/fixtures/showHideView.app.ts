@@ -17,10 +17,10 @@ export default function (root: HTMLBuilder) {
           .textNode("Click to toggle the view!")
       })
       .hr()
-      .zoneWhich(get => get(showFun) ? "funView" : "happyView", {
-        happyView,
-        funView
-      })
+      .subviewOf(select => select
+        .when(get => get(showFun), funView)
+        .default(happyView)
+      )
       .hr()
       .h3(el => {
         el.config.dataAttribute("total-fun")

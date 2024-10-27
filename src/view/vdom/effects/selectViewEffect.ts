@@ -1,15 +1,14 @@
 import { GetState, ReactiveEffect } from "../../../store";
 import { IdSequence } from "../idSequence";
 import { ArgsController, GetDOMTemplate, Zone } from "../render";
-import { StatefulSwitchNode, VirtualTemplate } from "../virtualNode";
+import { StatefulSelectorNode, VirtualTemplate } from "../virtualNode";
 import { TemplateEffect } from "./templateEffect";
 
-export class SwitchViewEffect extends TemplateEffect implements ReactiveEffect {
+export class SelectViewEffect extends TemplateEffect implements ReactiveEffect {
 
   constructor(
     zone: Zone,
-    private vnode: StatefulSwitchNode,
-    private id: string,
+    private vnode: StatefulSelectorNode,
     public startNode: Node,
     public endNode: Node,
     private argsController: ArgsController | undefined,
@@ -36,21 +35,23 @@ export class SwitchViewEffect extends TemplateEffect implements ReactiveEffect {
 
   private switchView(get: GetState): void {
     this.argsController?.setArgs(this.args)
-    const key = this.vnode.selector(get)
+    const selectedIndex = this.vnode.selectors.findIndex(selector => selector.select(get))
 
-    const node = key === undefined ?
-      document.createTextNode("") :
-      this.getNodeForViewWithKey(key)
+    const node = this.getNodeForIndex(selectedIndex)
 
     this.clearView()
 
     this.startNode.parentNode?.insertBefore(node, this.endNode!)
   }
 
-  private getNodeForViewWithKey(key: string): Node {
-    const template = this.vnode.views[key]
-    const domTemplate = this.getDOMTemplate(this.zone, new IdSequence(`${this.id}.${key}`), template)
-    const nextArgsController = this.getNextArgsController(template)
+  private getNodeForIndex(index: number): Node {
+    if (index === -1) {
+      return document.createTextNode("")
+    }
+
+    const virtualTemplate = this.vnode.selectors[index].template
+    const domTemplate = this.getDOMTemplate(this.zone, new IdSequence(`${this.vnode.id}.${index}`), virtualTemplate)
+    const nextArgsController = this.getNextArgsController(virtualTemplate)
     return this.renderTemplateInstance(domTemplate, nextArgsController, undefined)
   }
 

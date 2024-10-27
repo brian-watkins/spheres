@@ -1,4 +1,4 @@
-import { container, Container, State, update, use } from "@spheres/store";
+import { container, Container, derived, State, update, use } from "@spheres/store";
 import { HTMLBuilder } from "@src/htmlElements";
 import { HTMLView } from "@src/index";
 import { behavior, effect, example, fact, step } from "esbehavior";
@@ -8,18 +8,18 @@ import { RenderApp, renderContext } from "helpers/renderContext";
 
 export default behavior("conditional zone", [
 
-  basicSwitchEmptyAtFirst("client rendered", (context, view) => context.mountView(view)),
-  basicSwitchEmptyAtFirst("server rendered", (context, view) => context.ssrAndActivate(view)),
+  basicSelectEmptyAtFirst("client rendered", (context, view) => context.mountView(view)),
+  basicSelectEmptyAtFirst("server rendered", (context, view) => context.ssrAndActivate(view)),
 
   example(renderContext<Container<number>>())
-    .description("conditional zone that depends on state in the query")
+    .description("when no subview is matched")
     .script({
       suppose: [
         fact("there is state", (context) => {
           context.setState(container({ initialValue: 0 }))
         }),
-        fact("there is a view that is conditional", (context) => {
-          function conditionalView(root: HTMLBuilder) {
+        fact("there is a view selector", (context) => {
+          function evenView(root: HTMLBuilder) {
             root.p(el => {
               el.children.textNode(get => `Counter is even: ${get(context.state)}`)
             })
@@ -28,9 +28,9 @@ export default behavior("conditional zone", [
           context.mountView(root => {
             root.div(el => {
               el.children
-                .zoneWhich(get => get(context.state) % 2 === 0 ? "conditionalView" : undefined, {
-                  conditionalView
-                })
+                .subviewOf(select => select
+                  .when(get => get(context.state) % 2 === 0, evenView)
+                )
             })
           })
         })
@@ -42,24 +42,118 @@ export default behavior("conditional zone", [
       ]
     }).andThen({
       perform: [
-        step("update the state", (context) => {
+        step("update the state so that no view is selected", (context) => {
           context.writeTo(context.state, 3)
         })
       ],
       observe: [
-        effect("the view updates to hide the view", async () => {
+        effect("the view updates to show nothing", async () => {
           await expect(selectElement("p").exists(), resolvesTo(false))
         })
       ]
     }).andThen({
       perform: [
-        step("update the state", (context) => {
+        step("update the state so that a view is selected", (context) => {
           context.writeTo(context.state, 8)
         })
       ],
       observe: [
-        effect("the view updates", async () => {
+        effect("the selected view is rendered with the latest state", async () => {
           await expect(selectElement("p").text(), resolvesTo("Counter is even: 8"))
+        })
+      ]
+    }),
+
+  example(renderContext<Container<number>>())
+    .description("when multiple views match")
+    .script({
+      suppose: [
+        fact("there is state", (context) => {
+          context.setState(container({ initialValue: 0 }))
+        }),
+        fact("there is a view selector", (context) => {
+          function evenView(root: HTMLBuilder) {
+            root.p(el => {
+              el.children.textNode(get => `Counter is even: ${get(context.state)}`)
+            })
+          }
+
+          function defaultView(root: HTMLBuilder) {
+            root.p(el => el.children.textNode("Just show something by default"))
+          }
+
+          context.mountView(root => {
+            root.div(el => {
+              el.children
+                .subviewOf(select => select
+                  .when(get => get(context.state) % 2 === 0, evenView)
+                  .when(() => true, defaultView)
+                )
+            })
+          })
+        })
+      ],
+      observe: [
+        effect("the first matching view is visible", async () => {
+          await expect(selectElement("p").text(), resolvesTo("Counter is even: 0"))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("update the state so that the first view no longer matches", (context) => {
+          context.writeTo(context.state, 3)
+        })
+      ],
+      observe: [
+        effect("the view updates to show the next matching view", async () => {
+          await expect(selectElement("p").text(), resolvesTo("Just show something by default"))
+        })
+      ]
+    }),
+
+  example(renderContext<Container<number>>())
+    .description("when a default view is specified")
+    .script({
+      suppose: [
+        fact("there is state", (context) => {
+          context.setState(container({ initialValue: 0 }))
+        }),
+        fact("there is a view selector", (context) => {
+          function evenView(root: HTMLBuilder) {
+            root.p(el => {
+              el.children.textNode(get => `Counter is even: ${get(context.state)}`)
+            })
+          }
+
+          function defaultView(root: HTMLBuilder) {
+            root.p(el => el.children.textNode("Just show something by default"))
+          }
+
+          context.mountView(root => {
+            root.div(el => {
+              el.children
+                .subviewOf(select => select
+                  .when(get => get(context.state) % 2 === 0, evenView)
+                  .default(defaultView)
+                )
+            })
+          })
+        })
+      ],
+      observe: [
+        effect("the first matching view is visible", async () => {
+          await expect(selectElement("p").text(), resolvesTo("Counter is even: 0"))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("update the state so that the first view no longer matches", (context) => {
+          context.writeTo(context.state, 3)
+        })
+      ],
+      observe: [
+        effect("the default view is shown", async () => {
+          await expect(selectElement("p").text(), resolvesTo("Just show something by default"))
         })
       ]
     }),
@@ -90,12 +184,8 @@ export default behavior("conditional zone", [
           context.mountView(root => {
             root.main(el => {
               el.children
-                .zoneWhich(get => get(context.state) ? "view" : undefined, {
-                  view: counterView(aCounter)
-                })
-                .zoneWhich(get => get(context.state) ? "view" : undefined, {
-                  view: counterView(bCounter)
-                })
+                .subviewOf(select => select.when(get => get(context.state), counterView(aCounter)))
+                .subviewOf(select => select.when(get => get(context.state), counterView(bCounter)))
             })
           })
         })
@@ -124,21 +214,21 @@ export default behavior("conditional zone", [
       ]
     }),
 
-  nestedSiblingSwitchViewExample("client rendered", (context, view) => context.mountView(view)),
-  nestedSiblingSwitchViewExample("server rendered", (context, view) => context.ssrAndActivate(view)),
+  nestedSiblingSelectViewExample("client rendered", (context, view) => context.mountView(view)),
+  nestedSiblingSelectViewExample("server rendered", (context, view) => context.ssrAndActivate(view)),
 
-  siblingSwitchViewExample("client rendered", (context, view) => context.mountView(view)),
-  siblingSwitchViewExample("server rendered", (context, view) => context.ssrAndActivate(view)),
+  siblingSelectViewExample("client rendered", (context, view) => context.mountView(view)),
+  siblingSelectViewExample("server rendered", (context, view) => context.ssrAndActivate(view)),
 
-  multipleSwitchFragmentsExample("client rendered", (context, view) => context.mountView(view)),
-  multipleSwitchFragmentsExample("server rendered", (context, view) => context.ssrAndActivate(view)),
+  multipleSelectFragmentsExample("client rendered", (context, view) => context.mountView(view)),
+  multipleSelectFragmentsExample("server rendered", (context, view) => context.ssrAndActivate(view)),
 
-  nestedSwitchSelectorExample("client rendered", (context, view) => context.mountView(view)),
-  nestedSwitchSelectorExample("server rendered", (context, view) => context.ssrAndActivate(view))
+  nestedSelectorExample("client rendered", (context, view) => context.mountView(view)),
+  nestedSelectorExample("server rendered", (context, view) => context.ssrAndActivate(view))
 
 ])
 
-function basicSwitchEmptyAtFirst(name: string, renderer: (context: RenderApp<Container<boolean>>, view: HTMLView) => void) {
+function basicSelectEmptyAtFirst(name: string, renderer: (context: RenderApp<Container<boolean>>, view: HTMLView) => void) {
   return example(renderContext<Container<boolean>>())
     .description(`start hidden, then show (${name})`)
     .script({
@@ -156,9 +246,7 @@ function basicSwitchEmptyAtFirst(name: string, renderer: (context: RenderApp<Con
           renderer(context, root => {
             root.div(el => {
               el.children
-                .zoneWhich(get => get(context.state) ? "conditionalView" : undefined, {
-                  conditionalView
-                })
+                .subviewOf(select => select.when(get => get(context.state), conditionalView))
             })
           })
         })
@@ -193,13 +281,13 @@ function basicSwitchEmptyAtFirst(name: string, renderer: (context: RenderApp<Con
     })
 }
 
-interface MultipleSwitchFragmentContext {
+interface MultipleSelectFragmentContext {
   items: Container<Array<string>>
 }
 
-function multipleSwitchFragmentsExample(name: string, renderer: (context: RenderApp<MultipleSwitchFragmentContext>, view: HTMLView) => void) {
-  return example(renderContext<MultipleSwitchFragmentContext>())
-    .description(`multiple switch views with fragments (${name})`)
+function multipleSelectFragmentsExample(name: string, renderer: (context: RenderApp<MultipleSelectFragmentContext>, view: HTMLView) => void) {
+  return example(renderContext<MultipleSelectFragmentContext>())
+    .description(`multiple select views with fragments (${name})`)
     .script({
       suppose: [
         fact("there is some state", (context) => {
@@ -207,7 +295,7 @@ function multipleSwitchFragmentsExample(name: string, renderer: (context: Render
             items: container({ initialValue: ["one", "two", "three"] })
           })
         }),
-        fact("there is a view with multiple switches that contain fragments", (context) => {
+        fact("there is a view with multiple selects that contain fragments", (context) => {
           const toggle = container({ initialValue: true })
 
           function fragmentView(name: string): HTMLView {
@@ -222,33 +310,28 @@ function multipleSwitchFragmentsExample(name: string, renderer: (context: Render
 
           renderer(context, root => {
             root.main(el => {
-              el.children.zoneWhich(() => "show", {
-                show: root => {
-                  root.div(el => {
-                    el.children
-                      .zoneWhich(get => get(toggle) ? "view" : undefined, {
-                        view: fragmentView("A")
-                      })
-                      .zoneWhich(get => get(toggle) ? "view" : undefined, {
-                        view: fragmentView("B")
-                      })
-                      .hr()
-                      .h3(el => {
-                        el.children.textNode(get => `Views are visible: ${get(toggle)}`)
-                      })
-                      .button(el => {
-                        el.config.on("click", () => update(toggle, val => !val))
-                        el.children.textNode("Toggle Views!")
-                      })
+              el.children.subviewOf(select => select.default(root => {
+                root.div(el => {
+                  el.children
+                    .subviewOf(select => select.when(get => get(toggle), fragmentView("A")))
+                    .subviewOf(select => select.when(get => get(toggle), fragmentView("B")))
+                    .hr()
+                    .h3(el => {
+                      el.children.textNode(get => `Views are visible: ${get(toggle)}`)
+                    })
+                    .button(el => {
+                      el.config.on("click", () => update(toggle, val => !val))
+                      el.children.textNode("Toggle Views!")
+                    })
                   })
-                }
-              })
+                })
+              )
             })
           })
         })
       ],
       observe: [
-        effect("the switch fragments are rendered", async () => {
+        effect("the select fragments are rendered", async () => {
           const texts = await selectElements("[data-item-text]").map(el => el.text())
           expect(texts, is([
             "A => one",
@@ -284,7 +367,7 @@ function multipleSwitchFragmentsExample(name: string, renderer: (context: Render
         })
       ],
       observe: [
-        effect("the switch fragments are updated", async () => {
+        effect("the select fragments are updated", async () => {
           const texts = await selectElements("[data-item-text]").map(el => el.text())
           expect(texts, is([
             "A => four",
@@ -301,9 +384,9 @@ function multipleSwitchFragmentsExample(name: string, renderer: (context: Render
     })
 }
 
-function nestedSiblingSwitchViewExample(name: string, renderer: (context: RenderApp<NestedSwitchViewContext>, view: HTMLView) => void) {
-  return example(renderContext<NestedSwitchViewContext>())
-    .description(`multiple switch views inside a list item (${name})`)
+function nestedSiblingSelectViewExample(name: string, renderer: (context: RenderApp<NestedSelectViewContext>, view: HTMLView) => void) {
+  return example(renderContext<NestedSelectViewContext>())
+    .description(`multiple select views inside a list item (${name})`)
     .script({
       suppose: [
         fact("there is some state for a list", (context) => {
@@ -348,14 +431,14 @@ function nestedSiblingSwitchViewExample(name: string, renderer: (context: Render
               root.div(el => {
                 el.children
                   .h1(el => el.children.textNode(get => get(item)))
-                  .zoneWhich(get => get(itemToggle(`first-${get(index)}`)) ? "view" : "hide", {
-                    view: counterView("first", index),
-                    hide: basicView("first", index)
-                  })
-                  .zoneWhich(get => get(itemToggle(`second-${get(index)}`)) ? "view" : "hide", {
-                    view: counterView("second", index),
-                    hide: basicView("second", index)
-                  })
+                  .subviewOf(select => select
+                    .when(get => get(itemToggle(`first-${get(index)}`)), counterView("first", index))
+                    .default(basicView("first", index))
+                  )
+                  .subviewOf(select => select
+                    .when(get => get(itemToggle(`second-${get(index)}`)), counterView("second", index))
+                    .default(basicView("second", index))
+                  )
                   .hr()
               })
             }
@@ -397,7 +480,7 @@ function nestedSiblingSwitchViewExample(name: string, renderer: (context: Render
         })
       ],
       observe: [
-        effect("the other switch view in the list item remains visible", async () => {
+        effect("the other select view in the list item remains visible", async () => {
           await expect(selectElement("[data-counter-text='first-1']").text(),
             resolvesTo("first total: 2"))
         }),
@@ -430,9 +513,9 @@ function nestedSiblingSwitchViewExample(name: string, renderer: (context: Render
     })
 }
 
-function siblingSwitchViewExample(name: string, renderer: (context: RenderApp<NestedSwitchViewContext>, view: HTMLView) => void) {
-  return example(renderContext<NestedSwitchViewContext>())
-    .description(`multiple switch views as siblings (${name})`)
+function siblingSelectViewExample(name: string, renderer: (context: RenderApp<NestedSelectViewContext>, view: HTMLView) => void) {
+  return example(renderContext<NestedSelectViewContext>())
+    .description(`multiple select views as siblings (${name})`)
     .script({
       suppose: [
         fact("there are sibling conditional views", (context) => {
@@ -470,21 +553,21 @@ function siblingSwitchViewExample(name: string, renderer: (context: RenderApp<Ne
             root.div(el => {
               el.children
                 .h1(el => el.children.textNode("Hello!"))
-                .zoneWhich(get => get(itemToggle(`first`)) ? "view" : "hide", {
-                  view: counterView("first"),
-                  hide: basicView("first")
-                })
-                .zoneWhich(get => get(itemToggle(`second`)) ? "view" : "hide", {
-                  view: counterView("second"),
-                  hide: basicView("second")
-                })
+                .subviewOf(select => select
+                  .when(get => get(itemToggle("first")), counterView("first"))
+                  .default(basicView("first"))
+                )
+                .subviewOf(select => select
+                  .when(get => get(itemToggle("second")), counterView("second"))
+                  .default(basicView("second"))
+                )
                 .hr()
             })
           })
         })
       ],
       perform: [
-        step("update each switch view", async () => {
+        step("update each conditional view", async () => {
           await selectElement("[data-counter-button='first']").click()
           await selectElement("[data-counter-button='first']").click()
           await selectElement("[data-counter-button='second']").click()
@@ -507,7 +590,7 @@ function siblingSwitchViewExample(name: string, renderer: (context: RenderApp<Ne
         })
       ],
       observe: [
-        effect("the other switch view in the list item remains visible", async () => {
+        effect("the other conditional view in the list item remains visible", async () => {
           await expect(selectElement("[data-counter-text='first']").text(),
             resolvesTo("first total: 2"))
         }),
@@ -536,16 +619,16 @@ function siblingSwitchViewExample(name: string, renderer: (context: RenderApp<Ne
     })
 }
 
-type SwitchOptions = "fruit" | "fruits" | "sport" | "sports" | "book" | "books"
+type SelectOptions = "fruit" | "fruits" | "sport" | "sports" | "book" | "books"
 
-interface NestedSwitchSelectorContext {
-  items: Container<Array<SwitchOptions>>
+interface NestedSelectorContext {
+  items: Container<Array<SelectOptions>>
   modifier: Container<string>
 }
 
-function nestedSwitchSelectorExample(name: string, renderer: (context: RenderApp<NestedSwitchSelectorContext>, view: HTMLView) => void) {
-  return example(renderContext<NestedSwitchSelectorContext>())
-    .description("nested switch with selector that uses parent args")
+function nestedSelectorExample(name: string, renderer: (context: RenderApp<NestedSelectorContext>, view: HTMLView) => void) {
+  return example(renderContext<NestedSelectorContext>())
+    .description(`nested conditional view with selector that uses parent args (${name})`)
     .script({
       suppose: [
         fact("there is state", (context) => {
@@ -554,18 +637,25 @@ function nestedSwitchSelectorExample(name: string, renderer: (context: RenderApp
             modifier: container({ initialValue: "" })
           })
         }),
-        fact("there is a nested switch that uses parent args", (context) => {
-          function itemView(item: State<SwitchOptions>): HTMLView {
+        fact("there is a nested conditional view selector that uses parent args", (context) => {
+          function singleItemDescription(name: string): HTMLView {
+            return root => root.div(el => el.children.textNode(`This is a ${name}!`))
+          }
+
+          function pluralItemDescription(name: string): HTMLView {
+            return root => root.div(el => el.children.textNode(`These are ${name}!`))
+          }
+
+          function itemView(item: State<SelectOptions>): HTMLView {
             return root => {
-              //@ts-ignore
-              root.zoneWhich(get => `${get(item)}${get(context.state.modifier)}`, {
-                fruit: (root) => { root.div(el => el.children.textNode("This is a fruit!")) },
-                fruits: (root) => { root.div(el => el.children.textNode("These are fruits!")) },
-                sport: (root) => { root.div(el => el.children.textNode("This is a sport!")) },
-                sports: (root) => { root.div(el => el.children.textNode("These are sports!")) },
-                book: (root) => { root.div(el => el.children.textNode("This is a book!")) },
-                books: (root) => { root.div(el => el.children.textNode("These are books!")) }
-              })
+              root.subviewOf(select => select
+                .when(get => `${get(item)}${get(context.state.modifier)}` === "fruit", singleItemDescription("fruit"))
+                .when(get => `${get(item)}${get(context.state.modifier)}` === "fruits", pluralItemDescription("fruits"))
+                .when(get => `${get(item)}${get(context.state.modifier)}` === "sport", singleItemDescription("sport"))
+                .when(get => `${get(item)}${get(context.state.modifier)}` === "sports", pluralItemDescription("sports"))
+                .when(get => `${get(item)}${get(context.state.modifier)}` === "book", singleItemDescription("book"))
+                .when(get => `${get(item)}${get(context.state.modifier)}` === "books", pluralItemDescription("books"))
+              )
             }
           }
 
@@ -587,12 +677,12 @@ function nestedSwitchSelectorExample(name: string, renderer: (context: RenderApp
       ]
     }).andThen({
       perform: [
-        step("update a switch view", (context) => {
+        step("update a conditional view", (context) => {
           context.writeTo(context.state.modifier, "s")
         })
       ],
       observe: [
-        effect("it updates the switch views", async () => {
+        effect("it updates the conditional views", async () => {
           await expect(selectElements("div").texts(), resolvesTo([
             "These are fruits!",
             "These are sports!",
@@ -607,6 +697,6 @@ function itemToggle(id: string): Container<boolean> {
   return container({ initialValue: true, id: `toggle-${id}` })
 }
 
-interface NestedSwitchViewContext {
+interface NestedSelectViewContext {
   listItems: Container<Array<string>>
 }

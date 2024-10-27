@@ -1,16 +1,21 @@
 import { GetState, State } from "../store/index.js"
-import { Stateful, VirtualListItemTemplate, VirtualNode, VirtualNodeConfig, VirtualTemplate, makeStatefulSwitch, makeVirtualElement, makeZoneList, setNamespace, virtualNodeConfig } from "./vdom/virtualNode.js"
+import { Stateful, StatefulSelectorNode, ViewSelector, VirtualListItemTemplate, VirtualNode, VirtualNodeConfig, VirtualTemplate, makeStatefulSelector, makeVirtualElement, makeZoneList, setNamespace, virtualNodeConfig } from "./vdom/virtualNode.js"
 import { SVGBuilder, SVGElements, SVGElementAttributes, svgAttributeNames } from "./svgElements.js"
 import { ConfigurableElement, ViewBuilder } from "./viewBuilder.js"
 import { BasicElementConfig, SpecialElementAttributes } from "./viewConfig.js"
 
 export type SVGView = (root: SVGBuilder) => void
 
+export interface SVGViewSelector {
+  when(predicate: (get: GetState) => boolean, view: SVGView): SVGViewSelector
+  default(view: SVGView): void
+}
+
 export interface SpecialSVGElements {
   element(tag: string, builder?: (element: ConfigurableElement<SpecialElementAttributes, SVGElements>) => void): this
   textNode(value: string | Stateful<string>): this
   zone(view: SVGView): this
-  zoneWhich<T extends { [key: string]: SVGView }>(selector: Stateful<keyof T>, zones: T): this
+  subviewOf(selectorGenerator: (selector: SVGViewSelector) => void): this
   zones<T>(data: (get: GetState) => Array<T>, viewGenerator: (item: State<T>, index: State<number>) => SVGView): this
 }
 
@@ -47,18 +52,10 @@ export class SvgViewBuilder extends ViewBuilder<SpecialElementAttributes, SVGEle
     return this
   }
 
-  zoneWhich<T extends { [key: string]: SVGView }>(selector: Stateful<keyof T>, zones: T): this {
-    const templates: { [key: string]: VirtualTemplate<any> } = {}
-
-    for (const key in zones) {
-      const view = zones[key]
-      const viewBuilder = new SvgViewBuilder()
-      view(viewBuilder as unknown as SVGBuilder)
-      const vnode = viewBuilder.toVirtualNode()
-      templates[key] = new SVGViewTemplate(vnode)
-    }
-
-    this.storeNode(makeStatefulSwitch(selector, templates))
+  subviewOf(selectorGenerator: (selector: SVGViewSelector) => void): this {
+    const selectorBuilder = new SelectorBuilder()
+    selectorGenerator(selectorBuilder)
+    this.storeNode(selectorBuilder.getStatefulSelectorNode())
 
     return this
   }
@@ -95,4 +92,39 @@ class SVGVirtualListItemTemplate<T> extends VirtualListItemTemplate<T> {
     generator(this.itemToken as State<T>, this.indexToken)(builder as unknown as SVGBuilder)
     this.setVirtualNode(builder.toVirtualNode())
   }
+}
+
+class SelectorBuilder implements SVGViewSelector {
+    private selectors: Array<ViewSelector> = []
+    private defaultView: SVGView | undefined
+
+    when(predicate: (get: GetState) => boolean, view: SVGView): SVGViewSelector {
+      this.selectors.push({
+        select: predicate,
+        template: this.getTemplateForView(view)
+      })
+
+      return this
+    }
+
+    default(view: SVGView) {
+      this.defaultView = view
+    }
+
+    getStatefulSelectorNode(): StatefulSelectorNode {
+      if (this.defaultView !== undefined) {
+        this.selectors.push({
+          select: () => true,
+          template: this.getTemplateForView(this.defaultView)
+        })
+      }
+      return makeStatefulSelector(this.selectors)
+    }
+
+    private getTemplateForView(view: SVGView): VirtualTemplate<any> {
+      const viewBuilder = new SvgViewBuilder()
+      view(viewBuilder as unknown as SVGBuilder)
+      const vnode = viewBuilder.toVirtualNode()
+      return new SVGViewTemplate(vnode)
+    }
 }

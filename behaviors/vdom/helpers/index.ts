@@ -10,5 +10,5 @@ export interface ExpectChildOptions {
 }
 
 export async function expectChild(testId: number, options: ExpectChildOptions) {
-  await expect(selectElements("[data-child]").at(options.atIndex).text(), resolvesTo(`child-${testId}`))
+  await expect(selectElements("[data-child]").at(options.atIndex).text(), resolvesTo(`child-${testId} (${options.atIndex})`))
 }

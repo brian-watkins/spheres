@@ -2,21 +2,19 @@ import { GetState, ReactiveEffect } from "../../../store/index.js";
 import { IdSequence } from "../idSequence.js";
 import { ArgsController, GetDOMTemplate, Zone } from "../index.js";
 import { StatefulSelectorNode, VirtualTemplate } from "../virtualNode.js";
-import { TemplateEffect } from "./templateEffect.js";
+import { renderTemplateInstance } from "../renderTemplate.js";
 
-export class SelectViewEffect extends TemplateEffect implements ReactiveEffect {
+export class SelectViewEffect implements ReactiveEffect {
 
   constructor(
-    zone: Zone,
+    private zone: Zone,
     private vnode: StatefulSelectorNode,
     public startNode: Node,
     public endNode: Node,
     private argsController: ArgsController | undefined,
     private args: any,
     private getDOMTemplate: GetDOMTemplate
-  ) {
-    super(zone)
-  }
+  ) { }
 
   init(get: GetState): void {
     // NOTE -- if we are activating then we recreate the view here
@@ -52,7 +50,7 @@ export class SelectViewEffect extends TemplateEffect implements ReactiveEffect {
     const virtualTemplate = this.vnode.selectors[index].template
     const domTemplate = this.getDOMTemplate(this.zone, new IdSequence(`${this.vnode.id}.${index}`), virtualTemplate)
     const nextArgsController = this.getNextArgsController(virtualTemplate)
-    return this.renderTemplateInstance(domTemplate, nextArgsController, undefined)
+    return renderTemplateInstance(this.zone, domTemplate, nextArgsController, undefined)
   }
 
   private clearView() {

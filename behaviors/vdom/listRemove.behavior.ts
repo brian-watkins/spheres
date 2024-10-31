@@ -33,16 +33,21 @@ export default behavior("removing items from list", [
         "child-1",
         "child-2",
         "child-3",
+        "child-4",
       ]),
       perform: [
         updateState("remove the first two childen", [
-          "child-3"
+          "child-2",
+          "child-3",
+          "child-4"
         ])
       ],
       observe: [
-        effect("there is just one child", async () => {
-          await expectTotalChildren(1)
-          await expectChild(3, { atIndex: 0 })
+        effect("there are just three children", async () => {
+          await expectTotalChildren(3)
+          await expectChild(2, { atIndex: 0 })
+          await expectChild(3, { atIndex: 1 })
+          await expectChild(4, { atIndex: 2 })
         })
       ]
     }),

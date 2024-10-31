@@ -33,20 +33,20 @@ export function renderAppBasedOnState(data: Array<string>): Array<Presupposition
   ]
 }
 
-export function itemView(item: State<string>): HTMLView {
+export function itemView(item: State<string>, index: State<number>): HTMLView {
   return (root) => {
     root.p(el => {
       el.config.dataAttribute("child")
-      el.children.textNode(get => get(item))
+      el.children.textNode(get => `${get(item)} (${get(index)})`)
     })
   }
 }
 
-export function otherItemView(item: State<string>): HTMLView {
+export function otherItemView(item: State<string>, index: State<number>): HTMLView {
   return root => {
     root.h1(el => {
       el.config.dataAttribute("child")
-      el.children.textNode(get => `Other ${get(item)}`)
+      el.children.textNode(get => `Other ${get(item)} (${get(index)})`)
     })
   }
 }
@@ -59,7 +59,7 @@ export function updateState(description: string, data: Array<string>): Action<Re
 
 export function childElementText(description: string, expectedTexts: Array<string>): Observation<RenderApp<ListExamplesState>> {
   return effect(description, async () => {
-    const childElements = await selectElements("[data-child]").map(el => el.text())
+    const childElements = await selectElements("[data-child]").texts()
     expect(childElements, is(expectedTexts))
   })
 }

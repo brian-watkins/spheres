@@ -12,6 +12,38 @@ interface ListContext {
 export default behavior("list effects", [
 
   example(renderContext<ListContext>())
+    .description("an empty list")
+    .script({
+      suppose: [
+        fact("there is empty list state", (context) => {
+          context.setState({
+            items: container({ initialValue: [] })
+          })
+        }),
+        fact("a list of elements is displayed based on the state", (context) => {
+          function itemView(item: State<string>): HTMLView {
+            return root => {
+              root.p(el => {
+                el.config.dataAttribute("item")
+                el.children.textNode(get => get(item))
+              })
+            }
+          }
+          context.mountView(root => {
+            root.main(el => {
+              el.children.subviews(get => get(context.state.items), itemView)
+            })
+          })
+        })
+      ],
+      observe: [
+        effect("nothing is rendered", async () => {
+          await expect(selectElements("p[data-item]").count(), resolvesTo(0))
+        })
+      ]
+    }),
+
+  example(renderContext<ListContext>())
     .description("some list with text nodes for the view")
     .script({
       suppose: [
@@ -185,6 +217,19 @@ function listOfSwitchExample(name: string, renderer: (context: RenderApp<ListCon
             "one (0)",
             "two (1)",
             "three (2)",
+          ]))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("items are removed from the end", (context) => {
+          context.writeTo(context.state.items, ["one"])
+        })
+      ],
+      observe: [
+        effect("it renders the updated list", async () => {
+          await expect(selectElements("h4").map(el => el.text()), resolvesTo([
+            "one (0)"
           ]))
         })
       ]

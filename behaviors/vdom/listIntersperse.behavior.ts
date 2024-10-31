@@ -34,9 +34,9 @@ export default behavior("lists interspersed among other children", [
         childElementText("all the children are displayed in order", [
           "Some title",
           "Some text",
-          "list-child-1",
-          "list-child-2",
-          "list-child-3"
+          "list-child-1 (0)",
+          "list-child-2 (1)",
+          "list-child-3 (2)"
         ])
       ]
     }).andThen({
@@ -49,7 +49,7 @@ export default behavior("lists interspersed among other children", [
         childElementText("the other children are unaffected", [
           "Some title",
           "Some text",
-          "list-child-3"
+          "list-child-3 (0)"
         ])
       ]
     }).andThen({
@@ -66,11 +66,11 @@ export default behavior("lists interspersed among other children", [
         childElementText("the other children are unaffected", [
           "Some title",
           "Some text",
-          "list-child-1",
-          "list-child-2",
-          "list-child-3",
-          "list-child-4",
-          "list-child-5"
+          "list-child-1 (0)",
+          "list-child-2 (1)",
+          "list-child-3 (2)",
+          "list-child-4 (3)",
+          "list-child-5 (4)"
         ])
       ]
     }),
@@ -99,9 +99,9 @@ export default behavior("lists interspersed among other children", [
       ],
       observe: [
         childElementText("all the children are displayed in order", [
-          "list-child-1",
-          "list-child-2",
-          "list-child-3",
+          "list-child-1 (0)",
+          "list-child-2 (1)",
+          "list-child-3 (2)",
           "Some text",
           "Some footer"
         ])
@@ -114,7 +114,7 @@ export default behavior("lists interspersed among other children", [
       ],
       observe: [
         childElementText("the other children are unaffected", [
-          "list-child-2",
+          "list-child-2 (0)",
           "Some text",
           "Some footer"
         ])
@@ -130,10 +130,10 @@ export default behavior("lists interspersed among other children", [
       ],
       observe: [
         childElementText("the other children are unaffected", [
-          "list-child-1",
-          "list-child-2",
-          "list-child-6",
-          "list-child-7",
+          "list-child-1 (0)",
+          "list-child-2 (1)",
+          "list-child-6 (2)",
+          "list-child-7 (3)",
           "Some text",
           "Some footer"
         ])
@@ -151,12 +151,12 @@ export default behavior("lists interspersed among other children", [
       ],
       observe: [
         childElementText("the other children are unaffected", [
-          "list-child-1",
-          "list-child-2",
-          "list-child-6",
-          "list-child-7",
-          "list-child-8",
-          "list-child-9",
+          "list-child-1 (0)",
+          "list-child-2 (1)",
+          "list-child-6 (2)",
+          "list-child-7 (3)",
+          "list-child-8 (4)",
+          "list-child-9 (5)",
           "Some text",
           "Some footer"
         ])
@@ -174,12 +174,12 @@ export default behavior("lists interspersed among other children", [
       ],
       observe: [
         childElementText("the other children are unaffected", [
-          "list-child-1",
-          "list-child-6",
-          "list-child-7",
-          "list-child-8",
-          "list-child-9",
-          "list-child-2",
+          "list-child-1 (0)",
+          "list-child-6 (1)",
+          "list-child-7 (2)",
+          "list-child-8 (3)",
+          "list-child-9 (4)",
+          "list-child-2 (5)",
           "Some text",
           "Some footer"
         ])
@@ -389,10 +389,10 @@ function siblingListsExample(name: string, renderer: (context: RenderApp<ListExa
       ],
       observe: [
         childElementText("both lists are displayed", [
-          "child-1",
-          "child-2",
-          "Other child-1",
-          "Other child-2",
+          "child-1 (0)",
+          "child-2 (1)",
+          "Other child-1 (0)",
+          "Other child-2 (1)",
         ]),
         effect("the text effect in the message is displayed", async () => {
           await expect(selectElement("h3").text(), resolvesTo("There are 2 items!"))
@@ -408,12 +408,12 @@ function siblingListsExample(name: string, renderer: (context: RenderApp<ListExa
       ],
       observe: [
         childElementText("both lists are updated", [
-          "child-1",
-          "child-2",
-          "child-3",
-          "Other child-1",
-          "Other child-2",
-          "Other child-3",
+          "child-1 (0)",
+          "child-2 (1)",
+          "child-3 (2)",
+          "Other child-1 (0)",
+          "Other child-2 (1)",
+          "Other child-3 (2)",
         ]),
         effect("the text effect in the message is updated", async () => {
           await expect(selectElement("h3").text(), resolvesTo("There are 3 items!"))

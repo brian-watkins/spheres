@@ -17,11 +17,11 @@ export default behavior("reorder list", [
       ],
       observe: [
         childElementText("the elements are in the expected order", [
-          "five",
-          "four",
-          "three",
-          "two",
-          "one",
+          "five (0)",
+          "four (1)",
+          "three (2)",
+          "two (3)",
+          "one (4)",
         ])
       ]
     }),
@@ -37,7 +37,7 @@ export default behavior("reorder list", [
       ],
       observe: [
         childElementText("the elements are in the expected order", [
-          "four", "one", "five", "three", "two"
+          "four (0)", "one (1)", "five (2)", "three (3)", "two (4)"
         ])
       ]
     }),
@@ -53,7 +53,18 @@ export default behavior("reorder list", [
       ],
       observe: [
         childElementText("the elements are swapped", [
-          "one", "six", "three", "four", "five", "two", "seven"
+          "one (0)", "six (1)", "three (2)", "four (3)", "five (4)", "two (5)", "seven (6)"
+        ])
+      ]
+    }).andThen({
+      perform: [
+        updateState("swap the elements back", [
+          "one", "two", "three", "four", "five", "six", "seven"
+        ])
+      ],
+      observe: [
+        childElementText("the elements are in their original order", [
+          "one (0)", "two (1)", "three (2)", "four (3)", "five (4)", "six (5)", "seven (6)"
         ])
       ]
     }),
@@ -64,13 +75,13 @@ export default behavior("reorder list", [
       suppose: renderAppBasedOnState(["one", "two", "three", "four", "five"]),
       observe: [
         effect("the elements are in the expected order", async () => {
-          const texts = await selectElements("p").map(el => el.text())
+          const texts = await selectElements("p").texts()
           expect(texts, is(equalTo([
-            "one",
-            "two",
-            "three",
-            "four",
-            "five",
+            "one (0)",
+            "two (1)",
+            "three (2)",
+            "four (3)",
+            "five (4)",
           ])))
         }),
       ]
@@ -84,11 +95,11 @@ export default behavior("reorder list", [
       ],
       observe: [
         effect("the elements are in the expected order", async () => {
-          const texts = await selectElements("p").map(el => el.text())
+          const texts = await selectElements("p").texts()
           expect(texts, is(equalTo([
-            "six",
-            "seven",
-            "eight"
+            "six (0)",
+            "seven (1)",
+            "eight (2)"
           ])))
         }),
       ]
@@ -103,12 +114,12 @@ export default behavior("reorder list", [
       ],
       observe: [
         effect("the elements are in the expected order", async () => {
-          const texts = await selectElements("p").map(el => el.text())
+          const texts = await selectElements("p").texts()
           expect(texts, is(equalTo([
-            "12",
-            "13",
-            "14",
-            "15",
+            "12 (0)",
+            "13 (1)",
+            "14 (2)",
+            "15 (3)",
           ])))
         }),
       ]

@@ -2,38 +2,54 @@ import { container, Container, GetState, ReactiveEffect, write } from "../../../
 import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementId } from "../fragmentHelpers.js"
 import { IdSequence } from "../idSequence.js"
 import { ArgsController, DOMTemplate, GetDOMTemplate, spheresTemplateData, Zone } from "../index.js"
-import { VirtualNodeKey, StatefulListNode, NodeType } from "../virtualNode.js"
-import { TemplateEffect } from "./templateEffect.js"
+import { StatefulListNode, NodeType } from "../virtualNode.js"
+import { renderTemplateInstance } from "../renderTemplate.js"
 
-interface VirtualListItem {
+export interface VirtualElement {
+  type: "element"
   key: any
-  actualIndex?: number
+  index: number
+  next: VirtualItem | undefined
   indexState?: Container<number>
-  node: Node | undefined
-  firstNode?: Node
-  lastNode?: Node
+  node: Node
 }
 
-export class ListEffect extends TemplateEffect implements ReactiveEffect {
-  private vnodes: Array<VirtualListItem> = []
+export interface VirtualFragment {
+  type: "fragment"
+  key: any
+  index: number
+  next: VirtualItem | undefined
+  indexState?: Container<number>
+  node: Node
+  firstNode: Node
+  lastNode: Node
+}
+
+export type VirtualItem = VirtualElement | VirtualFragment
+
+export class ListEffect implements ReactiveEffect {
   private domTemplate: DOMTemplate
   private usesIndex: boolean
   private templateNodeType: NodeType
+  private parent!: Node
+  private first: VirtualItem | undefined
 
   constructor(
-    zone: Zone,
+    private zone: Zone,
     private listVnode: StatefulListNode,
     private argsController: ArgsController | undefined,
     private args: any,
     private listStart: Node,
     private listEnd: Node,
-    getDomTemplate: GetDOMTemplate,
+    getDomTemplate: GetDOMTemplate
   ) {
-    super(zone)
-
     this.usesIndex = this.listVnode.template.usesIndex
     this.templateNodeType = this.listVnode.template.virtualNode.type
-    this.domTemplate = getDomTemplate(this.zone, new IdSequence(this.listVnode.id), this.listVnode.template)
+    this.domTemplate = getDomTemplate(
+      this.zone,
+      new IdSequence(this.listVnode.id),
+      this.listVnode.template
+    )
   }
 
   init(get: GetState) {
@@ -43,57 +59,9 @@ export class ListEffect extends TemplateEffect implements ReactiveEffect {
     if (this.listStart.nextSibling !== this.listEnd) {
       // Note that this assumes the data is the same on the client
       // as was on the server ...
-      this.activateExistingItems(data)
+      this.activate(data)
     } else {
-      const updatedList = data.map(buildListItem)
-      this.patchList(updatedList)
-      this.vnodes = updatedList
-    }
-  }
-
-  private activateExistingItems(data: Array<any>) {
-    let dataStart = 0
-    let existingNode = this.listStart.nextSibling!
-    while (existingNode !== this.listEnd) {
-      const virtualItem = buildListItem(data[dataStart], dataStart)
-      this.vnodes.push(virtualItem)
-
-      const argsController = this.argsController ?? this.listVnode.template
-
-      let args
-      if (this.usesIndex) {
-        virtualItem.indexState = container({ initialValue: virtualItem.actualIndex! })
-        args = { item: virtualItem.key, index: virtualItem.indexState }
-      } else {
-        args = virtualItem.key
-      }
-
-      for (const effect of this.domTemplate.effects) {
-        effect.attach(this.zone, existingNode, argsController, args)
-      }
-
-      switch (this.templateNodeType) {
-        case NodeType.STATEFUL_LIST: {
-          virtualItem.firstNode = existingNode
-          virtualItem.lastNode = findListEndNode(existingNode, getListElementId(existingNode))
-          existingNode = virtualItem.lastNode!.nextSibling!
-          break
-        }
-        case NodeType.STATEFUL_SELECTOR: {
-          virtualItem.firstNode = existingNode
-          virtualItem.lastNode = findSwitchEndNode(existingNode, getSwitchElementId(existingNode))
-          existingNode = virtualItem.lastNode!.nextSibling!
-          break
-        }
-        default: {
-          virtualItem.node = existingNode
-          // @ts-ignore
-          existingNode[spheresTemplateData] = () => argsController.setArgs(args)
-          existingNode = existingNode.nextSibling!
-        }
-      }
-
-      dataStart = dataStart + 1
+      this.patch(data)
     }
   }
 
@@ -103,192 +71,256 @@ export class ListEffect extends TemplateEffect implements ReactiveEffect {
     }
 
     this.argsController?.setArgs(this.args)
-    const updatedList = this.listVnode.query(get).map(buildListItem)
-    this.patchList(updatedList)
-    this.vnodes = updatedList
+    const updatedData = this.listVnode.query(get)
+    
+    this.patch(updatedData)
   }
 
-  createNode(vnode: VirtualListItem): Node {
-    let args: any
-    if (this.usesIndex) {
-      vnode.indexState = container({ initialValue: vnode.actualIndex! })
-      args = { item: vnode.key, index: vnode.indexState }
-    } else {
-      args = vnode.key
+  activate(data: Array<any>) {
+    let index = 0
+    let existingNode: Node = this.listStart.nextSibling!
+    let lastItem: VirtualItem | undefined
+    while (existingNode !== this.listEnd) {
+      const [item, nextNode] = this.activateItem(index, existingNode, data[index])
+      if (index === 0) {
+        this.first = item
+      } else {
+        lastItem!.next = item
+      }
+      lastItem = item
+      index++
+      existingNode = nextNode
+    }
+  }
+
+  patch(data: Array<any>) {
+    this.parent = this.listStart.parentNode!
+
+    if (data.length === 0) {
+      if (this.first !== undefined) {
+        this.removeAllAfter(this.first)
+        this.first = undefined
+      }
+      return
     }
 
-    const node = this.renderTemplateInstance(this.domTemplate, this.argsController ?? this.listVnode.template, args)
+    this.first = this.updateFirst(data)
+
+    let last = this.first
+    for (let i = 1; i < data.length; i++) {
+      last = this.updateItem(i, last, data[i])
+      if (this.usesIndex && last.index !== i) {
+        this.updateIndex(i, last)
+      }
+    }
+
+    if (last?.next !== undefined) {
+      this.removeAllAfter(last.next)
+      last.next = undefined
+    }
+  }
+
+  private updateFirst(data: Array<any>): VirtualItem {
+    const firstData = data[0]
+
+    if (this.first === undefined) {
+      const item = this.createItem(0, firstData)
+      this.append(item)
+      return item
+    }
+
+    if (this.first.key === firstData) {
+      return this.first
+    }
+
+    if (this.first.next?.key === firstData) {
+      this.remove(this.first)
+      this.first = this.first.next
+      if (this.usesIndex && this.first !== undefined) {
+        this.updateIndex(0, this.first)
+      }
+      return this.first!
+    }
+
+    const updated = this.createItem(0, firstData)
+    this.replaceNode(this.first, updated)
+    updated.next = this.first.next
+    return updated
+  }
+
+  private updateItem(index: number, last: VirtualItem, data: any): VirtualItem {
+    const current = last.next
+
+    if (current === undefined) {
+      const next = this.createItem(index, data)
+      this.append(next)
+      last.next = next
+      return next
+    }
+
+    if (data === current.key) {
+      return current
+    }
+
+    if (data === current.next?.key) {
+      this.remove(current)
+      last.next = current.next
+      return current.next!
+    }
+
+    const next = this.createItem(index, data)
+    this.replaceNode(current, next)
+    last.next = next
+    next.next = current.next
+    return next
+  }
+
+  private append(item: VirtualItem): void {
+    this.parent.insertBefore(item.node, this.listEnd)
+  }
+
+  private replaceNode(current: VirtualItem, next: VirtualItem): void {
+    switch (current.type) {
+      case "element":
+        this.parent.replaceChild(next.node, current.node)
+        break
+      case "fragment":
+        const range = new Range()
+        range.setStartBefore(current.firstNode)
+        range.setEndAfter(current.lastNode)
+        range.deleteContents()
+        //@ts-ignore
+        this.parent.insertBefore(next.node, current.next?.firstNode ?? this.endNode)
+        break
+    }
+  }
+
+  remove(item: VirtualItem): void {
+    switch (item.type) {
+      case "element":
+        this.parent.removeChild(item.node)
+        break
+      case "fragment":
+        const range = new Range()
+        range.setStartBefore(item.firstNode)
+        range.setEndAfter(item.lastNode)
+        range.deleteContents()
+        break
+    }
+  }
+
+  private removeAllAfter(start: VirtualItem) {
+    if (start === undefined) return
+
+    const range = new Range()
+    range.setEndBefore(this.listEnd)
+
+    switch (start.type) {
+      case "element":
+        range.setStartBefore(start.node)
+        break
+      case "fragment":
+        range.setStartBefore(start.firstNode)
+        break
+    }
+
+    range.deleteContents()
+  }
+
+  updateIndex(index: number, item: VirtualItem): void {
+    // console.log("Updating index to", item.indexState, index)
+    item.index = index
+    this.zone.store.dispatch(write(item.indexState!, index))
+  }
+
+  activateItem(index: number, node: Node, data: any): [VirtualItem, Node] {
+    let virtualItem: any
+    if (this.domTemplate.isFragment) {
+      virtualItem = {
+        type: "fragment",
+        key: data,
+        next: undefined
+      }
+    } else {
+      virtualItem = {
+        type: "element",
+        key: data,
+        next: undefined
+      }
+    }
+
+    const argsController = this.argsController ?? this.listVnode.template
+
+    let args
+    if (this.usesIndex) {
+      virtualItem.indexState = container({ initialValue: index })
+      args = { item: data, index: virtualItem.indexState }
+    } else {
+      args = data
+    }
+
+    for (const effect of this.domTemplate.effects) {
+      effect.attach(this.zone, node, argsController, args)
+    }
+
+    switch (this.templateNodeType) {
+      case NodeType.STATEFUL_LIST: {
+        virtualItem.firstNode = node
+        virtualItem.lastNode = findListEndNode(node, getListElementId(node))
+        return [virtualItem, virtualItem.lastNode!.nextSibling!]
+      }
+      case NodeType.STATEFUL_SELECTOR: {
+        virtualItem.firstNode = node
+        virtualItem.lastNode = findSwitchEndNode(node, getSwitchElementId(node))
+        return [virtualItem, virtualItem.lastNode!.nextSibling!]
+      }
+      default: {
+        virtualItem.node = node
+        // @ts-ignore
+        node[spheresTemplateData] = () => argsController.setArgs(args)
+        return [virtualItem, node.nextSibling!]
+      }
+    }
+  }
+
+  createItem(index: number, data: any): VirtualItem {
+    let args: any
+
+    let indexState: Container<number> | undefined
+    if (this.usesIndex) {
+      indexState = container({ initialValue: index })
+      args = { item: data, index: indexState }
+    } else {
+      args = data
+    }
+
+    const node = renderTemplateInstance(
+      this.zone,
+      this.domTemplate,
+      this.argsController ?? this.listVnode.template,
+      args
+    )
 
     if (this.domTemplate.isFragment) {
-      vnode.firstNode = node.firstChild!
-      vnode.lastNode = node.lastChild!
+      return {
+        type: "fragment",
+        key: data,
+        index,
+        node: node,
+        indexState,
+        firstNode: node.firstChild!,
+        lastNode: node.lastChild!,
+        next: undefined,
+      }
     } else {
-      vnode.node = node
-    }
-
-    return node
-  }
-
-  patchList(newVKids: Array<VirtualListItem>) {
-    let parent = this.listStart.parentNode!
-
-    let oldVKids = this.vnodes
-
-    let oldHead = 0
-    let newHead = 0
-    let oldTail = oldVKids.length - 1
-    let newTail = newVKids.length - 1
-
-    // go through from head to tail and if the keys are the
-    // same then I guess position is the same so just patch the node
-    // until old or new runs out
-    while (newHead <= newTail && oldHead <= oldTail) {
-      if (getKey(oldVKids[oldHead]) !== getKey(newVKids[newHead])) {
-        break
-      }
-
-      this.patch(oldVKids[oldHead++], newVKids[newHead++])
-    }
-
-    // now check from the end
-    while (newHead <= newTail && oldHead <= oldTail) {
-      if (getKey(oldVKids[oldTail]) !== getKey(newVKids[newTail])) {
-        break
-      }
-
-      this.patch(oldVKids[oldTail--], newVKids[newTail--])
-    }
-
-    if (oldHead > oldTail) {
-      // then we got through everything old and we are adding new children to the beginning
-      const firstNode = oldVKids[oldHead]?.node ?? this.listEnd
-      while (newHead <= newTail) {
-        const newVKid = newVKids[newHead]
-        parent.insertBefore(this.createNode(newVKid), firstNode)
-        newHead++
-      }
-
-      return
-    }
-
-    if (newHead > newTail) {
-      // then there are more old kids than new ones and we got through
-      // everything so remove from the end of the list
-      const range = new Range()
-      if (this.domTemplate.isFragment) {
-        range.setStartBefore(oldVKids[oldHead].firstNode!)
-        range.setEndAfter(oldVKids[oldTail].lastNode!)
-      } else {
-        range.setStartBefore(oldVKids[oldHead].node!)
-        range.setEndAfter(oldVKids[oldTail].node!)
-      }
-      range.deleteContents()
-      return
-    }
-
-    const keyed = new Map<VirtualNodeKey, VirtualListItem>()
-    const newKeyed = new Set<VirtualNodeKey>()
-
-    // store the old nodes by key
-    for (let i = oldHead; i <= oldTail; i++) {
-      keyed.set(getKey(oldVKids[i]), oldVKids[i])
-    }
-
-    // go through remaining new children and check keys
-    while (newHead <= newTail) {
-      const oldVKid = oldVKids[oldHead]
-      const oldKey = getKey(oldVKid)
-      const newKey = getKey(newVKids[newHead])
-
-      // This kind of seems just like an optimization for list reordering
-      // Check if we need to skip or remove the old node
-      if (
-        newKeyed.has(oldKey!) ||
-        (newKey === getKey(oldVKids[oldHead + 1]))
-      ) {
-        oldHead++
-        continue
-      }
-
-      const newVKid = newVKids[newHead]
-      if (oldKey === newKey) {
-        // then these are in the correct position so just patch
-        // Note that patching sets the node on the newVKid
-        this.patch(oldVKid, newVKid)
-        newKeyed.add(newKey)
-        oldHead++
-      } else {
-        const tmpVKid = keyed.get(newKey)
-        if (tmpVKid !== undefined) {
-          // we're reordering keyed elements
-          if (this.domTemplate.isFragment) {
-            let firstSib = tmpVKid.firstNode!.nextSibling!
-            let nodeToMove = firstSib!
-            while (nodeToMove !== tmpVKid.lastNode) {
-              parent.insertBefore(nodeToMove, (oldVKid && oldVKid.firstNode) ?? this.listEnd)
-              nodeToMove = tmpVKid.firstNode!.nextSibling!
-            }
-            parent.insertBefore(tmpVKid.lastNode!, (oldVKid && oldVKid.firstNode) ?? this.listEnd)
-            parent.insertBefore(tmpVKid.firstNode!, firstSib)
-          } else {
-            parent.insertBefore(tmpVKid.node!, (oldVKid && oldVKid.node) ?? this.listEnd)
-          }
-
-          // then patch it -- Note that patching sets the node on the newVKid
-          this.patch(tmpVKid, newVKid)
-          newKeyed.add(newKey)
-        } else {
-          // we're adding a new keyed element
-          parent.insertBefore(this.createNode(newVKid), (oldVKid && oldVKid.node) ?? this.listEnd)
-        }
-      }
-      newHead++
-    }
-
-    // this is removing extra nodes
-    // if there was a keyed child in the old node
-    // and we never encountered it in the new node
-    for (const i of keyed.keys()) {
-      if (!newKeyed.has(i)) {
-        removeNode(parent, keyed.get(i)!)
+      return {
+        type: "element",
+        key: data,
+        index,
+        indexState,
+        next: undefined,
+        node,
       }
     }
-  }
-
-  patch(oldVNode: VirtualListItem, newVNode: VirtualListItem): VirtualListItem {
-    newVNode.node = oldVNode.node
-    newVNode.firstNode = oldVNode.firstNode
-    newVNode.lastNode = oldVNode.lastNode
-    newVNode.indexState = oldVNode.indexState
-
-    if (this.usesIndex && oldVNode.actualIndex !== newVNode.actualIndex) {
-      this.zone.store.dispatch(write(oldVNode.indexState!, newVNode.actualIndex!))
-    }
-
-    return newVNode
-  }
-
-}
-
-function getKey(vnode: VirtualListItem | undefined): any {
-  return vnode?.key
-}
-
-function removeNode(parent: Node, vnode: VirtualListItem) {
-  if (vnode.firstNode !== undefined) {
-    const range = new Range()
-    range.setStartBefore(vnode.firstNode!)
-    range.setEndAfter(vnode.lastNode!)
-    range.deleteContents()
-  } else {
-    parent.removeChild(vnode.node!)
-  }
-}
-
-function buildListItem(item: any, index: number): VirtualListItem {
-  return {
-    key: item,
-    actualIndex: index,
-    node: undefined
   }
 }

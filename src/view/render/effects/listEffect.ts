@@ -5,34 +5,20 @@ import { ArgsController, DOMTemplate, GetDOMTemplate, spheresTemplateData, Zone 
 import { StatefulListNode, NodeType } from "../virtualNode.js"
 import { renderTemplateInstance } from "../renderTemplate.js"
 
-export interface VirtualElement {
-  type: "element"
+export interface VirtualItem {
   key: any
   index: number
   isDetached: boolean
   next: VirtualItem | undefined
   indexState?: Container<number>
   node: Node
+  firstNode?: Node
+  lastNode?: Node
 }
-
-export interface VirtualFragment {
-  type: "fragment"
-  key: any
-  index: number
-  isDetached: boolean
-  next: VirtualItem | undefined
-  indexState?: Container<number>
-  node: Node
-  firstNode: Node
-  lastNode: Node
-}
-
-export type VirtualItem = VirtualElement | VirtualFragment
 
 export class ListEffect implements ReactiveEffect {
   private domTemplate: DOMTemplate
   private usesIndex: boolean
-  private templateNodeType: NodeType
   private parent!: Node
   private first: VirtualItem | undefined
   private nextArgsController: ArgsController
@@ -48,7 +34,6 @@ export class ListEffect implements ReactiveEffect {
     getDomTemplate: GetDOMTemplate
   ) {
     this.usesIndex = this.listVnode.template.usesIndex
-    this.templateNodeType = this.listVnode.template.virtualNode.type
     this.domTemplate = getDomTemplate(
       this.zone,
       new IdSequence(this.listVnode.id),
@@ -107,7 +92,7 @@ export class ListEffect implements ReactiveEffect {
       return
     }
 
-    if (this.first?.type === "element") {
+    if (!this.domTemplate.isFragment && this.first !== undefined) {
       this.cacheOutOfPlaceItems(data)
     }
 
@@ -227,34 +212,27 @@ export class ListEffect implements ReactiveEffect {
   }
 
   private replaceNode(current: VirtualItem, next: VirtualItem): void {
-    switch (current.type) {
-      case "element":
-        this.parent.replaceChild(next.node, current.node)
-        break
-      case "fragment":
-        const range = new Range()
-        range.setStartBefore(current.firstNode)
-        range.setEndAfter(current.lastNode)
-        range.deleteContents()
-        // Note: This assumes we are dealing with a brand new fragment
-        // where the node is the document fragment with all the elements
-        //@ts-ignore
-        this.parent.insertBefore(next.node, current.next?.firstNode ?? this.endNode)
-        break
+    if (this.domTemplate.isFragment) {
+      const range = new Range()
+      range.setStartBefore(current.firstNode!)
+      range.setEndAfter(current.lastNode!)
+      range.deleteContents()
+      // Note: This assumes we are dealing with a brand new fragment
+      // where the node is the document fragment with all the elements
+      this.parent.insertBefore(next.node, current.next?.firstNode ?? this.listEnd)
+    } else {
+      this.parent.replaceChild(next.node, current.node)
     }
   }
 
   remove(item: VirtualItem): void {
-    switch (item.type) {
-      case "element":
-        this.parent.removeChild(item.node)
-        break
-      case "fragment":
-        const range = new Range()
-        range.setStartBefore(item.firstNode)
-        range.setEndAfter(item.lastNode)
-        range.deleteContents()
-        break
+    if (this.domTemplate.isFragment) {
+      const range = new Range()
+      range.setStartBefore(item.firstNode!)
+      range.setEndAfter(item.lastNode!)
+      range.deleteContents()
+    } else {
+      this.parent.removeChild(item.node)
     }
   }
 
@@ -264,13 +242,10 @@ export class ListEffect implements ReactiveEffect {
     const range = new Range()
     range.setEndBefore(this.listEnd)
 
-    switch (start.type) {
-      case "element":
-        range.setStartBefore(start.node)
-        break
-      case "fragment":
-        range.setStartBefore(start.firstNode)
-        break
+    if (this.domTemplate.isFragment) {
+      range.setStartBefore(start.firstNode!)
+    } else {
+      range.setStartBefore(start.node)
     }
 
     range.deleteContents()
@@ -282,19 +257,9 @@ export class ListEffect implements ReactiveEffect {
   }
 
   activateItem(index: number, node: Node, data: any): [VirtualItem, Node] {
-    let virtualItem: any
-    if (this.domTemplate.isFragment) {
-      virtualItem = {
-        type: "fragment",
-        key: data,
-        next: undefined
-      }
-    } else {
-      virtualItem = {
-        type: "element",
-        key: data,
-        next: undefined
-      }
+    let virtualItem: any = {
+      key: data,
+      next: undefined
     }
 
     let args
@@ -309,7 +274,7 @@ export class ListEffect implements ReactiveEffect {
       effect.attach(this.zone, node, this.nextArgsController, args)
     }
 
-    switch (this.templateNodeType) {
+    switch (this.listVnode.template.virtualNode.type) {
       case NodeType.STATEFUL_LIST: {
         virtualItem.firstNode = node
         virtualItem.lastNode = findListEndNode(node, getListElementId(node))
@@ -352,29 +317,21 @@ export class ListEffect implements ReactiveEffect {
       args
     )
 
-    if (this.domTemplate.isFragment) {
-      return {
-        type: "fragment",
-        key: data,
-        index,
-        isDetached: false,
-        node: node,
-        indexState,
-        firstNode: node.firstChild!,
-        lastNode: node.lastChild!,
-        next: undefined,
-      }
-    } else {
-      return {
-        type: "element",
-        key: data,
-        index,
-        isDetached: false,
-        indexState,
-        next: undefined,
-        node,
-      }
+    const item: VirtualItem = {
+      key: data,
+      index,
+      isDetached: false,
+      indexState,
+      next: undefined,
+      node
     }
+
+    if (this.domTemplate.isFragment) {
+      item.firstNode = node.firstChild!
+      item.lastNode = node.lastChild!
+    }
+
+    return item
   }
 
   getNextArgsController(): ArgsController {

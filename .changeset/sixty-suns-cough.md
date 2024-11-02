@@ -1,0 +1,5 @@
+---
+"spheres": minor
+---
+
+Performance improvements

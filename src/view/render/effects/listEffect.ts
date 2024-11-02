@@ -107,7 +107,9 @@ export class ListEffect implements ReactiveEffect {
       return
     }
 
-    this.cacheOutOfPlaceItems(data)
+    if (this.first?.type === "element") {
+      this.cacheOutOfPlaceItems(data)
+    }
 
     this.parent = this.listStart.parentNode!
 
@@ -124,7 +126,7 @@ export class ListEffect implements ReactiveEffect {
       if (item === undefined) {
         break
       }
-      if (item.type === "element" && item.key !== data[i]) {
+      if (item.key !== data[i]) {
         this.itemCache.set(item.key, item)
       }
       if (item.next !== undefined && item.next.key === data[i]) {

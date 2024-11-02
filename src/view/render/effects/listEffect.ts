@@ -9,6 +9,7 @@ export interface VirtualElement {
   type: "element"
   key: any
   index: number
+  isDetached: boolean
   next: VirtualItem | undefined
   indexState?: Container<number>
   node: Node
@@ -18,6 +19,7 @@ export interface VirtualFragment {
   type: "fragment"
   key: any
   index: number
+  isDetached: boolean
   next: VirtualItem | undefined
   indexState?: Container<number>
   node: Node
@@ -34,6 +36,7 @@ export class ListEffect implements ReactiveEffect {
   private parent!: Node
   private first: VirtualItem | undefined
   private nextArgsController: ArgsController
+  private itemCache: Map<any, VirtualItem> = new Map()
 
   constructor(
     private zone: Zone,
@@ -74,7 +77,7 @@ export class ListEffect implements ReactiveEffect {
 
     this.argsController?.setArgs(this.args)
     const updatedData = this.listVnode.query(get)
-    
+
     this.patch(updatedData)
   }
 
@@ -106,6 +109,17 @@ export class ListEffect implements ReactiveEffect {
       return
     }
 
+    let item = this.first
+    for (let i = 0; i < data.length; i++) {
+      if (item === undefined) {
+        break
+      }
+      if (item.type === "element" && item.key !== data[i]) {
+        this.itemCache.set(item.key, item)
+      }
+      item = item.next
+    }
+
     this.first = this.updateFirst(data)
 
     let last = this.first
@@ -120,6 +134,8 @@ export class ListEffect implements ReactiveEffect {
       this.removeAllAfter(last.next)
       last.next = undefined
     }
+
+    this.itemCache.clear()
   }
 
   private updateFirst(data: Array<any>): VirtualItem {
@@ -147,6 +163,10 @@ export class ListEffect implements ReactiveEffect {
     const updated = this.createItem(0, firstData)
     this.replaceNode(this.first, updated)
     updated.next = this.first.next
+    this.first.isDetached = true
+    if (this.usesIndex && updated.index !== 0) {
+      this.updateIndex(0, updated)
+    }
     return updated
   }
 
@@ -166,19 +186,31 @@ export class ListEffect implements ReactiveEffect {
 
     if (data === current.next?.key) {
       this.remove(current)
+      this.itemCache.delete(current.key)
       last.next = current.next
+      current.isDetached = true
       return current.next!
     }
 
     const next = this.createItem(index, data)
-    this.replaceNode(current, next)
+    if (next.isDetached) {
+      this.insertAfter(last, next)
+    } else {
+      this.replaceNode(current, next)
+    }
     last.next = next
     next.next = current.next
+    current.isDetached = true
     return next
   }
 
   private append(item: VirtualItem): void {
     this.parent.insertBefore(item.node, this.listEnd)
+  }
+
+  private insertAfter(last: VirtualItem, next: VirtualItem): void {
+    // NOTE: This only happens for elements at the moment
+    this.parent.insertBefore(next.node, last.node.nextSibling)
   }
 
   private replaceNode(current: VirtualItem, next: VirtualItem): void {
@@ -191,6 +223,8 @@ export class ListEffect implements ReactiveEffect {
         range.setStartBefore(current.firstNode)
         range.setEndAfter(current.lastNode)
         range.deleteContents()
+        // Note: This assumes we are dealing with a brand new fragment
+        // where the node is the document fragment with all the elements
         //@ts-ignore
         this.parent.insertBefore(next.node, current.next?.firstNode ?? this.endNode)
         break
@@ -230,7 +264,6 @@ export class ListEffect implements ReactiveEffect {
   }
 
   updateIndex(index: number, item: VirtualItem): void {
-    // console.log("Updating index to", item.indexState, index)
     item.index = index
     this.zone.store.dispatch(write(item.indexState!, index))
   }
@@ -284,6 +317,11 @@ export class ListEffect implements ReactiveEffect {
   }
 
   createItem(index: number, data: any): VirtualItem {
+    const cached = this.itemCache.get(data)
+    if (cached !== undefined) {
+      return { ...cached, next: undefined }
+    }
+
     let args: any
 
     let indexState: Container<number> | undefined
@@ -306,6 +344,7 @@ export class ListEffect implements ReactiveEffect {
         type: "fragment",
         key: data,
         index,
+        isDetached: false,
         node: node,
         indexState,
         firstNode: node.firstChild!,
@@ -317,6 +356,7 @@ export class ListEffect implements ReactiveEffect {
         type: "element",
         key: data,
         index,
+        isDetached: false,
         indexState,
         next: undefined,
         node,

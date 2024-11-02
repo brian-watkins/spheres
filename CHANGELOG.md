@@ -1,5 +1,11 @@
 # spheres
 
+## 0.11.0
+
+### Minor Changes
+
+- adfca2f: Performance improvements
+
 ## 0.10.0
 
 ### Minor Changes

@@ -1,5 +1,12 @@
 # examples
 
+## 1.0.5
+
+### Patch Changes
+
+- Updated dependencies [adfca2f]
+  - spheres@0.11.0
+
 ## 1.0.4
 
 ### Patch Changes

@@ -99,8 +99,6 @@ export class ListEffect implements ReactiveEffect {
   }
 
   patch(data: Array<any>) {
-    this.parent = this.listStart.parentNode!
-
     if (data.length === 0) {
       if (this.first !== undefined) {
         this.removeAllAfter(this.first)
@@ -109,6 +107,18 @@ export class ListEffect implements ReactiveEffect {
       return
     }
 
+    this.cacheOutOfPlaceItems(data)
+
+    this.parent = this.listStart.parentNode!
+
+    this.first = this.updateFirst(data)
+
+    this.updateRest(this.first, data)
+
+    this.itemCache.clear()
+  }
+
+  private cacheOutOfPlaceItems(data: Array<any>) {
     let item = this.first
     for (let i = 0; i < data.length; i++) {
       if (item === undefined) {
@@ -117,25 +127,12 @@ export class ListEffect implements ReactiveEffect {
       if (item.type === "element" && item.key !== data[i]) {
         this.itemCache.set(item.key, item)
       }
-      item = item.next
-    }
-
-    this.first = this.updateFirst(data)
-
-    let last = this.first
-    for (let i = 1; i < data.length; i++) {
-      last = this.updateItem(i, last, data[i])
-      if (this.usesIndex && last.index !== i) {
-        this.updateIndex(i, last)
+      if (item.next !== undefined && item.next.key === data[i]) {
+        item = item.next.next
+      } else {
+        item = item.next
       }
     }
-
-    if (last?.next !== undefined) {
-      this.removeAllAfter(last.next)
-      last.next = undefined
-    }
-
-    this.itemCache.clear()
   }
 
   private updateFirst(data: Array<any>): VirtualItem {
@@ -170,6 +167,21 @@ export class ListEffect implements ReactiveEffect {
     return updated
   }
 
+  private updateRest(first: VirtualItem, data: Array<any>) {
+    let last = first
+    for (let i = 1; i < data.length; i++) {
+      last = this.updateItem(i, last, data[i])
+      if (this.usesIndex && last.index !== i) {
+        this.updateIndex(i, last)
+      }
+    }
+
+    if (last?.next !== undefined) {
+      this.removeAllAfter(last.next)
+      last.next = undefined
+    }
+  }
+
   private updateItem(index: number, last: VirtualItem, data: any): VirtualItem {
     const current = last.next
 
@@ -186,7 +198,6 @@ export class ListEffect implements ReactiveEffect {
 
     if (data === current.next?.key) {
       this.remove(current)
-      this.itemCache.delete(current.key)
       last.next = current.next
       current.isDetached = true
       return current.next!

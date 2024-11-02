@@ -33,6 +33,7 @@ export class ListEffect implements ReactiveEffect {
   private templateNodeType: NodeType
   private parent!: Node
   private first: VirtualItem | undefined
+  private nextArgsController: ArgsController
 
   constructor(
     private zone: Zone,
@@ -50,6 +51,7 @@ export class ListEffect implements ReactiveEffect {
       new IdSequence(this.listVnode.id),
       this.listVnode.template
     )
+    this.nextArgsController = this.getNextArgsController()
   }
 
   init(get: GetState) {
@@ -249,8 +251,6 @@ export class ListEffect implements ReactiveEffect {
       }
     }
 
-    const argsController = this.argsController ?? this.listVnode.template
-
     let args
     if (this.usesIndex) {
       virtualItem.indexState = container({ initialValue: index })
@@ -260,7 +260,7 @@ export class ListEffect implements ReactiveEffect {
     }
 
     for (const effect of this.domTemplate.effects) {
-      effect.attach(this.zone, node, argsController, args)
+      effect.attach(this.zone, node, this.nextArgsController, args)
     }
 
     switch (this.templateNodeType) {
@@ -277,7 +277,7 @@ export class ListEffect implements ReactiveEffect {
       default: {
         virtualItem.node = node
         // @ts-ignore
-        node[spheresTemplateData] = () => argsController.setArgs(args)
+        node[spheresTemplateData] = () => this.nextArgsController.setArgs(args)
         return [virtualItem, node.nextSibling!]
       }
     }
@@ -297,7 +297,7 @@ export class ListEffect implements ReactiveEffect {
     const node = renderTemplateInstance(
       this.zone,
       this.domTemplate,
-      this.argsController ?? this.listVnode.template,
+      this.nextArgsController,
       args
     )
 
@@ -320,6 +320,18 @@ export class ListEffect implements ReactiveEffect {
         indexState,
         next: undefined,
         node,
+      }
+    }
+  }
+
+  getNextArgsController(): ArgsController {
+    const currentArgsController = this.argsController
+    const currentArgs = this.args
+    const template = this.listVnode.template
+    return {
+      setArgs(nextArgs) {
+        currentArgsController?.setArgs(currentArgs)
+        template.setArgs(nextArgs)
       }
     }
   }

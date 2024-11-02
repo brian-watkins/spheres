@@ -80,16 +80,7 @@ class ListEffectTemplate implements EffectTemplate {
     const listStartIndicatorNode = this.location.findNode(root)
     const end = findListEndNode(listStartIndicatorNode, this.vnode.id!)
 
-    const template = this.vnode.template
-
-    const nextArgsController: ArgsController = {
-      setArgs(nextArgs) {
-        argsController.setArgs(args)
-        template.setArgs(nextArgs)
-      },
-    }
-
-    const effect = new ListEffect(zone, this.vnode, nextArgsController, args, listStartIndicatorNode, end, getDOMTemplate)
+    const effect = new ListEffect(zone, this.vnode, argsController, args, listStartIndicatorNode, end, getDOMTemplate)
     zone.store.useEffect(effect)
   }
 }

@@ -1,5 +1,5 @@
 import { HTMLView, renderToString } from "@src/index.js";
-import { behavior, effect, example, Example } from "esbehavior";
+import { behavior, effect, example, Example } from "best-behavior";
 import { equalTo, expect, is } from "great-expectations";
 import { appWithZone, appWithDataAttributesNoValue, appWithDeeplyNestedState, appWithInnerHTML, appWithNestedState, appWithPropertiesAndAttributes, appWithReactiveAttributes, appWithReactiveClass, appWithReactiveText, appWithSimpleState, appWithZones, staticApp, appWithViewSelector, appWithEvents } from "./fixtures/static.app.js";
 import { Store } from "@spheres/store"

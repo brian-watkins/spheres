@@ -1,5 +1,5 @@
 import { activateView, HTMLView, RenderResult, renderToDOM, renderToString } from "@src/index.js"
-import { Context } from "esbehavior"
+import { Context } from "best-behavior"
 import { Container, Store, write } from "@spheres/store"
 
 export class RenderApp<T> {

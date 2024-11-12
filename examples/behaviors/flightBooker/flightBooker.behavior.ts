@@ -1,4 +1,4 @@
-import { Observation, behavior, effect, example, fact, step } from "esbehavior";
+import { Observation, behavior, effect, example, fact, step } from "best-behavior";
 import { DisplayElement } from "../helpers/testApp.js";
 import { assignedWith, expect, is, resolvesTo, satisfying, stringContaining, stringWithLength } from "great-expectations";
 import { DateTime } from "luxon"

@@ -1,4 +1,4 @@
-import { behavior, effect, Example, example, fact, step } from "esbehavior";
+import { behavior, effect, Example, example, fact, step } from "best-behavior";
 import { equalTo, expect, resolvesTo } from "great-expectations";
 import { selectElement } from "helpers/displayElement.js";
 import { RenderApp, renderContext } from "helpers/renderContext.js";

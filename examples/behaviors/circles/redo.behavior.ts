@@ -1,4 +1,4 @@
-import { behavior, effect, example, fact, step } from "esbehavior";
+import { behavior, effect, example, fact, step } from "best-behavior";
 import { testCirclesApp } from "./helpers/testApp.js";
 import { expect, resolvesTo } from "great-expectations";
 import { testCircle } from "./helpers/fakeCircle.js";

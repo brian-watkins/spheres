@@ -1,4 +1,4 @@
-import { behavior, ConfigurableExample, effect, example, fact, step } from "esbehavior";
+import { behavior, ConfigurableExample, effect, example, fact, step } from "best-behavior";
 import { arrayWith, equalTo, expect, is } from "great-expectations";
 import { okMessage, pendingMessage } from "./helpers/metaMatchers.js";
 import { container, Container, Meta, derived, DerivedState } from "@src/index.js";

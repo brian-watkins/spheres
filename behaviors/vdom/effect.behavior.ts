@@ -1,6 +1,6 @@
 import { Container, container } from "@spheres/store";
 import { HTMLBuilder } from "@src/htmlElements";
-import { behavior, effect, example, fact, step } from "esbehavior";
+import { behavior, effect, example, fact, step } from "best-behavior";
 import { expect, is, resolvesTo } from "great-expectations";
 import { selectElement, selectElements } from "helpers/displayElement";
 import { renderContext } from "helpers/renderContext";

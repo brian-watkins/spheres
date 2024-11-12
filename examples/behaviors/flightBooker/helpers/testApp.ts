@@ -1,4 +1,4 @@
-import { Context } from "esbehavior";
+import { Context } from "best-behavior";
 import { TestApp, TestDisplay, testAppContext } from "../../helpers/testApp";
 import { Dialog } from "playwright";
 

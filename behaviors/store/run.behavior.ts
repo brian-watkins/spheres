@@ -1,4 +1,4 @@
-import { behavior, effect, example, fact, step } from "esbehavior";
+import { behavior, effect, example, fact, step } from "best-behavior";
 import { testStoreContext } from "./helpers/testStore.js";
 import { Container, container, run } from "@src/index.js";
 import { equalTo, expect, is } from "great-expectations";

@@ -1,6 +1,6 @@
 import { Container, container, State, use, write } from "@spheres/store";
 import { HTMLView } from "@src/htmlViewBuilder";
-import { behavior, Context, effect, example, fact, step } from "esbehavior";
+import { behavior, Context, effect, example, fact, step } from "best-behavior";
 import { expect, is, resolvesTo } from "great-expectations";
 import { selectElement, selectElements } from "helpers/displayElement";
 import { ListExamplesState, childElementText, containerWithList, itemView, otherItemView, updateState } from "helpers/listHelpers";

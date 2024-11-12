@@ -1,5 +1,5 @@
 import { Command, Container, SuppliedState, command, container, exec, supplied } from "@src/index";
-import { behavior, effect, example, fact, step } from "esbehavior";
+import { behavior, effect, example, fact, step } from "best-behavior";
 import { arrayWith, expect, is } from "great-expectations";
 import { errorMessage, okMessage, pendingMessage } from "helpers/metaMatchers";
 import { testStoreContext } from "helpers/testStore";

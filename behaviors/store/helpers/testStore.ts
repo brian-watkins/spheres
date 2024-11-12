@@ -1,5 +1,5 @@
 import { Container, State, Store, write, StoreMessage, batch, GetState, reset, Command, CommandActions, ContainerHooks, ReactiveEffect } from "@src/index.js"
-import { Context } from "esbehavior"
+import { Context } from "best-behavior"
 
 export function testStoreContext<T>(): Context<TestStore<T>> {
   return {

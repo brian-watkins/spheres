@@ -1,4 +1,4 @@
-import { Context } from "esbehavior"
+import { Context } from "best-behavior"
 import { DisplayElement, TestApp, TestDisplay, testAppContext } from "../../helpers/testApp.js"
 import { Circle } from "../../../src/circles/state.js"
 import { Page } from "playwright"

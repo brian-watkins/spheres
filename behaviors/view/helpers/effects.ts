@@ -1,4 +1,4 @@
-import { Observation, effect } from "esbehavior"
+import { Observation, effect } from "best-behavior"
 import { equalTo, expect, is } from "great-expectations"
 import { TestAppController } from "./testAppController.js"
 

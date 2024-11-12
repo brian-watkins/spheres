@@ -1,4 +1,4 @@
-import { Context } from "esbehavior";
+import { Context } from "best-behavior";
 import { TestAppDisplay } from "./testDisplay.js";
 import { BrowserTestInstrument, useBrowser } from "best-behavior/browser";
 

@@ -1,4 +1,4 @@
-import { Context } from "esbehavior";
+import { Context } from "best-behavior";
 import { DisplayElement, KeyboardKey, TestApp, TestDisplay, testAppContext } from "../../../helpers/testApp.js";
 import { Locator, Page } from "playwright";
 

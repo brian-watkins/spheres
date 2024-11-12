@@ -1,5 +1,5 @@
 import { Container, DerivedState, container, derived } from "@src/index";
-import { behavior, effect, example, fact, step } from "esbehavior";
+import { behavior, effect, example, fact, step } from "best-behavior";
 import { expect, is } from "great-expectations";
 import { testStoreContext } from "helpers/testStore";
 

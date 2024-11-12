@@ -1,4 +1,4 @@
-import { behavior, effect, example, fact, step } from "esbehavior";
+import { behavior, effect, example, fact, step } from "best-behavior";
 import { expect, is, stringContaining } from "great-expectations";
 import { testCrudApp } from "./helpers/testApp.js";
 import { testRecord } from "./helpers/fakeRecord.js";

@@ -1,6 +1,6 @@
 import { container, write } from "@src/index.js";
 import { Container } from "@src/store.js";
-import { behavior, effect, example, fact, step } from "esbehavior";
+import { behavior, effect, example, fact, step } from "best-behavior";
 import { equalTo, expect, is } from "great-expectations";
 import { testStoreContext } from "helpers/testStore.js";
 

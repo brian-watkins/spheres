@@ -1,5 +1,5 @@
 import { Container, DerivedState, GetState, ReactiveEffect, ReactiveEffectHandle, container, derived } from "@src/index.js"
-import { ConfigurableExample, behavior, effect, example, fact, step } from "esbehavior"
+import { ConfigurableExample, behavior, effect, example, fact, step } from "best-behavior"
 import { equalTo, expect, is } from "great-expectations"
 import { testStoreContext } from "helpers/testStore.js"
 

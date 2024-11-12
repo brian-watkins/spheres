@@ -1,4 +1,4 @@
-import { Action, Observation, Presupposition, behavior, effect, example, fact, step } from "esbehavior";
+import { Action, Observation, Presupposition, behavior, effect, example, fact, step } from "best-behavior";
 import { DisplayElement, TestApp, testAppContext } from "../helpers/testApp.js";
 import { expect, resolvesTo } from "great-expectations";
 

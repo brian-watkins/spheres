@@ -1,4 +1,4 @@
-import { behavior, effect, example } from "esbehavior";
+import { behavior, effect, example } from "best-behavior";
 import { renderContext } from "./helpers/renderContext.js";
 import { expectChild, expectTotalChildren } from "helpers/index.js";
 import { ListExamplesState, renderAppBasedOnState, updateState } from "helpers/listHelpers.js";

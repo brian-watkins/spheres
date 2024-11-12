@@ -1,4 +1,4 @@
-import { behavior, effect, example, fact } from "esbehavior";
+import { behavior, effect, example, fact } from "best-behavior";
 import { testStoreContext } from "./helpers/testStoreContext";
 import { expect, is } from "great-expectations";
 import { Result } from "../../../src/cells/result";

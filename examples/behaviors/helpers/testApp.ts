@@ -1,4 +1,4 @@
-import { Context } from "esbehavior";
+import { Context } from "best-behavior";
 import { Locator, Page } from "playwright";
 import { BrowserTestInstrument, useBrowser } from "best-behavior/browser"
 

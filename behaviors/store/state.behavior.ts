@@ -1,4 +1,4 @@
-import { ConfigurableExample, behavior, effect, example, fact, step } from "esbehavior";
+import { ConfigurableExample, behavior, effect, example, fact, step } from "best-behavior";
 import { arrayWithItemAt, equalTo, expect, is } from "great-expectations"
 import { Container, State, DerivedState, container, derived } from "@src/index.js";
 import { TestStore, testStoreContext } from "./helpers/testStore.js";

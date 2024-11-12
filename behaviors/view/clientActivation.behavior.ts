@@ -1,4 +1,4 @@
-import { behavior, effect, example, fact, step } from "esbehavior";
+import { behavior, effect, example, fact, step } from "best-behavior";
 import { arrayWith, assignedWith, equalTo, expect, is, resolvesTo, stringContaining } from "great-expectations";
 import { ssrTestAppContext } from "./helpers/testSSRServer.js";
 

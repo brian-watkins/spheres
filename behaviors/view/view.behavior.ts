@@ -1,4 +1,4 @@
-import { behavior, ConfigurableExample, Context, effect, example, fact, step } from "esbehavior";
+import { behavior, ConfigurableExample, Context, effect, example, fact, step } from "best-behavior";
 import { equalTo, expect, is, resolvesTo, stringContaining } from "great-expectations";
 import { browserAppContext, TestAppController } from "./helpers/testAppController.js";
 

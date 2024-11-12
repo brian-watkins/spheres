@@ -1,5 +1,5 @@
 import { Container, ContainerHooks, container } from "@src/index";
-import { ConfigurableExample, behavior, effect, example, fact, step } from "esbehavior";
+import { ConfigurableExample, behavior, effect, example, fact, step } from "best-behavior";
 import { arrayWith, arrayWithLength, expect, is } from "great-expectations";
 import { errorMessage, okMessage, pendingMessage } from "helpers/metaMatchers";
 import { TestTask } from "helpers/testTask";

@@ -1,5 +1,5 @@
 import { GetState, ReactiveEffect, Store, write } from "spheres/store";
-import { Context } from "esbehavior";
+import { Context } from "best-behavior";
 import { CellContainer, cellContainer } from "../../../../src/cells/state";
 import { Result } from "../../../../src/cells/result";
 import { CellError, ParseFailure } from "../../../../src/cells/formula";

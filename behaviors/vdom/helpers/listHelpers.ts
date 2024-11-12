@@ -1,4 +1,4 @@
-import { Action, Observation, Presupposition, effect, fact, step } from "esbehavior"
+import { Action, Observation, Presupposition, effect, fact, step } from "best-behavior"
 import { Container, State } from "../../../src/store/store"
 import { RenderApp } from "./renderContext"
 import { container } from "../../../src/store/container"

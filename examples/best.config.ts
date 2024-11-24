@@ -1,4 +1,4 @@
-import { defineConfig } from "best-behavior/config";
+import { defineConfig } from "best-behavior/run";
 
 export default defineConfig({
   behaviorGlobs: [
@@ -9,5 +9,6 @@ export default defineConfig({
       "**/cells/formula/**/*"
     ]
   },
-  failFast: true
+  parallel: true,
+  failFast: true,
 })

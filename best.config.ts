@@ -1,5 +1,5 @@
-import { defineConfig } from "best-behavior/config"
 import { MonocartCoverageReporter } from "best-behavior/coverage"
+import { defineConfig } from "best-behavior/run"
 
 export default defineConfig({
   behaviorGlobs: [

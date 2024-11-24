@@ -26,16 +26,17 @@ export default behavior("Adjust Radius", [
           await expect(context.display.selectElement("dialog").isVisible(), resolvesTo(true))
         }),
         effect("the circle to be adjusted is highlighted", async (context) => {
-          await expect(context.display.circleCenteredAt(50, 50, { highlighted: true }).isVisible(), resolvesTo(true))
+          await expect(context.display.circleCenteredAt(50, 50).isHighlighted, resolvesTo(true))
         }),
         effect("the other circle is not highlighted", async (context) => {
-          await expect(context.display.circleCenteredAt(120, 120, { highlighted: false }).isVisible(), resolvesTo(true))
+          await expect(context.display.circleCenteredAt(120, 120).isHighlighted, resolvesTo(false))
         })
       ]
     }).andThen({
       perform: [
         step("click outside the dialog", async (context) => {
           await context.display.selectElement("body").click({ x: 2, y: 2 })
+          await context.display.selectElement("dialog").waitUntilHidden()
         }),
       ],
       observe: [
@@ -43,7 +44,7 @@ export default behavior("Adjust Radius", [
           await expect(context.display.selectElement("dialog").isVisible(), resolvesTo(false))
         }),
         effect("the circle to be adjusted is no longer highlighted", async (context) => {
-          await expect(context.display.circleCenteredAt(50, 50, { highlighted: false }).isVisible(), resolvesTo(false))
+          await expect(context.display.circleCenteredAt(50, 50).isHighlighted, resolvesTo(false))
         })
       ]
     }),

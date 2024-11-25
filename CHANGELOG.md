@@ -1,5 +1,11 @@
 # spheres
 
+## 0.11.1
+
+### Patch Changes
+
+- 9e36b8b: Fix extensions on imports
+
 ## 0.11.0
 
 ### Minor Changes

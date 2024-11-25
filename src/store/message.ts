@@ -1,4 +1,4 @@
-import { BatchMessage, Container, RunMessage, StoreMessage, WriteMessage, ResetMessage, UpdateMessage, GetState, UseMessage } from "./store"
+import { BatchMessage, Container, RunMessage, StoreMessage, WriteMessage, ResetMessage, UpdateMessage, GetState, UseMessage } from "./store.js"
 
 export function write<T, M = T>(container: Container<T, M>, value: M): WriteMessage<T, M> {
   return {

@@ -1,4 +1,4 @@
-import { ReactiveVariable, State, Variable } from "./store";
+import { ReactiveVariable, State, Variable } from "./store.js";
 
 export interface VariableInitializer<T> {
   initialValue: T

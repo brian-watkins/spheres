@@ -1,4 +1,4 @@
-import { SuppliedState } from "./store"
+import { SuppliedState } from "./store.js"
 
 export interface SuppliedStateInitializer<T> {
   id?: string

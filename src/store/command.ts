@@ -1,4 +1,4 @@
-import { Command, ExecMessage, GetState } from "./store";
+import { Command, ExecMessage, GetState } from "./store.js";
 
 export interface CommandInitializer<M> {
   trigger?: (get: GetState) => M

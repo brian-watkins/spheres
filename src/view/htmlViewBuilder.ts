@@ -11,12 +11,12 @@ import { RenderResult } from "./render/index.js"
 import { IdSequence } from "./render/idSequence.js"
 export type { RenderResult } from "./render/index.js"
 
-export function activateView(store: Store, element: Element, view: HTMLView) {
+export function activateView(store: Store, node: Node, view: HTMLView) {
   const builder = new HtmlViewBuilder()
   view(builder as unknown as HTMLBuilder)
   const vnode = builder.toVirtualNode()
 
-  const root = new DOMRoot(store, element)
+  const root = new DOMRoot(store, node)
   root.activate(vnode)
 }
 

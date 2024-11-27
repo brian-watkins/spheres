@@ -25,8 +25,8 @@ export class RenderApp<T> {
 
   ssrAndActivate(view: HTMLView) {
     const htmlString = renderToString(this.store, view)
-    document.write(htmlString)
-    activateView(this.store, document.body.firstChild as Element, view)
+    document.body.innerHTML = htmlString
+    activateView(this.store, document.body.firstChild, view)
 
     this.renderResult = {
       root: document.body.firstChild,
@@ -46,17 +46,17 @@ export class RenderApp<T> {
 export function renderContext<T = undefined>(): Context<RenderApp<T>> {
   return {
     init: () => {
-      window._testPatchApp?.destroy()
+      window._testApp?.destroy()
       return new RenderApp()
     },
-    teardown: async (patchApp) => {
-      //@ts-ignore
-      const isDebug = import.meta.env.VITE_DEBUG
-      if (isDebug) {
-        window._testPatchApp = patchApp
-      } else {
-        patchApp.destroy()
-      }
+    teardown: async (testApp) => {
+      window._testApp = testApp
     }
   }
 }
+
+interface TestAppWindow extends Window {
+  _testApp: RenderApp<any> | undefined
+}
+
+declare let window: TestAppWindow

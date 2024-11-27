@@ -16,7 +16,7 @@ export class DOMRoot implements Zone, RenderResult {
   private eventController = new AbortController()
   private events: Map<string, DOMEvent> = new Map()
 
-  constructor(readonly store: Store, readonly root: Element) { }
+  constructor(readonly store: Store, readonly root: Node) { }
 
   private clearRoot() {
     while (this.root.hasChildNodes()) {

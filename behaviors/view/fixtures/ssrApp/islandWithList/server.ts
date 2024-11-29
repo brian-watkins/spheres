@@ -1,7 +1,8 @@
 import { renderToString } from "@src/htmlViewBuilder";
 import { view } from "./view";
-import { Store, write } from "@spheres/store";
-import { items } from "./item";
+import { command, exec, Store, write } from "@spheres/store";
+import { items, suppliedTitle } from "./state";
+import { SSRParts } from "helpers/ssrApp";
 
 const store = new Store()
 store.dispatch(write(items, [
@@ -9,6 +10,19 @@ store.dispatch(write(items, [
   { name: "Banana", color: "yellow" },
 ]))
 
-export default function() {
-  return renderToString(store, view)
+const getSuppliedState = command<void>()
+
+store.useCommand(getSuppliedState, {
+  exec(_, actions) {
+    actions.supply(suppliedTitle, "Fun Stuff!")
+  }
+})
+
+store.dispatch(exec(getSuppliedState, undefined))
+
+export default function(): SSRParts {
+  return {
+    html: renderToString(store, view),
+    serializedStore: store.serialize()
+  }
 }

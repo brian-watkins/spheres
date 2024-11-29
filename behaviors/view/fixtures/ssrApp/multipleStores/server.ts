@@ -1,11 +1,14 @@
 import { Store } from "@spheres/store";
 import viewGenerator from "./view.js"
 import { HTMLBuilder, renderToString } from "@src/index.js";
+import { SSRParts } from "helpers/ssrApp.js";
 
 const store = new Store()
 
-export default function () {
-  return renderToString(store, template)
+export default function (): SSRParts {
+  return {
+    html: renderToString(store, template),
+  }
 }
 
 function template(root: HTMLBuilder) {

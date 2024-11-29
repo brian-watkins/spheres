@@ -143,7 +143,7 @@ class SimpleStateEventSource implements StateEventSource {
   }
 }
 
-class SimpleStateController<T> extends SimpleStateEventSource implements ContainerController<T> {  
+class SimpleStateController<T> extends SimpleStateEventSource implements ContainerController<T> {
   constructor(protected store: Store, private _value: T) {
     super(store)
   }
@@ -174,7 +174,7 @@ class SimpleStateController<T> extends SimpleStateEventSource implements Contain
 export abstract class State<T> {
   constructor(readonly id: string | undefined, readonly name: string | undefined) { }
 
-  abstract [registerState](store: Store): StateController<T>
+  abstract [registerState](store: Store, initialState?: T): StateController<T>
 
   toString() {
     return this.name && this.id ? `${this.name}-${this.id}` : (this.name ?? this.id ?? "State")
@@ -247,8 +247,8 @@ export class SuppliedState<T, M = any, E = any> extends State<T> {
     super(id, name)
   }
 
-  [registerState](store: Store): ContainerController<T, M> {
-    return new SimpleStateController(store, this.initialValue)
+  [registerState](store: Store, serializedState?: T): ContainerController<T, M> {
+    return new SimpleStateController(store, serializedState ?? this.initialValue)
   }
 
   get meta(): MetaState<T, M, E> {
@@ -275,10 +275,12 @@ export class Container<T, M = T, E = any> extends State<T> {
     return this.initialValue
   }
 
-  [registerState](store: Store): ContainerController<T, M> {
+  [registerState](store: Store, serializedState?: T): ContainerController<T, M> {
     return this.update ?
+      // REVISIT
+      // Need to test when the container has an update function and serialized state
       new MessagePassingStateController(store, this.initialValue, this.update) :
-      new SimpleStateController(store, this.initialValue)
+      new SimpleStateController(store, serializedState ?? this.initialValue)
   }
 
   get meta(): MetaState<T, M, E> {
@@ -380,6 +382,8 @@ export class Store {
   private hooks: StoreHooks | undefined
   private tokenIdMap: Map<string, StoreRegistryKey> = new Map();
 
+  constructor(private initialState?: Map<string, any>) { }
+
   private getKeyForToken(token: State<any>): StoreRegistryKey {
     if (token.id === undefined) return token
 
@@ -395,7 +399,8 @@ export class Store {
     const key = this.getKeyForToken(token)
     let controller = this.registry.get(key)
     if (controller === undefined) {
-      controller = token[registerState](this)
+      const initialState = token.id ? this.initialState?.get(token.id) : undefined
+      controller = token[registerState](this, initialState)
       this.registry.set(key, controller)
       if (this.hooks !== undefined && token instanceof Container) {
         this.hooks.onRegister(token)
@@ -419,7 +424,7 @@ export class Store {
     this.hooks = hooks
   }
 
-  [getValue]<S>(listener: StateListener, token: State<S>, ): S {
+  [getValue]<S>(listener: StateListener, token: State<S>,): S {
     const controller = this[getController](token)
     controller.addListener(listener)
 
@@ -572,6 +577,24 @@ export class Store {
         }
         break
     }
+  }
+
+  serialize(): string {
+    let map = `const stateMap = new Map([`
+    for (const [id, token] of this.tokenIdMap) {
+      if (token instanceof Container || token instanceof SuppliedState) {
+        const value = this[getController](token).value
+        map += `["${id}",${JSON.stringify(value)}],`
+      }
+    }
+    map += "]);"
+
+    return `<script type="module">
+window._spheres_store_data = () => {
+  ${map}
+  return stateMap;
+};
+</script>`
   }
 }
 

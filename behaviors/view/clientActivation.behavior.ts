@@ -167,6 +167,9 @@ export default behavior("client activation of server rendered views", [
             "Apple, red",
             "Banana, yellow"
           ]))
+        }),
+        effect("the title is set with the server-side supplied value", async (context) => {
+          await expect(context.browser.display.select("[data-title]").text(), resolvesTo("Fun Stuff!"))
         })
       ]
     }).andThen({

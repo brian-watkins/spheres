@@ -1,10 +1,14 @@
 import { batch, State, StoreMessage, update, use } from "@spheres/store";
 import { HTMLBuilder, HTMLView } from "@src/index.js";
-import { Item, items } from "./item";
+import { Item, items, suppliedTitle } from "./state";
 
 export function view(root: HTMLBuilder) {
   root.main(el => {
     el.children
+      .h1(el => {
+        el.config.dataAttribute("title")
+        el.children.subview(titleText)
+      })
       .div(el => {
         el.config.id("item-form")
         el.children.subview(itemInput)
@@ -14,6 +18,10 @@ export function view(root: HTMLBuilder) {
         el.children.subview(itemList)
       })
   })
+}
+
+export function titleText(root: HTMLBuilder) {
+  root.textNode(get => get(suppliedTitle))
 }
 
 export function itemList(root: HTMLBuilder) {

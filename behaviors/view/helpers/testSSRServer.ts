@@ -9,6 +9,7 @@ import { Context } from 'esbehavior'
 import { TestAppDisplay } from './testDisplay.js'
 import { BrowserTestInstrument, useBrowser } from 'best-behavior/browser'
 import { useModule } from "best-behavior/transpiler"
+import { SSRParts } from './ssrApp.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -104,9 +105,13 @@ export class TestSSRServer {
         template = await this.viteDevServer!.transformIndexHtml(url, template)
 
         const viewRenderer = await useModule(this.contentView)
-        const appHtml = viewRenderer.default()
+        const ssrParts: SSRParts = viewRenderer.default()
 
-        const html = template.replace(`<!-- SSR-CONTENT -->`, appHtml)
+        let html = template.replace(`<!-- SSR-APP-HTML -->`, ssrParts.html)
+
+        if (ssrParts.serializedStore !== undefined) {
+          html = html.replace(`<!-- SSR-SERIALIZED-STORE -->`, ssrParts.serializedStore)
+        }
 
         res.status(200)
           .set({ 'Content-Type': 'text/html' })

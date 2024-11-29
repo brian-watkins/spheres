@@ -5,21 +5,23 @@ import { Item, items } from "./item";
 export function view(root: HTMLBuilder) {
   root.main(el => {
     el.children
-      .subview(itemInput)
+      .div(el => {
+        el.config.id("item-form")
+        el.children.subview(itemInput)
+      })
       .hr()
-      .subview(itemList)
+      .ol(el => {
+        el.children.subview(itemList)
+      })
   })
 }
 
 export function itemList(root: HTMLBuilder) {
-  root.ol(el => {
-    el.children.subviews(get => get(items), itemView)
-  })
+  root.subviews(get => get(items), itemView)
 }
 
 export function itemInput(root: HTMLBuilder) {
   root.div(el => {
-    el.config.id("item-form")
     el.children
       .form(el => {
         el.config

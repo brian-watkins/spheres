@@ -3,7 +3,7 @@ import { HTMLBuilder } from "@src/htmlElements";
 import { HTMLView } from "@src/index";
 import { behavior, effect, example, fact, step } from "best-behavior";
 import { expect, is, resolvesTo } from "great-expectations";
-import { selectElement, selectElements } from "helpers/displayElement";
+import { selectElement, selectElements, selectElementWithText } from "helpers/displayElement";
 import { RenderApp, renderContext } from "helpers/renderContext";
 
 export default behavior("conditional zone", [
@@ -224,7 +224,10 @@ export default behavior("conditional zone", [
   multipleSelectFragmentsExample("server rendered", (context, view) => context.ssrAndActivate(view)),
 
   nestedSelectorExample("client rendered", (context, view) => context.mountView(view)),
-  nestedSelectorExample("server rendered", (context, view) => context.ssrAndActivate(view))
+  nestedSelectorExample("server rendered", (context, view) => context.ssrAndActivate(view)),
+
+  conditionalListWithEvents("client rendered", (context, view) => context.mountView(view)),
+  conditionalListWithEvents("server rendered", (context, view) => context.ssrAndActivate(view))
 
 ])
 
@@ -323,8 +326,8 @@ function multipleSelectFragmentsExample(name: string, renderer: (context: Render
                       el.config.on("click", () => update(toggle, val => !val))
                       el.children.textNode("Toggle Views!")
                     })
-                  })
                 })
+              })
               )
             })
           })
@@ -445,10 +448,7 @@ function nestedSiblingSelectViewExample(name: string, renderer: (context: Render
           }
 
           renderer(context, root => {
-            root.main(el => {
-              el.children
-                .subviews((get) => get(context.state.listItems), itemView)
-            })
+            root.subviews((get) => get(context.state.listItems), itemView)
           })
         })
       ],
@@ -619,6 +619,66 @@ function siblingSelectViewExample(name: string, renderer: (context: RenderApp<Ne
     })
 }
 
+function conditionalListWithEvents(name: string, renderer: (context: RenderApp<NestedSelectViewContext>, view: HTMLView) => void) {
+  return example(renderContext<NestedSelectViewContext>())
+    .description(`conditional view with list as root that uses events (${name})`)
+    .script({
+      suppose: [
+        fact("there is some state", (context) => {
+          context.setState({
+            listItems: container({ initialValue: ["cat", "frog", "snake"] })
+          })
+        }),
+        fact("there is a conditional list view", (context) => {
+          function itemCounter(name: string): Container<number> {
+            return container({ initialValue: 0, id: name })
+          }
+
+          function itemView(item: State<string>): HTMLView {
+            return (root) => {
+              root.div(el => {
+                el.children
+                  .h3(el => {
+                    el.config
+                      .dataAttribute("item-count", get => get(item))
+                    el.children
+                      .textNode(get => `You clicked the ${get(item)} ${get(itemCounter(get(item)))} times!`)
+                  })
+                  .button(el => {
+                    el.config.on("click", () => use(get => update(itemCounter(get(item)), (val) => val + 1)))
+                    el.children.textNode(get => `Click the ${get(item)}`)
+                  })
+              })
+            }
+          }
+
+          function listView(root: HTMLBuilder) {
+            root.subviews(get => get(context.state.listItems), itemView)
+          }
+
+          renderer(context, (root) => {
+            root.subviewOf(selector => {
+              selector.default(listView)
+            })
+          })
+        })
+      ],
+      perform: [
+        step("click the item multiple times", async () => {
+          await selectElementWithText("Click the frog").click()
+          await selectElementWithText("Click the frog").click()
+          await selectElementWithText("Click the frog").click()
+        })
+      ],
+      observe: [
+        step("the counter is updated", async () => {
+          await expect(selectElement("[data-item-count='frog']").text(),
+            resolvesTo("You clicked the frog 3 times!"))
+        })
+      ]
+    })
+}
+
 type SelectOptions = "fruit" | "fruits" | "sport" | "sports" | "book" | "books"
 
 interface NestedSelectorContext {
@@ -633,7 +693,7 @@ function nestedSelectorExample(name: string, renderer: (context: RenderApp<Neste
       suppose: [
         fact("there is state", (context) => {
           context.setState({
-            items: container({ initialValue: [ "fruit", "sport", "book" ]}),
+            items: container({ initialValue: ["fruit", "sport", "book"] }),
             modifier: container({ initialValue: "" })
           })
         }),
@@ -660,9 +720,7 @@ function nestedSelectorExample(name: string, renderer: (context: RenderApp<Neste
           }
 
           renderer(context, root => {
-            root.main(el => {
-              el.children.subviews(get => get(context.state.items), itemView)
-            })
+            root.subviews(get => get(context.state.items), itemView)
           })
         })
       ],

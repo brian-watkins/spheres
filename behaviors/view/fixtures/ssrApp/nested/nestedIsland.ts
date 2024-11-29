@@ -5,7 +5,6 @@ import { HTMLBuilder } from "@src/index.js"
 
 export default function (root: HTMLBuilder) {
   root.div(el => {
-    el.config.id("super-island")
     el.children
       .h1(el => el.children.textNode(get => `This is for ${get(nameState)}!`))
       .subview(counterIsland)

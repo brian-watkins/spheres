@@ -4,7 +4,6 @@ import { GetState, use, write } from "@spheres/store"
 
 export function view(root: HTMLBuilder) {
   root.div(el => {
-    el.config.id("nested-state-island")
     el.children
       .h1(el => {
         el.children.textNode(get => `This is ${get(nameState)}'s stuff!`)

@@ -4,16 +4,11 @@ import { GetState, use, write } from "@spheres/store"
 
 const incrementCount = (get: GetState) => write(clickCount, get(clickCount) + 1)
 
-export default function(root: HTMLBuilder) {
-  root.div(el => {
+export default function (root: HTMLBuilder) {
+  root.button(el => {
     el.config
-      .id("counter")
+      .on("click", () => use(incrementCount))
     el.children
-      .button(el => {
-        el.config
-          .on("click", () => use(incrementCount))
-        el.children
-          .textNode("Click me!")
-      })
+      .textNode("Click me!")
   })
 }

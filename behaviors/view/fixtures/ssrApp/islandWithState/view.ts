@@ -7,6 +7,9 @@ export default function (root: HTMLBuilder) {
       .h1(el => {
         el.children.textNode("THis is the click counter!")
       })
-      .subview(view)
+      .div(el => {
+        el.config.id("nested-state-island")
+        el.children.subview(view)
+      })
   })
 }

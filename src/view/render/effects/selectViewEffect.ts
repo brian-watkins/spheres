@@ -1,8 +1,13 @@
 import { GetState, ReactiveEffect } from "../../../store/index.js";
 import { IdSequence } from "../idSequence.js";
-import { ArgsController, GetDOMTemplate, Zone } from "../index.js";
+import { ArgsController, DOMTemplate, GetDOMTemplate, Zone } from "../index.js";
 import { StatefulSelectorNode, VirtualTemplate } from "../virtualNode.js";
-import { renderTemplateInstance } from "../renderTemplate.js";
+import { activateTemplateInstance, renderTemplateInstance } from "../renderTemplate.js";
+
+interface TemplateInfo {
+  domTemplate: DOMTemplate,
+  nextArgsController: ArgsController
+}
 
 export class SelectViewEffect implements ReactiveEffect {
 
@@ -17,10 +22,11 @@ export class SelectViewEffect implements ReactiveEffect {
   ) { }
 
   init(get: GetState): void {
-    // NOTE -- if we are activating then we recreate the view here
-    // Maybe we should just try to activate it instead? Like we do with a list?
-
-    this.switchView(get)
+    if (this.startNode.nextSibling !== this.endNode) {
+      this.activateView(get)
+    } else {
+      this.switchView(get)
+    }
   }
 
   run(get: GetState): void {
@@ -31,26 +37,45 @@ export class SelectViewEffect implements ReactiveEffect {
     this.switchView(get)
   }
 
-  private switchView(get: GetState): void {
-    this.argsController?.setArgs(this.args)
-    const selectedIndex = this.vnode.selectors.findIndex(selector => selector.select(get))
+  private activateView(get: GetState): void {
+    const templateInfo = this.getTemplateInfo(get)
 
-    const node = this.getNodeForIndex(selectedIndex)
+    if (templateInfo === undefined) return
+
+    activateTemplateInstance(this.zone, templateInfo.domTemplate, this.startNode.nextSibling!, templateInfo.nextArgsController, undefined)
+  }
+
+  private switchView(get: GetState): void {
+    const templateInfo = this.getTemplateInfo(get)
+
+    let node: Node
+    if (templateInfo === undefined) {
+      node = document.createTextNode("")
+    } else {
+      node = renderTemplateInstance(this.zone, templateInfo.domTemplate, templateInfo.nextArgsController, undefined)
+    }
 
     this.clearView()
 
     this.startNode.parentNode?.insertBefore(node, this.endNode!)
   }
 
-  private getNodeForIndex(index: number): Node {
-    if (index === -1) {
-      return document.createTextNode("")
+  private getTemplateInfo(get: GetState): TemplateInfo | undefined {
+    this.argsController?.setArgs(this.args)
+    const selectedIndex = this.vnode.selectors.findIndex(selector => selector.select(get))
+
+    if (selectedIndex === -1) {
+      return undefined
     }
 
-    const virtualTemplate = this.vnode.selectors[index].template
-    const domTemplate = this.getDOMTemplate(this.zone, new IdSequence(`${this.vnode.id}.${index}`), virtualTemplate)
+    const virtualTemplate = this.vnode.selectors[selectedIndex].template
+    const domTemplate = this.getDOMTemplate(this.zone, new IdSequence(`${this.vnode.id}.${selectedIndex}`), virtualTemplate)
     const nextArgsController = this.getNextArgsController(virtualTemplate)
-    return renderTemplateInstance(this.zone, domTemplate, nextArgsController, undefined)
+
+    return {
+      domTemplate,
+      nextArgsController
+    }
   }
 
   private clearView() {

@@ -6,7 +6,10 @@ export default function (root: HTMLBuilder) {
   root.div(el => {
     el.children
       .h1(el => el.children.textNode("This is a click counter!"))
-      .subview(counterIsland)
+      .div(el => {
+        el.config.id("counter")
+        el.children.subview(counterIsland)
+      })
       .div(el => {
         el.config.dataAttribute("tally")
         el.children.subview(tallyIsland)

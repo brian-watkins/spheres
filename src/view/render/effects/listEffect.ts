@@ -1,9 +1,9 @@
 import { container, Container, GetState, ReactiveEffect, write } from "../../../store/index.js"
 import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementId } from "../fragmentHelpers.js"
 import { IdSequence } from "../idSequence.js"
-import { ArgsController, DOMTemplate, GetDOMTemplate, spheresTemplateData, Zone } from "../index.js"
+import { ArgsController, DOMTemplate, GetDOMTemplate, Zone } from "../index.js"
 import { StatefulListNode, NodeType } from "../virtualNode.js"
-import { renderTemplateInstance } from "../renderTemplate.js"
+import { activateTemplateInstance, renderTemplateInstance } from "../renderTemplate.js"
 
 export interface VirtualItem {
   key: any
@@ -270,9 +270,7 @@ export class ListEffect implements ReactiveEffect {
       args = data
     }
 
-    for (const effect of this.domTemplate.effects) {
-      effect.attach(this.zone, node, this.nextArgsController, args)
-    }
+    activateTemplateInstance(this.zone, this.domTemplate, node, this.nextArgsController, args)
 
     switch (this.listVnode.template.virtualNode.type) {
       case NodeType.STATEFUL_LIST: {
@@ -287,8 +285,6 @@ export class ListEffect implements ReactiveEffect {
       }
       default: {
         virtualItem.node = node
-        // @ts-ignore
-        node[spheresTemplateData] = () => this.nextArgsController.setArgs(args)
         return [virtualItem, node.nextSibling!]
       }
     }

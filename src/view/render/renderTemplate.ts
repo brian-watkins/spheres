@@ -18,3 +18,14 @@ export function renderTemplateInstance(zone: Zone, domTemplate: DOMTemplate, arg
 
   return rootElement
 }
+
+export function activateTemplateInstance(zone: Zone, domTemplate: DOMTemplate, root: Node, argsController: ArgsController, args: any) {
+  for (const effect of domTemplate.effects) {
+    effect.attach(zone, root, argsController, args)
+  }
+
+  if (!domTemplate.isFragment) {
+    // @ts-ignore
+    root[spheresTemplateData] = () => argsController.setArgs(args)
+  }
+}

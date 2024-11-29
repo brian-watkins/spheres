@@ -26,16 +26,7 @@ export class RenderApp<T> {
   ssrAndActivate(view: HTMLView) {
     const htmlString = renderToString(this.store, view)
     document.body.innerHTML = htmlString
-    activateView(this.store, document.body.firstChild, view)
-
-    this.renderResult = {
-      root: document.body.firstChild,
-      unmount: () => {
-        while (document.body.hasChildNodes()) {
-          document.body.removeChild(document.body.lastChild)
-        }
-      }
-    }
+    this.renderResult = activateView(this.store, document.body, view)
   }
 
   destroy() {

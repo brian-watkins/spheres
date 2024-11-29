@@ -16,7 +16,7 @@ export class DOMRoot implements Zone, RenderResult {
   private eventController = new AbortController()
   private events: Map<string, DOMEvent> = new Map()
 
-  constructor(readonly store: Store, readonly root: Node) { }
+  constructor(readonly store: Store, readonly root: Element) { }
 
   private clearRoot() {
     while (this.root.hasChildNodes()) {
@@ -30,7 +30,7 @@ export class DOMRoot implements Zone, RenderResult {
   }
 
   activate(vnode: VirtualNode) {
-    activateEffects(this, vnode, this.root)
+    activateEffects(this, vnode, this.root.firstChild!)
   }
 
   addEvent(location: DOMEvent["location"], elementId: string, eventType: string, handler: StoreEventHandler<any>) {

@@ -29,8 +29,10 @@ export function ssrTestAppContext(): Context<SSRTestAppContext> {
       }
     },
     teardown: async (context) => {
-      await context.browser.browser.page.close()
-      await context.server.close()
+      if (!context.browser.browser.isVisible) {
+        await context.browser.browser.page.close()
+        await context.server.close()
+      }
     }
   })
 }

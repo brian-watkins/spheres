@@ -1,4 +1,4 @@
-import { activateView, HTMLBuilder } from "@src/index.js"
+import { activateView } from "@src/index.js"
 import counter from "../islands/counter.js"
 import tally from "../islands/tally.js"
 import { Store } from "@spheres/store"
@@ -8,11 +8,5 @@ activateView(store, document.getElementById("counter")!, counter)
 
 const tallyElements = document.querySelectorAll("[data-tally]")
 for (const element of tallyElements) {
-  activateView(store, element, tallyView)
-}
-
-function tallyView(root: HTMLBuilder) {
-  root.div(el => {
-    el.children.subview(tally)
-  })
+  activateView(store, element, tally)
 }

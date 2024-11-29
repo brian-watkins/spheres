@@ -15,7 +15,6 @@ export interface Zone {
 }
 
 export interface RenderResult {
-  root: Node
   unmount: () => void
 }
 

@@ -3,7 +3,6 @@ export {
   type GetState,
   type ReadyHookActions,
   type WriteHookActions,
-  type PublishHookActions,
   type ContainerHooks,
   type WriteMessage,
   type UpdateMessage,

@@ -42,14 +42,9 @@ export interface WriteHookActions<T, M, E> {
   current: T
 }
 
-export interface PublishHookActions {
-  get: GetState
-}
-
 export interface ContainerHooks<T, M, E = unknown> {
   onReady?(actions: ReadyHookActions<T, M, E>): void
   onWrite?(message: M, actions: WriteHookActions<T, M, E>): void
-  onPublish?(value: T, actions: PublishHookActions): void
 }
 
 export interface WriteMessage<T, M = T> {
@@ -497,23 +492,6 @@ export class Store {
 
   private containerControllerWithHooks<T, M, E>(container: Container<T, M, E>, controller: ContainerController<T, M>, hooks: ContainerHooks<T, M, E>): ContainerController<T, M> {
     let withHooks: ContainerController<T, M> = controller
-    if (hooks.onPublish) {
-      withHooks = new Proxy(withHooks, {
-        get: (target, prop, receiver) => {
-          if (prop === "accept") {
-            return (message: any) => {
-              target.publish(message)
-              hooks.onPublish!(target.value, {
-                get: (state) => {
-                  return this[getController](state).value
-                }
-              })
-            }
-          }
-          return Reflect.get(target, prop, receiver)
-        }
-      })
-    }
     if (hooks.onWrite) {
       withHooks = new Proxy(withHooks, {
         get: (target, prop, receiver) => {

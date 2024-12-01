@@ -1,6 +1,6 @@
 import { Container, ContainerHooks, container } from "@src/index";
 import { ConfigurableExample, behavior, effect, example, fact, step } from "best-behavior";
-import { arrayWith, arrayWithLength, expect, is } from "great-expectations";
+import { arrayWith, expect, is } from "great-expectations";
 import { errorMessage, okMessage, pendingMessage } from "helpers/metaMatchers";
 import { TestTask } from "helpers/testTask";
 import { testStoreContext } from "helpers/testStore";
@@ -8,8 +8,7 @@ import { testStoreContext } from "helpers/testStore";
 interface BasicContainerHooksContext {
   container: Container<string>
   readyTask: TestTask<string>,
-  writeTask: TestTask<string>,
-  publishedValues: Array<string>
+  writeTask: TestTask<string>
 }
 
 const basicContainerHooks: ConfigurableExample =
@@ -21,7 +20,6 @@ const basicContainerHooks: ConfigurableExample =
           const stringContainer = container({ initialValue: "initial" })
           const readyTask = new TestTask<string>()
           const writeTask = new TestTask<string>()
-          let publishedValues: Array<string> = []
           const hooks: ContainerHooks<string, string> = {
             async onReady(actions) {
               actions.pending(`Loading! Current is: ${actions.current}`)
@@ -32,9 +30,6 @@ const basicContainerHooks: ConfigurableExample =
               actions.pending(`Writing: ${message}; Current is: ${actions.current}`)
               const val = await writeTask.waitForIt()
               actions.ok(`Wrote: ${val}`)
-            },
-            onPublish(value) {
-              publishedValues.push(value)
             }
           }
           context.useContainerHooks(stringContainer, hooks)
@@ -42,7 +37,6 @@ const basicContainerHooks: ConfigurableExample =
             container: stringContainer,
             readyTask,
             writeTask,
-            publishedValues
           })
         }),
         fact("there is a subscriber to the container", (context) => {
@@ -62,9 +56,6 @@ const basicContainerHooks: ConfigurableExample =
           expect(context.valuesForSubscriber("meta-sub-1"), is(arrayWith([
             pendingMessage("Loading! Current is: initial")
           ])))
-        }),
-        effect("the publish hook is not called with the initial value", (context) => {
-          expect(context.tokens.publishedValues, is(arrayWithLength(0)))
         })
       ]
     }).andThen({
@@ -79,9 +70,6 @@ const basicContainerHooks: ConfigurableExample =
             "initial",
             "Loaded: Fun stuff!"
           ]))
-        }),
-        effect("the publish hook is not called with the loaded data", (context) => {
-          expect(context.tokens.publishedValues, is(arrayWithLength(0)))
         }),
         effect("the meta container subscriber receives an ok message (and the onWrite hook is not called)", (context) => {
           expect(context.valuesForSubscriber("meta-sub-1"), is(arrayWith([
@@ -103,9 +91,6 @@ const basicContainerHooks: ConfigurableExample =
             "Loaded: Fun stuff!"
           ]))
         }),
-        effect("the publish hook is not called yet", (context) => {
-          expect(context.tokens.publishedValues, is(arrayWithLength(0)))
-        }),
         effect("the meta container subscriber receives a pending message from the onWrite hook", (context) => {
           expect(context.valuesForSubscriber("meta-sub-1"), is(arrayWith([
             pendingMessage("Loading! Current is: initial"),
@@ -125,11 +110,6 @@ const basicContainerHooks: ConfigurableExample =
           expect(context.valuesForSubscriber("sub-1"), is([
             "initial",
             "Loaded: Fun stuff!",
-            "Wrote: Great Values!"
-          ]))
-        }),
-        effect("the publish hook is called with the new value", (context) => {
-          expect(context.tokens.publishedValues, is([
             "Wrote: Great Values!"
           ]))
         }),
@@ -199,7 +179,6 @@ interface GetStateInHooksContext {
   one: Container<number>
   two: Container<string>
   container: Container<string>
-  publishedMessages: Array<string>
 }
 
 const getStateInHooks: ConfigurableExample =
@@ -211,24 +190,19 @@ const getStateInHooks: ConfigurableExample =
           const one = container({ initialValue: 23 })
           const two = container({ initialValue: "hello" })
           const myContainer = container({ initialValue: "initial" })
-          let publishedMessages: Array<string> = []
           const hooks: ContainerHooks<string, string> = {
             onReady(actions) {
               actions.supply(`Loading: ${actions.get(one)}-${actions.get(two)}`)
             },
             onWrite(message, actions) {
               actions.ok(`Writing: ${message} & ${actions.get(one)}-${actions.get(two)}`)
-            },
-            onPublish(value, actions) {
-              publishedMessages.push(`Published: ${value}; got: ${actions.get(one)}`)
             }
           }
           context.useContainerHooks(myContainer, hooks)
           context.setTokens({
             one,
             two,
-            container: myContainer,
-            publishedMessages
+            container: myContainer
           })
         }),
         fact("there is a subscriber to the container", (context) => {
@@ -249,11 +223,6 @@ const getStateInHooks: ConfigurableExample =
           expect(context.valuesForSubscriber("sub-1"), is([
             "Loading: 23-hello",
             "Writing: some message & 49-funny"
-          ]))
-        }),
-        effect("the publish hook is triggered able to get state", (context) => {
-          expect(context.tokens.publishedMessages, is([
-            "Published: Writing: some message & 49-funny; got: 49"
           ]))
         })
       ]

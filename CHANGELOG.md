@@ -1,5 +1,13 @@
 # spheres
 
+## 0.12.0
+
+### Minor Changes
+
+- 3b999bb: Serialize store for automatic state transfer from server to client
+- a394d78: Provide parent element when activating a view
+- 3b999bb: Remove onPublish container hook
+
 ## 0.11.1
 
 ### Patch Changes

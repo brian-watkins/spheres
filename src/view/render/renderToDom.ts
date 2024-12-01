@@ -18,18 +18,13 @@ export class DOMRoot implements Zone, RenderResult {
 
   constructor(readonly store: Store, readonly root: Element) { }
 
-  private clearRoot() {
-    while (this.root.hasChildNodes()) {
-      this.root.removeChild(this.root.lastChild!)
-    }
-  }
-
   mount(vnode: VirtualNode) {
     this.clearRoot()
     this.root.appendChild(createNode(this, new IdSequence(), vnode))
   }
 
   activate(vnode: VirtualNode) {
+    this.cleanRoot()
     activateEffects(this, vnode, this.root.firstChild!)
   }
 
@@ -74,6 +69,23 @@ export class DOMRoot implements Zone, RenderResult {
   unmount() {
     this.eventController.abort()
     this.clearRoot()
+  }
+
+  private clearRoot() {
+    while (this.root.hasChildNodes()) {
+      this.root.removeChild(this.root.lastChild!)
+    }
+  }
+
+  private cleanRoot() {
+    for (let i = 0; i < this.root.childNodes.length; i++) {
+      const node = this.root.childNodes[i]
+      if (node.nodeType === NodeType.TEXT && node.nodeValue?.trim() === "") {
+        this.root.removeChild(node)
+      } else {
+        break
+      }
+    }
   }
 }
 

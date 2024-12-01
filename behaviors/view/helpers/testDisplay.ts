@@ -46,6 +46,10 @@ export class DisplayElementList {
     return results
   }
 
+  async texts(): Promise<Array<string>> {
+    return this.map(el => el.text())
+  }
+
   async count(): Promise<number> {
     return await this.locator.count()
   }

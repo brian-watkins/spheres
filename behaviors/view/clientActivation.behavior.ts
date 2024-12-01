@@ -249,6 +249,37 @@ export default behavior("client activation of server rendered views", [
           ]))
         })
       ]
+    }),
+
+  example(ssrTestAppContext())
+    .description("server-side container hooks")
+    .script({
+      suppose: [
+        fact("the app is loaded in the browser", async (context) => {
+          context.server.setContent({
+            template: "../fixtures/ssrApp/islandWithUpdate/template.html",
+            view: "./behaviors/view/fixtures/ssrApp/islandWithUpdate/server.ts"
+          })
+          await context.browser.loadApp()
+        })
+      ],
+      perform: [
+        step("add a new item to the list", async (context) => {
+          await context.browser.display.select("[data-item-input]").type("Super Cool Thing")
+          await context.browser.display.select("[data-item-submit]").click()
+        })
+      ],
+      observe: [
+        effect("the server-rendered list is updated", async (context) => {
+          await expect(context.browser.display.selectAll("LI").texts(),
+            resolvesTo([
+              "Item-1",
+              "Item-2",
+              "Item-3",
+              "Super Cool Thing"
+            ]))
+        })
+      ]
     })
 
 ])

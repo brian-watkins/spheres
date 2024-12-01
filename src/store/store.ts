@@ -277,9 +277,7 @@ export class Container<T, M = T, E = any> extends State<T> {
 
   [registerState](store: Store, serializedState?: T): ContainerController<T, M> {
     return this.update ?
-      // REVISIT
-      // Need to test when the container has an update function and serialized state
-      new MessagePassingStateController(store, this.initialValue, this.update) :
+      new MessagePassingStateController(store, serializedState ?? this.initialValue, this.update) :
       new SimpleStateController(store, serializedState ?? this.initialValue)
   }
 

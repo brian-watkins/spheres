@@ -509,14 +509,16 @@ export class Store {
 
   dispatch(message: StoreMessage<any>) {
     switch (message.type) {
-      case "write":
+      case "write": {
         this[getContainerController](message.container).write(message.value)
         break
-      case "update":
+      }
+      case "update": {
         const controller = this[getContainerController](message.container)
         controller.write(message.generator(controller.value))
         break
-      case "exec":
+      }
+      case "exec": {
         this.commandRegistry.get(message.command)?.exec(message.message, {
           get: (state) => {
             return this[getController](state).value
@@ -532,26 +534,28 @@ export class Store {
           }
         })
         break
-      case "reset":
-        this.dispatch({
-          type: "write",
-          container: message.container,
-          value: message.container[initialValue]
-        })
+      }
+      case "reset": {
+        const controller = this[getContainerController](message.container)
+        controller.write(message.container[initialValue])
         break
-      case "use":
+      }
+      case "use": {
         const get: GetState = (state) => this[getController](state).value
         const statefulMessage = message.rule(get) ?? { type: "batch", messages: [] }
         this.dispatch(statefulMessage)
         break
-      case "run":
+      }
+      case "run": {
         message.effect()
         break
-      case "batch":
+      }
+      case "batch": {
         for (let i = 0; i < message.messages.length; i++) {
           this.dispatch(message.messages[i])
         }
         break
+      }
     }
   }
 

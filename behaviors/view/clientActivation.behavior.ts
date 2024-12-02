@@ -252,7 +252,7 @@ export default behavior("client activation of server rendered views", [
     }),
 
   example(ssrTestAppContext())
-    .description("server-side container hooks")
+    .description("ssr view with container with update")
     .script({
       suppose: [
         fact("the app is loaded in the browser", async (context) => {

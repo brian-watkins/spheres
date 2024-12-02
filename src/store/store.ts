@@ -369,13 +369,18 @@ export interface StoreHooks {
   onRegister(container: Container<any>): void
 }
 
+interface StoreOptions {
+  id?: string
+  initialState?: Map<string, any>
+}
+
 export class Store {
   private registry: WeakMap<StoreRegistryKey, StateController<any>> = new WeakMap();
   private commandRegistry: Map<Command<any>, CommandManager<any>> = new Map()
   private hooks: StoreHooks | undefined
   private tokenIdMap: Map<string, StoreRegistryKey> = new Map();
 
-  constructor(private initialState?: Map<string, any>) { }
+  constructor(private options: StoreOptions = {}) { }
 
   private getKeyForToken(token: State<any>): StoreRegistryKey {
     if (token.id === undefined) return token
@@ -392,7 +397,7 @@ export class Store {
     const key = this.getKeyForToken(token)
     let controller = this.registry.get(key)
     if (controller === undefined) {
-      const initialState = token.id ? this.initialState?.get(token.id) : undefined
+      const initialState = token.id ? this.options.initialState?.get(token.id) : undefined
       controller = token[registerState](this, initialState)
       this.registry.set(key, controller)
       if (this.hooks !== undefined && token instanceof Container) {
@@ -560,24 +565,41 @@ export class Store {
   }
 
   serialize(): string {
-    let map = `const stateMap = new Map([`
-    for (const [id, token] of this.tokenIdMap) {
-      if (token instanceof Container || token instanceof SuppliedState) {
+    const map_data = Array.from(this.tokenIdMap.entries())
+      .map(([key, token]) => {
         const value = this[getController](token).value
-        map += `["${id}",${JSON.stringify(value)}],`
-      }
-    }
-    map += "]);"
+        return `["${key}",${JSON.stringify(value)}]`
+      })
+      .join(",")
 
     return `<script type="module">
-window._spheres_store_data = () => {
-  ${map}
-  return stateMap;
-};
+window[Symbol.for("${storeId(this.options.id)}")] = new Map([${map_data}]);
 </script>`
   }
 }
 
+interface SpheresDecoratedWindow extends Window {
+  [key: symbol]: any
+}
+
+declare let window: SpheresDecoratedWindow
+
+export function activateStore(id?: string): Store {
+  return new Store({
+    id,
+    initialState: window[Symbol.for(storeId(id))]
+  })
+}
+
+export function createStore(id?: string): Store {
+  return new Store({
+    id
+  })
+}
+
+function storeId(id: string | undefined): string {
+  return `_spheres_store_data_${id ?? ""}`
+}
 
 export interface UpdateResult<T> {
   value: T

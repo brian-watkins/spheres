@@ -1,9 +1,9 @@
 import { activateView } from "@src/index.js"
 import counter from "../islands/counter.js"
 import tally from "../islands/tally.js"
-import { Store } from "@spheres/store"
+import { activateStore } from "@spheres/store"
 
-const store = new Store()
+const store = activateStore()
 activateView(store, document.getElementById("counter")!, counter)
 
 const tallyElements = document.querySelectorAll("[data-tally]")

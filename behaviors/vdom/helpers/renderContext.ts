@@ -1,10 +1,10 @@
 import { activateView, HTMLView, RenderResult, renderToDOM, renderToString } from "@src/index.js"
 import { Context } from "best-behavior"
-import { Container, Store, write } from "@spheres/store"
+import { Container, createStore, Store, write } from "@spheres/store"
 
 export class RenderApp<T> {
   private renderResult: RenderResult | undefined
-  private store: Store = new Store()
+  private store: Store = createStore()
   private _state: T | undefined
 
   setState(state: T) {

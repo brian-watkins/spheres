@@ -1,5 +1,5 @@
 import { renderToDOM } from "spheres/view";
 import { flightBooker } from "../../src/flightBooker/view.js";
-import { Store } from "spheres/store";
+import { createStore } from "spheres/store";
 
-renderToDOM(new Store(), document.getElementById("test-display")!, flightBooker)
+renderToDOM(createStore(), document.getElementById("test-display")!, flightBooker)

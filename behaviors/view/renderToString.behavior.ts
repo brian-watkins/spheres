@@ -2,7 +2,7 @@ import { HTMLView, renderToString } from "@src/index.js";
 import { behavior, effect, example, Example } from "best-behavior";
 import { equalTo, expect, is } from "great-expectations";
 import { appWithZone, appWithDataAttributesNoValue, appWithDeeplyNestedState, appWithInnerHTML, appWithNestedState, appWithPropertiesAndAttributes, appWithReactiveAttributes, appWithReactiveClass, appWithReactiveText, appWithSimpleState, appWithZones, staticApp, appWithViewSelector, appWithEvents } from "./fixtures/static.app.js";
-import { Store } from "@spheres/store"
+import { createStore } from "@spheres/store"
 
 export default behavior("Render view to HTML string", [
   renderTest("render view with no event handlers or state", (renderer) => {
@@ -64,7 +64,7 @@ export default behavior("Render view to HTML string", [
 ])
 
 class TestRenderer {
-  private store = new Store()
+  private store = createStore()
 
   renderView(view: HTMLView): string {
     return renderToString(this.store, view)

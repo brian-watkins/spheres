@@ -1,5 +1,5 @@
 import { renderToDOM } from "spheres/view";
 import { converter } from "../../src/converter/app.js";
-import { Store } from "spheres/store";
+import { createStore } from "spheres/store";
 
-renderToDOM(new Store(), document.getElementById("test-display")!, converter)
+renderToDOM(createStore(), document.getElementById("test-display")!, converter)

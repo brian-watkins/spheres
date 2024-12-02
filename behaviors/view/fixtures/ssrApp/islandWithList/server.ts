@@ -1,10 +1,10 @@
 import { renderToString } from "@src/htmlViewBuilder";
 import { view } from "./view";
-import { command, exec, Store, write } from "@spheres/store";
+import { command, createStore, exec, write } from "@spheres/store";
 import { items, suppliedTitle } from "./state";
 import { SSRParts } from "helpers/ssrApp";
 
-const store = new Store()
+const store = createStore()
 store.dispatch(write(items, [
   { name: "Apple", color: "red" },
   { name: "Banana", color: "yellow" },

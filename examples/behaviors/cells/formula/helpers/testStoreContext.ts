@@ -1,4 +1,4 @@
-import { GetState, ReactiveEffect, Store, write } from "spheres/store";
+import { createStore, GetState, ReactiveEffect, write } from "spheres/store";
 import { Context } from "best-behavior";
 import { CellContainer, cellContainer } from "../../../../src/cells/state";
 import { Result } from "../../../../src/cells/result";
@@ -26,7 +26,7 @@ class CellValueEffect implements ReactiveEffect {
 }
 
 export class TestStore {
-  private store = new Store()
+  private store = createStore()
   private cellValues = new Map<string, CellValueEffect>()
 
   defineCell(id: string, definition: string) {

@@ -1,4 +1,4 @@
-import { Store, write } from "@spheres/store";
+import { createStore, write } from "@spheres/store";
 import { addItem, Item, items } from "./state";
 import { SSRParts } from "helpers/ssrApp";
 import { renderToString } from "@src/htmlViewBuilder";
@@ -10,7 +10,7 @@ function testItem(testId: number): Item {
   }
 }
 
-const store = new Store()
+const store = createStore()
 store.dispatch(write(items, addItem(testItem(1))))
 store.dispatch(write(items, addItem(testItem(2))))
 store.dispatch(write(items, addItem(testItem(3))))

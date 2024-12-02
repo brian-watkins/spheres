@@ -1,26 +1,38 @@
-import { Store } from "@spheres/store";
+import { createStore, write } from "@spheres/store";
 import viewGenerator from "./view.js"
-import { HTMLBuilder, renderToString } from "@src/index.js";
+import { renderToString } from "@src/index.js";
 import { SSRParts } from "helpers/ssrApp.js";
+import { clickCount } from "../state.js";
 
-const store = new Store()
+const storeA = createStore("store-a")
+storeA.dispatch(write(clickCount, 4))
+
+const storeB = createStore("store-b")
+storeB.dispatch(write(clickCount, 2))
 
 export default function (): SSRParts {
   return {
-    html: renderToString(store, template),
+    html: `
+<div>
+  <div id="fragment-a">${renderToString(storeA, viewGenerator)}</div>
+  <div id="fragment-b">${renderToString(storeB, viewGenerator)}</div>
+</div>`,
+    serializedStore: `
+${storeA.serialize()}
+${storeB.serialize()}`
   }
 }
 
-function template(root: HTMLBuilder) {
-  root.div(el => {
-    el.children
-      .div(el => {
-        el.config.id("fragment-a")
-        el.children.subview(viewGenerator)
-      })
-      .div(el => {
-        el.config.id("fragment-b")
-        el.children.subview(viewGenerator)
-      })
-  })
-}
+// function page(root: HTMLBuilder) {
+//   root.div(el => {
+//     el.children
+//       .div(el => {
+//         el.config.id("fragment-a")
+//         el.children.subview(viewGenerator)
+//       })
+//       .div(el => {
+//         el.config.id("fragment-b")
+//         el.children.subview(viewGenerator)
+//       })
+//   })
+// }

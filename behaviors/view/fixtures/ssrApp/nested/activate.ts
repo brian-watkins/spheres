@@ -1,5 +1,5 @@
 import { activateView } from "@src/index.js"
 import superIsland from "./nestedIsland.js"
-import { Store } from "@spheres/store"
+import { createStore } from "@spheres/store"
 
-activateView(new Store(), document.getElementById("super-island")!, superIsland)
+activateView(createStore(), document.getElementById("super-island")!, superIsland)

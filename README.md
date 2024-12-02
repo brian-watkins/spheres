@@ -10,7 +10,7 @@ Here's a simple counter app:
 
 ```
 import { renderToDOM } from "spheres/view";
-import { container, update, Store } from "spheres/store";
+import { container, update, createStore } from "spheres/store";
 
 const clickCount = container({ initialValue: 0 })
 
@@ -28,7 +28,7 @@ function counter (root: HTMLBuilder) {
   })
 }
 
-renderToDOM(new Store(), document.getElementById("app"), counter)
+renderToDOM(createStore(), document.getElementById("app"), counter)
 ```
 
 Find [more examples here](https://github.com/brian-watkins/spheres/tree/main/examples).

@@ -1,5 +1,5 @@
 import { renderToDOM } from "spheres/view";
 import { cells } from "./view";
-import { Store } from "spheres/store";
+import { createStore } from "spheres/store";
 
-renderToDOM(new Store(), document.getElementById("app")!, cells)
+renderToDOM(createStore(), document.getElementById("app")!, cells)

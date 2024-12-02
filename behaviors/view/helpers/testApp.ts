@@ -1,6 +1,6 @@
 import { renderToDOM } from "@src/index.js"
 import { DOMChangeRecord, structureChangeRecord, textChangeRecord } from "./changeRecords.js"
-import { Store } from "@spheres/store"
+import { createStore } from "@spheres/store"
 
 export class TestApp {
   private unmountTestApp: (() => void) | undefined
@@ -8,7 +8,7 @@ export class TestApp {
   public changeRecords: Array<DOMChangeRecord> = []
 
   async startApp(name: string) {
-    const store = new Store()
+    const store = createStore()
     this.changeRecords = []
 
     const viewConfiguration = await import(`../fixtures/${name}.ts`)

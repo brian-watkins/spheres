@@ -23,8 +23,10 @@ export {
   type CommandActions,
   type CommandManager,
   type StoreHooks,
-  Store,
-  type UpdateResult
+  type Store,
+  type UpdateResult,
+  activateStore,
+  createStore
 } from "./store.js"
 export * from "./message.js"
 export * from "./container.js"
@@ -32,4 +34,3 @@ export * from "./command.js"
 export * from "./derived.js"
 export * from "./error.js"
 export * from "./supplied.js"
-export * from "./activate.js"

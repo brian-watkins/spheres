@@ -76,9 +76,9 @@ export default behavior("client activation of server rendered views", [
       observe: [
         effect("the default state from the server is loaded", async (context) => {
           const clickText = await context.browser.display.select("#fragment-a [data-click-count]").text()
-          expect(clickText, is(equalTo("You've clicked the button 0 times!")))
+          expect(clickText, is(equalTo("You've clicked the button 4 times!")))
           const secondClickText = await context.browser.display.select("#fragment-b [data-click-count]").text()
-          expect(secondClickText, is(equalTo("You've clicked the button 0 times!")))
+          expect(secondClickText, is(equalTo("You've clicked the button 2 times!")))
         })
       ]
     }).andThen({
@@ -92,9 +92,9 @@ export default behavior("client activation of server rendered views", [
       observe: [
         effect("both click tally islands are updated", async (context) => {
           const counterText = await context.browser.display.select("#fragment-a [data-click-count]").text()
-          expect(counterText, is(stringContaining("2 times")))
+          expect(counterText, is(stringContaining("6 times")))
           const secondCounterText = await context.browser.display.select("#fragment-b [data-click-count]").text()
-          expect(secondCounterText, is(stringContaining("1 times")))
+          expect(secondCounterText, is(stringContaining("3 times")))
         }),
         effect("both nodes are independently updated", async (context) => {
           const fragAIsEven = await context.browser.display.select("#fragment-a [data-click-count]").attribute("data-isEven")

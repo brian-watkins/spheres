@@ -2,7 +2,7 @@ import { DerivedState, GetState } from "./store.js";
 
 export interface DerivedStateInitializer<T> {
   id?: string
-  query: (get: GetState, current: T | undefined) => T
+  query: (get: GetState) => T
   name?: string
 }
 

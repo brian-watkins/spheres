@@ -285,7 +285,7 @@ export class Container<T, M = T, E = any> extends State<T> {
 }
 
 export class DerivedState<T> extends State<T> {
-  constructor(id: string | undefined, name: string | undefined, private derivation: (get: GetState, current: T | undefined) => T) {
+  constructor(id: string | undefined, name: string | undefined, private derivation: (get: GetState) => T) {
     super(id, name)
   }
 
@@ -306,21 +306,21 @@ class DerivedStateController<T> extends SimpleStateEventSource implements StateC
   private _value: T
   [listenerVersion] = 0;
 
-  constructor(store: Store, private derivation: (get: GetState, current: T | undefined) => T) {
+  constructor(store: Store, private derivation: (get: GetState) => T) {
     super(store)
-    this._value = this.derivation((token) => this.store[getValue](this, token), undefined)
+    this._value = this.derivation((token) => this.store[getValue](this, token))
   }
 
   run(get: GetState): void {
-    const derived = this.derivation(get, this._value)
+    const derived = this.derivation(get)
 
-    const derivedValueIsNew = !Object.is(derived, this._value)
+    if (Object.is(derived, this._value)) {
+      return
+    }
 
     this._value = derived
 
-    if (derivedValueIsNew) {
-      this.runListeners()
-    }
+    this.runListeners()
   }
 
   get value(): T {

@@ -232,7 +232,7 @@ const multipleDependencyEffect: ConfigurableExample =
         }),
       ],
       observe: [
-        effect("the effect is called when the derived values change", (context) => {
+        effect("the effect is called only when the derived values change", (context) => {
           expect(context.tokens.effectRuns, is([
             "All true",
             "Not all true",

@@ -1,6 +1,6 @@
 import { ConfigurableExample, behavior, effect, example, fact, step } from "best-behavior";
 import { arrayWithItemAt, equalTo, expect, is } from "great-expectations"
-import { Container, State, DerivedState, container, derived } from "@src/index.js";
+import { Container, DerivedState, container, derived } from "@src/index.js";
 import { TestStore, testStoreContext } from "./helpers/testStore.js";
 
 interface BasicContainerTokens {
@@ -452,55 +452,6 @@ const deferredDependency: ConfigurableExample =
       ]
     })
 
-interface RecursiveDerivedStateContext {
-  numberState: Container<number>
-  derivedState: State<number>
-}
-
-const recursiveDerivedState: ConfigurableExample =
-  example(testStoreContext<RecursiveDerivedStateContext>())
-    .description("derived state that refers to itself")
-    .script({
-      suppose: [
-        fact("there is derived state that depends on its current value", (context) => {
-          const numberState = container({ initialValue: 6 })
-          const derivedState = derived({
-            query: (get, current?: number) => {
-              return get(numberState) + (current ?? 0)
-            }
-          })
-          context.setTokens({
-            numberState,
-            derivedState
-          })
-        }),
-        fact("there is a subscriber", (context) => {
-          context.subscribeTo(context.tokens.derivedState, "sub-one")
-        })
-      ],
-      observe: [
-        effect("the subscriber gets the initial state", (context) => {
-          expectValuesFor(context, "sub-one", [
-            6
-          ])
-        })
-      ]
-    }).andThen({
-      perform: [
-        step("the dependency is updated", (context) => {
-          context.writeTo(context.tokens.numberState, 18)
-        })
-      ],
-      observe: [
-        effect("the subscriber gets the updated derived state", (context) => {
-          expectValuesFor(context, "sub-one", [
-            6,
-            24
-          ])
-        })
-      ]
-    })
-
 interface DerivedStateSubscribersContext {
   stringContainer: Container<string>
   numberContainer: Container<number>
@@ -608,7 +559,6 @@ export default
     multipleSourceState,
     reactiveQueryCount,
     deferredDependency,
-    recursiveDerivedState,
     derivedStateWithHiddenDependencies,
     derivedStateSubscribers
   ])

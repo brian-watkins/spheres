@@ -19,7 +19,6 @@ export interface ReactiveEffect extends StateListener {
 
 interface StateEventSource {
   addListener(listener: StateListener): void
-  removeListener(listener: StateListener): void
 }
 
 interface StateController<T> extends StateEventSource {
@@ -173,6 +172,63 @@ export abstract class State<T> {
 
   toString() {
     return this.name && this.id ? `${this.name}-${this.id}` : (this.name ?? this.id ?? "State")
+  }
+}
+
+export class LensState<T, S> extends State<S> {
+  constructor(private query: (get: GetState) => State<T>, private mapper: (value: T) => S) {
+    super(undefined, undefined)
+  }
+
+  [registerState](store: Store): StateController<S> {
+    return new LensController(store, this.query, this.mapper)
+  }
+}
+
+class LensController<T, S> implements StateController<S> {
+  private subscribedRoots: WeakSet<StateListener> = new WeakSet()
+
+  constructor(private store: Store, private query: (get: GetState) => State<T>, private mapper: (value: T) => S) { }
+
+  private get root(): State<T> {
+    return this.query((token) => {
+      return this.store[getController](token).value
+    })
+  }
+
+  addListener(listener: StateListener): void {
+    if (this.subscribedRoots.has(listener)) {
+      return
+    }
+
+    new DistinctValueListener(listener, (listen) => this.mapper(this.store[getValue](listen, this.root)))
+    this.subscribedRoots.add(listener)
+  }
+
+  get value(): S {
+    return this.mapper(this.store[getController](this.root).value)
+  }
+}
+
+class DistinctValueListener implements StateListener {
+  [listenerVersion] = 0
+
+  private _lastValue: any
+
+  constructor(private innerListener: StateListener, private getValue: (listener: StateListener) => any) {
+    this._lastValue = this.getValue(this)
+  }
+
+  run(get: GetState) {
+    const updated = this.getValue(this)
+
+    if (Object.is(this._lastValue, updated)) {
+      return
+    }
+
+    this._lastValue = updated
+
+    this.innerListener.run(get)
   }
 }
 

@@ -1,12 +1,21 @@
-import { container, Container, State } from "@spheres/store";
+import { container, Container, derived, State } from "@spheres/store";
 import { HTMLView } from "@src/index";
 import { behavior, effect, example, fact, step } from "best-behavior";
 import { expect, is, resolvesTo } from "great-expectations";
 import { selectElement, selectElements } from "helpers/displayElement";
 import { RenderApp, renderContext } from "helpers/renderContext";
+import { lens } from "../../src/store/lens";
 
 interface ListContext {
   items: Container<Array<string>>
+  dependency?: Container<number>
+}
+
+interface ContainerListContext {
+  items: Container<Array<Container<string>>>
+  containerA: Container<string>
+  containerB: Container<string>
+  containerC: Container<string>
 }
 
 export default behavior("list effects", [
@@ -165,6 +174,137 @@ export default behavior("list effects", [
         effect("the view is rendered with the correct property", async () => {
           const className = await selectElement("li").property("className")
           expect(className, is("style-dog"))
+        })
+      ]
+    }),
+
+  example(renderContext<ContainerListContext>())
+    .description("list view that defines derived state")
+    .script({
+      suppose: [
+        fact("there is some state", (context) => {
+          const containerA = container({ name: "a", initialValue: "one" })
+          const containerB = container({ name: "a", initialValue: "four" })
+          const containerC = container({ name: "a", initialValue: "seven" })
+
+          context.setState({
+            items: container({
+              initialValue: [
+                containerA,
+                containerB,
+                containerC,
+              ]
+            }),
+            containerA,
+            containerB,
+            containerC,
+          })
+        }),
+        fact("there is a list view that uses state derived from the list item", (context) => {
+          function itemView(item: State<Container<string>>): HTMLView {
+            const length = lens(item)
+              .andThen(lens)
+              .map(value => value.length)
+              .focus()
+
+            return root => {
+              root.h1(el => {
+                el.children.textNode(get => `You have ${get(length)} letters`)
+              })
+            }
+          }
+
+          context.mountView(root => {
+            root.subviews(get => get(context.state.items), itemView)
+          })
+        })
+      ],
+      observe: [
+        effect("the list view renders each derived state", async () => {
+          await expect(selectElements("H1").texts(), resolvesTo([
+            "You have 3 letters",
+            "You have 4 letters",
+            "You have 5 letters",
+          ]))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("update the items", (context) => {
+          context.writeTo(context.state.items, [
+            context.state.containerA,
+            container({ name: "b", initialValue: "aa" }),
+            context.state.containerC
+          ])
+        })
+      ],
+      observe: [
+        effect("only the changed list view updates", async () => {
+          await expect(selectElements("H1").texts(), resolvesTo([
+            "You have 3 letters",
+            "You have 2 letters",
+            "You have 5 letters",
+          ]))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the dependent state updates", (context) => {
+          context.writeTo(context.state.containerA, "fourteen")
+        })
+      ],
+      observe: [
+        effect("the list items update", async () => {
+          await expect(selectElements("H1").texts(), resolvesTo([
+            "You have 8 letters",
+            "You have 2 letters",
+            "You have 5 letters",
+          ]))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the dependent state updates", (context) => {
+          context.writeTo(context.state.containerA, "fourteens")
+        })
+      ],
+      observe: [
+        effect("the list items update", async () => {
+          await expect(selectElements("H1").texts(), resolvesTo([
+            "You have 9 letters",
+            "You have 2 letters",
+            "You have 5 letters",
+          ]))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the dependent state updates", (context) => {
+          context.writeTo(context.state.containerA, "fourteenss")
+        })
+      ],
+      observe: [
+        effect("the list items update", async () => {
+          await expect(selectElements("H1").texts(), resolvesTo([
+            "You have 10 letters",
+            "You have 2 letters",
+            "You have 5 letters",
+          ]))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the dependent state updates", (context) => {
+          context.writeTo(context.state.containerA, "fourteensss")
+        })
+      ],
+      observe: [
+        effect("the list items update", async () => {
+          await expect(selectElements("H1").texts(), resolvesTo([
+            "You have 11 letters",
+            "You have 2 letters",
+            "You have 5 letters",
+          ]))
         })
       ]
     }),

@@ -11,6 +11,12 @@ interface VariableStateContext {
   query: DerivedState<string>
 }
 
+interface VariableContainerContext {
+  derivedState: DerivedState<string>
+  variableState: Variable<Container<string>>
+  inner: Container<string>
+}
+
 interface ReactiveVariableContext {
   stringContainer: Container<string>
   proxiedContainer: Container<number>
@@ -66,6 +72,52 @@ export default behavior("variable state", [
           expect(context.valuesForSubscriber("sub-1"), is([
             "Initial Variable Value - hello",
             "A New Variable Value - NEXT!"
+          ]))
+        })
+      ]
+    }),
+
+  example(testStoreContext<VariableContainerContext>())
+    .description("derived state that references a variable")
+    .script({
+      suppose: [
+        fact("there is derived state that references a variable", (context) => {
+          const inner = container({ initialValue: "hello" })
+          const variableState = variable({ initialValue: container({ initialValue: "original" }) })
+          const derivedState = derived({ query: (get) => {
+            return `${get(get(variableState))}!!!`
+          }})
+          context.setTokens({
+            inner,
+            variableState,
+            derivedState
+          })
+        }),
+        fact("there is a subscriber to the derived state", (context) => {
+          context.subscribeTo(context.tokens.derivedState, "sub-1")
+        })
+      ],
+      perform: [
+        step("the value of the variable changes", (context) => {
+          context.tokens.variableState.assignValue(context.tokens.inner)
+        }),
+        step("another subscriber", (context) => {
+          context.subscribeTo(context.tokens.derivedState, "sub-2")
+        }),
+        step("the new variable value updates", (context) => {
+          context.writeTo(context.tokens.inner, "Fun stuff")
+        })
+      ],
+      observe: [
+        effect("the first subscriber only sees the value of the first variable value", (context) => {
+          expect(context.valuesForSubscriber("sub-1"), is([
+            "original!!!"
+          ]))
+        }),
+        effect("the second subscriber sees updates from the second variable value", (context) => {
+          expect(context.valuesForSubscriber("sub-2"), is([
+            "hello!!!",
+            "Fun stuff!!!"
           ]))
         })
       ]

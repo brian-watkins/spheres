@@ -21,24 +21,18 @@ export default behavior("Derived State with Id", [
           })
         }),
         fact("a subscriber subscribes to derived state with id", (context) => {
-          const derivedWithId1 = derived({
-            id: "super-cool",
-            query: (get) => {
-              context.tokens.data.callCount++
-              return get(context.tokens.dependencyContainer) + 20
-            }
-          })
+          const derivedWithId = () => {
+            return derived({
+              id: "super-cool",
+              query: (get) => {
+                context.tokens.data.callCount++
+                return get(context.tokens.dependencyContainer) + 20
+              }
+            })
+          }
 
-          const derivedWithId2 = derived({
-            id: "super-cool",
-            query: (get) => {
-              context.tokens.data.callCount++
-              return get(context.tokens.dependencyContainer) + 20
-            }
-          })
-
-          context.subscribeTo(derivedWithId1, "derived-sub-1")
-          context.subscribeTo(derivedWithId2, "derived-sub-2")
+          context.subscribeTo(derivedWithId(), "derived-sub-1")
+          context.subscribeTo(derivedWithId(), "derived-sub-2")
         })
       ],
       perform: [
@@ -57,8 +51,8 @@ export default behavior("Derived State with Id", [
             61
           ]))
         }),
-        effect("the query was only called once for each change", (context) => {
-          expect(context.tokens.data.callCount, is(2))
+        effect("the query was only called once for each change, for each subscriber", (context) => {
+          expect(context.tokens.data.callCount, is(4))
         })
       ]
     }),

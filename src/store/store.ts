@@ -4,13 +4,13 @@ export type GetState = <S>(state: State<S>) => S
 
 const listenerVersion = Symbol("listener-version")
 const listenerParent = Symbol("listener-parent")
-const notifyListeners = Symbol("notify-listeners")
+export const notifyListeners = Symbol("notify-listeners")
 
 export interface StateListener {
   [listenerVersion]?: number
-  [listenerParent]?: StateEventSource
+  [listenerParent]?: any
   [notifyListeners]?: () => void
-  run: (get: GetState) => void
+  run(get: GetState): void
 }
 
 export interface ReactiveEffect extends StateListener {
@@ -22,7 +22,7 @@ interface StateEventSource {
 }
 
 interface StateController<T> extends StateEventSource {
-  value: T
+  getValue(listener?: StateListener): T
 }
 
 export interface ReadyHookActions<T, M, E> {
@@ -160,7 +160,7 @@ class SimpleStateController<T> extends SimpleStateEventSource implements Contain
     this.runListeners()
   }
 
-  get value(): T {
+  getValue(): T {
     return this._value
   }
 }
@@ -186,40 +186,66 @@ export class LensState<T, S> extends State<S> {
 }
 
 class LensController<T, S> implements StateController<S> {
-  private subscribedRoots: WeakSet<StateListener> = new WeakSet()
+  private listeners: Map<StateListener, DistinctValueListener> = new Map()
 
   constructor(private store: Store, private query: (get: GetState) => State<T>, private mapper: (value: T) => S) { }
 
   private get root(): State<T> {
     return this.query((token) => {
-      return this.store[getController](token).value
+      return this.store[getController](token).getValue()
     })
   }
 
   addListener(listener: StateListener): void {
-    if (this.subscribedRoots.has(listener)) {
-      return
+    let distinctListener = this.listeners.get(listener)
+    if (distinctListener === undefined) {
+      distinctListener = new DistinctValueListener(listener, (listen) => this.mapper(this.store[getValue](listen, this.root)), (token) => this.store[getValue](listener, token), () => {
+        // REVISIT: we need a test for this!
+        // this.listeners.delete(listener)
+      })
+      this.listeners.set(listener, distinctListener)
     }
 
-    new DistinctValueListener(listener, (listen) => this.mapper(this.store[getValue](listen, this.root)))
-    this.subscribedRoots.add(listener)
+    distinctListener.setInnerVersion(listener[listenerVersion] ?? 0)
   }
 
-  get value(): S {
-    return this.mapper(this.store[getController](this.root).value)
+  getValue(listener: StateListener): S {
+    return listener ? this.listeners.get(listener)!.cachedValue() :
+      this.mapper(this.store[getController](this.root).getValue())
   }
 }
 
 class DistinctValueListener implements StateListener {
-  [listenerVersion] = 0
+  [listenerVersion] = 0;
+  private _innerVersion: number
 
   private _lastValue: any
+  private _isUnsubscribed = false
 
-  constructor(private innerListener: StateListener, private getValue: (listener: StateListener) => any) {
+  constructor(readonly innerListener: StateListener, private getValue: (listener: StateListener) => any, private innerGet: GetState, private unsubscribe: () => void) {
     this._lastValue = this.getValue(this)
+    this._innerVersion = innerListener[listenerVersion] ?? 0
   }
 
-  run(get: GetState) {
+  setInnerVersion(version: number) {
+    this._innerVersion = version
+  }
+
+  [notifyListeners]() {
+    if (this.innerListener[listenerVersion] == this._innerVersion) {
+      this.innerListener[listenerParent] = this
+      this.innerListener[notifyListeners]?.()
+    } else {
+      this._isUnsubscribed = true
+      this.unsubscribe()
+    }
+  }
+
+  run() {
+    if (this._isUnsubscribed) {
+      return
+    }
+
     const updated = this.getValue(this)
 
     if (Object.is(this._lastValue, updated)) {
@@ -228,7 +254,15 @@ class DistinctValueListener implements StateListener {
 
     this._lastValue = updated
 
-    this.innerListener.run(get)
+    if (this.innerListener[listenerParent] === this) {
+      this.innerListener[listenerVersion]! += 1
+      this.innerListener.run(this.innerGet)
+      this.innerListener[listenerParent] = undefined
+    }
+  }
+
+  cachedValue(): any {
+    return this._lastValue
   }
 }
 
@@ -245,7 +279,7 @@ export class Variable<T> extends State<T> {
   }
 
   assignValue(value: T) {
-    this.controller.value = value
+    this.controller.assignValue(value)
   }
 }
 
@@ -351,36 +385,41 @@ export class DerivedState<T> extends State<T> {
 }
 
 class ConstantStateController<T> implements StateController<T> {
-  constructor(public value: T) { }
+  constructor(private value: T) { }
+
+  assignValue(value: T) {
+    this.value = value
+  }
 
   addListener(): void { }
 
   removeListener(): void { }
+
+  getValue(): T {
+    return this.value
+  }
 }
 
-class DerivedStateController<T> extends SimpleStateEventSource implements StateController<T>, StateListener {
-  private _value: T
-  [listenerVersion] = 0;
+class DerivedStateController<T> implements StateController<T> {
+  private listeners: Map<StateListener, DistinctValueListener> = new Map()
 
-  constructor(store: Store, private derivation: (get: GetState) => T) {
-    super(store)
-    this._value = this.derivation((token) => this.store[getValue](this, token))
-  }
+  constructor(private store: Store, private derivation: (get: GetState) => T) { }
 
-  run(get: GetState): void {
-    const derived = this.derivation(get)
-
-    if (Object.is(derived, this._value)) {
-      return
+  addListener(innerListener: StateListener): void {
+    let distinctListener = this.listeners.get(innerListener)
+    if (distinctListener === undefined) {
+      distinctListener = new DistinctValueListener(innerListener, (listener) => this.derivation((token) => this.store[getValue](listener, token)), (token) => this.store[getValue](innerListener, token), () => {
+        this.listeners.delete(innerListener)
+      })
+      this.listeners.set(innerListener, distinctListener)
     }
 
-    this._value = derived
-
-    this.runListeners()
+    distinctListener.setInnerVersion(innerListener[listenerVersion] ?? 0)
   }
 
-  get value(): T {
-    return this._value
+  getValue(listener: StateListener): T {
+    return listener ? this.listeners.get(listener)!.cachedValue() :
+      this.derivation(token => this.store[getController](token).getValue())
   }
 }
 
@@ -482,7 +521,7 @@ export class Store {
     const controller = this[getController](token)
     controller.addListener(listener)
 
-    return controller.value
+    return controller.getValue(listener)
   }
 
   useEffect(effect: ReactiveEffect): ReactiveEffectHandle {
@@ -509,7 +548,7 @@ export class Store {
   private containerReadyActions<T, M, E>(container: Container<T, M>, controller: ContainerController<T, M>): ReadyHookActions<T, M, E> {
     return {
       get: (state) => {
-        return this[getController](state).value
+        return this[getController](state).getValue()
       },
       supply: (value) => {
         controller.publish(value)
@@ -520,14 +559,14 @@ export class Store {
       error: (message, reason) => {
         this[getContainerController](container.meta).publish(error(message, reason))
       },
-      current: controller.value
+      current: controller.getValue()
     }
   }
 
   private containerWriteActions<T, M, E>(container: Container<T, M>, controller: ContainerController<T, M>): WriteHookActions<T, M, E> {
     return {
       get: (state) => {
-        return this[getController](state).value
+        return this[getController](state).getValue()
       },
       ok: (message) => {
         controller.accept(message)
@@ -538,7 +577,7 @@ export class Store {
       error: (message, reason) => {
         this[getContainerController](container.meta).write(error(message, reason))
       },
-      current: controller.value
+      current: controller.getValue()
     }
   }
 
@@ -576,13 +615,13 @@ export class Store {
       }
       case "update": {
         const controller = this[getContainerController](message.container)
-        controller.write(message.generator(controller.value))
+        controller.write(message.generator(controller.getValue()))
         break
       }
       case "exec": {
         this.commandRegistry.get(message.command)?.exec(message.message, {
           get: (state) => {
-            return this[getController](state).value
+            return this[getController](state).getValue()
           },
           supply: (token, value) => {
             this[getContainerController](token).publish(value)
@@ -602,7 +641,7 @@ export class Store {
         break
       }
       case "use": {
-        const get: GetState = (state) => this[getController](state).value
+        const get: GetState = (state) => this[getController](state).getValue()
         const statefulMessage = message.rule(get) ?? { type: "batch", messages: [] }
         this.dispatch(statefulMessage)
         break
@@ -623,7 +662,7 @@ export class Store {
   serialize(): string {
     const map_data = Array.from(this.tokenIdMap.entries())
       .map(([key, token]) => {
-        const value = this[getController](token).value
+        const value = this[getController](token).getValue()
         return `["${key}",${JSON.stringify(value)}]`
       })
       .join(",")
@@ -668,7 +707,7 @@ class MessagePassingStateController<T, M> extends SimpleStateController<T> imple
   }
 
   accept(message: M): void {
-    const result = this.update(message, this.value)
+    const result = this.update(message, this.getValue())
     this.publish(result.value)
     if (result.message !== undefined) {
       this.store.dispatch(result.message)

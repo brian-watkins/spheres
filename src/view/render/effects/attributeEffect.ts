@@ -1,12 +1,15 @@
-import { GetState, ReactiveEffect } from "../../../store/index.js"
+import { GetState } from "../../../store/index.js"
 import { ArgsController } from "../index.js";
 import { Stateful } from "../virtualNode.js";
+import { EffectWithArgs } from "./effectWithArgs.js";
 
-export class UpdateAttributeEffect implements ReactiveEffect {
-  constructor(private element: Element, private attribute: string, private generator: Stateful<string>, private argsController: ArgsController | undefined, private args: any) { }
+export class UpdateAttributeEffect extends EffectWithArgs {
+  constructor(private element: Element, private attribute: string, private generator: Stateful<string>, argsController: ArgsController | undefined, args: any) {
+    super(argsController, args)
+  }
 
   init(get: GetState): void {
-    this.argsController?.setArgs(this.args)
+    this.setArgs()
     const val = this.generator(get)
     if (val !== undefined) {
       this.element.setAttribute(this.attribute, val)
@@ -18,7 +21,7 @@ export class UpdateAttributeEffect implements ReactiveEffect {
       return
     }
 
-    this.argsController?.setArgs(this.args)
+    this.setArgs()
     const val = this.generator(get)
     if (val === undefined) {
       this.element.removeAttribute(this.attribute)

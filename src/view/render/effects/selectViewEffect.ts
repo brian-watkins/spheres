@@ -1,25 +1,28 @@
-import { GetState, ReactiveEffect } from "../../../store/index.js";
+import { GetState } from "../../../store/index.js";
 import { IdSequence } from "../idSequence.js";
 import { ArgsController, DOMTemplate, GetDOMTemplate, Zone } from "../index.js";
 import { StatefulSelectorNode, VirtualTemplate } from "../virtualNode.js";
 import { activateTemplateInstance, renderTemplateInstance } from "../renderTemplate.js";
+import { EffectWithArgs } from "./effectWithArgs.js";
 
 interface TemplateInfo {
   domTemplate: DOMTemplate,
   nextArgsController: ArgsController
 }
 
-export class SelectViewEffect implements ReactiveEffect {
+export class SelectViewEffect extends EffectWithArgs {
 
   constructor(
     private zone: Zone,
     private vnode: StatefulSelectorNode,
     public startNode: Node,
     public endNode: Node,
-    private argsController: ArgsController | undefined,
-    private args: any,
+    argsController: ArgsController | undefined,
+    args: any,
     private getDOMTemplate: GetDOMTemplate
-  ) { }
+  ) {
+    super(argsController, args)
+  }
 
   init(get: GetState): void {
     if (this.startNode.nextSibling !== this.endNode) {
@@ -61,7 +64,7 @@ export class SelectViewEffect implements ReactiveEffect {
   }
 
   private getTemplateInfo(get: GetState): TemplateInfo | undefined {
-    this.argsController?.setArgs(this.args)
+    this.setArgs()
     const selectedIndex = this.vnode.selectors.findIndex(selector => selector.select(get))
 
     if (selectedIndex === -1) {
@@ -90,9 +93,12 @@ export class SelectViewEffect implements ReactiveEffect {
     if (this.argsController === undefined) {
       nextArgsController = template
     } else {
+      const argsController = this.argsController
+      const args = this.args
+
       nextArgsController = {
         setArgs: (nextArgs) => {
-          this.argsController!.setArgs(this.args)
+          argsController.setArgs(args)
           template.setArgs(nextArgs)
         },
       }

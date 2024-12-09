@@ -1,7 +1,6 @@
-import { Container, container, State, use, write } from "@spheres/store";
+import { Container, container, derived, State, use, write } from "@spheres/store";
 import { HTMLView } from "@src/htmlViewBuilder";
-import { behavior, Context, effect, example, fact, step } from "best-behavior";
-import { usePage } from "best-behavior/page";
+import { behavior, effect, example, fact, step } from "best-behavior";
 import { expect, is, resolvesTo } from "great-expectations";
 import { selectElement, selectElements } from "helpers/displayElement";
 import { ListExamplesState, childElementText, containerWithList, itemView, otherItemView, updateState } from "helpers/listHelpers";
@@ -195,6 +194,8 @@ export default behavior("lists interspersed among other children", [
 
   listOfListExample("client rendered", (context, view) => context.mountView(view)),
   listOfListExample("server rendered", (context, view) => context.ssrAndActivate(view)),
+
+  listOfListWithDerivedStateExample("client rendered", (context, view) => context.mountView(view)),
 
   nestedListSelectorExample("client rendered", (context, view) => context.mountView(view)),
   nestedListSelectorExample("server rendered", (context, view) => context.ssrAndActivate(view))
@@ -505,6 +506,95 @@ function listOfListExample(name: string, renderer: (context: RenderApp<NestedLis
           const texts = await selectElements("div[data-sub-list='3']").map(el => el.text())
           expect(texts, is([
             "four => a", "four => c", "four => b", "four => f",
+          ]))
+        })
+      ]
+    })
+}
+
+interface NestedListDerivedStateContext {
+  updateable: Container<string>
+  other: Container<string>
+  mainList: Container<Array<Container<string>>>
+}
+
+function listOfListWithDerivedStateExample(name: string, renderer: (context: RenderApp<NestedListDerivedStateContext>, view: HTMLView) => void) {
+  return example(renderContext<NestedListDerivedStateContext>())
+    .description(`list as root of list item that defines derived state used in list (${name})`)
+    .script({
+      suppose: [
+        fact("there is stateful list data", (context) => {
+          const updateable = container({ initialValue: "one" })
+          const other = container({ initialValue: "three" })
+          context.setState({
+            updateable,
+            other,
+            mainList: container({ initialValue: [
+              updateable,
+              container({ initialValue: "four" }),
+              other,
+            ]}),
+          })
+        }),
+        fact("there is a list where each item is a list that defined derived state", (context) => {
+          renderer(context, (root) => {
+            root.subviews(get => get(context.state.mainList), (item) => {
+              const modifiedItem = derived({ query: get => `${get(get(item)).length}` })
+              return (root) => {
+                root.subviews(get => [`${get(modifiedItem)}-sub-a`, `${get(modifiedItem)}-sub-b`], (subItem) => (root) => {
+                  root.div(el => {
+                    el.config.dataAttribute("sub-list")
+                    el.children.textNode(get => `${get(subItem)}!!`)
+                  })
+                })
+              }
+            })
+          })
+        })
+      ],
+      observe: [
+        effect("the lists are rendered", async () => {
+          const texts = await selectElements("div[data-sub-list]").map(el => el.text())
+          expect(texts, is([
+            "3-sub-a!!", "3-sub-b!!",
+            "4-sub-a!!", "4-sub-b!!",
+            "5-sub-a!!", "5-sub-b!!",
+          ]))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("update the nested derived state", (context) => {
+          context.writeTo(context.state.mainList, [
+            context.state.updateable,
+            container({ initialValue: "something else" }),
+            context.state.other
+          ])
+        }),
+      ],
+      observe: [
+        effect("the nested lists update", async () => {
+          const texts = await selectElements("div[data-sub-list]").map(el => el.text())
+          expect(texts, is([
+            "3-sub-a!!", "3-sub-b!!",
+            "14-sub-a!!", "14-sub-b!!",
+            "5-sub-a!!", "5-sub-b!!",
+          ]))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("update", (context) => {
+          context.writeTo(context.state.updateable, "hello?")
+        })
+      ],
+      observe: [
+        effect("the nested lists update", async () => {
+          const texts = await selectElements("div[data-sub-list]").map(el => el.text())
+          expect(texts, is([
+            "6-sub-a!!", "6-sub-b!!",
+            "14-sub-a!!", "14-sub-b!!",
+            "5-sub-a!!", "5-sub-b!!",
           ]))
         })
       ]

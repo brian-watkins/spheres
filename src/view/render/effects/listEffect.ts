@@ -1,9 +1,10 @@
-import { container, Container, GetState, ReactiveEffect, write } from "../../../store/index.js"
+import { container, Container, GetState, write } from "../../../store/index.js"
 import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementId } from "../fragmentHelpers.js"
 import { IdSequence } from "../idSequence.js"
 import { ArgsController, DOMTemplate, GetDOMTemplate, Zone } from "../index.js"
 import { StatefulListNode, NodeType } from "../virtualNode.js"
 import { activateTemplateInstance, renderTemplateInstance } from "../renderTemplate.js"
+import { EffectWithArgs } from "./effectWithArgs.js"
 
 export interface VirtualItem {
   key: any
@@ -16,7 +17,7 @@ export interface VirtualItem {
   lastNode?: Node
 }
 
-export class ListEffect implements ReactiveEffect {
+export class ListEffect extends EffectWithArgs {
   private domTemplate: DOMTemplate
   private usesIndex: boolean
   private parent!: Node
@@ -27,12 +28,13 @@ export class ListEffect implements ReactiveEffect {
   constructor(
     private zone: Zone,
     private listVnode: StatefulListNode,
-    private argsController: ArgsController | undefined,
-    private args: any,
+    argsController: ArgsController | undefined,
+    args: any,
     private listStart: Node,
     private listEnd: Node,
     getDomTemplate: GetDOMTemplate
   ) {
+    super(argsController, args)
     this.usesIndex = this.listVnode.template.usesIndex
     this.domTemplate = getDomTemplate(
       this.zone,
@@ -43,7 +45,7 @@ export class ListEffect implements ReactiveEffect {
   }
 
   init(get: GetState) {
-    this.argsController?.setArgs(this.args)
+    this.setArgs()
     const data = this.listVnode.query(get)
 
     if (this.listStart.nextSibling !== this.listEnd) {
@@ -60,7 +62,7 @@ export class ListEffect implements ReactiveEffect {
       return
     }
 
-    this.argsController?.setArgs(this.args)
+    this.setArgs()
     const updatedData = this.listVnode.query(get)
 
     this.patch(updatedData)

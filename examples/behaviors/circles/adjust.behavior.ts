@@ -36,8 +36,10 @@ export default behavior("Adjust Radius", [
       perform: [
         step("click outside the dialog", async (context) => {
           await context.display.selectElement("body").click({ x: 2, y: 2 })
-          await context.display.selectElement("dialog").waitUntilHidden()
         }),
+        step("wait until the selected circle is no longer highlighted", async (context) => {
+          await context.display.circleCenteredAt(50, 50).waitUntilTransparent()
+        })
       ],
       observe: [
         effect("the dialog is closed", async (context) => {

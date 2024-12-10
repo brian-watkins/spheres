@@ -19,7 +19,7 @@ export default behavior("Create Circle", [
       ],
       observe: [
         effect("there is a circle and it is highlighted", async (context) => {
-          await expect(context.display.circleCenteredAt(280, 120, { highlighted: true }).isVisible(), resolvesTo(true))
+          await expect(context.display.circleCenteredAt(280, 120).isHighlighted, resolvesTo(true))
         })
       ]
     }),

@@ -138,10 +138,6 @@ export class DisplayElement {
     return this.locator.first().isVisible()
   }
 
-  async waitUntilHidden(): Promise<void> {
-    return this.locator.first().waitFor({ state: "hidden", timeout: 200 })
-  }
-
   async exists(): Promise<boolean> {
     const matches = await this.locator.count()
     return matches > 0

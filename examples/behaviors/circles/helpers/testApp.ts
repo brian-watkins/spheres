@@ -62,8 +62,8 @@ export class TestCirclesDisplay extends TestDisplay {
     return this.page.keyboard.press("Escape")
   }
 
-  circleCenteredAt(x: number, y: number, options: CircleOptions = {}): CircleDisplayElement {
-    return new CircleDisplayElement(this.page, x, y, options)
+  circleCenteredAt(x: number, y: number): CircleDisplayElement {
+    return new CircleDisplayElement(this.page, x, y)
   }
 }
 
@@ -71,9 +71,9 @@ interface CircleOptions {
   highlighted?: boolean
 }
 
-function circleSelector(x: number, y: number, options: CircleOptions) {
+function circleSelector(x: number, y: number, options?: CircleOptions) {
   let selector = `circle[cx='${x}'][cy='${y}']`
-  if (options.highlighted !== undefined) {
+  if (options?.highlighted !== undefined) {
     selector += options.highlighted ? ":not([fill='transparent'])" : "[fill='transparent']"
   }
   return selector
@@ -82,8 +82,8 @@ function circleSelector(x: number, y: number, options: CircleOptions) {
 class CircleDisplayElement extends DisplayElement {
   private display: TestCirclesDisplay
 
-  constructor(private page: Page, private x: number, private y: number, options: CircleOptions) {
-    super(page.locator(circleSelector(x, y, options)))
+  constructor(private page: Page, private x: number, private y: number) {
+    super(page.locator(circleSelector(x, y)))
     this.display = new TestCirclesDisplay(this.page)
   }
 
@@ -93,6 +93,10 @@ class CircleDisplayElement extends DisplayElement {
 
   get isHighlighted(): Promise<boolean> {
     return this.attribute("fill").then(value => value !== "transparent")
+  }
+
+  async waitUntilTransparent(): Promise<void> {
+    return this.page.locator(circleSelector(this.x, this.y, { highlighted: false })).waitFor({ state: "visible", timeout: 200 })
   }
 
   async adjustRadiusTo(radius: number): Promise<void> {

@@ -22,7 +22,7 @@ interface StateEventSource {
 }
 
 interface StateController<T> extends StateEventSource {
-  getValue(listener?: StateListener): T
+  getValue(): T
 }
 
 export interface ReadyHookActions<T, M, E> {
@@ -187,6 +187,7 @@ export class LensState<T, S> extends State<S> {
 
 class LensController<T, S> implements StateController<S> {
   private listeners: Map<StateListener, DistinctValueListener> = new Map()
+  private lastListener!: StateListener
 
   constructor(private store: Store, private query: (get: GetState) => State<T>, private mapper: (value: T) => S) { }
 
@@ -196,22 +197,22 @@ class LensController<T, S> implements StateController<S> {
     })
   }
 
-  addListener(listener: StateListener): void {
-    let distinctListener = this.listeners.get(listener)
+  addListener(innerListener: StateListener): void {
+    let distinctListener = this.listeners.get(innerListener)
     if (distinctListener === undefined) {
-      distinctListener = new DistinctValueListener(listener, (listen) => this.mapper(this.store[getValue](listen, this.root)), (token) => this.store[getValue](listener, token), () => {
+      distinctListener = new DistinctValueListener(innerListener, (listener) => this.mapper(this.store[getValue](listener, this.root)), (token) => this.store[getValue](innerListener, token), () => {
         // REVISIT: we need a test for this!
         // this.listeners.delete(listener)
       })
-      this.listeners.set(listener, distinctListener)
+      this.listeners.set(innerListener, distinctListener)
     }
 
-    distinctListener.setInnerVersion(listener[listenerVersion] ?? 0)
+    distinctListener.setInnerVersion(innerListener[listenerVersion] ?? 0)
+    this.lastListener = innerListener
   }
 
-  getValue(listener: StateListener): S {
-    return listener ? this.listeners.get(listener)!.cachedValue() :
-      this.mapper(this.store[getController](this.root).getValue())
+  getValue(): S {
+    return this.listeners.get(this.lastListener)!.cachedValue()
   }
 }
 
@@ -402,6 +403,7 @@ class ConstantStateController<T> implements StateController<T> {
 
 class DerivedStateController<T> implements StateController<T> {
   private listeners: Map<StateListener, DistinctValueListener> = new Map()
+  private lastListener!: StateListener
 
   constructor(private store: Store, private derivation: (get: GetState) => T) { }
 
@@ -415,11 +417,11 @@ class DerivedStateController<T> implements StateController<T> {
     }
 
     distinctListener.setInnerVersion(innerListener[listenerVersion] ?? 0)
+    this.lastListener = innerListener
   }
 
-  getValue(listener: StateListener): T {
-    return listener ? this.listeners.get(listener)!.cachedValue() :
-      this.derivation(token => this.store[getController](token).getValue())
+  getValue(): T {
+    return this.listeners.get(this.lastListener)!.cachedValue()
   }
 }
 
@@ -520,8 +522,7 @@ export class Store {
   [getValue]<S>(listener: StateListener, token: State<S>,): S {
     const controller = this[getController](token)
     controller.addListener(listener)
-
-    return controller.getValue(listener)
+    return controller.getValue()
   }
 
   useEffect(effect: ReactiveEffect): ReactiveEffectHandle {

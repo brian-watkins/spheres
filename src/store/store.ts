@@ -175,98 +175,6 @@ export abstract class State<T> {
   }
 }
 
-export class LensState<T, S> extends State<S> {
-  constructor(private query: (get: GetState) => State<T>, private mapper: (value: T) => S) {
-    super(undefined, undefined)
-  }
-
-  [registerState](store: Store): StateController<S> {
-    return new LensController(store, this.query, this.mapper)
-  }
-}
-
-class LensController<T, S> implements StateController<S> {
-  private listeners: Map<StateListener, DistinctValueListener> = new Map()
-  private lastListener!: StateListener
-
-  constructor(private store: Store, private query: (get: GetState) => State<T>, private mapper: (value: T) => S) { }
-
-  private get root(): State<T> {
-    return this.query((token) => {
-      return this.store[getController](token).getValue()
-    })
-  }
-
-  addListener(innerListener: StateListener): void {
-    let distinctListener = this.listeners.get(innerListener)
-    if (distinctListener === undefined) {
-      distinctListener = new DistinctValueListener(innerListener, (listener) => this.mapper(this.store[getValue](listener, this.root)), (token) => this.store[getValue](innerListener, token), () => {
-        // REVISIT: we need a test for this!
-        // this.listeners.delete(listener)
-      })
-      this.listeners.set(innerListener, distinctListener)
-    }
-
-    distinctListener.setInnerVersion(innerListener[listenerVersion] ?? 0)
-    this.lastListener = innerListener
-  }
-
-  getValue(): S {
-    return this.listeners.get(this.lastListener)!.cachedValue()
-  }
-}
-
-class DistinctValueListener implements StateListener {
-  [listenerVersion] = 0;
-  private _innerVersion: number
-
-  private _lastValue: any
-  private _isUnsubscribed = false
-
-  constructor(readonly innerListener: StateListener, private getValue: (listener: StateListener) => any, private innerGet: GetState, private unsubscribe: () => void) {
-    this._lastValue = this.getValue(this)
-    this._innerVersion = innerListener[listenerVersion] ?? 0
-  }
-
-  setInnerVersion(version: number) {
-    this._innerVersion = version
-  }
-
-  [notifyListeners]() {
-    if (this.innerListener[listenerVersion] == this._innerVersion) {
-      this.innerListener[listenerParent] = this
-      this.innerListener[notifyListeners]?.()
-    } else {
-      this._isUnsubscribed = true
-      this.unsubscribe()
-    }
-  }
-
-  run() {
-    if (this._isUnsubscribed) {
-      return
-    }
-
-    const updated = this.getValue(this)
-
-    if (Object.is(this._lastValue, updated)) {
-      return
-    }
-
-    this._lastValue = updated
-
-    if (this.innerListener[listenerParent] === this) {
-      this.innerListener[listenerVersion]! += 1
-      this.innerListener.run(this.innerGet)
-      this.innerListener[listenerParent] = undefined
-    }
-  }
-
-  cachedValue(): any {
-    return this._lastValue
-  }
-}
-
 export class Variable<T> extends State<T> {
   private controller: ConstantStateController<T>
 
@@ -281,6 +189,22 @@ export class Variable<T> extends State<T> {
 
   assignValue(value: T) {
     this.controller.assignValue(value)
+  }
+}
+
+class ConstantStateController<T> implements StateController<T> {
+  constructor(private value: T) { }
+
+  assignValue(value: T) {
+    this.value = value
+  }
+
+  addListener(): void { }
+
+  removeListener(): void { }
+
+  getValue(): T {
+    return this.value
   }
 }
 
@@ -385,22 +309,6 @@ export class DerivedState<T> extends State<T> {
   }
 }
 
-class ConstantStateController<T> implements StateController<T> {
-  constructor(private value: T) { }
-
-  assignValue(value: T) {
-    this.value = value
-  }
-
-  addListener(): void { }
-
-  removeListener(): void { }
-
-  getValue(): T {
-    return this.value
-  }
-}
-
 class DerivedStateController<T> implements StateController<T> {
   private listeners: Map<StateListener, DistinctValueListener> = new Map()
   private lastListener!: StateListener
@@ -422,6 +330,57 @@ class DerivedStateController<T> implements StateController<T> {
 
   getValue(): T {
     return this.listeners.get(this.lastListener)!.cachedValue()
+  }
+}
+
+class DistinctValueListener implements StateListener {
+  [listenerVersion] = 0;
+  private _innerVersion: number
+
+  private _lastValue: any
+  private _isUnsubscribed = false
+
+  constructor(readonly innerListener: StateListener, private getValue: (listener: StateListener) => any, private innerGet: GetState, private unsubscribe: () => void) {
+    this._lastValue = this.getValue(this)
+    this._innerVersion = innerListener[listenerVersion] ?? 0
+  }
+
+  setInnerVersion(version: number) {
+    this._innerVersion = version
+  }
+
+  [notifyListeners]() {
+    if (this.innerListener[listenerVersion] == this._innerVersion) {
+      this.innerListener[listenerParent] = this
+      this.innerListener[notifyListeners]?.()
+    } else {
+      this._isUnsubscribed = true
+      this.unsubscribe()
+    }
+  }
+
+  run() {
+    if (this._isUnsubscribed) {
+      return
+    }
+
+    const updated = this.getValue(this)
+
+    if (Object.is(this._lastValue, updated)) {
+      return
+    }
+
+    this._lastValue = updated
+
+    if (this.innerListener[listenerParent] === this) {
+      this.innerListener[listenerVersion]! += 1
+      this.innerListener.run(this.innerGet)
+      this.innerListener[listenerParent] = undefined
+    }
+  }
+
+  cachedValue(): any {
+    return this._lastValue
   }
 }
 

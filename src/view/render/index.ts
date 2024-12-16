@@ -10,7 +10,6 @@ export interface DOMEvent {
 }
 
 export interface Zone {
-  readonly store: Store
   addEvent(location: DOMEvent["location"], elementId: string, eventType: string, handler: StoreEventHandler<any>): void
 }
 
@@ -21,7 +20,7 @@ export interface RenderResult {
 export type GetDOMTemplate = (zone: Zone, idSequence: IdSequence, virtualTemplate: VirtualTemplate) => DOMTemplate
 
 export interface EffectTemplate {
-  attach(zone: Zone, root: Node): void
+  attach(zone: Zone, store: Store, root: Node): void
 }
 
 export interface DOMTemplate {

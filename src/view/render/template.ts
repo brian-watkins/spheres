@@ -1,3 +1,4 @@
+import { Store } from "../../store/index.js"
 import { EffectLocation } from "./effectLocation.js"
 import { UpdateAttributeEffect } from "./effects/attributeEffect.js"
 import { ListEffect } from "./effects/listEffect.js"
@@ -37,62 +38,62 @@ export function getDOMTemplate(zone: Zone, idSequence: IdSequence, virtualTempla
 class TextEffectTemplate implements EffectTemplate {
   constructor(private generator: Stateful<string>, private location: EffectLocation) { }
 
-  attach(zone: Zone, root: Node) {
+  attach(_: Zone, store: Store, root: Node) {
     const effect = new UpdateTextEffect(this.location.findNode(root) as Text, this.generator)
-    zone.store.useEffect(effect)
+    store.useEffect(effect)
   }
 }
 
 class AttributeEffectTemplate implements EffectTemplate {
   constructor(private generator: Stateful<string>, private attribute: string, private location: EffectLocation) { }
 
-  attach(zone: Zone, root: Node) {
+  attach(_: Zone, store: Store, root: Node) {
     const effect = new UpdateAttributeEffect(this.location.findNode(root) as Element, this.attribute, this.generator)
-    zone.store.useEffect(effect)
+    store.useEffect(effect)
   }
 }
 
 class PropertyEffectTemplate implements EffectTemplate {
   constructor(private generator: Stateful<string>, private property: string, private location: EffectLocation) { }
 
-  attach(zone: Zone, root: Node) {
+  attach(_: Zone, store: Store, root: Node) {
     const effect = new UpdatePropertyEffect(this.location.findNode(root) as Element, this.property, this.generator)
-    zone.store.useEffect(effect)
+    store.useEffect(effect)
   }
 }
 
 class StatefulSelectEffectTemplate implements EffectTemplate {
     constructor(private vnode: StatefulSelectorNode, private location: EffectLocation) { }
 
-    attach(zone: Zone, root: Node): void {
+    attach(zone: Zone, store: Store, root: Node): void {
       const startNode = this.location.findNode(root)
       const endNode = findSwitchEndNode(startNode, this.vnode.id!)
 
-      const effect = new SelectViewEffect(zone, this.vnode, startNode, endNode, getDOMTemplate)
-      zone.store.useEffect(effect)
+      const effect = new SelectViewEffect(zone, store, this.vnode, startNode, endNode, getDOMTemplate)
+      store.useEffect(effect)
     }
 }
 
 class ListEffectTemplate implements EffectTemplate {
   constructor(private vnode: StatefulListNode, private location: EffectLocation) { }
 
-  attach(zone: Zone, root: Node) {
+  attach(zone: Zone, store: Store, root: Node) {
     const listStartIndicatorNode = this.location.findNode(root)
     const end = findListEndNode(listStartIndicatorNode, this.vnode.id!)
 
-    const effect = new ListEffect(zone, this.vnode, listStartIndicatorNode, end, getDOMTemplate)
-    zone.store.useEffect(effect)
+    const effect = new ListEffect(zone, store, this.vnode, listStartIndicatorNode, end, getDOMTemplate)
+    store.useEffect(effect)
   }
 }
 
 class EventEffectTemplate implements EffectTemplate {
   constructor(private eventType: string, private handler: StoreEventHandler<any>, private location: EffectLocation) { }
 
-  attach(zone: Zone, root: Node): void {
+  attach(_: Zone, store: Store, root: Node): void {
     const element = this.location.findNode(root)
     element.addEventListener(this.eventType, (evt) => {
       const message = this.handler(evt)
-      zone.store.dispatch(message)
+      store.dispatch(message)
     })
   }
 }

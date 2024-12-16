@@ -4,7 +4,7 @@ import { IdSequence } from "../idSequence.js"
 import { DOMTemplate, GetDOMTemplate, Zone } from "../index.js"
 import { StatefulListNode, NodeType } from "../virtualNode.js"
 import { activateTemplateInstance, renderTemplateInstance } from "../renderTemplate.js"
-import { OverlayZone } from "../overlayZone.js"
+import { OverlayStore, Store } from "../../../store/store.js"
 
 export interface VirtualItem {
   key: any
@@ -14,7 +14,7 @@ export interface VirtualItem {
   node: Node
   firstNode?: Node
   lastNode?: Node
-  zone: OverlayZone
+  store: OverlayStore
 }
 
 export class ListEffect {
@@ -26,6 +26,7 @@ export class ListEffect {
 
   constructor(
     private zone: Zone,
+    private store: Store,
     private listVnode: StatefulListNode,
     private listStart: Node,
     private listEnd: Node,
@@ -248,7 +249,7 @@ export class ListEffect {
 
   updateIndex(index: number, item: VirtualItem): void {
     item.index = index
-    item.zone.store.dispatch(write(this.listVnode.template.indexToken, index))
+    item.store.dispatch(write(this.listVnode.template.indexToken, index))
   }
 
   activateItem(index: number, node: Node, data: any): [VirtualItem, Node] {
@@ -258,11 +259,11 @@ export class ListEffect {
     }
 
     const initialValues = this.listVnode.template.getInitialStateValues(data, index)
-    const overlayZone = new OverlayZone(this.zone, initialValues)
+    const overlayStore = new OverlayStore(this.store, initialValues)
 
-    activateTemplateInstance(overlayZone, this.domTemplate, node)
+    activateTemplateInstance(this.zone, overlayStore, this.domTemplate, node)
 
-    virtualItem.zone = overlayZone
+    virtualItem.store = overlayStore
 
     switch (this.listVnode.template.virtualNode.type) {
       case NodeType.STATEFUL_LIST: {
@@ -289,16 +290,16 @@ export class ListEffect {
     }
 
     const initialValues = this.listVnode.template.getInitialStateValues(data, index)
-    const overlayZone = new OverlayZone(this.zone, initialValues)
+    const overlayStore = new OverlayStore(this.store, initialValues)
 
-    const node = renderTemplateInstance(overlayZone, this.domTemplate)
+    const node = renderTemplateInstance(this.zone, overlayStore, this.domTemplate)
 
     const item: VirtualItem = {
       key: data,
       index,
       isDetached: false,
       next: undefined,
-      zone: overlayZone,
+      store: overlayStore,
       node
     }
 

@@ -529,11 +529,13 @@ function listOfListWithDerivedStateExample(name: string, renderer: (context: Ren
           context.setState({
             updateable,
             other,
-            mainList: container({ initialValue: [
-              updateable,
-              container({ initialValue: "four" }),
-              other,
-            ]}),
+            mainList: container({
+              initialValue: [
+                updateable,
+                container({ initialValue: "four" }),
+                other,
+              ]
+            }),
           })
         }),
         fact("there is a list where each item is a list that defined derived state", (context) => {

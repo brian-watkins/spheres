@@ -18,14 +18,10 @@ export interface RenderResult {
   unmount: () => void
 }
 
-export type GetDOMTemplate = (zone: Zone, idSequence: IdSequence, virtualTemplate: VirtualTemplate<any>) => DOMTemplate
-
-export interface ArgsController {
-  setArgs(args: any): void
-}
+export type GetDOMTemplate = (zone: Zone, idSequence: IdSequence, virtualTemplate: VirtualTemplate) => DOMTemplate
 
 export interface EffectTemplate {
-  attach(zone: Zone, root: Node, argsController: ArgsController, args: any): void
+  attach(zone: Zone, root: Node): void
 }
 
 export interface DOMTemplate {

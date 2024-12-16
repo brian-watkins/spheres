@@ -214,6 +214,53 @@ export default behavior("conditional zone", [
       ]
     }),
 
+  example(renderContext<Container<string>>())
+    .description("conditional view that defines state")
+    .script({
+      suppose: [
+        fact("there is some state", (context) => {
+          context.setState(container({ initialValue: "hello" }))
+        }),
+        fact("there is a conditional view that defines state", (context) => {
+          function counterView(root: HTMLBuilder) {
+            const count = container({ initialValue: 0 })
+
+            root.div(el => {
+              el.children
+                .h1(el => {
+                  el.children.textNode(get => `The count is: ${get(count)}`)
+                })
+                .button(el => {
+                  el.config.on("click", () => update(count, (val) => val + 2))
+                  el.children.textNode("Increment count!")
+                })
+            })
+          }
+
+          context.mountView(root => {
+            root.main(el => {
+              el.children.subviewOf(selector => selector
+                .when(get => get(context.state).length > 3, counterView)
+                .default(root => root.div(el => el.children.textNode("Just wait!")))
+              )
+            })
+          })
+        })
+      ],
+      perform: [
+        step("click the button", async () => {
+          await selectElement("button").click()
+          await selectElement("button").click()
+          await selectElement("button").click()
+        })
+      ],
+      observe: [
+        effect("the counter tally is correct", async () => {
+          await expect(selectElement("h1").text(), resolvesTo("The count is: 6"))
+        })
+      ]
+    }),
+
   nestedSiblingSelectViewExample("client rendered", (context, view) => context.mountView(view)),
   nestedSiblingSelectViewExample("server rendered", (context, view) => context.ssrAndActivate(view)),
 
@@ -715,6 +762,7 @@ function nestedSelectorExample(name: string, renderer: (context: RenderApp<Neste
                 .when(get => `${get(item)}${get(context.state.modifier)}` === "sports", pluralItemDescription("sports"))
                 .when(get => `${get(item)}${get(context.state.modifier)}` === "book", singleItemDescription("book"))
                 .when(get => `${get(item)}${get(context.state.modifier)}` === "books", pluralItemDescription("books"))
+                .default(root => root.h1(el => el.children.textNode("WHAT??!")))
               )
             }
           }

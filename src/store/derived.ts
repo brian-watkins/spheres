@@ -1,3 +1,4 @@
+import { didCreateToken } from "./stateRecorder.js";
 import { DerivedState, GetState } from "./store.js";
 
 export interface DerivedStateInitializer<T> {
@@ -7,5 +8,7 @@ export interface DerivedStateInitializer<T> {
 }
 
 export function derived<T>(initializer: DerivedStateInitializer<T>): DerivedState<T> {
-  return new DerivedState(initializer.id, initializer.name, initializer.query)
+  const token = new DerivedState(initializer.id, initializer.name, initializer.query)
+  didCreateToken(token)
+  return token
 }

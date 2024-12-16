@@ -1,4 +1,4 @@
-import { container, Container, derived, State } from "@spheres/store";
+import { container, Container, derived, State, use, write } from "@spheres/store";
 import { HTMLView } from "@src/index";
 import { behavior, effect, example, fact, step } from "best-behavior";
 import { expect, is, resolvesTo } from "great-expectations";
@@ -470,6 +470,82 @@ export default behavior("list effects", [
             "length-5"
           ]))
         }),
+      ]
+    }),
+
+  example(renderContext<ContainerListContext>())
+    .description("list item view that defines derived state used in event")
+    .script({
+      suppose: [
+        fact("there is some state", (context) => {
+          const containerA = container({ name: "a", initialValue: "one" })
+          const containerB = container({ name: "orig-b", initialValue: "four" })
+          const containerC = container({ name: "c", initialValue: "seven" })
+
+          context.setState({
+            items: container({
+              initialValue: [
+                containerA,
+                containerB,
+                containerC,
+              ]
+            }),
+            containerA,
+            containerB,
+            containerC,
+          })
+        }),
+        fact("there is a list view that uses derived state based on the list item", (context) => {
+          function itemView(item: State<Container<string>>, index: State<number>): HTMLView {
+            const length = derived({ name: "derived-fun", query: (get) => get(get(item)).length })
+            const innerContainer = container({ name: "fun-stuff", initialValue: 0 })
+
+            return root => {
+              root.div(el => {
+                el.config
+                  .dataAttribute("el", get => `${get(index)}`)
+                el.children
+                  .div(el => {
+                    el.config.dataAttribute("revealed-value")
+                    el.children.textNode(get => `Revealed: ${get(innerContainer)}`)
+                  })
+                  .button(el => {
+                    el.config
+                      .on("click", () => use(get => write(innerContainer, get(length))))
+                    el.children.textNode("Click me")
+                  })
+              })
+            }
+          }
+
+          context.mountView(root => {
+            root.subviews(get => get(context.state.items), itemView)
+          })
+        })
+      ],
+      observe: [
+        effect("the initial value is displayed", async () => {
+          await expect(selectElements("[data-revealed-value]").texts(), resolvesTo([
+            "Revealed: 0",
+            "Revealed: 0",
+            "Revealed: 0"
+          ]))
+        }),
+      ]
+    }).andThen({
+      perform: [
+        step("trigger an event", async () => {
+          await selectElement("[data-el='1'] button").click()
+        })
+      ],
+      observe: [
+        effect("the event is processed with the correct derived state", async () => {
+          await expect(selectElements("[data-revealed-value]").texts(), resolvesTo([
+            "Revealed: 0",
+            "Revealed: 4",
+            "Revealed: 0"
+          ]))
+        })
       ]
     }),
 

@@ -1,4 +1,4 @@
-import { GetState, State, Store } from "../store/index.js"
+import { Container, GetState, State, Store } from "../store/index.js"
 import { Stateful, addStatefulProperty, addProperty, makeZoneList, VirtualListItemTemplate, VirtualTemplate, VirtualNode, ViewSelector, makeStatefulSelector, StatefulSelectorNode } from "./render/virtualNode.js"
 import { HTMLElements, HTMLBuilder } from "./htmlElements.js"
 import { SVGElements } from "./svgElements.js"
@@ -9,6 +9,7 @@ import { stringifyVirtualNode } from "./render/renderToString.js"
 import { DOMRoot } from "./render/renderToDom.js"
 import { RenderResult } from "./render/index.js"
 import { IdSequence } from "./render/idSequence.js"
+import { recordTokens } from "../store/stateRecorder.js"
 export type { RenderResult } from "./render/index.js"
 
 export function activateView(store: Store, element: Element, view: HTMLView): RenderResult {
@@ -54,7 +55,7 @@ export interface SpecialHTMLElements {
   textNode(value: string | Stateful<string>): this
   subview(view: HTMLView): this
   subviewOf(selectorGenerator: (selector: HTMLViewSelector) => void): this
-  subviews<T>(data: (get: GetState) => Array<T>, viewGenerator: (item: State<T>, index: State<number>) => HTMLView): this
+  subviews<T>(data: (get: GetState) => Array<T>, viewGenerator: (item: State<T>, index?: State<number>) => HTMLView): this
 }
 
 class HTMLElementConfig extends BasicElementConfig {
@@ -108,7 +109,7 @@ class HtmlViewBuilder extends ViewBuilder<SpecialElementAttributes, HTMLElements
     return this
   }
 
-  subviews<T>(data: (get: GetState) => Array<T>, viewGenerator: (item: State<T>, index: State<number>) => HTMLView): this {
+  subviews<T>(data: (get: GetState) => Array<T>, viewGenerator: (item: State<T>, index?: State<number>) => HTMLView): this {
     const virtualTemplate = new HTMLVirtualListItemTemplate(viewGenerator)
     this.storeNode(makeZoneList(virtualTemplate, data))
 
@@ -130,57 +131,68 @@ class HtmlViewBuilder extends ViewBuilder<SpecialElementAttributes, HTMLElements
 }
 
 class SelectorBuilder implements HTMLViewSelector {
-    private selectors: Array<ViewSelector> = []
-    private defaultView: HTMLView | undefined
+  private selectors: Array<ViewSelector> = []
+  private defaultView: HTMLView | undefined
 
-    when(predicate: (get: GetState) => boolean, view: HTMLView): HTMLViewSelector {
+  when(predicate: (get: GetState) => boolean, view: HTMLView): HTMLViewSelector {
+    this.selectors.push({
+      select: predicate,
+      template: this.getTemplateForView(view)
+    })
+
+    return this
+  }
+
+  default(view: HTMLView) {
+    this.defaultView = view
+  }
+
+  getStatefulSelectorNode(): StatefulSelectorNode {
+    if (this.defaultView !== undefined) {
       this.selectors.push({
-        select: predicate,
-        template: this.getTemplateForView(view)
+        select: () => true,
+        template: this.getTemplateForView(this.defaultView)
       })
-
-      return this
     }
+    return makeStatefulSelector(this.selectors)
+  }
 
-    default(view: HTMLView) {
-      this.defaultView = view
-    }
-
-    getStatefulSelectorNode(): StatefulSelectorNode {
-      if (this.defaultView !== undefined) {
-        this.selectors.push({
-          select: () => true,
-          template: this.getTemplateForView(this.defaultView)
-        })
-      }
-      return makeStatefulSelector(this.selectors)
-    }
-
-    private getTemplateForView(view: HTMLView): VirtualTemplate<any> {
-      const viewBuilder = new HtmlViewBuilder()
-      view(viewBuilder as unknown as HTMLBuilder)
-      const vnode = viewBuilder.toVirtualNode()
-      return new HTMLViewTemplate(vnode)
-    }
+  private getTemplateForView(view: HTMLView): VirtualTemplate {
+    const viewBuilder = new HtmlViewBuilder()
+    view(viewBuilder as unknown as HTMLBuilder)
+    const vnode = viewBuilder.toVirtualNode()
+    return new HTMLViewTemplate(vnode)
+  }
 }
 
-export class HTMLViewTemplate extends VirtualTemplate<undefined> {
+export class HTMLViewTemplate extends VirtualTemplate {
   constructor(vnode: VirtualNode) {
     super()
     this.setVirtualNode(vnode)
   }
-
-  setArgs(): void { }
 }
 
 export class HTMLVirtualListItemTemplate<T> extends VirtualListItemTemplate<T> {
-  constructor(generator: (item: State<T>, index: State<number>) => HTMLView) {
+  constructor(generator: (item: State<T>, index?: State<number>) => HTMLView) {
     super()
 
     this.usesIndex = generator.length == 2
 
     const builder = new HtmlViewBuilder()
-    generator(this.itemToken as State<T>, this.indexToken)(builder as unknown as HTMLBuilder)
+
+    this.addToken(this.itemToken)
+
+    let indexToken: Container<number> | undefined = undefined
+    if (this.usesIndex) {
+      indexToken = this.indexToken
+      this.addToken(this.indexToken)
+    }
+
+    recordTokens(() => {
+      generator(this.itemToken as State<T>, indexToken)(builder as unknown as HTMLBuilder)
+    })
+      .forEach(token => this.addToken(token))
+
     this.setVirtualNode(builder.toVirtualNode())
   }
 }

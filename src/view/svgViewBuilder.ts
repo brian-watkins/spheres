@@ -1,4 +1,5 @@
-import { GetState, State } from "../store/index.js"
+import { Container, GetState, State } from "../store/index.js"
+import { recordTokens } from "../store/stateRecorder.js"
 import { Stateful, StatefulSelectorNode, ViewSelector, VirtualListItemTemplate, VirtualNode, VirtualNodeConfig, VirtualTemplate, makeStatefulSelector, makeVirtualElement, makeZoneList, setNamespace, virtualNodeConfig } from "./render/virtualNode.js"
 import { SVGBuilder, SVGElements, SVGElementAttributes, svgAttributeNames } from "./svgElements.js"
 import { ConfigurableElement, ViewBuilder } from "./viewBuilder.js"
@@ -16,7 +17,7 @@ export interface SpecialSVGElements {
   textNode(value: string | Stateful<string>): this
   subview(view: SVGView): this
   subviewOf(selectorGenerator: (selector: SVGViewSelector) => void): this
-  subviews<T>(data: (get: GetState) => Array<T>, viewGenerator: (item: State<T>, index: State<number>) => SVGView): this
+  subviews<T>(data: (get: GetState) => Array<T>, viewGenerator: (item: State<T>, index?: State<number>) => SVGView): this
 }
 
 class SVGElementConfig extends BasicElementConfig {
@@ -60,7 +61,7 @@ export class SvgViewBuilder extends ViewBuilder<SpecialElementAttributes, SVGEle
     return this
   }
 
-  subviews<T>(data: (get: GetState) => Array<T>, viewGenerator: (item: State<T>, index: State<number>) => SVGView): this {
+  subviews<T>(data: (get: GetState) => Array<T>, viewGenerator: (item: State<T>, index?: State<number>) => SVGView): this {
     const virtualTemplate = new SVGVirtualListItemTemplate(viewGenerator)
     this.storeNode(makeZoneList(virtualTemplate, data))
 
@@ -72,59 +73,70 @@ export class SvgViewBuilder extends ViewBuilder<SpecialElementAttributes, SVGEle
   }
 }
 
-class SVGViewTemplate extends VirtualTemplate<undefined> {
+class SVGViewTemplate extends VirtualTemplate {
   constructor(vnode: VirtualNode) {
     super()
     this.setVirtualNode(vnode)
   }
-
-  setArgs(): void { }
 }
 
 
 class SVGVirtualListItemTemplate<T> extends VirtualListItemTemplate<T> {
-  constructor(generator: (item: State<T>, index: State<number>) => SVGView) {
+  constructor(generator: (item: State<T>, index?: State<number>) => SVGView) {
     super()
 
     this.usesIndex = generator.length == 2
 
     const builder = new SvgViewBuilder()
-    generator(this.itemToken as State<T>, this.indexToken)(builder as unknown as SVGBuilder)
+
+    this.addToken(this.itemToken)
+
+    let indexToken: Container<number> | undefined = undefined
+    if (this.usesIndex) {
+      indexToken = this.indexToken
+      this.addToken(this.indexToken)
+    }
+
+    recordTokens(() => {
+      generator(this.itemToken as State<T>, indexToken)(builder as unknown as SVGBuilder)
+    })
+      .forEach(token => this.addToken(token))
+
     this.setVirtualNode(builder.toVirtualNode())
   }
 }
 
 class SelectorBuilder implements SVGViewSelector {
-    private selectors: Array<ViewSelector> = []
-    private defaultView: SVGView | undefined
+  private selectors: Array<ViewSelector> = []
+  private defaultView: SVGView | undefined
 
-    when(predicate: (get: GetState) => boolean, view: SVGView): SVGViewSelector {
+  when(predicate: (get: GetState) => boolean, view: SVGView): SVGViewSelector {
+    this.selectors.push({
+      select: predicate,
+      template: this.getTemplateForView(view)
+    })
+
+    return this
+  }
+
+  default(view: SVGView) {
+    this.defaultView = view
+  }
+
+  getStatefulSelectorNode(): StatefulSelectorNode {
+    if (this.defaultView !== undefined) {
       this.selectors.push({
-        select: predicate,
-        template: this.getTemplateForView(view)
+        select: () => true,
+        template: this.getTemplateForView(this.defaultView)
       })
-
-      return this
     }
+    return makeStatefulSelector(this.selectors)
+  }
 
-    default(view: SVGView) {
-      this.defaultView = view
-    }
-
-    getStatefulSelectorNode(): StatefulSelectorNode {
-      if (this.defaultView !== undefined) {
-        this.selectors.push({
-          select: () => true,
-          template: this.getTemplateForView(this.defaultView)
-        })
-      }
-      return makeStatefulSelector(this.selectors)
-    }
-
-    private getTemplateForView(view: SVGView): VirtualTemplate<any> {
-      const viewBuilder = new SvgViewBuilder()
-      view(viewBuilder as unknown as SVGBuilder)
-      const vnode = viewBuilder.toVirtualNode()
-      return new SVGViewTemplate(vnode)
-    }
+  private getTemplateForView(view: SVGView): VirtualTemplate {
+    const viewBuilder = new SvgViewBuilder()
+    view(viewBuilder as unknown as SVGBuilder)
+    const vnode = viewBuilder.toVirtualNode()
+    return new SVGViewTemplate(vnode)
+  }
 }

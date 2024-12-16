@@ -51,8 +51,8 @@ export default behavior("Derived State with Id", [
             61
           ]))
         }),
-        effect("the query was only called once for each change, for each subscriber", (context) => {
-          expect(context.tokens.data.callCount, is(4))
+        effect("the query was only called once for the initial value and then once for the change", (context) => {
+          expect(context.tokens.data.callCount, is(2))
         })
       ]
     }),

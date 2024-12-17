@@ -96,7 +96,7 @@ const getContainerController = Symbol("getContainerController")
 const initialValue = Symbol("initialValue")
 const getValue = Symbol("getValue")
 
-type StoreRegistryKey = State<any>
+type StoreRegistryKey = State<any> | Command<any>
 
 interface ContainerController<T, M = T> extends StateController<T> {
   write(message: M): void
@@ -331,6 +331,27 @@ export class Command<M> {
   }
 }
 
+class CommandController<T> {
+  constructor(private store: Store, private manager: CommandManager<T>) { }
+
+  run(message: T) {
+    this.manager.exec(message, {
+      get: (state) => {
+        return this.store[getController](state).getValue()
+      },
+      supply: (token, value) => {
+        this.store[getContainerController](token).publish(value)
+      },
+      pending: (token, message) => {
+        this.store[getContainerController](token.meta).write(pending(message))
+      },
+      error: (token, message, reason) => {
+        this.store[getContainerController](token.meta).write(error(message, reason))
+      }
+    })
+  }
+}
+
 export interface CommandActions {
   get<T>(state: State<T>): T
   supply<T, M, E>(state: SuppliedState<T, M, E>, value: T): void
@@ -352,8 +373,7 @@ interface StoreOptions {
 }
 
 export class Store {
-  protected registry: WeakMap<StoreRegistryKey, StateController<any>> = new WeakMap();
-  private commandRegistry: Map<Command<any>, CommandManager<any>> = new Map()
+  protected registry: WeakMap<StoreRegistryKey, any> = new WeakMap();
   private hooks: StoreHooks | undefined
   protected tokenIdMap: Map<string, StoreRegistryKey> = new Map();
 
@@ -384,6 +404,7 @@ export class Store {
     return controller
   }
 
+  // should the argument here be a Container<T>?
   [getContainerController]<T, M>(token: State<T>): ContainerController<T, M> {
     return this[getController](token) as ContainerController<T, M>
   }
@@ -415,8 +436,8 @@ export class Store {
     }
   }
 
-  useCommand<M>(command: Command<M>, handler: CommandManager<M>) {
-    this.commandRegistry.set(command, handler)
+  useCommand<M>(command: Command<M>, manager: CommandManager<M>) {
+    this.registry.set(command, new CommandController(this, manager))
     command[initializeCommand](this)
   }
 
@@ -494,20 +515,8 @@ export class Store {
         break
       }
       case "exec": {
-        this.commandRegistry.get(message.command)?.exec(message.message, {
-          get: (state) => {
-            return this[getController](state).getValue()
-          },
-          supply: (token, value) => {
-            this[getContainerController](token).publish(value)
-          },
-          pending: (token, message) => {
-            this[getContainerController](token.meta).write(pending(message))
-          },
-          error: (token, message, reason) => {
-            this[getContainerController](token.meta).write(error(message, reason))
-          }
-        })
+        const commandController = this.registry.get(message.command) as CommandController<any>
+        commandController?.run(message.message)
         break
       }
       case "reset": {
@@ -537,7 +546,7 @@ export class Store {
   serialize(): string {
     const map_data = Array.from(this.tokenIdMap.entries())
       .map(([key, token]) => {
-        const value = this[getController](token).getValue()
+        const value = this[getController](token as State<any>).getValue()
         return `["${key}",${JSON.stringify(value)}]`
       })
       .join(",")
@@ -572,7 +581,7 @@ export class OverlayStore extends Store {
   }
 
   [getController]<T>(token: State<T>): StateController<T> {
-    const key = this[getRegistryKey](token)
+    const key = this[getRegistryKey](token) as State<any>
     let controller = this.registry.get(key)
     if (controller === undefined) {
       controller = this.rootStore[getController](key)

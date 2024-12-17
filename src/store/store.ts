@@ -4,12 +4,14 @@ export type GetState = <S>(state: State<S>) => S
 
 const listenerVersion = Symbol("listener-version")
 const listenerParent = Symbol("listener-parent")
-export const notifyListeners = Symbol("notify-listeners")
+const notifyListeners = Symbol("notify-listeners")
+const listenerStore = Symbol("listener-store")
 
 export interface StateListener {
   [listenerVersion]?: number
   [listenerParent]?: any
   [notifyListeners]?: () => void
+  [listenerStore]?: Store
   run(get: GetState): void
 }
 
@@ -88,8 +90,8 @@ export type StoreMessage<T, M = T> = WriteMessage<T, M> | UpdateMessage<T, M> | 
 
 const registerState = Symbol("registerState")
 const initializeCommand = Symbol("initializeCommand")
+const getRegistryKey = Symbol("getRegistryKey")
 const getController = Symbol("getController")
-const setController = Symbol("setController")
 const getContainerController = Symbol("getContainerController")
 const initialValue = Symbol("initialValue")
 const getValue = Symbol("getValue")
@@ -130,7 +132,8 @@ class SimpleStateEventSource implements StateEventSource {
     for (const listener of this.listeners.keys()) {
       if (listener[listenerParent] === this) {
         listener[listenerVersion] = listener[listenerVersion]! + 1
-        listener.run((token) => this.store[getValue](listener, token))
+        const store = listener[listenerStore] ?? this.store
+        listener.run((token) => store[getValue](listener, token))
         listener[listenerParent] = undefined
       }
     }
@@ -175,29 +178,18 @@ export abstract class State<T> {
   }
 }
 
-export class Variable<T> extends State<T> {
-  private controller: ConstantStateController<T>
-
+export class Constant<T> extends State<T> {
   constructor(private initialValue: T) {
     super(undefined, undefined)
-    this.controller = new ConstantStateController(this.initialValue)
   }
 
-  [registerState](_: Store): StateController<T> {
-    return this.controller
-  }
-
-  assignValue(value: T) {
-    this.controller.assignValue(value)
+  [registerState](_: Store, initialState?: T | undefined): StateController<T> {
+    return new ConstantStateController(initialState ?? this.initialValue)
   }
 }
 
 class ConstantStateController<T> implements StateController<T> {
   constructor(private value: T) { }
-
-  assignValue(value: T) {
-    this.value = value
-  }
 
   addListener(): void { }
 
@@ -205,28 +197,6 @@ class ConstantStateController<T> implements StateController<T> {
 
   getValue(): T {
     return this.value
-  }
-}
-
-export class ReactiveVariable<T> extends State<T> {
-  private store: Store | undefined
-
-  constructor(private initialValue: State<T>) {
-    super(undefined, undefined)
-  }
-
-  [registerState](store: Store): StateController<T> {
-    this.store = store
-    return this.store[getController](this.initialValue)
-  }
-
-  assignState(token: Container<T>) {
-    if (!this.store) {
-      this.initialValue = token
-    } else {
-      const proxiedController = this.store[getController](token)
-      this.store[setController](this, proxiedController)
-    }
   }
 }
 
@@ -309,78 +279,29 @@ export class DerivedState<T> extends State<T> {
   }
 }
 
-class DerivedStateController<T> implements StateController<T> {
-  private listeners: Map<StateListener, DistinctValueListener> = new Map()
-  private lastListener!: StateListener
+class DerivedStateController<T> extends SimpleStateEventSource implements StateController<T>, StateListener {
+  private _value: T
+  [listenerVersion] = 0;
 
-  constructor(private store: Store, private derivation: (get: GetState) => T) { }
+  constructor(store: Store, private derivation: (get: GetState) => T) {
+    super(store)
+    this._value = this.derivation((token) => this.store[getValue](this, token))
+  }
 
-  addListener(innerListener: StateListener): void {
-    let distinctListener = this.listeners.get(innerListener)
-    if (distinctListener === undefined) {
-      distinctListener = new DistinctValueListener(innerListener, (listener) => this.derivation((token) => this.store[getValue](listener, token)), (token) => this.store[getValue](innerListener, token), () => {
-        this.listeners.delete(innerListener)
-      })
-      this.listeners.set(innerListener, distinctListener)
+  run(_: GetState): void {
+    const derived = this.derivation((token) => this.store[getValue](this, token))
+
+    if (Object.is(derived, this._value)) {
+      return
     }
 
-    distinctListener.setInnerVersion(innerListener[listenerVersion] ?? 0)
-    this.lastListener = innerListener
+    this._value = derived
+
+    this.runListeners()
   }
 
   getValue(): T {
-    return this.listeners.get(this.lastListener)!.cachedValue()
-  }
-}
-
-class DistinctValueListener implements StateListener {
-  [listenerVersion] = 0;
-  private _innerVersion: number
-
-  private _lastValue: any
-  private _isUnsubscribed = false
-
-  constructor(readonly innerListener: StateListener, private getValue: (listener: StateListener) => any, private innerGet: GetState, private unsubscribe: () => void) {
-    this._lastValue = this.getValue(this)
-    this._innerVersion = innerListener[listenerVersion] ?? 0
-  }
-
-  setInnerVersion(version: number) {
-    this._innerVersion = version
-  }
-
-  [notifyListeners]() {
-    if (this.innerListener[listenerVersion] == this._innerVersion) {
-      this.innerListener[listenerParent] = this
-      this.innerListener[notifyListeners]?.()
-    } else {
-      this._isUnsubscribed = true
-      this.unsubscribe()
-    }
-  }
-
-  run() {
-    if (this._isUnsubscribed) {
-      return
-    }
-
-    const updated = this.getValue(this)
-
-    if (Object.is(this._lastValue, updated)) {
-      return
-    }
-
-    this._lastValue = updated
-
-    if (this.innerListener[listenerParent] === this) {
-      this.innerListener[listenerVersion]! += 1
-      this.innerListener.run(this.innerGet)
-      this.innerListener[listenerParent] = undefined
-    }
-  }
-
-  cachedValue(): any {
-    return this._lastValue
+    return this._value
   }
 }
 
@@ -431,14 +352,14 @@ interface StoreOptions {
 }
 
 export class Store {
-  private registry: WeakMap<StoreRegistryKey, StateController<any>> = new WeakMap();
+  protected registry: WeakMap<StoreRegistryKey, StateController<any>> = new WeakMap();
   private commandRegistry: Map<Command<any>, CommandManager<any>> = new Map()
   private hooks: StoreHooks | undefined
-  private tokenIdMap: Map<string, StoreRegistryKey> = new Map();
+  protected tokenIdMap: Map<string, StoreRegistryKey> = new Map();
 
   constructor(private options: StoreOptions = {}) { }
 
-  private getKeyForToken(token: State<any>): StoreRegistryKey {
+  [getRegistryKey](token: State<any>): StoreRegistryKey {
     if (token.id === undefined) return token
 
     const key = this.tokenIdMap.get(token.id)
@@ -450,7 +371,7 @@ export class Store {
   }
 
   [getController]<T>(token: State<T>): StateController<T> {
-    const key = this.getKeyForToken(token)
+    const key = this[getRegistryKey](token)
     let controller = this.registry.get(key)
     if (controller === undefined) {
       const initialState = token.id ? this.options.initialState?.get(token.id) : undefined
@@ -461,13 +382,6 @@ export class Store {
       }
     }
     return controller
-  }
-
-  [setController]<T>(token: State<T>, controller: StateController<T>) {
-    // NOTE -- This should probably use getKeyForToken probably
-    //         But we only use this now for list index tokens which do
-    //         not have an id.
-    this.registry.set(token, controller)
   }
 
   [getContainerController]<T, M>(token: State<T>): ContainerController<T, M> {
@@ -486,6 +400,7 @@ export class Store {
 
   useEffect(effect: ReactiveEffect): ReactiveEffectHandle {
     effect[listenerVersion] = 0
+    effect[listenerStore] = this
 
     if (effect.init !== undefined) {
       effect.init((state) => this[getValue](effect, state))
@@ -543,7 +458,7 @@ export class Store {
 
   useContainerHooks<T, M, E>(container: Container<T, M>, hooks: ContainerHooks<T, M, E>) {
     const controllerWithHooks = this.containerControllerWithHooks(container, this[getContainerController](container), hooks)
-    this.registry.set(this.getKeyForToken(container), controllerWithHooks)
+    this.registry.set(this[getRegistryKey](container), controllerWithHooks)
 
     if (hooks.onReady !== undefined) {
       hooks.onReady(this.containerReadyActions(container, controllerWithHooks))
@@ -630,6 +545,39 @@ export class Store {
     return `<script type="module">
 window[Symbol.for("${storeId(this.options.id)}")] = new Map([${map_data}]);
 </script>`
+  }
+}
+
+export class OverlayStore extends Store {
+  constructor(private rootStore: Store, initialState: Map<State<any>, any>) {
+    super()
+
+    for (const [token, initialValue] of initialState) {
+      if (token.id !== undefined) {
+        this.tokenIdMap.set(token.id, token)
+      }
+      // what about the onRegister hook?
+      this.registry.set(token, token[registerState](this, initialValue))
+    }
+  }
+
+  [getRegistryKey](token: State<any>): StoreRegistryKey {
+    if (token.id === undefined) return token
+
+    let key = this.tokenIdMap.get(token.id)
+    if (key === undefined) {
+      key = this.rootStore[getRegistryKey](token)
+    }
+    return key
+  }
+
+  [getController]<T>(token: State<T>): StateController<T> {
+    const key = this[getRegistryKey](token)
+    let controller = this.registry.get(key)
+    if (controller === undefined) {
+      controller = this.rootStore[getController](key)
+    }
+    return controller
   }
 }
 

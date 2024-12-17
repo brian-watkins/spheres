@@ -1,5 +1,5 @@
 import { Store } from "../../store/index.js";
-import { DOMEvent, EventsToDelegate, RenderResult, Zone } from "./index.js";
+import { DOMEvent, EventsToDelegate, RenderResult, spheresTemplateData, Zone } from "./index.js";
 import { NodeType, StoreEventHandler, VirtualNode } from "./virtualNode.js";
 import { UpdateTextEffect } from "./effects/textEffect.js";
 import { UpdateAttributeEffect } from "./effects/attributeEffect.js";
@@ -8,7 +8,7 @@ import { ListEffect } from "./effects/listEffect.js";
 import { IdSequence } from "./idSequence.js";
 import { getDOMTemplate } from "./template.js";
 import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementId, listEndIndicator, listStartIndicator, switchEndIndicator, switchStartIndicator } from "./fragmentHelpers.js";
-import { getEventAttribute, getNearestElementHandlingEvent, setEventAttribute, setNearestTemplateArgs } from "./eventHelpers.js";
+import { getEventAttribute, getNearestElementHandlingEvent, setEventAttribute } from "./eventHelpers.js";
 import { SelectViewEffect } from "./effects/selectViewEffect.js";
 
 export class DOMRoot implements Zone, RenderResult {
@@ -20,12 +20,12 @@ export class DOMRoot implements Zone, RenderResult {
 
   mount(vnode: VirtualNode) {
     this.clearRoot()
-    this.root.appendChild(createNode(this, new IdSequence(), vnode))
+    this.root.appendChild(createNode(this, this.store, new IdSequence(), vnode))
   }
 
   activate(vnode: VirtualNode) {
     this.cleanRoot()
-    activateEffects(this, vnode, this.root.firstChild!)
+    activateEffects(this, this.store, vnode, this.root.firstChild!)
   }
 
   addEvent(location: DOMEvent["location"], elementId: string, eventType: string, handler: StoreEventHandler<any>) {
@@ -57,8 +57,10 @@ export class DOMRoot implements Zone, RenderResult {
             this.store.dispatch(domEvent.handler(evt))
             break
           case "template":
-            setNearestTemplateArgs(element)
-            this.store.dispatch(domEvent.handler(evt))
+            const root = element.closest(`[data-spheres-template]`)!
+            // @ts-ignore
+            const zoneStore = root[spheresTemplateData]
+            zoneStore.dispatch(domEvent.handler(evt))
             break
         }
         evt.stopPropagation()
@@ -89,7 +91,7 @@ export class DOMRoot implements Zone, RenderResult {
   }
 }
 
-export function createNode(zone: Zone, idSequence: IdSequence, vnode: VirtualNode): Node {
+export function createNode(zone: Zone, store: Store, idSequence: IdSequence, vnode: VirtualNode): Node {
   switch (vnode.type) {
 
     case NodeType.TEXT:
@@ -97,8 +99,8 @@ export function createNode(zone: Zone, idSequence: IdSequence, vnode: VirtualNod
 
     case NodeType.STATEFUL_TEXT: {
       const textNode = document.createTextNode("")
-      const textEffect = new UpdateTextEffect(textNode, vnode.generator, undefined, undefined)
-      zone.store.useEffect(textEffect)
+      const textEffect = new UpdateTextEffect(textNode, vnode.generator)
+      store.useEffect(textEffect)
       return textNode
     }
 
@@ -110,8 +112,8 @@ export function createNode(zone: Zone, idSequence: IdSequence, vnode: VirtualNod
       fragment.appendChild(startNode)
       fragment.appendChild(endNode)
 
-      const query = new SelectViewEffect(zone, vnode, startNode, endNode, undefined, undefined, getDOMTemplate)
-      zone.store.useEffect(query)
+      const query = new SelectViewEffect(zone, store, vnode, startNode, endNode, getDOMTemplate)
+      store.useEffect(query)
       return fragment
     }
 
@@ -123,8 +125,8 @@ export function createNode(zone: Zone, idSequence: IdSequence, vnode: VirtualNod
       parentFrag.appendChild(listStartNode)
       parentFrag.appendChild(listEndNode)
 
-      const effect = new ListEffect(zone, vnode, undefined, undefined, listStartNode, listEndNode, getDOMTemplate)
-      zone.store.useEffect(effect)
+      const effect = new ListEffect(zone, store, vnode, listStartNode, listEndNode, getDOMTemplate)
+      store.useEffect(effect)
       return parentFrag
 
     default:
@@ -140,8 +142,8 @@ export function createNode(zone: Zone, idSequence: IdSequence, vnode: VirtualNod
       const statefulAttrs = vnode.data.statefulAttrs
       for (const attr in statefulAttrs) {
         const stateful = statefulAttrs[attr]
-        const attributeEffect = new UpdateAttributeEffect(element, attr, stateful.generator, undefined, undefined)
-        const handle = zone.store.useEffect(attributeEffect)
+        const attributeEffect = new UpdateAttributeEffect(element, attr, stateful.generator)
+        const handle = store.useEffect(attributeEffect)
         stateful.effect = handle
       }
 
@@ -154,8 +156,8 @@ export function createNode(zone: Zone, idSequence: IdSequence, vnode: VirtualNod
       const statefulProps = vnode.data.statefulProps
       for (const prop in statefulProps) {
         const stateful = statefulProps[prop]
-        const propertyEffect = new UpdatePropertyEffect(element, prop, stateful.generator, undefined, undefined)
-        const handle = zone.store.useEffect(propertyEffect)
+        const propertyEffect = new UpdatePropertyEffect(element, prop, stateful.generator)
+        const handle = store.useEffect(propertyEffect)
         stateful.effect = handle
       }
 
@@ -168,24 +170,24 @@ export function createNode(zone: Zone, idSequence: IdSequence, vnode: VirtualNod
         } else {
           const handler = events[k]
           element.addEventListener(k, (evt) => {
-            zone.store.dispatch(handler(evt))
+            store.dispatch(handler(evt))
           })
         }
       }
 
       for (var i = 0; i < vnode.children.length; i++) {
-        element.appendChild(createNode(zone, idSequence, vnode.children[i]))
+        element.appendChild(createNode(zone, store, idSequence, vnode.children[i]))
       }
 
       return element
   }
 }
 
-function activateEffects(zone: Zone, vnode: VirtualNode, node: Node): Node {
+function activateEffects(zone: Zone, store: Store, vnode: VirtualNode, node: Node): Node {
   switch (vnode.type) {
     case NodeType.STATEFUL_TEXT: {
-      const effect = new UpdateTextEffect(node as Text, vnode.generator, undefined, undefined)
-      zone.store.useEffect(effect)
+      const effect = new UpdateTextEffect(node as Text, vnode.generator)
+      store.useEffect(effect)
       return node
     }
 
@@ -193,8 +195,8 @@ function activateEffects(zone: Zone, vnode: VirtualNode, node: Node): Node {
       vnode.id = getListElementId(node)
       let end = findListEndNode(node, vnode.id)
 
-      const effect = new ListEffect(zone, vnode, undefined, undefined, node, end, getDOMTemplate)
-      zone.store.useEffect(effect)
+      const effect = new ListEffect(zone, store, vnode, node, end, getDOMTemplate)
+      store.useEffect(effect)
       return end
     }
 
@@ -202,8 +204,8 @@ function activateEffects(zone: Zone, vnode: VirtualNode, node: Node): Node {
       vnode.id = getSwitchElementId(node)
       let end = findSwitchEndNode(node, vnode.id)
 
-      const effect = new SelectViewEffect(zone, vnode, node, end, undefined, undefined, getDOMTemplate)
-      zone.store.useEffect(effect)
+      const effect = new SelectViewEffect(zone, store, vnode, node, end, getDOMTemplate)
+      store.useEffect(effect)
 
       return end
     }
@@ -214,16 +216,16 @@ function activateEffects(zone: Zone, vnode: VirtualNode, node: Node): Node {
       const statefulAttrs = vnode.data.statefulAttrs
       for (const attr in statefulAttrs) {
         const stateful = statefulAttrs[attr]
-        const attributeEffect = new UpdateAttributeEffect(element, attr, stateful.generator, undefined, undefined)
-        const handle = zone.store.useEffect(attributeEffect)
+        const attributeEffect = new UpdateAttributeEffect(element, attr, stateful.generator)
+        const handle = store.useEffect(attributeEffect)
         stateful.effect = handle
       }
 
       const statefulProps = vnode.data.statefulProps
       for (const prop in statefulProps) {
         const stateful = statefulProps[prop]
-        const propertyEffect = new UpdatePropertyEffect(element, prop, stateful.generator, undefined, undefined)
-        const handle = zone.store.useEffect(propertyEffect)
+        const propertyEffect = new UpdatePropertyEffect(element, prop, stateful.generator)
+        const handle = store.useEffect(propertyEffect)
         stateful.effect = handle
       }
 
@@ -235,14 +237,14 @@ function activateEffects(zone: Zone, vnode: VirtualNode, node: Node): Node {
         } else {
           const handler = elementEvents[k]
           element.addEventListener(k, (evt) => {
-            zone.store.dispatch(handler(evt))
+            store.dispatch(handler(evt))
           })
         }
       }
 
       let childNode = element.firstChild
       for (var i = 0; i < vnode.children.length; i++) {
-        const lastChild = activateEffects(zone, vnode.children[i], childNode!)
+        const lastChild = activateEffects(zone, store, vnode.children[i], childNode!)
         childNode = lastChild.nextSibling
       }
 

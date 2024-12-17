@@ -1,51 +1,46 @@
-import { container, Container, GetState, write } from "../../../store/index.js"
+import { GetState, write } from "../../../store/index.js"
 import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementId } from "../fragmentHelpers.js"
 import { IdSequence } from "../idSequence.js"
-import { ArgsController, DOMTemplate, GetDOMTemplate, Zone } from "../index.js"
+import { DOMTemplate, GetDOMTemplate, Zone } from "../index.js"
 import { StatefulListNode, NodeType } from "../virtualNode.js"
 import { activateTemplateInstance, renderTemplateInstance } from "../renderTemplate.js"
-import { EffectWithArgs } from "./effectWithArgs.js"
+import { OverlayStore, Store } from "../../../store/store.js"
 
 export interface VirtualItem {
   key: any
   index: number
   isDetached: boolean
   next: VirtualItem | undefined
-  indexState?: Container<number>
   node: Node
   firstNode?: Node
   lastNode?: Node
+  store: OverlayStore
 }
 
-export class ListEffect extends EffectWithArgs {
+export class ListEffect {
   private domTemplate: DOMTemplate
   private usesIndex: boolean
   private parent!: Node
   private first: VirtualItem | undefined
-  private nextArgsController: ArgsController
   private itemCache: Map<any, VirtualItem> = new Map()
 
   constructor(
     private zone: Zone,
+    private store: Store,
     private listVnode: StatefulListNode,
-    argsController: ArgsController | undefined,
-    args: any,
     private listStart: Node,
     private listEnd: Node,
     getDomTemplate: GetDOMTemplate
   ) {
-    super(argsController, args)
     this.usesIndex = this.listVnode.template.usesIndex
     this.domTemplate = getDomTemplate(
       this.zone,
       new IdSequence(this.listVnode.id),
       this.listVnode.template
     )
-    this.nextArgsController = this.getNextArgsController()
   }
 
   init(get: GetState) {
-    this.setArgs()
     const data = this.listVnode.query(get)
 
     if (this.listStart.nextSibling !== this.listEnd) {
@@ -62,7 +57,6 @@ export class ListEffect extends EffectWithArgs {
       return
     }
 
-    this.setArgs()
     const updatedData = this.listVnode.query(get)
 
     this.patch(updatedData)
@@ -255,7 +249,7 @@ export class ListEffect extends EffectWithArgs {
 
   updateIndex(index: number, item: VirtualItem): void {
     item.index = index
-    this.zone.store.dispatch(write(item.indexState!, index))
+    item.store.dispatch(write(this.listVnode.template.indexToken, index))
   }
 
   activateItem(index: number, node: Node, data: any): [VirtualItem, Node] {
@@ -264,15 +258,12 @@ export class ListEffect extends EffectWithArgs {
       next: undefined
     }
 
-    let args
-    if (this.usesIndex) {
-      virtualItem.indexState = container({ initialValue: index })
-      args = { item: data, index: virtualItem.indexState }
-    } else {
-      args = data
-    }
+    const initialValues = this.listVnode.template.getInitialStateValues(data, index)
+    const overlayStore = new OverlayStore(this.store, initialValues)
 
-    activateTemplateInstance(this.zone, this.domTemplate, node, this.nextArgsController, args)
+    activateTemplateInstance(this.zone, overlayStore, this.domTemplate, node)
+
+    virtualItem.store = overlayStore
 
     switch (this.listVnode.template.virtualNode.type) {
       case NodeType.STATEFUL_LIST: {
@@ -298,29 +289,17 @@ export class ListEffect extends EffectWithArgs {
       return { ...cached, next: undefined }
     }
 
-    let args: any
+    const initialValues = this.listVnode.template.getInitialStateValues(data, index)
+    const overlayStore = new OverlayStore(this.store, initialValues)
 
-    let indexState: Container<number> | undefined
-    if (this.usesIndex) {
-      indexState = container({ initialValue: index })
-      args = { item: data, index: indexState }
-    } else {
-      args = data
-    }
-
-    const node = renderTemplateInstance(
-      this.zone,
-      this.domTemplate,
-      this.nextArgsController,
-      args
-    )
+    const node = renderTemplateInstance(this.zone, overlayStore, this.domTemplate)
 
     const item: VirtualItem = {
       key: data,
       index,
       isDetached: false,
-      indexState,
       next: undefined,
+      store: overlayStore,
       node
     }
 
@@ -330,17 +309,5 @@ export class ListEffect extends EffectWithArgs {
     }
 
     return item
-  }
-
-  getNextArgsController(): ArgsController {
-    const currentArgsController = this.argsController
-    const currentArgs = this.args
-    const template = this.listVnode.template
-    return {
-      setArgs(nextArgs) {
-        currentArgsController?.setArgs(currentArgs)
-        template.setArgs(nextArgs)
-      }
-    }
   }
 }

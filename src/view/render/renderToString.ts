@@ -1,4 +1,5 @@
-import { container, GetState, ReactiveEffect, Store } from "../../store/index.js";
+import { GetState, ReactiveEffect, Store } from "../../store/index.js";
+import { OverlayStore } from "../../store/store.js";
 import { listEndIndicator, listStartIndicator, switchEndIndicator, switchStartIndicator } from "./fragmentHelpers.js";
 import { IdSequence } from "./idSequence.js";
 import { EventsToDelegate } from "./index.js";
@@ -114,13 +115,9 @@ function stringifyViewList(store: Store, idSequence: IdSequence, node: StatefulL
 
   let html = `<!--${listStartIndicator(elementId)}-->`
   for (let i = 0; i < data.length; i++) {
-    if (node.template.usesIndex) {
-      node.template.setArgs({ item: data[i], index: container({ initialValue: i }) })
-    } else {
-      node.template.setArgs(data[i])
-    }
-
-    html += stringifyVirtualNode(store, new IdSequence(elementId), node.template.virtualNode)
+    const initialValues = node.template.getInitialStateValues(data[i], i)
+    const overlayStore = new OverlayStore(store, initialValues)
+    html += stringifyVirtualNode(overlayStore, new IdSequence(elementId), node.template.virtualNode)
   }
   html += `<!--${listEndIndicator(elementId)}-->`
 

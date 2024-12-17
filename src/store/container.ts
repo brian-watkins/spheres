@@ -1,3 +1,4 @@
+import { didCreateToken } from "./stateRecorder.js"
 import { Container, UpdateResult } from "./store.js"
 
 export interface ContainerInitializer<T, M> {
@@ -8,10 +9,12 @@ export interface ContainerInitializer<T, M> {
 }
 
 export function container<T, M = T, E = any>(initializer: ContainerInitializer<T, M>): Container<T, M, E> {
-  return new Container(
+  const token = new Container(
     initializer.id,
     initializer.name,
     initializer.initialValue,
     initializer.update
   )
+  didCreateToken(token)
+  return token
 }

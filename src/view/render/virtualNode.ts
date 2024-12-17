@@ -1,6 +1,6 @@
+import { constant } from "../../store/constant.js";
 import { container } from "../../store/container.js";
-import { Container, GetState, ReactiveVariable, State, StoreMessage, Variable } from "../../store/store.js";
-import { reactiveVariable, variable } from "../../store/variable.js";
+import { Container, GetState, State, StoreMessage } from "../../store/store.js";
 
 export type Stateful<T> = (get: GetState) => T | undefined
 
@@ -37,7 +37,7 @@ export interface ElementNode {
 
 export interface ViewSelector {
   select: (get: GetState) => boolean
-  template: VirtualTemplate<any>
+  template: VirtualTemplate
 }
 
 export interface StatefulSelectorNode {
@@ -149,7 +149,7 @@ export function makeStatefulTextNode(generator: Stateful<string>): StatefulTextN
   }
 }
 
-export abstract class VirtualTemplate<T> {
+export class VirtualTemplate {
   private _vnode!: VirtualNode
 
   protected setVirtualNode(vnode: VirtualNode) {
@@ -163,8 +163,6 @@ export abstract class VirtualTemplate<T> {
   get virtualNode(): VirtualNode {
     return this._vnode
   }
-
-  abstract setArgs(args: T): void
 }
 
 export interface VirtualListItemTemplateArgs<T> {
@@ -172,18 +170,33 @@ export interface VirtualListItemTemplateArgs<T> {
   index?: Container<number>
 }
 
-export class VirtualListItemTemplate<T> extends VirtualTemplate<VirtualListItemTemplateArgs<T>> {
-  protected itemToken: Variable<T | undefined> = variable({ initialValue: undefined })
-  protected indexToken: ReactiveVariable<number> = reactiveVariable({ initialValue: container({ initialValue: -1 }) })
+export class VirtualListItemTemplate<T> extends VirtualTemplate {
+  protected itemToken: State<T | undefined> = constant({ initialValue: undefined })
+  private _indexToken: Container<number> | undefined = undefined
   public usesIndex = true
+  private tokenMap: Map<State<any>, any> = new Map()
 
-  setArgs(args: any): void {
-    if (this.usesIndex) {
-      this.itemToken.assignValue(args.item)
-      this.indexToken.assignState(args.index!)
-    } else {
-      this.itemToken.assignValue(args)
+  addToken(token: State<any>) {
+    this.tokenMap.set(token, undefined)
+  }
+
+  get indexToken(): Container<number> {
+    if (this._indexToken === undefined) {
+      this._indexToken = container({ name: "index-token", initialValue: -1 })
     }
+
+    return this._indexToken
+  }
+
+  getInitialStateValues(item: any, index: number): Map<State<any>, any> {
+    if (this.usesIndex) {
+      this.tokenMap.set(this.itemToken, item)
+      this.tokenMap.set(this.indexToken, index)
+    } else {
+      this.tokenMap.set(this.itemToken, item)
+    }
+
+    return this.tokenMap
   }
 }
 

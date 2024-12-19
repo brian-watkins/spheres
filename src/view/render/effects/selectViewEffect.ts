@@ -1,13 +1,14 @@
-import { GetState, Store } from "../../../store/index.js";
+import { GetState } from "../../../store/index.js";
 import { IdSequence } from "../idSequence.js";
 import { DOMTemplate, GetDOMTemplate, Zone } from "../index.js";
 import { StatefulSelectorNode } from "../virtualNode.js";
 import { activateTemplateInstance, renderTemplateInstance } from "../renderTemplate.js";
+import { TokenRegistry } from "../../../store/store.js";
 
 export class SelectViewEffect {
   constructor(
     private zone: Zone,
-    private store: Store,
+    private registry: TokenRegistry,
     private vnode: StatefulSelectorNode,
     public startNode: Node,
     public endNode: Node,
@@ -35,7 +36,7 @@ export class SelectViewEffect {
 
     if (template === undefined) return
 
-    activateTemplateInstance(this.zone, this.store, template, this.startNode.nextSibling!)
+    activateTemplateInstance(this.zone, this.registry, template, this.startNode.nextSibling!)
   }
 
   private switchView(get: GetState): void {
@@ -45,7 +46,7 @@ export class SelectViewEffect {
     if (template === undefined) {
       node = document.createTextNode("")
     } else {
-      node = renderTemplateInstance(this.zone, this.store, template)
+      node = renderTemplateInstance(this.zone, this.registry, template)
     }
 
     this.clearView()

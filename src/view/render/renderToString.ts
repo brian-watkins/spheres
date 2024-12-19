@@ -1,23 +1,23 @@
-import { GetState, ReactiveEffect, Store } from "../../store/index.js";
-import { OverlayStore } from "../../store/store.js";
+import { GetState, ReactiveEffect } from "../../store/index.js";
+import { registerEffect, TokenRegistry } from "../../store/store.js";
 import { listEndIndicator, listStartIndicator, switchEndIndicator, switchStartIndicator } from "./fragmentHelpers.js";
 import { IdSequence } from "./idSequence.js";
 import { EventsToDelegate } from "./index.js";
 import { ElementNode, NodeType, StatefulTextNode, TextNode, VirtualNode, StatefulListNode, StatefulSelectorNode } from "./virtualNode.js";
 
 
-export function stringifyVirtualNode(store: Store, idSequence: IdSequence, vnode: VirtualNode): string {
+export function stringifyVirtualNode(registry: TokenRegistry, idSequence: IdSequence, vnode: VirtualNode): string {
   switch (vnode.type) {
     case NodeType.ELEMENT:
-      return stringifyElement(store, idSequence, vnode)
+      return stringifyElement(registry, idSequence, vnode)
     case NodeType.TEXT:
       return stringifyTextNode(vnode)
     case NodeType.STATEFUL_TEXT:
-      return stringifyReactiveText(store, vnode)
+      return stringifyReactiveText(registry, vnode)
     case NodeType.STATEFUL_SELECTOR:
-      return stringifyStatefulSelect(store, idSequence, vnode)
+      return stringifyStatefulSelect(registry, idSequence, vnode)
     case NodeType.STATEFUL_LIST:
-      return stringifyViewList(store, idSequence, vnode)
+      return stringifyViewList(registry, idSequence, vnode)
   }
 }
 
@@ -26,7 +26,7 @@ function stringifyTextNode(node: TextNode): string {
   return node.value.replace(/"/g, "&quot;")
 }
 
-function stringifyElement(store: Store, idSequence: IdSequence, node: ElementNode): string {
+function stringifyElement(registry: TokenRegistry, idSequence: IdSequence, node: ElementNode): string {
   const attributes = node.data.attrs
   const statefulAttributes = node.data.statefulAttrs ?? {}
 
@@ -50,7 +50,7 @@ function stringifyElement(store: Store, idSequence: IdSequence, node: ElementNod
   for (const attr in statefulAttributes) {
     const generator = statefulAttributes[attr].generator
     const query = new GetValueQuery(generator)
-    store.useEffect(query)
+    registerEffect(registry, query)
     attrs += ` ${attr}="${query.value}"`
   }
 
@@ -62,7 +62,7 @@ function stringifyElement(store: Store, idSequence: IdSequence, node: ElementNod
     return `<${node.tag}${attrs} />`
   }
 
-  const children = node.children.map(child => stringifyVirtualNode(store, idSequence, child))
+  const children = node.children.map(child => stringifyVirtualNode(registry, idSequence, child))
 
   return `<${node.tag}${attrs}>${children.join("")}</${node.tag}>`
 }
@@ -77,27 +77,27 @@ class GetValueQuery<M> implements ReactiveEffect {
   }
 }
 
-function stringifyStatefulSelect(store: Store, idSequence: IdSequence, node: StatefulSelectorNode): string {
+function stringifyStatefulSelect(registry: TokenRegistry, idSequence: IdSequence, node: StatefulSelectorNode): string {
   const templateQuery = new GetValueQuery((get) => {
     return node.selectors.findIndex(selector => selector.select(get))
   })
-  store.useEffect(templateQuery)
+  registerEffect(registry, templateQuery)
 
   const elementId = idSequence.next
 
   let html = `<!--${switchStartIndicator(elementId)}-->`
   if (templateQuery.value !== -1) {
     const template = node.selectors[templateQuery.value].template
-    html += stringifyVirtualNode(store, new IdSequence(`${elementId}.${templateQuery.value}`), template.virtualNode)
+    html += stringifyVirtualNode(registry, new IdSequence(`${elementId}.${templateQuery.value}`), template.virtualNode)
   }
   html += `<!--${switchEndIndicator(elementId)}-->`
 
   return html
 }
 
-function stringifyReactiveText(store: Store, node: StatefulTextNode): string {
+function stringifyReactiveText(registry: TokenRegistry, node: StatefulTextNode): string {
   const query = new GetValueQuery(node.generator)
-  store.useEffect(query)
+  registerEffect(registry, query)
 
   return stringifyTextNode({
     type: NodeType.TEXT,
@@ -105,9 +105,9 @@ function stringifyReactiveText(store: Store, node: StatefulTextNode): string {
   })
 }
 
-function stringifyViewList(store: Store, idSequence: IdSequence, node: StatefulListNode): string {
+function stringifyViewList(registry: TokenRegistry, idSequence: IdSequence, node: StatefulListNode): string {
   const query = new GetValueQuery(node.query)
-  store.useEffect(query)
+  registerEffect(registry, query)
 
   const data = query.value
 
@@ -115,9 +115,11 @@ function stringifyViewList(store: Store, idSequence: IdSequence, node: StatefulL
 
   let html = `<!--${listStartIndicator(elementId)}-->`
   for (let i = 0; i < data.length; i++) {
-    const initialValues = node.template.getInitialStateValues(data[i], i)
-    const overlayStore = new OverlayStore(store, initialValues)
-    html += stringifyVirtualNode(overlayStore, new IdSequence(elementId), node.template.virtualNode)
+    html += stringifyVirtualNode(
+      node.template.createOverlayRegistry(registry, data[i], i),
+      new IdSequence(elementId),
+      node.template.virtualNode
+    )
   }
   html += `<!--${listEndIndicator(elementId)}-->`
 

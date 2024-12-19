@@ -89,12 +89,9 @@ class SVGVirtualListItemTemplate<T> extends VirtualListItemTemplate<T> {
 
     const builder = new SvgViewBuilder()
 
-    this.addToken(this.itemToken)
-
     let indexToken: Container<number> | undefined = undefined
     if (this.usesIndex) {
       indexToken = this.indexToken
-      this.addToken(this.indexToken)
     }
 
     recordTokens(() => {

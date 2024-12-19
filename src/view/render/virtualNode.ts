@@ -1,6 +1,6 @@
 import { constant } from "../../store/constant.js";
 import { container } from "../../store/container.js";
-import { Container, GetState, State, StoreMessage } from "../../store/store.js";
+import { Command, CommandController, ConstantStateController, Container, createStateController, GetState, State, StateController, StoreMessage, Token, TokenRegistry } from "../../store/store.js";
 
 export type Stateful<T> = (get: GetState) => T | undefined
 
@@ -173,11 +173,15 @@ export interface VirtualListItemTemplateArgs<T> {
 export class VirtualListItemTemplate<T> extends VirtualTemplate {
   protected itemToken: State<T | undefined> = constant({ initialValue: undefined })
   private _indexToken: Container<number> | undefined = undefined
+  private itemController = new ConstantStateController(undefined)
   public usesIndex = true
-  private tokenMap: Map<State<any>, any> = new Map()
+  private tokens: Array<State<any>> | undefined
 
   addToken(token: State<any>) {
-    this.tokenMap.set(token, undefined)
+    if (this.tokens === undefined) {
+      this.tokens = []
+    }
+    this.tokens.push(token)
   }
 
   get indexToken(): Container<number> {
@@ -188,15 +192,62 @@ export class VirtualListItemTemplate<T> extends VirtualTemplate {
     return this._indexToken
   }
 
-  getInitialStateValues(item: any, index: number): Map<State<any>, any> {
+  createOverlayRegistry(rootRegistry: TokenRegistry, itemData: any, index: number): TokenRegistry {
+    const registry = new ListItemOverlayTokenRegistry(rootRegistry, this.itemToken, this.itemController, itemData)
     if (this.usesIndex) {
-      this.tokenMap.set(this.itemToken, item)
-      this.tokenMap.set(this.indexToken, index)
-    } else {
-      this.tokenMap.set(this.itemToken, item)
+      registry.setIndexState(this.indexToken, index)
     }
+    if (this.tokens !== undefined) {
+      registry.setUserTokens(this.tokens)
+    }
+    return registry
+  }
+}
 
-    return this.tokenMap
+class ListItemOverlayTokenRegistry implements TokenRegistry {
+  private _tokenMap: Map<Token, StateController<any>> | undefined
+
+  constructor(
+    private rootRegistry: TokenRegistry,
+    private item: State<any>,
+    private itemController: ConstantStateController<any>,
+    private itemData: any
+  ) { }
+
+  set(): void { }
+
+  registerState<T>(token: State<T>, initialState?: T): StateController<T> {
+    return createStateController(this, token, initialState)
+  }
+
+  registerCommand(token: Command<any>): CommandController<any> {
+    return this.rootRegistry.registerCommand(token)
+  }
+
+  private get tokenMap(): Map<Token, StateController<any>> {
+    if (this._tokenMap === undefined) {
+      this._tokenMap = new Map()
+    }
+    return this._tokenMap
+  }
+
+  setIndexState(token: State<number>, value: number) {
+    this.tokenMap.set(token, this.registerState(token, value))
+  }
+
+  setUserTokens(tokens: Array<State<any>>) {
+    for (const token of tokens) {
+      const controller = this.registerState(token)
+      this.tokenMap.set(token, controller)
+    }
+  }
+
+  get(token: Token): any {
+    if (token === this.item) {
+      this.itemController.setValue(this.itemData)
+      return this.itemController
+    }
+    return this._tokenMap?.get(token) ?? this.rootRegistry.get(token)
   }
 }
 

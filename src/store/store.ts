@@ -11,7 +11,7 @@ export interface StateListener {
   [listenerVersion]?: number
   [listenerParent]?: any
   [notifyListeners]?: () => void
-  [listenerStore]?: Store
+  [listenerStore]?: TokenRegistry
   run(get: GetState): void
 }
 
@@ -23,7 +23,7 @@ interface StateEventSource {
   addListener(listener: StateListener): void
 }
 
-interface StateController<T> extends StateEventSource {
+export interface StateController<T> extends StateEventSource {
   getValue(): T
 }
 
@@ -88,15 +88,13 @@ export interface BatchMessage {
 
 export type StoreMessage<T, M = T> = WriteMessage<T, M> | UpdateMessage<T, M> | ResetMessage<T, M> | UseMessage | BatchMessage | RunMessage | ExecMessage<M>
 
-const registerState = Symbol("registerState")
+const createController = Symbol("createController")
 const initializeCommand = Symbol("initializeCommand")
-const getRegistryKey = Symbol("getRegistryKey")
-const getController = Symbol("getController")
-const getContainerController = Symbol("getContainerController")
 const initialValue = Symbol("initialValue")
-const getValue = Symbol("getValue")
 
-type StoreRegistryKey = State<any> | Command<any>
+export interface Token {
+  id: string | undefined
+}
 
 interface ContainerController<T, M = T> extends StateController<T> {
   write(message: M): void
@@ -107,7 +105,7 @@ interface ContainerController<T, M = T> extends StateController<T> {
 class SimpleStateEventSource implements StateEventSource {
   private listeners: Map<StateListener, number> = new Map()
 
-  constructor(protected store: Store) { }
+  constructor(protected registry: TokenRegistry) { }
 
   addListener(listener: StateListener) {
     this.listeners.set(listener, listener[listenerVersion]!)
@@ -132,8 +130,8 @@ class SimpleStateEventSource implements StateEventSource {
     for (const listener of this.listeners.keys()) {
       if (listener[listenerParent] === this) {
         listener[listenerVersion] = listener[listenerVersion]! + 1
-        const store = listener[listenerStore] ?? this.store
-        listener.run((token) => store[getValue](listener, token))
+        const registry = listener[listenerStore] ?? this.registry
+        listener.run(reactiveState(registry, listener))
         listener[listenerParent] = undefined
       }
     }
@@ -141,8 +139,8 @@ class SimpleStateEventSource implements StateEventSource {
 }
 
 class SimpleStateController<T> extends SimpleStateEventSource implements ContainerController<T> {
-  constructor(protected store: Store, private _value: T) {
-    super(store)
+  constructor(protected registry: TokenRegistry, private _value: T) {
+    super(registry)
   }
 
   write(value: any) {
@@ -168,10 +166,10 @@ class SimpleStateController<T> extends SimpleStateEventSource implements Contain
   }
 }
 
-export abstract class State<T> {
+export abstract class State<T> implements Token {
   constructor(readonly id: string | undefined, readonly name: string | undefined) { }
 
-  abstract [registerState](store: Store, initialState?: T): StateController<T>
+  abstract [createController](registry: TokenRegistry, initialState?: T): StateController<T>
 
   toString() {
     return this.name && this.id ? `${this.name}-${this.id}` : (this.name ?? this.id ?? "State")
@@ -183,17 +181,21 @@ export class Constant<T> extends State<T> {
     super(undefined, undefined)
   }
 
-  [registerState](_: Store, initialState?: T | undefined): StateController<T> {
+  [createController](_: TokenRegistry, initialState?: T | undefined): StateController<T> {
     return new ConstantStateController(initialState ?? this.initialValue)
   }
 }
 
-class ConstantStateController<T> implements StateController<T> {
+export class ConstantStateController<T> implements StateController<T> {
   constructor(private value: T) { }
 
   addListener(): void { }
 
   removeListener(): void { }
+
+  setValue(value: T) {
+    this.value = value
+  }
 
   getValue(): T {
     return this.value
@@ -205,10 +207,10 @@ export class MetaState<T, M, E = unknown> extends State<Meta<M, E>> {
     super(token.id ? `meta[${token.id}]` : undefined, `meta[${token.toString()}]`)
   }
 
-  [registerState](store: Store): StateController<Meta<M, E>> {
-    const tokenController = store[getController](this.token)
+  [createController](registry: TokenRegistry): StateController<Meta<M, E>> {
+    const tokenController = registry.get<StateController<any>>(this.token)
 
-    const controller = new SimpleStateController<Meta<M, E>>(store, ok())
+    const controller = new SimpleStateController<Meta<M, E>>(registry, ok())
 
     tokenController.addListener({
       get [listenerVersion]() { return 0 },
@@ -227,8 +229,8 @@ export class SuppliedState<T, M = any, E = any> extends State<T> {
     super(id, name)
   }
 
-  [registerState](store: Store, serializedState?: T): ContainerController<T, M> {
-    return new SimpleStateController(store, serializedState ?? this.initialValue)
+  [createController](registry: TokenRegistry, serializedState?: T): ContainerController<T, M> {
+    return new SimpleStateController(registry, serializedState ?? this.initialValue)
   }
 
   get meta(): MetaState<T, M, E> {
@@ -255,10 +257,10 @@ export class Container<T, M = T, E = any> extends State<T> {
     return this.initialValue
   }
 
-  [registerState](store: Store, serializedState?: T): ContainerController<T, M> {
+  [createController](registry: TokenRegistry, serializedState?: T): ContainerController<T, M> {
     return this.update ?
-      new MessagePassingStateController(store, serializedState ?? this.initialValue, this.update) :
-      new SimpleStateController(store, serializedState ?? this.initialValue)
+      new MessagePassingStateController(registry, serializedState ?? this.initialValue, this.update) :
+      new SimpleStateController(registry, serializedState ?? this.initialValue)
   }
 
   get meta(): MetaState<T, M, E> {
@@ -274,8 +276,8 @@ export class DerivedState<T> extends State<T> {
     super(id, name)
   }
 
-  [registerState](store: Store): StateController<T> {
-    return new DerivedStateController(store, this.derivation)
+  [createController](registry: TokenRegistry): StateController<T> {
+    return new DerivedStateController(registry, this.derivation)
   }
 }
 
@@ -283,13 +285,13 @@ class DerivedStateController<T> extends SimpleStateEventSource implements StateC
   private _value: T
   [listenerVersion] = 0;
 
-  constructor(store: Store, private derivation: (get: GetState) => T) {
-    super(store)
-    this._value = this.derivation((token) => this.store[getValue](this, token))
+  constructor(registry: TokenRegistry, private derivation: (get: GetState) => T) {
+    super(registry)
+    this._value = this.derivation(reactiveState(registry, this))
   }
 
   run(_: GetState): void {
-    const derived = this.derivation((token) => this.store[getValue](this, token))
+    const derived = this.derivation(reactiveState(this.registry, this))
 
     if (Object.is(derived, this._value)) {
       return
@@ -321,8 +323,14 @@ class DispatchCommandQuery<M> implements ReactiveEffect {
   }
 }
 
-export class Command<M> {
+export class Command<M> implements Token {
+  readonly id: undefined
+
   constructor(private trigger: ((get: GetState) => M) | undefined) { }
+
+  [createController](registry: TokenRegistry): CommandController<M> {
+    return new CommandController(registry)
+  }
 
   [initializeCommand](store: Store): void {
     if (this.trigger !== undefined) {
@@ -331,22 +339,36 @@ export class Command<M> {
   }
 }
 
-class CommandController<T> {
-  constructor(private store: Store, private manager: CommandManager<T>) { }
+function defaultCommandManager(): CommandManager<any> {
+  return {
+    exec() {
+      console.log("No CommandManager defined for Command!")
+    },
+  }
+}
+
+export class CommandController<T> {
+  private manager: CommandManager<T> = defaultCommandManager()
+
+  constructor(private registry: TokenRegistry) { }
+
+  setManager(manager: CommandManager<T>) {
+    this.manager = manager
+  }
 
   run(message: T) {
     this.manager.exec(message, {
       get: (state) => {
-        return this.store[getController](state).getValue()
+        return this.registry.get<StateController<any>>(state).getValue()
       },
       supply: (token, value) => {
-        this.store[getContainerController](token).publish(value)
+        this.registry.get<ContainerController<any>>(token).publish(value)
       },
       pending: (token, message) => {
-        this.store[getContainerController](token.meta).write(pending(message))
+        this.registry.get<ContainerController<any>>(token.meta).write(pending(message))
       },
       error: (token, message, reason) => {
-        this.store[getContainerController](token.meta).write(error(message, reason))
+        this.registry.get<ContainerController<any>>(token.meta).write(error(message, reason))
       }
     })
   }
@@ -372,114 +394,194 @@ interface StoreOptions {
   initialState?: Map<string, any>
 }
 
-export class Store {
-  protected registry: WeakMap<StoreRegistryKey, any> = new WeakMap();
-  private hooks: StoreHooks | undefined
-  protected tokenIdMap: Map<string, StoreRegistryKey> = new Map();
+export interface TokenRegistry {
+  get<C>(token: Token): C
+  set(token: State<any>, controller: any): void
+  registerState<T>(token: State<T>, initialState?: T): StateController<T>
+  registerCommand(token: Command<any>): CommandController<any>
+}
+
+function reactiveState(registry: TokenRegistry, listener: StateListener): <T>(token: State<T>) => T {
+  return function (token) {
+    const controller = registry.get<StateController<any>>(token)
+    controller.addListener(listener)
+    return controller.getValue()
+  }
+}
+
+class SerializableTokenRegistry implements TokenRegistry {
+  protected registry: WeakMap<Token, any> = new WeakMap();
+  protected tokenIdMap: Map<string, Token> = new Map();
 
   constructor(private options: StoreOptions = {}) { }
 
-  [getRegistryKey](token: State<any>): StoreRegistryKey {
+  registerState<T>(token: State<any>, initialState?: T): StateController<T> {
+    const controller = token[createController](this, initialState)
+    this.registry.set(token, controller)
+    return controller
+  }
+
+  registerCommand(token: Command<any>): CommandController<any> {
+    const controller = token[createController](this)
+    this.registry.set(token, controller)
+    return controller
+  }
+
+  private getRegistryKey<K extends Token>(token: K): K {
     if (token.id === undefined) return token
 
-    const key = this.tokenIdMap.get(token.id)
+    const key = this.tokenIdMap.get(token.id) as K
     if (key === undefined) {
       this.tokenIdMap.set(token.id, token)
       return token
     }
+
     return key
   }
 
-  [getController]<T>(token: State<T>): StateController<T> {
-    const key = this[getRegistryKey](token)
+  get<C>(token: Token): C {
+    const key = this.getRegistryKey(token)
     let controller = this.registry.get(key)
     if (controller === undefined) {
-      const initialState = token.id ? this.options.initialState?.get(token.id) : undefined
-      controller = token[registerState](this, initialState)
-      this.registry.set(key, controller)
-      if (this.hooks !== undefined && token instanceof Container) {
-        this.hooks.onRegister(token)
+      if (token instanceof State) {
+        const initialState = token.id ? this.options.initialState?.get(token.id) : undefined
+        controller = this.registerState(key as State<any>, initialState)
+      } else if (token instanceof Command) {
+        controller = this.registerCommand(key as Command<any>)
       }
     }
     return controller
   }
 
-  // should the argument here be a Container<T>?
-  [getContainerController]<T, M>(token: State<T>): ContainerController<T, M> {
-    return this[getController](token) as ContainerController<T, M>
+  set(token: State<any>, controller: any) {
+    this.registry.set(this.getRegistryKey(token), controller)
   }
 
-  useHooks(hooks: StoreHooks) {
-    this.hooks = hooks
+  serialize(): string {
+    const map_data = Array.from(this.tokenIdMap.entries())
+    .map(([key, token]) => {
+      const value = this.get<StateController<any>>(token).getValue()
+      return `["${key}",${JSON.stringify(value)}]`
+    })
+    .join(",")
+
+  return `<script type="module">
+window[Symbol.for("${storeId(this.options.id)}")] = new Map([${map_data}]);
+</script>`
+  }
+}
+
+export function createStateController(registry: TokenRegistry, token: State<any>, initialValue?: any): StateController<any> {
+  return token[createController](registry, initialValue)
+}
+
+export function dispatchMessage(registry: TokenRegistry, message: StoreMessage<any>) {
+  switch (message.type) {
+    case "write": {
+      registry.get<ContainerController<any>>(message.container).write(message.value)
+      break
+    }
+    case "update": {
+      const controller = registry.get<ContainerController<any>>(message.container)
+      controller.write(message.generator(controller.getValue()))
+      break
+    }
+    case "exec": {
+      registry.get<CommandController<any>>(message.command).run(message.message)
+      break
+    }
+    case "reset": {
+      const controller = registry.get<ContainerController<any>>(message.container)
+      controller.write(message.container[initialValue])
+      break
+    }
+    case "use": {
+      const get: GetState = (state) => registry.get<StateController<any>>(state).getValue()
+      const statefulMessage = message.rule(get) ?? { type: "batch", messages: [] }
+      dispatchMessage(registry, statefulMessage)
+      break
+    }
+    case "run": {
+      message.effect()
+      break
+    }
+    case "batch": {
+      for (let i = 0; i < message.messages.length; i++) {
+        dispatchMessage(registry, message.messages[i])
+      }
+      break
+    }
+  }
+}
+
+export function registerEffect(registry: TokenRegistry, effect: ReactiveEffect): ReactiveEffectHandle {
+  effect[listenerVersion] = 0
+  effect[listenerStore] = registry
+
+  if (effect.init !== undefined) {
+    effect.init(reactiveState(registry, effect))
+  } else {
+    effect.run(reactiveState(registry, effect))
   }
 
-  [getValue]<S>(listener: StateListener, token: State<S>,): S {
-    const controller = this[getController](token)
-    controller.addListener(listener)
-    return controller.getValue()
+  return {
+    unsubscribe: () => {
+      effect[listenerVersion] = effect[listenerVersion]! + 1
+    }
+  }
+}
+
+const tokenRegistry = Symbol("tokenRegistry")
+
+export function getTokenRegistry(store: Store): TokenRegistry {
+  return store[tokenRegistry]
+}
+
+export class Store {
+  private registry: SerializableTokenRegistry
+
+  constructor(options: StoreOptions = {}) {
+    this.registry = new SerializableTokenRegistry(options)
+  }
+
+  get [tokenRegistry](): TokenRegistry {
+    return this.registry
+  }
+
+  dispatch(message: StoreMessage<any>) {
+    dispatchMessage(this.registry, message)
   }
 
   useEffect(effect: ReactiveEffect): ReactiveEffectHandle {
-    effect[listenerVersion] = 0
-    effect[listenerStore] = this
+    return registerEffect(this.registry, effect)
+  }
 
-    if (effect.init !== undefined) {
-      effect.init((state) => this[getValue](effect, state))
-    } else {
-      effect.run((state) => this[getValue](effect, state))
-    }
-
-    return {
-      unsubscribe: () => {
-        effect[listenerVersion] = effect[listenerVersion]! + 1
-      }
-    }
+  useHooks(hooks: StoreHooks) {
+    this.registry = new Proxy(this.registry, {
+      get(target, prop, receiver) {
+        if (prop === "registerState") {
+          return (token: State<any>): StateController<any> => {
+            const controller = target.registerState(token)
+            if (token instanceof Container) {
+              hooks.onRegister(token)
+            }
+            return controller
+          }
+        }
+        return Reflect.get(target, prop, receiver)
+      },
+    })
   }
 
   useCommand<M>(command: Command<M>, manager: CommandManager<M>) {
-    this.registry.set(command, new CommandController(this, manager))
+    const controller = this.registry.get<CommandController<M>>(command)
+    controller.setManager(manager)
     command[initializeCommand](this)
   }
 
-  private containerReadyActions<T, M, E>(container: Container<T, M>, controller: ContainerController<T, M>): ReadyHookActions<T, M, E> {
-    return {
-      get: (state) => {
-        return this[getController](state).getValue()
-      },
-      supply: (value) => {
-        controller.publish(value)
-      },
-      pending: (message) => {
-        this[getContainerController](container.meta).publish(pending(message))
-      },
-      error: (message, reason) => {
-        this[getContainerController](container.meta).publish(error(message, reason))
-      },
-      current: controller.getValue()
-    }
-  }
-
-  private containerWriteActions<T, M, E>(container: Container<T, M>, controller: ContainerController<T, M>): WriteHookActions<T, M, E> {
-    return {
-      get: (state) => {
-        return this[getController](state).getValue()
-      },
-      ok: (message) => {
-        controller.accept(message)
-      },
-      pending: (message) => {
-        this[getContainerController](container.meta).write(pending(message))
-      },
-      error: (message, reason) => {
-        this[getContainerController](container.meta).write(error(message, reason))
-      },
-      current: controller.getValue()
-    }
-  }
-
   useContainerHooks<T, M, E>(container: Container<T, M>, hooks: ContainerHooks<T, M, E>) {
-    const controllerWithHooks = this.containerControllerWithHooks(container, this[getContainerController](container), hooks)
-    this.registry.set(this[getRegistryKey](container), controllerWithHooks)
+    const controllerWithHooks = this.containerControllerWithHooks(container, this.registry.get<ContainerController<any>>(container), hooks)
+    this.registry.set(container, controllerWithHooks)
 
     if (hooks.onReady !== undefined) {
       hooks.onReady(this.containerReadyActions(container, controllerWithHooks))
@@ -503,90 +605,44 @@ export class Store {
     return withHooks
   }
 
-  dispatch(message: StoreMessage<any>) {
-    switch (message.type) {
-      case "write": {
-        this[getContainerController](message.container).write(message.value)
-        break
-      }
-      case "update": {
-        const controller = this[getContainerController](message.container)
-        controller.write(message.generator(controller.getValue()))
-        break
-      }
-      case "exec": {
-        const commandController = this.registry.get(message.command) as CommandController<any>
-        commandController?.run(message.message)
-        break
-      }
-      case "reset": {
-        const controller = this[getContainerController](message.container)
-        controller.write(message.container[initialValue])
-        break
-      }
-      case "use": {
-        const get: GetState = (state) => this[getController](state).getValue()
-        const statefulMessage = message.rule(get) ?? { type: "batch", messages: [] }
-        this.dispatch(statefulMessage)
-        break
-      }
-      case "run": {
-        message.effect()
-        break
-      }
-      case "batch": {
-        for (let i = 0; i < message.messages.length; i++) {
-          this.dispatch(message.messages[i])
-        }
-        break
-      }
+  private containerReadyActions<T, M, E>(container: Container<T, M>, controller: ContainerController<T, M>): ReadyHookActions<T, M, E> {
+    return {
+      get: (state) => {
+        return this.registry.get<StateController<any>>(state).getValue()
+      },
+      supply: (value) => {
+        controller.publish(value)
+      },
+      pending: (message) => {
+        this.registry.get<ContainerController<any>>(container.meta).publish(pending(message))
+      },
+      error: (message, reason) => {
+        this.registry.get<ContainerController<any>>(container.meta).publish(error(message, reason))
+      },
+      current: controller.getValue()
+    }
+  }
+
+  private containerWriteActions<T, M, E>(container: Container<T, M>, controller: ContainerController<T, M>): WriteHookActions<T, M, E> {
+    return {
+      get: (state) => {
+        return this.registry.get<StateController<any>>(state).getValue()
+      },
+      ok: (message) => {
+        controller.accept(message)
+      },
+      pending: (message) => {
+        this.registry.get<ContainerController<any>>(container.meta).write(pending(message))
+      },
+      error: (message, reason) => {
+        this.registry.get<ContainerController<any>>(container.meta).write(error(message, reason))
+      },
+      current: controller.getValue()
     }
   }
 
   serialize(): string {
-    const map_data = Array.from(this.tokenIdMap.entries())
-      .map(([key, token]) => {
-        const value = this[getController](token as State<any>).getValue()
-        return `["${key}",${JSON.stringify(value)}]`
-      })
-      .join(",")
-
-    return `<script type="module">
-window[Symbol.for("${storeId(this.options.id)}")] = new Map([${map_data}]);
-</script>`
-  }
-}
-
-export class OverlayStore extends Store {
-  constructor(private rootStore: Store, initialState: Map<State<any>, any>) {
-    super()
-
-    for (const [token, initialValue] of initialState) {
-      if (token.id !== undefined) {
-        this.tokenIdMap.set(token.id, token)
-      }
-      // what about the onRegister hook?
-      this.registry.set(token, token[registerState](this, initialValue))
-    }
-  }
-
-  [getRegistryKey](token: State<any>): StoreRegistryKey {
-    if (token.id === undefined) return token
-
-    let key = this.tokenIdMap.get(token.id)
-    if (key === undefined) {
-      key = this.rootStore[getRegistryKey](token)
-    }
-    return key
-  }
-
-  [getController]<T>(token: State<T>): StateController<T> {
-    const key = this[getRegistryKey](token) as State<any>
-    let controller = this.registry.get(key)
-    if (controller === undefined) {
-      controller = this.rootStore[getController](key)
-    }
-    return controller
+    return this.registry.serialize()
   }
 }
 
@@ -619,15 +675,15 @@ export interface UpdateResult<T> {
 }
 
 class MessagePassingStateController<T, M> extends SimpleStateController<T> implements ContainerController<T, M> {
-  constructor(store: Store, initialValue: T, private update: ((message: M, current: T) => UpdateResult<T>)) {
-    super(store, initialValue)
+  constructor(registry: TokenRegistry, initialValue: T, private update: ((message: M, current: T) => UpdateResult<T>)) {
+    super(registry, initialValue)
   }
 
   accept(message: M): void {
     const result = this.update(message, this.getValue())
     this.publish(result.value)
     if (result.message !== undefined) {
-      this.store.dispatch(result.message)
+      dispatchMessage(this.registry, result.message)
     }
   }
 }

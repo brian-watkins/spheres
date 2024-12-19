@@ -1,4 +1,3 @@
-import { Store } from "../../store/index.js";
 import { DOMEvent, EventsToDelegate, RenderResult, spheresTemplateData, Zone } from "./index.js";
 import { NodeType, StoreEventHandler, VirtualNode } from "./virtualNode.js";
 import { UpdateTextEffect } from "./effects/textEffect.js";
@@ -10,22 +9,23 @@ import { getDOMTemplate } from "./template.js";
 import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementId, listEndIndicator, listStartIndicator, switchEndIndicator, switchStartIndicator } from "./fragmentHelpers.js";
 import { getEventAttribute, getNearestElementHandlingEvent, setEventAttribute } from "./eventHelpers.js";
 import { SelectViewEffect } from "./effects/selectViewEffect.js";
+import { dispatchMessage, registerEffect, TokenRegistry } from "../../store/store.js";
 
 export class DOMRoot implements Zone, RenderResult {
   private activeDocumentEvents = new Set<string>()
   private eventController = new AbortController()
   private events: Map<string, DOMEvent> = new Map()
 
-  constructor(readonly store: Store, readonly root: Element) { }
+  constructor(readonly registry: TokenRegistry, readonly root: Element) { }
 
   mount(vnode: VirtualNode) {
     this.clearRoot()
-    this.root.appendChild(createNode(this, this.store, new IdSequence(), vnode))
+    this.root.appendChild(createNode(this, this.registry, new IdSequence(), vnode))
   }
 
   activate(vnode: VirtualNode) {
     this.cleanRoot()
-    activateEffects(this, this.store, vnode, this.root.firstChild!)
+    activateEffects(this, this.registry, vnode, this.root.firstChild!)
   }
 
   addEvent(location: DOMEvent["location"], elementId: string, eventType: string, handler: StoreEventHandler<any>) {
@@ -54,13 +54,13 @@ export class DOMRoot implements Zone, RenderResult {
         const domEvent = this.events.get(`${eventType}-${elementId}`)
         switch (domEvent?.location) {
           case "element":
-            this.store.dispatch(domEvent.handler(evt))
+            dispatchMessage(this.registry, domEvent.handler(evt))
             break
           case "template":
             const root = element.closest(`[data-spheres-template]`)!
             // @ts-ignore
-            const zoneStore = root[spheresTemplateData]
-            zoneStore.dispatch(domEvent.handler(evt))
+            const registry = root[spheresTemplateData]
+            dispatchMessage(registry, domEvent.handler(evt))
             break
         }
         evt.stopPropagation()
@@ -91,7 +91,7 @@ export class DOMRoot implements Zone, RenderResult {
   }
 }
 
-export function createNode(zone: Zone, store: Store, idSequence: IdSequence, vnode: VirtualNode): Node {
+export function createNode(zone: Zone, registry: TokenRegistry, idSequence: IdSequence, vnode: VirtualNode): Node {
   switch (vnode.type) {
 
     case NodeType.TEXT:
@@ -100,7 +100,7 @@ export function createNode(zone: Zone, store: Store, idSequence: IdSequence, vno
     case NodeType.STATEFUL_TEXT: {
       const textNode = document.createTextNode("")
       const textEffect = new UpdateTextEffect(textNode, vnode.generator)
-      store.useEffect(textEffect)
+      registerEffect(registry, textEffect)
       return textNode
     }
 
@@ -112,8 +112,8 @@ export function createNode(zone: Zone, store: Store, idSequence: IdSequence, vno
       fragment.appendChild(startNode)
       fragment.appendChild(endNode)
 
-      const query = new SelectViewEffect(zone, store, vnode, startNode, endNode, getDOMTemplate)
-      store.useEffect(query)
+      const query = new SelectViewEffect(zone, registry, vnode, startNode, endNode, getDOMTemplate)
+      registerEffect(registry, query)
       return fragment
     }
 
@@ -125,8 +125,8 @@ export function createNode(zone: Zone, store: Store, idSequence: IdSequence, vno
       parentFrag.appendChild(listStartNode)
       parentFrag.appendChild(listEndNode)
 
-      const effect = new ListEffect(zone, store, vnode, listStartNode, listEndNode, getDOMTemplate)
-      store.useEffect(effect)
+      const effect = new ListEffect(zone, registry, vnode, listStartNode, listEndNode, getDOMTemplate)
+      registerEffect(registry, effect)
       return parentFrag
 
     default:
@@ -143,7 +143,7 @@ export function createNode(zone: Zone, store: Store, idSequence: IdSequence, vno
       for (const attr in statefulAttrs) {
         const stateful = statefulAttrs[attr]
         const attributeEffect = new UpdateAttributeEffect(element, attr, stateful.generator)
-        const handle = store.useEffect(attributeEffect)
+        const handle = registerEffect(registry, attributeEffect)
         stateful.effect = handle
       }
 
@@ -157,7 +157,7 @@ export function createNode(zone: Zone, store: Store, idSequence: IdSequence, vno
       for (const prop in statefulProps) {
         const stateful = statefulProps[prop]
         const propertyEffect = new UpdatePropertyEffect(element, prop, stateful.generator)
-        const handle = store.useEffect(propertyEffect)
+        const handle = registerEffect(registry, propertyEffect)
         stateful.effect = handle
       }
 
@@ -170,24 +170,24 @@ export function createNode(zone: Zone, store: Store, idSequence: IdSequence, vno
         } else {
           const handler = events[k]
           element.addEventListener(k, (evt) => {
-            store.dispatch(handler(evt))
+            dispatchMessage(registry, handler(evt))
           })
         }
       }
 
       for (var i = 0; i < vnode.children.length; i++) {
-        element.appendChild(createNode(zone, store, idSequence, vnode.children[i]))
+        element.appendChild(createNode(zone, registry, idSequence, vnode.children[i]))
       }
 
       return element
   }
 }
 
-function activateEffects(zone: Zone, store: Store, vnode: VirtualNode, node: Node): Node {
+function activateEffects(zone: Zone, registry: TokenRegistry, vnode: VirtualNode, node: Node): Node {
   switch (vnode.type) {
     case NodeType.STATEFUL_TEXT: {
       const effect = new UpdateTextEffect(node as Text, vnode.generator)
-      store.useEffect(effect)
+      registerEffect(registry, effect)
       return node
     }
 
@@ -195,8 +195,8 @@ function activateEffects(zone: Zone, store: Store, vnode: VirtualNode, node: Nod
       vnode.id = getListElementId(node)
       let end = findListEndNode(node, vnode.id)
 
-      const effect = new ListEffect(zone, store, vnode, node, end, getDOMTemplate)
-      store.useEffect(effect)
+      const effect = new ListEffect(zone, registry, vnode, node, end, getDOMTemplate)
+      registerEffect(registry, effect)
       return end
     }
 
@@ -204,8 +204,8 @@ function activateEffects(zone: Zone, store: Store, vnode: VirtualNode, node: Nod
       vnode.id = getSwitchElementId(node)
       let end = findSwitchEndNode(node, vnode.id)
 
-      const effect = new SelectViewEffect(zone, store, vnode, node, end, getDOMTemplate)
-      store.useEffect(effect)
+      const effect = new SelectViewEffect(zone, registry, vnode, node, end, getDOMTemplate)
+      registerEffect(registry, effect)
 
       return end
     }
@@ -217,7 +217,7 @@ function activateEffects(zone: Zone, store: Store, vnode: VirtualNode, node: Nod
       for (const attr in statefulAttrs) {
         const stateful = statefulAttrs[attr]
         const attributeEffect = new UpdateAttributeEffect(element, attr, stateful.generator)
-        const handle = store.useEffect(attributeEffect)
+        const handle = registerEffect(registry, attributeEffect)
         stateful.effect = handle
       }
 
@@ -225,7 +225,7 @@ function activateEffects(zone: Zone, store: Store, vnode: VirtualNode, node: Nod
       for (const prop in statefulProps) {
         const stateful = statefulProps[prop]
         const propertyEffect = new UpdatePropertyEffect(element, prop, stateful.generator)
-        const handle = store.useEffect(propertyEffect)
+        const handle = registerEffect(registry, propertyEffect)
         stateful.effect = handle
       }
 
@@ -237,14 +237,14 @@ function activateEffects(zone: Zone, store: Store, vnode: VirtualNode, node: Nod
         } else {
           const handler = elementEvents[k]
           element.addEventListener(k, (evt) => {
-            store.dispatch(handler(evt))
+            dispatchMessage(registry, handler(evt))
           })
         }
       }
 
       let childNode = element.firstChild
       for (var i = 0; i < vnode.children.length; i++) {
-        const lastChild = activateEffects(zone, store, vnode.children[i], childNode!)
+        const lastChild = activateEffects(zone, registry, vnode.children[i], childNode!)
         childNode = lastChild.nextSibling
       }
 

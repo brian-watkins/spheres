@@ -4,7 +4,7 @@ import { IdSequence } from "../idSequence.js"
 import { DOMTemplate, GetDOMTemplate, Zone } from "../index.js"
 import { StatefulListNode, NodeType } from "../virtualNode.js"
 import { activateTemplateInstance, renderTemplateInstance } from "../renderTemplate.js"
-import { OverlayStore, Store } from "../../../store/store.js"
+import { dispatchMessage, TokenRegistry } from "../../../store/store.js"
 
 export interface VirtualItem {
   key: any
@@ -14,7 +14,7 @@ export interface VirtualItem {
   node: Node
   firstNode?: Node
   lastNode?: Node
-  store: OverlayStore
+  registry: TokenRegistry
 }
 
 export class ListEffect {
@@ -26,7 +26,7 @@ export class ListEffect {
 
   constructor(
     private zone: Zone,
-    private store: Store,
+    private registry: TokenRegistry,
     private listVnode: StatefulListNode,
     private listStart: Node,
     private listEnd: Node,
@@ -249,7 +249,7 @@ export class ListEffect {
 
   updateIndex(index: number, item: VirtualItem): void {
     item.index = index
-    item.store.dispatch(write(this.listVnode.template.indexToken, index))
+    dispatchMessage(item.registry, write(this.listVnode.template.indexToken, index))
   }
 
   activateItem(index: number, node: Node, data: any): [VirtualItem, Node] {
@@ -258,12 +258,9 @@ export class ListEffect {
       next: undefined
     }
 
-    const initialValues = this.listVnode.template.getInitialStateValues(data, index)
-    const overlayStore = new OverlayStore(this.store, initialValues)
-
-    activateTemplateInstance(this.zone, overlayStore, this.domTemplate, node)
-
-    virtualItem.store = overlayStore
+    const overlayRegistry = this.listVnode.template.createOverlayRegistry(this.registry, data, index)
+    activateTemplateInstance(this.zone, overlayRegistry, this.domTemplate, node)
+    virtualItem.registry = overlayRegistry
 
     switch (this.listVnode.template.virtualNode.type) {
       case NodeType.STATEFUL_LIST: {
@@ -289,17 +286,15 @@ export class ListEffect {
       return { ...cached, next: undefined }
     }
 
-    const initialValues = this.listVnode.template.getInitialStateValues(data, index)
-    const overlayStore = new OverlayStore(this.store, initialValues)
-
-    const node = renderTemplateInstance(this.zone, overlayStore, this.domTemplate)
+    const overlayRegistry = this.listVnode.template.createOverlayRegistry(this.registry, data, index)
+    const node = renderTemplateInstance(this.zone, overlayRegistry, this.domTemplate)
 
     const item: VirtualItem = {
       key: data,
       index,
       isDetached: false,
       next: undefined,
-      store: overlayStore,
+      registry: overlayRegistry,
       node
     }
 

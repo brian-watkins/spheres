@@ -10,6 +10,7 @@ import { DOMRoot } from "./render/renderToDom.js"
 import { RenderResult } from "./render/index.js"
 import { IdSequence } from "./render/idSequence.js"
 import { recordTokens } from "../store/stateRecorder.js"
+import { getTokenRegistry } from "../store/store.js"
 export type { RenderResult } from "./render/index.js"
 
 export function activateView(store: Store, element: Element, view: HTMLView): RenderResult {
@@ -17,7 +18,7 @@ export function activateView(store: Store, element: Element, view: HTMLView): Re
   view(builder as unknown as HTMLBuilder)
   const vnode = builder.toVirtualNode()
 
-  const root = new DOMRoot(store, element)
+  const root = new DOMRoot(getTokenRegistry(store), element)
   root.activate(vnode)
 
   return root
@@ -28,7 +29,7 @@ export function renderToDOM(store: Store, element: Element, view: HTMLView): Ren
   view(builder as unknown as HTMLBuilder)
   const vnode = builder.toVirtualNode()
 
-  const root = new DOMRoot(store, element)
+  const root = new DOMRoot(getTokenRegistry(store), element)
   root.mount(vnode)
 
   return root
@@ -37,7 +38,7 @@ export function renderToDOM(store: Store, element: Element, view: HTMLView): Ren
 export function renderToString(store: Store, view: HTMLView): string {
   const builder = new HtmlViewBuilder()
   builder.subview(view)
-  return stringifyVirtualNode(store, new IdSequence(), builder.toVirtualNode())
+  return stringifyVirtualNode(getTokenRegistry(store), new IdSequence(), builder.toVirtualNode())
 }
 
 
@@ -180,12 +181,9 @@ export class HTMLVirtualListItemTemplate<T> extends VirtualListItemTemplate<T> {
 
     const builder = new HtmlViewBuilder()
 
-    this.addToken(this.itemToken)
-
     let indexToken: Container<number> | undefined = undefined
     if (this.usesIndex) {
       indexToken = this.indexToken
-      this.addToken(this.indexToken)
     }
 
     recordTokens(() => {

@@ -1,4 +1,4 @@
-import { Store } from "../../store/index.js"
+import { TokenRegistry } from "../../store/store.js"
 import { IdSequence } from "./idSequence.js"
 import { StoreEventHandler, VirtualNode, VirtualTemplate } from "./virtualNode.js"
 
@@ -20,7 +20,7 @@ export interface RenderResult {
 export type GetDOMTemplate = (zone: Zone, idSequence: IdSequence, virtualTemplate: VirtualTemplate) => DOMTemplate
 
 export interface EffectTemplate {
-  attach(zone: Zone, store: Store, root: Node): void
+  attach(zone: Zone, registry: TokenRegistry, root: Node): void
 }
 
 export interface DOMTemplate {

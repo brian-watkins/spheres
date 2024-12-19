@@ -1,11 +1,11 @@
-import { Store } from "../../store/index.js"
+import { TokenRegistry } from "../../store/store.js"
 import { DOMTemplate, spheresTemplateData, Zone } from "./index.js"
 
-export function renderTemplateInstance(zone: Zone, store: Store, domTemplate: DOMTemplate) {
+export function renderTemplateInstance(zone: Zone, registry: TokenRegistry, domTemplate: DOMTemplate) {
   const fragment = domTemplate.element.content.cloneNode(true)
 
   for (const effect of domTemplate.effects) {
-    effect.attach(zone, store, fragment.firstChild!)
+    effect.attach(zone, registry, fragment.firstChild!)
   }
 
   if (domTemplate.isFragment) {
@@ -15,18 +15,18 @@ export function renderTemplateInstance(zone: Zone, store: Store, domTemplate: DO
   const rootElement = fragment.firstChild!
 
   // @ts-ignore
-  rootElement[spheresTemplateData] = store
+  rootElement[spheresTemplateData] = registry
 
   return rootElement
 }
 
-export function activateTemplateInstance(zone: Zone, store: Store, domTemplate: DOMTemplate, root: Node) {
+export function activateTemplateInstance(zone: Zone, registry: TokenRegistry, domTemplate: DOMTemplate, root: Node) {
   for (const effect of domTemplate.effects) {
-    effect.attach(zone, store, root)
+    effect.attach(zone, registry, root)
   }
 
   if (!domTemplate.isFragment) {
     // @ts-ignore
-    root[spheresTemplateData] = store
+    root[spheresTemplateData] = registry
   }
 }

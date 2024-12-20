@@ -1,5 +1,12 @@
 # spheres
 
+## 0.13.0
+
+### Minor Changes
+
+- 2cfd097: Support for defining state internal to views
+- cc0b7e4: Support for activating multiple SSR stores
+
 ## 0.12.0
 
 ### Minor Changes

@@ -1,5 +1,5 @@
 import { Container, GetState, State } from "../store/index.js"
-import { recordTokens } from "../store/stateRecorder.js"
+import { recordTokens } from "../store/state/stateRecorder.js"
 import { Stateful, StatefulSelectorNode, ViewSelector, VirtualListItemTemplate, VirtualNode, VirtualNodeConfig, VirtualTemplate, makeStatefulSelector, makeVirtualElement, makeZoneList, setNamespace, virtualNodeConfig } from "./render/virtualNode.js"
 import { SVGBuilder, SVGElements, SVGElementAttributes, svgAttributeNames } from "./svgElements.js"
 import { ConfigurableElement, ViewBuilder } from "./viewBuilder.js"

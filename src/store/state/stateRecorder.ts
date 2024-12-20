@@ -1,4 +1,4 @@
-import { State } from "./store";
+import { State } from "../tokenRegistry.js"
 
 class StateRecorder {
   private _tokens: Array<State<any>> = []

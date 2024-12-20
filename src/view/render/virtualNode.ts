@@ -1,6 +1,7 @@
-import { constant } from "../../store/constant.js";
-import { container } from "../../store/container.js";
-import { Command, CommandController, ConstantStateController, Container, createStateController, GetState, State, StateController, StoreMessage, Token, TokenRegistry } from "../../store/store.js";
+import { constant, ConstantStateController } from "../../store/state/constant.js";
+import { Container, container } from "../../store/state/container.js";
+import { StoreMessage } from "../../store/message.js";
+import { Command, CommandController, createStatePublisher, GetState, State, StatePublisher, Token, TokenRegistry } from "../../store/tokenRegistry.js";
 
 export type Stateful<T> = (get: GetState) => T | undefined
 
@@ -205,7 +206,7 @@ export class VirtualListItemTemplate<T> extends VirtualTemplate {
 }
 
 class ListItemOverlayTokenRegistry implements TokenRegistry {
-  private _tokenMap: Map<Token, StateController<any>> | undefined
+  private _tokenMap: Map<Token, StatePublisher<any>> | undefined
 
   constructor(
     private rootRegistry: TokenRegistry,
@@ -216,15 +217,15 @@ class ListItemOverlayTokenRegistry implements TokenRegistry {
 
   set(): void { }
 
-  registerState<T>(token: State<T>, initialState?: T): StateController<T> {
-    return createStateController(this, token, initialState)
+  registerState<T>(token: State<T>, initialState?: T): StatePublisher<T> {
+    return createStatePublisher(this, token, initialState)
   }
 
   registerCommand(token: Command<any>): CommandController<any> {
     return this.rootRegistry.registerCommand(token)
   }
 
-  private get tokenMap(): Map<Token, StateController<any>> {
+  private get tokenMap(): Map<Token, StatePublisher<any>> {
     if (this._tokenMap === undefined) {
       this._tokenMap = new Map()
     }

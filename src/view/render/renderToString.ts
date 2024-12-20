@@ -1,5 +1,6 @@
+import { registerEffect } from "../../store/effect.js";
 import { GetState, ReactiveEffect } from "../../store/index.js";
-import { registerEffect, TokenRegistry } from "../../store/store.js";
+import { TokenRegistry } from "../../store/tokenRegistry.js";
 import { listEndIndicator, listStartIndicator, switchEndIndicator, switchStartIndicator } from "./fragmentHelpers.js";
 import { IdSequence } from "./idSequence.js";
 import { EventsToDelegate } from "./index.js";

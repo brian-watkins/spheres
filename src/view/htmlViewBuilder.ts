@@ -9,7 +9,7 @@ import { stringifyVirtualNode } from "./render/renderToString.js"
 import { DOMRoot } from "./render/renderToDom.js"
 import { RenderResult } from "./render/index.js"
 import { IdSequence } from "./render/idSequence.js"
-import { recordTokens } from "../store/stateRecorder.js"
+import { recordTokens } from "../store/state/stateRecorder.js"
 import { getTokenRegistry } from "../store/store.js"
 export type { RenderResult } from "./render/index.js"
 

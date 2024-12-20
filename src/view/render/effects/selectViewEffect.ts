@@ -3,7 +3,7 @@ import { IdSequence } from "../idSequence.js";
 import { DOMTemplate, GetDOMTemplate, Zone } from "../index.js";
 import { StatefulSelectorNode } from "../virtualNode.js";
 import { activateTemplateInstance, renderTemplateInstance } from "../renderTemplate.js";
-import { TokenRegistry } from "../../../store/store.js";
+import { TokenRegistry } from "../../../store/tokenRegistry.js";
 
 export class SelectViewEffect {
   constructor(

@@ -4,7 +4,8 @@ import { IdSequence } from "../idSequence.js"
 import { DOMTemplate, GetDOMTemplate, Zone } from "../index.js"
 import { StatefulListNode, NodeType } from "../virtualNode.js"
 import { activateTemplateInstance, renderTemplateInstance } from "../renderTemplate.js"
-import { dispatchMessage, TokenRegistry } from "../../../store/store.js"
+import { TokenRegistry } from "../../../store/tokenRegistry.js"
+import { dispatchMessage } from "../../../store/message.js"
 
 export interface VirtualItem {
   key: any

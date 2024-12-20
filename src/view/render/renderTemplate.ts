@@ -1,4 +1,4 @@
-import { TokenRegistry } from "../../store/store.js"
+import { TokenRegistry } from "../../store/tokenRegistry.js"
 import { DOMTemplate, spheresTemplateData, Zone } from "./index.js"
 
 export function renderTemplateInstance(zone: Zone, registry: TokenRegistry, domTemplate: DOMTemplate) {

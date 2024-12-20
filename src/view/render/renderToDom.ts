@@ -9,7 +9,9 @@ import { getDOMTemplate } from "./template.js";
 import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementId, listEndIndicator, listStartIndicator, switchEndIndicator, switchStartIndicator } from "./fragmentHelpers.js";
 import { getEventAttribute, getNearestElementHandlingEvent, setEventAttribute } from "./eventHelpers.js";
 import { SelectViewEffect } from "./effects/selectViewEffect.js";
-import { dispatchMessage, registerEffect, TokenRegistry } from "../../store/store.js";
+import { TokenRegistry } from "../../store/tokenRegistry.js";
+import { dispatchMessage } from "../../store/message.js";
+import { registerEffect } from "../../store/effect.js";
 
 export class DOMRoot implements Zone, RenderResult {
   private activeDocumentEvents = new Set<string>()

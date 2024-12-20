@@ -3,8 +3,7 @@ import { renderContext } from "./helpers/renderContext.js";
 import { selectElements } from "helpers/displayElement.js";
 import { equalTo, expect, is, resolvesTo } from "great-expectations";
 import { ListExamplesState, childElementText, renderAppBasedOnState, updateState } from "helpers/listHelpers.js";
-import { Container } from "../../src/store/store.js";
-import { container } from "../../src/store/container.js";
+import { Container, container } from "@spheres/store";
 
 export default behavior("reorder list", [
 

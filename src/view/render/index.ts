@@ -1,4 +1,4 @@
-import { TokenRegistry } from "../../store/store.js"
+import { TokenRegistry } from "../../store/tokenRegistry.js"
 import { IdSequence } from "./idSequence.js"
 import { StoreEventHandler, VirtualNode, VirtualTemplate } from "./virtualNode.js"
 

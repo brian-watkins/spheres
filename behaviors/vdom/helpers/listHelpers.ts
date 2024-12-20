@@ -1,10 +1,9 @@
 import { Action, Observation, Presupposition, effect, fact, step } from "best-behavior"
-import { Container, State } from "../../../src/store/store"
 import { RenderApp } from "./renderContext"
-import { container } from "../../../src/store/container"
 import { HTMLView } from "@src/htmlViewBuilder"
 import { selectElements } from "./displayElement"
 import { expect, is } from "great-expectations"
+import { container, Container, State } from "@spheres/store"
 
 export interface ListExamplesState {
   listContainer: Container<Array<string>>

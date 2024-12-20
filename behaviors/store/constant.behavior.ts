@@ -1,6 +1,5 @@
-import { constant } from "@src/constant";
-import { container, derived } from "@src/index";
-import { Container, DerivedState } from "@src/store";
+import { Container, container, derived, DerivedState } from "@src/index";
+import { constant } from "@src/state/constant";
 import { behavior, effect, example, fact, step } from "best-behavior";
 import { expect, is } from "great-expectations";
 import { testStoreContext } from "helpers/testStore";

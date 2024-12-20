@@ -1,11 +1,14 @@
-import { Command, ExecMessage, GetState } from "./store.js";
+import { ReactiveEffect, registerEffect } from "./effect.js";
+import { dispatchMessage, ExecMessage } from "./message.js";
+import { Command, CommandController, createController, GetState, initializeCommand, TokenRegistry } from "./tokenRegistry.js";
+import { DefaultCommandController } from "./command/defaultCommandController.js";
 
 export interface CommandInitializer<M> {
   trigger?: (get: GetState) => M
 }
 
 export function command<M>(initializer: CommandInitializer<M> = {}): Command<M> {
-  return new Command<M>(initializer.trigger)
+  return new BasicCommand<M>(initializer.trigger)
 }
 
 export function exec<M>(command: Command<M>, message: M): ExecMessage<M> {
@@ -15,3 +18,32 @@ export function exec<M>(command: Command<M>, message: M): ExecMessage<M> {
     message
   }
 }
+
+export class BasicCommand<M> extends Command<M> {
+  constructor(private trigger: ((get: GetState) => M) | undefined) {
+    super(undefined, undefined)
+  }
+
+  [createController](): CommandController<M> {
+    return new DefaultCommandController()
+  }
+
+  [initializeCommand](registry: TokenRegistry): void {
+    if (this.trigger !== undefined) {
+      registerEffect(registry, new DispatchCommandQuery(registry, this, this.trigger))
+    }
+  }
+}
+
+class DispatchCommandQuery<M> implements ReactiveEffect {
+  constructor(private registry: TokenRegistry, private command: Command<M>, private trigger: (get: GetState) => M) { }
+
+  run(get: GetState): void {
+    dispatchMessage(this.registry, {
+      type: "exec",
+      command: this.command,
+      message: this.trigger!((state) => get(state))
+    })
+  }
+}
+

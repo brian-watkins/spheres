@@ -1,4 +1,6 @@
-import { dispatchMessage, registerEffect, TokenRegistry } from "../../store/store.js"
+import { registerEffect } from "../../store/effect.js"
+import { dispatchMessage } from "../../store/message.js"
+import { TokenRegistry } from "../../store/tokenRegistry.js"
 import { EffectLocation } from "./effectLocation.js"
 import { UpdateAttributeEffect } from "./effects/attributeEffect.js"
 import { ListEffect } from "./effects/listEffect.js"

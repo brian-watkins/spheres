@@ -85,8 +85,8 @@ export class Store {
     this.registry = new Proxy(this.registry, {
       get(target, prop, receiver) {
         if (prop === "registerState") {
-          return (token: State<any>): StatePublisher<any> => {
-            const controller = target.registerState(token)
+          return (token: State<any>, initialValue?: any): StatePublisher<any> => {
+            const controller = target.registerState(token, initialValue)
             if (token instanceof Container) {
               hooks.onRegister(token)
             }

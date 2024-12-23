@@ -1,5 +1,13 @@
 # spheres
 
+## 0.13.1
+
+### Patch Changes
+
+- cba3bcc: Initialize derived state with a query function
+- 762d52a: Notify subscribers upon list item update instead of re-rendering
+- eb31b08: Fix for activating stores with data that have store hooks
+
 ## 0.13.0
 
 ### Minor Changes

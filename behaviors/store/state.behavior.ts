@@ -467,16 +467,16 @@ const derivedStateSubscribers: ConfigurableExample =
         fact("there is derived state that depends on other derived state sometimes", (context) => {
           const stringContainer = container({ initialValue: "hello" })
           const numberContainer = container({ initialValue: 0 })
-          const derivedStringContainer = derived({ query: (get) => `derived from: ${get(stringContainer)}` })
-          const derivedNumberContainer = derived({ query: (get) => get(numberContainer) + 100 })
-          const ultimateState = derived({ query: (get) => {
+          const derivedStringContainer = derived(get => `derived from: ${get(stringContainer)}`)
+          const derivedNumberContainer = derived(get => get(numberContainer) + 100)
+          const ultimateState = derived(get => {
             context.tokens.queryCount++
             if (get(derivedStringContainer).includes("show")) {
               return `The count is ${get(derivedNumberContainer)}`
             } else {
               return `The message is ${get(derivedStringContainer)}`
             }
-          }})
+          })
           context.setTokens({
             stringContainer,
             numberContainer,

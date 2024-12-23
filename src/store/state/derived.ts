@@ -8,8 +8,10 @@ export interface DerivedStateInitializer<T> {
   name?: string
 }
 
-export function derived<T>(initializer: DerivedStateInitializer<T>): DerivedState<T> {
-  const token = new DerivedState(initializer.id, initializer.name, initializer.query)
+export function derived<T>(initializer: DerivedStateInitializer<T> | ((get: GetState) => T)): DerivedState<T> {
+  const token = typeof initializer === "function" ?
+    new DerivedState(undefined, undefined, initializer) :
+    new DerivedState(initializer.id, initializer.name, initializer.query)
   didCreateToken(token)
   return token
 }

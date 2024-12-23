@@ -2,7 +2,7 @@ import { GetState, write } from "../../../store/index.js"
 import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementId } from "../fragmentHelpers.js"
 import { IdSequence } from "../idSequence.js"
 import { DOMTemplate, GetDOMTemplate, Zone } from "../index.js"
-import { StatefulListNode, NodeType } from "../virtualNode.js"
+import { StatefulListNode, NodeType, ListItemOverlayTokenRegistry } from "../virtualNode.js"
 import { activateTemplateInstance, renderTemplateInstance } from "../renderTemplate.js"
 import { TokenRegistry } from "../../../store/tokenRegistry.js"
 import { dispatchMessage } from "../../../store/message.js"
@@ -15,7 +15,7 @@ export interface VirtualItem {
   node: Node
   firstNode?: Node
   lastNode?: Node
-  registry: TokenRegistry
+  registry: ListItemOverlayTokenRegistry
 }
 
 export class ListEffect {
@@ -141,14 +141,27 @@ export class ListEffect {
       return this.first!
     }
 
-    const updated = this.createItem(0, firstData)
-    this.replaceNode(this.first, updated)
-    updated.next = this.first.next
-    this.first.isDetached = true
-    if (this.usesIndex && updated.index !== 0) {
-      this.updateIndex(0, updated)
+    const cached = this.itemCache.get(firstData)
+    if (cached !== undefined) {
+      const updated = { ...cached }
+      this.replaceNode(this.first, updated)
+      updated.next = this.first.next
+      this.first.isDetached = true
+      if (this.usesIndex && updated.index !== 0) {
+        this.updateIndex(0, updated)
+      }
+      return updated
+    }  
+
+    if (this.first.key === data[1]) {
+      const created = this.createItem(0, firstData)
+      this.insertBefore(this.first, created)
+      created.next = this.first
+      return created
     }
-    return updated
+
+    this.updateItemData(this.first, firstData)
+    return this.first
   }
 
   private updateRest(first: VirtualItem, data: Array<any>) {
@@ -187,20 +200,30 @@ export class ListEffect {
       return current.next!
     }
 
-    const next = this.createItem(index, data)
-    if (next.isDetached) {
-      this.insertAfter(last, next)
-    } else {
-      this.replaceNode(current, next)
+    const cached = this.itemCache.get(data)
+    if (cached !== undefined) {
+      const next: VirtualItem = { ...cached }
+      if (next.isDetached) {
+        this.insertAfter(last, next)
+      } else {
+        this.replaceNode(current, next)
+      }
+      last.next = next
+      next.next = current.next
+      current.isDetached = true
+      return next
     }
-    last.next = next
-    next.next = current.next
-    current.isDetached = true
-    return next
+
+    this.updateItemData(current, data)
+    return current
   }
 
   private append(item: VirtualItem): void {
     this.parent.insertBefore(item.node, this.listEnd)
+  }
+
+  private insertBefore(reference: VirtualItem, first: VirtualItem): void {
+    this.parent.insertBefore(first.node, reference.node)
   }
 
   private insertAfter(last: VirtualItem, next: VirtualItem): void {
@@ -248,6 +271,11 @@ export class ListEffect {
     range.deleteContents()
   }
 
+  updateItemData(item: VirtualItem, itemData: any): void {
+    item.registry.updateItemData(itemData)
+    item.key = itemData
+  }
+
   updateIndex(index: number, item: VirtualItem): void {
     item.index = index
     dispatchMessage(item.registry, write(this.listVnode.template.indexToken, index))
@@ -282,11 +310,6 @@ export class ListEffect {
   }
 
   createItem(index: number, data: any): VirtualItem {
-    const cached = this.itemCache.get(data)
-    if (cached !== undefined) {
-      return { ...cached, next: undefined }
-    }
-
     const overlayRegistry = this.listVnode.template.createOverlayRegistry(this.registry, data, index)
     const node = renderTemplateInstance(this.zone, overlayRegistry, this.domTemplate)
 

@@ -1,7 +1,7 @@
-import { constant, ConstantStateController } from "../../store/state/constant.js";
 import { Container, container } from "../../store/state/container.js";
 import { StoreMessage } from "../../store/message.js";
 import { Command, CommandController, createStatePublisher, GetState, State, StatePublisher, Token, TokenRegistry } from "../../store/tokenRegistry.js";
+import { StateWriter } from "../../store/state/publisher/stateWriter.js";
 
 export type Stateful<T> = (get: GetState) => T | undefined
 
@@ -172,9 +172,8 @@ export interface VirtualListItemTemplateArgs<T> {
 }
 
 export class VirtualListItemTemplate<T> extends VirtualTemplate {
-  protected itemToken: State<T | undefined> = constant({ initialValue: undefined })
+  protected itemToken = container<T | undefined>({ initialValue: undefined })
   private _indexToken: Container<number> | undefined = undefined
-  private itemController = new ConstantStateController(undefined)
   public usesIndex = true
   private tokens: Array<State<any>> | undefined
 
@@ -193,8 +192,8 @@ export class VirtualListItemTemplate<T> extends VirtualTemplate {
     return this._indexToken
   }
 
-  createOverlayRegistry(rootRegistry: TokenRegistry, itemData: any, index: number): TokenRegistry {
-    const registry = new ListItemOverlayTokenRegistry(rootRegistry, this.itemToken, this.itemController, itemData)
+  createOverlayRegistry(rootRegistry: TokenRegistry, itemData: any, index: number): ListItemOverlayTokenRegistry {
+    const registry = new ListItemOverlayTokenRegistry(rootRegistry, this.itemToken, itemData)
     if (this.usesIndex) {
       registry.setIndexState(this.indexToken, index)
     }
@@ -205,15 +204,17 @@ export class VirtualListItemTemplate<T> extends VirtualTemplate {
   }
 }
 
-class ListItemOverlayTokenRegistry implements TokenRegistry {
+export class ListItemOverlayTokenRegistry implements TokenRegistry {
   private _tokenMap: Map<Token, StatePublisher<any>> | undefined
+  private _itemPublisher: StateWriter<any>
 
   constructor(
     private rootRegistry: TokenRegistry,
     private item: State<any>,
-    private itemController: ConstantStateController<any>,
-    private itemData: any
-  ) { }
+    itemData: any
+  ) {
+    this._itemPublisher = createStatePublisher(this, item, itemData) as StateWriter<any>
+  }
 
   set(): void { }
 
@@ -245,10 +246,13 @@ class ListItemOverlayTokenRegistry implements TokenRegistry {
 
   get(token: Token): any {
     if (token === this.item) {
-      this.itemController.setValue(this.itemData)
-      return this.itemController
+      return this._itemPublisher
     }
     return this._tokenMap?.get(token) ?? this.rootRegistry.get(token)
+  }
+
+  updateItemData(data: any) {
+    this._itemPublisher.publish(data)
   }
 }
 

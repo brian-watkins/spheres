@@ -117,6 +117,42 @@ export default behavior("insert items into list", [
           ])))
         })
       ]
+    }),
+
+  example(renderContext<ListExamplesState>())
+    .description("insert throughout after removing and updating element after the first")
+    .script({
+      suppose: renderAppBasedOnState([
+        "child-1",
+        "child-2",
+        "child-3",
+        "child-4"
+      ]),
+      perform: [
+        updateState("an item is updated", [
+          "child-1",
+          "child-6",
+        ]),
+        updateState("more elements are inserted", [
+          "child-1",
+          "child-2",
+          "child-6",
+          "child-3",
+          "child-7"
+        ])
+      ],
+      observe: [
+        effect("the elements are all in the right order", async () => {
+          const texts = await selectElements("[data-child]").map(el => el.text())
+          expect(texts, is(equalTo([
+            "child-1 (0)",
+            "child-2 (1)",
+            "child-6 (2)",
+            "child-3 (3)",
+            "child-7 (4)"
+          ])))
+        })
+      ]
     })
 
 ])

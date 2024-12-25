@@ -1,5 +1,11 @@
 # spheres
 
+## 0.14.0
+
+### Minor Changes
+
+- 15ed39e: More flexible serializable store
+
 ## 0.13.1
 
 ### Patch Changes

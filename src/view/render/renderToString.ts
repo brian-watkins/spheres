@@ -49,8 +49,7 @@ function stringifyElement(registry: TokenRegistry, idSequence: IdSequence, node:
   let attrs = Object.keys(attributes).map(key => ` ${key}="${node.data.attrs[key]}"`).join("")
 
   for (const attr in statefulAttributes) {
-    const generator = statefulAttributes[attr].generator
-    const query = new GetValueQuery(generator)
+    const query = new GetValueQuery(statefulAttributes[attr])
     registerEffect(registry, query)
     attrs += ` ${attr}="${query.value}"`
   }

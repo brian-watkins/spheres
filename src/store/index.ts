@@ -36,8 +36,7 @@ export {
   derived
 } from "./state/derived.js"
 export {
-  type ReactiveEffect,
-  type ReactiveEffectHandle
+  type ReactiveEffect
 } from "./effect.js"
 export * from "./error.js"
 export {

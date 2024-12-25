@@ -1,5 +1,5 @@
 import { Container } from "./state/container.js"
-import { ReactiveEffect, ReactiveEffectHandle, registerEffect } from "./effect.js"
+import { ReactiveEffect, registerEffect } from "./effect.js"
 import { dispatchMessage, StoreMessage } from "./message.js"
 import { error, pending } from "./state/meta.js"
 import { SerializableTokenRegistry } from "./store/serializableTokenRegistry.js"
@@ -75,8 +75,8 @@ export class Store {
     dispatchMessage(this.registry, message)
   }
 
-  useEffect(effect: ReactiveEffect): ReactiveEffectHandle {
-    return registerEffect(this.registry, effect)
+  useEffect(effect: ReactiveEffect) {
+    registerEffect(this.registry, effect)
   }
 
   useHooks(hooks: StoreHooks) {

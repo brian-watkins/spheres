@@ -5,10 +5,6 @@ import { StateWriter } from "../../store/state/publisher/stateWriter.js";
 
 export type Stateful<T> = (get: GetState) => T | undefined
 
-export interface EffectHandle {
-  unsubscribe(): void
-}
-
 export enum NodeType {
   TEXT = 3,
   ELEMENT = 1,
@@ -56,18 +52,13 @@ export interface StatefulListNode {
 
 export type VirtualNode = TextNode | StatefulTextNode | ElementNode | StatefulSelectorNode | StatefulListNode
 
-export interface StatefulValue<T> {
-  generator: Stateful<T>
-  effect?: EffectHandle
-}
-
 export type StoreEventHandler<T> = (evt: Event) => StoreMessage<T>
 
 export interface VirtualNodeConfig {
   props?: Record<string, any>
-  statefulProps?: Record<string, StatefulValue<any>>
+  statefulProps?: Record<string, Stateful<any>>
   attrs: Record<string, string>
-  statefulAttrs?: Record<string, StatefulValue<string>>
+  statefulAttrs?: Record<string, Stateful<string>>
   namespace?: string
   on?: { [index: string]: StoreEventHandler<any> }
   key?: VirtualNodeKey
@@ -94,9 +85,7 @@ export function addProperty<T>(config: VirtualNodeConfig, name: string, value: T
 
 export function addStatefulProperty<T>(config: VirtualNodeConfig, name: string, generator: Stateful<T>) {
   if (!config.statefulProps) { config.statefulProps = {} }
-  config.statefulProps[name] = {
-    generator
-  }
+  config.statefulProps[name] = generator
 }
 
 export function addAttribute(config: VirtualNodeConfig, name: string, value: string) {
@@ -105,9 +94,7 @@ export function addAttribute(config: VirtualNodeConfig, name: string, value: str
 
 export function addStatefulAttribute(config: VirtualNodeConfig, name: string, generator: Stateful<string>) {
   if (!config.statefulAttrs) { config.statefulAttrs = {} }
-  config.statefulAttrs[name] = {
-    generator
-  }
+  config.statefulAttrs[name] = generator
 }
 
 export function setEventHandler(config: VirtualNodeConfig, event: string, handler: StoreEventHandler<any>) {

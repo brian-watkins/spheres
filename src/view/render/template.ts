@@ -155,7 +155,7 @@ function createTemplateInfo(zone: Zone, idSequence: IdSequence, vnode: VirtualNo
 
       const statefulAttrs = vnode.data.statefulAttrs
       for (const attr in statefulAttrs) {
-        effects.push(new AttributeEffectTemplate(statefulAttrs[attr].generator, attr, location))
+        effects.push(new AttributeEffectTemplate(statefulAttrs[attr], attr, location))
       }
 
       const props = vnode.data.props
@@ -166,7 +166,7 @@ function createTemplateInfo(zone: Zone, idSequence: IdSequence, vnode: VirtualNo
 
       const statefulProps = vnode.data.statefulProps
       for (const prop in statefulProps) {
-        effects.push(new PropertyEffectTemplate(statefulProps[prop].generator, prop, location))
+        effects.push(new PropertyEffectTemplate(statefulProps[prop], prop, location))
       }
 
       const events = vnode.data.on

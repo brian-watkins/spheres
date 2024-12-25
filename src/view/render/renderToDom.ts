@@ -143,10 +143,8 @@ export function createNode(zone: Zone, registry: TokenRegistry, idSequence: IdSe
 
       const statefulAttrs = vnode.data.statefulAttrs
       for (const attr in statefulAttrs) {
-        const stateful = statefulAttrs[attr]
-        const attributeEffect = new UpdateAttributeEffect(element, attr, stateful.generator)
-        const handle = registerEffect(registry, attributeEffect)
-        stateful.effect = handle
+        const attributeEffect = new UpdateAttributeEffect(element, attr, statefulAttrs[attr])
+        registerEffect(registry, attributeEffect)
       }
 
       const props = vnode.data.props
@@ -157,10 +155,8 @@ export function createNode(zone: Zone, registry: TokenRegistry, idSequence: IdSe
 
       const statefulProps = vnode.data.statefulProps
       for (const prop in statefulProps) {
-        const stateful = statefulProps[prop]
-        const propertyEffect = new UpdatePropertyEffect(element, prop, stateful.generator)
-        const handle = registerEffect(registry, propertyEffect)
-        stateful.effect = handle
+        const propertyEffect = new UpdatePropertyEffect(element, prop, statefulProps[prop])
+        registerEffect(registry, propertyEffect)
       }
 
       const events = vnode.data.on
@@ -217,18 +213,14 @@ function activateEffects(zone: Zone, registry: TokenRegistry, vnode: VirtualNode
 
       const statefulAttrs = vnode.data.statefulAttrs
       for (const attr in statefulAttrs) {
-        const stateful = statefulAttrs[attr]
-        const attributeEffect = new UpdateAttributeEffect(element, attr, stateful.generator)
-        const handle = registerEffect(registry, attributeEffect)
-        stateful.effect = handle
+        const attributeEffect = new UpdateAttributeEffect(element, attr, statefulAttrs[attr])
+        registerEffect(registry, attributeEffect)
       }
 
       const statefulProps = vnode.data.statefulProps
       for (const prop in statefulProps) {
-        const stateful = statefulProps[prop]
-        const propertyEffect = new UpdatePropertyEffect(element, prop, stateful.generator)
-        const handle = registerEffect(registry, propertyEffect)
-        stateful.effect = handle
+        const propertyEffect = new UpdatePropertyEffect(element, prop, statefulProps[prop])
+        registerEffect(registry, propertyEffect)
       }
 
       const elementEvents = vnode.data.on

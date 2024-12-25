@@ -33,7 +33,7 @@ class DerivedStatePublisher<T> extends AbstractStatePublisher<T> implements Stat
   [listenerStore]?: TokenRegistry
 
   constructor(registry: TokenRegistry, private derivation: (get: GetState) => T) {
-    super(registry)
+    super()
     this[listenerStore] = registry
     this._value = this.derivation(reactiveState(registry, this))
   }

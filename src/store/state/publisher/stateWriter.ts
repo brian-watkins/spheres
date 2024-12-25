@@ -3,7 +3,7 @@ import { notifyListeners, TokenRegistry } from "../../tokenRegistry.js"
 
 export class StateWriter<T> extends AbstractStatePublisher<T> {
   constructor(protected registry: TokenRegistry, private _value: T) {
-    super(registry)
+    super()
   }
 
   write(value: any) {

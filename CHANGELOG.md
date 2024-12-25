@@ -1,5 +1,11 @@
 # spheres
 
+## 0.14.1
+
+### Patch Changes
+
+- cbc3ecf: Performance improvements
+
 ## 0.14.0
 
 ### Minor Changes

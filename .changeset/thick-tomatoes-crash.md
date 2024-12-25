@@ -1,0 +1,5 @@
+---
+"spheres": patch
+---
+
+Performance improvements

@@ -6,9 +6,9 @@ export type GetState = <S>(state: State<S>) => S
 
 export function reactiveState(registry: TokenRegistry, listener: StateListener): GetState {
   return function (token) {
-    const controller = registry.get<StatePublisher<any>>(token)
-    controller.addListener(listener)
-    return controller.getValue()
+    const publisher = registry.get<StatePublisher<any>>(token)
+    publisher.addListener(listener)
+    return publisher.getValue()
   }
 }
 
@@ -71,4 +71,3 @@ export interface TokenRegistry {
   registerState<T>(token: State<T>, initialState?: T): StatePublisher<T>
   registerCommand<T>(token: Command<T>): CommandController<T>
 }
-

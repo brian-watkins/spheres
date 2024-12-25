@@ -1,8 +1,8 @@
 import { AbstractStatePublisher } from "./abstractStatePublisher.js"
-import { notifyListeners, TokenRegistry } from "../../tokenRegistry.js"
+import { notifyListeners } from "../../tokenRegistry.js"
 
 export class StateWriter<T> extends AbstractStatePublisher<T> {
-  constructor(protected registry: TokenRegistry, private _value: T) {
+  constructor(private _value: T) {
     super()
   }
 

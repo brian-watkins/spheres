@@ -8,8 +8,8 @@ export interface UpdateResult<T> {
 }
 
 export class MessageDispatchingStateWriter<T, M> extends StateWriter<T> {
-  constructor(registry: TokenRegistry, initialValue: T, private update: ((message: M, current: T) => UpdateResult<T>)) {
-    super(registry, initialValue)
+  constructor(private registry: TokenRegistry, initialValue: T, private update: ((message: M, current: T) => UpdateResult<T>)) {
+    super(initialValue)
   }
 
   accept(message: M): void {

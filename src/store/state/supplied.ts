@@ -19,8 +19,8 @@ export class SuppliedState<T, M = any, E = any> extends State<T> {
     super(id, name)
   }
 
-  [createPublisher](registry: TokenRegistry, serializedState?: T): StateWriter<T> {
-    return new StateWriter(registry, serializedState ?? this.initialValue)
+  [createPublisher](_: TokenRegistry, serializedState?: T): StateWriter<T> {
+    return new StateWriter(serializedState ?? this.initialValue)
   }
 
   get meta(): MetaState<T, M, E> {

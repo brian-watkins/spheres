@@ -65,7 +65,7 @@ export class Container<T, M = T, E = any> extends State<T> implements WritableSt
   [createPublisher](registry: TokenRegistry, serializedState?: T): StateWriter<T> {
     return this.update ?
       new MessageDispatchingStateWriter(registry, serializedState ?? this.initialValue, this.update) :
-      new StateWriter(registry, serializedState ?? this.initialValue)
+      new StateWriter(serializedState ?? this.initialValue)
   }
 
   get meta(): MetaState<T, M, E> {

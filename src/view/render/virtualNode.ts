@@ -180,7 +180,7 @@ export class VirtualListItemTemplate<T> extends VirtualTemplate {
   }
 
   createOverlayRegistry(rootRegistry: TokenRegistry, itemData: any, index: number): ListItemOverlayTokenRegistry {
-    const registry = new ListItemOverlayTokenRegistry(rootRegistry, this.itemToken, itemData)
+    const registry = new ListItemOverlayTokenRegistry(rootRegistry, this.itemToken, new StateWriter(itemData))
     if (this.usesIndex) {
       registry.setIndexState(this.indexToken, index)
     }
@@ -193,15 +193,12 @@ export class VirtualListItemTemplate<T> extends VirtualTemplate {
 
 export class ListItemOverlayTokenRegistry implements TokenRegistry {
   private _tokenMap: Map<Token, StatePublisher<any>> | undefined
-  private _itemPublisher: StateWriter<any>
 
   constructor(
     private rootRegistry: TokenRegistry,
     private item: State<any>,
-    itemData: any
-  ) {
-    this._itemPublisher = createStatePublisher(this, item, itemData) as StateWriter<any>
-  }
+    private itemPublisher: StateWriter<any>
+  ) { }
 
   set(): void { }
 
@@ -233,13 +230,13 @@ export class ListItemOverlayTokenRegistry implements TokenRegistry {
 
   get(token: Token): any {
     if (token === this.item) {
-      return this._itemPublisher
+      return this.itemPublisher
     }
     return this._tokenMap?.get(token) ?? this.rootRegistry.get(token)
   }
 
   updateItemData(data: any) {
-    this._itemPublisher.publish(data)
+    this.itemPublisher.publish(data)
   }
 }
 

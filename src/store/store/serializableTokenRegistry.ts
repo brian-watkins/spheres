@@ -55,14 +55,12 @@ export class SerializableTokenRegistry implements TokenRegistry {
 
   serialize(): string {
     const map_data = Array.from(this.tokenIdMap.entries())
-    .map(([key, token]) => {
-      const value = this.get<StatePublisher<any>>(token).getValue()
-      return `["${key}",${JSON.stringify(value)}]`
-    })
-    .join(",")
+      .map(([key, token]) => {
+        const value = this.get<StatePublisher<any>>(token).getValue()
+        return `["${key}",${JSON.stringify(value)}]`
+      })
+      .join(",")
 
-  return `<script type="module">
-window[Symbol.for("${this.options.id}")] = new Map([${map_data}]);
-</script>`
+    return `globalThis[Symbol.for("${this.options.id}")] = new Map([${map_data}]);`
   }
 }

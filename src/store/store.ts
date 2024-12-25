@@ -7,16 +7,14 @@ import { StateWriter } from "./state/publisher/stateWriter.js"
 import { Command, GetState, initializeCommand, State, StatePublisher, TokenRegistry } from "./tokenRegistry.js"
 import { CommandManager, ManagedCommandController } from "./command/managedCommandController.js"
 
-interface SpheresDecoratedWindow extends Window {
+declare const globalThis: {
   [key: symbol]: any
-}
-
-declare let window: SpheresDecoratedWindow
+} & Window
 
 export function activateStore(id?: string): Store {
   return new Store({
     id,
-    initialState: window[Symbol.for(storeId(id))]
+    initialState: globalThis[Symbol.for(storeId(id))]
   })
 }
 

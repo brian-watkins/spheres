@@ -110,7 +110,7 @@ export class TestSSRServer {
         let html = template.replace(`<!-- SSR-APP-HTML -->`, ssrParts.html)
 
         if (ssrParts.serializedStore !== undefined) {
-          html = html.replace(`<!-- SSR-SERIALIZED-STORE -->`, ssrParts.serializedStore)
+          html = html.replace(`<!-- SSR-SERIALIZED-STORE -->`, `<script type="module">${ssrParts.serializedStore}</script>`)
         }
 
         res.status(200)

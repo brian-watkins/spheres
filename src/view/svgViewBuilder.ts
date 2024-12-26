@@ -17,7 +17,7 @@ export interface SpecialSVGElements {
   textNode(value: string | Stateful<string>): this
   subview(view: SVGView): this
   subviewOf(selectorGenerator: (selector: SVGViewSelector) => void): this
-  subviews<T>(data: (get: GetState) => Array<T>, viewGenerator: (item: State<T>, index?: State<number>) => SVGView): this
+  subviews<T>(data: (get: GetState) => Array<T>, viewGenerator: (item: State<T>, index: State<number>) => SVGView): this
 }
 
 class SVGElementConfig extends BasicElementConfig {
@@ -61,8 +61,8 @@ export class SvgViewBuilder extends ViewBuilder<SpecialElementAttributes, SVGEle
     return this
   }
 
-  subviews<T>(data: (get: GetState) => Array<T>, viewGenerator: (item: State<T>, index?: State<number>) => SVGView): this {
-    const virtualTemplate = new SVGVirtualListItemTemplate(viewGenerator)
+  subviews<T>(data: (get: GetState) => Array<T>, viewGenerator: (item: State<T>, index: State<number>) => SVGView): this {
+    const virtualTemplate = new SVGVirtualListItemTemplate(viewGenerator as (item: State<T>, index?: State<number>) => SVGView)
     this.storeNode(makeZoneList(virtualTemplate, data))
 
     return this

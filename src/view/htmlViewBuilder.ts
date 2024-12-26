@@ -56,7 +56,7 @@ export interface SpecialHTMLElements {
   textNode(value: string | Stateful<string>): this
   subview(view: HTMLView): this
   subviewOf(selectorGenerator: (selector: HTMLViewSelector) => void): this
-  subviews<T>(data: (get: GetState) => Array<T>, viewGenerator: (item: State<T>, index?: State<number>) => HTMLView): this
+  subviews<T>(data: (get: GetState) => Array<T>, viewGenerator: (item: State<T>, index: State<number>) => HTMLView): this
 }
 
 class HTMLElementConfig extends BasicElementConfig {
@@ -110,8 +110,8 @@ class HtmlViewBuilder extends ViewBuilder<SpecialElementAttributes, HTMLElements
     return this
   }
 
-  subviews<T>(data: (get: GetState) => Array<T>, viewGenerator: (item: State<T>, index?: State<number>) => HTMLView): this {
-    const virtualTemplate = new HTMLVirtualListItemTemplate(viewGenerator)
+  subviews<T>(data: (get: GetState) => Array<T>, viewGenerator: (item: State<T>, index: State<number>) => HTMLView): this {
+    const virtualTemplate = new HTMLVirtualListItemTemplate(viewGenerator as (item: State<T>, index?: State<number>) => HTMLView)
     this.storeNode(makeZoneList(virtualTemplate, data))
 
     return this

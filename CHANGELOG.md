@@ -1,5 +1,11 @@
 # spheres
 
+## 0.14.2
+
+### Patch Changes
+
+- f0f2bf7: Fix type of index token for subviews
+
 ## 0.14.1
 
 ### Patch Changes

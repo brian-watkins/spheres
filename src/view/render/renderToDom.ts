@@ -9,9 +9,8 @@ import { getDOMTemplate } from "./template.js";
 import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementId, listEndIndicator, listStartIndicator, switchEndIndicator, switchStartIndicator } from "./fragmentHelpers.js";
 import { getEventAttribute, getNearestElementHandlingEvent, setEventAttribute } from "./eventHelpers.js";
 import { SelectViewEffect } from "./effects/selectViewEffect.js";
-import { TokenRegistry } from "../../store/tokenRegistry.js";
+import { initListener, TokenRegistry } from "../../store/tokenRegistry.js";
 import { dispatchMessage } from "../../store/message.js";
-import { registerEffect } from "../../store/effect.js";
 
 export class DOMRoot implements Zone, RenderResult {
   private activeDocumentEvents = new Set<string>()
@@ -101,8 +100,8 @@ export function createNode(zone: Zone, registry: TokenRegistry, idSequence: IdSe
 
     case NodeType.STATEFUL_TEXT: {
       const textNode = document.createTextNode("")
-      const textEffect = new UpdateTextEffect(textNode, vnode.generator)
-      registerEffect(registry, textEffect)
+      const textEffect = new UpdateTextEffect(registry, textNode, vnode.generator)
+      initListener(textEffect)
       return textNode
     }
 
@@ -115,7 +114,7 @@ export function createNode(zone: Zone, registry: TokenRegistry, idSequence: IdSe
       fragment.appendChild(endNode)
 
       const query = new SelectViewEffect(zone, registry, vnode, startNode, endNode, getDOMTemplate)
-      registerEffect(registry, query)
+      initListener(query)
       return fragment
     }
 
@@ -128,7 +127,7 @@ export function createNode(zone: Zone, registry: TokenRegistry, idSequence: IdSe
       parentFrag.appendChild(listEndNode)
 
       const effect = new ListEffect(zone, registry, vnode, listStartNode, listEndNode, getDOMTemplate)
-      registerEffect(registry, effect)
+      initListener(effect)
       return parentFrag
 
     default:
@@ -143,8 +142,8 @@ export function createNode(zone: Zone, registry: TokenRegistry, idSequence: IdSe
 
       const statefulAttrs = vnode.data.statefulAttrs
       for (const attr in statefulAttrs) {
-        const attributeEffect = new UpdateAttributeEffect(element, attr, statefulAttrs[attr])
-        registerEffect(registry, attributeEffect)
+        const attributeEffect = new UpdateAttributeEffect(registry, element, attr, statefulAttrs[attr])
+        initListener(attributeEffect)
       }
 
       const props = vnode.data.props
@@ -155,8 +154,8 @@ export function createNode(zone: Zone, registry: TokenRegistry, idSequence: IdSe
 
       const statefulProps = vnode.data.statefulProps
       for (const prop in statefulProps) {
-        const propertyEffect = new UpdatePropertyEffect(element, prop, statefulProps[prop])
-        registerEffect(registry, propertyEffect)
+        const propertyEffect = new UpdatePropertyEffect(registry, element, prop, statefulProps[prop])
+        initListener(propertyEffect)
       }
 
       const events = vnode.data.on
@@ -184,8 +183,8 @@ export function createNode(zone: Zone, registry: TokenRegistry, idSequence: IdSe
 function activateEffects(zone: Zone, registry: TokenRegistry, vnode: VirtualNode, node: Node): Node {
   switch (vnode.type) {
     case NodeType.STATEFUL_TEXT: {
-      const effect = new UpdateTextEffect(node as Text, vnode.generator)
-      registerEffect(registry, effect)
+      const effect = new UpdateTextEffect(registry, node as Text, vnode.generator)
+      initListener(effect)
       return node
     }
 
@@ -194,7 +193,7 @@ function activateEffects(zone: Zone, registry: TokenRegistry, vnode: VirtualNode
       let end = findListEndNode(node, vnode.id)
 
       const effect = new ListEffect(zone, registry, vnode, node, end, getDOMTemplate)
-      registerEffect(registry, effect)
+      initListener(effect)
       return end
     }
 
@@ -203,7 +202,7 @@ function activateEffects(zone: Zone, registry: TokenRegistry, vnode: VirtualNode
       let end = findSwitchEndNode(node, vnode.id)
 
       const effect = new SelectViewEffect(zone, registry, vnode, node, end, getDOMTemplate)
-      registerEffect(registry, effect)
+      initListener(effect)
 
       return end
     }
@@ -213,14 +212,14 @@ function activateEffects(zone: Zone, registry: TokenRegistry, vnode: VirtualNode
 
       const statefulAttrs = vnode.data.statefulAttrs
       for (const attr in statefulAttrs) {
-        const attributeEffect = new UpdateAttributeEffect(element, attr, statefulAttrs[attr])
-        registerEffect(registry, attributeEffect)
+        const attributeEffect = new UpdateAttributeEffect(registry, element, attr, statefulAttrs[attr])
+        initListener(attributeEffect)
       }
 
       const statefulProps = vnode.data.statefulProps
       for (const prop in statefulProps) {
-        const propertyEffect = new UpdatePropertyEffect(element, prop, statefulProps[prop])
-        registerEffect(registry, propertyEffect)
+        const propertyEffect = new UpdatePropertyEffect(registry, element, prop, statefulProps[prop])
+        initListener(propertyEffect)
       }
 
       const elementEvents = vnode.data.on

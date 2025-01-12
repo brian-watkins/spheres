@@ -1,8 +1,9 @@
 import { GetState } from "../../../store/index.js"
+import { StateListener, TokenRegistry } from "../../../store/tokenRegistry.js"
 import { Stateful } from "../virtualNode.js"
 
-export class UpdateTextEffect {
-  constructor(private node: Text, private generator: Stateful<string>) { }
+export class UpdateTextEffect implements StateListener {
+  constructor(public registry: TokenRegistry, private node: Text, private generator: Stateful<string>) { }
 
   init(get: GetState): void {
     this.node.nodeValue = this.generator(get) ?? ""

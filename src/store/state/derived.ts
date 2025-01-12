@@ -1,6 +1,5 @@
-import { AbstractStatePublisher } from "./publisher/abstractStatePublisher.js";
 import { didCreateToken } from "./stateRecorder.js";
-import { GetState, listenerVersion, reactiveState, State, StatePublisher, StateListener, TokenRegistry, createPublisher, listenerStore } from "../tokenRegistry.js";
+import { GetState, State, StateListener, StatePublisher, TokenRegistry, createPublisher, initListener } from "../tokenRegistry.js";
 
 export interface DerivedStateInitializer<T> {
   id?: string
@@ -27,15 +26,32 @@ export class DerivedState<T> extends State<T> {
   }
 }
 
-class DerivedStatePublisher<T> extends AbstractStatePublisher<T> implements StateListener {
-  private _value: T
-  [listenerVersion] = 0;
-  [listenerStore]?: TokenRegistry
+class DerivedStatePublisher<T> extends StatePublisher<T> {
+  private derivedValue: DerivedStateQuery<T>
 
-  constructor(registry: TokenRegistry, private derivation: (get: GetState) => T) {
+  constructor(registry: TokenRegistry, derivation: (get: GetState) => T) {
     super()
-    this[listenerStore] = registry
-    this._value = this.derivation(reactiveState(registry, this))
+    this.derivedValue = new DerivedStateQuery(registry, derivation, this)
+  }
+
+  getValue(): T {
+    return this.derivedValue.getValue()
+  }
+}
+
+class DerivedStateQuery<T> implements StateListener {
+  private _value!: T
+
+  constructor(public registry: TokenRegistry, private derivation: (get: GetState) => T, private publisher: StatePublisher<T>) {
+    initListener(this)
+  }
+
+  notifyListeners(): void {
+    this.publisher.notifyListeners()
+  }
+
+  init(get: GetState): void {
+    this._value = this.derivation(get)
   }
 
   run(get: GetState): void {
@@ -47,7 +63,7 @@ class DerivedStatePublisher<T> extends AbstractStatePublisher<T> implements Stat
 
     this._value = derived
 
-    this.runListeners()
+    this.publisher.runListeners()
   }
 
   getValue(): T {

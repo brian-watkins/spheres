@@ -1,7 +1,6 @@
-import { AbstractStatePublisher } from "./abstractStatePublisher.js"
-import { notifyListeners } from "../../tokenRegistry.js"
+import { StatePublisher } from "../../tokenRegistry.js"
 
-export class StateWriter<T> extends AbstractStatePublisher<T> {
+export class StateWriter<T> extends StatePublisher<T> {
   constructor(private _value: T) {
     super()
   }
@@ -19,7 +18,7 @@ export class StateWriter<T> extends AbstractStatePublisher<T> {
 
     this._value = value
 
-    this[notifyListeners]()
+    this.notifyListeners()
 
     this.runListeners()
   }

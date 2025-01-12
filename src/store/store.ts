@@ -1,10 +1,9 @@
 import { Container } from "./state/container.js"
-import { ReactiveEffect, registerEffect } from "./effect.js"
 import { dispatchMessage, StoreMessage } from "./message.js"
 import { error, pending } from "./state/meta.js"
 import { SerializableTokenRegistry } from "./store/serializableTokenRegistry.js"
 import { StateWriter } from "./state/publisher/stateWriter.js"
-import { Command, GetState, initializeCommand, State, StatePublisher, TokenRegistry } from "./tokenRegistry.js"
+import { Command, GetState, initializeCommand, initListener, State, StateListener, StateListenerVersion, StatePublisher, TokenRegistry } from "./tokenRegistry.js"
 import { CommandManager, ManagedCommandController } from "./command/managedCommandController.js"
 
 declare const globalThis: {
@@ -54,6 +53,15 @@ interface StoreOptions {
   initialState?: Map<string, any>
 }
 
+export interface ReactiveEffect {
+  init?: (get: GetState) => void
+  run: (get: GetState) => void
+}
+
+export interface ReactiveEffectHandle {
+  unsubscribe: () => void
+}
+
 const tokenRegistry = Symbol("tokenRegistry")
 
 export function getTokenRegistry(store: Store): TokenRegistry {
@@ -75,8 +83,10 @@ export class Store {
     dispatchMessage(this.registry, message)
   }
 
-  useEffect(effect: ReactiveEffect) {
-    registerEffect(this.registry, effect)
+  useEffect(effect: ReactiveEffect): ReactiveEffectHandle {
+    const listener = new EffectListener(this[tokenRegistry], effect)
+    initListener(listener)
+    return listener
   }
 
   useHooks(hooks: StoreHooks) {
@@ -166,6 +176,28 @@ function containerWriteActions<T, M, E>(registry: TokenRegistry, container: Cont
       registry.get<StateWriter<any>>(container.meta).write(error(message, reason))
     },
     current: writer.getValue()
+  }
+}
+
+class EffectListener implements StateListener, ReactiveEffectHandle {
+  version: StateListenerVersion = 0
+
+  constructor(public registry: TokenRegistry, private effect: ReactiveEffect) { }
+
+  init(get: GetState): void {
+    if (this.effect.init !== undefined) {
+      this.effect.init(get)
+    } else {
+      this.effect.run(get)
+    }
+  }
+
+  run(get: GetState): void {
+    this.effect.run(get)
+  }
+
+  unsubscribe() {
+    this.version = -1
   }
 }
 

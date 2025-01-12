@@ -5,6 +5,8 @@ export {
   type ContainerHooks,
   type StoreHooks,
   type Store,
+  type ReactiveEffect,
+  type ReactiveEffectHandle,
   activateStore,
   createStore
 } from "./store.js"
@@ -35,9 +37,6 @@ export {
   type DerivedState,
   derived
 } from "./state/derived.js"
-export {
-  type ReactiveEffect
-} from "./effect.js"
 export * from "./error.js"
 export {
   type WriteMessage,

@@ -1,11 +1,9 @@
-import { registerEffect } from "../../store/effect.js";
-import { GetState, ReactiveEffect } from "../../store/index.js";
-import { TokenRegistry } from "../../store/tokenRegistry.js";
+import { GetState } from "../../store/index.js";
+import { initListener, StateListener, TokenRegistry } from "../../store/tokenRegistry.js";
 import { listEndIndicator, listStartIndicator, switchEndIndicator, switchStartIndicator } from "./fragmentHelpers.js";
 import { IdSequence } from "./idSequence.js";
 import { EventsToDelegate } from "./index.js";
 import { ElementNode, NodeType, StatefulTextNode, TextNode, VirtualNode, StatefulListNode, StatefulSelectorNode } from "./virtualNode.js";
-
 
 export function stringifyVirtualNode(registry: TokenRegistry, idSequence: IdSequence, vnode: VirtualNode): string {
   switch (vnode.type) {
@@ -49,9 +47,8 @@ function stringifyElement(registry: TokenRegistry, idSequence: IdSequence, node:
   let attrs = Object.keys(attributes).map(key => ` ${key}="${node.data.attrs[key]}"`).join("")
 
   for (const attr in statefulAttributes) {
-    const query = new GetValueQuery(statefulAttributes[attr])
-    registerEffect(registry, query)
-    attrs += ` ${attr}="${query.value}"`
+    const attributeValue = getValue(registry, statefulAttributes[attr])
+    attrs += ` ${attr}="${attributeValue}"`
   }
 
   if (node.data.props?.innerHTML) {
@@ -67,28 +64,17 @@ function stringifyElement(registry: TokenRegistry, idSequence: IdSequence, node:
   return `<${node.tag}${attrs}>${children.join("")}</${node.tag}>`
 }
 
-class GetValueQuery<M> implements ReactiveEffect {
-  value!: M
-
-  constructor(private generator: (get: GetState) => M) { }
-
-  run(get: GetState): void {
-    this.value = this.generator(get)
-  }
-}
-
 function stringifyStatefulSelect(registry: TokenRegistry, idSequence: IdSequence, node: StatefulSelectorNode): string {
-  const templateQuery = new GetValueQuery((get) => {
+  const selectedIndex = getValue(registry, (get) => {
     return node.selectors.findIndex(selector => selector.select(get))
   })
-  registerEffect(registry, templateQuery)
 
   const elementId = idSequence.next
 
   let html = `<!--${switchStartIndicator(elementId)}-->`
-  if (templateQuery.value !== -1) {
-    const template = node.selectors[templateQuery.value].template
-    html += stringifyVirtualNode(registry, new IdSequence(`${elementId}.${templateQuery.value}`), template.virtualNode)
+  if (selectedIndex !== -1) {
+    const template = node.selectors[selectedIndex].template
+    html += stringifyVirtualNode(registry, new IdSequence(`${elementId}.${selectedIndex}`), template.virtualNode)
   }
   html += `<!--${switchEndIndicator(elementId)}-->`
 
@@ -96,20 +82,16 @@ function stringifyStatefulSelect(registry: TokenRegistry, idSequence: IdSequence
 }
 
 function stringifyReactiveText(registry: TokenRegistry, node: StatefulTextNode): string {
-  const query = new GetValueQuery(node.generator)
-  registerEffect(registry, query)
+  const text = getValue(registry, node.generator)
 
   return stringifyTextNode({
     type: NodeType.TEXT,
-    value: query.value ?? "",
+    value: text ?? "",
   })
 }
 
 function stringifyViewList(registry: TokenRegistry, idSequence: IdSequence, node: StatefulListNode): string {
-  const query = new GetValueQuery(node.query)
-  registerEffect(registry, query)
-
-  const data = query.value
+  const data = getValue(registry, node.query)
 
   const elementId = idSequence.next
 
@@ -124,4 +106,24 @@ function stringifyViewList(registry: TokenRegistry, idSequence: IdSequence, node
   html += `<!--${listEndIndicator(elementId)}-->`
 
   return html
+}
+
+class GetValueQuery<M> implements StateListener {
+  value!: M
+
+  constructor(public registry: TokenRegistry, private generator: (get: GetState) => M) { }
+
+  init(get: GetState): void {
+    this.run(get)
+  }
+
+  run(get: GetState): void {
+    this.value = this.generator(get)
+  }
+}
+
+function getValue<M>(registry: TokenRegistry, generator: (get: GetState) => M): M {
+  const query = new GetValueQuery(registry, generator)
+  initListener(query)
+  return query.value
 }

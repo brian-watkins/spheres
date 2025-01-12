@@ -4,7 +4,7 @@ import { IdSequence } from "../idSequence.js"
 import { DOMTemplate, GetDOMTemplate, Zone } from "../index.js"
 import { StatefulListNode, NodeType, ListItemOverlayTokenRegistry } from "../virtualNode.js"
 import { activateTemplateInstance, renderTemplateInstance } from "../renderTemplate.js"
-import { TokenRegistry } from "../../../store/tokenRegistry.js"
+import { StateListener, TokenRegistry } from "../../../store/tokenRegistry.js"
 import { dispatchMessage } from "../../../store/message.js"
 
 export interface VirtualItem {
@@ -18,16 +18,16 @@ export interface VirtualItem {
   registry: ListItemOverlayTokenRegistry
 }
 
-export class ListEffect {
+export class ListEffect implements StateListener {
   private domTemplate: DOMTemplate
   private usesIndex: boolean
-  private parent!: Node
+  private parentNode!: Node
   private first: VirtualItem | undefined
   private itemCache: Map<any, VirtualItem> = new Map()
 
   constructor(
     private zone: Zone,
-    private registry: TokenRegistry,
+    public registry: TokenRegistry,
     private listVnode: StatefulListNode,
     private listStart: Node,
     private listEnd: Node,
@@ -93,7 +93,7 @@ export class ListEffect {
       this.cacheOutOfPlaceItems(data)
     }
 
-    this.parent = this.listStart.parentNode!
+    this.parentNode = this.listStart.parentNode!
 
     this.first = this.updateFirst(data)
 
@@ -219,16 +219,16 @@ export class ListEffect {
   }
 
   private append(item: VirtualItem): void {
-    this.parent.insertBefore(item.node, this.listEnd)
+    this.parentNode.insertBefore(item.node, this.listEnd)
   }
 
   private insertBefore(reference: VirtualItem, first: VirtualItem): void {
-    this.parent.insertBefore(first.node, reference.node)
+    this.parentNode.insertBefore(first.node, reference.node)
   }
 
   private insertAfter(last: VirtualItem, next: VirtualItem): void {
     // NOTE: This only happens for elements at the moment
-    this.parent.insertBefore(next.node, last.node.nextSibling)
+    this.parentNode.insertBefore(next.node, last.node.nextSibling)
   }
 
   private replaceNode(current: VirtualItem, next: VirtualItem): void {
@@ -239,9 +239,9 @@ export class ListEffect {
       range.deleteContents()
       // Note: This assumes we are dealing with a brand new fragment
       // where the node is the document fragment with all the elements
-      this.parent.insertBefore(next.node, current.next?.firstNode ?? this.listEnd)
+      this.parentNode.insertBefore(next.node, current.next?.firstNode ?? this.listEnd)
     } else {
-      this.parent.replaceChild(next.node, current.node)
+      this.parentNode.replaceChild(next.node, current.node)
     }
   }
 
@@ -252,7 +252,7 @@ export class ListEffect {
       range.setEndAfter(item.lastNode!)
       range.deleteContents()
     } else {
-      this.parent.removeChild(item.node)
+      this.parentNode.removeChild(item.node)
     }
   }
 

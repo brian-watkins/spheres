@@ -4,9 +4,9 @@ export interface Token {
 
 export type GetState = <S>(state: State<S>) => S
 
-export function reactiveState(registry: TokenRegistry, listener: StateListener): GetState {
+function getState(listener: StateListener): GetState {
   return function (token) {
-    const publisher = registry.get<StatePublisher<any>>(token)
+    const publisher = listener.registry.get<StatePublisher<any>>(token)
     publisher.addListener(listener)
     return publisher.getValue()
   }
@@ -29,22 +29,56 @@ export abstract class State<T> implements Token {
   }
 }
 
-export const listenerVersion = Symbol("listener-version")
-export const listenerParent = Symbol("listener-parent")
-export const notifyListeners = Symbol("notify-listeners")
-export const listenerStore = Symbol("listener-store")
+export type StateListenerVersion = number
 
 export interface StateListener {
-  [listenerVersion]?: number
-  [listenerParent]?: any
-  [notifyListeners]?: () => void
-  [listenerStore]?: TokenRegistry
+  registry: TokenRegistry
+  parent?: {}
+  version?: StateListenerVersion
+  overrideVersionTracking?: boolean
+  notifyListeners?: () => void
+  init(get: GetState): void
   run(get: GetState): void
 }
 
-export interface StatePublisher<T> {
-  addListener(listener: StateListener): void
-  getValue(): T
+export function initListener(listener: StateListener) {
+  listener.version = 0
+  listener.init(getState(listener))
+}
+
+export abstract class StatePublisher<T> {
+  private listeners: Map<StateListener, StateListenerVersion> = new Map()
+
+  abstract getValue(): T
+
+  addListener(listener: StateListener) {
+    this.listeners.set(listener, listener.version!)
+  }
+
+  removeListener(listener: StateListener) {
+    this.listeners.delete(listener)
+  }
+
+  notifyListeners() {
+    for (const [listener, token] of this.listeners) {
+      if (token === listener.version || listener.overrideVersionTracking) {
+        listener.parent = this
+        listener.notifyListeners?.()
+      } else {
+        this.removeListener(listener)
+      }
+    }
+  }
+
+  runListeners() {
+    for (const listener of this.listeners.keys()) {
+      if (listener.parent === this) {
+        listener.version = listener.version! + 1
+        listener.run(getState(listener))
+        listener.parent = undefined
+      }
+    }
+  }
 }
 
 export const initializeCommand = Symbol("initializeCommand")

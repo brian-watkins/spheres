@@ -1,5 +1,5 @@
 import { StateWriter } from "./publisher/stateWriter.js"
-import { createPublisher, listenerVersion, State, StatePublisher, TokenRegistry } from "../tokenRegistry.js"
+import { createPublisher, State, StateListener, StatePublisher, TokenRegistry } from "../tokenRegistry.js"
 
 export interface PendingMessage<M> {
   type: "pending"
@@ -16,7 +16,7 @@ export interface ErrorMessage<M, E> {
   reason: E
 }
 
-export type Meta<M, E> =  OkMessage | PendingMessage<M> | ErrorMessage<M, E>
+export type Meta<M, E> = OkMessage | PendingMessage<M> | ErrorMessage<M, E>
 
 export function ok(): OkMessage {
   return {
@@ -49,12 +49,22 @@ export class MetaState<T, M, E = unknown> extends State<Meta<M, E>> {
 
     const writer = new StateWriter<Meta<M, E>>(ok())
 
-    publisher.addListener({
-      get [listenerVersion]() { return 0 },
-      set [listenerVersion](_: number) { },
-      run: () => { writer.write(ok()) }
-    })
+    publisher.addListener(new MetaStateListener(registry, writer))
 
     return writer
+  }
+}
+
+class MetaStateListener<M, E> implements StateListener {
+  overrideVersionTracking = true
+
+  constructor(public registry: TokenRegistry, private writer: StateWriter<Meta<M, E>>) { }
+
+  init(): void {
+    this.run()
+  }
+
+  run(): void {
+    this.writer.write(ok())
   }
 }

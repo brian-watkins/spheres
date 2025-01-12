@@ -1,6 +1,5 @@
-import { registerEffect } from "../../store/effect.js"
 import { dispatchMessage } from "../../store/message.js"
-import { TokenRegistry } from "../../store/tokenRegistry.js"
+import { initListener, TokenRegistry } from "../../store/tokenRegistry.js"
 import { EffectLocation } from "./effectLocation.js"
 import { UpdateAttributeEffect } from "./effects/attributeEffect.js"
 import { ListEffect } from "./effects/listEffect.js"
@@ -41,8 +40,8 @@ class TextEffectTemplate implements EffectTemplate {
   constructor(private generator: Stateful<string>, private location: EffectLocation) { }
 
   attach(_: Zone, registry: TokenRegistry, root: Node) {
-    const effect = new UpdateTextEffect(this.location.findNode(root) as Text, this.generator)
-    registerEffect(registry, effect)
+    const effect = new UpdateTextEffect(registry, this.location.findNode(root) as Text, this.generator)
+    initListener(effect)
   }
 }
 
@@ -50,8 +49,8 @@ class AttributeEffectTemplate implements EffectTemplate {
   constructor(private generator: Stateful<string>, private attribute: string, private location: EffectLocation) { }
 
   attach(_: Zone, registry: TokenRegistry, root: Node) {
-    const effect = new UpdateAttributeEffect(this.location.findNode(root) as Element, this.attribute, this.generator)
-    registerEffect(registry, effect)
+    const effect = new UpdateAttributeEffect(registry, this.location.findNode(root) as Element, this.attribute, this.generator)
+    initListener(effect)
   }
 }
 
@@ -59,8 +58,8 @@ class PropertyEffectTemplate implements EffectTemplate {
   constructor(private generator: Stateful<string>, private property: string, private location: EffectLocation) { }
 
   attach(_: Zone, registry: TokenRegistry, root: Node) {
-    const effect = new UpdatePropertyEffect(this.location.findNode(root) as Element, this.property, this.generator)
-    registerEffect(registry, effect)
+    const effect = new UpdatePropertyEffect(registry, this.location.findNode(root) as Element, this.property, this.generator)
+    initListener(effect)
   }
 }
 
@@ -72,7 +71,7 @@ class StatefulSelectEffectTemplate implements EffectTemplate {
       const endNode = findSwitchEndNode(startNode, this.vnode.id!)
 
       const effect = new SelectViewEffect(zone, registry, this.vnode, startNode, endNode, getDOMTemplate)
-      registerEffect(registry, effect)
+      initListener(effect)
     }
 }
 
@@ -84,7 +83,7 @@ class ListEffectTemplate implements EffectTemplate {
     const end = findListEndNode(listStartIndicatorNode, this.vnode.id!)
 
     const effect = new ListEffect(zone, registry, this.vnode, listStartIndicatorNode, end, getDOMTemplate)
-    registerEffect(registry, effect)
+    initListener(effect)
   }
 }
 

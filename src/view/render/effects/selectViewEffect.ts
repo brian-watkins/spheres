@@ -3,12 +3,12 @@ import { IdSequence } from "../idSequence.js";
 import { DOMTemplate, GetDOMTemplate, Zone } from "../index.js";
 import { StatefulSelectorNode } from "../virtualNode.js";
 import { activateTemplateInstance, renderTemplateInstance } from "../renderTemplate.js";
-import { TokenRegistry } from "../../../store/tokenRegistry.js";
+import { StateListener, TokenRegistry } from "../../../store/tokenRegistry.js";
 
-export class SelectViewEffect {
+export class SelectViewEffect implements StateListener {
   constructor(
     private zone: Zone,
-    private registry: TokenRegistry,
+    public registry: TokenRegistry,
     private vnode: StatefulSelectorNode,
     public startNode: Node,
     public endNode: Node,

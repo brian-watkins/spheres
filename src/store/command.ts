@@ -1,6 +1,5 @@
-import { ReactiveEffect, registerEffect } from "./effect.js";
 import { dispatchMessage, ExecMessage } from "./message.js";
-import { Command, CommandController, createController, GetState, initializeCommand, TokenRegistry } from "./tokenRegistry.js";
+import { Command, CommandController, createController, GetState, initializeCommand, initListener, StateListener, TokenRegistry } from "./tokenRegistry.js";
 import { DefaultCommandController } from "./command/defaultCommandController.js";
 
 export interface CommandInitializer<M> {
@@ -30,13 +29,17 @@ export class BasicCommand<M> extends Command<M> {
 
   [initializeCommand](registry: TokenRegistry): void {
     if (this.trigger !== undefined) {
-      registerEffect(registry, new DispatchCommandQuery(registry, this, this.trigger))
+      initListener(new DispatchCommandQuery(registry, this, this.trigger))
     }
   }
 }
 
-class DispatchCommandQuery<M> implements ReactiveEffect {
-  constructor(private registry: TokenRegistry, private command: Command<M>, private trigger: (get: GetState) => M) { }
+class DispatchCommandQuery<M> implements StateListener {
+  constructor(public registry: TokenRegistry, private command: Command<M>, private trigger: (get: GetState) => M) { }
+
+  init(get: GetState): void {
+    this.run(get)
+  }
 
   run(get: GetState): void {
     dispatchMessage(this.registry, {

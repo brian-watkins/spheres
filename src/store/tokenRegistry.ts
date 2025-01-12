@@ -12,6 +12,13 @@ function getState(listener: StateListener): GetState {
   }
 }
 
+export function runQuery<M>(registry: TokenRegistry, query: (get: GetState) => M): M {
+  return query((token) => {
+    const publisher = registry.get<StatePublisher<any>>(token)
+    return publisher.getValue()
+  })
+}
+
 export function createStatePublisher(registry: TokenRegistry, token: State<any>, initialValue?: any): StatePublisher<any> {
   return token[createPublisher](registry, initialValue)
 }

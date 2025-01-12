@@ -1,5 +1,4 @@
-import { GetState } from "../../store/index.js";
-import { initListener, StateListener, TokenRegistry } from "../../store/tokenRegistry.js";
+import { runQuery, TokenRegistry } from "../../store/tokenRegistry.js";
 import { listEndIndicator, listStartIndicator, switchEndIndicator, switchStartIndicator } from "./fragmentHelpers.js";
 import { IdSequence } from "./idSequence.js";
 import { EventsToDelegate } from "./index.js";
@@ -47,7 +46,7 @@ function stringifyElement(registry: TokenRegistry, idSequence: IdSequence, node:
   let attrs = Object.keys(attributes).map(key => ` ${key}="${node.data.attrs[key]}"`).join("")
 
   for (const attr in statefulAttributes) {
-    const attributeValue = getValue(registry, statefulAttributes[attr])
+    const attributeValue = runQuery(registry, statefulAttributes[attr])
     attrs += ` ${attr}="${attributeValue}"`
   }
 
@@ -65,7 +64,7 @@ function stringifyElement(registry: TokenRegistry, idSequence: IdSequence, node:
 }
 
 function stringifyStatefulSelect(registry: TokenRegistry, idSequence: IdSequence, node: StatefulSelectorNode): string {
-  const selectedIndex = getValue(registry, (get) => {
+  const selectedIndex = runQuery(registry, (get) => {
     return node.selectors.findIndex(selector => selector.select(get))
   })
 
@@ -82,7 +81,7 @@ function stringifyStatefulSelect(registry: TokenRegistry, idSequence: IdSequence
 }
 
 function stringifyReactiveText(registry: TokenRegistry, node: StatefulTextNode): string {
-  const text = getValue(registry, node.generator)
+  const text = runQuery(registry, node.generator)
 
   return stringifyTextNode({
     type: NodeType.TEXT,
@@ -91,14 +90,14 @@ function stringifyReactiveText(registry: TokenRegistry, node: StatefulTextNode):
 }
 
 function stringifyViewList(registry: TokenRegistry, idSequence: IdSequence, node: StatefulListNode): string {
-  const data = getValue(registry, node.query)
+  const listData = runQuery(registry, node.query)
 
   const elementId = idSequence.next
 
   let html = `<!--${listStartIndicator(elementId)}-->`
-  for (let i = 0; i < data.length; i++) {
+  for (let i = 0; i < listData.length; i++) {
     html += stringifyVirtualNode(
-      node.template.createOverlayRegistry(registry, data[i], i),
+      node.template.createOverlayRegistry(registry, listData[i], i),
       new IdSequence(elementId),
       node.template.virtualNode
     )
@@ -106,24 +105,4 @@ function stringifyViewList(registry: TokenRegistry, idSequence: IdSequence, node
   html += `<!--${listEndIndicator(elementId)}-->`
 
   return html
-}
-
-class GetValueQuery<M> implements StateListener {
-  value!: M
-
-  constructor(public registry: TokenRegistry, private generator: (get: GetState) => M) { }
-
-  init(get: GetState): void {
-    this.run(get)
-  }
-
-  run(get: GetState): void {
-    this.value = this.generator(get)
-  }
-}
-
-function getValue<M>(registry: TokenRegistry, generator: (get: GetState) => M): M {
-  const query = new GetValueQuery(registry, generator)
-  initListener(query)
-  return query.value
 }

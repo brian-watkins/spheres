@@ -1,5 +1,11 @@
 # spheres
 
+## 0.15.1
+
+### Patch Changes
+
+- cc1d18b: Export UpdateResult type
+
 ## 0.15.0
 
 ### Minor Changes

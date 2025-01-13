@@ -22,32 +22,17 @@ export class DerivedState<T> extends State<T> {
   }
 
   [createPublisher](registry: TokenRegistry): StatePublisher<T> {
-    return new DerivedStatePublisher(registry, this.derivation)
+    const publisher = new DerivedStatePublisher(registry, this.derivation)
+    initListener(publisher)
+    return publisher
   }
 }
 
-class DerivedStatePublisher<T> extends StatePublisher<T> {
-  private derivedValue: DerivedStateQuery<T>
-
-  constructor(registry: TokenRegistry, derivation: (get: GetState) => T) {
-    super()
-    this.derivedValue = new DerivedStateQuery(registry, derivation, this)
-  }
-
-  getValue(): T {
-    return this.derivedValue.getValue()
-  }
-}
-
-class DerivedStateQuery<T> implements StateListener {
+class DerivedStatePublisher<T> extends StatePublisher<T> implements StateListener {
   private _value!: T
 
-  constructor(public registry: TokenRegistry, private derivation: (get: GetState) => T, private publisher: StatePublisher<T>) {
-    initListener(this)
-  }
-
-  notifyListeners(): void {
-    this.publisher.notifyListeners()
+  constructor(public registry: TokenRegistry, private derivation: (get: GetState) => T) {
+    super()
   }
 
   init(get: GetState): void {
@@ -63,7 +48,7 @@ class DerivedStateQuery<T> implements StateListener {
 
     this._value = derived
 
-    this.publisher.runListeners()
+    this.runListeners()
   }
 
   getValue(): T {

@@ -1,4 +1,4 @@
-import { container, Container, derived, State, update, use } from "@spheres/store";
+import { collection, container, Container, State, StateCollection, update, use } from "@spheres/store";
 import { HTMLBuilder } from "@src/htmlElements";
 import { HTMLView } from "@src/index";
 import { behavior, effect, example, fact, step } from "best-behavior";
@@ -435,34 +435,33 @@ function multipleSelectFragmentsExample(name: string, renderer: (context: Render
 }
 
 function nestedSiblingSelectViewExample(name: string, renderer: (context: RenderApp<NestedSelectViewContext>, view: HTMLView) => void) {
-  return example(renderContext<NestedSelectViewContext>())
+  return example(renderContext<ToggleableNestedSelectViewContext>())
     .description(`multiple select views inside a list item (${name})`)
     .script({
       suppose: [
         fact("there is some state for a list", (context) => {
           context.setState({
-            listItems: container({ initialValue: ["a", "b", "c"] })
+            listItems: container({ initialValue: ["a", "b", "c"] }),
+            toggles: collection(() => container({ initialValue: true }))
           })
         }),
         fact("there are multiple conditional views with events in each list item", (context) => {
-          function itemCounter(id: string): Container<number> {
-            return container({ initialValue: 0, id: `counter-${id}` })
-          }
+          const counters = collection(() => container({ initialValue: 0 }))
 
           function counterView(name: string, index: State<number>): HTMLView {
             return root => root.div(el => {
               el.children
                 .p(el => {
                   el.config
-                    .class(get => `counter-style-${name}-${get(index)}-${get(itemCounter(`${name}-${get(index)}`))}`)
+                    .class(get => `counter-style-${name}-${get(index)}-${get(counters.get(`${name}-${get(index)}`))}`)
                     .dataAttribute("counter-text", get => `${name}-${get(index)}`)
                   el.children
-                    .textNode(get => `${name} total: ${get(itemCounter(`${name}-${get(index)}`))}`)
+                    .textNode(get => `${name} total: ${get(counters.get(`${name}-${get(index)}`))}`)
                 })
                 .button(el => {
                   el.config
                     .dataAttribute("counter-button", get => `${name}-${get(index)}`)
-                    .on("click", () => use(get => update(itemCounter(`${name}-${get(index)}`), (val) => val + 1)))
+                    .on("click", () => use(get => update(counters.get(`${name}-${get(index)}`), (val) => val + 1)))
                   el.children.textNode("Click me!")
                 })
             })
@@ -482,11 +481,11 @@ function nestedSiblingSelectViewExample(name: string, renderer: (context: Render
                 el.children
                   .h1(el => el.children.textNode(get => get(item)))
                   .subviewOf(select => select
-                    .when(get => get(itemToggle(`first-${get(index)}`)), counterView("first", index))
+                    .when(get => get(itemToggle(context, `first-${get(index)}`)), counterView("first", index))
                     .default(basicView("first", index))
                   )
                   .subviewOf(select => select
-                    .when(get => get(itemToggle(`second-${get(index)}`)), counterView("second", index))
+                    .when(get => get(itemToggle(context, `second-${get(index)}`)), counterView("second", index))
                     .default(basicView("second", index))
                   )
                   .hr()
@@ -523,7 +522,7 @@ function nestedSiblingSelectViewExample(name: string, renderer: (context: Render
     }).andThen({
       perform: [
         step("toggle one of the views", (context) => {
-          context.writeTo(itemToggle("second-1"), false)
+          context.writeTo(itemToggle(context, "second-1"), false)
         })
       ],
       observe: [
@@ -538,7 +537,7 @@ function nestedSiblingSelectViewExample(name: string, renderer: (context: Render
     }).andThen({
       perform: [
         step("toggle the view again", (context) => {
-          context.writeTo(itemToggle("second-1"), true)
+          context.writeTo(itemToggle(context, "second-1"), true)
         }),
         step("update the counter", async () => {
           await selectElement("[data-counter-button='second-1']").click()
@@ -560,15 +559,18 @@ function nestedSiblingSelectViewExample(name: string, renderer: (context: Render
     })
 }
 
-function siblingSelectViewExample(name: string, renderer: (context: RenderApp<NestedSelectViewContext>, view: HTMLView) => void) {
-  return example(renderContext<NestedSelectViewContext>())
+function siblingSelectViewExample(name: string, renderer: (context: RenderApp<ToggleableViewContext>, view: HTMLView) => void) {
+  return example(renderContext<ToggleableViewContext>())
     .description(`multiple select views as siblings (${name})`)
     .script({
       suppose: [
+        fact("there is some state for toggling views", (context) => {
+          context.setState({
+            toggles: collection(() => container({ initialValue: true }))
+          })
+        }),
         fact("there are sibling conditional views", (context) => {
-          function itemCounter(id: string): Container<number> {
-            return container({ initialValue: 0, id: `counter-${id}` })
-          }
+          const counters = collection(() => container({ initialValue: 0 }))
 
           function counterView(name: string): HTMLView {
             return root => root.div(el => {
@@ -577,12 +579,12 @@ function siblingSelectViewExample(name: string, renderer: (context: RenderApp<Ne
                   el.config
                     .dataAttribute("counter-text", name)
                   el.children
-                    .textNode(get => `${name} total: ${get(itemCounter(name))}`)
+                    .textNode(get => `${name} total: ${get(counters.get(name))}`)
                 })
                 .button(el => {
                   el.config
                     .dataAttribute("counter-button", name)
-                    .on("click", () => update(itemCounter(name), (val) => val + 1))
+                    .on("click", () => update(counters.get(name), (val) => val + 1))
                   el.children.textNode("Click me!")
                 })
             })
@@ -601,11 +603,11 @@ function siblingSelectViewExample(name: string, renderer: (context: RenderApp<Ne
               el.children
                 .h1(el => el.children.textNode("Hello!"))
                 .subviewOf(select => select
-                  .when(get => get(itemToggle("first")), counterView("first"))
+                  .when(get => get(itemToggle(context, "first")), counterView("first"))
                   .default(basicView("first"))
                 )
                 .subviewOf(select => select
-                  .when(get => get(itemToggle("second")), counterView("second"))
+                  .when(get => get(itemToggle(context, "second")), counterView("second"))
                   .default(basicView("second"))
                 )
                 .hr()
@@ -633,7 +635,7 @@ function siblingSelectViewExample(name: string, renderer: (context: RenderApp<Ne
     }).andThen({
       perform: [
         step("toggle one of the views", (context) => {
-          context.writeTo(itemToggle("second"), false)
+          context.writeTo(itemToggle(context, "second"), false)
         })
       ],
       observe: [
@@ -648,7 +650,7 @@ function siblingSelectViewExample(name: string, renderer: (context: RenderApp<Ne
     }).andThen({
       perform: [
         step("toggle the view again", (context) => {
-          context.writeTo(itemToggle("second"), true)
+          context.writeTo(itemToggle(context, "second"), true)
         }),
         step("update the counter", async () => {
           await selectElement("[data-counter-button='second']").click()
@@ -677,11 +679,9 @@ function conditionalListWithEvents(name: string, renderer: (context: RenderApp<N
           })
         }),
         fact("there is a conditional list view", (context) => {
-          function itemCounter(name: string): Container<number> {
-            return container({ initialValue: 0, id: name })
-          }
-
           function itemView(item: State<string>): HTMLView {
+            const counters = collection(() => container({ initialValue: 0 }))
+
             return (root) => {
               root.div(el => {
                 el.children
@@ -689,10 +689,10 @@ function conditionalListWithEvents(name: string, renderer: (context: RenderApp<N
                     el.config
                       .dataAttribute("item-count", get => get(item))
                     el.children
-                      .textNode(get => `You clicked the ${get(item)} ${get(itemCounter(get(item)))} times!`)
+                      .textNode(get => `You clicked the ${get(item)} ${get(counters.get(get(item)))} times!`)
                   })
                   .button(el => {
-                    el.config.on("click", () => use(get => update(itemCounter(get(item)), (val) => val + 1)))
+                    el.config.on("click", () => use(get => update(counters.get(get(item)), (val) => val + 1)))
                     el.children.textNode(get => `Click the ${get(item)}`)
                   })
               })
@@ -799,10 +799,18 @@ function nestedSelectorExample(name: string, renderer: (context: RenderApp<Neste
     })
 }
 
-function itemToggle(id: string): Container<boolean> {
-  return container({ initialValue: true, id: `toggle-${id}` })
+function itemToggle(context: RenderApp<ToggleableViewContext>, id: string): Container<boolean> {
+  return context.state.toggles.get(id)
 }
 
 interface NestedSelectViewContext {
   listItems: Container<Array<string>>
+}
+
+interface ToggleableNestedSelectViewContext extends ToggleableViewContext {
+  listItems: Container<Array<string>>
+}
+
+interface ToggleableViewContext {
+  toggles: StateCollection<Container<boolean>>
 }

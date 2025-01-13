@@ -1,24 +1,33 @@
-import { Container, container } from "@src/index";
+import { collection, Container, container, StateCollection } from "@src/index";
 import { behavior, effect, example, fact, step } from "best-behavior";
 import { arrayWith, expect, is } from "great-expectations";
 import { errorMessage, okMessage } from "helpers/metaMatchers";
 import { testStoreContext } from "helpers/testStore";
 
-export default behavior("dynamic container id", [
+export default behavior("container collection", [
 
   example(testStoreContext<ContainerIdTestContext>())
-    .description("reference container via string id")
+    .description("reference container via id from collection")
     .script({
       suppose: [
         fact("three references are created to the same container", (context) => {
+          const containerCollection = collection((id) => container({
+            name: id,
+            initialValue: "",
+            update: (message, current) => {
+              return { value: `${current} ${message}`.trim() }
+            }
+          }))
           context.setTokens({
-            one: containerGenerator("container-1"),
-            two: containerGenerator("container-1"),
-            three: containerGenerator("container-1")
+            collection: containerCollection,
+            one: containerCollection.get("container-1"),
+            two: containerCollection.get("container-1"),
+            three: containerCollection.get("container-2"),
           })
         }),
-        fact("there is a subscriber for the container with the same id", (context) => {
-          context.subscribeTo(containerGenerator("container-1"), "sub-1")
+        fact("there are subscribers for the containers with the same id", (context) => {
+          context.subscribeTo(context.tokens.collection.get("container-1"), "sub-1")
+          context.subscribeTo(context.tokens.collection.get("container-2"), "sub-2")
         })
       ],
       perform: [
@@ -33,18 +42,23 @@ export default behavior("dynamic container id", [
         })
       ],
       observe: [
-        effect("the subscriber gets all the messages", (context) => {
+        effect("the subscriber gets the messages written to the containers referenced by the same id", (context) => {
           expect(context.valuesForSubscriber("sub-1"), is([
             "",
             "one",
             "one two",
-            "one two three"
+          ]))
+        }),
+        effect("the other subscriber gets the message written to the container referenced by the other id", (context) => {
+          expect(context.valuesForSubscriber("sub-2"), is([
+            "",
+            "three"
           ]))
         }),
         effect("the debug name is equal to the id", (context) => {
           expect(context.tokens.one.toString(), is("container-1"))
           expect(context.tokens.two.toString(), is("container-1"))
-          expect(context.tokens.three.toString(), is("container-1"))
+          expect(context.tokens.three.toString(), is("container-2"))
         })
       ]
     }),
@@ -54,17 +68,25 @@ export default behavior("dynamic container id", [
     .script({
       suppose: [
         fact("three references are created to the same container", (context) => {
+          const containerCollection = collection((id) => container({
+            name: id,
+            initialValue: "",
+            update: (message, current) => {
+              return { value: `${current} ${message}`.trim() }
+            }
+          }))
           context.setTokens({
-            one: containerGenerator("container-1"),
-            two: containerGenerator("container-1"),
-            three: containerGenerator("container-1")
+            collection: containerCollection,
+            one: containerCollection.get("container-1"),
+            two: containerCollection.get("container-1"),
+            three: containerCollection.get("container-1"),
           })
         }),
         fact("there is a subscriber to the meta container for the container with the same id", (context) => {
-          context.subscribeTo(containerGenerator("container-1").meta, "meta-sub-1")
+          context.subscribeTo(context.tokens.collection.get("container-1").meta, "meta-sub-1")
         }),
         fact("there are container hooks defined for the container", (context) => {
-          context.useContainerHooks(containerGenerator("container-1"), {
+          context.useContainerHooks(context.tokens.collection.get("container-1"), {
             async onWrite(message, actions) {
               actions.error(message, "Oops!")
             },
@@ -73,7 +95,7 @@ export default behavior("dynamic container id", [
       ],
       perform: [
         step("an error is thrown in the reducer", (context) => {
-          context.writeTo(containerGenerator("container-1"), "BLOWUP")
+          context.writeTo(context.tokens.collection.get("container-1"), "BLOWUP")
         })
       ],
       observe: [
@@ -84,40 +106,12 @@ export default behavior("dynamic container id", [
           ])))
         })
       ]
-    }),
-
-  example(testStoreContext<Container<string>>())
-    .description("when the name and the id are set")
-    .script({
-      suppose: [
-        fact("there is a container with a name and an id", (context) => {
-          context.setTokens(container({
-            id: "6",
-            name: "fun-container",
-            initialValue: "hello"
-          }))
-        })
-      ],
-      observe: [
-        effect("the string name includes the name and id", (context) => {
-          expect(context.tokens.toString(), is("fun-container-6"))
-        })
-      ]
     })
 
 ])
 
-function containerGenerator(id: string): Container<string> {
-  return container({
-    id,
-    initialValue: "",
-    update: (message, current) => {
-      return { value: `${current} ${message}`.trim() }
-    }
-  })
-}
-
 interface ContainerIdTestContext {
+  collection: StateCollection<Container<string>>
   one: Container<string>
   two: Container<string>
   three: Container<string>

@@ -23,34 +23,27 @@ export class SerializableTokenRegistry implements TokenRegistry {
     return controller
   }
 
-  private getRegistryKey<K extends Token>(token: K): K {
-    if (token.id === undefined) return token
-
-    const key = this.tokenIdMap.get(token.id) as K
-    if (key === undefined) {
-      this.tokenIdMap.set(token.id, token)
-      return token
-    }
-
-    return key
-  }
-
   get<C>(token: Token): C {
-    const key = this.getRegistryKey(token)
-    let controller = this.registry.get(key)
+    let controller = this.registry.get(token)
     if (controller === undefined) {
       if (token instanceof State) {
-        const initialState = token.id ? this.options.initialState?.get(token.id) : undefined
-        controller = this.registerState(key as State<any>, initialState)
+        // NOTE: This conditional should be removed when we figure out a
+        // better serialization api!!!!!
+        if (token.id) {
+          this.tokenIdMap.set(token.id, token)
+          controller = this.registerState(token, this.options.initialState?.get(token.id))
+        } else {
+          controller = this.registerState(token)
+        }
       } else if (token instanceof Command) {
-        controller = this.registerCommand(key as Command<any>)
+        controller = this.registerCommand(token)
       }
     }
     return controller
   }
 
   set(token: Token, controller: any) {
-    this.registry.set(this.getRegistryKey(token), controller)
+    this.registry.set(token, controller)
   }
 
   serialize(): string {

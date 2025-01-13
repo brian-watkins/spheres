@@ -1,4 +1,4 @@
-import { Command, Container, SuppliedState, command, container, exec, supplied } from "@src/index";
+import { Command, Container, StateCollection, SuppliedState, collection, command, container, exec, supplied } from "@src/index";
 import { behavior, effect, example, fact, step } from "best-behavior";
 import { arrayWith, expect, is } from "great-expectations";
 import { errorMessage, okMessage, pendingMessage } from "helpers/metaMatchers";
@@ -217,27 +217,29 @@ export default behavior("command", [
     }),
 
   example(testStoreContext<SuppliedStateWithIdContext>())
-    .description("supplied state with id")
+    .description("supplied state referenced by id via a collection")
     .script({
       suppose: [
         fact("there is a command", (context) => {
           const myCommand = command<string>()
           const task = new TestTask<string>()
+          const suppliedCollection = collection(() => supplied({ initialValue: "initial" }))
           context.setTokens({
+            collection: suppliedCollection,
             command: myCommand,
             task
           })
           context.useCommand(myCommand, async (message, actions) => {
-            actions.pending(supplied({ id: "fun-stuff", initialValue: "initial" }), message)
+            actions.pending(suppliedCollection.get("fun-stuff"), message)
             await task.waitForIt()
-            actions.supply(supplied({ id: "fun-stuff", initialValue: "initial" }), `From command: ${message}`)
+            actions.supply(suppliedCollection.get("fun-stuff"), `From command: ${message}`)
           })
         }),
         fact("there is a subscriber to the supplied state", (context) => {
-          context.subscribeTo(supplied({ id: "fun-stuff", initialValue: "initial" }), "supplied-sub")
+          context.subscribeTo(context.tokens.collection.get("fun-stuff"), "supplied-sub")
         }),
         fact("there is a subscriber to the meta state", (context) => {
-          context.subscribeTo(supplied({ id: "fun-stuff", initialValue: "initial" }).meta, "meta-supplied-sub")
+          context.subscribeTo(context.tokens.collection.get("fun-stuff").meta, "meta-supplied-sub")
         })
       ],
       perform: [
@@ -287,6 +289,7 @@ export default behavior("command", [
 ])
 
 interface SuppliedStateWithIdContext {
+  collection: StateCollection<SuppliedState<string>>
   command: Command<string>
   task: TestTask<string>
 }

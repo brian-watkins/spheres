@@ -16,9 +16,9 @@ export {
   type GetState
 } from "./tokenRegistry.js"
 export {
-  container,
   type ContainerInitializer,
   type Container,
+  container,
   write,
   update,
   reset
@@ -63,3 +63,7 @@ export {
   type SuppliedStateInitializer,
   supplied
 } from "./state/supplied.js"
+export {
+  type StateCollection,
+  collection
+} from "./state/collection.js"

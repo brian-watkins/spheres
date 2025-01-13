@@ -1,4 +1,4 @@
-import { Container, container, derived, State, use, write } from "@spheres/store";
+import { collection, Container, container, derived, State, StateCollection, use, write } from "@spheres/store";
 import { HTMLView } from "@src/htmlViewBuilder";
 import { behavior, effect, example, fact, step } from "best-behavior";
 import { expect, is, resolvesTo } from "great-expectations";
@@ -292,10 +292,11 @@ function nestedListsExample(name: string, renderer: (context: RenderApp<NestedLi
 
 interface NestedListSelectorState {
   mainList: Container<Array<string>>
+  nestedData: StateCollection<Container<Array<string>>>
 }
 
-function nestedListData(id: string): Container<Array<string>> {
-  return container({ initialValue: [], id })
+function nestedListData(context: RenderApp<NestedListSelectorState>, id: string): Container<Array<string>> {
+  return context.state.nestedData.get(id)
 }
 
 function nestedListSelectorExample(name: string, renderer: (context: RenderApp<NestedListSelectorState>, view: HTMLView) => void) {
@@ -306,12 +307,13 @@ function nestedListSelectorExample(name: string, renderer: (context: RenderApp<N
         fact("there is stateful list data", (context) => {
           context.setState({
             mainList: container({ initialValue: ["one", "two", "three"] }),
+            nestedData: collection(() => container({ initialValue: [] }))
           })
         }),
         fact("for each main list item there is a sub list", (context) => {
-          context.writeTo(nestedListData("sub-one"), ["apple", "airline", "autumn"])
-          context.writeTo(nestedListData("sub-two"), ["basket", "beet", "berry"])
-          context.writeTo(nestedListData("sub-three"), ["cat", "column", "cataract"])
+          context.writeTo(nestedListData(context, "sub-one"), ["apple", "airline", "autumn"])
+          context.writeTo(nestedListData(context, "sub-two"), ["basket", "beet", "berry"])
+          context.writeTo(nestedListData(context, "sub-three"), ["cat", "column", "cataract"])
         }),
         fact("there is a view with nested list and nested selector", (context) => {
           function simpleView(item: State<string>): (subItem: State<string>) => HTMLView {
@@ -329,7 +331,7 @@ function nestedListSelectorExample(name: string, renderer: (context: RenderApp<N
                       el.config
                         .dataAttribute("sub-list", get => `${get(index)}`)
                       el.children
-                        .subviews(get => get(nestedListData(`sub-${get(item)}`)), simpleView(item))
+                        .subviews(get => get(nestedListData(context, `sub-${get(item)}`)), simpleView(item))
                     })
                 })
               }
@@ -350,7 +352,7 @@ function nestedListSelectorExample(name: string, renderer: (context: RenderApp<N
     }).andThen({
       perform: [
         step("update a sublist state", (context) => {
-          context.writeTo(nestedListData("sub-two"), ["funny", "fair", "fabulous", "fascinating"])
+          context.writeTo(nestedListData(context, "sub-two"), ["funny", "fair", "fabulous", "fascinating"])
         })
       ],
       observe: [

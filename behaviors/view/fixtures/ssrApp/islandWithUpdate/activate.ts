@@ -1,8 +1,10 @@
-import { activateStore } from "@spheres/store";
+import { createStore } from "@spheres/store";
 import { activateView } from "@src/index";
 import { view } from "./view";
+import { tokenMap } from "./state";
 
-const store = activateStore()
+const store = createStore()
+store.deserialize(tokenMap)
 
 store.useHooks({
   onRegister() {

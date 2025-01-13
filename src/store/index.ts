@@ -7,7 +7,6 @@ export {
   type Store,
   type ReactiveEffect,
   type ReactiveEffectHandle,
-  activateStore,
   createStore
 } from "./store.js"
 export {

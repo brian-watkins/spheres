@@ -1,10 +1,15 @@
-import { container, supplied } from "@spheres/store"
+import { container, State, supplied } from "@spheres/store"
 
 export interface Item {
   name: string
   color: string
 }
 
-export const items = container<Array<Item>>({ id: "items", initialValue: [] })
+export const items = container<Array<Item>>({ initialValue: [] })
 
-export const suppliedTitle = supplied({ id: "title", initialValue: "Fruits!" })
+export const suppliedTitle = supplied({ initialValue: "Fruits!" })
+
+export const tokenMap = new Map<string, State<any>>([
+  ["items", items],
+  ["title", suppliedTitle]
+])

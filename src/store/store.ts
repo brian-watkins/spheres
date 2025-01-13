@@ -1,7 +1,7 @@
 import { Container } from "./state/container.js"
 import { dispatchMessage, StoreMessage } from "./message.js"
 import { error, pending } from "./state/meta.js"
-import { SerializableTokenRegistry } from "./store/serializableTokenRegistry.js"
+import { WeakMapTokenRegistry } from "./store/weakMapTokenRegistry.js"
 import { StateWriter } from "./state/publisher/stateWriter.js"
 import { Command, GetState, initializeCommand, initListener, State, StateListener, StateListenerVersion, StatePublisher, TokenRegistry } from "./tokenRegistry.js"
 import { CommandManager, ManagedCommandController } from "./command/managedCommandController.js"
@@ -9,13 +9,6 @@ import { CommandManager, ManagedCommandController } from "./command/managedComma
 declare const globalThis: {
   [key: symbol]: any
 } & Window
-
-export function activateStore(id?: string): Store {
-  return new Store({
-    id,
-    initialState: globalThis[Symbol.for(storeId(id))]
-  })
-}
 
 export function createStore(id?: string): Store {
   return new Store({
@@ -50,7 +43,6 @@ export interface StoreHooks {
 
 interface StoreOptions {
   id?: string
-  initialState?: Map<string, any>
 }
 
 export interface ReactiveEffect {
@@ -69,10 +61,12 @@ export function getTokenRegistry(store: Store): TokenRegistry {
 }
 
 export class Store {
-  private registry: SerializableTokenRegistry
+  private registry: TokenRegistry
+  private id: string
 
   constructor(options: StoreOptions = {}) {
-    this.registry = new SerializableTokenRegistry({ ...options, id: storeId(options.id) })
+    this.id = storeId(options.id)
+    this.registry = new WeakMapTokenRegistry()
   }
 
   get [tokenRegistry](): TokenRegistry {
@@ -121,8 +115,22 @@ export class Store {
     }
   }
 
-  serialize(): string {
-    return this.registry.serialize()
+  serialize(map: Map<string, State<any>>): string {
+    const map_data = Array.from(map.entries())
+      .map(([key, token]) => {
+        const value = this.registry.get<StatePublisher<any>>(token).getValue()
+        return `["${key}",${JSON.stringify(value)}]`
+      })
+      .join(",")
+
+    return `globalThis[Symbol.for("${this.id}")] = new Map([${map_data}]);`
+  }
+
+  deserialize(map: Map<string, State<any>>) {
+    const serializedData = globalThis[Symbol.for(this.id)]
+    for (const [id, token] of map) {
+      this.registry.registerState(token, serializedData?.get(id))
+    }
   }
 }
 

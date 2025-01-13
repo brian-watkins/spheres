@@ -19,7 +19,6 @@ export function addItem(item: Item): AddItem {
 export type ItemsMessage = AddItem
 
 export const items = container<Array<Item>, ItemsMessage>({
-  id: "items",
   initialValue: [],
   update(message, current) {
     switch (message.type) {
@@ -31,3 +30,7 @@ export const items = container<Array<Item>, ItemsMessage>({
     }
   },
 })
+
+export const tokenMap = new Map([
+  ["items", items]
+])

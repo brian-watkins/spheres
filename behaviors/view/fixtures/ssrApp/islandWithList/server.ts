@@ -1,7 +1,7 @@
 import { renderToString } from "@src/htmlViewBuilder";
 import { view } from "./view";
 import { command, createStore, exec, write } from "@spheres/store";
-import { items, suppliedTitle } from "./state";
+import { items, suppliedTitle, tokenMap } from "./state";
 import { SSRParts } from "helpers/ssrApp";
 
 const store = createStore()
@@ -23,6 +23,6 @@ store.dispatch(exec(getSuppliedState, undefined))
 export default function(): SSRParts {
   return {
     html: renderToString(store, view),
-    serializedStore: store.serialize()
+    serializedStore: store.serialize(tokenMap)
   }
 }

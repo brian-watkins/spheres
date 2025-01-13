@@ -67,8 +67,8 @@ export abstract class StatePublisher<T> {
   }
 
   notifyListeners() {
-    for (const [listener, token] of this.listeners) {
-      if (token === listener.version || listener.overrideVersionTracking) {
+    for (const [listener, version] of this.listeners) {
+      if (version === listener.version || listener.overrideVersionTracking) {
         listener.parent = this
         listener.notifyListeners?.()
       } else {
@@ -78,7 +78,7 @@ export abstract class StatePublisher<T> {
   }
 
   runListeners() {
-    for (const listener of this.listeners.keys()) {
+    for (const [listener] of this.listeners) {
       if (listener.parent === this) {
         listener.version = listener.version! + 1
         listener.run(getState(listener))
@@ -94,7 +94,7 @@ export abstract class Command<M> implements Token {
   constructor(readonly id: string | undefined, readonly name: string | undefined) { }
 
   abstract [createController](registry: TokenRegistry): CommandController<M>
-  
+
   abstract [initializeCommand](registry: TokenRegistry): void
 
   toString() {

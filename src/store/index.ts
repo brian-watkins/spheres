@@ -17,6 +17,7 @@ export {
 export {
   type ContainerInitializer,
   type Container,
+  type UpdateResult,
   container,
   write,
   update,

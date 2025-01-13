@@ -4,6 +4,7 @@ import { createPublisher, State, TokenRegistry } from "../tokenRegistry.js"
 import { MessageDispatchingStateWriter, UpdateResult } from "./publisher/messageDispatchingStateWriter.js"
 import { StateWriter } from "./publisher/stateWriter.js"
 import { initialValue, ResetMessage, UpdateMessage, WritableState, WriteMessage } from "../message.js"
+export type { UpdateResult } from "./publisher/messageDispatchingStateWriter.js"
 
 export interface ContainerInitializer<T, M> {
   initialValue: T,

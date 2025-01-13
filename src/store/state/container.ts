@@ -6,7 +6,6 @@ import { StateWriter } from "./publisher/stateWriter.js"
 import { initialValue, ResetMessage, UpdateMessage, WritableState, WriteMessage } from "../message.js"
 
 export interface ContainerInitializer<T, M> {
-  id?: string,
   initialValue: T,
   update?: (message: M, current: T) => UpdateResult<T>
   name?: string
@@ -14,7 +13,6 @@ export interface ContainerInitializer<T, M> {
 
 export function container<T, M = T, E = any>(initializer: ContainerInitializer<T, M>): Container<T, M, E> {
   const token = new Container(
-    initializer.id,
     initializer.name,
     initializer.initialValue,
     initializer.update
@@ -50,12 +48,11 @@ export class Container<T, M = T, E = any> extends State<T> implements WritableSt
   private _meta: MetaState<T, M, E> | undefined
 
   constructor(
-    id: string | undefined,
     name: string | undefined,
     private initialValue: T,
     private update: ((message: M, current: T) => UpdateResult<T>) | undefined,
   ) {
-    super(id, name)
+    super(name)
   }
 
   get [initialValue](): T {

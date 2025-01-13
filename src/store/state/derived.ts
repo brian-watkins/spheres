@@ -2,23 +2,22 @@ import { didCreateToken } from "./stateRecorder.js";
 import { GetState, State, StateListener, StatePublisher, TokenRegistry, createPublisher, initListener } from "../tokenRegistry.js";
 
 export interface DerivedStateInitializer<T> {
-  id?: string
   query: (get: GetState) => T
   name?: string
 }
 
 export function derived<T>(initializer: DerivedStateInitializer<T> | ((get: GetState) => T)): DerivedState<T> {
   const token = typeof initializer === "function" ?
-    new DerivedState(undefined, undefined, initializer) :
-    new DerivedState(initializer.id, initializer.name, initializer.query)
+    new DerivedState(undefined, initializer) :
+    new DerivedState(initializer.name, initializer.query)
   didCreateToken(token)
   return token
 }
 
 
 export class DerivedState<T> extends State<T> {
-  constructor(id: string | undefined, name: string | undefined, private derivation: (get: GetState) => T) {
-    super(id, name)
+  constructor(name: string | undefined, private derivation: (get: GetState) => T) {
+    super(name)
   }
 
   [createPublisher](registry: TokenRegistry): StatePublisher<T> {

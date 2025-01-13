@@ -268,20 +268,19 @@ export default behavior("command", [
     }),
 
   example(testStoreContext<SuppliedState<string, string>>())
-    .description("when the name and the id are set")
+    .description("when the name is set")
     .script({
       suppose: [
-        fact("there is a derived state with a name and an id", (context) => {
+        fact("there is a derived state with a name", (context) => {
           context.setTokens(supplied({
-            id: "bowling",
             name: "fun-stuff",
             initialValue: ""
           }))
         })
       ],
       observe: [
-        effect("the string name includes the name and id", (context) => {
-          expect(context.tokens.toString(), is("fun-stuff-bowling"))
+        effect("the string name includes the supplied state name", (context) => {
+          expect(context.tokens.toString(), is("fun-stuff"))
         })
       ]
     })

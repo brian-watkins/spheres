@@ -1,7 +1,3 @@
-export interface Token {
-  id: string | undefined
-}
-
 export type GetState = <S>(state: State<S>) => S
 
 function getState(listener: StateListener): GetState {
@@ -26,13 +22,13 @@ export function createStatePublisher(registry: TokenRegistry, token: State<any>,
 export const createController = Symbol("createController")
 export const createPublisher = Symbol("createPublisher")
 
-export abstract class State<T> implements Token {
-  constructor(readonly id: string | undefined, readonly name: string | undefined) { }
+export abstract class State<T> {
+  constructor(readonly name: string | undefined) { }
 
   abstract [createPublisher](registry: TokenRegistry, initialState?: T): StatePublisher<T>
 
   toString() {
-    return this.name && this.id ? `${this.name}-${this.id}` : (this.name ?? this.id ?? "State")
+    return this.name ?? "State"
   }
 }
 
@@ -90,21 +86,23 @@ export abstract class StatePublisher<T> {
 
 export const initializeCommand = Symbol("initializeCommand")
 
-export abstract class Command<M> implements Token {
-  constructor(readonly id: string | undefined, readonly name: string | undefined) { }
+export abstract class Command<M> {
+  constructor(readonly name: string | undefined) { }
 
   abstract [createController](registry: TokenRegistry): CommandController<M>
 
   abstract [initializeCommand](registry: TokenRegistry): void
 
   toString() {
-    return this.name && this.id ? `${this.name}-${this.id}` : (this.name ?? this.id ?? "Command")
+    return this.name ?? "Command"
   }
 }
 
 export interface CommandController<T> {
   run(message: T): void
 }
+
+export type Token = State<any> | Command<any>
 
 export interface TokenRegistry {
   get<C>(token: Token): C

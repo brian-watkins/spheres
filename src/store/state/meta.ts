@@ -41,7 +41,7 @@ export function error<M, E>(message: M | undefined, reason: E): ErrorMessage<M, 
 
 export class MetaState<T, M, E = unknown> extends State<Meta<M, E>> {
   constructor(private token: State<T>) {
-    super(token.id ? `meta[${token.id}]` : undefined, `meta[${token.toString()}]`)
+    super(`meta[${token}]`)
   }
 
   [createPublisher](registry: TokenRegistry): StatePublisher<Meta<M, E>> {

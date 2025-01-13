@@ -20,7 +20,7 @@ export function exec<M>(command: Command<M>, message: M): ExecMessage<M> {
 
 export class BasicCommand<M> extends Command<M> {
   constructor(private trigger: ((get: GetState) => M) | undefined) {
-    super(undefined, undefined)
+    super(undefined)
   }
 
   [createController](): CommandController<M> {

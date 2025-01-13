@@ -15,7 +15,7 @@ const basicMetaBehavior: ConfigurableExample =
       suppose: [
         fact("there is a container", (context) => {
           context.setTokens({
-            container: container({ initialValue: 27 })
+            container: container({ name: "fun-container", initialValue: 27 })
           })
         }),
         fact("there is a subscriber to the meta container", (context) => {
@@ -27,6 +27,9 @@ const basicMetaBehavior: ConfigurableExample =
           expect(context.valuesForSubscriber("meta-sub"), is(arrayWith([
             okMessage()
           ])))
+        }),
+        effect("the name of the container is included in the stringified meta token", (context) => {
+          expect(context.tokens.container.meta.toString(), is("meta[fun-container]"))
         })
       ]
     })

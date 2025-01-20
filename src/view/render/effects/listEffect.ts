@@ -11,6 +11,7 @@ export interface VirtualItem {
   key: any
   index: number
   isDetached: boolean
+  prev: VirtualItem | undefined
   next: VirtualItem | undefined
   node: Node
   firstNode?: Node
@@ -135,6 +136,7 @@ export class ListEffect implements StateListener {
     if (this.first.next?.key === firstData) {
       this.remove(this.first)
       this.first = this.first.next
+      this.first!.prev = undefined
       if (this.usesIndex && this.first !== undefined) {
         this.updateIndex(0, this.first)
       }
@@ -145,7 +147,12 @@ export class ListEffect implements StateListener {
     if (cached !== undefined) {
       const updated = { ...cached }
       this.replaceNode(this.first, updated)
+      updated.prev!.next = updated.next
+      if (updated.next) {
+        updated.next.prev = updated.prev
+      }
       updated.next = this.first.next
+      updated.prev = undefined
       this.first.isDetached = true
       if (this.usesIndex && updated.index !== 0) {
         this.updateIndex(0, updated)
@@ -157,6 +164,7 @@ export class ListEffect implements StateListener {
       const created = this.createItem(0, firstData)
       this.insertBefore(this.first, created)
       created.next = this.first
+      this.first.prev = created
       return created
     }
 
@@ -186,6 +194,7 @@ export class ListEffect implements StateListener {
       const next = this.createItem(index, data)
       this.append(next)
       last.next = next
+      next.prev = last
       return next
     }
 
@@ -196,6 +205,7 @@ export class ListEffect implements StateListener {
     if (data === current.next?.key) {
       this.remove(current)
       last.next = current.next
+      current.next!.prev = last
       current.isDetached = true
       return current.next!
     }
@@ -205,12 +215,22 @@ export class ListEffect implements StateListener {
       const next: VirtualItem = { ...cached }
       if (next.isDetached) {
         this.insertAfter(last, next)
+        last.next = next
+        next.next = current
+        current.prev = next
+        next.prev = last
+        next.isDetached = false
       } else {
+        if (next.prev) {
+          next.prev.next = next.next
+        }
         this.replaceNode(current, next)
+        last.next = next
+        next.prev = last
+        next.next = current.next
+        current.next!.prev = next
+        current.isDetached = true
       }
-      last.next = next
-      next.next = current.next
-      current.isDetached = true
       return next
     }
 
@@ -317,6 +337,7 @@ export class ListEffect implements StateListener {
       key: data,
       index,
       isDetached: false,
+      prev: undefined,
       next: undefined,
       registry: overlayRegistry,
       node

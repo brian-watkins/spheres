@@ -28,6 +28,26 @@ export default behavior("reorder list", [
     }),
 
   example(renderContext<ListExamplesState>())
+    .description("reorder element from earlier to later")
+    .script({
+      suppose: renderAppBasedOnState(["one", "two", "three", "four", "five"]),
+      perform: [
+        updateState("the list is reordered", [
+          "two", "one", "three", "four", "five"
+        ])
+      ],
+      observe: [
+        childElementText("the elements are in the expected order", [
+          "two (0)",
+          "one (1)",
+          "three (2)",
+          "four (3)",
+          "five (4)",
+        ])
+      ]
+    }),
+
+  example(renderContext<ListExamplesState>())
     .description("reorder")
     .script({
       suppose: renderAppBasedOnState(["one", "two", "three", "four", "five"]),
@@ -132,14 +152,14 @@ export default behavior("reorder list", [
       suppose: [
         fact("there is state", (context) => {
           context.setState({
-            items: container({ initialValue: [ "one", "two", "three", "four", "five" ]})
+            items: container({ initialValue: ["one", "two", "three", "four", "five"] })
           })
         }),
         fact("there is a list of lists", (context) => {
           context.mountView(root => {
             root.main(el => {
               el.children.subviews(get => get(context.state.items), (item, index) => root => {
-                root.subviews(() => [ "a", "b" ], (subItem, subIndex) => root => {
+                root.subviews(() => ["a", "b"], (subItem, subIndex) => root => {
                   root.div(el => {
                     el.children.textNode(get => `${get(item)} at ${get(index)} => ${get(subItem)} at ${get(subIndex)}`)
                   })
@@ -168,7 +188,7 @@ export default behavior("reorder list", [
     }).andThen({
       perform: [
         step("reorder the main list", (context) => {
-          context.writeTo(context.state.items, [ "five", "four", "three", "two", "one" ])
+          context.writeTo(context.state.items, ["five", "four", "three", "two", "one"])
         })
       ],
       observe: [

@@ -1,5 +1,11 @@
 # spheres
 
+## 0.15.2
+
+### Patch Changes
+
+- 1a4f687: Fixed list reordering bug
+
 ## 0.15.1
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # spheres
 
+## 0.15.3
+
+### Patch Changes
+
+- 24dadb7: Fix bug with reordering list items
+
 ## 0.15.2
 
 ### Patch Changes

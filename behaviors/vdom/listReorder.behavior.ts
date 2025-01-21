@@ -64,6 +64,22 @@ export default behavior("reorder list", [
     }),
 
   example(renderContext<ListExamplesState>())
+    .description("move so the end is replaced")
+    .script({
+      suppose: renderAppBasedOnState(["one", "two", "three", "four", "five"]),
+      perform: [
+        updateState("the list is reordered", [
+          "two", "three", "four", "one", "five"
+        ])
+      ],
+      observe: [
+        childElementText("the elements are in the expected order", [
+          "two (0)", "three (1)", "four (2)", "one (3)", "five (4)"
+        ])
+      ]
+    }),
+
+  example(renderContext<ListExamplesState>())
     .description("swap")
     .script({
       suppose: renderAppBasedOnState(["one", "two", "three", "four", "five", "six", "seven"]),

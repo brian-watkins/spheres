@@ -228,7 +228,9 @@ export class ListEffect implements StateListener {
         last.next = next
         next.prev = last
         next.next = current.next
-        current.next!.prev = next
+        if (current.next) {
+          current.next.prev = next
+        }
         current.isDetached = true
       }
       return next

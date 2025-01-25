@@ -2,7 +2,7 @@ import { behavior, effect, example, fact, step } from "best-behavior"
 import { renderContext } from "./helpers/renderContext.js";
 import { selectElements } from "helpers/displayElement.js";
 import { equalTo, expect, is, resolvesTo } from "great-expectations";
-import { ListExamplesState, childElementText, renderAppBasedOnState, updateState } from "helpers/listHelpers.js";
+import { ListExamplesState, childElementText, renderAppBasedOnState, ssrAndActivateBasedOnState, updateState } from "helpers/listHelpers.js";
 import { Container, container } from "@spheres/store";
 
 export default behavior("reorder list", [
@@ -78,6 +78,23 @@ export default behavior("reorder list", [
         ])
       ]
     }),
+
+  example(renderContext<ListExamplesState>())
+    .description("move last toward the front after activating ssr")
+    .script({
+      suppose: ssrAndActivateBasedOnState(["one", "two", "three", "four", "five"]),
+      perform: [
+        updateState("the list is reordered", [
+          "one", "five", "two", "three", "four"
+        ])
+      ],
+      observe: [
+        childElementText("the elements are in the expected order", [
+          "one (0)", "five (1)", "two (2)", "three (3)", "four (4)"
+        ])
+      ]
+    }),
+
 
   example(renderContext<ListExamplesState>())
     .description("swap")

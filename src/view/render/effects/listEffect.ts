@@ -74,6 +74,7 @@ export class ListEffect implements StateListener {
         this.first = item
       } else {
         lastItem!.next = item
+        item.prev = lastItem
       }
       lastItem = item
       index++
@@ -306,7 +307,8 @@ export class ListEffect implements StateListener {
   activateItem(index: number, node: Node, data: any): [VirtualItem, Node] {
     let virtualItem: any = {
       key: data,
-      next: undefined
+      next: undefined,
+      prev: undefined
     }
 
     const overlayRegistry = this.listVnode.template.createOverlayRegistry(this.registry, data, index)

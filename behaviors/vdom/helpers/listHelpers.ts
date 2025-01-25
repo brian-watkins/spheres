@@ -32,6 +32,19 @@ export function renderAppBasedOnState(data: Array<string>): Array<Presupposition
   ]
 }
 
+export function ssrAndActivateBasedOnState(data: Array<string>): Array<Presupposition<RenderApp<ListExamplesState>>> {
+  return [
+    containerWithList(data),
+    fact("there is a view that renders based on the list", (context) => {
+      context.ssrAndActivate(root => {
+        root.div(el => {
+          el.children.subviews(get => get(context.state.listContainer), itemView)
+        })
+      })
+    }),
+  ]
+}
+
 export function itemView(item: State<string>, index: State<number>): HTMLView {
   return (root) => {
     root.p(el => {

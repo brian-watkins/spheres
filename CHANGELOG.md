@@ -1,5 +1,11 @@
 # spheres
 
+## 0.15.4
+
+### Patch Changes
+
+- a8093d6: Set prev link when activating items in list
+
 ## 0.15.3
 
 ### Patch Changes

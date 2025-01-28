@@ -1,5 +1,11 @@
 # spheres
 
+## 0.15.5
+
+### Patch Changes
+
+- 27efc16: Fix for inserting new items in list
+
 ## 0.15.4
 
 ### Patch Changes

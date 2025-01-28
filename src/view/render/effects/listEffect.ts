@@ -97,7 +97,7 @@ export class ListEffect implements StateListener {
 
     this.parentNode = this.listStart.parentNode!
 
-    this.first = this.updateFirst(data)
+    this.first = this.updateFirst(data[0])
 
     this.updateRest(this.first, data)
 
@@ -121,9 +121,7 @@ export class ListEffect implements StateListener {
     }
   }
 
-  private updateFirst(data: Array<any>): VirtualItem {
-    const firstData = data[0]
-
+  private updateFirst(firstData: any): VirtualItem {
     if (this.first === undefined) {
       const item = this.createItem(0, firstData)
       this.append(item)
@@ -161,7 +159,7 @@ export class ListEffect implements StateListener {
       return updated
     }  
 
-    if (this.first.key === data[1]) {
+    if (this.itemCache.has(this.first.key)) {
       const created = this.createItem(0, firstData)
       this.insertBefore(this.first, created)
       created.next = this.first
@@ -235,6 +233,16 @@ export class ListEffect implements StateListener {
         current.isDetached = true
       }
       return next
+    }
+
+    if (this.itemCache.has(current.key)) {
+      const created = this.createItem(index, data)
+      this.insertAfter(last, created)
+      last.next = created
+      created.prev = last
+      created.next = current
+      current.prev = created
+      return created
     }
 
     this.updateItemData(current, data)

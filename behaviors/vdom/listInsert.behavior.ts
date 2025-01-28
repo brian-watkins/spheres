@@ -153,6 +153,23 @@ export default behavior("insert items into list", [
           ])))
         })
       ]
-    })
+    }),
+
+  example(renderContext<ListExamplesState>())
+    .description("insert new item in the middle")
+    .script({
+      suppose: renderAppBasedOnState(["one", "two", "three", "four", "five"]),
+      perform: [
+        updateState("the list is reordered", [
+          "one", "six", "two", "three", "four", "five"
+        ]),
+      ],
+      observe: [
+        childElementText("the elements are in the expected order", [
+          "one (0)", "six (1)", "two (2)", "three (3)", "four (4)", "five (5)"
+        ])
+      ]
+    }),
+
 
 ])

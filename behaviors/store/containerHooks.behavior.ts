@@ -7,7 +7,6 @@ import { testStoreContext } from "helpers/testStore";
 
 interface BasicContainerHooksContext {
   container: Container<string>
-  readyTask: TestTask<string>,
   writeTask: TestTask<string>
 }
 
@@ -16,16 +15,10 @@ const basicContainerHooks: ConfigurableExample =
     .description("basic container hooks usage")
     .script({
       suppose: [
-        fact("there is a container with onReady and onWrite hooks", (context) => {
+        fact("there is a container with onWrite hooks", (context) => {
           const stringContainer = container({ initialValue: "initial" })
-          const readyTask = new TestTask<string>()
           const writeTask = new TestTask<string>()
           const hooks: ContainerHooks<string, string> = {
-            async onReady(actions) {
-              actions.pending(`Loading! Current is: ${actions.current}`)
-              const val = await readyTask.waitForIt()
-              actions.supply(`Loaded: ${val}`)
-            },
             async onWrite(message, actions) {
               actions.pending(`Writing: ${message}; Current is: ${actions.current}`)
               const val = await writeTask.waitForIt()
@@ -35,7 +28,6 @@ const basicContainerHooks: ConfigurableExample =
           context.useContainerHooks(stringContainer, hooks)
           context.setTokens({
             container: stringContainer,
-            readyTask,
             writeTask,
           })
         }),
@@ -52,28 +44,8 @@ const basicContainerHooks: ConfigurableExample =
             "initial"
           ]))
         }),
-        effect("the meta container subscriber receives a loading message", (context) => {
+        effect("the meta container subscriber receives an ok message", (context) => {
           expect(context.valuesForSubscriber("meta-sub-1"), is(arrayWith([
-            pendingMessage("Loading! Current is: initial")
-          ])))
-        })
-      ]
-    }).andThen({
-      perform: [
-        step("the ready hook loads and supplies data", (context) => {
-          context.tokens.readyTask.resolveWith("Fun stuff!")
-        })
-      ],
-      observe: [
-        effect("the container subscriber receives the loaded data", (context) => {
-          expect(context.valuesForSubscriber("sub-1"), is([
-            "initial",
-            "Loaded: Fun stuff!"
-          ]))
-        }),
-        effect("the meta container subscriber receives an ok message (and the onWrite hook is not called)", (context) => {
-          expect(context.valuesForSubscriber("meta-sub-1"), is(arrayWith([
-            pendingMessage("Loading! Current is: initial"),
             okMessage()
           ])))
         })
@@ -88,14 +60,12 @@ const basicContainerHooks: ConfigurableExample =
         effect("the container subscriber receives nothing yet", (context) => {
           expect(context.valuesForSubscriber("sub-1"), is([
             "initial",
-            "Loaded: Fun stuff!"
           ]))
         }),
         effect("the meta container subscriber receives a pending message from the onWrite hook", (context) => {
           expect(context.valuesForSubscriber("meta-sub-1"), is(arrayWith([
-            pendingMessage("Loading! Current is: initial"),
             okMessage(),
-            pendingMessage("Writing: A new value!; Current is: Loaded: Fun stuff!")
+            pendingMessage("Writing: A new value!; Current is: initial")
           ])))
         })
       ]
@@ -109,36 +79,31 @@ const basicContainerHooks: ConfigurableExample =
         effect("the container subscriber receives the published value", (context) => {
           expect(context.valuesForSubscriber("sub-1"), is([
             "initial",
-            "Loaded: Fun stuff!",
             "Wrote: Great Values!"
           ]))
         }),
         effect("the meta subscriber receives an ok message", (context) => {
           expect(context.valuesForSubscriber("meta-sub-1"), is(arrayWith([
-            pendingMessage("Loading! Current is: initial"),
             okMessage(),
-            pendingMessage("Writing: A new value!; Current is: Loaded: Fun stuff!"),
+            pendingMessage("Writing: A new value!; Current is: initial"),
             okMessage()
           ])))
         })
       ]
     })
 
-interface ErrorInReadyHookContext {
+interface ErrorInWriteHookContext {
   container: Container<string>
 }
 
-const errorInReadyHook: ConfigurableExample =
-  example(testStoreContext<ErrorInReadyHookContext>())
-    .description("when the error meta state is set")
+const errorInWriteHook: ConfigurableExample =
+  example(testStoreContext<ErrorInWriteHookContext>())
+    .description("when the error meta state is set in the write hook")
     .script({
       suppose: [
         fact("there is a container with a hooks that writes errors", (context) => {
           const stringContainer = container({ initialValue: "hello" })
           const hooks: ContainerHooks<string, string, number> = {
-            async onReady(actions) {
-              actions.error(actions.current, 32)
-            },
             async onWrite(message, actions) {
               actions.error(message, 61)
             },
@@ -166,9 +131,9 @@ const errorInReadyHook: ConfigurableExample =
             "hello"
           ]))
         }),
-        effect("the meta subscriber receives the error messages", (context) => {
+        effect("the meta subscriber receives the error message", (context) => {
           expect(context.valuesForSubscriber("meta-sub"), is(arrayWith([
-            errorMessage("hello", 32),
+            okMessage(),
             errorMessage("another message", 61)
           ])))
         })
@@ -191,9 +156,6 @@ const getStateInHooks: ConfigurableExample =
           const two = container({ initialValue: "hello" })
           const myContainer = container({ initialValue: "initial" })
           const hooks: ContainerHooks<string, string> = {
-            onReady(actions) {
-              actions.supply(`Loading: ${actions.get(one)}-${actions.get(two)}`)
-            },
             onWrite(message, actions) {
               actions.ok(`Writing: ${message} & ${actions.get(one)}-${actions.get(two)}`)
             }
@@ -221,55 +183,8 @@ const getStateInHooks: ConfigurableExample =
       observe: [
         effect("the subscriber receives the messages", (context) => {
           expect(context.valuesForSubscriber("sub-1"), is([
-            "Loading: 23-hello",
+            "initial",
             "Writing: some message & 49-funny"
-          ]))
-        })
-      ]
-    })
-
-interface AddContainerHookOnRegisterContext {
-  container: Container<string>
-}
-
-const addContainerHooksOnRegister: ConfigurableExample =
-  example(testStoreContext<AddContainerHookOnRegisterContext>())
-    .description("when container hooks are added on register")
-    .script({
-      suppose: [
-        fact("there is a container", (context) => {
-          context.setTokens({
-            container: container({ initialValue: "hello" })
-          })
-        }),
-        fact("container hooks are added to a container on register", (context) => {
-          context.store.useHooks({
-            onRegister(token) {
-              context.store.useContainerHooks(token, {
-                async onReady(actions) {
-                  actions.supply("Loaded")
-                },
-                async onWrite(message, actions) {
-                  actions.ok(`Wrote: ${message}`)
-                },
-              })
-            }
-          })
-        }),
-        fact("there is a subscriber", (context) => {
-          context.subscribeTo(context.tokens.container, "sub")
-        })
-      ],
-      perform: [
-        step("a message is written to the container", (context) => {
-          context.writeTo(context.tokens.container, "awesome")
-        })
-      ],
-      observe: [
-        effect("the subscriber gets the messages", (context) => {
-          expect(context.valuesForSubscriber("sub"), is([
-            "Loaded",
-            "Wrote: awesome"
           ]))
         })
       ]
@@ -296,9 +211,6 @@ const containerHooksWithReducer: ConfigurableExample =
         }),
         fact("container hooks are associated with the container", (context) => {
           context.useContainerHooks(context.tokens.container, {
-            async onReady(actions) {
-              actions.supply(31)
-            },
             async onWrite(message, actions) {
               if (message === "increment") {
                 actions.ok("add")
@@ -323,8 +235,8 @@ const containerHooksWithReducer: ConfigurableExample =
       observe: [
         effect("the subscriber receives the messages", (context) => {
           expect(context.valuesForSubscriber("funny-sub"), is([
-            31,
-            32
+            27,
+            28
           ]))
         })
       ]
@@ -332,8 +244,7 @@ const containerHooksWithReducer: ConfigurableExample =
 
 export default behavior("Container Hooks", [
   basicContainerHooks,
-  errorInReadyHook,
+  errorInWriteHook,
   getStateInHooks,
-  addContainerHooksOnRegister,
   containerHooksWithReducer
 ])

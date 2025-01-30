@@ -1,6 +1,6 @@
 import { Container } from "./state/container.js"
 import { dispatchMessage, StoreMessage } from "./message.js"
-import { error, pending } from "./state/meta.js"
+import { error, Meta, pending } from "./state/meta.js"
 import { WeakMapTokenRegistry } from "./store/weakMapTokenRegistry.js"
 import { StateWriter } from "./state/publisher/stateWriter.js"
 import { Command, GetState, initializeCommand, initListener, State, StateListener, StateListenerVersion, StatePublisher, TokenRegistry } from "./tokenRegistry.js"
@@ -16,14 +16,6 @@ export function createStore(id?: string): Store {
   })
 }
 
-export interface ReadyHookActions<T, M, E> {
-  get: GetState
-  supply(value: T): void
-  pending(value: M): void
-  error(value: M, reason: E): void
-  current: T
-}
-
 export interface WriteHookActions<T, M, E> {
   get: GetState
   ok(value: M): void
@@ -33,7 +25,6 @@ export interface WriteHookActions<T, M, E> {
 }
 
 export interface ContainerHooks<T, M, E = unknown> {
-  onReady?(actions: ReadyHookActions<T, M, E>): void
   onWrite?(message: M, actions: WriteHookActions<T, M, E>): void
 }
 
@@ -58,6 +49,13 @@ const tokenRegistry = Symbol("tokenRegistry")
 
 export function getTokenRegistry(store: Store): TokenRegistry {
   return store[tokenRegistry]
+}
+
+export interface Initializer<T, M, E = unknown> {
+  get: GetState
+  supply(value: T): void
+  pending(value: M): void
+  error(value: M, reason: E): void
 }
 
 export class Store {
@@ -109,10 +107,10 @@ export class Store {
   useContainerHooks<T, M, E>(container: Container<T, M>, hooks: ContainerHooks<T, M, E>) {
     const writerWithHooks = stateWriterWithHooks(this.registry, container, this.registry.get<StateWriter<any>>(container), hooks)
     this.registry.set(container, writerWithHooks)
+  }
 
-    if (hooks.onReady !== undefined) {
-      hooks.onReady(containerReadyActions(this.registry, container, writerWithHooks))
-    }
+  initialize<S, T, M, E = unknown>(container: Container<T, M, E>, initializer: (actions: Initializer<T, M, E>) => S): S {
+    return initializer(initializerActions(this.registry, container))
   }
 
   serialize(map: Map<string, State<any>>): string {
@@ -151,7 +149,8 @@ function stateWriterWithHooks<T, M, E>(registry: TokenRegistry, container: Conta
   return withHooks
 }
 
-function containerReadyActions<T, M, E>(registry: TokenRegistry, container: Container<T, M>, writer: StateWriter<T>): ReadyHookActions<T, M, E> {
+function initializerActions<T, M, E>(registry: TokenRegistry, container: Container<T, M>): Initializer<T, M, E> {
+  const writer = registry.get<StateWriter<T>>(container)
   return {
     get: (state) => {
       return registry.get<StatePublisher<any>>(state).getValue()
@@ -160,12 +159,11 @@ function containerReadyActions<T, M, E>(registry: TokenRegistry, container: Cont
       writer.publish(value)
     },
     pending: (message) => {
-      registry.get<StateWriter<any>>(container.meta).publish(pending(message))
+      registry.get<StateWriter<Meta<M, E>>>(container.meta).publish(pending(message))
     },
     error: (message, reason) => {
-      registry.get<StateWriter<any>>(container.meta).publish(error(message, reason))
-    },
-    current: writer.getValue()
+      registry.get<StateWriter<Meta<M, E>>>(container.meta).publish(error(message, reason))
+    }
   }
 }
 

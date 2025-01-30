@@ -18,7 +18,7 @@ class StoreValuesEffect implements ReactiveEffect {
 }
 
 export class TestStore<T> {
-  public store: Store
+  readonly store: Store
   private _tokens: T | undefined
   private values: Map<string, StoreValuesEffect> = new Map()
 

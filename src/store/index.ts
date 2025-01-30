@@ -1,9 +1,9 @@
 export * from "./state/meta.js"
 export {
-  type ReadyHookActions,
   type WriteHookActions,
   type ContainerHooks,
   type StoreHooks,
+  type Initializer,
   type Store,
   type ReactiveEffect,
   type ReactiveEffectHandle,

@@ -1,5 +1,11 @@
 # spheres
 
+## 0.16.0
+
+### Minor Changes
+
+- 805e249: Easier API for initializing container state
+
 ## 0.15.5
 
 ### Patch Changes

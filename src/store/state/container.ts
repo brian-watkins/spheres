@@ -22,7 +22,7 @@ export function container<T, M = T, E = any>(initializer: ContainerInitializer<T
   return token
 }
 
-export function write<T, M = T>(container: Container<T, M>, value: M): WriteMessage<T, M> {
+export function write<T, M = T>(container: Container<T, M>, value: NoInfer<M>): WriteMessage<T, M> {
   return {
     type: "write",
     container,
@@ -30,7 +30,7 @@ export function write<T, M = T>(container: Container<T, M>, value: M): WriteMess
   }
 }
 
-export function update<T, M = T>(container: Container<T, M>, generator: (current: T) => M): UpdateMessage<T, M> {
+export function update<T, M = T>(container: Container<T, M>, generator: (current: NoInfer<T>) => NoInfer<M>): UpdateMessage<T, M> {
   return {
     type: "update",
     container,

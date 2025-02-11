@@ -25,9 +25,9 @@ export default behavior("update container", [
     .script({
       suppose: [
         fact("there is a container with an update function", (context) => {
-          const fancyContainer = container({
+          const fancyContainer = container<string, FancyMessage>({
             initialValue: "hello",
-            update: (message: FancyMessage, current) => {
+            update: (message, current) => {
               switch (message.type) {
                 case "insert":
                   return { value: `${current} ${message.value}` }

@@ -88,7 +88,7 @@ export default behavior("container collection", [
         fact("there are container hooks defined for the container", (context) => {
           context.useContainerHooks(context.tokens.collection.get("container-1"), {
             async onWrite(message, actions) {
-              actions.error(message, "Oops!")
+              actions.error("Oops!", message)
             },
           })
         })

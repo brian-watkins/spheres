@@ -16,9 +16,9 @@ interface TestCommandContext {
 }
 
 interface TestCommandStateContext {
-  command: Command<{ container: SuppliedState<string, number, boolean> }>
-  responseContainer: SuppliedState<string, number, boolean>
-  task: TestTask<number, boolean>
+  command: Command<{ container: SuppliedState<string, boolean> }>
+  responseContainer: SuppliedState<string, boolean>
+  task: TestTask<string, boolean>
 }
 
 interface TestCommandGetStateContext {
@@ -73,18 +73,18 @@ export default behavior("command", [
     .script({
       suppose: [
         fact("there is a command that accepts supplied state to write to in its message", (context) => {
-          const funCommand = command<{ container: SuppliedState<string, number, boolean> }>()
-          const task = new TestTask<number, boolean>()
+          const funCommand = command<{ container: SuppliedState<string, boolean> }>()
+          const task = new TestTask<string, boolean>()
           context.setTokens({
             command: funCommand,
-            responseContainer: supplied<string, number, boolean>({ initialValue: "initial value" }),
+            responseContainer: supplied<string, boolean>({ initialValue: "initial value" }),
             task
           })
           context.useCommand(funCommand, async (message, { supply, pending, error }) => {
-            pending(message.container, 27)
+            pending(message.container)
             const result = await task.waitForIt()
-            if (result < 20) {
-              error(message.container, result, false)
+            if (result === "show-error") {
+              error(message.container, false)
             } else {
               supply(message.container, `Hello from the command! (${result})`)
             }
@@ -104,7 +104,7 @@ export default behavior("command", [
           }))
         }),
         step("the task resolves and causes an error", (context) => {
-          context.tokens.task.resolveWith(10)
+          context.tokens.task.resolveWith("show-error")
         }),
         step("the command is triggered again", (context) => {
           context.store.dispatch(exec(context.tokens.command, {
@@ -112,22 +112,22 @@ export default behavior("command", [
           }))
         }),
         step("the task resolves and causes a supply", (context) => {
-          context.tokens.task.resolveWith(30)
+          context.tokens.task.resolveWith("Fun!")
         })
       ],
       observe: [
         effect("subscribers to the supplied state receive the supplied value", (context) => {
           expect(context.valuesForSubscriber("sub-1"), is([
             "initial value",
-            "Hello from the command! (30)"
+            "Hello from the command! (Fun!)"
           ]))
         }),
         effect("the meta subscriber receives meta info about the supplied state", (context) => {
           expect(context.valuesForSubscriber("meta-sub-1"), is(arrayWith([
             okMessage(),
-            pendingMessage(27),
-            errorMessage(10, false),
-            pendingMessage(27),
+            pendingMessage(undefined),
+            errorMessage(undefined, false),
+            pendingMessage(undefined),
             okMessage()
           ])))
         })
@@ -230,7 +230,7 @@ export default behavior("command", [
             task
           })
           context.useCommand(myCommand, async (message, actions) => {
-            actions.pending(suppliedCollection.get("fun-stuff"), message)
+            actions.pending(suppliedCollection.get("fun-stuff"))
             await task.waitForIt()
             actions.supply(suppliedCollection.get("fun-stuff"), `From command: ${message}`)
           })
@@ -260,7 +260,7 @@ export default behavior("command", [
         effect("the meta subscriber gets the values", (context) => {
           expect(context.valuesForSubscriber("meta-supplied-sub"), is(arrayWith([
             okMessage(),
-            pendingMessage("yo yo yo"),
+            pendingMessage(undefined),
             okMessage()
           ])))
         })

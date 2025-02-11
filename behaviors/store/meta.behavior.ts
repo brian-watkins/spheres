@@ -126,7 +126,7 @@ const metaErrorBehavior: ConfigurableExample =
           })
           context.useContainerHooks(context.tokens.container, {
             async onWrite(_, actions) {
-              actions.error("goodbye", 37)
+              actions.error(37, "goodbye")
             },
           })
         }),

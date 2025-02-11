@@ -20,7 +20,7 @@ export interface WriteHookActions<T, M, E> {
   get: GetState
   ok(value: M): void
   pending(value: M): void
-  error(value: M, reason: E): void
+  error(reason: E, value: M): void
   current: T
 }
 
@@ -54,8 +54,8 @@ export function getTokenRegistry(store: Store): TokenRegistry {
 export interface Initializer<T, M, E = unknown> {
   get: GetState
   supply(value: T): void
-  pending(value: M): void
-  error(value: M, reason: E): void
+  pending(...value: NoInfer<M> extends never ? [] : [NoInfer<M>]): void
+  error(reason: E, ...message: NoInfer<M> extends never ? [] : [NoInfer<M>]): void
 }
 
 export class Store {
@@ -158,11 +158,19 @@ function initializerActions<T, M, E>(registry: TokenRegistry, container: Contain
     supply: (value) => {
       writer.publish(value)
     },
-    pending: (message) => {
-      registry.get<StateWriter<Meta<M, E>>>(container.meta).publish(pending(message))
+    pending: (...message) => {
+      if (message.length === 0) {
+        registry.get<StateWriter<Meta<undefined, E>>>(container.meta).publish(pending(undefined))  
+      } else {
+        registry.get<StateWriter<Meta<M, E>>>(container.meta).publish(pending(message[0]))
+      }
     },
-    error: (message, reason) => {
-      registry.get<StateWriter<Meta<M, E>>>(container.meta).publish(error(message, reason))
+    error: (reason, ...message) => {
+      if (message.length === 0) {
+        registry.get<StateWriter<Meta<undefined, E>>>(container.meta).publish(error(reason, undefined))  
+      } else {
+        registry.get<StateWriter<Meta<M, E>>>(container.meta).publish(error(reason, message[0]))
+      }
     }
   }
 }
@@ -178,8 +186,8 @@ function containerWriteActions<T, M, E>(registry: TokenRegistry, container: Cont
     pending: (message) => {
       registry.get<StateWriter<any>>(container.meta).write(pending(message))
     },
-    error: (message, reason) => {
-      registry.get<StateWriter<any>>(container.meta).write(error(message, reason))
+    error: (reason, message) => {
+      registry.get<StateWriter<any>>(container.meta).write(error(reason, message))
     },
     current: writer.getValue()
   }

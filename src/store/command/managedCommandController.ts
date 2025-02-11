@@ -1,13 +1,13 @@
 import { StateWriter } from "../state/publisher/stateWriter.js"
 import { error, pending } from "../state/meta.js"
-import { SuppliedState } from "../state/supplied.js"
 import { CommandController, State, StatePublisher, TokenRegistry } from "../tokenRegistry.js"
+import { Container } from "../state/container.js"
 
 export interface CommandActions {
   get<T>(state: State<T>): T
-  supply<T, M, E>(state: SuppliedState<T, M, E>, value: T): void
-  pending<T, M, E>(state: SuppliedState<T, M, E>, message: M): void
-  error<T, M, E>(state: SuppliedState<T, M, E>, message: M, reason: E): void
+  supply<T, M, E>(state: Container<T, M, E>, value: NoInfer<T>): void
+  pending<T, M, E>(state: Container<T, M, E>, ...message: NoInfer<M> extends never ? [] : [NoInfer<M>]): void
+  error<T, M, E>(state: Container<T, M, E>, reason: NoInfer<E>, ...message: NoInfer<M> extends never ? [] : [NoInfer<M>]): void
 }
 
 export interface CommandManager<M> {
@@ -25,11 +25,19 @@ export class ManagedCommandController<T> implements CommandController<T> {
       supply: (token, value) => {
         this.registry.get<StateWriter<any>>(token).publish(value)
       },
-      pending: (token, message) => {
-        this.registry.get<StateWriter<any>>(token.meta).write(pending(message))
+      pending: (token, ...message) => {
+        if (message.length === 0) {
+          this.registry.get<StateWriter<any>>(token.meta).write(pending(undefined))
+        } else {
+          this.registry.get<StateWriter<any>>(token.meta).write(pending(message[0]))
+        }
       },
-      error: (token, message, reason) => {
-        this.registry.get<StateWriter<any>>(token.meta).write(error(message, reason))
+      error: (token, reason, ...message) => {
+        if (message.length === 0) {
+          this.registry.get<StateWriter<any>>(token.meta).write(error(reason, undefined))
+        } else {
+          this.registry.get<StateWriter<any>>(token.meta).write(error(reason, message[0]))
+        }
       }
     })
   }

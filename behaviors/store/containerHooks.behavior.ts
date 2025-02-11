@@ -105,7 +105,7 @@ const errorInWriteHook: ConfigurableExample =
           const stringContainer = container({ initialValue: "hello" })
           const hooks: ContainerHooks<string, string, number> = {
             async onWrite(message, actions) {
-              actions.error(message, 61)
+              actions.error(61, message)
             },
           }
           context.useContainerHooks(stringContainer, hooks)

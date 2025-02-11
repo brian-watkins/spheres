@@ -1,7 +1,7 @@
-import { container, write } from "@src/index";
+import { container, supplied, write } from "@src/index";
 import { behavior, effect, example, step } from "best-behavior";
-import { arrayWith, expect, is } from "great-expectations";
-import { errorMessage, pendingMessage } from "helpers/metaMatchers";
+import { arrayWith, equalTo, expect, is, objectWithProperty } from "great-expectations";
+import { errorMessage, okMessage, pendingMessage } from "helpers/metaMatchers";
 import { testStoreContext } from "helpers/testStore";
 
 export default behavior("initialize state", [
@@ -92,7 +92,7 @@ export default behavior("initialize state", [
       perform: [
         step("initialize meta container values", async (context) => {
           await context.store.initialize(testContainer, async (actions) => {
-            actions.error({ action: "Loading!" }, "No reason!")
+            actions.error("No reason!", { action: "Loading!" })
           })
         }),
         step("subscribe to updates on the container", (context) => {
@@ -116,6 +116,80 @@ export default behavior("initialize state", [
       ]
     }),
 
+  example(testStoreContext())
+    .description("initialize readonly container")
+    .script({
+      perform: [
+        step("initialize readonly container pending state", (context) => {
+          context.store.initialize(readonlyContainer, actions => {
+            actions.pending()
+          })
+        }),
+        step("there is a subscriber to the container", (context) => {
+          context.subscribeTo(readonlyContainer, "sub-1")
+        }),
+        step("there is a subscriber to the associated meta container", (context) => {
+          context.subscribeTo(readonlyContainer.meta, "sub-meta")
+        })
+      ],
+      observe: [
+        effect("the subscriber receives the initial value only", (context) => {
+          expect(context.valuesForSubscriber("sub-1"), is([
+            17
+          ]))
+        }),
+        effect("the meta subscriber receives the pending message", (context) => {
+          expect(context.valuesForSubscriber("sub-meta"), is(arrayWith([
+            pendingMessage(undefined)
+          ])))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("initialize with an error", (context) => {
+          context.store.initialize(readonlyContainer, actions => {
+            actions.error("It failed!")
+          })
+        })
+      ],
+      observe: [
+        effect("the subscriber receives the initial value only", (context) => {
+          expect(context.valuesForSubscriber("sub-1"), is([
+            17
+          ]))
+        }),
+        effect("the meta subscriber receives the error message", (context) => {
+          expect(context.valuesForSubscriber("sub-meta"), is(arrayWith([
+            objectWithProperty("type", equalTo("pending")),
+            errorMessage(undefined, "It failed!")
+          ])))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("a value is supplied", (context) => {
+          context.store.initialize(readonlyContainer, actions => {
+            actions.supply(31)
+          })
+        })
+      ],
+      observe: [
+        effect("the subscriber receives the supplied value", (context) => {
+          expect(context.valuesForSubscriber("sub-1"), is([
+            17,
+            31
+          ]))
+        }),
+        effect("the meta subscriber receives the ok message", (context) => {
+          expect(context.valuesForSubscriber("sub-meta"), is(arrayWith([
+            pendingMessage(undefined),
+            errorMessage(undefined, "It failed!"),
+            okMessage()
+          ])))
+        })
+      ]
+    })
+
 ])
 
 interface TestMessage {
@@ -132,3 +206,5 @@ const testContainer = container<string, TestMessage>({
 const anotherTestContainer = container<number>({
   initialValue: 0
 })
+
+const readonlyContainer = supplied<number, string>({ initialValue: 17 })

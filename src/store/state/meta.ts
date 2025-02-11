@@ -12,7 +12,7 @@ export interface OkMessage {
 
 export interface ErrorMessage<M, E> {
   type: "error"
-  message: M | undefined
+  message: M
   reason: E
 }
 
@@ -31,7 +31,7 @@ export function pending<M>(message: M): PendingMessage<M> {
   }
 }
 
-export function error<M, E>(message: M | undefined, reason: E): ErrorMessage<M, E> {
+export function error<M, E>(reason: E, message: M): ErrorMessage<M, E> {
   return {
     type: "error",
     message,

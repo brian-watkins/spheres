@@ -1,5 +1,12 @@
 # spheres
 
+## 0.17.0
+
+### Minor Changes
+
+- 6b0e308: Serialize meta values for containers
+- 7a32b7f: Better type support for containers with supplied values
+
 ## 0.16.0
 
 ### Minor Changes

@@ -1,23 +1,23 @@
 import { Meta } from "@src/index.js"
-import { equalTo, Matcher } from "great-expectations"
+import { equalTo, Matcher, objectWith } from "great-expectations"
 
 export function pendingMessage<M>(message: M): Matcher<Meta<M, unknown>> {
-  return equalTo<Meta<M, unknown>>({
-    type: "pending",
-    message
+  return objectWith<Meta<M, unknown>>({
+    type: equalTo("pending"),
+    message: equalTo(message)
   })
 }
 
 export function errorMessage<M, E>(message: M, reason: E): Matcher<Meta<M, E>> {
-  return equalTo<Meta<M, E>>({
-    type: "error",
-    message,
-    reason
+  return objectWith<Meta<M, E>>({
+    type: equalTo("error"),
+    message: equalTo(message),
+    reason: equalTo(reason)
   })
 }
 
 export function okMessage(): Matcher<Meta<any, unknown>> {
-  return equalTo<Meta<any, unknown>>({
-    type: "ok"
+  return objectWith<Meta<any, unknown>>({
+    type: equalTo("ok")
   })
 }

@@ -116,20 +116,42 @@ export class Store {
   serialize(map: Map<string, State<any>>): string {
     const map_data = Array.from(map.entries())
       .map(([key, token]) => {
-        const value = this.registry.get<StatePublisher<any>>(token).getValue()
-        return `["${key}",${JSON.stringify(value)}]`
+        const serializedValue: SerializedValue = {
+          v: this.registry.get<StatePublisher<any>>(token).getValue(),
+        }
+
+        if (token instanceof Container) {
+          const metaValue = this.registry.get<StatePublisher<Meta<any, any>>>(token.meta).getValue()
+          if (metaValue.type !== "ok") {
+            serializedValue.mv = metaValue
+          }
+        }
+
+        return `["${key}",${JSON.stringify(serializedValue)}]`
       })
       .join(",")
 
     return `globalThis[Symbol.for("${this.id}")] = new Map([${map_data}]);`
   }
 
-  deserialize(map: Map<string, State<any>>) {
-    const serializedData = globalThis[Symbol.for(this.id)]
+  deserialize(map: Map<string, State<any>>, scope: Record<symbol, any> = globalThis) {
+    const serializedData = scope[Symbol.for(this.id)]
+
     for (const [id, token] of map) {
-      this.registry.registerState(token, serializedData?.get(id))
+      const deserialized: SerializedValue = serializedData?.get(id)
+      if (deserialized) {
+        this.registry.registerState(token, deserialized.v)
+        if (token instanceof Container && deserialized.mv !== undefined) {
+          this.registry.registerState(token.meta, deserialized.mv)
+        }
+      }
     }
   }
+}
+
+interface SerializedValue {
+  v: any
+  mv?: Meta<any, any>
 }
 
 function stateWriterWithHooks<T, M, E>(registry: TokenRegistry, container: Container<T, M, E>, writer: StateWriter<T>, hooks: ContainerHooks<T, M, E>): StateWriter<T> {
@@ -160,14 +182,14 @@ function initializerActions<T, M, E>(registry: TokenRegistry, container: Contain
     },
     pending: (...message) => {
       if (message.length === 0) {
-        registry.get<StateWriter<Meta<undefined, E>>>(container.meta).publish(pending(undefined))  
+        registry.get<StateWriter<Meta<undefined, E>>>(container.meta).publish(pending(undefined))
       } else {
         registry.get<StateWriter<Meta<M, E>>>(container.meta).publish(pending(message[0]))
       }
     },
     error: (reason, ...message) => {
       if (message.length === 0) {
-        registry.get<StateWriter<Meta<undefined, E>>>(container.meta).publish(error(reason, undefined))  
+        registry.get<StateWriter<Meta<undefined, E>>>(container.meta).publish(error(reason, undefined))
       } else {
         registry.get<StateWriter<Meta<M, E>>>(container.meta).publish(error(reason, message[0]))
       }

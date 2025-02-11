@@ -7,7 +7,7 @@ export function testStoreContext<T>(): Context<TestStore<T>> {
   }
 }
 
-class StoreValuesEffect implements ReactiveEffect {
+export class StoreValuesEffect implements ReactiveEffect {
   values: Array<any> = []
 
   constructor(private definition: (get: GetState) => any) { }

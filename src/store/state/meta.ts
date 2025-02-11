@@ -44,10 +44,10 @@ export class MetaState<T, M, E = unknown> extends State<Meta<M, E>> {
     super(`meta[${token}]`)
   }
 
-  [createPublisher](registry: TokenRegistry): StatePublisher<Meta<M, E>> {
+  [createPublisher](registry: TokenRegistry, serializedState?: Meta<M, E>): StatePublisher<Meta<M, E>> {
     const publisher = registry.get<StatePublisher<any>>(this.token)
 
-    const writer = new StateWriter<Meta<M, E>>(ok())
+    const writer = new StateWriter<Meta<M, E>>(serializedState ?? ok())
 
     publisher.addListener(new MetaStateListener(registry, writer))
 

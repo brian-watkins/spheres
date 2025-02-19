@@ -21,8 +21,7 @@ export function stringifyVirtualNode(registry: TokenRegistry, idSequence: IdSequ
 }
 
 function stringifyTextNode(node: TextNode): string {
-  // probably should escape stuff here to avoid security problems
-  return node.value.replace(/"/g, "&quot;")
+  return node.value
 }
 
 function stringifyElement(registry: TokenRegistry, idSequence: IdSequence, node: ElementNode): string {

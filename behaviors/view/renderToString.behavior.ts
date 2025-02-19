@@ -7,7 +7,7 @@ import { createStore } from "@spheres/store"
 export default behavior("Render view to HTML string", [
   renderTest("render view with no event handlers or state", (renderer) => {
     const actual = renderer.renderView(staticApp({ name: "Cool Dude", age: 27 }))
-    expect(actual, is(equalTo("<div><h1>Hello &quot;Cool Dude&quot;!</h1><hr><p>You are supposedly 27 years old.</p></div>")))
+    expect(actual, is(equalTo(`<div><h1>Hello "Cool Dude"!</h1><hr><p>You are supposedly 27 years old.</p></div>`)))
   }),
   renderTest("render view with properties and attributes", (renderer) => {
     const actual = renderer.renderView(appWithPropertiesAndAttributes({ name: "Awesome Person", age: 99 }))

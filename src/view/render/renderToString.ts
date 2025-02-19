@@ -1,4 +1,5 @@
 import { runQuery, TokenRegistry } from "../../store/tokenRegistry.js";
+import { voidElements } from "../htmlElements.js";
 import { listEndIndicator, listStartIndicator, switchEndIndicator, switchStartIndicator } from "./fragmentHelpers.js";
 import { IdSequence } from "./idSequence.js";
 import { EventsToDelegate } from "./index.js";
@@ -54,8 +55,8 @@ function stringifyElement(registry: TokenRegistry, idSequence: IdSequence, node:
     return `<${node.tag}${attrs}>${node.data.props.innerHTML}</${node.tag}>`
   }
 
-  if (node.children.length === 0) {
-    return `<${node.tag}${attrs} />`
+  if (voidElements.has(node.tag)) {
+    return `<${node.tag}${attrs}>`
   }
 
   const children = node.children.map(child => stringifyVirtualNode(registry, idSequence, child))

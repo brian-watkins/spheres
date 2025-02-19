@@ -1,6 +1,6 @@
 import { MethodSignatureStructure, OptionalKind, ParameterDeclarationStructure, Project, VariableDeclarationKind } from "ts-morph"
 import { htmlElementAttributes } from "html-element-attributes"
-import htmlTags from "html-tags"
+import htmlTags, { voidHtmlTags } from "html-tags"
 import { ariaAttributes } from "aria-attributes"
 import { booleanAttributes } from "./booleanAttributes"
 import { toCamel } from "./helpers"
@@ -86,7 +86,7 @@ for (const tag of htmlTags) {
     methodSignature.addParameter({
       name: "builder?",
       type: (writer) => {
-        writer.write(`(element: ConfigurableElement<${attributesName(tag)}, HTMLElements>) => void`)
+        writer.write(`(element: ConfigurableElement<${attributesName(tag)}, ${elementChildren(tag)}>) => void`)
       }
     })
   }
@@ -120,7 +120,7 @@ for (const tag of htmlTags) {
     methodSignature.addParameter({
       name: "builder?",
       type: (writer) => {
-        writer.write(`(element: ConfigurableElement<${attributesName(tag)}, HTMLElements>) => void`)
+        writer.write(`(element: ConfigurableElement<${attributesName(tag)}, ${elementChildren(tag)}>) => void`)
       }
     })
   }
@@ -173,6 +173,23 @@ htmlElementsFile.addVariableStatement({
 
 htmlElementsFile.addStatements(booleanAttributes.map(attr => `booleanAttributes.add("${attr}")`))
 
+// Void Elements Set
+
+htmlElementsFile.addVariableStatement({
+  declarationKind: VariableDeclarationKind.Const,
+  declarations: [
+    {
+      name: "voidElements",
+      type: "Set<string>",
+      initializer: "new Set()"
+    }
+  ],
+  isExported: true
+})
+
+htmlElementsFile.addStatements(voidHtmlTags.map(tag => `voidElements.add("${tag}")`))
+
+
 project.save()
 
 function buildAttributeProperty(returnType: string): (attribute: string) => OptionalKind<MethodSignatureStructure> {
@@ -200,3 +217,6 @@ function attributesName(tag: string): string {
   return `${toCamel(tag, true)}ElementAttributes`
 }
 
+function elementChildren(tag: string): string {
+  return (voidHtmlTags as Array<string>).includes(tag) ? "never" : "HTMLElements"
+}

@@ -7,7 +7,7 @@ import { createStore } from "@spheres/store"
 export default behavior("Render view to HTML string", [
   renderTest("render view with no event handlers or state", (renderer) => {
     const actual = renderer.renderView(staticApp({ name: "Cool Dude", age: 27 }))
-    expect(actual, is(equalTo("<div><h1>Hello &quot;Cool Dude&quot;!</h1><hr /><p>You are supposedly 27 years old.</p></div>")))
+    expect(actual, is(equalTo("<div><h1>Hello &quot;Cool Dude&quot;!</h1><hr><p>You are supposedly 27 years old.</p></div>")))
   }),
   renderTest("render view with properties and attributes", (renderer) => {
     const actual = renderer.renderView(appWithPropertiesAndAttributes({ name: "Awesome Person", age: 99 }))
@@ -60,6 +60,18 @@ export default behavior("Render view to HTML string", [
   renderTest("render view with conditional view", (renderer) => {
     const actual = renderer.renderView(appWithViewSelector)
     expect(actual, is(equalTo(`<div><!--switch-start-0.2--><h3 data-spheres-template="">Fun!</h3><!--switch-end-0.2--></div>`)))
+  }),
+  renderTest("render void elements without closing tags", (renderer) => {
+    const actual = renderer.renderView((root) => {
+      root.main(el => {
+        el.children
+          .hr()
+          .img(el => {
+            el.config.src("/assets/myImg.png")
+          })
+      })
+    })
+    expect(actual, is(equalTo(`<main><hr><img src="/assets/myImg.png"></main>`)))
   })
 ])
 

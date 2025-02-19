@@ -1,5 +1,12 @@
 # spheres
 
+## 0.17.1
+
+### Patch Changes
+
+- 8594e0c: No longer escape quotes in text nodes renderer to string
+- 7578448: Void elements are rendered to string without closing tag
+
 ## 0.17.0
 
 ### Minor Changes

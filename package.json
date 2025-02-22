@@ -19,6 +19,7 @@
   "scripts": {
     "generate:htmlElements": "tsx ./codegen/generateHtmlElements.ts",
     "generate:svgElements": "tsx ./codegen/generateSVGElements.ts",
+    "generate:elementData": "tsx ./codegen/generateElementData.ts",
     "build": "tsc --build --verbose",
     "clean": "rm -rf ./dist && rm ./tsconfig.tsbuildinfo",
     "test": "best",

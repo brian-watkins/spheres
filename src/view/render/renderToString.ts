@@ -1,5 +1,5 @@
 import { runQuery, TokenRegistry } from "../../store/tokenRegistry.js";
-import { voidElements } from "../htmlElements.js";
+import { voidElements } from "../elementData.js";
 import { listEndIndicator, listStartIndicator, switchEndIndicator, switchStartIndicator } from "./fragmentHelpers.js";
 import { IdSequence } from "./idSequence.js";
 import { EventsToDelegate } from "./index.js";

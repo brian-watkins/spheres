@@ -1,6 +1,21 @@
-import { ConfigurableElement, Stateful } from "./viewBuilder.js";
-import { SpecialSVGElements } from "./svgViewBuilder.js";
-import { SpecialElementAttributes } from "./viewConfig.js";
+import { ConfigurableElement } from "./viewBuilder.js";
+import { GetState, State, Stateful } from "../store/index.js";
+import { SpecialElementAttributes } from "./specialAttributes.js";
+
+export type SVGView = (root: SVGBuilder) => void;
+
+export interface SVGViewSelector {
+    when(predicate: (get: GetState) => boolean, view: SVGView): SVGViewSelector;
+    default(view: SVGView): void;
+}
+
+export interface SpecialSVGElements {
+    element(tag: string, builder?: (element: ConfigurableElement<SpecialElementAttributes, SVGElements>) => void): this;
+    textNode(value: string | Stateful<string>): this;
+    subview(value: SVGView): this;
+    subviewOf(selectorGenerator: (selector: SVGViewSelector) => void): this;
+    subviews<T>(data: (get: GetState) => Array<T>, viewGenerator: (item: State<T>, index: State<number>) => SVGView): this;
+}
 
 export interface SVGBuilder extends SpecialSVGElements {
     a(builder?: (element: ConfigurableElement<ASVGElementAttributes, SVGElements>) => void): void;
@@ -4372,86 +4387,3 @@ export interface VkernSVGElementAttributes extends SpecialElementAttributes, Glo
     u1(value: string | Stateful<string>): VkernSVGElementAttributes;
     u2(value: string | Stateful<string>): VkernSVGElementAttributes;
 }
-
-export const svgAttributeNames: Map<string, string> = new Map();
-svgAttributeNames.set("alignmentBaseline", "alignment-baseline")
-svgAttributeNames.set("baselineShift", "baseline-shift")
-svgAttributeNames.set("clipPath", "clip-path")
-svgAttributeNames.set("clipRule", "clip-rule")
-svgAttributeNames.set("colorInterpolation", "color-interpolation")
-svgAttributeNames.set("colorInterpolationFilters", "color-interpolation-filters")
-svgAttributeNames.set("colorProfile", "color-profile")
-svgAttributeNames.set("colorRendering", "color-rendering")
-svgAttributeNames.set("dominantBaseline", "dominant-baseline")
-svgAttributeNames.set("enableBackground", "enable-background")
-svgAttributeNames.set("fillOpacity", "fill-opacity")
-svgAttributeNames.set("fillRule", "fill-rule")
-svgAttributeNames.set("floodColor", "flood-color")
-svgAttributeNames.set("floodOpacity", "flood-opacity")
-svgAttributeNames.set("fontFamily", "font-family")
-svgAttributeNames.set("fontSize", "font-size")
-svgAttributeNames.set("fontSizeAdjust", "font-size-adjust")
-svgAttributeNames.set("fontStretch", "font-stretch")
-svgAttributeNames.set("fontStyle", "font-style")
-svgAttributeNames.set("fontVariant", "font-variant")
-svgAttributeNames.set("fontWeight", "font-weight")
-svgAttributeNames.set("glyphOrientationHorizontal", "glyph-orientation-horizontal")
-svgAttributeNames.set("glyphOrientationVertical", "glyph-orientation-vertical")
-svgAttributeNames.set("imageRendering", "image-rendering")
-svgAttributeNames.set("letterSpacing", "letter-spacing")
-svgAttributeNames.set("lightingColor", "lighting-color")
-svgAttributeNames.set("markerEnd", "marker-end")
-svgAttributeNames.set("markerMid", "marker-mid")
-svgAttributeNames.set("markerStart", "marker-start")
-svgAttributeNames.set("navDown", "nav-down")
-svgAttributeNames.set("navDownLeft", "nav-down-left")
-svgAttributeNames.set("navDownRight", "nav-down-right")
-svgAttributeNames.set("navLeft", "nav-left")
-svgAttributeNames.set("navNext", "nav-next")
-svgAttributeNames.set("navPrev", "nav-prev")
-svgAttributeNames.set("navRight", "nav-right")
-svgAttributeNames.set("navUp", "nav-up")
-svgAttributeNames.set("navUpLeft", "nav-up-left")
-svgAttributeNames.set("navUpRight", "nav-up-right")
-svgAttributeNames.set("pointerEvents", "pointer-events")
-svgAttributeNames.set("shapeRendering", "shape-rendering")
-svgAttributeNames.set("stopColor", "stop-color")
-svgAttributeNames.set("stopOpacity", "stop-opacity")
-svgAttributeNames.set("strokeDasharray", "stroke-dasharray")
-svgAttributeNames.set("strokeDashoffset", "stroke-dashoffset")
-svgAttributeNames.set("strokeLinecap", "stroke-linecap")
-svgAttributeNames.set("strokeLinejoin", "stroke-linejoin")
-svgAttributeNames.set("strokeMiterlimit", "stroke-miterlimit")
-svgAttributeNames.set("strokeOpacity", "stroke-opacity")
-svgAttributeNames.set("strokeWidth", "stroke-width")
-svgAttributeNames.set("textAnchor", "text-anchor")
-svgAttributeNames.set("textDecoration", "text-decoration")
-svgAttributeNames.set("textRendering", "text-rendering")
-svgAttributeNames.set("unicodeBidi", "unicode-bidi")
-svgAttributeNames.set("wordSpacing", "word-spacing")
-svgAttributeNames.set("writingMode", "writing-mode")
-svgAttributeNames.set("renderingIntent", "rendering-intent")
-svgAttributeNames.set("horizAdvX", "horiz-adv-x")
-svgAttributeNames.set("horizOriginX", "horiz-origin-x")
-svgAttributeNames.set("horizOriginY", "horiz-origin-y")
-svgAttributeNames.set("vertAdvY", "vert-adv-y")
-svgAttributeNames.set("vertOriginX", "vert-origin-x")
-svgAttributeNames.set("vertOriginY", "vert-origin-y")
-svgAttributeNames.set("accentHeight", "accent-height")
-svgAttributeNames.set("capHeight", "cap-height")
-svgAttributeNames.set("overlinePosition", "overline-position")
-svgAttributeNames.set("overlineThickness", "overline-thickness")
-svgAttributeNames.set("panose1", "panose-1")
-svgAttributeNames.set("strikethroughPosition", "strikethrough-position")
-svgAttributeNames.set("strikethroughThickness", "strikethrough-thickness")
-svgAttributeNames.set("underlinePosition", "underline-position")
-svgAttributeNames.set("underlineThickness", "underline-thickness")
-svgAttributeNames.set("unicodeRange", "unicode-range")
-svgAttributeNames.set("unitsPerEm", "units-per-em")
-svgAttributeNames.set("vAlphabetic", "v-alphabetic")
-svgAttributeNames.set("vHanging", "v-hanging")
-svgAttributeNames.set("vIdeographic", "v-ideographic")
-svgAttributeNames.set("vMathematical", "v-mathematical")
-svgAttributeNames.set("xHeight", "x-height")
-svgAttributeNames.set("arabicForm", "arabic-form")
-svgAttributeNames.set("glyphName", "glyph-name")

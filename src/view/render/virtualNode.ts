@@ -1,9 +1,7 @@
 import { Container, container } from "../../store/state/container.js";
 import { StoreMessage } from "../../store/message.js";
-import { Command, CommandController, createStatePublisher, GetState, State, StatePublisher, Token, TokenRegistry } from "../../store/tokenRegistry.js";
+import { Command, CommandController, createStatePublisher, GetState, State, Stateful, StatePublisher, Token, TokenRegistry } from "../../store/tokenRegistry.js";
 import { StateWriter } from "../../store/state/publisher/stateWriter.js";
-
-export type Stateful<T> = (get: GetState) => T | undefined
 
 export enum NodeType {
   TEXT = 3,

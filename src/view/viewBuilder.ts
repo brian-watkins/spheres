@@ -1,6 +1,7 @@
-import { BasicElementConfig, SpecialElementAttributes } from "./viewConfig.js"
-import { Stateful, VirtualNode, makeStatefulTextNode, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "./render/virtualNode.js"
-export type { Stateful } from "./render/virtualNode.js"
+import { BasicElementConfig } from "./viewConfig.js"
+import { VirtualNode, makeStatefulTextNode, makeVirtualElement, makeVirtualTextNode, virtualNodeConfig } from "./render/virtualNode.js"
+import { SpecialElementAttributes } from "./specialAttributes.js"
+import { Stateful } from "../store/tokenRegistry.js"
 
 export interface ConfigurableElement<A extends SpecialElementAttributes, B> {
   config: A

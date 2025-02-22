@@ -15,22 +15,23 @@ const htmlElementsFile = project.createSourceFile("./src/view/htmlElements.ts", 
 htmlElementsFile.addImportDeclarations([
   {
     namedImports: [
-      "ConfigurableElement",
-      "Stateful"
+      "ConfigurableElement"
     ],
     moduleSpecifier: "./viewBuilder.js"
   },
   {
     namedImports: [
-      "SpecialHTMLElements"
+      "GetState",
+      "State",
+      "Stateful"
     ],
-    moduleSpecifier: "./htmlViewBuilder.js"
+    moduleSpecifier: "../store/index.js"
   },
   {
     namedImports: [
       "SpecialElementAttributes"
     ],
-    moduleSpecifier: "./viewConfig.js"
+    moduleSpecifier: "./specialAttributes.js"
   },
   {
     namedImports: [
@@ -41,6 +42,83 @@ htmlElementsFile.addImportDeclarations([
   }
 ])
 
+htmlElementsFile.addTypeAlias({
+  name: "HTMLView",
+  isExported: true,
+  type: "(root: HTMLBuilder) => void"
+})
+
+const viewSelectorInterface = htmlElementsFile.addInterface({
+  name: "HTMLViewSelector",
+  isExported: true
+})
+
+viewSelectorInterface.addMethod({
+  name: "when",
+  parameters: [
+    { name: "predicate", type: "(get: GetState) => boolean" },
+    { name: "view", type: "HTMLView" }
+  ],
+  returnType: "HTMLViewSelector"
+})
+
+viewSelectorInterface.addMethod({
+  name: "default",
+  parameters: [
+    { name: "view", type: "HTMLView" }
+  ],
+  returnType: "void"
+})
+
+const specialHtmlElementsInterface = htmlElementsFile.addInterface({
+  name: "SpecialHTMLElements",
+  isExported: true
+})
+
+specialHtmlElementsInterface.addMethod({
+  name: "element",
+  parameters: [
+    { name: "tag", type: "string" },
+    { name: "builder", type: "(element: ConfigurableElement<SpecialElementAttributes, HTMLElements>) => void", hasQuestionToken: true }
+  ],
+  returnType: "this"
+})
+
+specialHtmlElementsInterface.addMethod({
+  name: "textNode",
+  parameters: [
+    { name: "value", type: "string | Stateful<string>" }
+  ],
+  returnType: "this"
+})
+
+specialHtmlElementsInterface.addMethod({
+  name: "subview",
+  parameters: [
+    { name: "value", type: "HTMLView" }
+  ],
+  returnType: "this"
+})
+
+specialHtmlElementsInterface.addMethod({
+  name: "subviewOf",
+  parameters: [
+    { name: "selectorGenerator", type: "(selector: HTMLViewSelector) => void" }
+  ],
+  returnType: "this"
+})
+
+specialHtmlElementsInterface.addMethod({
+  name: "subviews",
+  typeParameters: [
+    { name: "T" }
+  ],
+  parameters: [
+    { name: "data", type: "(get: GetState) => Array<T>" },
+    { name: "viewGenerator", type: "(item: State<T>, index: State<number>) => HTMLView" }
+  ],
+  returnType: "this"
+})
 
 // GlobalAttributes interface
 
@@ -146,48 +224,6 @@ for (const tag of htmlTags) {
     isExported: true
   })
 }
-
-
-// AriaAttribute Type
-
-htmlElementsFile.addTypeAlias({
-  name: "AriaAttribute",
-  type: ariaAttributes.map(attr => `"${attr.substring(5)}"`).join(" | "),
-  isExported: true
-})
-
-
-// Boolean Attributes Set
-
-htmlElementsFile.addVariableStatement({
-  declarationKind: VariableDeclarationKind.Const,
-  declarations: [
-    {
-      name: "booleanAttributes",
-      type: "Set<string>",
-      initializer: "new Set()"
-    }
-  ],
-  isExported: true
-})
-
-htmlElementsFile.addStatements(booleanAttributes.map(attr => `booleanAttributes.add("${attr}")`))
-
-// Void Elements Set
-
-htmlElementsFile.addVariableStatement({
-  declarationKind: VariableDeclarationKind.Const,
-  declarations: [
-    {
-      name: "voidElements",
-      type: "Set<string>",
-      initializer: "new Set()"
-    }
-  ],
-  isExported: true
-})
-
-htmlElementsFile.addStatements(voidHtmlTags.map(tag => `voidElements.add("${tag}")`))
 
 
 project.save()

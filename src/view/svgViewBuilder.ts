@@ -1,24 +1,11 @@
-import { Container, GetState, State } from "../store/index.js"
+import { Container, GetState, State, Stateful } from "../store/index.js"
 import { recordTokens } from "../store/state/stateRecorder.js"
-import { Stateful, StatefulSelectorNode, ViewSelector, VirtualListItemTemplate, VirtualNode, VirtualNodeConfig, VirtualTemplate, makeStatefulSelector, makeVirtualElement, makeZoneList, setNamespace, virtualNodeConfig } from "./render/virtualNode.js"
-import { SVGBuilder, SVGElements, SVGElementAttributes, svgAttributeNames } from "./svgElements.js"
+import { SpecialElementAttributes } from "./specialAttributes.js"
+import { StatefulSelectorNode, ViewSelector, VirtualListItemTemplate, VirtualNode, VirtualNodeConfig, VirtualTemplate, makeStatefulSelector, makeVirtualElement, makeZoneList, setNamespace, virtualNodeConfig } from "./render/virtualNode.js"
+import { SVGBuilder, SVGElements, SVGElementAttributes, SVGView, SpecialSVGElements, SVGViewSelector } from "./svgElements.js"
 import { ConfigurableElement, ViewBuilder } from "./viewBuilder.js"
-import { BasicElementConfig, SpecialElementAttributes } from "./viewConfig.js"
-
-export type SVGView = (root: SVGBuilder) => void
-
-export interface SVGViewSelector {
-  when(predicate: (get: GetState) => boolean, view: SVGView): SVGViewSelector
-  default(view: SVGView): void
-}
-
-export interface SpecialSVGElements {
-  element(tag: string, builder?: (element: ConfigurableElement<SpecialElementAttributes, SVGElements>) => void): this
-  textNode(value: string | Stateful<string>): this
-  subview(view: SVGView): this
-  subviewOf(selectorGenerator: (selector: SVGViewSelector) => void): this
-  subviews<T>(data: (get: GetState) => Array<T>, viewGenerator: (item: State<T>, index: State<number>) => SVGView): this
-}
+import { BasicElementConfig } from "./viewConfig.js"
+import { svgAttributeNames } from "./elementData.js"
 
 class SVGElementConfig extends BasicElementConfig {
   recordAttribute(attributeAlias: string, value: string | Stateful<string>): this {

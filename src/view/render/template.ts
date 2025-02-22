@@ -1,5 +1,5 @@
 import { dispatchMessage } from "../../store/message.js"
-import { initListener, TokenRegistry } from "../../store/tokenRegistry.js"
+import { initListener, Stateful, TokenRegistry } from "../../store/tokenRegistry.js"
 import { EffectLocation } from "./effectLocation.js"
 import { UpdateAttributeEffect } from "./effects/attributeEffect.js"
 import { ListEffect } from "./effects/listEffect.js"
@@ -10,7 +10,7 @@ import { setEventAttribute } from "./eventHelpers.js"
 import { findListEndNode, findSwitchEndNode, listEndIndicator, listStartIndicator, switchEndIndicator, switchStartIndicator } from "./fragmentHelpers.js"
 import { IdSequence } from "./idSequence.js"
 import { DOMTemplate, EffectTemplate, EventsToDelegate, Zone } from "./index.js"
-import { NodeType, Stateful, StatefulListNode, StatefulSelectorNode, StoreEventHandler, VirtualNode, VirtualTemplate } from "./virtualNode.js"
+import { NodeType, StatefulListNode, StatefulSelectorNode, StoreEventHandler, VirtualNode, VirtualTemplate } from "./virtualNode.js"
 
 const templateRegistry = new WeakMap<VirtualTemplate, DOMTemplate>()
 

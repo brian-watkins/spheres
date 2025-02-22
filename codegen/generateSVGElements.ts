@@ -14,23 +14,102 @@ svgElementsFile.addImportDeclarations([
   {
     namedImports: [
       "ConfigurableElement",
-      "Stateful"
     ],
     moduleSpecifier: "./viewBuilder.js"
   },
   {
     namedImports: [
-      "SpecialSVGElements",
+      "GetState",
+      "State",
+      "Stateful"
     ],
-    moduleSpecifier: "./svgViewBuilder.js"
+    moduleSpecifier: "../store/index.js"
   },
   {
     namedImports: [
       "SpecialElementAttributes"
     ],
-    moduleSpecifier: "./viewConfig.js"
+    moduleSpecifier: "./specialAttributes.js"
   }
 ])
+
+svgElementsFile.addTypeAlias({
+  name: "SVGView",
+  isExported: true,
+  type: "(root: SVGBuilder) => void"
+})
+
+const viewSelectorInterface = svgElementsFile.addInterface({
+  name: "SVGViewSelector",
+  isExported: true
+})
+
+viewSelectorInterface.addMethod({
+  name: "when",
+  parameters: [
+    { name: "predicate", type: "(get: GetState) => boolean" },
+    { name: "view", type: "SVGView" }
+  ],
+  returnType: "SVGViewSelector"
+})
+
+viewSelectorInterface.addMethod({
+  name: "default",
+  parameters: [
+    { name: "view", type: "SVGView" }
+  ],
+  returnType: "void"
+})
+
+const specialSVGElementsInterface = svgElementsFile.addInterface({
+  name: "SpecialSVGElements",
+  isExported: true
+})
+
+specialSVGElementsInterface.addMethod({
+  name: "element",
+  parameters: [
+    { name: "tag", type: "string" },
+    { name: "builder", type: "(element: ConfigurableElement<SpecialElementAttributes, SVGElements>) => void", hasQuestionToken: true }
+  ],
+  returnType: "this"
+})
+
+specialSVGElementsInterface.addMethod({
+  name: "textNode",
+  parameters: [
+    { name: "value", type: "string | Stateful<string>" }
+  ],
+  returnType: "this"
+})
+
+specialSVGElementsInterface.addMethod({
+  name: "subview",
+  parameters: [
+    { name: "value", type: "SVGView" }
+  ],
+  returnType: "this"
+})
+
+specialSVGElementsInterface.addMethod({
+  name: "subviewOf",
+  parameters: [
+    { name: "selectorGenerator", type: "(selector: SVGViewSelector) => void" }
+  ],
+  returnType: "this"
+})
+
+specialSVGElementsInterface.addMethod({
+  name: "subviews",
+  typeParameters: [
+    { name: "T" }
+  ],
+  parameters: [
+    { name: "data", type: "(get: GetState) => Array<T>" },
+    { name: "viewGenerator", type: "(item: State<T>, index: State<number>) => SVGView" }
+  ],
+  returnType: "this"
+})
 
 
 // SVGViewBuilder interface
@@ -130,33 +209,6 @@ function buildAttributeProperty(returnType: string): (attribute: string) => Opti
       name: toCamel(attribute),
       returnType,
       parameters
-    }
-  }
-}
-
-
-// Attribute names
-const kebabAttributes = new Set<string>()
-
-svgElementsFile.addVariableStatement({
-  declarationKind: VariableDeclarationKind.Const,
-  declarations: [
-    {
-      name: "svgAttributeNames",
-      type: "Map<string, string>",
-      initializer: "new Map()"
-    }
-  ],
-  isExported: true
-})
-
-for (const tag of svgTagNames) {
-  for (const attribute of svgElementAttributes[tag]) {
-    if (kebabAttributes.has(attribute)) continue
-
-    if (attribute.includes("-")) {
-      kebabAttributes.add(attribute)
-      svgElementsFile.addStatements(`svgAttributeNames.set("${toCamel(attribute)}", "${attribute}")`)
     }
   }
 }

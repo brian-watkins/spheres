@@ -1,8 +1,8 @@
-import { Container, GetState, State, Store } from "../store/index.js"
-import { Stateful, addStatefulProperty, addProperty, makeZoneList, VirtualListItemTemplate, VirtualTemplate, VirtualNode, ViewSelector, makeStatefulSelector, StatefulSelectorNode } from "./render/virtualNode.js"
-import { HTMLElements, HTMLBuilder } from "./htmlElements.js"
+import { Container, GetState, State, Stateful, Store } from "../store/index.js"
+import { addStatefulProperty, addProperty, makeZoneList, VirtualListItemTemplate, VirtualTemplate, VirtualNode, ViewSelector, makeStatefulSelector, StatefulSelectorNode } from "./render/virtualNode.js"
+import { HTMLElements, HTMLBuilder, HTMLView, SpecialHTMLElements, HTMLViewSelector } from "./htmlElements.js"
 import { SVGElements } from "./svgElements.js"
-import { BasicElementConfig, SpecialElementAttributes } from "./viewConfig.js"
+import { BasicElementConfig } from "./viewConfig.js"
 import { ConfigurableElement, ViewBuilder } from "./viewBuilder.js"
 import { buildSvgElement } from "./svgViewBuilder.js"
 import { stringifyVirtualNode } from "./render/renderToString.js"
@@ -11,6 +11,7 @@ import { RenderResult } from "./render/index.js"
 import { IdSequence } from "./render/idSequence.js"
 import { recordTokens } from "../store/state/stateRecorder.js"
 import { getTokenRegistry } from "../store/store.js"
+import { SpecialElementAttributes } from "./specialAttributes.js"
 export type { RenderResult } from "./render/index.js"
 
 export function activateView(store: Store, element: Element, view: HTMLView): RenderResult {
@@ -43,21 +44,6 @@ export function renderToString(store: Store, view: HTMLView): string {
 
 
 // View
-
-export type HTMLView = (root: HTMLBuilder) => void
-
-export interface HTMLViewSelector {
-  when(predicate: (get: GetState) => boolean, view: HTMLView): HTMLViewSelector
-  default(view: HTMLView): void
-}
-
-export interface SpecialHTMLElements {
-  element(tag: string, builder?: (element: ConfigurableElement<SpecialElementAttributes, HTMLElements>) => void): this
-  textNode(value: string | Stateful<string>): this
-  subview(view: HTMLView): this
-  subviewOf(selectorGenerator: (selector: HTMLViewSelector) => void): this
-  subviews<T>(data: (get: GetState) => Array<T>, viewGenerator: (item: State<T>, index: State<number>) => HTMLView): this
-}
 
 class HTMLElementConfig extends BasicElementConfig {
   class(value: string | Stateful<string>): this {

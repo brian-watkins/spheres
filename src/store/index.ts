@@ -12,7 +12,8 @@ export {
 export {
   type Command,
   type State,
-  type GetState
+  type GetState,
+  type Stateful
 } from "./tokenRegistry.js"
 export {
   type ContainerInitializer,

@@ -1,6 +1,5 @@
 import { GetState } from "../../../store/index.js";
-import { StateListener, TokenRegistry } from "../../../store/tokenRegistry.js";
-import { Stateful } from "../virtualNode.js";
+import { Stateful, StateListener, TokenRegistry } from "../../../store/tokenRegistry.js";
 
 export class UpdatePropertyEffect implements StateListener {
   constructor(public registry: TokenRegistry, private element: Element, private property: string, private generator: Stateful<string>) { }

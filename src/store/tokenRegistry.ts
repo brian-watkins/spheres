@@ -1,5 +1,7 @@
 export type GetState = <S>(state: State<S>) => S
 
+export type Stateful<T> = (get: GetState) => T | undefined
+
 function getState(listener: StateListener): GetState {
   return function (token) {
     const publisher = listener.registry.get<StatePublisher<any>>(token)

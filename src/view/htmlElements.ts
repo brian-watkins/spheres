@@ -1,7 +1,22 @@
-import { ConfigurableElement, Stateful } from "./viewBuilder.js";
-import { SpecialHTMLElements } from "./htmlViewBuilder.js";
-import { SpecialElementAttributes } from "./viewConfig.js";
+import { ConfigurableElement } from "./viewBuilder.js";
+import { GetState, State, Stateful } from "../store/index.js";
+import { SpecialElementAttributes } from "./specialAttributes.js";
 import { SVGElements, SVGElementAttributes } from "./svgElements.js";
+
+export type HTMLView = (root: HTMLBuilder) => void;
+
+export interface HTMLViewSelector {
+    when(predicate: (get: GetState) => boolean, view: HTMLView): HTMLViewSelector;
+    default(view: HTMLView): void;
+}
+
+export interface SpecialHTMLElements {
+    element(tag: string, builder?: (element: ConfigurableElement<SpecialElementAttributes, HTMLElements>) => void): this;
+    textNode(value: string | Stateful<string>): this;
+    subview(value: HTMLView): this;
+    subviewOf(selectorGenerator: (selector: HTMLViewSelector) => void): this;
+    subviews<T>(data: (get: GetState) => Array<T>, viewGenerator: (item: State<T>, index: State<number>) => HTMLView): this;
+}
 
 export interface GlobalHTMLAttributes {
     accesskey(value: string | Stateful<string>): this;
@@ -1004,48 +1019,3 @@ export interface VideoElementAttributes extends SpecialElementAttributes, Global
 
 export interface WbrElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
 }
-
-export type AriaAttribute = "activedescendant" | "atomic" | "autocomplete" | "busy" | "checked" | "colcount" | "colindex" | "colspan" | "controls" | "current" | "describedby" | "details" | "disabled" | "dropeffect" | "errormessage" | "expanded" | "flowto" | "grabbed" | "haspopup" | "hidden" | "invalid" | "keyshortcuts" | "label" | "labelledby" | "level" | "live" | "modal" | "multiline" | "multiselectable" | "orientation" | "owns" | "placeholder" | "posinset" | "pressed" | "readonly" | "relevant" | "required" | "roledescription" | "rowcount" | "rowindex" | "rowspan" | "selected" | "setsize" | "sort" | "valuemax" | "valuemin" | "valuenow" | "valuetext" | "";
-
-export const booleanAttributes: Set<string> = new Set();
-booleanAttributes.add("allowfullscreen")
-booleanAttributes.add("async")
-booleanAttributes.add("autofocus")
-booleanAttributes.add("autoplay")
-booleanAttributes.add("checked")
-booleanAttributes.add("controls")
-booleanAttributes.add("default")
-booleanAttributes.add("defer")
-booleanAttributes.add("disabled")
-booleanAttributes.add("formnovalidate")
-booleanAttributes.add("inert")
-booleanAttributes.add("ismap")
-booleanAttributes.add("itemscope")
-booleanAttributes.add("loop")
-booleanAttributes.add("multiple")
-booleanAttributes.add("muted")
-booleanAttributes.add("nomodule")
-booleanAttributes.add("novalidate")
-booleanAttributes.add("open")
-booleanAttributes.add("playsinline")
-booleanAttributes.add("readonly")
-booleanAttributes.add("required")
-booleanAttributes.add("reversed")
-booleanAttributes.add("selected")
-
-export const voidElements: Set<string> = new Set();
-voidElements.add("area")
-voidElements.add("base")
-voidElements.add("br")
-voidElements.add("col")
-voidElements.add("embed")
-voidElements.add("hr")
-voidElements.add("img")
-voidElements.add("input")
-voidElements.add("link")
-voidElements.add("menuitem")
-voidElements.add("meta")
-voidElements.add("param")
-voidElements.add("source")
-voidElements.add("track")
-voidElements.add("wbr")

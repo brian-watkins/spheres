@@ -40,7 +40,7 @@ export default behavior("vite plugin", [
         }),
         effect("the script tag for other transpiled js is included", async (context) => {
           expect(context.getRenderedHTML(), is(
-            stringMatching(/<link rel="modulepreload" href="assets\/index-.+\.js">/)
+            stringMatching(/<link rel="modulepreload" href="assets\/helperView-.+\.js">/)
           ))      
         }),
         effect("the stylesheet import references the transpiled css", async (context) => {
@@ -61,6 +61,11 @@ export default behavior("vite plugin", [
         effect("the link tag with a GetState href function points to the compiled css", async (context) => {
           expect(context.getRenderedHTML(), is(
             stringMatching(/<link rel="stylesheet" href="assets\/tracingStyles-.+\.css">/)
+          ))
+        }),
+        effect("link for css imported by an extra script is included", async (context) => {
+          expect(context.getRenderedHTML(), is(
+            stringMatching(/<link rel="stylesheet" href="assets\/helperView-.+\.css">/)
           ))
         })
       ]

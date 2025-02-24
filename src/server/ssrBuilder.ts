@@ -51,8 +51,14 @@ class ScriptElementConfig extends BasicElementConfig {
 }
 
 class LinkElementConfig extends BasicElementConfig {
+  private extraCSS: Array<string> = []
+
   constructor(private tokenRegistry: TokenRegistry) {
     super()
+  }
+
+  get extraStylesheets() {
+    return this.extraCSS
   }
 
   href(value: string | Stateful<string>) {
@@ -64,6 +70,10 @@ class LinkElementConfig extends BasicElementConfig {
       if (entryDetails === undefined) {
         addAttribute(this.config, "href", resolvedHref)
       } else {
+        if (entryDetails.css !== undefined) {
+          this.extraCSS = entryDetails.css
+        }
+
         addAttribute(this.config, "href", entryDetails.file)
       }
     }
@@ -113,7 +123,17 @@ export class SSRBuilder extends HtmlViewBuilder {
 
   link(builder?: (element: ConfigurableElement<LinkElementAttributes, never>) => void) {
     const linkElementConfig = new LinkElementConfig(this.tokenRegistry)
-    return this.buildElement("link", linkElementConfig, builder as (element: ConfigurableElement<any, any>) => void)
+    this.buildElement("link", linkElementConfig, builder as (element: ConfigurableElement<any, any>) => void)
+
+    for (const extraStylesheet of linkElementConfig.extraStylesheets) {
+      this.link(el => {
+        el.config
+          .rel("stylesheet")
+          .href(extraStylesheet)
+      })
+    }
+
+    return this
   }
 }
 

@@ -30,6 +30,11 @@ function view(root: HTMLBuilder) {
               .type("module")
               .src((get) => `${get(someFilename)}.ts`)
           })
+          .link(el => {
+            el.config
+              .rel("stylesheet")
+              .href((get) => `${get(someFilename)}.css`)
+          })
       })
       .body(el => {
         el.children.subview(funView)

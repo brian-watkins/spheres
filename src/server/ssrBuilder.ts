@@ -51,29 +51,29 @@ class ScriptElementConfig extends BasicElementConfig {
 }
 
 class LinkElementConfig extends BasicElementConfig {
-  href(value: string | Stateful<string>) {
-    if (typeof value === "function") {
+  constructor(private tokenRegistry: TokenRegistry) {
+    super()
+  }
 
-    } else {
-      if (manifest !== undefined) {
-        const normalized = normalizePath(value)
-        const entryDetails = manifest[normalized]
-        if (entryDetails === undefined) {
-          addAttribute(this.config, "href", value)
-        } else {
-          addAttribute(this.config, "href", entryDetails.file)
-        }
+  href(value: string | Stateful<string>) {
+    const resolvedHref = typeof value === "function" ? runQuery(this.tokenRegistry, value) ?? "" : value
+
+    if (manifest !== undefined) {
+      const normalized = normalizePath(resolvedHref)
+      const entryDetails = manifest[normalized]
+      if (entryDetails === undefined) {
+        addAttribute(this.config, "href", resolvedHref)
+      } else {
+        addAttribute(this.config, "href", entryDetails.file)
       }
-      else {
-        addAttribute(this.config, "href", value)
-      }
+    }
+    else {
+      addAttribute(this.config, "href", resolvedHref)
     }
 
     return this
   }
 }
-
-const linkElementConfig = new LinkElementConfig()
 
 export class SSRBuilder extends HtmlViewBuilder {
   constructor(private tokenRegistry: TokenRegistry) {
@@ -112,6 +112,7 @@ export class SSRBuilder extends HtmlViewBuilder {
   }
 
   link(builder?: (element: ConfigurableElement<LinkElementAttributes, never>) => void) {
+    const linkElementConfig = new LinkElementConfig(this.tokenRegistry)
     return this.buildElement("link", linkElementConfig, builder as (element: ConfigurableElement<any, any>) => void)
   }
 }

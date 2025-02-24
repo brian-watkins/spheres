@@ -17,7 +17,8 @@ export default behavior("vite plugin", [
               client: "./behaviors/server/fixtures/ssrApp/plugin/index.ts",
               tracing: "./behaviors/server/fixtures/ssrApp/plugin/tracing.ts",
               another: "./behaviors/server/fixtures/ssrApp/plugin/anotherPage.ts",
-              styles: "./behaviors/server/fixtures/ssrApp/plugin/styles.css"
+              styles: "./behaviors/server/fixtures/ssrApp/plugin/styles.css",
+              tracingStyles: "./behaviors/server/fixtures/ssrApp/plugin/tracing.css"
             }
           })
         }),
@@ -55,6 +56,11 @@ export default behavior("vite plugin", [
         effect("the script tag with a GetState function for src points to the compiled js", async (context) => {
           expect(context.getRenderedHTML(), is(
             stringMatching(/<script type="module" src="assets\/tracing-.+\.js"><\/script>/)
+          ))
+        }),
+        effect("the link tag with a GetState href function points to the compiled css", async (context) => {
+          expect(context.getRenderedHTML(), is(
+            stringMatching(/<link rel="stylesheet" href="assets\/tracingStyles-.+\.css">/)
           ))
         })
       ]

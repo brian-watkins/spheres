@@ -45,6 +45,11 @@ export default behavior("vite plugin", [
           expect(context.getRenderedHTML(), is(
             stringMatching(/<link rel="stylesheet" href="assets\/styles-.+\.css">/)
           ))
+        }),
+        effect("the link to styles referenced in the js is included", async (context) => {
+          expect(context.getRenderedHTML(), is(
+            stringMatching(/<link rel="stylesheet" href="assets\/client-.+\.css">/)
+          ))
         })
       ]
     })

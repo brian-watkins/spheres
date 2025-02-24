@@ -8,13 +8,19 @@ import { manifest } from "./assetManifest.js"
 
 class ScriptElementConfig extends BasicElementConfig {
   private _extraImports: Array<string> = []
+  private _extraCSS: Array<string> = []
 
   reset() {
     this._extraImports = []
+    this._extraCSS = []
   }
 
   get extraImports() {
     return this._extraImports
+  }
+
+  get extraStylesheets() {
+    return this._extraCSS
   }
 
   src(value: string | Stateful<string>) {
@@ -26,6 +32,9 @@ class ScriptElementConfig extends BasicElementConfig {
         const entryDetails = manifest[normalized]
         if (entryDetails.imports !== undefined) {
           this._extraImports = entryDetails.imports
+        }
+        if (entryDetails.css !== undefined) {
+          this._extraCSS = entryDetails.css
         }
         addAttribute(this.config, "src", entryDetails.file)
       }
@@ -49,7 +58,11 @@ class LinkElementConfig extends BasicElementConfig {
       if (manifest !== undefined) {
         const normalized = normalizePath(value)
         const entryDetails = manifest[normalized]
-        addAttribute(this.config, "href", entryDetails.file)
+        if (entryDetails === undefined) {
+          addAttribute(this.config, "href", value)
+        } else {
+          addAttribute(this.config, "href", entryDetails.file)
+        }
       }
       else {
         addAttribute(this.config, "href", value)
@@ -79,6 +92,14 @@ export class SSRBuilder extends HtmlViewBuilder {
         el.config
           .rel("modulepreload")
           .href(extraImport)
+      })
+    }
+
+    for (const extraStylesheet of scriptElementConfig.extraStylesheets) {
+      this.link(el => {
+        el.config
+          .rel("stylesheet")
+          .href(extraStylesheet)
       })
     }
 

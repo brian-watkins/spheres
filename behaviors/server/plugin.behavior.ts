@@ -1,6 +1,7 @@
 import { behavior, effect, example, fact, step } from "best-behavior"
 import { testableServerContext } from "./helpers/testableServerContext"
 import { expect, is, stringMatching } from "great-expectations"
+import { testableSSRBuilderContext } from "./helpers/testableSSRBuilderContext"
 
 export default behavior("vite plugin", [
 
@@ -41,7 +42,7 @@ export default behavior("vite plugin", [
         effect("the script tag for other transpiled js is included", async (context) => {
           expect(context.getRenderedHTML(), is(
             stringMatching(/<link rel="modulepreload" href="assets\/helperView-.+\.js">/)
-          ))      
+          ))
         }),
         effect("the stylesheet import references the transpiled css", async (context) => {
           expect(context.getRenderedHTML(), is(
@@ -66,6 +67,65 @@ export default behavior("vite plugin", [
         effect("link for css imported by an extra script is included", async (context) => {
           expect(context.getRenderedHTML(), is(
             stringMatching(/<link rel="stylesheet" href="assets\/helperView-.+\.css">/)
+          ))
+        })
+      ]
+    }),
+
+  example(testableSSRBuilderContext)
+    .description("manifest with extra scripts in extra scripts")
+    .script({
+      suppose: [
+        fact("there is a manifest with extra scripts in extra scripts", (context) => {
+          context.useManifest({
+            "_index-CmRxQ4Kg.js": {
+              "file": "assets/index-CmRxQ4Kg.js",
+              "name": "index"
+            },
+            "_pageHeader-CMFcDjBz.js": {
+              "file": "assets/pageHeader-CMFcDjBz.js",
+              "name": "pageHeader",
+              "imports": [
+                "_index-CmRxQ4Kg.js"
+              ]
+            },
+            "my-script.ts": {
+              "file": "assets/backlog-LmEve9Li.js",
+              "name": "backlog",
+              "src": "my-script.ts",
+              "isEntry": true,
+              "imports": [
+                "_pageHeader-CMFcDjBz.js",
+                // "_index-CmRxQ4Kg.js",
+              ]
+            }
+          })
+        })
+      ],
+      perform: [
+        step("render a view based on the manifest", (context) => {
+          context.renderView((root) => {
+            root.html(el => {
+              el.children
+                .head(el => {
+                  el.children
+                    .script(el => {
+                      el.config
+                        .type("module")
+                        .src("my-script.ts")
+                    })
+                })
+            })
+          })
+        })
+      ],
+      observe: [
+        effect("the link tags for the extra scripts are included in the html", (context) => {
+          expect(context.getHTML(), is(
+            stringMatching(/<link rel="modulepreload" href="assets\/pageHeader-.+\.js">/)
+          ))
+          expect(context.getHTML(), is(
+            stringMatching(/<link rel="modulepreload" href="assets\/index-.+\.js">/)
           ))
         })
       ]

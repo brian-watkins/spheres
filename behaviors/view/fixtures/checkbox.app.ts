@@ -1,5 +1,5 @@
-import { container, reset, write } from "@spheres/store";
-import { HTMLBuilder } from "@src/index";
+import { container, reset, write } from "@store/index";
+import { HTMLBuilder } from "@view/index";
 
 const boxes = [
   "one",

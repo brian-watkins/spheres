@@ -1,8 +1,8 @@
-import { container, supplied, write } from "@src/index";
+import { container, supplied, write } from "@store/index.js";
 import { behavior, effect, example, step } from "best-behavior";
 import { arrayWith, equalTo, expect, is, objectWithProperty } from "great-expectations";
-import { errorMessage, okMessage, pendingMessage } from "helpers/metaMatchers";
-import { testStoreContext } from "helpers/testStore";
+import { errorMessage, okMessage, pendingMessage } from "./helpers/metaMatchers";
+import { testStoreContext } from "./helpers/testStore";
 
 export default behavior("initialize state", [
 

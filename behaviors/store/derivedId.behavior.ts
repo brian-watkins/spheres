@@ -1,7 +1,7 @@
-import { Container, DerivedState, StateCollection, collection, container, derived } from "@src/index";
+import { Container, DerivedState, StateCollection, collection, container, derived } from "@store/index.js";
 import { behavior, effect, example, fact, step } from "best-behavior";
 import { expect, is } from "great-expectations";
-import { testStoreContext } from "helpers/testStore";
+import { testStoreContext } from "./helpers/testStore";
 
 interface DerivedStateContext {
   stateCollection: StateCollection<DerivedState<number>>

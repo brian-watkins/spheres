@@ -1,5 +1,5 @@
-import { container, update } from "@spheres/store";
-import { HTMLBuilder } from "@src/htmlElements";
+import { container, update } from "@store/index.js";
+import { HTMLBuilder } from "@view/index";
 
 const showFun = container({ initialValue: false })
 

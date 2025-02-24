@@ -1,4 +1,4 @@
-import { Meta } from "@src/index.js"
+import { Meta } from "@store/index.js"
 import { equalTo, Matcher, objectWith } from "great-expectations"
 
 export function pendingMessage<M>(message: M): Matcher<Meta<M, unknown>> {

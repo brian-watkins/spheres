@@ -1,7 +1,7 @@
-import { Container, container } from "@src/index";
+import { Container, container } from "@store/index.js";
 import { behavior, effect, example, fact, step } from "best-behavior";
 import { equalTo, expect, is } from "great-expectations";
-import { testStoreContext } from "helpers/testStore";
+import { testStoreContext } from "./helpers/testStore";
 
 export default behavior("reset container", [
 

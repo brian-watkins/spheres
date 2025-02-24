@@ -1,5 +1,5 @@
-import { container, run, write } from "@spheres/store";
-import { HTMLBuilder } from "@src/index";
+import { container, run, write } from "@store/index.js";
+import { HTMLBuilder } from "@view/index.js";
 
 const secretMessage = container({ initialValue: "" })
 

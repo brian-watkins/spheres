@@ -1,6 +1,6 @@
 import { behavior, effect, example, fact, step } from "best-behavior";
 import { assignedWith, equalTo, expect, is, resolvesTo, stringContaining } from "great-expectations";
-import { browserAppContext } from "helpers/testAppController.js";
+import { browserAppContext } from "./helpers/testAppController.js";
 
 export default behavior("reactive elements", [
 

@@ -1,5 +1,5 @@
-import { HTMLBuilder } from "@src/index.js"
-import { container, GetState, use, write } from "@spheres/store"
+import { HTMLBuilder } from "@view/index.js"
+import { container, GetState, use, write } from "@store/index.js"
 
 const clickCount = container({ initialValue: 0 })
 

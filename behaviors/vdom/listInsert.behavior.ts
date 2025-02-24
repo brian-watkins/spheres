@@ -1,8 +1,8 @@
 import { behavior, effect, example } from "best-behavior";
 import { equalTo, expect, is } from "great-expectations";
-import { selectElements } from "helpers/displayElement.js";
-import { ListExamplesState, childElementText, renderAppBasedOnState, updateState } from "helpers/listHelpers";
-import { renderContext } from "helpers/renderContext.js";
+import { selectElements } from "./helpers/displayElement.js";
+import { ListExamplesState, childElementText, renderAppBasedOnState, updateState } from "./helpers/listHelpers";
+import { renderContext } from "./helpers/renderContext.js";
 
 export default behavior("insert items into list", [
   example(renderContext<ListExamplesState>())

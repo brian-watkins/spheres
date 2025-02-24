@@ -1,6 +1,6 @@
 import { behavior, effect, example, fact, step } from "best-behavior";
 import { equalTo, expect, is } from "great-expectations";
-import { Container, container, write } from "@src/index.js";
+import { Container, container, write } from "@store/index.js";
 import { testStoreContext } from "./helpers/testStore.js";
 
 interface UpdateContainerContext {

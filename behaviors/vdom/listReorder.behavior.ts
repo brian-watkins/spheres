@@ -1,9 +1,9 @@
 import { behavior, effect, example, fact, step } from "best-behavior"
 import { renderContext } from "./helpers/renderContext.js";
-import { selectElements } from "helpers/displayElement.js";
+import { selectElements } from "./helpers/displayElement.js";
 import { equalTo, expect, is, resolvesTo } from "great-expectations";
-import { ListExamplesState, childElementText, renderAppBasedOnState, ssrAndActivateBasedOnState, updateState } from "helpers/listHelpers.js";
-import { Container, container } from "@spheres/store";
+import { ListExamplesState, childElementText, renderAppBasedOnState, ssrAndActivateBasedOnState, updateState } from "./helpers/listHelpers.js";
+import { Container, container } from "@store/index.js";
 
 export default behavior("reorder list", [
 

@@ -1,7 +1,7 @@
-import { Container, DerivedState, container, derived } from "@src/index.js";
+import { Container, DerivedState, container, derived } from "@store/index.js";
 import { behavior, effect, example, fact } from "best-behavior";
 import { expect, is } from "great-expectations";
-import { testStoreContext } from "helpers/testStore.js";
+import { testStoreContext } from "./helpers/testStore.js";
 
 interface ContainerTokenContext {
   stringState: Container<string>

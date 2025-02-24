@@ -1,9 +1,9 @@
-import { Container, container } from "@spheres/store";
-import { HTMLBuilder } from "@src/htmlElements";
+import { Container, container } from "@store/index.js";
 import { behavior, effect, example, fact, step } from "best-behavior";
-import { expect, is, resolvesTo } from "great-expectations";
-import { selectElement, selectElements } from "helpers/displayElement";
-import { renderContext } from "helpers/renderContext";
+import { assignedWith, equalTo, expect, is, resolvesTo } from "great-expectations";
+import { selectElement, selectElements } from "./helpers/displayElement";
+import { renderContext } from "./helpers/renderContext";
+import { HTMLBuilder } from "@view/index";
 
 export default behavior("reactive dom effects", [
 
@@ -24,7 +24,7 @@ export default behavior("reactive dom effects", [
         })
       ],
       observe: [
-        effect("the text is rendered", async (context) => {
+        effect("the text is rendered", async () => {
           await expect(selectElement("[data-test-element]").text(), resolvesTo("hello"))
         })
       ]
@@ -35,7 +35,7 @@ export default behavior("reactive dom effects", [
         })
       ],
       observe: [
-        effect("the text node is updated", async (context) => {
+        effect("the text node is updated", async () => {
           await expect(selectElement("[data-test-element]").text(), resolvesTo("Have fun!"))
         })
       ]
@@ -60,7 +60,7 @@ export default behavior("reactive dom effects", [
       observe: [
         effect("the element is rendered", async () => {
           const attributeText = await selectElement("div").attribute("data-my-info")
-          expect(attributeText, is("hello"))
+          expect(attributeText, is(assignedWith(equalTo("hello"))))
         })
       ]
     }).andThen({
@@ -72,7 +72,7 @@ export default behavior("reactive dom effects", [
       observe: [
         effect("the attribute is updated", async () => {
           const attributeText = await selectElement("div").attribute("data-my-info")
-          expect(attributeText, is("awesome!"))
+          expect(attributeText, is(assignedWith(equalTo("awesome!"))))
         })
       ]
     }),
@@ -96,7 +96,7 @@ export default behavior("reactive dom effects", [
       observe: [
         effect("the className property is set", async () => {
           const propertyValue = await selectElement("div").property("className")
-          expect(propertyValue, is("hello-style"))
+          expect(propertyValue, is(assignedWith(equalTo("hello-style"))))
         })
       ]
     }).andThen({
@@ -108,7 +108,7 @@ export default behavior("reactive dom effects", [
       observe: [
         effect("the className property is updated", async () => {
           const propertyValue = await selectElement("div").property("className")
-          expect(propertyValue, is("goodbye-style"))
+          expect(propertyValue, is(assignedWith(equalTo("goodbye-style"))))
         })
       ]
     }),
@@ -132,7 +132,7 @@ export default behavior("reactive dom effects", [
         })
       ],
       observe: [
-        effect("the text is rendered", async (context) => {
+        effect("the text is rendered", async () => {
           await expect(selectElements("p").map(el => el.text()), resolvesTo([
             "One yo",
             "Two yo"

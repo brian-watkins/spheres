@@ -1,8 +1,8 @@
-import { collection, Container, container, StateCollection } from "@src/index";
+import { collection, Container, container, StateCollection } from "@store/index.js";
 import { behavior, effect, example, fact, step } from "best-behavior";
 import { arrayWith, expect, is } from "great-expectations";
-import { errorMessage, okMessage } from "helpers/metaMatchers";
-import { testStoreContext } from "helpers/testStore";
+import { errorMessage, okMessage } from "./helpers/metaMatchers";
+import { testStoreContext } from "./helpers/testStore";
 
 export default behavior("container collection", [
 

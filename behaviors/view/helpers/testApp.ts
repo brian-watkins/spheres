@@ -1,6 +1,6 @@
-import { renderToDOM } from "@src/index.js"
+import { renderToDOM } from "@view/index.js"
 import { DOMChangeRecord, structureChangeRecord, textChangeRecord } from "./changeRecords.js"
-import { createStore } from "@spheres/store"
+import { createStore } from "@store/index.js"
 
 export class TestApp {
   private unmountTestApp: (() => void) | undefined

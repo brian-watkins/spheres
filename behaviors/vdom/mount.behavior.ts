@@ -1,9 +1,9 @@
 import { behavior, effect, example, fact, step } from "best-behavior"
 import { equalTo, expect, is, resolvesTo } from "great-expectations"
-import { selectElement, selectElementWithText, selectElements } from "helpers/displayElement.js"
-import { renderContext } from "helpers/renderContext.js"
-import { container, State } from "@spheres/store"
-import { HTMLView } from "@src/index"
+import { selectElement, selectElementWithText, selectElements } from "./helpers/displayElement.js"
+import { renderContext } from "./helpers/renderContext.js"
+import { container, State } from "@store/index.js"
+import { HTMLView } from "@view/index"
 
 export default behavior("mount", [
 

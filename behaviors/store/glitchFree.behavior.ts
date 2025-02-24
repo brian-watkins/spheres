@@ -1,7 +1,7 @@
-import { Container, DerivedState, command, container, derived } from "@src/index";
+import { Container, DerivedState, command, container, derived } from "@store/index.js";
 import { behavior, effect, example, fact, step } from "best-behavior";
 import { equalTo, expect, is } from "great-expectations";
-import { testStoreContext } from "helpers/testStore";
+import { testStoreContext } from "./helpers/testStore";
 
 export default behavior("glitch-free effects", [
 

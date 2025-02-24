@@ -1,7 +1,7 @@
-import { createStore, ErrorMessage, State, supplied } from "@src/index";
+import { createStore, ErrorMessage, State, supplied } from "@store/index.js";
 import { behavior, effect, example, step } from "best-behavior";
 import { arrayWith, equalTo, expect, is, objectWith } from "great-expectations";
-import { StoreValuesEffect, testStoreContext } from "helpers/testStore";
+import { StoreValuesEffect, testStoreContext } from "./helpers/testStore";
 
 export default behavior("serialize state", [
 

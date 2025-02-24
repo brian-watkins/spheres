@@ -1,5 +1,5 @@
-import { HTMLBuilder } from "@src/index.js"
-import { container, write } from "@spheres/store"
+import { HTMLBuilder } from "@view/index.js"
+import { container, write } from "@store/index.js"
 
 export interface InputAppProps {
   defaultInputValue: string

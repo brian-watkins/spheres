@@ -1,10 +1,9 @@
 import { behavior, effect, Example, example, fact, step } from "best-behavior";
 import { equalTo, expect, resolvesTo } from "great-expectations";
-import { selectElement } from "helpers/displayElement.js";
-import { RenderApp, renderContext } from "helpers/renderContext.js";
-import { Container, container, State, update, use, write } from "@spheres/store";
-import { HTMLBuilder } from "@src/htmlElements";
-import { HTMLView } from "@src/htmlViewBuilder";
+import { selectElement } from "./helpers/displayElement.js";
+import { RenderApp, renderContext } from "./helpers/renderContext.js";
+import { Container, container, State, update, use, write } from "@store/index.js";
+import { HTMLBuilder, HTMLView } from "@view/index.js";
 
 export default behavior("event handlers", [
 

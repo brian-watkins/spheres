@@ -1,6 +1,6 @@
-import { container, GetState, State, use, write } from "@spheres/store"
+import { container, GetState, State, use, write } from "@store/index.js"
 import { useValue } from "./helpers"
-import { HTMLBuilder, HTMLView } from "@src/index"
+import { HTMLBuilder, HTMLView } from "@view/index.js"
 
 interface Person {
   name: string

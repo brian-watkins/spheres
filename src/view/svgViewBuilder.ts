@@ -2,7 +2,7 @@ import { Container, GetState, State, Stateful } from "../store/index.js"
 import { recordTokens } from "../store/state/stateRecorder.js"
 import { SpecialElementAttributes } from "./specialAttributes.js"
 import { StatefulSelectorNode, ViewSelector, VirtualListItemTemplate, VirtualNode, VirtualNodeConfig, VirtualTemplate, makeStatefulSelector, makeVirtualElement, makeZoneList, setNamespace, virtualNodeConfig } from "./render/virtualNode.js"
-import { SVGBuilder, SVGElements, SVGElementAttributes, SVGView, SpecialSVGElements, SVGViewSelector } from "./svgElements.js"
+import { SVGBuilder, SVGElements, SVGElementAttributes, SVGView, SpecialSVGElements, SVGViewSelector, GlobalSVGAttributes } from "./svgElements.js"
 import { ConfigurableElement, ViewBuilder } from "./viewBuilder.js"
 import { BasicElementConfig } from "./viewConfig.js"
 import { svgAttributeNames } from "./elementData.js"
@@ -32,7 +32,7 @@ export function buildSvgElement(builder?: (element: ConfigurableElement<SpecialE
   return makeVirtualElement("svg", config, view.nodes)
 }
 
-export class SvgViewBuilder extends ViewBuilder<SpecialElementAttributes, SVGElements> implements SpecialSVGElements {
+export class SvgViewBuilder extends ViewBuilder<SpecialElementAttributes & GlobalSVGAttributes, SVGElements> implements SpecialSVGElements {
   subview(view: SVGView): this {
     const builder = new SvgViewBuilder()
     view(builder as unknown as SVGBuilder)
@@ -55,7 +55,7 @@ export class SvgViewBuilder extends ViewBuilder<SpecialElementAttributes, SVGEle
     return this
   }
 
-  element(tag: string, builder?: ((element: ConfigurableElement<SpecialElementAttributes, SVGElements>) => void) | undefined): this {
+  element(tag: string, builder?: ((element: ConfigurableElement<SpecialElementAttributes & GlobalSVGAttributes, SVGElements>) => void) | undefined): this {
     return this.buildElement(tag, svgConfigBuilder, builder)
   }
 }

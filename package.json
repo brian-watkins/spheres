@@ -11,7 +11,8 @@
   "type": "module",
   "exports": {
     "./store": "./dist/store/index.js",
-    "./view": "./dist/view/index.js"
+    "./view": "./dist/view/index.js",
+    "./server": "./dist/server/index.js"
   },
   "files": [
     "dist/"
@@ -28,6 +29,7 @@
     "test:view": "best --behaviors './behaviors/view/**/*.behavior.ts'",
     "test:vdom": "best --behaviors './behaviors/vdom/**/*.behavior.ts'",
     "test:view:debug": "DEBUG=true npm run test:view",
+    "test:server": "best --behaviors './behaviors/server/**/*.behavior.ts'",
     "test:coverage": "best --coverage",
     "change:add": "changeset add",
     "change:version": "changeset version",

@@ -1,10 +1,10 @@
-import { collection, Container, container, derived, State, StateCollection, use, write } from "@spheres/store";
-import { HTMLView } from "@src/htmlViewBuilder";
+import { collection, Container, container, derived, State, StateCollection, use, write } from "@store/index.js";
 import { behavior, effect, example, fact, step } from "best-behavior";
 import { expect, is, resolvesTo } from "great-expectations";
-import { selectElement, selectElements } from "helpers/displayElement";
-import { ListExamplesState, childElementText, containerWithList, itemView, otherItemView, updateState } from "helpers/listHelpers";
-import { RenderApp, renderContext } from "helpers/renderContext";
+import { selectElement, selectElements } from "./helpers/displayElement";
+import { ListExamplesState, childElementText, containerWithList, itemView, otherItemView, updateState } from "./helpers/listHelpers";
+import { RenderApp, renderContext } from "./helpers/renderContext";
+import { HTMLView } from "@view/index";
 
 export default behavior("lists interspersed among other children", [
 
@@ -307,7 +307,7 @@ function nestedListSelectorExample(name: string, renderer: (context: RenderApp<N
         fact("there is stateful list data", (context) => {
           context.setState({
             mainList: container({ initialValue: ["one", "two", "three"] }),
-            nestedData: collection(() => container({ initialValue: [] }))
+            nestedData: collection(() => container<Array<string>>({ initialValue: [] }))
           })
         }),
         fact("for each main list item there is a sub list", (context) => {
@@ -479,7 +479,7 @@ function listOfListExample(name: string, renderer: (context: RenderApp<NestedLis
       observe: [
         effect("the list items are in the correct order", async () => {
           const order = await selectElements("div[data-sub-list]").map(el => el.attribute("data-sub-list"))
-          expect(order, is([
+          expect(order.filter(s => s !== undefined), is([
             "0", "0", "0", "0",
             "1", "1", "1", "1",
             "2", "2", "2", "2",

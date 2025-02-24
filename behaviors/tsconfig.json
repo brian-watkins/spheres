@@ -1,0 +1,25 @@
+{
+  "extends": "../tsconfig.common.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "rootDir": "./",
+    "baseUrl": "./",
+    "paths": {
+      "@server/*": [
+        "../src/server/*"
+      ],
+      "@store/*": [
+        "../src/store/*"
+      ],
+      "@view/*": [
+        "../src/view/*"
+      ]
+    },
+  },
+  "include": [
+    "./**/*",
+  ],
+  "references": [
+    { "path": "../" }
+  ]
+}

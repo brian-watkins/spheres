@@ -1,4 +1,4 @@
-import { HTMLBuilder } from "@src/index.js"
+import { HTMLBuilder } from "@view/index.js"
 
 export default function (root: HTMLBuilder) {
   root.div(div => {

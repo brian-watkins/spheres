@@ -1,9 +1,9 @@
-import { Container, ContainerHooks, container } from "@src/index";
+import { Container, ContainerHooks, container } from "@store/index.js";
 import { ConfigurableExample, behavior, effect, example, fact, step } from "best-behavior";
 import { arrayWith, expect, is } from "great-expectations";
-import { errorMessage, okMessage, pendingMessage } from "helpers/metaMatchers";
-import { TestTask } from "helpers/testTask";
-import { testStoreContext } from "helpers/testStore";
+import { errorMessage, okMessage, pendingMessage } from "./helpers/metaMatchers";
+import { TestTask } from "./helpers/testTask";
+import { testStoreContext } from "./helpers/testStore";
 
 interface BasicContainerHooksContext {
   container: Container<string>

@@ -1,9 +1,9 @@
 import { Action, Observation, Presupposition, effect, fact, step } from "best-behavior"
 import { RenderApp } from "./renderContext"
-import { HTMLView } from "@src/htmlViewBuilder"
 import { selectElements } from "./displayElement"
 import { expect, is } from "great-expectations"
-import { container, Container, State } from "@spheres/store"
+import { container, Container, State } from "@store/index.js"
+import { HTMLView } from "@view/index"
 
 export interface ListExamplesState {
   listContainer: Container<Array<string>>

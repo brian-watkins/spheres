@@ -1,4 +1,4 @@
-import { Container, State, Store, write, StoreMessage, batch, GetState, reset, Command, CommandActions, ContainerHooks, ReactiveEffect, createStore } from "@src/index.js"
+import { Container, State, Store, write, StoreMessage, batch, GetState, reset, Command, CommandActions, ContainerHooks, ReactiveEffect, createStore } from "@store/index.js"
 import { Context } from "best-behavior"
 
 export function testStoreContext<T>(): Context<TestStore<T>> {

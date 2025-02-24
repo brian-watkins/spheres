@@ -1,8 +1,7 @@
-import { container, write } from "@src/index.js";
-import { Container } from "@src/store.js";
+import { Container, container, write } from "@store/index.js";
 import { behavior, effect, example, fact, step } from "best-behavior";
 import { equalTo, expect, is } from "great-expectations";
-import { testStoreContext } from "helpers/testStore.js";
+import { testStoreContext } from "./helpers/testStore.js";
 
 interface SimpleBatchContext {
   numberContainer: Container<number>

@@ -1,5 +1,5 @@
-import { State, container, use, write } from "@spheres/store";
-import { HTMLBuilder, SVGView } from "@src/index";
+import { State, container, use, write } from "@store/index.js";
+import { HTMLBuilder, SVGView } from "@view/index.js";
 
 interface Circle {
   label: string

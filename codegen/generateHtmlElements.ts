@@ -79,7 +79,7 @@ specialHtmlElementsInterface.addMethod({
   name: "element",
   parameters: [
     { name: "tag", type: "string" },
-    { name: "builder", type: "(element: ConfigurableElement<SpecialElementAttributes, HTMLElements>) => void", hasQuestionToken: true }
+    { name: "builder", type: "(element: ConfigurableElement<SpecialElementAttributes & GlobalHTMLAttributes, HTMLElements>) => void", hasQuestionToken: true }
   ],
   returnType: "this"
 })

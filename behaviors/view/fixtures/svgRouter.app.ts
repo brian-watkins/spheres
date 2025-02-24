@@ -1,5 +1,5 @@
-import { container, write } from "@spheres/store";
-import { HTMLBuilder, SVGBuilder } from "@src/index";
+import { container, write } from "@store/index.js";
+import { HTMLBuilder, SVGBuilder } from "@view/index.js";
 
 enum Shape {
   None = "none",

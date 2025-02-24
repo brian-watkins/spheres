@@ -1,9 +1,9 @@
-import { collection, container, Container, derived, State, StateCollection, use, write } from "@spheres/store";
-import { HTMLView } from "@src/index";
+import { collection, container, Container, derived, State, StateCollection, use, write } from "@store/index.js";
+import { HTMLView } from "@view/index";
 import { behavior, effect, example, fact, step } from "best-behavior";
-import { expect, is, resolvesTo } from "great-expectations";
-import { selectElement, selectElements } from "helpers/displayElement";
-import { RenderApp, renderContext } from "helpers/renderContext";
+import { assignedWith, equalTo, expect, is, resolvesTo } from "great-expectations";
+import { selectElement, selectElements } from "./helpers/displayElement";
+import { RenderApp, renderContext } from "./helpers/renderContext";
 
 interface ListContext {
   items: Container<Array<string>>
@@ -25,7 +25,7 @@ export default behavior("list effects", [
       suppose: [
         fact("there is empty list state", (context) => {
           context.setState({
-            items: container({ initialValue: [] })
+            items: container<Array<string>>({ initialValue: [] })
           })
         }),
         fact("a list of elements is displayed based on the state", (context) => {
@@ -156,11 +156,11 @@ export default behavior("list effects", [
       observe: [
         effect("the view is rendered with the stateful property", async () => {
           const className = await selectElement("li").property("className")
-          expect(className, is("style-cat"))
+          expect(className, is(assignedWith(equalTo("style-cat"))))
         }),
         effect("static properties are also rendered", async () => {
           const className = await selectElement("span").property("className")
-          expect(className, is("special-text"))
+          expect(className, is(assignedWith(equalTo("special-text"))))
         })
       ]
     }).andThen({
@@ -172,7 +172,7 @@ export default behavior("list effects", [
       observe: [
         effect("the view is rendered with the correct property", async () => {
           const className = await selectElement("li").property("className")
-          expect(className, is("style-dog"))
+          expect(className, is(assignedWith(equalTo("style-dog"))))
         })
       ]
     }),
@@ -218,7 +218,7 @@ export default behavior("list effects", [
       ],
       observe: [
         effect("the data attribute is updated for each view based on the derived state", async () => {
-          await expect(selectElements("H1").map(el => el.attribute("data-length")), resolvesTo([
+          await expect(selectElements("H1").map(el => el.attribute("data-length")), resolvesTo<Array<string | undefined>>([
             "3",
             "4",
             "5"
@@ -237,7 +237,7 @@ export default behavior("list effects", [
       ],
       observe: [
         effect("only the data attribute for the changed list view updates", async () => {
-          await expect(selectElements("H1").map(el => el.attribute("data-length")), resolvesTo([
+          await expect(selectElements("H1").map(el => el.attribute("data-length")), resolvesTo<Array<string | undefined>>([
             "3",
             "2",
             "5"
@@ -252,7 +252,7 @@ export default behavior("list effects", [
       ],
       observe: [
         effect("the list item view attribute updates", async () => {
-          await expect(selectElements("H1").map(el => el.attribute("data-length")), resolvesTo([
+          await expect(selectElements("H1").map(el => el.attribute("data-length")), resolvesTo<Array<string | undefined>>([
             "8",
             "2",
             "5"
@@ -267,7 +267,7 @@ export default behavior("list effects", [
       ],
       observe: [
         effect("the list item view attribute updates", async () => {
-          await expect(selectElements("H1").map(el => el.attribute("data-length")), resolvesTo([
+          await expect(selectElements("H1").map(el => el.attribute("data-length")), resolvesTo<Array<string | undefined>>([
             "7",
             "2",
             "5"
@@ -415,7 +415,7 @@ export default behavior("list effects", [
       ],
       observe: [
         effect("the property is updated for each view based on the derived state", async () => {
-          await expect(selectElements("H1").map(el => el.property("className")), resolvesTo([
+          await expect(selectElements("H1").map(el => el.property("className")), resolvesTo<Array<string | undefined>>([
             "length-3",
             "length-4",
             "length-5"
@@ -434,7 +434,7 @@ export default behavior("list effects", [
       ],
       observe: [
         effect("the property is updated for each view based on the derived state", async () => {
-          await expect(selectElements("H1").map(el => el.property("className")), resolvesTo([
+          await expect(selectElements("H1").map(el => el.property("className")), resolvesTo<Array<string | undefined>>([
             "length-3",
             "length-2",
             "length-5"
@@ -449,7 +449,7 @@ export default behavior("list effects", [
       ],
       observe: [
         effect("the property is updated for each view based on the derived state", async () => {
-          await expect(selectElements("H1").map(el => el.property("className")), resolvesTo([
+          await expect(selectElements("H1").map(el => el.property("className")), resolvesTo<Array<string | undefined>>([
             "length-8",
             "length-2",
             "length-5"
@@ -464,7 +464,7 @@ export default behavior("list effects", [
       ],
       observe: [
         effect("the property is updated for each view based on the derived state", async () => {
-          await expect(selectElements("H1").map(el => el.property("className")), resolvesTo([
+          await expect(selectElements("H1").map(el => el.property("className")), resolvesTo<Array<string | undefined>>([
             "length-7",
             "length-2",
             "length-5"

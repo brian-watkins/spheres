@@ -1,6 +1,6 @@
 import { behavior, effect, example, fact, step } from "best-behavior";
 import { testStoreContext } from "./helpers/testStore.js";
-import { Container, container, run } from "@src/index.js";
+import { Container, container, run } from "@store/index.js";
 import { equalTo, expect, is } from "great-expectations";
 
 export default behavior("run", [

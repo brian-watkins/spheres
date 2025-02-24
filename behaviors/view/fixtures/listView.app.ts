@@ -1,6 +1,5 @@
-import { container, State, write } from "@spheres/store";
-import { HTMLView } from "@src/htmlViewBuilder";
-import { HTMLBuilder } from "@src/index";
+import { container, State, write } from "@store/index.js";
+import { HTMLBuilder, HTMLView } from "@view/index.js";
 
 interface Fruit {
   name: string

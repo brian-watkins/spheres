@@ -1,6 +1,6 @@
 import { behavior, effect, example, fact, step } from "best-behavior";
 import { expect, resolvesTo } from "great-expectations";
-import { browserAppContext } from "helpers/testAppController";
+import { browserAppContext } from "./helpers/testAppController";
 
 export default behavior("lists of views", [
 

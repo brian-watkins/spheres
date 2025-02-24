@@ -1,5 +1,5 @@
-import { container, write } from "@spheres/store"
-import { HTMLBuilder } from "@src/index.js"
+import { container, write } from "@store/index.js"
+import { HTMLBuilder } from "@view/index.js"
 import { useValue } from "./helpers"
 
 const numberState = container({ initialValue: 17 })

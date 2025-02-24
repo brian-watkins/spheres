@@ -1,49 +1,12 @@
-import { Container, GetState, State, Stateful, Store } from "../store/index.js"
+import { Container, GetState, State, Stateful } from "../store/index.js"
 import { addStatefulProperty, addProperty, makeZoneList, VirtualListItemTemplate, VirtualTemplate, VirtualNode, ViewSelector, makeStatefulSelector, StatefulSelectorNode } from "./render/virtualNode.js"
-import { HTMLElements, HTMLBuilder, HTMLView, SpecialHTMLElements, HTMLViewSelector } from "./htmlElements.js"
+import { HTMLElements, HTMLBuilder, HTMLView, SpecialHTMLElements, HTMLViewSelector, GlobalHTMLAttributes } from "./htmlElements.js"
 import { SVGElements } from "./svgElements.js"
 import { BasicElementConfig } from "./viewConfig.js"
 import { ConfigurableElement, ViewBuilder } from "./viewBuilder.js"
 import { buildSvgElement } from "./svgViewBuilder.js"
-import { stringifyVirtualNode } from "./render/renderToString.js"
-import { DOMRoot } from "./render/renderToDom.js"
-import { RenderResult } from "./render/index.js"
-import { IdSequence } from "./render/idSequence.js"
 import { recordTokens } from "../store/state/stateRecorder.js"
-import { getTokenRegistry } from "../store/store.js"
 import { SpecialElementAttributes } from "./specialAttributes.js"
-export type { RenderResult } from "./render/index.js"
-
-export function activateView(store: Store, element: Element, view: HTMLView): RenderResult {
-  const builder = new HtmlViewBuilder()
-  view(builder as unknown as HTMLBuilder)
-  const vnode = builder.toVirtualNode()
-
-  const root = new DOMRoot(getTokenRegistry(store), element)
-  root.activate(vnode)
-
-  return root
-}
-
-export function renderToDOM(store: Store, element: Element, view: HTMLView): RenderResult {
-  const builder = new HtmlViewBuilder()
-  view(builder as unknown as HTMLBuilder)
-  const vnode = builder.toVirtualNode()
-
-  const root = new DOMRoot(getTokenRegistry(store), element)
-  root.mount(vnode)
-
-  return root
-}
-
-export function renderToString(store: Store, view: HTMLView): string {
-  const builder = new HtmlViewBuilder()
-  builder.subview(view)
-  return stringifyVirtualNode(getTokenRegistry(store), new IdSequence(), builder.toVirtualNode())
-}
-
-
-// View
 
 class HTMLElementConfig extends BasicElementConfig {
   class(value: string | Stateful<string>): this {
@@ -57,7 +20,7 @@ class HTMLElementConfig extends BasicElementConfig {
   }
 }
 
-const configBuilder = new HTMLElementConfig()
+export const configBuilder = new HTMLElementConfig()
 
 class InputElementConfig extends HTMLElementConfig {
   value(val: string | Stateful<string>) {
@@ -77,9 +40,9 @@ class InputElementConfig extends HTMLElementConfig {
   }
 }
 
-const inputConfigBuilder = new InputElementConfig()
+export const inputConfigBuilder = new InputElementConfig()
 
-class HtmlViewBuilder extends ViewBuilder<SpecialElementAttributes, HTMLElements> implements SpecialHTMLElements {
+export class HtmlViewBuilder extends ViewBuilder<SpecialElementAttributes & GlobalHTMLAttributes, HTMLElements> implements SpecialHTMLElements {
   subview(view: HTMLView): this {
     const builder = new HtmlViewBuilder()
     view(builder as unknown as HTMLBuilder)
@@ -103,7 +66,7 @@ class HtmlViewBuilder extends ViewBuilder<SpecialElementAttributes, HTMLElements
     return this
   }
 
-  element(tag: string, builder?: ((element: ConfigurableElement<SpecialElementAttributes, HTMLElements>) => void) | undefined): this {
+  element(tag: string, builder?: ((element: ConfigurableElement<SpecialElementAttributes & GlobalHTMLAttributes, HTMLElements>) => void) | undefined): this {
     return this.buildElement(tag, configBuilder, builder)
   }
 
@@ -117,7 +80,7 @@ class HtmlViewBuilder extends ViewBuilder<SpecialElementAttributes, HTMLElements
   }
 }
 
-class SelectorBuilder implements HTMLViewSelector {
+export class SelectorBuilder implements HTMLViewSelector {
   private selectors: Array<ViewSelector> = []
   private defaultView: HTMLView | undefined
 

@@ -1,10 +1,9 @@
-import { collection, container, Container, State, StateCollection, update, use } from "@spheres/store";
-import { HTMLBuilder } from "@src/htmlElements";
-import { HTMLView } from "@src/index";
+import { collection, container, Container, State, StateCollection, update, use } from "@store/index.js";
+import { HTMLBuilder, HTMLView } from "@view/index";
 import { behavior, effect, example, fact, step } from "best-behavior";
-import { expect, is, resolvesTo } from "great-expectations";
-import { selectElement, selectElements, selectElementWithText } from "helpers/displayElement";
-import { RenderApp, renderContext } from "helpers/renderContext";
+import { assignedWith, equalTo, expect, is, resolvesTo } from "great-expectations";
+import { selectElement, selectElements, selectElementWithText } from "./helpers/displayElement";
+import { RenderApp, renderContext } from "./helpers/renderContext";
 
 export default behavior("conditional zone", [
 
@@ -516,7 +515,7 @@ function nestedSiblingSelectViewExample(name: string, renderer: (context: Render
         }),
         effect("the class property updated", async () => {
           await expect(selectElement("[data-counter-text='first-1']").property("className"),
-            resolvesTo("counter-style-first-1-2"))
+            resolvesTo(assignedWith(equalTo("counter-style-first-1-2"))))
         })
       ]
     }).andThen({
@@ -553,7 +552,7 @@ function nestedSiblingSelectViewExample(name: string, renderer: (context: Render
         }),
         effect("the clicked counter updates as expected", async () => {
           await expect(selectElement("[data-counter-text='second-1']").property("className"),
-            resolvesTo("counter-style-second-1-5"))
+            resolvesTo(assignedWith(equalTo("counter-style-second-1-5"))))
         })
       ]
     })
@@ -740,7 +739,7 @@ function nestedSelectorExample(name: string, renderer: (context: RenderApp<Neste
       suppose: [
         fact("there is state", (context) => {
           context.setState({
-            items: container({ initialValue: ["fruit", "sport", "book"] }),
+            items: container<Array<SelectOptions>>({ initialValue: ["fruit", "sport", "book"] }),
             modifier: container({ initialValue: "" })
           })
         }),

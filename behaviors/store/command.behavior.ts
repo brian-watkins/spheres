@@ -1,9 +1,9 @@
-import { Command, Container, StateCollection, SuppliedState, collection, command, container, exec, supplied } from "@src/index";
+import { Command, Container, StateCollection, SuppliedState, collection, command, container, exec, supplied } from "@store/index";
 import { behavior, effect, example, fact, step } from "best-behavior";
 import { arrayWith, expect, is } from "great-expectations";
-import { errorMessage, okMessage, pendingMessage } from "helpers/metaMatchers";
-import { testStoreContext } from "helpers/testStore";
-import { TestTask } from "helpers/testTask";
+import { errorMessage, okMessage, pendingMessage } from "./helpers/metaMatchers";
+import { testStoreContext } from "./helpers/testStore";
+import { TestTask } from "./helpers/testTask";
 
 interface FunCommandMessage {
   name: string

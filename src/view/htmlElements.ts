@@ -11,7 +11,7 @@ export interface HTMLViewSelector {
 }
 
 export interface SpecialHTMLElements {
-    element(tag: string, builder?: (element: ConfigurableElement<SpecialElementAttributes, HTMLElements>) => void): this;
+    element(tag: string, builder?: (element: ConfigurableElement<SpecialElementAttributes & GlobalHTMLAttributes, HTMLElements>) => void): this;
     textNode(value: string | Stateful<string>): this;
     subview(value: HTMLView): this;
     subviewOf(selectorGenerator: (selector: HTMLViewSelector) => void): this;

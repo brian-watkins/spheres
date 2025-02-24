@@ -1,6 +1,6 @@
 import { Context } from "best-behavior";
-import { TestAppDisplay } from "./testDisplay.js";
 import { BrowserTestInstrument, useBrowser } from "best-behavior/browser";
+import { TestAppDisplay } from "../../helpers/testDisplay.js";
 
 export interface DisplayBehaviorOptions {
   host: string

@@ -1,6 +1,7 @@
-import { activateView, HTMLView, RenderResult, renderToDOM, renderToString } from "@src/index.js"
+import { activateView, HTMLView, RenderResult, renderToDOM } from "@view/index.js"
 import { Context } from "best-behavior"
-import { Container, createStore, Store, write } from "@spheres/store"
+import { Container, createStore, Store, write } from "@store/index.js"
+import { renderToString } from "@server/index"
 
 export class RenderApp<T> {
   private renderResult: RenderResult | undefined

@@ -10,7 +10,7 @@ export interface SVGViewSelector {
 }
 
 export interface SpecialSVGElements {
-    element(tag: string, builder?: (element: ConfigurableElement<SpecialElementAttributes, SVGElements>) => void): this;
+    element(tag: string, builder?: (element: ConfigurableElement<SpecialElementAttributes & GlobalSVGAttributes, SVGElements>) => void): this;
     textNode(value: string | Stateful<string>): this;
     subview(value: SVGView): this;
     subviewOf(selectorGenerator: (selector: SVGViewSelector) => void): this;

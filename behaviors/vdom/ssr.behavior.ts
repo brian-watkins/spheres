@@ -1,9 +1,9 @@
-import { container, Container, State } from "@spheres/store";
-import { HTMLView } from "@src/index";
+import { container, Container, State } from "@store/index.js";
+import { HTMLView } from "@view/index";
 import { behavior, effect, example, fact, step } from "best-behavior";
 import { expect, resolvesTo } from "great-expectations";
-import { selectElements } from "helpers/displayElement";
-import { renderContext } from "helpers/renderContext";
+import { selectElements } from "./helpers/displayElement";
+import { renderContext } from "./helpers/renderContext";
 
 interface ListContext {
   options: Container<Array<string>>
@@ -51,12 +51,12 @@ export default behavior("ssr", [
           ]))
         }),
         effect("the default data attribute is rendered on the server", async () => {
-          await expect(selectElements("[data-stateful-text]").map(el => el.attribute("data-stateful-text")), resolvesTo([
+          await expect(selectElements("[data-stateful-text]").map(el => el.attribute("data-stateful-text")), resolvesTo<Array<string | undefined>>([
             "hello", "hello", "hello"
           ]))
         }),
         effect("the default class property is activated on the client", async () => {
-          await expect(selectElements("[data-stateful-text]").map(el => el.property("className")), resolvesTo([
+          await expect(selectElements("[data-stateful-text]").map(el => el.property("className")), resolvesTo<Array<string | undefined>>([
             "text-hello", "text-hello", "text-hello"
           ]))
         })
@@ -74,12 +74,12 @@ export default behavior("ssr", [
           ]))
         }),
         effect("the data attribute updates", async () => {
-          await expect(selectElements("[data-stateful-text]").map(el => el.attribute("data-stateful-text")), resolvesTo([
+          await expect(selectElements("[data-stateful-text]").map(el => el.attribute("data-stateful-text")), resolvesTo<Array<string | undefined>>([
             "Yo", "Yo", "Yo"
           ]))
         }),
         effect("the class property updates", async () => {
-          await expect(selectElements("[data-stateful-text]").map(el => el.property("className")), resolvesTo([
+          await expect(selectElements("[data-stateful-text]").map(el => el.property("className")), resolvesTo<Array<string | undefined>>([
             "text-Yo", "text-Yo", "text-Yo"
           ]))
         })

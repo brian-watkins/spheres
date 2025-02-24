@@ -1,5 +1,5 @@
-import { HTMLBuilder } from "@src/index";
-import { container, reset, write } from "@spheres/store";
+import { HTMLBuilder } from "@view/index.js";
+import { container, reset, write } from "@store/index.js";
 
 const fruits = [
   "apple",

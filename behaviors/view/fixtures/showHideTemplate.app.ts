@@ -1,6 +1,5 @@
-import { container, State, update, use, write } from "@spheres/store";
-import { HTMLBuilder } from "@src/htmlElements";
-import { HTMLView } from "@src/index";
+import { container, State, update, use, write } from "@store/index.js";
+import { HTMLBuilder, HTMLView } from "@view/index.js";
 
 function funTemplate(name: State<string>): HTMLView {
   return root => {

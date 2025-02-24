@@ -1,6 +1,7 @@
 import { HTMLBuilder } from "@view/index.js"
 import { createStore } from "@store/index.js"
 import { renderToString } from "@server/index.js"
+import { funView } from "./view"
 
 export function renderHTML(): string {
   return renderToString(createStore(), view)
@@ -20,9 +21,11 @@ function view(root: HTMLBuilder) {
           .script(el => {
             el.config
               .type("module")
-              .src("./activate.ts")
+              .src("./index.ts")
           })
       })
-      .body()
+      .body(el => {
+        el.children.subview(funView)
+      })
   })
 }

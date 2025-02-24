@@ -1,13 +1,22 @@
-import { HTMLBuilder, HTMLElements, HTMLView } from "../view/htmlElements.js"
+import { HTMLBuilder, HTMLElements, HTMLView, LinkElementAttributes, ScriptElementAttributes } from "../view/htmlElements.js"
 import { HtmlViewBuilder } from "../view/htmlViewBuilder.js"
 import { ConfigurableElement } from "../view/viewBuilder.js"
 import { BasicElementConfig } from "../view/viewConfig.js"
 import { Stateful } from "../store/index.js"
 import { addAttribute } from "../view/render/virtualNode.js"
-import { SpecialElementAttributes } from "../view/specialAttributes.js"
 import { manifest } from "./assetManifest.js"
 
 class ScriptElementConfig extends BasicElementConfig {
+  private _extraImports: Array<string> = []
+
+  reset() {
+    this._extraImports = []
+  }
+
+  get extraImports() {
+    return this._extraImports
+  }
+
   src(value: string | Stateful<string>) {
     if (typeof value === "function") {
 
@@ -15,6 +24,9 @@ class ScriptElementConfig extends BasicElementConfig {
       if (manifest !== undefined) {
         const normalized = normalizePath(value)
         const entryDetails = manifest[normalized]
+        if (entryDetails.imports !== undefined) {
+          this._extraImports = entryDetails.imports
+        }
         addAttribute(this.config, "src", entryDetails.file)
       }
       else {
@@ -59,12 +71,22 @@ export class SSRBuilder extends HtmlViewBuilder {
     return this
   }
 
-  script(builder?: (element: ConfigurableElement<SpecialElementAttributes, HTMLElements>) => void) {
-    return this.buildElement("script", scriptElementConfig, builder)
+  script(builder?: (element: ConfigurableElement<ScriptElementAttributes, HTMLElements>) => void) {
+    this.buildElement("script", scriptElementConfig, builder as (element: ConfigurableElement<any, any>) => void)
+
+    for (const extraImport of scriptElementConfig.extraImports) {
+      this.link(el => {
+        el.config
+          .rel("modulepreload")
+          .href(extraImport)
+      })
+    }
+
+    return this
   }
 
-  link(builder?: (element: ConfigurableElement<SpecialElementAttributes, HTMLElements>) => void) {
-    return this.buildElement("link", linkElementConfig, builder)
+  link(builder?: (element: ConfigurableElement<LinkElementAttributes, never>) => void) {
+    return this.buildElement("link", linkElementConfig, builder as (element: ConfigurableElement<any, any>) => void)
   }
 }
 

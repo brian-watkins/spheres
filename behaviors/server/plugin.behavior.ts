@@ -15,6 +15,7 @@ export default behavior("vite plugin", [
             },
             clientEntries: {
               client: "./behaviors/server/fixtures/ssrApp/plugin/index.ts",
+              tracing: "./behaviors/server/fixtures/ssrApp/plugin/tracing.ts",
               another: "./behaviors/server/fixtures/ssrApp/plugin/anotherPage.ts",
               styles: "./behaviors/server/fixtures/ssrApp/plugin/styles.css"
             }
@@ -49,6 +50,11 @@ export default behavior("vite plugin", [
         effect("the link to styles referenced in the js is included", async (context) => {
           expect(context.getRenderedHTML(), is(
             stringMatching(/<link rel="stylesheet" href="assets\/client-.+\.css">/)
+          ))
+        }),
+        effect("the script tag with a GetState function for src points to the compiled js", async (context) => {
+          expect(context.getRenderedHTML(), is(
+            stringMatching(/<script type="module" src="assets\/tracing-.+\.js"><\/script>/)
           ))
         })
       ]

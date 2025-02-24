@@ -7,7 +7,8 @@ import { SSRBuilder } from "./ssrBuilder.js"
 export { spheres } from "./plugin.js"
 
 export function renderToString(store: Store, view: HTMLView): string {
-  const builder = new SSRBuilder()
+  const tokenRegistry = getTokenRegistry(store)
+  const builder = new SSRBuilder(tokenRegistry)
   builder.subview(view)
-  return stringifyVirtualNode(getTokenRegistry(store), new IdSequence(), builder.toVirtualNode())
+  return stringifyVirtualNode(tokenRegistry, new IdSequence(), builder.toVirtualNode())
 }

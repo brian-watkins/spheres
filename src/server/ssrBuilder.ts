@@ -5,10 +5,15 @@ import { BasicElementConfig } from "../view/viewConfig.js"
 import { Stateful } from "../store/index.js"
 import { addAttribute } from "../view/render/virtualNode.js"
 import { manifest } from "./assetManifest.js"
+import { runQuery, TokenRegistry } from "../store/tokenRegistry.js"
 
 class ScriptElementConfig extends BasicElementConfig {
   private _extraImports: Array<string> = []
   private _extraCSS: Array<string> = []
+
+  constructor(private tokenRegistry: TokenRegistry) {
+    super()
+  }
 
   reset() {
     this._extraImports = []
@@ -24,31 +29,26 @@ class ScriptElementConfig extends BasicElementConfig {
   }
 
   src(value: string | Stateful<string>) {
-    if (typeof value === "function") {
+    const resolvedSrc = typeof value === "function" ? runQuery(this.tokenRegistry, value) ?? "" : value
 
-    } else {
-      if (manifest !== undefined) {
-        const normalized = normalizePath(value)
-        const entryDetails = manifest[normalized]
-        if (entryDetails.imports !== undefined) {
-          this._extraImports = entryDetails.imports
-        }
-        if (entryDetails.css !== undefined) {
-          this._extraCSS = entryDetails.css
-        }
-        addAttribute(this.config, "src", entryDetails.file)
+    if (manifest !== undefined) {
+      const normalized = normalizePath(resolvedSrc)
+      const entryDetails = manifest[normalized]
+      if (entryDetails.imports !== undefined) {
+        this._extraImports = entryDetails.imports
       }
-      else {
-        addAttribute(this.config, "src", value)
+      if (entryDetails.css !== undefined) {
+        this._extraCSS = entryDetails.css
       }
-
+      addAttribute(this.config, "src", entryDetails.file)
+    }
+    else {
+      addAttribute(this.config, "src", resolvedSrc)
     }
 
     return this
   }
 }
-
-const scriptElementConfig = new ScriptElementConfig()
 
 class LinkElementConfig extends BasicElementConfig {
   href(value: string | Stateful<string>) {
@@ -76,8 +76,12 @@ class LinkElementConfig extends BasicElementConfig {
 const linkElementConfig = new LinkElementConfig()
 
 export class SSRBuilder extends HtmlViewBuilder {
+  constructor(private tokenRegistry: TokenRegistry) {
+    super()
+  }
+
   subview(view: HTMLView): this {
-    const builder = new SSRBuilder()
+    const builder = new SSRBuilder(this.tokenRegistry)
     view(builder as unknown as HTMLBuilder)
     this.storeNode(builder.toVirtualNode())
 
@@ -85,9 +89,10 @@ export class SSRBuilder extends HtmlViewBuilder {
   }
 
   script(builder?: (element: ConfigurableElement<ScriptElementAttributes, HTMLElements>) => void) {
-    this.buildElement("script", scriptElementConfig, builder as (element: ConfigurableElement<any, any>) => void)
+    const scriptConfig = new ScriptElementConfig(this.tokenRegistry)
+    this.buildElement("script", scriptConfig, builder as (element: ConfigurableElement<any, any>) => void)
 
-    for (const extraImport of scriptElementConfig.extraImports) {
+    for (const extraImport of scriptConfig.extraImports) {
       this.link(el => {
         el.config
           .rel("modulepreload")
@@ -95,7 +100,7 @@ export class SSRBuilder extends HtmlViewBuilder {
       })
     }
 
-    for (const extraStylesheet of scriptElementConfig.extraStylesheets) {
+    for (const extraStylesheet of scriptConfig.extraStylesheets) {
       this.link(el => {
         el.config
           .rel("stylesheet")

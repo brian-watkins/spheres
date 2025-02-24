@@ -1,11 +1,13 @@
 import { HTMLBuilder } from "@view/index.js"
-import { createStore } from "@store/index.js"
+import { container, createStore } from "@store/index.js"
 import { renderToString } from "@server/index.js"
 import { funView } from "./view"
 
 export function renderHTML(): string {
   return renderToString(createStore(), view)
 }
+
+const someFilename = container({ initialValue: "tracing" })
 
 function view(root: HTMLBuilder) {
   root.html(el => {
@@ -22,6 +24,11 @@ function view(root: HTMLBuilder) {
             el.config
               .type("module")
               .src("./index.ts")
+          })
+          .script(el => {
+            el.config
+              .type("module")
+              .src((get) => `${get(someFilename)}.ts`)
           })
       })
       .body(el => {

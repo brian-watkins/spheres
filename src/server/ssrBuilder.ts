@@ -40,8 +40,12 @@ class SSRElementConfig extends BasicElementConfig {
 
     this._scriptImported = normalized
 
-    if (entryDetails.imports !== undefined) {
-      this._extraImports = entryDetails.imports
+    for (const script of entryDetails.imports ?? []) {
+      this._extraImports.push(script)
+    }
+
+    for (const script of entryDetails.dynamicImports ?? []) {
+      this._extraImports.push(script)
     }
 
     if (entryDetails.css !== undefined) {

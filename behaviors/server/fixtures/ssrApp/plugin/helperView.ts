@@ -2,7 +2,7 @@ import { container, State } from "@store/index";
 import { HTMLBuilder, HTMLView } from "@view/index";
 import "./moreStyles.css"
 
-const items = container({ initialValue: [ "one", "two", "three" ]})
+const items = container({ initialValue: ["one", "two", "three"] })
 
 export function superList(root: HTMLBuilder) {
   root.ul(el => {
@@ -10,10 +10,16 @@ export function superList(root: HTMLBuilder) {
   })
 }
 
+const { dynamic } = await import("./dynamicView")
+
 function itemView(state: State<string>): HTMLView {
   return (root) => {
     root.li(el => {
-      el.children.textNode(get => get(state))
+      el.children
+        .subview(dynamic)
+        .div(el => {
+          el.children.textNode(get => get(state))
+        })
     })
   }
 }

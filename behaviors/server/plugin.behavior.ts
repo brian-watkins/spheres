@@ -68,6 +68,16 @@ export default behavior("vite plugin", [
           expect(context.getRenderedHTML(), is(
             stringMatching(/<link rel="stylesheet" href="assets\/helperView-.+\.css">/)
           ))
+        }),
+        effect("link for dynamic script import is included", async (context) => {
+          expect(context.getRenderedHTML(), is(
+            stringMatching(/<link rel="modulepreload" href="assets\/someView-.+\.js">/)
+          ))
+        }),
+        effect("link for dynamic script import from extra script is included", async (context) => {
+          expect(context.getRenderedHTML(), is(
+            stringMatching(/<link rel="modulepreload" href="assets\/dynamicView-.+\.js">/)
+          ))
         })
       ]
     }),

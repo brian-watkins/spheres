@@ -15,6 +15,18 @@ class TestServerContext {
       configFile: false,
       appType: "custom",
       root: "./behaviors/server/fixtures/ssrApp/plugin",
+      environments: {
+        client: {
+          build: {
+            target: "esnext"
+          }
+        },
+        server: {
+          build: {
+            target: "esnext"
+          }
+        }
+      },
       plugins: [
         tsconfigPaths(),
         spheres(pluginOptions)

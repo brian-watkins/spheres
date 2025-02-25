@@ -5,7 +5,9 @@ import { BasicElementConfig } from "../view/viewConfig.js"
 import { Stateful } from "../store/index.js"
 import { addAttribute } from "../view/render/virtualNode.js"
 import { runQuery, TokenRegistry } from "../store/tokenRegistry.js"
-import type { Manifest } from "vite"
+import type { ManifestChunk, Manifest } from "vite"
+
+type SSRManifestChunk = ManifestChunk & { manifestKey: string }
 
 class SSRElementConfig extends BasicElementConfig {
   private _scriptImported: string | undefined
@@ -28,17 +30,28 @@ class SSRElementConfig extends BasicElementConfig {
     return this._extraCSS
   }
 
+  private findManifestEntry(path: string): SSRManifestChunk | undefined {
+    for (const file in this.manifest) {
+      if (path.endsWith(file)) {
+        return {
+          ...this.manifest[file],
+          manifestKey: file
+        }
+      }
+    }
+    return undefined
+  }
+
   addManifestAttribute(name: string, value: string | Stateful<string>) {
     const resolvedSrc = typeof value === "function" ? runQuery(this.tokenRegistry, value) ?? "" : value
-    const normalized = normalizePath(resolvedSrc)
-    const entryDetails = this.manifest?.[normalized]
+    const entryDetails = this.findManifestEntry(resolvedSrc)
 
     if (entryDetails === undefined) {
       addAttribute(this.config, name, resolvedSrc)
       return this
     }
 
-    this._scriptImported = normalized
+    this._scriptImported = entryDetails.manifestKey
 
     for (const script of entryDetails.imports ?? []) {
       this._extraImports.push(script)
@@ -122,12 +135,4 @@ export class SSRBuilder extends HtmlViewBuilder {
     const linkElementConfig = new LinkElementConfig(this.tokenRegistry, this.manifest)
     return this.buildSSRElement("link", linkElementConfig, builder)
   }
-}
-
-function normalizePath(path: string): string {
-  let normalized = path
-  if (path.startsWith("./")) {
-    normalized = path.substring(2)
-  }
-  return normalized
 }

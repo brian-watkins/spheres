@@ -138,7 +138,7 @@ export default behavior("rendering html page from transpiled server renderer", [
         effect("the link tag for the extra script referenced by an extra script is included in the html", (context) => {
           expect(context.getHTML(), is(
             stringMatching(/<link rel="modulepreload" href="assets\/pageHeader-.+\.js">/)
-          )),
+          ))
           expect(context.getHTML(), is(
             stringMatching(/<link rel="modulepreload" href="assets\/another-\w+\.js">/)
           ))
@@ -146,6 +146,63 @@ export default behavior("rendering html page from transpiled server renderer", [
         effect("the link tag for the extra script referenced twice is included only once", (context) => {
           expect(context.getHTML(), is(
             stringMatching(/<link rel="modulepreload" href="assets\/index-\w+\.js">/g, { times: 1 })
+          ))
+        })
+      ]
+    }),
+
+  example(testableSSRBuilderContext)
+    .description("view with absolute paths to assets")
+    .script({
+      suppose: [
+        fact("there is a manifest with extra scripts in extra scripts", (context) => {
+          context.useManifest({
+            "_index-CmRxQ4Kg.js": {
+              "file": "assets/index-CmRxQ4Kg.js",
+              "name": "index"
+            },
+            "_pageHeader-CMFcDjBz.js": {
+              "file": "assets/pageHeader-CMFcDjBz.js",
+              "name": "pageHeader",
+              "imports": [
+                "_index-CmRxQ4Kg.js",
+                "_another-888888.js"
+              ]
+            },
+            "dashboard/src/index.ts": {
+              "file": "assets/dashboard-CsRjAryI.js",
+              "name": "dashboard",
+              "src": "dashboard/src/index.ts",
+              "isEntry": true,
+              "imports": [
+                "_pageHeader-CMFcDjBz.js",
+                "_index-CmRxQ4Kg.js"
+              ]
+            }
+          })
+        })
+      ],
+      perform: [
+        step("render a view based on the manifest", (context) => {
+          context.renderView((root) => {
+            root.html(el => {
+              el.children
+                .head(el => {
+                  el.children
+                    .script(el => {
+                      el.config
+                        .type("module")
+                        .src("/dashboard/src/index.ts")
+                    })
+                })
+            })
+          })
+        })
+      ],
+      observe: [
+        effect("the script tag imports the transpiled script", (context) => {
+          expect(context.getHTML(), is(
+            stringMatching(/<script type="module" src="assets\/dashboard-CsRjAryI.js"><\/script>/)
           ))
         })
       ]

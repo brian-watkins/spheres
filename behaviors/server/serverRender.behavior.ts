@@ -2,6 +2,7 @@ import { behavior, effect, example, fact, step } from "best-behavior"
 import { testableServerContext } from "./helpers/testableServerContext"
 import { expect, is, stringMatching } from "great-expectations"
 import { testableSSRBuilderContext } from "./helpers/testableSSRBuilderContext"
+import { useModule } from "best-behavior/transpiler"
 
 export default behavior("rendering html page from transpiled server renderer", [
 
@@ -27,8 +28,7 @@ export default behavior("rendering html page from transpiled server renderer", [
       perform: [
         step("render the html", async (context) => {
           await context.render(async () => {
-            // @ts-ignore
-            const { renderHTML } = await import("./fixtures/ssrApp/plugin/dist/renderer.js")
+            const { renderHTML } = await useModule("./behaviors/server/fixtures/ssrApp/plugin/dist/renderer.js")
             return renderHTML()
           })
         })

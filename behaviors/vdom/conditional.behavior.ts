@@ -1,7 +1,7 @@
 import { collection, container, Container, State, StateCollection, update, use } from "@store/index.js";
 import { HTMLBuilder, HTMLView } from "@view/index";
 import { behavior, effect, example, fact, step } from "best-behavior";
-import { assignedWith, equalTo, expect, is, resolvesTo } from "great-expectations";
+import { expect, is, resolvesTo } from "great-expectations";
 import { selectElement, selectElements, selectElementWithText } from "./helpers/displayElement";
 import { RenderApp, renderContext } from "./helpers/renderContext";
 
@@ -515,7 +515,7 @@ function nestedSiblingSelectViewExample(name: string, renderer: (context: Render
         }),
         effect("the class property updated", async () => {
           await expect(selectElement("[data-counter-text='first-1']").property("className"),
-            resolvesTo(assignedWith(equalTo("counter-style-first-1-2"))))
+            resolvesTo("counter-style-first-1-2"))
         })
       ]
     }).andThen({
@@ -552,7 +552,7 @@ function nestedSiblingSelectViewExample(name: string, renderer: (context: Render
         }),
         effect("the clicked counter updates as expected", async () => {
           await expect(selectElement("[data-counter-text='second-1']").property("className"),
-            resolvesTo(assignedWith(equalTo("counter-style-second-1-5"))))
+            resolvesTo("counter-style-second-1-5"))
         })
       ]
     })

@@ -1,5 +1,5 @@
 import { behavior, effect, example, fact, step } from "best-behavior";
-import { assignedWith, equalTo, expect, is, resolvesTo, stringContaining } from "great-expectations";
+import { equalTo, expect, is, resolvesTo, stringContaining } from "great-expectations";
 import { browserAppContext } from "./helpers/testAppController.js";
 
 export default behavior("reactive elements", [
@@ -43,8 +43,7 @@ export default behavior("reactive elements", [
       ],
       observe: [
         effect("the classes change", async (controller) => {
-          const classes = await controller.display.select("#title").attribute("class")
-          expect(classes, is(assignedWith(equalTo("off"))))
+          await expect(controller.display.select("#title").attribute("class"), resolvesTo("off"))
         })
       ]
     }).andThen({
@@ -55,8 +54,7 @@ export default behavior("reactive elements", [
       ],
       observe: [
         effect("the classes change again", async (controller) => {
-          const classes = await controller.display.select("#title").attribute("class")
-          expect(classes, is(assignedWith(equalTo("on"))))
+          await expect(controller.display.select("#title").attribute("class"), resolvesTo("on"))
         })
       ]
     }),
@@ -103,7 +101,7 @@ export default behavior("reactive elements", [
       ],
       observe: [
         effect("the attribute has the initial value", async (controller) => {
-          await expect(controller.display.select("input").attribute("aria-disabled"), resolvesTo(assignedWith(equalTo("false"))))
+          await expect(controller.display.select("input").attribute("aria-disabled"), resolvesTo("false"))
         })
       ]
     }).andThen({
@@ -114,7 +112,7 @@ export default behavior("reactive elements", [
       ],
       observe: [
         effect("the attribute value is updated", async (controller) => {
-          await expect(controller.display.select("input").attribute("aria-disabled"), resolvesTo(assignedWith(equalTo("true"))))
+          await expect(controller.display.select("input").attribute("aria-disabled"), resolvesTo("true"))
         })
       ]
     }),
@@ -129,8 +127,7 @@ export default behavior("reactive elements", [
       ],
       observe: [
         effect("the data attribute has the default value", async (controller) => {
-          const dataValue = await controller.display.select("#title").attribute("data-click-counter")
-          expect(dataValue, is(assignedWith(equalTo("0"))))
+          await expect(controller.display.select("#title").attribute("data-click-counter"), resolvesTo("0"))
         })
       ]
     }).andThen({
@@ -143,8 +140,7 @@ export default behavior("reactive elements", [
       ],
       observe: [
         effect("the data attribute is updated", async (controller) => {
-          const dataValue = await controller.display.select("#title").attribute("data-click-counter")
-          expect(dataValue, is(assignedWith(equalTo("3"))))
+          await expect(controller.display.select("#title").attribute("data-click-counter"), resolvesTo("3"))
         })
       ]
     }),
@@ -160,7 +156,7 @@ export default behavior("reactive elements", [
       observe: [
         effect("the custom attribute has the default value", async (controller) => {
           const dataValue = await controller.display.select("#title").attribute("weirdness")
-          expect(dataValue, is(assignedWith(equalTo("0"))))
+          expect(dataValue, is("0"))
         })
       ]
     }).andThen({
@@ -174,7 +170,7 @@ export default behavior("reactive elements", [
       observe: [
         effect("the custom attribute is updated", async (controller) => {
           const value = await controller.display.select("#title").attribute("weirdness")
-          expect(value, is(assignedWith(equalTo("3"))))
+          expect(value, is("3"))
         })
       ]
     })

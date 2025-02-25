@@ -51,12 +51,12 @@ export default behavior("ssr", [
           ]))
         }),
         effect("the default data attribute is rendered on the server", async () => {
-          await expect(selectElements("[data-stateful-text]").map(el => el.attribute("data-stateful-text")), resolvesTo<Array<string | undefined>>([
+          await expect(selectElements("[data-stateful-text]").map(el => el.attribute("data-stateful-text")), resolvesTo([
             "hello", "hello", "hello"
           ]))
         }),
         effect("the default class property is activated on the client", async () => {
-          await expect(selectElements("[data-stateful-text]").map(el => el.property("className")), resolvesTo<Array<string | undefined>>([
+          await expect(selectElements("[data-stateful-text]").map(el => el.property("className")), resolvesTo([
             "text-hello", "text-hello", "text-hello"
           ]))
         })
@@ -74,12 +74,12 @@ export default behavior("ssr", [
           ]))
         }),
         effect("the data attribute updates", async () => {
-          await expect(selectElements("[data-stateful-text]").map(el => el.attribute("data-stateful-text")), resolvesTo<Array<string | undefined>>([
+          await expect(selectElements("[data-stateful-text]").map(el => el.attribute("data-stateful-text")), resolvesTo([
             "Yo", "Yo", "Yo"
           ]))
         }),
         effect("the class property updates", async () => {
-          await expect(selectElements("[data-stateful-text]").map(el => el.property("className")), resolvesTo<Array<string | undefined>>([
+          await expect(selectElements("[data-stateful-text]").map(el => el.property("className")), resolvesTo([
             "text-Yo", "text-Yo", "text-Yo"
           ]))
         })

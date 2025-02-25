@@ -478,8 +478,7 @@ function listOfListExample(name: string, renderer: (context: RenderApp<NestedLis
       ],
       observe: [
         effect("the list items are in the correct order", async () => {
-          const order = await selectElements("div[data-sub-list]").map(el => el.attribute("data-sub-list"))
-          expect(order.filter(s => s !== undefined), is([
+          await expect(selectElements("div[data-sub-list]").map(el => el.attribute("data-sub-list")), resolvesTo([
             "0", "0", "0", "0",
             "1", "1", "1", "1",
             "2", "2", "2", "2",

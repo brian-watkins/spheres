@@ -1,6 +1,6 @@
 import { Container, container } from "@store/index.js";
 import { behavior, effect, example, fact, step } from "best-behavior";
-import { assignedWith, equalTo, expect, is, resolvesTo } from "great-expectations";
+import { expect, resolvesTo } from "great-expectations";
 import { selectElement, selectElements } from "./helpers/displayElement";
 import { renderContext } from "./helpers/renderContext";
 import { HTMLBuilder } from "@view/index";
@@ -59,8 +59,7 @@ export default behavior("reactive dom effects", [
       ],
       observe: [
         effect("the element is rendered", async () => {
-          const attributeText = await selectElement("div").attribute("data-my-info")
-          expect(attributeText, is(assignedWith(equalTo("hello"))))
+          await expect(selectElement("div").attribute("data-my-info"), resolvesTo("hello"))
         })
       ]
     }).andThen({
@@ -71,8 +70,7 @@ export default behavior("reactive dom effects", [
       ],
       observe: [
         effect("the attribute is updated", async () => {
-          const attributeText = await selectElement("div").attribute("data-my-info")
-          expect(attributeText, is(assignedWith(equalTo("awesome!"))))
+          await expect(selectElement("div").attribute("data-my-info"), resolvesTo("awesome!"))
         })
       ]
     }),
@@ -95,8 +93,7 @@ export default behavior("reactive dom effects", [
       ],
       observe: [
         effect("the className property is set", async () => {
-          const propertyValue = await selectElement("div").property("className")
-          expect(propertyValue, is(assignedWith(equalTo("hello-style"))))
+          await expect(selectElement("div").property("className"), resolvesTo("hello-style"))
         })
       ]
     }).andThen({
@@ -107,8 +104,7 @@ export default behavior("reactive dom effects", [
       ],
       observe: [
         effect("the className property is updated", async () => {
-          const propertyValue = await selectElement("div").property("className")
-          expect(propertyValue, is(assignedWith(equalTo("goodbye-style"))))
+          await expect(selectElement("div").property("className"), resolvesTo("goodbye-style"))
         })
       ]
     }),

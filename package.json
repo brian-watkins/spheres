@@ -48,7 +48,7 @@
     "aria-attributes": "^2.0.1",
     "best-behavior": "^0.14.0",
     "express": "^4.19.2",
-    "great-expectations": "^1.5.1",
+    "great-expectations": "^1.7.0",
     "html-element-attributes": "^3.4.0",
     "html-tags": "^4.0.0",
     "monocart-coverage-reports": "^2.10.3",

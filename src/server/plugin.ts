@@ -68,7 +68,7 @@ class NodeFileReader implements FileReader {
 }
 
 export async function transformFile(fileReader: FileReader, config: ResolvedConfig, id: string): Promise<TransformResult | undefined> {
-  if (!assetManifestModuleRegex.test(id)) {
+  if (!assetManifestModuleRegex.test(id) || config.command === "serve") {
     return undefined
   }
 

@@ -20,11 +20,43 @@ export default behavior("vite plugin", [
     }),
 
   example(testablePluginContext)
+    .description("when serving files")
+    .script({
+      suppose: [
+        fact("the file is served by vite", (context) => {
+          context.withConfig({
+            root: "/project/root/",
+            command: "serve",
+            environments: {
+              client: {
+                build: {
+                  outDir: "dist",
+                  manifest: true
+                }
+              }
+            }
+          })
+        })
+      ],
+      perform: [
+        step("transform the asset manifest", async (context) => {
+          await context.transformFile("/my/path/server/assetManifest.ts")
+        })
+      ],
+      observe: [
+        effect("the transform returns undefined", async (context) => {
+          expect(context.transformResults, is(undefined))
+        })
+      ]
+    }),
+
+  example(testablePluginContext)
     .description("manifest config is set to false in resolved config")
     .script({
       suppose: [
         fact("the resolved config sets the manifest to false", (context) => {
           context.withConfig({
+            command: "build",
             environments: {
               client: {
                 build: {
@@ -51,6 +83,7 @@ export default behavior("vite plugin", [
         fact("the default manifest file contains some data", (context) => {
           context
             .withConfig({
+              command: "build",
               root: "/project/root/",
               environments: {
                 client: {
@@ -83,6 +116,7 @@ export default behavior("vite plugin", [
         fact("the default manifest file contains some data", (context) => {
           context
             .withConfig({
+              command: "build",
               root: "/project/root/",
               environments: {
                 client: {
@@ -115,6 +149,7 @@ export default behavior("vite plugin", [
         fact("the specified manifest file contains some data", (context) => {
           context
             .withConfig({
+              command: "build",
               root: "/project/root/",
               environments: {
                 client: {
@@ -147,6 +182,7 @@ export default behavior("vite plugin", [
         fact("the specified manifest file is set to empty string", (context) => {
           context
             .withConfig({
+              command: "build",
               root: "/project/root/",
               environments: {
                 client: {
@@ -176,6 +212,7 @@ export default behavior("vite plugin", [
         fact("the manifest file is not present", (context) => {
           context
             .withConfig({
+              command: "build",
               root: "/project/root/",
               environments: {
                 client: {

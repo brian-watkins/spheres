@@ -1,13 +1,16 @@
 import { FileReader, transformFile } from "@server/plugin";
 import { Context } from "best-behavior";
-import { TransformResult, UserConfig } from "vite";
+import { ResolvedConfig, TransformResult, UserConfig } from "vite";
 
 export const testablePluginContext: Context<TestablePlugin> = {
   init: () => new TestablePlugin()
 }
 
-const defaultTestConfig = {
+export type TestableResolvedConfig = UserConfig & { command: "serve" | "build" }
+
+const defaultTestConfig: TestableResolvedConfig = {
   root: "/project/root/",
+  command: "build",
   environments: {
     client: {
       build: {
@@ -19,11 +22,11 @@ const defaultTestConfig = {
 }
 
 class TestablePlugin {
-  private resolvedConfig: Record<string, any> = { ...defaultTestConfig }
+  private resolvedConfig: TestableResolvedConfig = { ...defaultTestConfig }
   private _transformResults: TransformResult | undefined
   private fileReader = new TestFileReader()
 
-  withConfig(config: UserConfig): TestablePlugin {
+  withConfig(config: TestableResolvedConfig): TestablePlugin {
     this.resolvedConfig = Object.assign(this.resolvedConfig, config)
     return this
   }
@@ -34,7 +37,11 @@ class TestablePlugin {
   }
 
   async transformFile(path: string) {
-    this._transformResults = await transformFile(this.fileReader, this.resolvedConfig as any, path)
+    this._transformResults = await transformFile(
+      this.fileReader,
+      this.resolvedConfig as unknown as ResolvedConfig,
+      path
+    )
   }
 
   get transformResults(): TransformResult | undefined {

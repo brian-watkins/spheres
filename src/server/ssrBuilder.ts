@@ -39,6 +39,7 @@ class SSRElementConfig extends BasicElementConfig {
         }
       }
     }
+
     return undefined
   }
 

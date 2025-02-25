@@ -7,7 +7,8 @@ import { addAttribute } from "../view/render/virtualNode.js"
 import { runQuery, TokenRegistry } from "../store/tokenRegistry.js"
 import type { Manifest } from "vite"
 
-class ScriptElementConfig extends BasicElementConfig {
+class SSRElementConfig extends BasicElementConfig {
+  private _scriptImported: string | undefined
   private _extraImports: Array<string> = []
   private _extraCSS: Array<string> = []
 
@@ -15,12 +16,11 @@ class ScriptElementConfig extends BasicElementConfig {
     super()
   }
 
-  reset() {
-    this._extraImports = []
-    this._extraCSS = []
+  get importedScript(): string | undefined {
+    return this._scriptImported
   }
 
-  get extraImports() {
+  get extraScripts() {
     return this._extraImports
   }
 
@@ -28,72 +28,47 @@ class ScriptElementConfig extends BasicElementConfig {
     return this._extraCSS
   }
 
-  src(value: string | Stateful<string>) {
+  addManifestAttribute(name: string, value: string | Stateful<string>) {
     const resolvedSrc = typeof value === "function" ? runQuery(this.tokenRegistry, value) ?? "" : value
+    const normalized = normalizePath(resolvedSrc)
+    const entryDetails = this.manifest?.[normalized]
 
-    if (this.manifest !== undefined) {
-      const normalized = normalizePath(resolvedSrc)
-      const entryDetails = this.manifest[normalized]
-      if (entryDetails.imports !== undefined) {
-        this._extraImports = entryDetails.imports
-      }
-      if (entryDetails.css !== undefined) {
-        this._extraCSS = entryDetails.css
-      }
-      addAttribute(this.config, "src", entryDetails.file)
+    if (entryDetails === undefined) {
+      addAttribute(this.config, name, resolvedSrc)
+      return this
     }
-    else {
-      addAttribute(this.config, "src", resolvedSrc)
+
+    this._scriptImported = normalized
+
+    if (entryDetails.imports !== undefined) {
+      this._extraImports = entryDetails.imports
     }
+
+    if (entryDetails.css !== undefined) {
+      this._extraCSS = entryDetails.css
+    }
+
+    addAttribute(this.config, name, entryDetails.file)
 
     return this
   }
 }
 
-class LinkElementConfig extends BasicElementConfig {
-  private extraCSS: Array<string> = []
-  private extraImports: Array<string> = []
-
-  constructor(private tokenRegistry: TokenRegistry, private manifest: Manifest | undefined) {
-    super()
+class ScriptElementConfig extends SSRElementConfig {
+  src(value: string | Stateful<string>) {
+    return this.addManifestAttribute("src", value)
   }
+}
 
-  get extraStylesheets() {
-    return this.extraCSS
-  }
-
-  get extraScripts() {
-    return this.extraImports
-  }
-
+class LinkElementConfig extends SSRElementConfig {
   href(value: string | Stateful<string>) {
-    const resolvedHref = typeof value === "function" ? runQuery(this.tokenRegistry, value) ?? "" : value
-
-    if (this.manifest !== undefined) {
-      const normalized = normalizePath(resolvedHref)
-      const entryDetails = this.manifest[normalized]
-      if (entryDetails === undefined) {
-        addAttribute(this.config, "href", resolvedHref)
-      } else {
-        if (entryDetails.css !== undefined) {
-          this.extraCSS = entryDetails.css
-        }
-        if (entryDetails.imports !== undefined) {
-          this.extraImports = entryDetails.imports
-        }
-
-        addAttribute(this.config, "href", entryDetails.file)
-      }
-    }
-    else {
-      addAttribute(this.config, "href", resolvedHref)
-    }
-
-    return this
+    return this.addManifestAttribute("href", value)
   }
 }
 
 export class SSRBuilder extends HtmlViewBuilder {
+  private importedScripts: Set<string> = new Set()
+
   constructor(private tokenRegistry: TokenRegistry, private manifest: Manifest | undefined) {
     super()
   }
@@ -106,50 +81,42 @@ export class SSRBuilder extends HtmlViewBuilder {
     return this
   }
 
-  script(builder?: (element: ConfigurableElement<ScriptElementAttributes, HTMLElements>) => void) {
-    const scriptConfig = new ScriptElementConfig(this.tokenRegistry, this.manifest)
-    this.buildElement("script", scriptConfig, builder as (element: ConfigurableElement<any, any>) => void)
+  private buildSSRElement(name: string, configBuilder: SSRElementConfig, builder?: (element: ConfigurableElement<any, any>) => void) {
+    this.buildElement(name, configBuilder, builder)
 
-    for (const extraImport of scriptConfig.extraImports) {
-      this.link(el => {
-        el.config
-          .rel("modulepreload")
-          .href(extraImport)
-      })
-    }
+    if (configBuilder.importedScript) {
+      this.importedScripts.add(configBuilder.importedScript)
 
-    for (const extraStylesheet of scriptConfig.extraStylesheets) {
-      this.link(el => {
-        el.config
-          .rel("stylesheet")
-          .href(extraStylesheet)
-      })
+      for (const extraImport of configBuilder.extraScripts) {
+        if (this.importedScripts.has(extraImport)) continue
+
+        this.link(el => {
+          el.config
+            .rel("modulepreload")
+            .href(extraImport)
+        })
+      }
+
+      for (const extraStylesheet of configBuilder.extraStylesheets) {
+        this.link(el => {
+          el.config
+            .rel("stylesheet")
+            .href(extraStylesheet)
+        })
+      }
     }
 
     return this
   }
 
-  link(builder?: (element: ConfigurableElement<LinkElementAttributes, never>) => void) {
+  script(builder?: (element: ConfigurableElement<ScriptElementAttributes, HTMLElements>) => void) {
+    const scriptConfig = new ScriptElementConfig(this.tokenRegistry, this.manifest)
+    return this.buildSSRElement("script", scriptConfig, builder)
+  }
+
+  link(builder?: (element: ConfigurableElement<LinkElementAttributes, HTMLElements>) => void) {
     const linkElementConfig = new LinkElementConfig(this.tokenRegistry, this.manifest)
-    this.buildElement("link", linkElementConfig, builder as (element: ConfigurableElement<any, any>) => void)
-
-    for (const extraScript of linkElementConfig.extraScripts) {
-      this.link(el => {
-        el.config
-          .rel("modulepreload")
-          .href(extraScript)
-      })
-    }
-
-    for (const extraStylesheet of linkElementConfig.extraStylesheets) {
-      this.link(el => {
-        el.config
-          .rel("stylesheet")
-          .href(extraStylesheet)
-      })
-    }
-
-    return this
+    return this.buildSSRElement("link", linkElementConfig, builder)
   }
 }
 

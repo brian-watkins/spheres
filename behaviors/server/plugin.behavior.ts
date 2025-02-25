@@ -82,11 +82,16 @@ export default behavior("vite plugin", [
               "file": "assets/index-CmRxQ4Kg.js",
               "name": "index"
             },
+            "_another-888888.js": {
+              "file": "assets/another-888888.js",
+              "name": "index"
+            },
             "_pageHeader-CMFcDjBz.js": {
               "file": "assets/pageHeader-CMFcDjBz.js",
               "name": "pageHeader",
               "imports": [
-                "_index-CmRxQ4Kg.js"
+                "_index-CmRxQ4Kg.js",
+                "_another-888888.js"
               ]
             },
             "my-script.ts": {
@@ -96,7 +101,7 @@ export default behavior("vite plugin", [
               "isEntry": true,
               "imports": [
                 "_pageHeader-CMFcDjBz.js",
-                // "_index-CmRxQ4Kg.js",
+                "_index-CmRxQ4Kg.js",
               ]
             }
           })
@@ -120,12 +125,17 @@ export default behavior("vite plugin", [
         })
       ],
       observe: [
-        effect("the link tags for the extra scripts are included in the html", (context) => {
+        effect("the link tag for the extra script referenced by an extra script is included in the html", (context) => {
           expect(context.getHTML(), is(
             stringMatching(/<link rel="modulepreload" href="assets\/pageHeader-.+\.js">/)
-          ))
+          )),
           expect(context.getHTML(), is(
-            stringMatching(/<link rel="modulepreload" href="assets\/index-.+\.js">/)
+            stringMatching(/<link rel="modulepreload" href="assets\/another-\w+\.js">/)
+          ))
+        }),
+        effect("the link tag for the extra script referenced twice is included only once", (context) => {
+          expect(context.getHTML(), is(
+            stringMatching(/<link rel="modulepreload" href="assets\/index-\w+\.js">/g, { times: 1 })
           ))
         })
       ]

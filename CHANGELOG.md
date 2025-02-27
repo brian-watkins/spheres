@@ -1,5 +1,11 @@
 # spheres
 
+## 0.18.0
+
+### Minor Changes
+
+- 87e0f6b: Vite plugin for easy dev and build config
+
 ## 0.17.1
 
 ### Patch Changes

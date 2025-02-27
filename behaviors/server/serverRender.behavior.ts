@@ -1,17 +1,18 @@
 import { behavior, effect, example, fact, step } from "best-behavior"
-import { testableServerContext } from "./helpers/testableServerContext"
+import { testableViteBuildContext } from "./helpers/testableViteBuildContext"
 import { expect, is, stringMatching } from "great-expectations"
 import { testableSSRBuilderContext } from "./helpers/testableSSRBuilderContext"
 import { useModule } from "best-behavior/transpiler"
+import { ssrTestAppContext } from "./helpers/testSSRServer"
 
 export default behavior("rendering html page from transpiled server renderer", [
 
-  example(testableServerContext)
+  example(testableViteBuildContext)
     .description("explicit stylesheet and script imports")
     .script({
       suppose: [
         fact("the server renderer is built with the spheres vite plugin", async (context) => {
-          await context.buildServerRenderer({
+          await context.buildWithPlugin("./behaviors/server/fixtures/ssrApp/plugin", {
             serverEntries: {
               renderer: "./behaviors/server/fixtures/ssrApp/plugin/renderer.ts"
             },
@@ -34,6 +35,9 @@ export default behavior("rendering html page from transpiled server renderer", [
         })
       ],
       observe: [
+        effect("the head does not contain the vite client import", async (context) => {
+          expect(context.getRenderedHTML().includes(`src="/@vite/client"`), is(false))
+        }),
         effect("the script import references the transpiled js", async (context) => {
           expect(context.getRenderedHTML(), is(
             stringMatching(/<script type="module" src="assets\/client-.+\.js"><\/script>/)
@@ -79,6 +83,68 @@ export default behavior("rendering html page from transpiled server renderer", [
             stringMatching(/<link rel="modulepreload" href="assets\/dynamicView-.+\.js">/)
           ))
         })
+      ]
+    }),
+
+  example(ssrTestAppContext(server => server.useSpheresPlugin()))
+    .description("serve view with spheres plugin")
+    .script({
+      suppose: [
+        fact("a view is specified to be rendered", (context) => {
+          context.server.setSSRView("./behaviors/server/fixtures/ssrApp/page/renderer.ts")
+        })
+      ],
+      perform: [
+        step("the view is rendered", async (context) => {
+          await context.server.renderPage("/index.html")
+        })
+      ],
+      observe: [
+        effect("the rendered view contains the vite client", (context) => {
+          expect(context.server.renderedHTML, is(
+            stringMatching(/<script type="module" src="\/@vite\/client"><\/script>/))
+          )
+        }),
+        effect("the rendered view does not transform the script imports", (context) => {
+          expect(context.server.renderedHTML, is(
+            stringMatching(/<script type="module" src="\/src\/index.ts"><\/script>/))
+          )
+        })
+      ]
+    }),
+
+  example(testableViteBuildContext)
+    .description("build the render module")
+    .script({
+      suppose: [
+        fact("the server renderer is built with the spheres vite plugin", async (context) => {
+          await context.buildWithPlugin("./behaviors/server/fixtures/ssrApp/page", {
+            serverEntries: {
+              renderer: "./behaviors/server/fixtures/ssrApp/page/renderer.ts"
+            },
+            clientEntries: {
+              activate: "./behaviors/server/fixtures/ssrApp/page/src/index.ts"
+            }
+          })
+        }),
+      ],
+      perform: [
+        step("render the html", async (context) => {
+          await context.render(async () => {
+            const renderer = await useModule("./behaviors/server/fixtures/ssrApp/page/dist/renderer.js")
+            return renderer.render()
+          })
+        })
+      ],
+      observe: [
+        effect("the head does not contain the vite client import", async (context) => {
+          expect(context.getRenderedHTML().includes(`src="/@vite/client"`), is(false))
+        }),
+        effect("the script import references the transpiled js", async (context) => {
+          expect(context.getRenderedHTML(), is(
+            stringMatching(/<script type="module" src="assets\/activate-.+\.js"><\/script>/)
+          ))
+        }),
       ]
     }),
 

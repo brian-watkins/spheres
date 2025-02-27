@@ -1,20 +1,20 @@
+import { spheres, SpheresPluginOptions } from "@server/index";
 import { Context } from "best-behavior";
 import { createBuilder } from "vite";
-import { spheres, SpheresPluginOptions } from "../../../src/server/plugin"
 import tsconfigPaths from "vite-tsconfig-paths";
 
-export const testableServerContext: Context<TestServerContext> = {
-  init: () => new TestServerContext()
+export const testableViteBuildContext: Context<TestViteBuildContext> = {
+  init: () => new TestViteBuildContext()
 }
 
-class TestServerContext {
+class TestViteBuildContext {
   private html: string = ""
 
-  async buildServerRenderer(pluginOptions: SpheresPluginOptions): Promise<void> {
+  async buildWithPlugin(root: string, pluginOptions: SpheresPluginOptions): Promise<void> {
     const builder = await createBuilder({
       configFile: false,
       appType: "custom",
-      root: "./behaviors/server/fixtures/ssrApp/plugin",
+      root: root,
       environments: {
         client: {
           build: {

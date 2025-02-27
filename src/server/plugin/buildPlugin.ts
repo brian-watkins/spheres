@@ -1,18 +1,14 @@
-import { Plugin, ResolvedConfig, TransformResult, UserConfig } from "vite"
-import path from "node:path"
+import type { PluginOption, ResolvedConfig, TransformResult, UserConfig } from "vite"
+import { SpheresPluginOptions } from "./options"
 import fs from "node:fs/promises"
+import path from "node:path"
 
-export interface SpheresPluginOptions {
-  serverEntries: Record<string, string>
-  clientEntries: Record<string, string>
-}
-
-export function spheres(options: SpheresPluginOptions): Plugin {
+export function spheresBuildPlugin(options: SpheresPluginOptions = {}): PluginOption {
   const fileReader = new NodeFileReader()
   let resolvedConfig: ResolvedConfig
 
   return {
-    name: 'spheres',
+    name: 'spheres-build',
     config(): UserConfig {
       return {
         appType: "custom",
@@ -46,7 +42,7 @@ export function spheres(options: SpheresPluginOptions): Plugin {
       resolvedConfig = config
     },
     async transform(_, id) {
-      return transformFile(fileReader, resolvedConfig, id)
+      return transformAssetManifest(fileReader, resolvedConfig, id)
     },
   }
 }
@@ -67,8 +63,8 @@ class NodeFileReader implements FileReader {
   }
 }
 
-export async function transformFile(fileReader: FileReader, config: ResolvedConfig, id: string): Promise<TransformResult | undefined> {
-  if (!assetManifestModuleRegex.test(id) || config.command === "serve") {
+export async function transformAssetManifest(fileReader: FileReader, config: ResolvedConfig, id: string): Promise<TransformResult | undefined> {
+  if (config.command === "serve" || !assetManifestModuleRegex.test(id)) {
     return undefined
   }
 

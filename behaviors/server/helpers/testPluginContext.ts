@@ -1,4 +1,5 @@
-import { FileReader, transformFile } from "@server/plugin";
+import { FileReader, transformAssetManifest } from "@server/plugin/buildPlugin";
+import { transformDecorateHead } from "@server/plugin/servePlugin";
 import { Context } from "best-behavior";
 import { ResolvedConfig, TransformResult, UserConfig } from "vite";
 
@@ -36,9 +37,16 @@ class TestablePlugin {
     return this
   }
 
-  async transformFile(path: string) {
-    this._transformResults = await transformFile(
+  async runBuildTransform(path: string) {
+    this._transformResults = await transformAssetManifest(
       this.fileReader,
+      this.resolvedConfig as unknown as ResolvedConfig,
+      path
+    )
+  }
+
+  async runServeTransform(path: string) {
+    this._transformResults = await transformDecorateHead(
       this.resolvedConfig as unknown as ResolvedConfig,
       path
     )

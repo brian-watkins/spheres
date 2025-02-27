@@ -5,7 +5,18 @@ import { IdSequence } from "../view/render/idSequence.js"
 import { stringifyVirtualNode } from "./renderToString.js"
 import { SSRBuilder } from "./ssrBuilder.js"
 import { manifest } from "./assetManifest.js"
-export { spheres } from "./plugin.js"
+import { SpheresPluginOptions } from "./plugin/options.js"
+import type { PluginOption } from "vite"
+import { spheresServePlugin } from "./plugin/servePlugin.js"
+import { spheresBuildPlugin } from "./plugin/buildPlugin.js"
+export type { SpheresPluginOptions } from "./plugin/options.js"
+
+export function spheres(options: SpheresPluginOptions = {}): PluginOption {
+  return [
+    spheresServePlugin(),
+    spheresBuildPlugin(options)
+  ]
+}
 
 export function renderToString(store: Store, view: HTMLView): string {
   const tokenRegistry = getTokenRegistry(store)

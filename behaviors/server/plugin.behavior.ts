@@ -1,6 +1,6 @@
 import { behavior, effect, example, fact, step } from "best-behavior";
 import { testablePluginContext } from "./helpers/testPluginContext";
-import { expect, is, objectOfType, rejectsWith, satisfying } from "great-expectations";
+import { assignedWith, expect, is, objectOfType, rejectsWith, satisfying, stringMatching } from "great-expectations";
 
 export default behavior("vite plugin", [
 
@@ -9,7 +9,7 @@ export default behavior("vite plugin", [
     .script({
       perform: [
         step("transform some random file", async (context) => {
-          await context.transformFile("/some/other/file.ts")
+          await context.runBuildTransform("/some/other/file.ts")
         })
       ],
       observe: [
@@ -40,7 +40,7 @@ export default behavior("vite plugin", [
       ],
       perform: [
         step("transform the asset manifest", async (context) => {
-          await context.transformFile("/my/path/server/assetManifest.ts")
+          await context.runBuildTransform("/my/path/server/assetManifest.ts")
         })
       ],
       observe: [
@@ -69,7 +69,7 @@ export default behavior("vite plugin", [
       ],
       observe: [
         effect("an error is throw when try to transform the asset manifest module", async (context) => {
-          await expect(context.transformFile("/my/path/to/server/assetManifest.ts"), rejectsWith(satisfying([
+          await expect(context.runBuildTransform("/my/path/to/server/assetManifest.ts"), rejectsWith(satisfying([
             objectOfType(Error)
           ])))
         })
@@ -99,7 +99,7 @@ export default behavior("vite plugin", [
       ],
       perform: [
         step("transform the asset manifest module", async (context) => {
-          await context.transformFile("/my/path/to/server/assetManifest.ts")
+          await context.runBuildTransform("/my/path/to/server/assetManifest.ts")
         })
       ],
       observe: [
@@ -132,7 +132,7 @@ export default behavior("vite plugin", [
       ],
       perform: [
         step("transform the asset manifest module", async (context) => {
-          await context.transformFile("/my/node_modules/spheres/dist/server/assetManifest.js")
+          await context.runBuildTransform("/my/node_modules/spheres/dist/server/assetManifest.js")
         })
       ],
       observe: [
@@ -165,7 +165,7 @@ export default behavior("vite plugin", [
       ],
       perform: [
         step("transform the asset manifest module", async (context) => {
-          await context.transformFile("/my/path/to/server/assetManifest.js")
+          await context.runBuildTransform("/my/path/to/server/assetManifest.js")
         })
       ],
       observe: [
@@ -198,7 +198,7 @@ export default behavior("vite plugin", [
       ],
       observe: [
         effect("an error is thrown when try to transform the asset manifest module", async (context) => {
-          await expect(context.transformFile("/my/path/to/server/assetManifest.js"), rejectsWith(satisfying([
+          await expect(context.runBuildTransform("/my/path/to/server/assetManifest.js"), rejectsWith(satisfying([
             objectOfType(Error)
           ])))
         })
@@ -227,11 +227,104 @@ export default behavior("vite plugin", [
       ],
       observe: [
         effect("an error is thrown when try to transform the asset manifest module", async (context) => {
-          await expect(context.transformFile("/my/path/to/server/assetManifest.js"), rejectsWith(satisfying([
+          await expect(context.runBuildTransform("/my/path/to/server/assetManifest.js"), rejectsWith(satisfying([
             objectOfType(Error)
           ])))
         })
       ]
+    }),
+
+  example(testablePluginContext)
+    .description("transform decorateHead file when vite is serving files")
+    .script({
+      suppose: [
+        fact("the config shows vite is serving files", (context) => {
+          context
+            .withConfig({
+              command: "serve"
+            })
+        }),
+      ],
+      perform: [
+        step("transform the decorateHead module", async (context) => {
+          await context.runServeTransform("/my/path/to/server/decorateHead.js")
+        })
+      ],
+      observe: [
+        effect("the function to decorate the head is supplied", (context) => {
+          expect(context.transformResults?.code, is(assignedWith(stringMatching(/^export function decorateHead\(el\) { .* };$/))))
+        })
+      ]
+    }),
+
+  example(testablePluginContext)
+    .description("transform decorateHead typescript file when vite is serving files")
+    .script({
+      suppose: [
+        fact("the config shows vite is serving files", (context) => {
+          context
+            .withConfig({
+              command: "serve"
+            })
+        }),
+      ],
+      perform: [
+        step("transform the decorateHead module", async (context) => {
+          await context.runServeTransform("/my/path/to/server/decorateHead.ts")
+        })
+      ],
+      observe: [
+        effect("the function to decorate the head is supplied", (context) => {
+          expect(context.transformResults?.code, is(assignedWith(stringMatching(/^export function decorateHead\(el\) { .* };$/))))
+        })
+      ]
+    }),
+
+  example(testablePluginContext)
+    .description("transform decorateHead file when file is not the decorateHead module")
+    .script({
+      suppose: [
+        fact("the config shows vite is serving files", (context) => {
+          context
+            .withConfig({
+              command: "serve"
+            })
+        }),
+      ],
+      perform: [
+        step("transform the decorateHead module", async (context) => {
+          await context.runServeTransform("/my/path/to/some/other/file.js")
+        })
+      ],
+      observe: [
+        effect("the function to decorate the head is supplied", (context) => {
+          expect(context.transformResults, is(undefined))
+        })
+      ]
+    }),
+
+  example(testablePluginContext)
+    .description("transform decorateHead file when vite is building files")
+    .script({
+      suppose: [
+        fact("the config shows vite is serving files", (context) => {
+          context
+            .withConfig({
+              command: "build"
+            })
+        }),
+      ],
+      perform: [
+        step("transform the decorateHead module", async (context) => {
+          await context.runServeTransform("/my/path/to/server/decorateHead.js")
+        })
+      ],
+      observe: [
+        effect("the function to decorate the head is supplied", (context) => {
+          expect(context.transformResults, is(undefined))
+        })
+      ]
     })
+
 
 ])

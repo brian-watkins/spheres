@@ -1,4 +1,4 @@
-import { HTMLBuilder, HTMLElements, HTMLView, LinkElementAttributes, ScriptElementAttributes } from "../view/htmlElements.js"
+import { HeadElementAttributes, HTMLBuilder, HTMLElements, HTMLView, LinkElementAttributes, ScriptElementAttributes } from "../view/htmlElements.js"
 import { HtmlViewBuilder } from "../view/htmlViewBuilder.js"
 import { ConfigurableElement } from "../view/viewBuilder.js"
 import { BasicElementConfig } from "../view/viewConfig.js"
@@ -6,6 +6,7 @@ import { Stateful } from "../store/index.js"
 import { addAttribute } from "../view/render/virtualNode.js"
 import { runQuery, TokenRegistry } from "../store/tokenRegistry.js"
 import type { ManifestChunk, Manifest } from "vite"
+import { decorateHead } from "./decorateHead.js"
 
 type SSRManifestChunk = ManifestChunk & { manifestKey: string }
 
@@ -125,6 +126,13 @@ export class SSRBuilder extends HtmlViewBuilder {
     }
 
     return this
+  }
+
+  head(builder?: (element: ConfigurableElement<HeadElementAttributes, HTMLElements>) => void) {
+    return this.buildElement("head", new BasicElementConfig(), (el: ConfigurableElement<any, any>) => {
+      decorateHead?.(el)
+      builder?.(el)
+    })
   }
 
   script(builder?: (element: ConfigurableElement<ScriptElementAttributes, HTMLElements>) => void) {

@@ -9,7 +9,7 @@ export default behavior("client activation of server rendered views", [
     .script({
       suppose: [
         fact("the app is loaded in the browser", async (context) => {
-          context.server.setContent({
+          context.server.setSSRApp({
             template: "../fixtures/ssrApp/renderOnly/template.html",
             view: "./behaviors/server/fixtures/ssrApp/basic/server.ts"
           })
@@ -29,7 +29,7 @@ export default behavior("client activation of server rendered views", [
     .script({
       suppose: [
         fact("the app is loaded in the browser", async (context) => {
-          context.server.setContent({
+          context.server.setSSRApp({
             template: "../fixtures/ssrApp/basic/template.html",
             view: "./behaviors/server/fixtures/ssrApp/basic/server.ts"
           })
@@ -66,7 +66,7 @@ export default behavior("client activation of server rendered views", [
     .script({
       suppose: [
         fact("the app is loaded in the browser", async (context) => {
-          context.server.setContent({
+          context.server.setSSRApp({
             template: "../fixtures/ssrApp/multipleStores/template.html",
             view: "./behaviors/server/fixtures/ssrApp/multipleStores/server.ts"
           })
@@ -110,7 +110,7 @@ export default behavior("client activation of server rendered views", [
     .script({
       suppose: [
         fact("the app is loaded in the browser", async (context) => {
-          context.server.setContent({
+          context.server.setSSRApp({
             template: "../fixtures/ssrApp/nested/template.html",
             view: "./behaviors/server/fixtures/ssrApp/nested/server.ts"
           })
@@ -154,7 +154,7 @@ export default behavior("client activation of server rendered views", [
     .script({
       suppose: [
         fact("the app is loaded in the browser", async (context) => {
-          context.server.setContent({
+          context.server.setSSRApp({
             template: "../fixtures/ssrApp/islandWithList/template.html",
             view: "./behaviors/server/fixtures/ssrApp/islandWithList/server.ts"
           })
@@ -208,7 +208,7 @@ export default behavior("client activation of server rendered views", [
     .script({
       suppose: [
         fact("the app is loaded in the browser", async (context) => {
-          context.server.setContent({
+          context.server.setSSRApp({
             template: "../fixtures/ssrApp/islandWithState/template.html",
             view: "./behaviors/server/fixtures/ssrApp/islandWithState/server.ts"
           })
@@ -256,7 +256,7 @@ export default behavior("client activation of server rendered views", [
     .script({
       suppose: [
         fact("the app is loaded in the browser", async (context) => {
-          context.server.setContent({
+          context.server.setSSRApp({
             template: "../fixtures/ssrApp/islandWithUpdate/template.html",
             view: "./behaviors/server/fixtures/ssrApp/islandWithUpdate/server.ts"
           })

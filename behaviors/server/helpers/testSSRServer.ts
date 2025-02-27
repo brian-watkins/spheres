@@ -3,13 +3,14 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 import express from "express"
 import { Server } from "http"
-import { ViteDevServer, createServer as createViteServer } from "vite"
+import { PluginOption, RunnableDevEnvironment, ViteDevServer, createServer as createViteServer } from "vite"
 import tsConfigPaths from "vite-tsconfig-paths"
 import { Context } from 'esbehavior'
 import { BrowserTestInstrument, useBrowser } from 'best-behavior/browser'
 import { useModule } from "best-behavior/transpiler"
 import { SSRParts } from './ssrApp.js'
 import { TestAppDisplay } from '../../helpers/testDisplay.js'
+import { spheres, SpheresPluginOptions } from '@server/index.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -18,10 +19,12 @@ export interface SSRTestAppContext {
   browser: TestBrowser
 }
 
-export function ssrTestAppContext(): Context<SSRTestAppContext> {
+export function ssrTestAppContext(configure?: (server: TestSSRServer) => void): Context<SSRTestAppContext> {
   return useBrowser({
     init: async (browser) => {
       const server = new TestSSRServer()
+      configure?.(server)
+
       await server.start()
 
       return {
@@ -59,18 +62,42 @@ export interface SsrAppOptions {
 export class TestSSRServer {
   private server: Server<any, any> | undefined
   private viteDevServer: ViteDevServer | undefined
-  private contentOptions: SsrAppOptions | undefined
+  private renderer: ServerSideRenderer | undefined
+  private spheresPluginOptions: SpheresPluginOptions | undefined
+  renderedHTML: string = ""
 
-  setContent(options: SsrAppOptions) {
-    this.contentOptions = options
+  setSSRApp(options: SsrAppOptions) {
+    this.renderer = new TemplateRenderer(options)
   }
 
-  private get contentTemplate(): string {
-    return this.contentOptions?.template ?? ""
+  setSSRView(path: string) {
+    this.renderer = new PageRenderer(path)
   }
 
-  private get contentView(): string {
-    return this.contentOptions?.view ?? ""
+  useSpheresPlugin(options: SpheresPluginOptions = {}) {
+    this.spheresPluginOptions = options
+  }
+
+  private getVitePlugins(): Array<PluginOption> {
+    const plugins: Array<PluginOption> = [
+      tsConfigPaths()
+    ]
+
+    if (this.spheresPluginOptions !== undefined) {
+      plugins.push(spheres(this.spheresPluginOptions))
+    }
+
+    return plugins
+  }
+
+  async renderPage(path: string): Promise<void> {
+    if (this.viteDevServer === undefined) {
+      await this.start()
+    }
+
+    const response = await fetch(`http://localhost:9899${path}`)
+
+    this.renderedHTML = await response.text()
   }
 
   async start(): Promise<void> {
@@ -85,33 +112,15 @@ export class TestSSRServer {
         middlewareMode: true,
         hmr: false
       },
-      plugins: [
-        tsConfigPaths()
-      ],
+      plugins: this.getVitePlugins(),
       appType: "custom"
     })
 
     app.use(this.viteDevServer.middlewares)
 
-    app.get("*", async (req, res, next) => {
-      const url = req.originalUrl
-
+    app.get("*", async (_, res, next) => {
       try {
-        let template = fs.readFileSync(
-          path.resolve(__dirname, this.contentTemplate),
-          'utf-8',
-        )
-
-        template = await this.viteDevServer!.transformIndexHtml(url, template)
-
-        const viewRenderer = await useModule(this.contentView)
-        const ssrParts: SSRParts = viewRenderer.default()
-
-        let html = template.replace(`<!-- SSR-APP-HTML -->`, ssrParts.html)
-
-        if (ssrParts.serializedStore !== undefined) {
-          html = html.replace(`<!-- SSR-SERIALIZED-STORE -->`, `<script type="module">${ssrParts.serializedStore}</script>`)
-        }
+        const html = await this.renderer?.renderHtml(this.viteDevServer!)
 
         res.status(200)
           .set({ 'Content-Type': 'text/html' })
@@ -134,5 +143,43 @@ export class TestSSRServer {
         })  
       })
     })
+  }
+}
+
+interface ServerSideRenderer {
+  renderHtml(viteDevServer: ViteDevServer): Promise<string>
+}
+
+class PageRenderer implements ServerSideRenderer {
+  constructor(private path: string) { }
+
+  async renderHtml(viteDevServer: ViteDevServer): Promise<string> {
+    const devEnvironment = viteDevServer.environments.server as RunnableDevEnvironment
+    const renderer = await devEnvironment.runner.import(this.path)
+    return renderer.render()
+  }
+}
+
+class TemplateRenderer implements ServerSideRenderer {
+  constructor(private contentOptions: SsrAppOptions) { }
+
+  async renderHtml(viteDevServer: ViteDevServer): Promise<string> {
+    let template = fs.readFileSync(
+      path.resolve(__dirname, this.contentOptions.template),
+      'utf-8',
+    )
+
+    template = await viteDevServer.transformIndexHtml("index.html", template)
+
+    const viewRenderer = await useModule(this.contentOptions.view)
+    const ssrParts: SSRParts = viewRenderer.default()
+
+    let html = template.replace(`<!-- SSR-APP-HTML -->`, ssrParts.html)
+
+    if (ssrParts.serializedStore !== undefined) {
+      html = html.replace(`<!-- SSR-SERIALIZED-STORE -->`, `<script type="module">${ssrParts.serializedStore}</script>`)
+    }
+
+    return html
   }
 }

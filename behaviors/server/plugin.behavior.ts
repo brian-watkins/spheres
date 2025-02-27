@@ -40,7 +40,7 @@ export default behavior("vite plugin", [
       ],
       perform: [
         step("transform the asset manifest", async (context) => {
-          await context.runBuildTransform("/my/path/server/assetManifest.ts")
+          await context.runBuildTransform("/my/path/server/render/assetManifest.ts")
         })
       ],
       observe: [
@@ -69,7 +69,7 @@ export default behavior("vite plugin", [
       ],
       observe: [
         effect("an error is throw when try to transform the asset manifest module", async (context) => {
-          await expect(context.runBuildTransform("/my/path/to/server/assetManifest.ts"), rejectsWith(satisfying([
+          await expect(context.runBuildTransform("/my/path/to/server/render/assetManifest.ts"), rejectsWith(satisfying([
             objectOfType(Error)
           ])))
         })
@@ -99,7 +99,7 @@ export default behavior("vite plugin", [
       ],
       perform: [
         step("transform the asset manifest module", async (context) => {
-          await context.runBuildTransform("/my/path/to/server/assetManifest.ts")
+          await context.runBuildTransform("/my/path/to/server/render/assetManifest.ts")
         })
       ],
       observe: [
@@ -132,7 +132,7 @@ export default behavior("vite plugin", [
       ],
       perform: [
         step("transform the asset manifest module", async (context) => {
-          await context.runBuildTransform("/my/node_modules/spheres/dist/server/assetManifest.js")
+          await context.runBuildTransform("/my/node_modules/spheres/dist/server/render/assetManifest.js")
         })
       ],
       observe: [
@@ -165,7 +165,7 @@ export default behavior("vite plugin", [
       ],
       perform: [
         step("transform the asset manifest module", async (context) => {
-          await context.runBuildTransform("/my/path/to/server/assetManifest.js")
+          await context.runBuildTransform("/my/path/to/server/render/assetManifest.js")
         })
       ],
       observe: [
@@ -198,7 +198,7 @@ export default behavior("vite plugin", [
       ],
       observe: [
         effect("an error is thrown when try to transform the asset manifest module", async (context) => {
-          await expect(context.runBuildTransform("/my/path/to/server/assetManifest.js"), rejectsWith(satisfying([
+          await expect(context.runBuildTransform("/my/path/to/server/render/assetManifest.js"), rejectsWith(satisfying([
             objectOfType(Error)
           ])))
         })
@@ -227,7 +227,7 @@ export default behavior("vite plugin", [
       ],
       observe: [
         effect("an error is thrown when try to transform the asset manifest module", async (context) => {
-          await expect(context.runBuildTransform("/my/path/to/server/assetManifest.js"), rejectsWith(satisfying([
+          await expect(context.runBuildTransform("/my/path/to/server/render/assetManifest.js"), rejectsWith(satisfying([
             objectOfType(Error)
           ])))
         })
@@ -247,7 +247,7 @@ export default behavior("vite plugin", [
       ],
       perform: [
         step("transform the decorateHead module", async (context) => {
-          await context.runServeTransform("/my/path/to/server/decorateHead.js")
+          await context.runServeTransform("/my/path/to/server/render/decorateHead.js")
         })
       ],
       observe: [
@@ -270,7 +270,7 @@ export default behavior("vite plugin", [
       ],
       perform: [
         step("transform the decorateHead module", async (context) => {
-          await context.runServeTransform("/my/path/to/server/decorateHead.ts")
+          await context.runServeTransform("/my/path/to/server/render/decorateHead.ts")
         })
       ],
       observe: [
@@ -316,7 +316,7 @@ export default behavior("vite plugin", [
       ],
       perform: [
         step("transform the decorateHead module", async (context) => {
-          await context.runServeTransform("/my/path/to/server/decorateHead.js")
+          await context.runServeTransform("/my/path/to/server/render/decorateHead.js")
         })
       ],
       observe: [

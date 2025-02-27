@@ -1,9 +1,9 @@
-import { runQuery, TokenRegistry } from "../store/tokenRegistry.js";
-import { voidElements } from "../view/elementData.js";
-import { listEndIndicator, listStartIndicator, switchEndIndicator, switchStartIndicator } from "../view/render/fragmentHelpers.js";
-import { IdSequence } from "../view/render/idSequence.js";
-import { EventsToDelegate } from "../view/render/index.js";
-import { ElementNode, NodeType, StatefulTextNode, TextNode, VirtualNode, StatefulListNode, StatefulSelectorNode } from "../view/render/virtualNode.js";
+import { runQuery, TokenRegistry } from "../../store/tokenRegistry.js";
+import { voidElements } from "../../view/elementData.js";
+import { listEndIndicator, listStartIndicator, switchEndIndicator, switchStartIndicator } from "../../view/render/fragmentHelpers.js";
+import { IdSequence } from "../../view/render/idSequence.js";
+import { EventsToDelegate } from "../../view/render/index.js";
+import { ElementNode, NodeType, StatefulTextNode, TextNode, VirtualNode, StatefulListNode, StatefulSelectorNode } from "../../view/render/virtualNode.js";
 
 export function stringifyVirtualNode(registry: TokenRegistry, idSequence: IdSequence, vnode: VirtualNode): string {
   switch (vnode.type) {

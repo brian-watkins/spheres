@@ -90,7 +90,7 @@ export async function transformAssetManifest(fileReader: FileReader, config: Res
   }
 }
 
-const assetManifestModuleRegex = /\/server\/assetManifest\.(ts|js)$/
+const assetManifestModuleRegex = /\/server\/render\/assetManifest\.(ts|js)$/
 
 function buildManifestPath(config: ResolvedConfig, ...pathParts: Array<string>): string {
   return path.join(config.root, config.environments.client.build.outDir, ...pathParts)

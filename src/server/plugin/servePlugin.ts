@@ -25,5 +25,5 @@ export async function transformDecorateHead(config: ResolvedConfig, id: string):
   }
 }
 
-const decorateHeadModuleRegex = /\/server\/decorateHead\.(ts|js)$/
+const decorateHeadModuleRegex = /\/server\/render\/decorateHead\.(ts|js)$/
 

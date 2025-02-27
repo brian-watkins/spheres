@@ -1,5 +1,5 @@
-import { stringifyVirtualNode } from "@server/renderToString";
-import { SSRBuilder } from "@server/ssrBuilder";
+import { stringifyVirtualNode } from "@server/render/renderToString";
+import { SSRBuilder } from "@server/render/ssrBuilder";
 import { createStore, getTokenRegistry } from "@store/store";
 import { HTMLView } from "@view/index";
 import { IdSequence } from "@view/render/idSequence";

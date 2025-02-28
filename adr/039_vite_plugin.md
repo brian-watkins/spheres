@@ -33,19 +33,12 @@ specify the client and server entry points. The plugin will
 then create two Vite 'environments' -- one for the client and
 one for the server -- and it will build both of these environments.
 
-In addition, the plugin will automatically leverage the
-asset manifest produced by Vite to replace references from server-
-rendered pages to client entrypoints with references to the
-transpiled assets to be served to the client.
-
-To accomplish this, we decided to have the Vite plugin
-write the asset manifest into the server entrypoint so that
-when the `renderToString` function stringifies a view that builds
-an HTML page with script tags, the src attribute of these tags
-will be replaced with the appropriate value for production. When
-not using the Spheres plugin, this asset manifest value will be
-undefined and the string renderer will simply print the unmodified
-src attributes.
+The server entrypoint should ultimately do server-side rendering
+at the very least. To accomplish this with spheres, it should somehow
+call the `renderToString` function with an `HTMLView` to render.
+This can be a fragment of a view that is later inserted into a
+template. However, we really want this view to describe the
+entire HTML page for maximum flexibility.
 
 Client entrypoints should do anything necessary to activate the
 server-rendered view, typically using the `activateView` function.
@@ -55,13 +48,81 @@ was rendered to a string. Selective activation is enabled by
 providing the container element in the DOM and the view function
 to activate there.
 
+The plugin will take this configuration -- the server and client
+entrypoints -- and build an application. To do this, it will
+leverage the asset manifest produced by Vite to replace references
+from server-rendered pages to client entrypoints with references
+to the transpiled assets to be served to the client.
+
+In addition, if the plugin is *not* being used then things
+should work as expected, just without any transformation of
+references.
+
+There are several ways we considered accomplishing this:
+
+#### Transform a spheres module to provide the asset manifest
+
+We had our code reference a module that by default just exported
+`undefined`. But when the plugin was invoked, it would transform
+the file to have it export the asset manifest. This worked great
+but only in developmenbt. What we didn't realize is that vite would
+not run the spheres package through the plugin/transformation pipeline
+once it was just packaged as a node module. By default all these
+are externalized by default when processing a server-side module
+(which is where the `renderToString` function etc would be referenced.)
+So, it just didn't work.
+
+#### Expose a virtual module that provides the asset manifest
+
+The idea here is that with a reference to a virtual module, the vite
+plugin can provide the contents at build/serve time. So, we exposed
+a virtual module that the plugin transformed into the asset manifest
+and then the user's code would take this and pass it to the
+`renderToString` function. This worked, but the problem is that
+virtual modules do not seem to work well with Typescript. We couldn't
+figure out a good way to provide types for the file. And when we were
+able to, it required the user to add a typescript `///` reference at
+the top of the file pointing to the type declaration. So, while this
+approach works, it really required two extra manual steps -- importing
+a virtual module and adding the reference to the type declaration.
+This is just too much setup to ask; it's too easy to forget and there's
+no feedback by design (so that spheres can be used without the plugin).
+
+#### Inject a virtual module that loads the asset manifest
+
+We know that when someone imports `renderToString` they must do so
+by importing from `spheres/server`. So, the plugin looks for that kind
+of import and then replaces it with an import to a virtual module.
+That virtual module exposes a `renderToString` function and in addition
+imports the asset manifest via another virtual module and passes it to
+the real `renderToString` function via the exposed function. This
+actually seems to work well, and does not require the user to do anything
+different with their code -- just use the spheres plugin and it will
+do extra stuff; if you don't use it, it doesn't. And since all the
+references to virtual modules occur in transpiled javascript, there's
+no need to worry about providing proper type declarations.
+
+So, we decided to go with this approach. There are some caveats though:
+- The plugin may need to be smarter about what it replaces ... right now
+it just looks for the string `spheres/server` and replaces that. It's
+unlikely but still possible that they could show up in some other way
+and then things would just get messed up.
+- If we ever expose other functions from the `spheres/server` module,
+then the virtualized version of this module would need to get more
+complicated. In that case, though, it could probably just export the
+non-virtualized functions ...
+
+
 ### When Serving the App
 
-When serving the app, the vite client will be injected into the
+In addition to facilitating the build process, the plugin also
+helps when serving the app for development purposes, by
+injecting the vite client into the
 `HEAD` element of any HTML page rendered using the `renderToString`
-function. This avoids the need to run the `transformIndexHTML`
-function at all. There may be caveats to this but it seems to work --
-it's required mainly to enable hot-module reloading during dev.
+function. The vite client enable HMR and other functionality.
+By having the plugin do this transformation, we avoid the need to
+run the `transformIndexHTML` function at all. There may be caveats
+to this but it seems to work.
 
 Again, if the plugin is not used, the `HEAD` element will not
 be changed at all.

@@ -1,5 +1,11 @@
 # spheres
 
+## 0.19.1
+
+### Patch Changes
+
+- fbea9da: Move virtual module types into their own folder
+
 ## 0.19.0
 
 ### Minor Changes

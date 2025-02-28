@@ -1,5 +1,11 @@
 # spheres
 
+## 0.19.0
+
+### Minor Changes
+
+- e1984ef: Plugin provides a virtual module with vite context
+
 ## 0.18.0
 
 ### Minor Changes

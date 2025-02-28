@@ -1,5 +1,11 @@
 # spheres
 
+## 0.19.2
+
+### Patch Changes
+
+- 0276623: Vite plugin injects vite context automatically
+
 ## 0.19.1
 
 ### Patch Changes

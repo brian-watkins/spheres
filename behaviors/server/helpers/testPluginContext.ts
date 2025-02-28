@@ -1,7 +1,6 @@
-import { FileReader, transformAssetManifest } from "@server/plugin/buildPlugin";
-import { transformDecorateHead } from "@server/plugin/servePlugin";
+import { FileReader, loadViteContext } from "@server/plugin/buildPlugin";
 import { Context } from "best-behavior";
-import { ResolvedConfig, TransformResult, UserConfig } from "vite";
+import { ResolvedConfig, UserConfig } from "vite";
 
 export const testablePluginContext: Context<TestablePlugin> = {
   init: () => new TestablePlugin()
@@ -24,7 +23,7 @@ const defaultTestConfig: TestableResolvedConfig = {
 
 class TestablePlugin {
   private resolvedConfig: TestableResolvedConfig = { ...defaultTestConfig }
-  private _transformResults: TransformResult | undefined
+  private _transformResults: string | undefined
   private fileReader = new TestFileReader()
 
   withConfig(config: TestableResolvedConfig): TestablePlugin {
@@ -37,22 +36,14 @@ class TestablePlugin {
     return this
   }
 
-  async runBuildTransform(path: string) {
-    this._transformResults = await transformAssetManifest(
+  async loadViteContext() {
+    this._transformResults = await loadViteContext(
       this.fileReader,
       this.resolvedConfig as unknown as ResolvedConfig,
-      path
     )
   }
 
-  async runServeTransform(path: string) {
-    this._transformResults = await transformDecorateHead(
-      this.resolvedConfig as unknown as ResolvedConfig,
-      path
-    )
-  }
-
-  get transformResults(): TransformResult | undefined {
+  get viteContext(): string | undefined {
     return this._transformResults
   }
 }

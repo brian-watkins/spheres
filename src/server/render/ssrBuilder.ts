@@ -6,7 +6,11 @@ import { Stateful } from "../../store/index.js"
 import { addAttribute } from "../../view/render/virtualNode.js"
 import { runQuery, TokenRegistry } from "../../store/tokenRegistry.js"
 import type { ManifestChunk, Manifest } from "vite"
-import { decorateHead } from "./decorateHead.js"
+
+export interface ViteContext {
+  command: "serve" | "build"
+  manifest: Manifest | undefined
+}
 
 type SSRManifestChunk = ManifestChunk & { manifestKey: string }
 
@@ -88,12 +92,12 @@ class LinkElementConfig extends SSRElementConfig {
 export class SSRBuilder extends HtmlViewBuilder {
   private importedScripts: Set<string> = new Set()
 
-  constructor(private tokenRegistry: TokenRegistry, private manifest: Manifest | undefined) {
+  constructor(private tokenRegistry: TokenRegistry, private viteContext: ViteContext | undefined) {
     super()
   }
 
   subview(view: HTMLView): this {
-    const builder = new SSRBuilder(this.tokenRegistry, this.manifest)
+    const builder = new SSRBuilder(this.tokenRegistry, this.viteContext)
     view(builder as unknown as HTMLBuilder)
     this.storeNode(builder.toVirtualNode())
 
@@ -129,19 +133,23 @@ export class SSRBuilder extends HtmlViewBuilder {
   }
 
   head(builder?: (element: ConfigurableElement<HeadElementAttributes, HTMLElements>) => void) {
-    return this.buildElement("head", new BasicElementConfig(), (el: ConfigurableElement<any, any>) => {
-      decorateHead?.(el)
-      builder?.(el)
+    return this.buildElement("head", new BasicElementConfig(), el => {
+      if (this.viteContext?.command === "serve") {
+        el.children.script(el => {
+          el.config.type("module").src("/@vite/client")
+        })
+      }
+      builder?.(el as ConfigurableElement<any, any>)
     })
   }
 
   script(builder?: (element: ConfigurableElement<ScriptElementAttributes, HTMLElements>) => void) {
-    const scriptConfig = new ScriptElementConfig(this.tokenRegistry, this.manifest)
+    const scriptConfig = new ScriptElementConfig(this.tokenRegistry, this.viteContext?.manifest)
     return this.buildSSRElement("script", scriptConfig, builder)
   }
 
   link(builder?: (element: ConfigurableElement<LinkElementAttributes, HTMLElements>) => void) {
-    const linkElementConfig = new LinkElementConfig(this.tokenRegistry, this.manifest)
+    const linkElementConfig = new LinkElementConfig(this.tokenRegistry, this.viteContext?.manifest)
     return this.buildSSRElement("link", linkElementConfig, builder)
   }
 }

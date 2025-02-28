@@ -1,10 +1,10 @@
 import { renderToString } from "@server/index";
 import { createStore } from "@store/store";
 import { HTMLBuilder } from "@view/htmlElements";
-
+import { context } from "virtual:spheres/vite"
 
 export function render(): string {
-  return renderToString(createStore(), pageView)
+  return renderToString(createStore(), pageView, context)
 }
 
 function pageView(root: HTMLBuilder) {

@@ -1,9 +1,12 @@
-import type { PluginOption, ResolvedConfig, TransformResult, UserConfig } from "vite"
+import type { PluginOption, ResolvedConfig, UserConfig } from "vite"
 import { SpheresPluginOptions } from "./options"
 import fs from "node:fs/promises"
 import path from "node:path"
 
-export function spheresBuildPlugin(options: SpheresPluginOptions = {}): PluginOption {
+export function spheres(options: SpheresPluginOptions = {}): PluginOption {
+  const virtualModuleId = 'virtual:spheres/vite'
+  const resolvedVirtualModuleId = '\0' + virtualModuleId
+
   const fileReader = new NodeFileReader()
   let resolvedConfig: ResolvedConfig
 
@@ -41,9 +44,18 @@ export function spheresBuildPlugin(options: SpheresPluginOptions = {}): PluginOp
     configResolved(config: ResolvedConfig) {
       resolvedConfig = config
     },
-    async transform(_, id) {
-      return transformAssetManifest(fileReader, resolvedConfig, id)
+    resolveId(source) {
+      if (source === virtualModuleId) {
+        return resolvedVirtualModuleId
+      }
+      return undefined
     },
+    load(id) {
+      if (id === resolvedVirtualModuleId) {
+        return loadViteContext(fileReader, resolvedConfig)
+      }
+      return undefined
+    }
   }
 }
 
@@ -63,9 +75,9 @@ class NodeFileReader implements FileReader {
   }
 }
 
-export async function transformAssetManifest(fileReader: FileReader, config: ResolvedConfig, id: string): Promise<TransformResult | undefined> {
-  if (config.command === "serve" || !assetManifestModuleRegex.test(id)) {
-    return undefined
+export async function loadViteContext(fileReader: FileReader, config: ResolvedConfig): Promise<string> {
+  if (config.command === "serve") {
+    return `export const context = { command: "serve", manifest: undefined };`
   }
 
   const manifestConfig = config.environments.client.build.manifest
@@ -84,13 +96,8 @@ export async function transformAssetManifest(fileReader: FileReader, config: Res
     throw new Error(`Spheres plugin could not find manifest file at ${manifestPath}`)
   }
 
-  return {
-    code: `export const manifest = ${manifestContents};`,
-    map: null
-  }
+  return `export const context = { command: "build", manifest: ${manifestContents} };`
 }
-
-const assetManifestModuleRegex = /\/server\/render\/assetManifest\.(ts|js)$/
 
 function buildManifestPath(config: ResolvedConfig, ...pathParts: Array<string>): string {
   return path.join(config.root, config.environments.client.build.outDir, ...pathParts)

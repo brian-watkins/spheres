@@ -1,54 +1,8 @@
 import { behavior, effect, example, fact, step } from "best-behavior";
 import { testablePluginContext } from "./helpers/testPluginContext";
-import { assignedWith, expect, is, objectOfType, rejectsWith, satisfying, stringMatching } from "great-expectations";
+import { assignedWith, expect, is, objectOfType, rejectsWith, satisfying, stringContaining } from "great-expectations";
 
 export default behavior("vite plugin", [
-
-  example(testablePluginContext)
-    .description("transforming some file other than the asset manifest")
-    .script({
-      perform: [
-        step("transform some random file", async (context) => {
-          await context.runBuildTransform("/some/other/file.ts")
-        })
-      ],
-      observe: [
-        effect("the transform returns undefined", async (context) => {
-          expect(context.transformResults, is(undefined))
-        })
-      ]
-    }),
-
-  example(testablePluginContext)
-    .description("when serving files")
-    .script({
-      suppose: [
-        fact("the file is served by vite", (context) => {
-          context.withConfig({
-            root: "/project/root/",
-            command: "serve",
-            environments: {
-              client: {
-                build: {
-                  outDir: "dist",
-                  manifest: true
-                }
-              }
-            }
-          })
-        })
-      ],
-      perform: [
-        step("transform the asset manifest", async (context) => {
-          await context.runBuildTransform("/my/path/server/render/assetManifest.ts")
-        })
-      ],
-      observe: [
-        effect("the transform returns undefined", async (context) => {
-          expect(context.transformResults, is(undefined))
-        })
-      ]
-    }),
 
   example(testablePluginContext)
     .description("manifest config is set to false in resolved config")
@@ -68,8 +22,8 @@ export default behavior("vite plugin", [
         })
       ],
       observe: [
-        effect("an error is throw when try to transform the asset manifest module", async (context) => {
-          await expect(context.runBuildTransform("/my/path/to/server/render/assetManifest.ts"), rejectsWith(satisfying([
+        effect("an error is throw when try to load the vite context", async (context) => {
+          await expect(context.loadViteContext(), rejectsWith(satisfying([
             objectOfType(Error)
           ])))
         })
@@ -98,46 +52,13 @@ export default behavior("vite plugin", [
         }),
       ],
       perform: [
-        step("transform the asset manifest module", async (context) => {
-          await context.runBuildTransform("/my/path/to/server/render/assetManifest.ts")
+        step("load the vite context", async (context) => {
+          await context.loadViteContext()
         })
       ],
       observe: [
-        effect("the transformed code contains the manifest file contents", (context) => {
-          expect(context.transformResults?.code, is(`export const manifest = { data: "blah" };`))
-        })
-      ]
-    }),
-
-  example(testablePluginContext)
-    .description("transforming already transpiled asset manifest module")
-    .script({
-      suppose: [
-        fact("the default manifest file contains some data", (context) => {
-          context
-            .withConfig({
-              command: "build",
-              root: "/project/root/",
-              environments: {
-                client: {
-                  build: {
-                    outDir: "dist",
-                    manifest: true
-                  }
-                }
-              }
-            })
-            .withFile("/project/root/dist/.vite/manifest.json", `{ data: "blah" }`)
-        }),
-      ],
-      perform: [
-        step("transform the asset manifest module", async (context) => {
-          await context.runBuildTransform("/my/node_modules/spheres/dist/server/render/assetManifest.js")
-        })
-      ],
-      observe: [
-        effect("the transformed code contains the manifest file contents", (context) => {
-          expect(context.transformResults?.code, is(`export const manifest = { data: "blah" };`))
+        effect("the loaded code contains the manifest file contents and the build command", (context) => {
+          expect(context.viteContext, is(`export const context = { command: "build", manifest: { data: "blah" } };`))
         })
       ]
     }),
@@ -164,13 +85,13 @@ export default behavior("vite plugin", [
         }),
       ],
       perform: [
-        step("transform the asset manifest module", async (context) => {
-          await context.runBuildTransform("/my/path/to/server/render/assetManifest.js")
+        step("load the vite context", async (context) => {
+          await context.loadViteContext()
         })
       ],
       observe: [
-        effect("the transformed code contains the manifest file contents", (context) => {
-          expect(context.transformResults?.code, is(`export const manifest = { data: "fun" };`))
+        effect("the loaded code contains the manifest file contents", (context) => {
+          expect(context.viteContext, is(assignedWith(stringContaining(`manifest: { data: "fun" }`))))
         })
       ]
     }),
@@ -197,8 +118,8 @@ export default behavior("vite plugin", [
         }),
       ],
       observe: [
-        effect("an error is thrown when try to transform the asset manifest module", async (context) => {
-          await expect(context.runBuildTransform("/my/path/to/server/render/assetManifest.js"), rejectsWith(satisfying([
+        effect("an error is thrown when try to load the vite context", async (context) => {
+          await expect(context.loadViteContext(), rejectsWith(satisfying([
             objectOfType(Error)
           ])))
         })
@@ -226,8 +147,8 @@ export default behavior("vite plugin", [
         }),
       ],
       observe: [
-        effect("an error is thrown when try to transform the asset manifest module", async (context) => {
-          await expect(context.runBuildTransform("/my/path/to/server/render/assetManifest.js"), rejectsWith(satisfying([
+        effect("an error is thrown when try to load the vite context", async (context) => {
+          await expect(context.loadViteContext(), rejectsWith(satisfying([
             objectOfType(Error)
           ])))
         })
@@ -235,7 +156,7 @@ export default behavior("vite plugin", [
     }),
 
   example(testablePluginContext)
-    .description("transform decorateHead file when vite is serving files")
+    .description("serving files")
     .script({
       suppose: [
         fact("the config shows vite is serving files", (context) => {
@@ -246,85 +167,15 @@ export default behavior("vite plugin", [
         }),
       ],
       perform: [
-        step("transform the decorateHead module", async (context) => {
-          await context.runServeTransform("/my/path/to/server/render/decorateHead.js")
+        step("load the vite context", async (context) => {
+          await context.loadViteContext()
         })
       ],
       observe: [
-        effect("the function to decorate the head is supplied", (context) => {
-          expect(context.transformResults?.code, is(assignedWith(stringMatching(/^export function decorateHead\(el\) { .* };$/))))
-        })
-      ]
-    }),
-
-  example(testablePluginContext)
-    .description("transform decorateHead typescript file when vite is serving files")
-    .script({
-      suppose: [
-        fact("the config shows vite is serving files", (context) => {
-          context
-            .withConfig({
-              command: "serve"
-            })
-        }),
-      ],
-      perform: [
-        step("transform the decorateHead module", async (context) => {
-          await context.runServeTransform("/my/path/to/server/render/decorateHead.ts")
-        })
-      ],
-      observe: [
-        effect("the function to decorate the head is supplied", (context) => {
-          expect(context.transformResults?.code, is(assignedWith(stringMatching(/^export function decorateHead\(el\) { .* };$/))))
-        })
-      ]
-    }),
-
-  example(testablePluginContext)
-    .description("transform decorateHead file when file is not the decorateHead module")
-    .script({
-      suppose: [
-        fact("the config shows vite is serving files", (context) => {
-          context
-            .withConfig({
-              command: "serve"
-            })
-        }),
-      ],
-      perform: [
-        step("transform the decorateHead module", async (context) => {
-          await context.runServeTransform("/my/path/to/some/other/file.js")
-        })
-      ],
-      observe: [
-        effect("the function to decorate the head is supplied", (context) => {
-          expect(context.transformResults, is(undefined))
-        })
-      ]
-    }),
-
-  example(testablePluginContext)
-    .description("transform decorateHead file when vite is building files")
-    .script({
-      suppose: [
-        fact("the config shows vite is serving files", (context) => {
-          context
-            .withConfig({
-              command: "build"
-            })
-        }),
-      ],
-      perform: [
-        step("transform the decorateHead module", async (context) => {
-          await context.runServeTransform("/my/path/to/server/render/decorateHead.js")
-        })
-      ],
-      observe: [
-        effect("the function to decorate the head is supplied", (context) => {
-          expect(context.transformResults, is(undefined))
+        effect("the context specifies the serve command and the manifest is undefined", (context) => {
+          expect(context.viteContext, is(`export const context = { command: "serve", manifest: undefined };`))
         })
       ]
     })
-
 
 ])

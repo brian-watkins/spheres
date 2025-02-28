@@ -18,6 +18,7 @@
   },
   "include": [
     "./**/*",
+    "../src/server/virtual-module.d.ts"
   ],
   "references": [
     { "path": "../" }

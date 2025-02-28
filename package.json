@@ -15,14 +15,14 @@
     "./server": "./dist/server/index.js"
   },
   "files": [
-    "dist/"
+    "dist/",
+    "types/"
   ],
   "scripts": {
     "generate:htmlElements": "tsx ./codegen/generateHtmlElements.ts",
     "generate:svgElements": "tsx ./codegen/generateSVGElements.ts",
     "generate:elementData": "tsx ./codegen/generateElementData.ts",
-    "copy:types": "cp ./src/server/virtual-module.d.ts ./dist/server/",
-    "build": "tsc --build --verbose && npm run copy:types",
+    "build": "tsc --build --verbose",
     "clean": "rm -rf ./dist && rm ./tsconfig.tsbuildinfo",
     "test": "best",
     "test:examples": "npm run clean && npm run build && npm run test -w examples",

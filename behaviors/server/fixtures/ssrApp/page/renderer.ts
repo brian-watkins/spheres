@@ -1,10 +1,9 @@
-import { renderToString } from "@server/index";
-import { createStore } from "@store/store";
-import { HTMLBuilder } from "@view/htmlElements";
-import { context } from "virtual:spheres/vite"
+import { renderToString } from "spheres/server"
+import { createStore } from "spheres/store";
+import { HTMLBuilder } from "spheres/view";
 
 export function render(): string {
-  return renderToString(createStore(), pageView, context)
+  return renderToString(createStore(), pageView)
 }
 
 function pageView(root: HTMLBuilder) {

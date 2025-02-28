@@ -1,4 +1,4 @@
-import { HTMLBuilder } from "@view/index.js";
+import { HTMLBuilder } from "spheres/view";
 import "./moreStyles.css"
 import "./viewStyles.css"
 import { superList } from "./helperView";

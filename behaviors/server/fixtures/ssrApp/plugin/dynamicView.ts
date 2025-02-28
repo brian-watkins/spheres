@@ -1,4 +1,4 @@
-import { HTMLBuilder } from "@view/index";
+import { HTMLBuilder } from "spheres/view";
 
 export function dynamic(root: HTMLBuilder) {
   root.b(el => {

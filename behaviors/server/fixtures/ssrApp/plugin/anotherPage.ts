@@ -1,5 +1,5 @@
-import { createStore } from "@store/index";
-import { activateView } from "@view/index";
+import { createStore } from "spheres/store";
+import { activateView } from "spheres/view";
 import { anotherView } from "./anotherView";
 
 

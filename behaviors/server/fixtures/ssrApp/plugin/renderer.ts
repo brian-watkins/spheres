@@ -1,11 +1,10 @@
-import { HTMLBuilder } from "@view/index.js"
-import { container, createStore } from "@store/index.js"
-import { context } from "virtual:spheres/vite"
-import { renderToString } from "@server/index.js"
+import { HTMLBuilder } from "spheres/view"
+import { container, createStore } from "spheres/store"
+import { renderToString } from "spheres/server"
 import { funView } from "./view"
 
 export function renderHTML(): string {
-  return renderToString(createStore(), view, context)
+  return renderToString(createStore(), view)
 }
 
 const someFilename = container({ initialValue: "tracing" })

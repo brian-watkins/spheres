@@ -1,4 +1,4 @@
-import { FileReader, loadViteContext } from "@server/plugin/buildPlugin";
+import { loadViteContext, FileReader } from "@server/plugin/viteContextPlugin";
 import { Context } from "best-behavior";
 import { ResolvedConfig, UserConfig } from "vite";
 

@@ -1,5 +1,5 @@
-import { container, State } from "@store/index";
-import { HTMLBuilder, HTMLView } from "@view/index";
+import { container, State } from "spheres/store";
+import { HTMLBuilder, HTMLView } from "spheres/view";
 import "./moreStyles.css"
 
 const items = container({ initialValue: ["one", "two", "three"] })

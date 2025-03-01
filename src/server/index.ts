@@ -5,7 +5,6 @@ import { IdSequence } from "../view/render/idSequence.js"
 import { stringifyVirtualNode } from "./render/renderToString.js"
 import { SSRBuilder, ViteContext } from "./render/ssrBuilder.js"
 export type { SpheresPluginOptions } from "./plugin/buildPlugin.js"
-export type { ViteContext } from "./render/ssrBuilder.js"
 export { spheres } from "./plugin/index.js"
 
 export function renderToString(store: Store, view: HTMLView): string

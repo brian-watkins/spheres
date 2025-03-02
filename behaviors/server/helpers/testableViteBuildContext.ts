@@ -19,21 +19,8 @@ class TestViteBuildContext {
   async buildWithPlugin(root: string, pluginOptions: SpheresPluginOptions): Promise<void> {
     const builder = await createBuilder({
       configFile: false,
-      appType: "custom",
       root: root,
       base: this.base,
-      environments: {
-        client: {
-          build: {
-            target: "esnext"
-          }
-        },
-        server: {
-          build: {
-            target: "esnext"
-          }
-        }
-      },
       plugins: [
         tsconfigPaths(),
         spheres(pluginOptions)

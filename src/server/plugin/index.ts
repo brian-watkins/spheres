@@ -1,4 +1,4 @@
-import { PluginOption } from "vite";
+import type { BuildEnvironmentOptions, PluginOption } from "vite";
 import { spheresBuildPlugin } from "./buildPlugin.js";
 import { spheresInjectPlugin } from "./injectPlugin.js";
 import { spheresViteContextPlugin } from "./viteContextPlugin.js";
@@ -6,9 +6,11 @@ import { spheresViteContextPlugin } from "./viteContextPlugin.js";
 export interface SpheresPluginOptions {
   server?: {
     entries?: Record<string, string>
+    build?: BuildEnvironmentOptions
   },
   client?: {
     entries?: Record<string, string>
+    build?: BuildEnvironmentOptions
   }
 }
 

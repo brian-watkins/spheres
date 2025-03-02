@@ -1,11 +1,13 @@
-import type { PluginOption, UserConfig } from "vite"
+import type { BuildEnvironmentOptions, PluginOption, UserConfig } from "vite"
 
 export interface BuildPluginOptions {
   server?: {
-    entries?: Record<string, string>
+    entries?: Record<string, string>,
+    build?: BuildEnvironmentOptions
   },
   client?: {
-    entries?: Record<string, string>
+    entries?: Record<string, string>,
+    build?: BuildEnvironmentOptions
   }
 }
 
@@ -17,20 +19,10 @@ export function spheresBuildPlugin(options: BuildPluginOptions): PluginOption {
         appType: "custom",
         environments: {
           server: {
-            build: {
-              emptyOutDir: false,
-              rollupOptions: {
-                input: options.server?.entries
-              }
-            }
+            build: serverBuildOptions(options)
           },
           client: {
-            build: {
-              manifest: true,
-              rollupOptions: {
-                input: options.client?.entries
-              }
-            }
+            build: clientBuildOptions(options)
           }
         },
         builder: {
@@ -42,4 +34,26 @@ export function spheresBuildPlugin(options: BuildPluginOptions): PluginOption {
       }
     }
   }
+}
+
+function serverBuildOptions(options: BuildPluginOptions) {
+  const defaultBuildOptions = {
+    emptyOutDir: false,
+    rollupOptions: {
+      input: options.server?.entries
+    }
+  }
+
+  return Object.assign(defaultBuildOptions, options.server?.build)
+}
+
+function clientBuildOptions(options: BuildPluginOptions) {
+  const defaultBuildOptions = {
+    manifest: true,
+    rollupOptions: {
+      input: options.client?.entries
+    }
+  }
+
+  return Object.assign(defaultBuildOptions, options.client?.build, { manifest: true })
 }

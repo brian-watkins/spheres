@@ -7,7 +7,7 @@ import { ssrTestAppContext } from "./helpers/testSSRServer"
 
 export default behavior("rendering html page from transpiled server renderer", [
 
-  (m) => m.pick() && example(testableViteBuildContext)
+  example(testableViteBuildContext)
     .description("explicit stylesheet and script imports")
     .script({
       suppose: [
@@ -16,6 +16,9 @@ export default behavior("rendering html page from transpiled server renderer", [
             server: {
               entries: {
                 renderer: "./behaviors/server/fixtures/ssrApp/plugin/renderer.ts"
+              },
+              build: {
+                target: "esnext"
               }
             },
             client: {
@@ -25,6 +28,9 @@ export default behavior("rendering html page from transpiled server renderer", [
                 another: "./behaviors/server/fixtures/ssrApp/plugin/anotherPage.ts",
                 styles: "./behaviors/server/fixtures/ssrApp/plugin/styles.css",
                 tracingStyles: "./behaviors/server/fixtures/ssrApp/plugin/tracing.css"
+              },
+              build: {
+                target: "esnext"
               }
             }
           })

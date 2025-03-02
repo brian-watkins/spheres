@@ -20,7 +20,7 @@ class TestableSSRBuilder {
 
   renderView(view: HTMLView) {
     const tokenRegistry = getTokenRegistry(createStore())
-    const builder = new SSRBuilder(tokenRegistry, { command: "build", manifest: this.manifest })
+    const builder = new SSRBuilder(tokenRegistry, { command: "build", base: "/", manifest: this.manifest })
     builder.subview(view)
     this.html = stringifyVirtualNode(tokenRegistry, new IdSequence(), builder.toVirtualNode())
   }

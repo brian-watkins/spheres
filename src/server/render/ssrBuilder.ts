@@ -9,6 +9,7 @@ import type { ManifestChunk, Manifest } from "vite"
 
 export interface ViteContext {
   command: "serve" | "build"
+  base: string
   manifest: Manifest | undefined
 }
 
@@ -19,7 +20,7 @@ class SSRElementConfig extends BasicElementConfig {
   private _extraImports: Array<string> = []
   private _extraCSS: Array<string> = []
 
-  constructor(private tokenRegistry: TokenRegistry, private manifest: Manifest | undefined) {
+  constructor(private tokenRegistry: TokenRegistry, private viteContext: ViteContext | undefined) {
     super()
   }
 
@@ -36,10 +37,10 @@ class SSRElementConfig extends BasicElementConfig {
   }
 
   private findManifestEntry(path: string): SSRManifestChunk | undefined {
-    for (const file in this.manifest) {
+    for (const file in this.viteContext?.manifest) {
       if (path.endsWith(file)) {
         return {
-          ...this.manifest[file],
+          ...this.viteContext.manifest[file],
           manifestKey: file
         }
       }
@@ -71,7 +72,7 @@ class SSRElementConfig extends BasicElementConfig {
       this._extraCSS = entryDetails.css
     }
 
-    addAttribute(this.config, name, entryDetails.file)
+    addAttribute(this.config, name, `${this.viteContext?.base}${entryDetails.file}`)
 
     return this
   }
@@ -124,7 +125,7 @@ export class SSRBuilder extends HtmlViewBuilder {
         this.link(el => {
           el.config
             .rel("stylesheet")
-            .href(extraStylesheet)
+            .href(`${this.viteContext?.base}${extraStylesheet}`)
         })
       }
     }
@@ -144,12 +145,12 @@ export class SSRBuilder extends HtmlViewBuilder {
   }
 
   script(builder?: (element: ConfigurableElement<ScriptElementAttributes, HTMLElements>) => void) {
-    const scriptConfig = new ScriptElementConfig(this.tokenRegistry, this.viteContext?.manifest)
+    const scriptConfig = new ScriptElementConfig(this.tokenRegistry, this.viteContext)
     return this.buildSSRElement("script", scriptConfig, builder)
   }
 
   link(builder?: (element: ConfigurableElement<LinkElementAttributes, HTMLElements>) => void) {
-    const linkElementConfig = new LinkElementConfig(this.tokenRegistry, this.viteContext?.manifest)
+    const linkElementConfig = new LinkElementConfig(this.tokenRegistry, this.viteContext)
     return this.buildSSRElement("link", linkElementConfig, builder)
   }
 }

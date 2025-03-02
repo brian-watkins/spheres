@@ -1,11 +1,15 @@
 import type { PluginOption, UserConfig } from "vite"
 
-export interface SpheresPluginOptions {
-  serverEntries?: Record<string, string>
-  clientEntries?: Record<string, string>
+export interface BuildPluginOptions {
+  server?: {
+    entries?: Record<string, string>
+  },
+  client?: {
+    entries?: Record<string, string>
+  }
 }
 
-export function spheresBuildPlugin(options: SpheresPluginOptions = {}): PluginOption {
+export function spheresBuildPlugin(options: BuildPluginOptions): PluginOption {
   return {
     name: 'spheres-build',
     config(): UserConfig {
@@ -16,7 +20,7 @@ export function spheresBuildPlugin(options: SpheresPluginOptions = {}): PluginOp
             build: {
               emptyOutDir: false,
               rollupOptions: {
-                input: options.serverEntries
+                input: options.server?.entries
               }
             }
           },
@@ -24,7 +28,7 @@ export function spheresBuildPlugin(options: SpheresPluginOptions = {}): PluginOp
             build: {
               manifest: true,
               rollupOptions: {
-                input: options.clientEntries
+                input: options.client?.entries
               }
             }
           }

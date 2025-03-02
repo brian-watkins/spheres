@@ -11,6 +11,7 @@ export type TestableResolvedConfig = UserConfig & { command: "serve" | "build" }
 const defaultTestConfig: TestableResolvedConfig = {
   root: "/project/root/",
   command: "build",
+  base: "/",
   environments: {
     client: {
       build: {

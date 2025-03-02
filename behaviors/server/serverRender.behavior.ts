@@ -7,21 +7,25 @@ import { ssrTestAppContext } from "./helpers/testSSRServer"
 
 export default behavior("rendering html page from transpiled server renderer", [
 
-  example(testableViteBuildContext)
+  (m) => m.pick() && example(testableViteBuildContext)
     .description("explicit stylesheet and script imports")
     .script({
       suppose: [
         fact("the server renderer is built with the spheres vite plugin", async (context) => {
           await context.buildWithPlugin("./behaviors/server/fixtures/ssrApp/plugin", {
-            serverEntries: {
-              renderer: "./behaviors/server/fixtures/ssrApp/plugin/renderer.ts"
+            server: {
+              entries: {
+                renderer: "./behaviors/server/fixtures/ssrApp/plugin/renderer.ts"
+              }
             },
-            clientEntries: {
-              client: "./behaviors/server/fixtures/ssrApp/plugin/index.ts",
-              tracing: "./behaviors/server/fixtures/ssrApp/plugin/tracing.ts",
-              another: "./behaviors/server/fixtures/ssrApp/plugin/anotherPage.ts",
-              styles: "./behaviors/server/fixtures/ssrApp/plugin/styles.css",
-              tracingStyles: "./behaviors/server/fixtures/ssrApp/plugin/tracing.css"
+            client: {
+              entries: {
+                client: "./behaviors/server/fixtures/ssrApp/plugin/index.ts",
+                tracing: "./behaviors/server/fixtures/ssrApp/plugin/tracing.ts",
+                another: "./behaviors/server/fixtures/ssrApp/plugin/anotherPage.ts",
+                styles: "./behaviors/server/fixtures/ssrApp/plugin/styles.css",
+                tracingStyles: "./behaviors/server/fixtures/ssrApp/plugin/tracing.css"
+              }
             }
           })
         }),
@@ -40,47 +44,47 @@ export default behavior("rendering html page from transpiled server renderer", [
         }),
         effect("the script import references the transpiled js", async (context) => {
           expect(context.getRenderedHTML(), is(
-            stringMatching(/<script type="module" src="assets\/client-.+\.js"><\/script>/)
+            stringMatching(/<script type="module" src="\/assets\/client-.+\.js"><\/script>/)
           ))
         }),
         effect("the script tag for other transpiled js is included", async (context) => {
           expect(context.getRenderedHTML(), is(
-            stringMatching(/<link rel="modulepreload" href="assets\/helperView-.+\.js">/)
+            stringMatching(/<link rel="modulepreload" href="\/assets\/helperView-.+\.js">/)
           ))
         }),
         effect("the stylesheet import references the transpiled css", async (context) => {
           expect(context.getRenderedHTML(), is(
-            stringMatching(/<link rel="stylesheet" href="assets\/styles-.+\.css">/)
+            stringMatching(/<link rel="stylesheet" href="\/assets\/styles-.+\.css">/)
           ))
         }),
         effect("the link to styles referenced in the js is included", async (context) => {
           expect(context.getRenderedHTML(), is(
-            stringMatching(/<link rel="stylesheet" href="assets\/client-.+\.css">/)
+            stringMatching(/<link rel="stylesheet" href="\/assets\/client-.+\.css">/)
           ))
         }),
         effect("the script tag with a GetState function for src points to the compiled js", async (context) => {
           expect(context.getRenderedHTML(), is(
-            stringMatching(/<script type="module" src="assets\/tracing-.+\.js"><\/script>/)
+            stringMatching(/<script type="module" src="\/assets\/tracing-.+\.js"><\/script>/)
           ))
         }),
         effect("the link tag with a GetState href function points to the compiled css", async (context) => {
           expect(context.getRenderedHTML(), is(
-            stringMatching(/<link rel="stylesheet" href="assets\/tracingStyles-.+\.css">/)
+            stringMatching(/<link rel="stylesheet" href="\/assets\/tracingStyles-.+\.css">/)
           ))
         }),
         effect("link for css imported by an extra script is included", async (context) => {
           expect(context.getRenderedHTML(), is(
-            stringMatching(/<link rel="stylesheet" href="assets\/helperView-.+\.css">/)
+            stringMatching(/<link rel="stylesheet" href="\/assets\/helperView-.+\.css">/)
           ))
         }),
         effect("link for dynamic script import is included", async (context) => {
           expect(context.getRenderedHTML(), is(
-            stringMatching(/<link rel="modulepreload" href="assets\/someView-.+\.js">/)
+            stringMatching(/<link rel="modulepreload" href="\/assets\/someView-.+\.js">/)
           ))
         }),
         effect("link for dynamic script import from extra script is included", async (context) => {
           expect(context.getRenderedHTML(), is(
-            stringMatching(/<link rel="modulepreload" href="assets\/dynamicView-.+\.js">/)
+            stringMatching(/<link rel="modulepreload" href="\/assets\/dynamicView-.+\.js">/)
           ))
         })
       ]
@@ -118,14 +122,20 @@ export default behavior("rendering html page from transpiled server renderer", [
     .script({
       suppose: [
         fact("the server renderer is built with the spheres vite plugin", async (context) => {
-          await context.buildWithPlugin("./behaviors/server/fixtures/ssrApp/page", {
-            serverEntries: {
-              renderer: "./behaviors/server/fixtures/ssrApp/page/renderer.ts"
-            },
-            clientEntries: {
-              activate: "./behaviors/server/fixtures/ssrApp/page/src/index.ts"
-            }
-          })
+          await context
+            .setBase("/awesome")
+            .buildWithPlugin("./behaviors/server/fixtures/ssrApp/page", {
+              server: {
+                entries: {
+                  renderer: "./behaviors/server/fixtures/ssrApp/page/renderer.ts"
+                }
+              },
+              client: {
+                entries: {
+                  activate: "./behaviors/server/fixtures/ssrApp/page/src/index.ts"
+                }
+              }
+            })
         }),
       ],
       perform: [
@@ -142,7 +152,7 @@ export default behavior("rendering html page from transpiled server renderer", [
         }),
         effect("the script import references the transpiled js", async (context) => {
           expect(context.getRenderedHTML(), is(
-            stringMatching(/<script type="module" src="assets\/activate-.+\.js"><\/script>/)
+            stringMatching(/<script type="module" src="\/awesome\/assets\/activate-.+\.js"><\/script>/)
           ))
         }),
       ]
@@ -203,15 +213,15 @@ export default behavior("rendering html page from transpiled server renderer", [
       observe: [
         effect("the link tag for the extra script referenced by an extra script is included in the html", (context) => {
           expect(context.getHTML(), is(
-            stringMatching(/<link rel="modulepreload" href="assets\/pageHeader-.+\.js">/)
+            stringMatching(/<link rel="modulepreload" href="\/assets\/pageHeader-.+\.js">/)
           ))
           expect(context.getHTML(), is(
-            stringMatching(/<link rel="modulepreload" href="assets\/another-\w+\.js">/)
+            stringMatching(/<link rel="modulepreload" href="\/assets\/another-\w+\.js">/)
           ))
         }),
         effect("the link tag for the extra script referenced twice is included only once", (context) => {
           expect(context.getHTML(), is(
-            stringMatching(/<link rel="modulepreload" href="assets\/index-\w+\.js">/g, { times: 1 })
+            stringMatching(/<link rel="modulepreload" href="\/assets\/index-\w+\.js">/g, { times: 1 })
           ))
         })
       ]
@@ -268,7 +278,7 @@ export default behavior("rendering html page from transpiled server renderer", [
       observe: [
         effect("the script tag imports the transpiled script", (context) => {
           expect(context.getHTML(), is(
-            stringMatching(/<script type="module" src="assets\/dashboard-CsRjAryI.js"><\/script>/)
+            stringMatching(/<script type="module" src="\/assets\/dashboard-CsRjAryI.js"><\/script>/)
           ))
         })
       ]

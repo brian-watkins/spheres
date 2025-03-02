@@ -58,7 +58,7 @@ export default behavior("vite plugin", [
       ],
       observe: [
         effect("the loaded code contains the manifest file contents and the build command", (context) => {
-          expect(context.viteContext, is(`export const context = { command: "build", manifest: { data: "blah" } };`))
+          expect(context.viteContext, is(`export const context = { command: "build", base: "/", manifest: { data: "blah" } };`))
         })
       ]
     }),
@@ -92,6 +92,40 @@ export default behavior("vite plugin", [
       observe: [
         effect("the loaded code contains the manifest file contents", (context) => {
           expect(context.viteContext, is(assignedWith(stringContaining(`manifest: { data: "fun" }`))))
+        })
+      ]
+    }),
+
+  example(testablePluginContext)
+    .description("when the base is set")
+    .script({
+      suppose: [
+        fact("the default manifest file contains some data", (context) => {
+          context
+            .withConfig({
+              command: "build",
+              root: "/project/root/",
+              base: "/cool",
+              environments: {
+                client: {
+                  build: {
+                    outDir: "dist",
+                    manifest: true
+                  }
+                }
+              }
+            })
+            .withFile("/project/root/dist/.vite/manifest.json", `{ data: "fun" }`)
+        }),
+      ],
+      perform: [
+        step("load the vite context", async (context) => {
+          await context.loadViteContext()
+        })
+      ],
+      observe: [
+        effect("the loaded code contains the manifest file contents and the build command and the base", (context) => {
+          expect(context.viteContext, is(`export const context = { command: "build", base: "/cool", manifest: { data: "fun" } };`))
         })
       ]
     }),
@@ -173,7 +207,7 @@ export default behavior("vite plugin", [
       ],
       observe: [
         effect("the context specifies the serve command and the manifest is undefined", (context) => {
-          expect(context.viteContext, is(`export const context = { command: "serve", manifest: undefined };`))
+          expect(context.viteContext, is(`export const context = { command: "serve", base: "/", manifest: undefined };`))
         })
       ]
     })

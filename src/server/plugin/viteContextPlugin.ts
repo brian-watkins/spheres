@@ -26,7 +26,6 @@ export function spheresViteContextPlugin(): PluginOption {
       }
       return undefined
     }
-
   }
 }
 
@@ -48,7 +47,7 @@ class NodeFileReader implements FileReader {
 
 export async function loadViteContext(fileReader: FileReader, config: ResolvedConfig): Promise<string> {
   if (config.command === "serve") {
-    return `export const context = { command: "serve", manifest: undefined };`
+    return `export const context = { command: "serve", base: "${config.base}", manifest: undefined };`
   }
 
   const manifestConfig = config.environments.client.build.manifest
@@ -67,7 +66,7 @@ export async function loadViteContext(fileReader: FileReader, config: ResolvedCo
     throw new Error(`Spheres plugin could not find manifest file at ${manifestPath}`)
   }
 
-  return `export const context = { command: "build", manifest: ${manifestContents} };`
+  return `export const context = { command: "build", base: "${config.base}", manifest: ${manifestContents} };`
 }
 
 function buildManifestPath(config: ResolvedConfig, ...pathParts: Array<string>): string {

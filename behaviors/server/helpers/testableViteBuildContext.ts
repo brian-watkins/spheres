@@ -9,12 +9,19 @@ export const testableViteBuildContext: Context<TestViteBuildContext> = {
 
 class TestViteBuildContext {
   private html: string = ""
+  private base: string | undefined
+
+  setBase(base: string): TestViteBuildContext {
+    this.base = base
+    return this
+  }
 
   async buildWithPlugin(root: string, pluginOptions: SpheresPluginOptions): Promise<void> {
     const builder = await createBuilder({
       configFile: false,
       appType: "custom",
       root: root,
+      base: this.base,
       environments: {
         client: {
           build: {

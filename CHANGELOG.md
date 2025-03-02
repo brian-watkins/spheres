@@ -1,5 +1,12 @@
 # spheres
 
+## 0.19.3
+
+### Patch Changes
+
+- 48217c9: Add base path to assets when transformed by the plugin
+- 48217c9: Set build options for each environment via the plugin
+
 ## 0.19.2
 
 ### Patch Changes

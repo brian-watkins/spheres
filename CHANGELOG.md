@@ -1,5 +1,11 @@
 # spheres
 
+## 0.20.0
+
+### Minor Changes
+
+- ba54892: Use reusable string renderer for server-side rendering
+
 ## 0.19.3
 
 ### Patch Changes

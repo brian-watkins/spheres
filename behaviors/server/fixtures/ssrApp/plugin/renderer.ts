@@ -1,10 +1,12 @@
 import { HTMLBuilder } from "spheres/view"
 import { container, createStore } from "spheres/store"
-import { renderToString } from "spheres/server"
 import { funView } from "./view"
+import { createStringRenderer } from "spheres/server"
+
+const rendererToString = createStringRenderer(view)
 
 export function renderHTML(): string {
-  return renderToString(createStore(), view)
+  return rendererToString(createStore())
 }
 
 const someFilename = container({ initialValue: "tracing" })

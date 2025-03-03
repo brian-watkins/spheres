@@ -1,16 +1,13 @@
 import { Store } from "../store/index.js"
-import { getTokenRegistry } from "../store/store.js"
 import { HTMLView } from "../view/index.js"
-import { IdSequence } from "../view/render/idSequence.js"
-import { stringifyVirtualNode } from "./render/renderToString.js"
-import { SSRBuilder, ViteContext } from "./render/ssrBuilder.js"
+import { buildStringRenderer } from "./render/stringRenderer.js"
+import { ViteContext } from "./render/viteBuilder.js"
 export type { SpheresPluginOptions } from "./plugin/index.js"
 export { spheres } from "./plugin/index.js"
 
-export function renderToString(store: Store, view: HTMLView): string
-export function renderToString(store: Store, view: HTMLView, viteContext?: ViteContext): string {
-  const tokenRegistry = getTokenRegistry(store)
-  const builder = new SSRBuilder(tokenRegistry, viteContext)
-  builder.subview(view)
-  return stringifyVirtualNode(tokenRegistry, new IdSequence(), builder.toVirtualNode())
+export type HtmlStringRenderer = (store: Store) => string
+
+export function createStringRenderer(view: HTMLView): HtmlStringRenderer
+export function createStringRenderer(view: HTMLView, viteContext?: ViteContext): HtmlStringRenderer {
+  return buildStringRenderer(view, viteContext)
 }

@@ -1,9 +1,11 @@
-import { renderToString } from "spheres/server"
+import { createStringRenderer } from "spheres/server"
 import { createStore } from "spheres/store";
 import { HTMLBuilder } from "spheres/view";
 
+const renderToString = createStringRenderer(pageView)
+
 export function render(): string {
-  return renderToString(createStore(), pageView)
+  return renderToString(createStore())
 }
 
 function pageView(root: HTMLBuilder) {

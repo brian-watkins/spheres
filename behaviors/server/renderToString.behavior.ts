@@ -1,9 +1,9 @@
 import { behavior, effect, example, Example } from "best-behavior";
 import { equalTo, expect, is } from "great-expectations";
 import { appWithZone, appWithDataAttributesNoValue, appWithDeeplyNestedState, appWithInnerHTML, appWithNestedState, appWithPropertiesAndAttributes, appWithReactiveAttributes, appWithReactiveClass, appWithReactiveText, appWithSimpleState, appWithZones, staticApp, appWithViewSelector, appWithEvents } from "./fixtures/static.app.js";
-import { renderToString } from "@server/index.js";
-import { createStore } from "@store/index.js";
+import { container, createStore } from "@store/index.js";
 import { HTMLView } from "@view/index.js";
+import { buildStringRenderer } from "@server/render/stringRenderer.js";
 
 export default behavior("Render view to HTML string", [
   renderTest("render view with no event handlers or state", (renderer) => {
@@ -50,6 +50,15 @@ export default behavior("Render view to HTML string", [
     const actual = renderer.renderView(appWithInnerHTML)
     expect(actual, is(equalTo(`<div><div><h1>HELLO!!!</h1></div></div>`)))
   }),
+  renderTest("render view with reactive innerHTML property", (renderer) => {
+    const reactiveHTML = container({ initialValue: "<p class=\"bg-red-100\">Let's get <b>reactive</b>, dude!</p>" })
+    const actual = renderer.renderView(root => {
+      root.div(el => {
+        el.config.innerHTML(get => get(reactiveHTML))
+      })
+    })
+    expect(actual, is(`<div><p class="bg-red-100">Let's get <b>reactive</b>, dude!</p></div>`))
+  }),
   renderTest("render view with list with events", (renderer) => {
     const actual = renderer.renderView(appWithZones)
     expect(actual, is(equalTo(`<div><!--list-start-0.2--><div data-spheres-template=""><h1>snake is at index 0</h1><button data-spheres-click="0.2.3">Click me!</button></div><div data-spheres-template=""><h1>eagle is at index 1</h1><button data-spheres-click="0.2.3">Click me!</button></div><!--list-end-0.2--></div>`)))
@@ -63,12 +72,14 @@ export default behavior("Render view to HTML string", [
     expect(actual, is(equalTo(`<div><!--switch-start-0.2--><h3 data-spheres-template="">Fun!</h3><!--switch-end-0.2--></div>`)))
   }),
   renderTest("render void elements without closing tags", (renderer) => {
+    const imageName = container({ initialValue: "/assets/myImg" })
+
     const actual = renderer.renderView((root) => {
       root.main(el => {
         el.children
           .hr()
           .img(el => {
-            el.config.src("/assets/myImg.png")
+            el.config.src(get => `${get(imageName)}.png`)
           })
       })
     })
@@ -80,13 +91,13 @@ class TestRenderer {
   private store = createStore()
 
   renderView(view: HTMLView): string {
-    return renderToString(this.store, view)
+    return buildStringRenderer(view)(this.store)
   }
 }
 
 function renderTest(description: string, generator: (renderer: TestRenderer) => void): Example {
   return example({ init: () => new TestRenderer() })
-  .description(description)
+    .description(description)
     .script({
       observe: [
         effect("it produces the expected string representation", generator)

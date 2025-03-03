@@ -1,9 +1,10 @@
 import { behavior, effect, example, fact, step } from "best-behavior"
 import { testableViteBuildContext } from "./helpers/testableViteBuildContext"
 import { expect, is, stringMatching } from "great-expectations"
-import { testableSSRBuilderContext } from "./helpers/testableSSRBuilderContext"
+import { testableStringRendererContext } from "./helpers/testableStringRendererContext"
 import { useModule } from "best-behavior/transpiler"
 import { ssrTestAppContext } from "./helpers/testSSRServer"
+import { container } from "@store/index"
 
 export default behavior("rendering html page from transpiled server renderer", [
 
@@ -164,7 +165,7 @@ export default behavior("rendering html page from transpiled server renderer", [
       ]
     }),
 
-  example(testableSSRBuilderContext)
+  example(testableStringRendererContext)
     .description("manifest with extra scripts in extra scripts")
     .script({
       suppose: [
@@ -233,7 +234,78 @@ export default behavior("rendering html page from transpiled server renderer", [
       ]
     }),
 
-  example(testableSSRBuilderContext)
+  example(testableStringRendererContext)
+    .description("script referenced multiple times when using stateful src")
+    .script({
+      suppose: [
+        fact("there is a manifest with extra scripts in extra scripts", (context) => {
+          context.useManifest({
+            "_index-CmRxQ4Kg.js": {
+              "file": "assets/index-CmRxQ4Kg.js",
+              "name": "index"
+            },
+            "_another-888888.js": {
+              "file": "assets/another-888888.js",
+              "name": "index"
+            },
+            "_pageHeader-CMFcDjBz.js": {
+              "file": "assets/pageHeader-CMFcDjBz.js",
+              "name": "pageHeader",
+              "imports": [
+                "_index-CmRxQ4Kg.js",
+                "_another-888888.js"
+              ]
+            },
+            "my-script.ts": {
+              "file": "assets/backlog-LmEve9Li.js",
+              "name": "backlog",
+              "src": "my-script.ts",
+              "isEntry": true,
+              "imports": [
+                "_pageHeader-CMFcDjBz.js",
+                "_index-CmRxQ4Kg.js",
+              ]
+            }
+          })
+        })
+      ],
+      perform: [
+        step("render a view based on the manifest", (context) => {
+          const scriptToken = container({ initialValue: "my-script.ts" })
+
+          context.renderView((root) => {
+            root.html(el => {
+              el.children
+                .head(el => {
+                  el.children
+                    .script(el => {
+                      el.config
+                        .type("module")
+                        .src(get => get(scriptToken))
+                    })
+                })
+            })
+          })
+        })
+      ],
+      observe: [
+        effect("the link tag for the extra script referenced by an extra script is included in the html", (context) => {
+          expect(context.getHTML(), is(
+            stringMatching(/<link rel="modulepreload" href="\/assets\/pageHeader-.+\.js">/)
+          ))
+          expect(context.getHTML(), is(
+            stringMatching(/<link rel="modulepreload" href="\/assets\/another-\w+\.js">/)
+          ))
+        }),
+        effect("the link tag for the extra script referenced twice is included only once", (context) => {
+          expect(context.getHTML(), is(
+            stringMatching(/<link rel="modulepreload" href="\/assets\/index-\w+\.js">/g, { times: 1 })
+          ))
+        })
+      ]
+    }),
+
+  example(testableStringRendererContext)
     .description("view with absolute paths to assets")
     .script({
       suppose: [

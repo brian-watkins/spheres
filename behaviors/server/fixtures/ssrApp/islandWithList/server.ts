@@ -1,4 +1,4 @@
-import { renderToString } from "@server/index.js";
+import { createStringRenderer } from "@server/index.js";
 import { view } from "./view";
 import { command, createStore, exec, write } from "@store/index.js";
 import { items, suppliedTitle, tokenMap } from "./state";
@@ -22,7 +22,7 @@ store.dispatch(exec(getSuppliedState, undefined))
 
 export default function(): SSRParts {
   return {
-    html: renderToString(store, view),
+    html: createStringRenderer(view)(store),
     serializedStore: store.serialize(tokenMap)
   }
 }

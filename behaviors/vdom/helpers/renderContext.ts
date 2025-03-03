@@ -1,7 +1,7 @@
 import { activateView, HTMLView, RenderResult, renderToDOM } from "@view/index.js"
 import { Context } from "best-behavior"
 import { Container, createStore, Store, write } from "@store/index.js"
-import { renderToString } from "@server/index"
+import { createStringRenderer } from "@server/index"
 
 export class RenderApp<T> {
   private renderResult: RenderResult | undefined
@@ -25,7 +25,7 @@ export class RenderApp<T> {
   }
 
   ssrAndActivate(view: HTMLView) {
-    const htmlString = renderToString(this.store, view)
+    const htmlString = createStringRenderer(view)(this.store)
     document.body.innerHTML = htmlString
     this.renderResult = activateView(this.store, document.body, view)
   }

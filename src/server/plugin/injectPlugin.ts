@@ -12,11 +12,11 @@ export function spheresInjectPlugin(): PluginOption {
     load(id) {
       if (id === resolvedVirtualModuleId) {
         return `
-import { renderToString as internalRenderToString } from "spheres/server"
+import { createStringRenderer as internalCreateStringRenderer } from "spheres/server"
 import { context } from "virtual:spheres/vite"
 
-export function renderToString(store, view) {
-  return internalRenderToString(store, view, context)
+export function createStringRenderer(view) {
+  return internalCreateStringRenderer(view, context)
 }
 `
       }

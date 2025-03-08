@@ -1,5 +1,5 @@
 import { Container, GetState, State, Stateful } from "../store/index.js"
-import { addStatefulProperty, addProperty, makeZoneList, VirtualListItemTemplate, VirtualTemplate, VirtualNode, ViewSelector, makeStatefulSelector, StatefulSelectorNode } from "./render/virtualNode.js"
+import { makeZoneList, VirtualListItemTemplate, VirtualTemplate, VirtualNode, ViewSelector, makeStatefulSelector, StatefulSelectorNode } from "./render/virtualNode.js"
 import { HTMLElements, HTMLBuilder, HTMLView, SpecialHTMLElements, HTMLViewSelector, GlobalHTMLAttributes } from "./htmlElements.js"
 import { SVGElements } from "./svgElements.js"
 import { BasicElementConfig } from "./viewConfig.js"
@@ -10,13 +10,7 @@ import { SpecialElementAttributes } from "./specialAttributes.js"
 
 class HTMLElementConfig extends BasicElementConfig {
   class(value: string | Stateful<string>): this {
-    if (typeof value === "function") {
-      addStatefulProperty(this.config, "className", value)
-    } else {
-      addProperty(this.config, "className", value)
-    }
-
-    return this
+    return this.recordProperty("className", value)
   }
 }
 
@@ -24,19 +18,11 @@ export const configBuilder = new HTMLElementConfig()
 
 class InputElementConfig extends HTMLElementConfig {
   value(val: string | Stateful<string>) {
-    if (typeof val === "function") {
-      addStatefulProperty(this.config, "value", val)
-    } else {
-      addProperty(this.config, "value", val)
-    }
-
-    return this
+    return this.recordProperty("value", val)
   }
 
   checked(value: boolean | Stateful<boolean>) {
-    this.recordBooleanProperty("checked", value)
-
-    return this
+    return this.recordProperty("checked", value)
   }
 }
 

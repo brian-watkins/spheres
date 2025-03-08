@@ -26,25 +26,17 @@ export class BasicElementConfig implements SpecialElementAttributes {
     return this
   }
 
-  recordBooleanProperty(name: string, isSelected: boolean | Stateful<boolean>) {
-    if (typeof isSelected === "function") {
-      addStatefulProperty(this.config, name, (get) => isSelected(get) ? name : undefined)
+  recordProperty<T extends string | boolean>(name: string, value: T | Stateful<T>) {
+    if (typeof value === "function") {
+      addStatefulProperty(this.config, name, value)
     } else {
-      if (isSelected) {
-        addProperty(this.config, name, name)
-      }
+      addProperty(this.config, name, value)
     }
     return this
   }
 
   innerHTML(html: string | Stateful<string>): this {
-    if (typeof html === "function") {
-      addStatefulProperty(this.config, "innerHTML", html)
-    } else {
-      addProperty(this.config, "innerHTML", html)
-    }
-
-    return this
+    return this.recordProperty("innerHTML", html)
   }
 
   attribute(name: string, value: string | Stateful<string>) {

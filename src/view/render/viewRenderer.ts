@@ -1,7 +1,6 @@
 import { GetState, State, Stateful } from "../../store"
 import { AriaAttribute } from "../elementData"
 import { SpecialElementAttributes } from "../specialAttributes"
-import { ViewBuilder } from "../viewBuilder"
 import { StoreEventHandler } from "./virtualNode"
 
 export interface ConfigurableElement<A extends SpecialElementAttributes, B> {

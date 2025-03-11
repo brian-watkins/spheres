@@ -1,8 +1,6 @@
 import { Store } from "../store/index.js"
 import { getTokenRegistry } from "../store/store.js"
-import { HTMLBuilder, HTMLView } from "./htmlElements.js"
-import { HtmlViewBuilder } from "./htmlViewBuilder.js"
-import { DomRenderer } from "./render/domRenderer.js"
+import { HTMLView } from "./htmlElements.js"
 import { RenderResult } from "./render/index.js"
 import { DOMRoot } from "./render/renderToDom.js"
 

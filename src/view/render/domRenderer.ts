@@ -2,7 +2,7 @@ import { DOMTemplate, EventsToDelegate, Zone } from "."
 import { Stateful } from "../../store"
 import { dispatchMessage } from "../../store/message"
 import { GetState, initListener, State, TokenRegistry } from "../../store/tokenRegistry"
-import { AriaAttribute, booleanAttributes } from "../elementData"
+import { AriaAttribute } from "../elementData"
 import { SpecialElementAttributes } from "../specialAttributes"
 import { EffectLocation } from "./effectLocation"
 import { UpdateAttributeEffect } from "./effects/attributeEffect"
@@ -13,7 +13,6 @@ import { UpdateTextEffect } from "./effects/textEffect"
 import { setEventAttribute } from "./eventHelpers"
 import { listEndIndicator, listStartIndicator, switchEndIndicator, switchStartIndicator } from "./fragmentHelpers"
 import { IdSequence } from "./idSequence"
-import { getDOMTemplate } from "./template"
 import { ListItemTemplateContext } from "./templateContext"
 import { DomTemplateRenderer } from "./templateRenderer"
 import { ConfigurableElement, ViewConfig, ViewConfigDelegate, ViewDefinition, ViewRenderer, ViewRendererDelegate, ViewSelector } from "./viewRenderer"
@@ -207,6 +206,7 @@ export class DomTemplateSelectorBuilder implements ViewSelector {
 }
 
 class DomElementConfig implements ViewConfig {
+  //@ts-ignore
   constructor(private delegate: ViewConfigDelegate, private zone: Zone, private registry: TokenRegistry, private elementId: string, private element: Element) { }
 
   dataAttribute(name: string, value: string | Stateful<string> = "true") {

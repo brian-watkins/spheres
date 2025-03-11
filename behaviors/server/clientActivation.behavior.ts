@@ -251,7 +251,7 @@ export default behavior("client activation of server rendered views", [
       ]
     }),
 
-  example(ssrTestAppContext())
+  (m) => m.pick() && example(ssrTestAppContext())
     .description("ssr view with container with update and onRegister hook in store")
     .script({
       suppose: [

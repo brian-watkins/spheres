@@ -2,12 +2,13 @@ import { DOMTemplate, EventsToDelegate, Zone } from ".";
 import { Stateful, GetState, State } from "../../store";
 import { dispatchMessage } from "../../store/message";
 import { initListener, TokenRegistry } from "../../store/tokenRegistry";
-import { AriaAttribute, booleanAttributes } from "../elementData";
+import { AriaAttribute } from "../elementData";
 import { SpecialElementAttributes } from "../specialAttributes";
 import { DomTemplateSelectorBuilder } from "./domRenderer";
 import { EffectLocation } from "./effectLocation";
 import { UpdateAttributeEffect } from "./effects/attributeEffect";
 import { ListEffect } from "./effects/listEffect";
+import { UpdatePropertyEffect } from "./effects/propertyEffect";
 import { SelectViewEffect } from "./effects/selectViewEffect";
 import { UpdateTextEffect } from "./effects/textEffect";
 import { getEventAttribute } from "./eventHelpers";
@@ -48,7 +49,12 @@ export class ActivateDomRenderer implements ViewRenderer {
   }
 
   subview(view: ViewDefinition): this {
-    throw new Error("Method not implemented. A");
+    const renderer = new ActivateDomRenderer(this.delegate, this.zone, this.registry, this.currentNode!)
+    view(renderer)
+
+    this.currentNode = renderer.currentNode
+
+    return this
   }
 
   subviews<T>(data: (get: GetState) => T[], viewGenerator: (item: State<T>, index?: State<number>) => ViewDefinition): this {
@@ -100,18 +106,19 @@ export class ActivateDomRenderer implements ViewRenderer {
 }
 
 class ActivateDomConfig implements ViewConfig {
+  //@ts-ignore
   constructor(private delegate: ViewConfigDelegate, private zone: Zone, private registry: TokenRegistry, private element: Element) { }
 
   dataAttribute(name: string, value: string | Stateful<string>): this {
     return this.attribute(`data-${name}`, value)
   }
 
-  innerHTML(html: string | Stateful<string>): this {
-    throw new Error("Method not implemented.");
+  innerHTML(_: string | Stateful<string>): this {
+    throw new Error("Method not implemented. AA");
   }
 
-  aria(name: AriaAttribute, value: string | Stateful<string>): this {
-    throw new Error("Method not implemented.");
+  aria(_: AriaAttribute, __: string | Stateful<string>): this {
+    throw new Error("Method not implemented. BB");
   }
 
   attribute(name: string, value: string | Stateful<string>): this {
@@ -123,8 +130,14 @@ class ActivateDomConfig implements ViewConfig {
   }
 
   property<T extends string | boolean>(name: string, value: T | Stateful<T>): this {
-    throw new Error("Method not implemented.");
+    if (typeof value === "function") {
+      const propertyEffect = new UpdatePropertyEffect(this.registry, this.element, name, value)
+      initListener(propertyEffect)
+    }
+
+    return this
   }
+
   on<E extends keyof HTMLElementEventMap | string>(event: E, handler: StoreEventHandler<any>): this {
 
     // const elementEvents = vnode.data.on
@@ -175,11 +188,11 @@ const MagicConfig = new Proxy({}, {
     //     // return receiver.recordBooleanAttribute(attribute, isSelected)
     //   }
     // } else {
-      return function (value: string | Stateful<string>) {
-        // return receiver.recordAttribute(attribute, value)
-        receiver.delegate.defineAttribute(receiver, attribute, value)
-        return receiver
-      }
+    return function (value: string | Stateful<string>) {
+      // return receiver.recordAttribute(attribute, value)
+      receiver.delegate.defineAttribute(receiver, attribute, value)
+      return receiver
+    }
     // }
   }
 })

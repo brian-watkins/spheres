@@ -2,7 +2,7 @@ import { DOMTemplate, EffectTemplate, EventsToDelegate, Zone } from ".";
 import { Stateful, GetState, State } from "../../store";
 import { dispatchMessage } from "../../store/message";
 import { initListener, TokenRegistry } from "../../store/tokenRegistry";
-import { AriaAttribute, booleanAttributes } from "../elementData";
+import { AriaAttribute } from "../elementData";
 import { SpecialElementAttributes } from "../specialAttributes";
 import { DomTemplateSelector, DomTemplateSelectorBuilder } from "./domRenderer";
 import { EffectLocation } from "./effectLocation";
@@ -72,7 +72,7 @@ export class DomTemplateRenderer implements ViewRenderer {
     return this
   }
 
-  subview(view: ViewDefinition): this {
+  subview(_: ViewDefinition): this {
     throw new Error("method not implemented")
   }
 
@@ -167,6 +167,7 @@ Object.setPrototypeOf(DomTemplateRenderer.prototype, MagicElements)
 class DomTemplateConfig implements ViewConfig {
   readonly effectTemplates: Array<EffectTemplate> = []
 
+  //@ts-ignore
   constructor(private delegate: ViewConfigDelegate, private zone: Zone, private elementId: string, private element: Element, private location: EffectLocation) { }
 
   // note that this and innerHTML could be moved to an abstract base class
@@ -175,11 +176,11 @@ class DomTemplateConfig implements ViewConfig {
     return this.attribute(`data-${name}`, value)
   }
 
-  innerHTML(html: string | Stateful<string>): this {
+  innerHTML(_: string | Stateful<string>): this {
     throw new Error("Method not implemented.");
   }
 
-  aria(name: AriaAttribute, value: string | Stateful<string>): this {
+  aria(_: AriaAttribute, __: string | Stateful<string>): this {
     throw new Error("Method not implemented.");
   }
 
@@ -192,7 +193,7 @@ class DomTemplateConfig implements ViewConfig {
     return this
   }
 
-  property<T extends string | boolean>(name: string, value: T | Stateful<T>): this {
+  property<T extends string | boolean>(_: string, __: T | Stateful<T>): this {
     throw new Error("Method not implemented.");
   }
 

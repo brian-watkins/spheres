@@ -38,6 +38,10 @@ export class HtmlConfigDelegate implements ViewConfigDelegate {
     if (name === "checked") {
       return config.property("checked", value)
     }
+
+    if (name === "class") {
+      return config.property("className", value)
+    }
     
     if (booleanAttributes.has(name)) {
       if (typeof value === "function") {

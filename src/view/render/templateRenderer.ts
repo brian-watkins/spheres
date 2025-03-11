@@ -8,6 +8,7 @@ import { DomTemplateSelector, DomTemplateSelectorBuilder } from "./domRenderer";
 import { EffectLocation } from "./effectLocation";
 import { UpdateAttributeEffect } from "./effects/attributeEffect";
 import { ListEffect } from "./effects/listEffect";
+import { UpdatePropertyEffect } from "./effects/propertyEffect";
 import { SelectViewEffect } from "./effects/selectViewEffect";
 import { UpdateTextEffect } from "./effects/textEffect";
 import { setEventAttribute } from "./eventHelpers";
@@ -73,6 +74,7 @@ export class DomTemplateRenderer implements ViewRenderer {
   }
 
   subview(_: ViewDefinition): this {
+    // Need a test with a template that includes a subview
     throw new Error("method not implemented")
   }
 
@@ -177,11 +179,11 @@ class DomTemplateConfig implements ViewConfig {
   }
 
   innerHTML(_: string | Stateful<string>): this {
-    throw new Error("Method not implemented.");
+    throw new Error("Method not implemented. INNERHTML");
   }
 
   aria(_: AriaAttribute, __: string | Stateful<string>): this {
-    throw new Error("Method not implemented.");
+    throw new Error("Method not implemented. ARIA");
   }
 
   attribute(name: string, value: string | Stateful<string>): this {
@@ -193,8 +195,15 @@ class DomTemplateConfig implements ViewConfig {
     return this
   }
 
-  property<T extends string | boolean>(_: string, __: T | Stateful<T>): this {
-    throw new Error("Method not implemented.");
+  property<T extends string | boolean>(name: string, value: T | Stateful<T>): this {
+    if (typeof value === "function") {
+      this.effectTemplates.push(new PropertyEffectTemplate(value, name, this.location))
+    } else {
+      //@ts-ignore
+      this.element[name] = value
+    }
+
+    return this
   }
 
   on<E extends keyof HTMLElementEventMap | string>(event: E, handler: StoreEventHandler<any>): this {
@@ -270,6 +279,16 @@ class AttributeEffectTemplate implements EffectTemplate {
     initListener(effect)
   }
 }
+
+class PropertyEffectTemplate implements EffectTemplate {
+  constructor(private generator: Stateful<string | boolean>, private property: string, private location: EffectLocation) { }
+
+  attach(_: Zone, registry: TokenRegistry, root: Node) {
+    const effect = new UpdatePropertyEffect(registry, this.location.findNode(root) as Element, this.property, this.generator)
+    initListener(effect)
+  }
+}
+
 
 class ListEffectTemplate implements EffectTemplate {
   // constructor(private vnode: StatefulListNode, private location: EffectLocation) { }

@@ -34,8 +34,8 @@ export default function (root: HTMLBuilder) {
         el.config
           .width("500")
           .height("300")
-        el.children.
-          rect(el => {
+        el.children
+          .rect(el => {
             el.config
               .width("100%")
               .height("100%")

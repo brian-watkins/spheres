@@ -1,4 +1,5 @@
 import { GetState, State, Stateful } from "../../store"
+import { AriaAttribute } from "../elementData"
 import { SpecialElementAttributes } from "../specialAttributes"
 import { ViewBuilder } from "../viewBuilder"
 import { StoreEventHandler } from "./virtualNode"
@@ -36,7 +37,18 @@ export interface ViewRenderer {
 export interface ViewConfig {
   dataAttribute(name: string, value: string | Stateful<string>): this
   innerHTML(html: string | Stateful<string>): this
-  recordAttribute(name: string, value: string | Stateful<string>): this
-  recordProperty<T extends string | boolean>(name: string, value: T | Stateful<T>): this
+  aria(name: AriaAttribute, value: string | Stateful<string>): this
+  attribute(name: string, value: string | Stateful<string>): this
+  property<T extends string | boolean>(name: string, value: T | Stateful<T>): this
   on<E extends keyof HTMLElementEventMap | string>(event: E, handler: StoreEventHandler<any>): this
+}
+
+export interface ViewRendererDelegate {
+  createElement(tag: string): Element // for svg override
+  getRendererDelegate(tag: string): ViewRendererDelegate
+  getConfigDelegate(tag: string): ViewConfigDelegate
+}
+
+export interface ViewConfigDelegate {
+  defineAttribute(config: ViewConfig, name: string, value: string | Stateful<string>): ViewConfig
 }

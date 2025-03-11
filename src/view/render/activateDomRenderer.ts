@@ -2,7 +2,7 @@ import { DOMTemplate, EventsToDelegate, Zone } from ".";
 import { Stateful, GetState, State } from "../../store";
 import { dispatchMessage } from "../../store/message";
 import { initListener, TokenRegistry } from "../../store/tokenRegistry";
-import { booleanAttributes } from "../elementData";
+import { AriaAttribute, booleanAttributes } from "../elementData";
 import { SpecialElementAttributes } from "../specialAttributes";
 import { DomTemplateSelectorBuilder } from "./domRenderer";
 import { EffectLocation } from "./effectLocation";
@@ -15,13 +15,13 @@ import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementI
 import { IdSequence } from "./idSequence";
 import { ListItemTemplateContext } from "./templateContext";
 import { DomTemplateRenderer } from "./templateRenderer";
-import { ConfigurableElement, ElementDefinition, ViewConfig, ViewDefinition, ViewRenderer, ViewSelector } from "./viewRenderer";
+import { ConfigurableElement, ElementDefinition, ViewConfig, ViewConfigDelegate, ViewDefinition, ViewRenderer, ViewRendererDelegate, ViewSelector } from "./viewRenderer";
 import { StoreEventHandler } from "./virtualNode";
 
 export class ActivateDomRenderer implements ViewRenderer {
   private currentNode: Node | null
 
-  constructor(private zone: Zone, private registry: TokenRegistry, node: Node) {
+  constructor(private delegate: ViewRendererDelegate, private zone: Zone, private registry: TokenRegistry, node: Node) {
     this.currentNode = node
   }
 
@@ -36,10 +36,10 @@ export class ActivateDomRenderer implements ViewRenderer {
     return this
   }
 
-  element(_: string, builder?: ElementDefinition): this {
+  element(tag: string, builder?: ElementDefinition): this {
     builder?.({
-      config: new ActivateDomConfig(this.zone, this.registry, this.currentNode as Element),
-      children: new ActivateDomRenderer(this.zone, this.registry, this.currentNode!.firstChild!)
+      config: new ActivateDomConfig(this.delegate.getConfigDelegate(tag), this.zone, this.registry, this.currentNode as Element),
+      children: new ActivateDomRenderer(this.delegate.getRendererDelegate(tag), this.zone, this.registry, this.currentNode!.firstChild!)
     })
 
     this.currentNode = this.currentNode!.nextSibling
@@ -59,7 +59,7 @@ export class ActivateDomRenderer implements ViewRenderer {
     const templateElement = document.createElement("template")
 
     console.log("CReating new idsequence for list item template", elementId)
-    const renderer = new DomTemplateRenderer(this.zone, new IdSequence(elementId), templateElement.content, new EffectLocation(root => root))
+    const renderer = new DomTemplateRenderer(this.delegate, this.zone, new IdSequence(elementId), templateElement.content, new EffectLocation(root => root))
     const templateContext = new ListItemTemplateContext(renderer, viewGenerator)
 
     const domTemplate: DOMTemplate = {
@@ -84,7 +84,7 @@ export class ActivateDomRenderer implements ViewRenderer {
     console.log("Activating conditional view", elementId)
     let end = findSwitchEndNode(this.currentNode!, elementId)
 
-    const selectorBuilder = new DomTemplateSelectorBuilder(this.zone, elementId)
+    const selectorBuilder = new DomTemplateSelectorBuilder(this.delegate, this.zone, elementId)
     selectorGenerator(selectorBuilder)
 
 
@@ -100,16 +100,21 @@ export class ActivateDomRenderer implements ViewRenderer {
 }
 
 class ActivateDomConfig implements ViewConfig {
-  constructor(private zone: Zone, private registry: TokenRegistry, private element: Element) { }
+  constructor(private delegate: ViewConfigDelegate, private zone: Zone, private registry: TokenRegistry, private element: Element) { }
 
   dataAttribute(name: string, value: string | Stateful<string>): this {
-    return this.recordAttribute(`data-${name}`, value)
+    return this.attribute(`data-${name}`, value)
   }
+
   innerHTML(html: string | Stateful<string>): this {
     throw new Error("Method not implemented.");
   }
 
-  recordAttribute(name: string, value: string | Stateful<string>): this {
+  aria(name: AriaAttribute, value: string | Stateful<string>): this {
+    throw new Error("Method not implemented.");
+  }
+
+  attribute(name: string, value: string | Stateful<string>): this {
     if (typeof value === "function") {
       const attributeEffect = new UpdateAttributeEffect(this.registry, this.element, name, value)
       initListener(attributeEffect)
@@ -117,7 +122,7 @@ class ActivateDomConfig implements ViewConfig {
     return this
   }
 
-  recordProperty<T extends string | boolean>(name: string, value: T | Stateful<T>): this {
+  property<T extends string | boolean>(name: string, value: T | Stateful<T>): this {
     throw new Error("Method not implemented.");
   }
   on<E extends keyof HTMLElementEventMap | string>(event: E, handler: StoreEventHandler<any>): this {
@@ -141,20 +146,44 @@ class ActivateDomConfig implements ViewConfig {
 
 }
 
+// const MagicConfig = new Proxy({}, {
+//   get: (_, prop, receiver) => {
+//     const attribute = prop as string
+//     if (booleanAttributes.has(attribute)) {
+//       return function (isSelected: boolean | Stateful<boolean>) {
+//         return receiver.recordBooleanAttribute(attribute, isSelected)
+//       }
+//     } else {
+//       return function (value: string | Stateful<string>) {
+//         return receiver.recordAttribute(attribute, value)
+//       }
+//     }
+//   }
+// })
+
 const MagicConfig = new Proxy({}, {
   get: (_, prop, receiver) => {
     const attribute = prop as string
-    if (booleanAttributes.has(attribute)) {
-      return function (isSelected: boolean | Stateful<boolean>) {
-        return receiver.recordBooleanAttribute(attribute, isSelected)
-      }
-    } else {
+    // if (booleanAttributes.has(attribute)) {
+    //   return function (isSelected: boolean | Stateful<boolean>) {
+    //     if (typeof isSelected === "function") {
+    //       receiver.delegate.defineAttribute(receiver, attribute, (get: GetState) => isSelected(get) ? attribute : undefined)
+    //     } else {
+    //       receiver.delegate.defineAttribute(receiver, attribute, isSelected ? attribute : undefined)
+    //     }
+    //     return receiver
+    //     // return receiver.recordBooleanAttribute(attribute, isSelected)
+    //   }
+    // } else {
       return function (value: string | Stateful<string>) {
-        return receiver.recordAttribute(attribute, value)
+        // return receiver.recordAttribute(attribute, value)
+        receiver.delegate.defineAttribute(receiver, attribute, value)
+        return receiver
       }
-    }
+    // }
   }
 })
+
 
 Object.setPrototypeOf(ActivateDomConfig.prototype, MagicConfig)
 

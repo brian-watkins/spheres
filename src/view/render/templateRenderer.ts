@@ -2,7 +2,7 @@ import { DOMTemplate, EffectTemplate, EventsToDelegate, Zone } from ".";
 import { Stateful, GetState, State } from "../../store";
 import { dispatchMessage } from "../../store/message";
 import { initListener, TokenRegistry } from "../../store/tokenRegistry";
-import { booleanAttributes } from "../elementData";
+import { AriaAttribute, booleanAttributes } from "../elementData";
 import { SpecialElementAttributes } from "../specialAttributes";
 import { DomTemplateSelector, DomTemplateSelectorBuilder } from "./domRenderer";
 import { EffectLocation } from "./effectLocation";
@@ -14,7 +14,7 @@ import { setEventAttribute } from "./eventHelpers";
 import { findListEndNode, findSwitchEndNode, listEndIndicator, listStartIndicator, switchEndIndicator, switchStartIndicator } from "./fragmentHelpers";
 import { IdSequence } from "./idSequence";
 import { ListItemTemplateContext } from "./templateContext";
-import { ConfigurableElement, ElementDefinition, ViewConfig, ViewDefinition, ViewRenderer, ViewSelector } from "./viewRenderer";
+import { ConfigurableElement, ElementDefinition, ViewConfig, ViewConfigDelegate, ViewDefinition, ViewRenderer, ViewRendererDelegate, ViewSelector } from "./viewRenderer";
 import { StoreEventHandler } from "./virtualNode";
 
 export class DomTemplateRenderer implements ViewRenderer {
@@ -22,7 +22,7 @@ export class DomTemplateRenderer implements ViewRenderer {
   public isFragment: boolean = false
   public rootType: "element" | "list" | "select" = "element"
 
-  constructor(private zone: Zone, private idSequence: IdSequence, private root: Node, private location: EffectLocation) { }
+  constructor(private delegate: ViewRendererDelegate, private zone: Zone, private idSequence: IdSequence, private root: Node, private location: EffectLocation) { }
 
   textNode(value: string | Stateful<string>): this {
     if (this.root.nodeType === 1) {
@@ -40,7 +40,7 @@ export class DomTemplateRenderer implements ViewRenderer {
   }
 
   element(tag: string, builder?: ElementDefinition): this {
-    const element = document.createElement(tag)
+    const element = this.delegate.createElement(tag)
 
     const elementId = this.idSequence.next
 
@@ -50,15 +50,15 @@ export class DomTemplateRenderer implements ViewRenderer {
     }
     // const 
 
-    const config = new DomTemplateConfig(this.zone, elementId, element, this.location)
+    const config = new DomTemplateConfig(this.delegate.getConfigDelegate(tag), this.zone, elementId, element, this.location)
 
     // Is there a nicer way to do this? We need to add an attribute to the root
     // element of the template (if there is one)
     if (this.root.nodeType === 11) {
-      config.recordAttribute("data-spheres-template", "")
+      config.attribute("data-spheres-template", "")
     }
 
-    const children = new DomTemplateRenderer(this.zone, this.idSequence, element, this.location)
+    const children = new DomTemplateRenderer(this.delegate.getRendererDelegate(tag), this.zone, this.idSequence, element, this.location)
 
     builder?.({
       config: config,
@@ -97,7 +97,7 @@ export class DomTemplateRenderer implements ViewRenderer {
 
     const templateElement = document.createElement("template")
 
-    const renderer = new DomTemplateRenderer(this.zone, new IdSequence(elementId), templateElement.content, new EffectLocation(root => root))
+    const renderer = new DomTemplateRenderer(this.delegate, this.zone, new IdSequence(elementId), templateElement.content, new EffectLocation(root => root))
     const templateContext = new ListItemTemplateContext(renderer, viewGenerator)
 
     const domTemplate: DOMTemplate = {
@@ -141,7 +141,7 @@ export class DomTemplateRenderer implements ViewRenderer {
     this.root.appendChild(fragment)
 
 
-    const selectorBuilder = new DomTemplateSelectorBuilder(this.zone, elementId)
+    const selectorBuilder = new DomTemplateSelectorBuilder(this.delegate, this.zone, elementId)
     selectorGenerator(selectorBuilder)
 
     this.effectTemplates.push(new StatefulSelectEffectTemplate(selectorBuilder.selectors, elementId, this.location))
@@ -167,19 +167,23 @@ Object.setPrototypeOf(DomTemplateRenderer.prototype, MagicElements)
 class DomTemplateConfig implements ViewConfig {
   readonly effectTemplates: Array<EffectTemplate> = []
 
-  constructor(private zone: Zone, private elementId: string, private element: HTMLElement, private location: EffectLocation) { }
+  constructor(private delegate: ViewConfigDelegate, private zone: Zone, private elementId: string, private element: Element, private location: EffectLocation) { }
 
   // note that this and innerHTML could be moved to an abstract base class
   // or something
   dataAttribute(name: string, value: string | Stateful<string>): this {
-    return this.recordAttribute(`data-${name}`, value)
+    return this.attribute(`data-${name}`, value)
   }
 
   innerHTML(html: string | Stateful<string>): this {
     throw new Error("Method not implemented.");
   }
 
-  recordAttribute(name: string, value: string | Stateful<string>): this {
+  aria(name: AriaAttribute, value: string | Stateful<string>): this {
+    throw new Error("Method not implemented.");
+  }
+
+  attribute(name: string, value: string | Stateful<string>): this {
     if (typeof value === "function") {
       this.effectTemplates.push(new AttributeEffectTemplate(value, name, this.location))
     } else {
@@ -188,7 +192,7 @@ class DomTemplateConfig implements ViewConfig {
     return this
   }
 
-  recordProperty<T extends string | boolean>(name: string, value: T | Stateful<T>): this {
+  property<T extends string | boolean>(name: string, value: T | Stateful<T>): this {
     throw new Error("Method not implemented.");
   }
 
@@ -208,18 +212,41 @@ class DomTemplateConfig implements ViewConfig {
 
 }
 
+// const MagicConfig = new Proxy({}, {
+//   get: (_, prop, receiver) => {
+//     const attribute = prop as string
+//     if (booleanAttributes.has(attribute)) {
+//       return function (isSelected: boolean | Stateful<boolean>) {
+//         return receiver.recordBooleanAttribute(attribute, isSelected)
+//       }
+//     } else {
+//       return function (value: string | Stateful<string>) {
+//         return receiver.recordAttribute(attribute, value)
+//       }
+//     }
+//   }
+// })
+
 const MagicConfig = new Proxy({}, {
   get: (_, prop, receiver) => {
     const attribute = prop as string
-    if (booleanAttributes.has(attribute)) {
-      return function (isSelected: boolean | Stateful<boolean>) {
-        return receiver.recordBooleanAttribute(attribute, isSelected)
-      }
-    } else {
+    // if (booleanAttributes.has(attribute)) {
+    //   return function (isSelected: boolean | Stateful<boolean>) {
+    //     if (typeof isSelected === "function") {
+    //       receiver.delegate.defineAttribute(receiver, attribute, (get: GetState) => isSelected(get) ? attribute : undefined)
+    //     } else {
+    //       receiver.delegate.defineAttribute(receiver, attribute, isSelected ? attribute : undefined)
+    //     }
+    //     return receiver
+    //     // return receiver.recordBooleanAttribute(attribute, isSelected)
+    //   }
+    // } else {
       return function (value: string | Stateful<string>) {
-        return receiver.recordAttribute(attribute, value)
+        // return receiver.recordAttribute(attribute, value)
+        receiver.delegate.defineAttribute(receiver, attribute, value)
+        return receiver
       }
-    }
+    // }
   }
 })
 

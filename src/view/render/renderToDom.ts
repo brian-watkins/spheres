@@ -14,6 +14,7 @@ import { dispatchMessage } from "../../store/message.js";
 import { DomRenderer } from "./domRenderer.js";
 import { HTMLBuilder, HTMLView } from "../htmlElements.js";
 import { ActivateDomRenderer } from "./activateDomRenderer.js";
+import { HtmlRendererDelegate } from "./htmlDelegate.js";
 
 export class DOMRoot implements Zone, RenderResult {
   private activeDocumentEvents = new Set<string>()
@@ -24,14 +25,14 @@ export class DOMRoot implements Zone, RenderResult {
 
   mount(view: HTMLView) {
     this.clearRoot()
-    const renderer = new DomRenderer(this, this.registry, new IdSequence(), this.root)
+    const renderer = new DomRenderer(new HtmlRendererDelegate(), this, this.registry, new IdSequence(), this.root)
     view(renderer as unknown as HTMLBuilder)
     // this.root.appendChild(createNode(this, this.registry, new IdSequence(), vnode))
   }
 
   activate(view: HTMLView) {
     this.cleanRoot()
-    const renderer = new ActivateDomRenderer(this, this.registry, this.root.firstChild!)
+    const renderer = new ActivateDomRenderer(new HtmlRendererDelegate(), this, this.registry, this.root.firstChild!)
     view(renderer as unknown as HTMLBuilder)
     // activateEffects(this, this.registry, vnode, this.root.firstChild!)
   }

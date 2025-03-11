@@ -54,7 +54,7 @@ export default behavior("lists of views", [
       ]
     }),
 
-  example(browserAppContext())
+  (m) => m.pick() && example(browserAppContext())
     .description("a view with a dynamic svg list")
     .script({
       suppose: [

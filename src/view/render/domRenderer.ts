@@ -2,7 +2,7 @@ import { DOMTemplate, EventsToDelegate, Zone } from "."
 import { Stateful } from "../../store"
 import { dispatchMessage } from "../../store/message"
 import { GetState, initListener, State, TokenRegistry } from "../../store/tokenRegistry"
-import { booleanAttributes } from "../elementData"
+import { AriaAttribute, booleanAttributes } from "../elementData"
 import { SpecialElementAttributes } from "../specialAttributes"
 import { EffectLocation } from "./effectLocation"
 import { UpdateAttributeEffect } from "./effects/attributeEffect"
@@ -16,11 +16,11 @@ import { IdSequence } from "./idSequence"
 import { getDOMTemplate } from "./template"
 import { ListItemTemplateContext } from "./templateContext"
 import { DomTemplateRenderer } from "./templateRenderer"
-import { ConfigurableElement, ViewConfig, ViewDefinition, ViewRenderer, ViewSelector } from "./viewRenderer"
+import { ConfigurableElement, ViewConfig, ViewConfigDelegate, ViewDefinition, ViewRenderer, ViewRendererDelegate, ViewSelector } from "./viewRenderer"
 import { StoreEventHandler } from "./virtualNode"
 
 export class DomRenderer implements ViewRenderer {
-  constructor(protected zone: Zone, protected registry: TokenRegistry, protected idSequence: IdSequence, protected root: Element) { }
+  constructor(private delegate: ViewRendererDelegate, protected zone: Zone, protected registry: TokenRegistry, protected idSequence: IdSequence, protected root: Element) { }
 
   textNode(value: string | Stateful<string>) {
     if (typeof value === "function") {
@@ -35,13 +35,13 @@ export class DomRenderer implements ViewRenderer {
   }
 
   element(tag: string, builder?: (element: ConfigurableElement<any, any>) => void): this {
-    const el = document.createElement(tag)
+    const el = this.delegate.createElement(tag)
 
     const elementId = this.idSequence.next
 
     builder?.({
-      config: new DomElementConfig(this.zone, this.registry, elementId, el),
-      children: new DomRenderer(this.zone, this.registry, this.idSequence, el)
+      config: new DomElementConfig(this.delegate.getConfigDelegate(tag), this.zone, this.registry, elementId, el),
+      children: new DomRenderer(this.delegate.getRendererDelegate(tag), this.zone, this.registry, this.idSequence, el)
     })
 
     this.root.appendChild(el)
@@ -51,7 +51,7 @@ export class DomRenderer implements ViewRenderer {
 
   subview(view: ViewDefinition): this {
     console.log("Mounting a subview")
-    const renderer = new DomRenderer(this.zone, this.registry, this.idSequence, this.root)
+    const renderer = new DomRenderer(this.delegate, this.zone, this.registry, this.idSequence, this.root)
     view(renderer)
 
     return this
@@ -80,7 +80,8 @@ export class DomRenderer implements ViewRenderer {
 
     const templateElement = document.createElement("template")
 
-    const renderer = new DomTemplateRenderer(this.zone, new IdSequence(elementId), templateElement.content, new EffectLocation(root => root))
+    console.log("Renderer delegate", this.delegate)
+    const renderer = new DomTemplateRenderer(this.delegate, this.zone, new IdSequence(elementId), templateElement.content, new EffectLocation(root => root))
     const templateContext = new ListItemTemplateContext(renderer, viewGenerator)
 
     const domTemplate: DOMTemplate = {
@@ -122,7 +123,7 @@ export class DomRenderer implements ViewRenderer {
     // here we need to create a list of selector objects. (TemplateSelector)
     // so we need to call the selector generator with some ViewSelector instance
     // and this will get us the list of selector objects.
-    const selectorBuilder = new DomTemplateSelectorBuilder(this.zone, elementId)
+    const selectorBuilder = new DomTemplateSelectorBuilder(this.delegate, this.zone, elementId)
     selectorGenerator(selectorBuilder)
 
     // const query = new SelectViewEffect(this.zone, this.registry, vnode, startNode, endNode, getDOMTemplate)
@@ -144,7 +145,7 @@ export class DomTemplateSelectorBuilder implements ViewSelector {
   private templateSelectors: Array<DomTemplateSelector> = []
   private defaultSelector: DomTemplateSelector | undefined = undefined
 
-  constructor(private zone: Zone, private elementId: string) { }
+  constructor(private delegate: ViewRendererDelegate, private zone: Zone, private elementId: string) { }
 
   get selectors(): Array<DomTemplateSelector> {
     const selectors = [ ...this.templateSelectors ]
@@ -165,7 +166,7 @@ export class DomTemplateSelectorBuilder implements ViewSelector {
 
         // const renderer = new DomTemplateRenderer(this.zone, this.idSequence, templateElement.content, new EffectLocation(root => root))
         // new IdSequence(`${this.vnode.id}.${selectedIndex}`)
-        const renderer = new DomTemplateRenderer(this.zone, new IdSequence(`${this.elementId}.${index}`), templateElement.content, new EffectLocation(root => root))
+        const renderer = new DomTemplateRenderer(this.delegate, this.zone, new IdSequence(`${this.elementId}.${index}`), templateElement.content, new EffectLocation(root => root))
         view(renderer)
         
         const domTemplate: DOMTemplate = {
@@ -188,7 +189,7 @@ export class DomTemplateSelectorBuilder implements ViewSelector {
       template: () => {
         const templateElement = document.createElement("template")
 
-        const renderer = new DomTemplateRenderer(this.zone, new IdSequence(`${this.elementId}.${this.templateSelectors.length}`), templateElement.content, new EffectLocation(root => root))
+        const renderer = new DomTemplateRenderer(this.delegate, this.zone, new IdSequence(`${this.elementId}.${this.templateSelectors.length}`), templateElement.content, new EffectLocation(root => root))
         view(renderer)
         
         const domTemplate: DOMTemplate = {
@@ -206,17 +207,21 @@ export class DomTemplateSelectorBuilder implements ViewSelector {
 }
 
 class DomElementConfig implements ViewConfig {
-  constructor(private zone: Zone, private registry: TokenRegistry, private elementId: string, private element: HTMLElement) { }
+  constructor(private delegate: ViewConfigDelegate, private zone: Zone, private registry: TokenRegistry, private elementId: string, private element: Element) { }
 
   dataAttribute(name: string, value: string | Stateful<string> = "true") {
-    return this.recordAttribute(`data-${name}`, value)
+    return this.attribute(`data-${name}`, value)
   }
 
   innerHTML(html: string | Stateful<string>): this {
-    return this.recordProperty("innerHTML", html)
+    return this.property("innerHTML", html)
   }
 
-  recordAttribute(name: string, value: string | Stateful<string>): this {
+  aria(name: AriaAttribute, value: string | Stateful<string>): this {
+    return this.attribute(`aria-${name}`, value)
+  }
+
+  attribute(name: string, value: string | Stateful<string>): this {
     if (typeof value === "function") {
       const attributeEffect = new UpdateAttributeEffect(this.registry, this.element, name, value)
       initListener(attributeEffect)
@@ -226,7 +231,7 @@ class DomElementConfig implements ViewConfig {
     return this
   }
 
-  recordProperty<T extends string | boolean>(name: string, value: T | Stateful<T>) {
+  property<T extends string | boolean>(name: string, value: T | Stateful<T>) {
     if (typeof value === "function") {
       const propertyEffect = new UpdatePropertyEffect(this.registry, this.element, name, value)
       initListener(propertyEffect)
@@ -254,15 +259,23 @@ class DomElementConfig implements ViewConfig {
 const MagicConfig = new Proxy({}, {
   get: (_, prop, receiver) => {
     const attribute = prop as string
-    if (booleanAttributes.has(attribute)) {
-      return function (isSelected: boolean | Stateful<boolean>) {
-        return receiver.recordBooleanAttribute(attribute, isSelected)
-      }
-    } else {
+    // if (booleanAttributes.has(attribute)) {
+    //   return function (isSelected: boolean | Stateful<boolean>) {
+    //     if (typeof isSelected === "function") {
+    //       receiver.delegate.defineAttribute(receiver, attribute, (get: GetState) => isSelected(get) ? attribute : undefined)
+    //     } else {
+    //       receiver.delegate.defineAttribute(receiver, attribute, isSelected ? attribute : undefined)
+    //     }
+    //     return receiver
+    //     // return receiver.recordBooleanAttribute(attribute, isSelected)
+    //   }
+    // } else {
       return function (value: string | Stateful<string>) {
-        return receiver.recordAttribute(attribute, value)
+        // return receiver.recordAttribute(attribute, value)
+        receiver.delegate.defineAttribute(receiver, attribute, value)
+        return receiver
       }
-    }
+    // }
   }
 })
 

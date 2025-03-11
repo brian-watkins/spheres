@@ -78,7 +78,7 @@ export default behavior("undo", [
       ]
     }),
 
-  example(testCirclesApp)
+  (m) => m.pick() && example(testCirclesApp)
     .description("undo circle diameter adjustment")
     .script({
       suppose: [

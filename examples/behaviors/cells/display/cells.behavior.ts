@@ -27,7 +27,7 @@ export default behavior("cells", [
       ]
     }),
 
-  example(testCellsApp)
+  (m) => m.pick() && example(testCellsApp)
     .description("cell formula that cannot be calculated")
     .script({
       suppose: [

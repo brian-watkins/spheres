@@ -1,6 +1,6 @@
 import { GetState, Stateful } from "../../store";
 import { booleanAttributes } from "../elementData";
-import { SvgRendererDelegate } from "./svgDelegate";
+import { SvgConfigDelegate, SvgRendererDelegate } from "./svgDelegate";
 import { ViewConfig, ViewConfigDelegate, ViewRendererDelegate } from "./viewRenderer";
 
 export class HtmlRendererDelegate implements ViewRendererDelegate {
@@ -24,6 +24,10 @@ export class HtmlRendererDelegate implements ViewRendererDelegate {
   }
 
   getConfigDelegate(tag: string): ViewConfigDelegate {
+    if (tag === "svg") {
+      return new SvgConfigDelegate()
+    }
+    
     if (tag === "input") {
       return this.inputConfigDelegate
     } else {

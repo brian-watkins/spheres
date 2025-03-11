@@ -73,9 +73,14 @@ export class DomTemplateRenderer implements ViewRenderer {
     return this
   }
 
-  subview(_: ViewDefinition): this {
+  subview(view: ViewDefinition): this {
     // Need a test with a template that includes a subview
-    throw new Error("method not implemented")
+    const renderer = new DomTemplateRenderer(this.delegate, this.zone, this.idSequence, this.root, new EffectLocation(root => root))
+    view(renderer)
+
+    this.effectTemplates = this.effectTemplates.concat(renderer.effectTemplates)
+
+    return this
   }
 
   subviews<T>(data: (get: GetState) => T[], viewGenerator: (item: State<T>, index?: State<number>) => ViewDefinition): this {

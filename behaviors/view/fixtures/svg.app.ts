@@ -18,6 +18,7 @@ export default function (root: HTMLBuilder) {
         config
           .width("300")
           .height("200")
+          .class("some-fun-drawing")
 
         children
           .rect(({ config }) => [

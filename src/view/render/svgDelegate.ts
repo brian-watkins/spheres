@@ -18,7 +18,7 @@ export class SvgRendererDelegate implements ViewRendererDelegate {
   }
 }
 
-class SvgConfigDelegate implements ViewConfigDelegate {
+export class SvgConfigDelegate implements ViewConfigDelegate {
   defineAttribute(config: ViewConfig, name: string, value: string | Stateful<string>): ViewConfig {
     const attribute = svgAttributeNames.get(name) ?? name
     return config.attribute(attribute, value)

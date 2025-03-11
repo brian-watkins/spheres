@@ -174,6 +174,48 @@ export default behavior("list effects", [
       ]
     }),
 
+  (m) => m.pick() && example(renderContext<ListContext>())
+    .description("list with subviews")
+    .script({
+      suppose: [
+        fact("there is state", (context) => {
+          context.setState({
+            items: container({ initialValue: ["cat", "mouse"] })
+          })
+        }),
+        fact("a list is displayed based on the state", (context) => {
+          function decorativeText(text: State<string>): HTMLView {
+            return root => {
+              root.b(el => {
+                el.children.textNode(get => get(text))
+              })
+            }
+          }
+          
+          function itemView(item: State<string>): HTMLView {
+            return root => {
+              root.li(li => {
+                li.children.subview(decorativeText(item))
+              })
+            }
+          }
+          
+          context.mountView((root) => {
+            root.ul(el => {
+              el.children.subviews(get => get(context.state.items), itemView)
+            })
+          })
+        })
+      ],
+      observe: [
+        effect("the subviews are rendered", async () => {
+          await expect(selectElements("b").texts(), resolvesTo([
+            "cat", "mouse"
+          ]))
+        })
+      ]
+    }),
+
   example(renderContext<ContainerListContext>())
     .description("list item view that defines derived state used in reactive attribute")
     .script({

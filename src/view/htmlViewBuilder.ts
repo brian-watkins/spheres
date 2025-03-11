@@ -126,6 +126,11 @@ export class HTMLVirtualListItemTemplate<T> extends VirtualListItemTemplate<T> {
     })
       .forEach(token => this.addToken(token))
 
+    // we're creating and storing a virtual node here
+    // but maybe instead we need to have a TemplateRenderer or something?
+    // but for string rendering it will be different?
+    // ultimately, we need to build an HTMLTemplate plus the
+    // list of effects and locations to attach them. That's the DOMTemplate basically
     this.setVirtualNode(builder.toVirtualNode())
   }
 }

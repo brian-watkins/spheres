@@ -4,15 +4,17 @@ import { DOMTemplate, GetDOMTemplate, Zone } from "../index.js";
 import { StatefulSelectorNode } from "../virtualNode.js";
 import { activateTemplateInstance, renderTemplateInstance } from "../renderTemplate.js";
 import { StateListener, TokenRegistry } from "../../../store/tokenRegistry.js";
+import { DomTemplateSelector } from "../domRenderer.js";
 
 export class SelectViewEffect implements StateListener {
   constructor(
     private zone: Zone,
     public registry: TokenRegistry,
-    private vnode: StatefulSelectorNode,
+    public selectors: Array<DomTemplateSelector>,
+    // private vnode: StatefulSelectorNode,
     public startNode: Node,
     public endNode: Node,
-    private getDOMTemplate: GetDOMTemplate
+    // private getDOMTemplate: GetDOMTemplate
   ) { }
 
   init(get: GetState): void {
@@ -55,17 +57,19 @@ export class SelectViewEffect implements StateListener {
   }
 
   private selectTemplate(get: GetState): DOMTemplate | undefined {
-    const selectedIndex = this.vnode.selectors.findIndex(selector => selector.select(get))
+    // const selectedIndex = this.vnode.selectors.findIndex(selector => selector.select(get))
+    const selectedIndex = this.selectors.findIndex(selector => selector.select(get))
 
     if (selectedIndex === -1) {
       return undefined
     }
 
-    return this.getDOMTemplate(
-      this.zone,
-      new IdSequence(`${this.vnode.id}.${selectedIndex}`),
-      this.vnode.selectors[selectedIndex].template
-    )
+    // return this.getDOMTemplate(
+      // this.zone,
+      // new IdSequence(`${this.vnode.id}.${selectedIndex}`),
+      // this.vnode.selectors[selectedIndex].template
+    // )
+    return this.selectors[selectedIndex].template()
   }
 
   private clearView() {

@@ -11,6 +11,9 @@ import { getEventAttribute, getNearestElementHandlingEvent, setEventAttribute } 
 import { SelectViewEffect } from "./effects/selectViewEffect.js";
 import { initListener, TokenRegistry } from "../../store/tokenRegistry.js";
 import { dispatchMessage } from "../../store/message.js";
+import { DomRenderer } from "./domRenderer.js";
+import { HTMLBuilder, HTMLView } from "../htmlElements.js";
+import { ActivateDomRenderer } from "./activateDomRenderer.js";
 
 export class DOMRoot implements Zone, RenderResult {
   private activeDocumentEvents = new Set<string>()
@@ -19,14 +22,18 @@ export class DOMRoot implements Zone, RenderResult {
 
   constructor(readonly registry: TokenRegistry, readonly root: Element) { }
 
-  mount(vnode: VirtualNode) {
+  mount(view: HTMLView) {
     this.clearRoot()
-    this.root.appendChild(createNode(this, this.registry, new IdSequence(), vnode))
+    const renderer = new DomRenderer(this, this.registry, new IdSequence(), this.root)
+    view(renderer as unknown as HTMLBuilder)
+    // this.root.appendChild(createNode(this, this.registry, new IdSequence(), vnode))
   }
 
-  activate(vnode: VirtualNode) {
+  activate(view: HTMLView) {
     this.cleanRoot()
-    activateEffects(this, this.registry, vnode, this.root.firstChild!)
+    const renderer = new ActivateDomRenderer(this, this.registry, this.root.firstChild!)
+    view(renderer as unknown as HTMLBuilder)
+    // activateEffects(this, this.registry, vnode, this.root.firstChild!)
   }
 
   addEvent(location: DOMEvent["location"], elementId: string, eventType: string, handler: StoreEventHandler<any>) {

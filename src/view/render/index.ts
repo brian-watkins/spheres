@@ -25,6 +25,7 @@ export interface EffectTemplate {
 
 export interface DOMTemplate {
   isFragment: boolean
+  rootType: "element" | "list" | "select"
   element: HTMLTemplateElement
   effects: Array<EffectTemplate>
 }

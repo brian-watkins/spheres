@@ -90,6 +90,7 @@ export default behavior("mount", [
         })
       ]
     }),
+
   example(renderContext())
     .description("mount an element with inner HTML")
     .script({
@@ -165,37 +166,37 @@ export default behavior("mount", [
       ]
     }),
 
-    example(renderContext())
-      .description("zones are mounted at the root")
-      .script({
-        suppose: [
-          fact("zones are mounted", (context) => {
-            const data = container({ initialValue: [ "apple", "pizza", "hotdog" ]})
-            const dataView = (name: State<string>): HTMLView => root => {
-              root.div(el => el.children.textNode(get => get(name)))
-            }
-            context.mountView(root => {
-              root.subviews(get => get(data), dataView)
-            })
+  example(renderContext())
+    .description("zones are mounted at the root")
+    .script({
+      suppose: [
+        fact("zones are mounted", (context) => {
+          const data = container({ initialValue: ["apple", "pizza", "hotdog"] })
+          const dataView = (name: State<string>): HTMLView => root => {
+            root.div(el => el.children.textNode(get => get(name)))
+          }
+          context.mountView(root => {
+            root.subviews(get => get(data), dataView)
           })
-        ],
-        observe: [
-          effect("the zones are rendered", async () => {
-            await expect(selectElements("div").map(el => el.text()), resolvesTo([
-              "apple", "pizza", "hotdog"
-            ]))
-          })
-        ]
-      }).andThen({
-        perform: [
-          step("the app is unmounted", (context) => {
-            context.destroy()
-          })
-        ],
-        observe: [
-          effect("the zones are removed from the DOM", async () => {
-            await expect(selectElements("div").count(), resolvesTo(0))
-          })
-        ]
-      })
+        })
+      ],
+      observe: [
+        effect("the zones are rendered", async () => {
+          await expect(selectElements("div").map(el => el.text()), resolvesTo([
+            "apple", "pizza", "hotdog"
+          ]))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the app is unmounted", (context) => {
+          context.destroy()
+        })
+      ],
+      observe: [
+        effect("the zones are removed from the DOM", async () => {
+          await expect(selectElements("div").count(), resolvesTo(0))
+        })
+      ]
+    })
 ])

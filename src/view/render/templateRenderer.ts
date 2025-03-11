@@ -183,12 +183,12 @@ class DomTemplateConfig implements ViewConfig {
     return this.attribute(`data-${name}`, value)
   }
 
-  innerHTML(_: string | Stateful<string>): this {
-    throw new Error("Method not implemented. INNERHTML");
+  innerHTML(html: string | Stateful<string>): this {
+    return this.property("innerHTML", html)
   }
 
-  aria(_: AriaAttribute, __: string | Stateful<string>): this {
-    throw new Error("Method not implemented. ARIA");
+  aria(name: AriaAttribute, value: string | Stateful<string>): this {
+    return this.attribute(`aria-${name}`, value)
   }
 
   attribute(name: string, value: string | Stateful<string>): this {

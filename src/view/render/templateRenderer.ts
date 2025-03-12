@@ -15,8 +15,7 @@ import { setEventAttribute } from "./eventHelpers";
 import { findListEndNode, findSwitchEndNode, listEndIndicator, listStartIndicator, switchEndIndicator, switchStartIndicator } from "./fragmentHelpers";
 import { IdSequence } from "./idSequence";
 import { ListItemTemplateContext } from "./templateContext";
-import { ConfigurableElement, ElementDefinition, ViewConfig, ViewConfigDelegate, ViewDefinition, ViewRenderer, ViewRendererDelegate, ViewSelector } from "./viewRenderer";
-import { StoreEventHandler } from "./virtualNode";
+import { ConfigurableElement, ElementDefinition, StoreEventHandler, ViewConfig, ViewConfigDelegate, ViewDefinition, ViewRenderer, ViewRendererDelegate, ViewSelector } from "./viewRenderer";
 
 export class DomTemplateRenderer implements ViewRenderer {
   public effectTemplates: Array<EffectTemplate> = []

@@ -6,9 +6,8 @@ import { HTMLBuilder, HTMLView, SpecialElementAttributes } from "../../view/inde
 import { EventsToDelegate } from "../../view/render/index.js";
 import { listEndIndicator, listStartIndicator, switchEndIndicator, switchStartIndicator } from "../../view/render/fragmentHelpers.js";
 import { IdSequence } from "../../view/render/idSequence.js";
-import { StoreEventHandler } from "../../view/render/virtualNode.js";
 import { ViteContext } from "./viteBuilder.js";
-import { ConfigurableElement, ElementDefinition, ViewConfig, ViewConfigDelegate, ViewDefinition, ViewRenderer, ViewRendererDelegate, ViewSelector } from "../../view/render/viewRenderer.js";
+import { ConfigurableElement, ElementDefinition, StoreEventHandler, ViewConfig, ViewConfigDelegate, ViewDefinition, ViewRenderer, ViewRendererDelegate, ViewSelector } from "../../view/render/viewRenderer.js";
 import { ListItemTemplateContext } from "../../view/render/templateContext.js";
 import { TransformRendererDelegate } from "./transformDelegate.js";
 import { HtmlRendererDelegate } from "../../view/render/htmlDelegate.js";

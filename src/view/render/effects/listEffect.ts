@@ -1,11 +1,10 @@
 import { GetState, write } from "../../../store/index.js"
 import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementId } from "../fragmentHelpers.js"
 import { DOMTemplate, Zone } from "../index.js"
-import { ListItemOverlayTokenRegistry } from "../virtualNode.js"
 import { activateTemplateInstance, renderTemplateInstance } from "../renderTemplate.js"
 import { StateListener, TokenRegistry } from "../../../store/tokenRegistry.js"
 import { dispatchMessage } from "../../../store/message.js"
-import { ListItemTemplateContext } from "../templateContext.js"
+import { ListItemOverlayTokenRegistry, ListItemTemplateContext } from "../templateContext.js"
 
 export interface VirtualItem {
   key: any

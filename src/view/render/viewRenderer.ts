@@ -1,7 +1,8 @@
-import { GetState, State, Stateful } from "../../store"
+import { GetState, State, Stateful, StoreMessage } from "../../store"
 import { AriaAttribute } from "../elementData"
 import { SpecialElementAttributes } from "../specialAttributes"
-import { StoreEventHandler } from "./virtualNode"
+
+export type StoreEventHandler<T> = (evt: Event) => StoreMessage<T>
 
 export interface ConfigurableElement<A extends SpecialElementAttributes, B> {
   config: A

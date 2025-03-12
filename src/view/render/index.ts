@@ -1,8 +1,8 @@
 import { TokenRegistry } from "../../store/tokenRegistry.js"
-import { IdSequence } from "./idSequence.js"
-import { StoreEventHandler, VirtualNode, VirtualTemplate } from "./virtualNode.js"
+// import { IdSequence } from "./idSequence.js"
+import { StoreEventHandler } from "./viewRenderer.js"
 
-export type StringRenderer = (node: VirtualNode) => string
+// export type StringRenderer = (node: VirtualNode) => string
 
 export interface DOMEvent {
   location: "element" | "template"
@@ -17,7 +17,7 @@ export interface RenderResult {
   unmount: () => void
 }
 
-export type GetDOMTemplate = (zone: Zone, idSequence: IdSequence, virtualTemplate: VirtualTemplate) => DOMTemplate
+// export type GetDOMTemplate = (zone: Zone, idSequence: IdSequence, virtualTemplate: VirtualTemplate) => DOMTemplate
 
 export interface EffectTemplate {
   attach(zone: Zone, registry: TokenRegistry, root: Node): void

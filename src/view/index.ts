@@ -1,13 +1,13 @@
 import { Store } from "../store/index.js"
 import { getTokenRegistry } from "../store/store.js"
 import { HTMLView } from "./htmlElements.js"
+import { DOMRoot } from "./render/domRoot.js"
 import { RenderResult } from "./render/index.js"
-import { DOMRoot } from "./render/renderToDom.js"
 
 export * from "./htmlElements.js"
 export * from "./svgElements.js"
 export * from "./specialAttributes.js"
-export type { ConfigurableElement } from "./viewBuilder.js"
+export type { ConfigurableElement } from "./render/viewRenderer.js"
 export type { RenderResult } from "./render/index.js"
 
 export function activateView(store: Store, element: Element, view: HTMLView): RenderResult {

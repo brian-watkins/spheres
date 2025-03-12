@@ -1,4 +1,4 @@
-import { ConfigurableElement } from "./viewBuilder.js";
+import { ConfigurableElement } from "./render/viewRenderer.js";
 import { GetState, State, Stateful } from "../store/index.js";
 import { SpecialElementAttributes } from "./specialAttributes.js";
 import { SVGElements, SVGElementAttributes } from "./svgElements.js";

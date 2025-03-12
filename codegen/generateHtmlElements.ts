@@ -17,7 +17,7 @@ htmlElementsFile.addImportDeclarations([
     namedImports: [
       "ConfigurableElement"
     ],
-    moduleSpecifier: "./viewBuilder.js"
+    moduleSpecifier: "./render/viewRenderer.js"
   },
   {
     namedImports: [

@@ -15,8 +15,7 @@ import { listEndIndicator, listStartIndicator, switchEndIndicator, switchStartIn
 import { IdSequence } from "./idSequence"
 import { ListItemTemplateContext } from "./templateContext"
 import { DomTemplateRenderer } from "./templateRenderer"
-import { ConfigurableElement, ViewConfig, ViewConfigDelegate, ViewDefinition, ViewRenderer, ViewRendererDelegate, ViewSelector } from "./viewRenderer"
-import { StoreEventHandler } from "./virtualNode"
+import { ConfigurableElement, StoreEventHandler, ViewConfig, ViewConfigDelegate, ViewDefinition, ViewRenderer, ViewRendererDelegate, ViewSelector } from "./viewRenderer"
 
 export class DomRenderer implements ViewRenderer {
   constructor(private delegate: ViewRendererDelegate, protected zone: Zone, protected registry: TokenRegistry, protected idSequence: IdSequence, protected root: Element) { }

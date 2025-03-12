@@ -16,8 +16,7 @@ import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementI
 import { IdSequence } from "./idSequence";
 import { ListItemTemplateContext } from "./templateContext";
 import { DomTemplateRenderer } from "./templateRenderer";
-import { ConfigurableElement, ElementDefinition, ViewConfig, ViewConfigDelegate, ViewDefinition, ViewRenderer, ViewRendererDelegate, ViewSelector } from "./viewRenderer";
-import { StoreEventHandler } from "./virtualNode";
+import { ConfigurableElement, ElementDefinition, StoreEventHandler, ViewConfig, ViewConfigDelegate, ViewDefinition, ViewRenderer, ViewRendererDelegate, ViewSelector } from "./viewRenderer";
 
 export class ActivateDomRenderer implements ViewRenderer {
   private currentNode: Node | null

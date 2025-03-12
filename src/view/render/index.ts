@@ -20,9 +20,13 @@ export interface EffectTemplate {
   attach(zone: Zone, registry: TokenRegistry, root: Node): void
 }
 
+export enum TemplateType {
+  List, Select, Other
+}
+
 export interface DOMTemplate {
   isFragment: boolean
-  rootType: "element" | "list" | "select"
+  type: TemplateType
   element: HTMLTemplateElement
   effects: Array<EffectTemplate>
 }

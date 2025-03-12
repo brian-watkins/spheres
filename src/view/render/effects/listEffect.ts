@@ -1,6 +1,6 @@
 import { GetState, write } from "../../../store/index.js"
 import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementId } from "../fragmentHelpers.js"
-import { DOMTemplate, Zone } from "../index.js"
+import { DOMTemplate, TemplateType, Zone } from "../index.js"
 import { activateTemplateInstance, renderTemplateInstance } from "../renderTemplate.js"
 import { StateListener, TokenRegistry } from "../../../store/tokenRegistry.js"
 import { dispatchMessage } from "../../../store/message.js"
@@ -318,13 +318,13 @@ export class ListEffect implements StateListener {
     activateTemplateInstance(this.zone, overlayRegistry, this.domTemplate, node)
     virtualItem.registry = overlayRegistry
 
-    switch (this.domTemplate.rootType) {
-      case "list": {
+    switch (this.domTemplate.type) {
+      case TemplateType.List: {
         virtualItem.firstNode = node
         virtualItem.lastNode = findListEndNode(node, getListElementId(node))
         return [virtualItem, virtualItem.lastNode!.nextSibling!]
       }
-      case "select": {
+      case TemplateType.Select: {
         virtualItem.firstNode = node
         virtualItem.lastNode = findSwitchEndNode(node, getSwitchElementId(node))
         return [virtualItem, virtualItem.lastNode!.nextSibling!]

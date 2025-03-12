@@ -7,11 +7,12 @@ import { EventsToDelegate, StoreEventHandler } from "../../view/render/index.js"
 import { listEndIndicator, listStartIndicator, switchEndIndicator, switchStartIndicator } from "../../view/render/fragmentHelpers.js";
 import { IdSequence } from "../../view/render/idSequence.js";
 import { ViteContext } from "./viteBuilder.js";
-import { decorateViewRenderer, ElementDefinition, ViewDefinition, ViewRenderer, ViewRendererDelegate, ViewSelector } from "../../view/render/viewRenderer.js";
+import { decorateViewRenderer, ElementDefinition, isStateful, ViewDefinition, ViewRenderer, ViewRendererDelegate, ViewSelector } from "../../view/render/viewRenderer.js";
 import { ListItemTemplateContext } from "../../view/render/templateContext.js";
 import { TransformRendererDelegate } from "./transformDelegate.js";
 import { HtmlRendererDelegate } from "../../view/render/htmlDelegate.js";
 import { AbstractViewConfig, ViewConfigDelegate } from "../../view/render/viewConfig.js";
+import { AbstractSelectorBuilder } from "../../view/render/selectorBuilder.js";
 
 type StatefulString = (registry: TokenRegistry) => string
 
@@ -44,7 +45,7 @@ class StringRenderer implements ViewRenderer {
   }
 
   textNode(value: string | Stateful<string>): this {
-    if (typeof value === "function") {
+    if (isStateful(value)) {
       this.appendToTemplate({
         strings: ["", ""],
         statefuls: [toStatefulString(value)]
@@ -108,7 +109,7 @@ class StringRenderer implements ViewRenderer {
     }
 
     if (config.innerHTMLContent !== undefined) {
-      if (typeof config.innerHTMLContent === "function") {
+      if (isStateful(config.innerHTMLContent)) {
         this.appendToTemplate({
           strings: ["", ""],
           statefuls: [
@@ -197,51 +198,16 @@ class StringRenderer implements ViewRenderer {
 
 decorateViewRenderer(StringRenderer)
 
-interface StringTemplateSelector {
-  select: (get: GetState) => boolean
-  template: () => HTMLTemplate
-}
-
-class StringTemplateSelectorBuilder implements ViewSelector {
-  private templateSelectors: Array<StringTemplateSelector> = []
-  private defaultSelector: StringTemplateSelector | undefined
-
-  constructor(private delegate: ViewRendererDelegate, private viteContext: ViteContext | undefined, private elementId: string) { }
-
-  get selectors(): Array<StringTemplateSelector> {
-    const selectors = [...this.templateSelectors]
-
-    if (this.defaultSelector !== undefined) {
-      selectors.push(this.defaultSelector)
-    }
-
-    return selectors
+class StringTemplateSelectorBuilder extends AbstractSelectorBuilder<HTMLTemplate> {
+  constructor(private delegate: ViewRendererDelegate, private viteContext: ViteContext | undefined, private elementId: string) {
+    super()
   }
 
-  when(predicate: (get: GetState) => boolean, view: ViewDefinition): this {
-    const index = this.templateSelectors.length
-
-    this.templateSelectors.push({
-      select: predicate,
-      template: () => this.buildTemplate(view, index)
-    })
-
-    return this
-  }
-
-  default(view: ViewDefinition): void {
-    this.defaultSelector = {
-      select: () => true,
-      template: () => this.buildTemplate(view, this.templateSelectors.length)
-    }
-  }
-
-  private buildTemplate(view: ViewDefinition, selectorId: number): HTMLTemplate {
+  protected createTemplate(view: ViewDefinition, selectorId: number): HTMLTemplate {
     const renderer = new StringRenderer(this.delegate, this.viteContext, new IdSequence(`${this.elementId}.${selectorId}`), true)
     view(renderer as unknown as HTMLBuilder)
     return renderer.template
   }
-
 }
 
 class StringConfig extends AbstractViewConfig {
@@ -266,7 +232,7 @@ class StringConfig extends AbstractViewConfig {
   }
 
   attribute(name: string, value: string | Stateful<string>): this {
-    if (typeof value === "function") {
+    if (isStateful(value)) {
       this.appendToTemplate({
         strings: [` ${name}="`, `"`],
         statefuls: [

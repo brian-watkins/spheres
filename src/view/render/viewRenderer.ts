@@ -33,6 +33,10 @@ export interface ViewRendererDelegate {
   getConfigDelegate(tag: string): ViewConfigDelegate
 }
 
+export function isStateful<T>(value: T | Stateful<T>): value is Stateful<T> {
+  return typeof value === "function"
+}
+
 const MagicElements = new Proxy({}, {
   get: (_, prop, receiver) => {
     return function (builder?: <A extends SpecialElementAttributes, B>(element: ConfigurableElement<A, B>) => void) {

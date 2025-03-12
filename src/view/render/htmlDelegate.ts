@@ -2,7 +2,7 @@ import { GetState, Stateful } from "../../store/index.js";
 import { booleanAttributes } from "../elementData.js";
 import { SvgConfigDelegate, SvgRendererDelegate } from "./svgDelegate.js";
 import { ViewConfig, ViewConfigDelegate } from "./viewConfig.js";
-import { ViewRendererDelegate } from "./viewRenderer.js";
+import { isStateful, ViewRendererDelegate } from "./viewRenderer.js";
 
 export interface HTMLRendererDelegateOptions {
   isSSR?: boolean
@@ -59,7 +59,7 @@ export class HtmlConfigDelegate implements ViewConfigDelegate {
     }
     
     if (booleanAttributes.has(name)) {
-      if (typeof value === "function") {
+      if (isStateful(value)) {
         return config.attribute(name, (get: GetState) => value(get) ? name : undefined)
       } else {
         if (value) {

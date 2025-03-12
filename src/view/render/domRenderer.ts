@@ -11,13 +11,13 @@ import { listEndIndicator, listStartIndicator, switchEndIndicator, switchStartIn
 import { IdSequence } from "./idSequence.js"
 import { DomTemplateSelectorBuilder, initListEffect } from "./templateRenderer.js"
 import { AbstractViewConfig, ViewConfigDelegate } from "./viewConfig.js"
-import { ConfigurableElement, decorateViewRenderer, ViewDefinition, ViewRenderer, ViewRendererDelegate, ViewSelector } from "./viewRenderer.js"
+import { ConfigurableElement, decorateViewRenderer, isStateful, ViewDefinition, ViewRenderer, ViewRendererDelegate, ViewSelector } from "./viewRenderer.js"
 
 export class DomRenderer implements ViewRenderer {
   constructor(private delegate: ViewRendererDelegate, protected zone: Zone, protected registry: TokenRegistry, protected idSequence: IdSequence, protected root: Element) { }
 
   textNode(value: string | Stateful<string>) {
-    if (typeof value === "function") {
+    if (isStateful(value)) {
       const textNode = document.createTextNode("")
       this.root.appendChild(textNode)
       const textEffect = new UpdateTextEffect(this.registry, textNode, value)
@@ -93,7 +93,7 @@ class DomElementConfig extends AbstractViewConfig {
   }
 
   attribute(name: string, value: string | Stateful<string>): this {
-    if (typeof value === "function") {
+    if (isStateful(value)) {
       const attributeEffect = new UpdateAttributeEffect(this.registry, this.element, name, value)
       initListener(attributeEffect)
     } else {
@@ -103,7 +103,7 @@ class DomElementConfig extends AbstractViewConfig {
   }
 
   property<T extends string | boolean>(name: string, value: T | Stateful<T>) {
-    if (typeof value === "function") {
+    if (isStateful(value)) {
       const propertyEffect = new UpdatePropertyEffect(this.registry, this.element, name, value)
       initListener(propertyEffect)
     } else {

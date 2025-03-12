@@ -2,13 +2,13 @@ import { GetState } from "../../../store/index.js";
 import { DOMTemplate, Zone } from "../index.js";
 import { activateTemplateInstance, renderTemplateInstance } from "../renderTemplate.js";
 import { StateListener, TokenRegistry } from "../../../store/tokenRegistry.js";
-import { DomTemplateSelector } from "../templateRenderer.js";
+import { TemplateSelector } from "../selectorBuilder.js";
 
 export class SelectViewEffect implements StateListener {
   constructor(
     private zone: Zone,
     public registry: TokenRegistry,
-    public selectors: Array<DomTemplateSelector>,
+    public selectors: Array<TemplateSelector<DOMTemplate>>,
     public startNode: Node,
     public endNode: Node,
   ) { }

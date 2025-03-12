@@ -10,7 +10,7 @@ import { getEventAttribute } from "./eventHelpers.js";
 import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementId } from "./fragmentHelpers.js";
 import { DomTemplateSelectorBuilder, initListEffect } from "./templateRenderer.js";
 import { AbstractViewConfig, ViewConfigDelegate } from "./viewConfig.js";
-import { decorateViewRenderer, ElementDefinition, ViewDefinition, ViewRenderer, ViewRendererDelegate, ViewSelector } from "./viewRenderer.js";
+import { decorateViewRenderer, ElementDefinition, isStateful, ViewDefinition, ViewRenderer, ViewRendererDelegate, ViewSelector } from "./viewRenderer.js";
 
 export class ActivateDomRenderer implements ViewRenderer {
   private currentNode: Node | null
@@ -20,7 +20,7 @@ export class ActivateDomRenderer implements ViewRenderer {
   }
 
   textNode(value: string | Stateful<string>): this {
-    if (typeof value === "function") {
+    if (isStateful(value)) {
       const effect = new UpdateTextEffect(this.registry, this.currentNode as Text, value)
       initListener(effect)
     }
@@ -85,7 +85,7 @@ class ActivateDomConfig extends AbstractViewConfig {
   }
 
   attribute(name: string, value: string | Stateful<string>): this {
-    if (typeof value === "function") {
+    if (isStateful(value)) {
       const attributeEffect = new UpdateAttributeEffect(this.registry, this.element, name, value)
       initListener(attributeEffect)
     }
@@ -93,7 +93,7 @@ class ActivateDomConfig extends AbstractViewConfig {
   }
 
   property<T extends string | boolean>(name: string, value: T | Stateful<T>): this {
-    if (typeof value === "function") {
+    if (isStateful(value)) {
       const propertyEffect = new UpdatePropertyEffect(this.registry, this.element, name, value)
       initListener(propertyEffect)
     }

@@ -1,4 +1,4 @@
-import { DOMTemplate, EffectTemplate, EventsToDelegate, StoreEventHandler, Zone } from "./index.js";
+import { DOMTemplate, EffectTemplate, EventsToDelegate, StoreEventHandler, TemplateType, Zone } from "./index.js";
 import { Stateful, GetState, State } from "../../store/index.js";
 import { dispatchMessage } from "../../store/message.js";
 import { initListener, TokenRegistry } from "../../store/tokenRegistry.js";
@@ -13,7 +13,8 @@ import { findListEndNode, findSwitchEndNode, listEndIndicator, listStartIndicato
 import { IdSequence } from "./idSequence.js";
 import { ListItemTemplateContext } from "./templateContext.js";
 import { AbstractViewConfig, ViewConfigDelegate } from "./viewConfig.js";
-import { decorateViewRenderer, ElementDefinition, ViewDefinition, ViewRenderer, ViewRendererDelegate, ViewSelector } from "./viewRenderer.js";
+import { decorateViewRenderer, ElementDefinition, isStateful, ViewDefinition, ViewRenderer, ViewRendererDelegate, ViewSelector } from "./viewRenderer.js";
+import { AbstractSelectorBuilder, TemplateSelector } from "./selectorBuilder.js";
 
 
 export function initListEffect(delegate: ViewRendererDelegate, zone: Zone, registry: TokenRegistry, elementId: string, listStart: Node, listEnd: Node, data: (get: GetState) => Array<any>,  viewGenerator: (item: State<any>, index?: State<number>) => ViewDefinition): void {
@@ -24,7 +25,7 @@ export function initListEffect(delegate: ViewRendererDelegate, zone: Zone, regis
 
   const domTemplate: DOMTemplate = {
     isFragment: renderer.isFragment,
-    rootType: renderer.rootType,
+    type: renderer.templateType,
     element: templateElement,
     effects: renderer.effectTemplates
   }
@@ -36,7 +37,7 @@ export function initListEffect(delegate: ViewRendererDelegate, zone: Zone, regis
 export class DomTemplateRenderer implements ViewRenderer {
   public effectTemplates: Array<EffectTemplate> = []
   public isFragment: boolean = false
-  public rootType: "element" | "list" | "select" = "element"
+  public templateType: TemplateType = TemplateType.Other
 
   constructor(private delegate: ViewRendererDelegate, private zone: Zone, private idSequence: IdSequence, private root: Node, private location: EffectLocation) { }
 
@@ -45,7 +46,7 @@ export class DomTemplateRenderer implements ViewRenderer {
       this.location = this.root.hasChildNodes() ? this.location.nextSibling() : this.location.firstChild()
     }
 
-    if (typeof value === "function") {
+    if (isStateful(value)) {
       this.root.appendChild(document.createTextNode(""))
       this.effectTemplates.push(new TextEffectTemplate(value, this.location))
     } else {
@@ -97,7 +98,7 @@ export class DomTemplateRenderer implements ViewRenderer {
 
   subviews<T>(data: (get: GetState) => T[], viewGenerator: (item: State<T>, index?: State<number>) => ViewDefinition): this {
     this.isFragment = true
-    this.rootType = "list"
+    this.templateType = TemplateType.List
 
     const elementId = this.idSequence.next
 
@@ -112,7 +113,7 @@ export class DomTemplateRenderer implements ViewRenderer {
 
     const domTemplate: DOMTemplate = {
       isFragment: renderer.isFragment,
-      rootType: renderer.rootType,
+      type: renderer.templateType,
       element: templateElement,
       effects: renderer.effectTemplates
     }
@@ -132,7 +133,7 @@ export class DomTemplateRenderer implements ViewRenderer {
 
   subviewOf(selectorGenerator: (selector: ViewSelector) => void): this {
     this.isFragment = true
-    this.rootType = "select"
+    this.templateType = TemplateType.Select
 
     const elementId = this.idSequence.next
     const fragment = document.createDocumentFragment()
@@ -166,7 +167,7 @@ class DomTemplateConfig extends AbstractViewConfig {
   }
 
   attribute(name: string, value: string | Stateful<string>): this {
-    if (typeof value === "function") {
+    if (isStateful(value)) {
       this.effectTemplates.push(new AttributeEffectTemplate(value, name, this.location))
     } else {
       this.element.setAttribute(name, value)
@@ -175,7 +176,7 @@ class DomTemplateConfig extends AbstractViewConfig {
   }
 
   property<T extends string | boolean>(name: string, value: T | Stateful<T>): this {
-    if (typeof value === "function") {
+    if (isStateful(value)) {
       this.effectTemplates.push(new PropertyEffectTemplate(value, name, this.location))
     } else {
       //@ts-ignore
@@ -223,7 +224,6 @@ class PropertyEffectTemplate implements EffectTemplate {
   }
 }
 
-
 class ListEffectTemplate implements EffectTemplate {
   constructor(
     private domTemplate: DOMTemplate,
@@ -243,7 +243,7 @@ class ListEffectTemplate implements EffectTemplate {
 }
 
 class StatefulSelectEffectTemplate implements EffectTemplate {
-  constructor(private selectors: Array<DomTemplateSelector>, private elementId: string, private location: EffectLocation) { }
+  constructor(private selectors: Array<TemplateSelector<DOMTemplate>>, private elementId: string, private location: EffectLocation) { }
 
   attach(zone: Zone, registry: TokenRegistry, root: Node): void {
     const startNode = this.location.findNode(root)
@@ -266,45 +266,12 @@ class EventEffectTemplate implements EffectTemplate {
   }
 }
 
-export interface DomTemplateSelector {
-  select: (get: GetState) => boolean
-  template: () => DOMTemplate
-}
-
-export class DomTemplateSelectorBuilder implements ViewSelector {
-  private templateSelectors: Array<DomTemplateSelector> = []
-  private defaultSelector: DomTemplateSelector | undefined = undefined
-
-  constructor(private delegate: ViewRendererDelegate, private zone: Zone, private elementId: string) { }
-
-  get selectors(): Array<DomTemplateSelector> {
-    const selectors = [ ...this.templateSelectors ]
-
-    if (this.defaultSelector) {
-      selectors.push(this.defaultSelector)
-    }
-
-    return selectors
+export class DomTemplateSelectorBuilder extends AbstractSelectorBuilder<DOMTemplate> {
+  constructor(private delegate: ViewRendererDelegate, private zone: Zone, private elementId: string) {
+    super()
   }
 
-  when(predicate: (get: GetState) => boolean, view: ViewDefinition): this {
-    const index = this.templateSelectors.length
-    this.templateSelectors.push({
-      select: predicate,
-      template: () => this.createTemplate(view, index)
-    })
-
-    return this
-  }
-
-  default(view: ViewDefinition): void {
-    this.defaultSelector = {
-      select: () => true,
-      template: () => this.createTemplate(view, this.templateSelectors.length)
-    }
-  }
-
-  private createTemplate(view: ViewDefinition, selectorId: number): DOMTemplate {
+  protected createTemplate(view: ViewDefinition, selectorId: number): DOMTemplate {
     const templateElement = document.createElement("template")
 
     const renderer = new DomTemplateRenderer(this.delegate, this.zone, new IdSequence(`${this.elementId}.${selectorId}`), templateElement.content, new EffectLocation(root => root))
@@ -312,7 +279,7 @@ export class DomTemplateSelectorBuilder implements ViewSelector {
     
     const domTemplate: DOMTemplate = {
       isFragment: renderer.isFragment,
-      rootType: renderer.rootType,
+      type: renderer.templateType,
       element: templateElement,
       effects: renderer.effectTemplates
     }

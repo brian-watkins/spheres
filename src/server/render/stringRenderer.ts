@@ -7,7 +7,7 @@ import { EventsToDelegate, StoreEventHandler } from "../../view/render/index.js"
 import { listEndIndicator, listStartIndicator, switchEndIndicator, switchStartIndicator } from "../../view/render/fragmentHelpers.js";
 import { IdSequence } from "../../view/render/idSequence.js";
 import { ViteContext } from "./viteBuilder.js";
-import { decorateViewRenderer, ElementDefinition, isStateful, ViewDefinition, ViewRenderer, ViewRendererDelegate, ViewSelector } from "../../view/render/viewRenderer.js";
+import { ElementDefinition, isStateful, MagicElements, ViewDefinition, ViewRendererDelegate, ViewSelector } from "../../view/render/viewRenderer.js";
 import { ListItemTemplateContext } from "../../view/render/templateContext.js";
 import { TransformRendererDelegate } from "./transformDelegate.js";
 import { HtmlRendererDelegate } from "../../view/render/htmlDelegate.js";
@@ -32,13 +32,15 @@ export function buildStringRenderer(view: HTMLView, viteContext?: ViteContext): 
   }
 }
 
-class StringRenderer implements ViewRenderer {
+class StringRenderer extends MagicElements {
   readonly template: HTMLTemplate = {
     strings: [""],
     statefuls: []
   }
 
-  constructor(private delegate: ViewRendererDelegate, private viteContext: ViteContext | undefined, private idSequence: IdSequence, private isTemplate: boolean = false) { }
+  constructor(private delegate: ViewRendererDelegate, private viteContext: ViteContext | undefined, private idSequence: IdSequence, private isTemplate: boolean = false) {
+    super()
+  }
 
   private appendToTemplate(next: HTMLTemplate) {
     addTemplate(this.template, next)
@@ -195,8 +197,6 @@ class StringRenderer implements ViewRenderer {
     return this
   }
 }
-
-decorateViewRenderer(StringRenderer)
 
 class StringTemplateSelectorBuilder extends AbstractSelectorBuilder<HTMLTemplate> {
   constructor(private delegate: ViewRendererDelegate, private viteContext: ViteContext | undefined, private elementId: string) {

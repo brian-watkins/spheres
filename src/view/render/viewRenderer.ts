@@ -37,7 +37,9 @@ export function isStateful<T>(value: T | Stateful<T>): value is Stateful<T> {
   return typeof value === "function"
 }
 
-const MagicElements = new Proxy({}, {
+export class MagicElements { }
+
+const MagicElementsProxy = new Proxy({}, {
   get: (_, prop, receiver) => {
     return function (builder?: <A extends SpecialElementAttributes, B>(element: ConfigurableElement<A, B>) => void) {
       return receiver.element(prop as string, builder)
@@ -45,6 +47,4 @@ const MagicElements = new Proxy({}, {
   }
 })
 
-export function decorateViewRenderer(renderer: any): void {
-  Object.setPrototypeOf(renderer.prototype, MagicElements)
-}
+Object.setPrototypeOf(MagicElements.prototype, MagicElementsProxy)

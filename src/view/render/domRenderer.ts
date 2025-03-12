@@ -11,10 +11,12 @@ import { listEndIndicator, listStartIndicator, switchEndIndicator, switchStartIn
 import { IdSequence } from "./idSequence.js"
 import { DomTemplateSelectorBuilder, initListEffect } from "./templateRenderer.js"
 import { AbstractViewConfig, ViewConfigDelegate } from "./viewConfig.js"
-import { ConfigurableElement, decorateViewRenderer, isStateful, ViewDefinition, ViewRenderer, ViewRendererDelegate, ViewSelector } from "./viewRenderer.js"
+import { ConfigurableElement, isStateful, MagicElements, ViewDefinition, ViewRendererDelegate, ViewSelector } from "./viewRenderer.js"
 
-export class DomRenderer implements ViewRenderer {
-  constructor(private delegate: ViewRendererDelegate, protected zone: Zone, protected registry: TokenRegistry, protected idSequence: IdSequence, protected root: Element) { }
+export class DomRenderer extends MagicElements {
+  constructor(private delegate: ViewRendererDelegate, protected zone: Zone, protected registry: TokenRegistry, protected idSequence: IdSequence, protected root: Element) {
+    super()
+  }
 
   textNode(value: string | Stateful<string>) {
     if (isStateful(value)) {
@@ -84,8 +86,6 @@ export class DomRenderer implements ViewRenderer {
     return this
   }
 }
-
-decorateViewRenderer(DomRenderer)
 
 class DomElementConfig extends AbstractViewConfig {
   constructor(delegate: ViewConfigDelegate, private zone: Zone, private registry: TokenRegistry, private elementId: string, private element: Element) {

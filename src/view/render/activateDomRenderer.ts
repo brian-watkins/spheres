@@ -10,12 +10,13 @@ import { getEventAttribute } from "./eventHelpers.js";
 import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementId } from "./fragmentHelpers.js";
 import { DomTemplateSelectorBuilder, initListEffect } from "./templateRenderer.js";
 import { AbstractViewConfig, ViewConfigDelegate } from "./viewConfig.js";
-import { decorateViewRenderer, ElementDefinition, isStateful, ViewDefinition, ViewRenderer, ViewRendererDelegate, ViewSelector } from "./viewRenderer.js";
+import { ElementDefinition, isStateful, MagicElements, ViewDefinition, ViewRendererDelegate, ViewSelector } from "./viewRenderer.js";
 
-export class ActivateDomRenderer implements ViewRenderer {
+export class ActivateDomRenderer extends MagicElements {
   private currentNode: Node | null
 
   constructor(private delegate: ViewRendererDelegate, private zone: Zone, private registry: TokenRegistry, node: Node) {
+    super()
     this.currentNode = node
   }
 
@@ -76,8 +77,6 @@ export class ActivateDomRenderer implements ViewRenderer {
     return this
   }
 }
-
-decorateViewRenderer(ActivateDomRenderer)
 
 class ActivateDomConfig extends AbstractViewConfig {
   constructor(delegate: ViewConfigDelegate, private zone: Zone, private registry: TokenRegistry, private element: Element) {

@@ -13,7 +13,7 @@ import { findListEndNode, findSwitchEndNode, listEndIndicator, listStartIndicato
 import { IdSequence } from "./idSequence.js";
 import { ListItemTemplateContext } from "./templateContext.js";
 import { AbstractViewConfig, ViewConfigDelegate } from "./viewConfig.js";
-import { decorateViewRenderer, ElementDefinition, isStateful, ViewDefinition, ViewRenderer, ViewRendererDelegate, ViewSelector } from "./viewRenderer.js";
+import { ElementDefinition, isStateful, MagicElements, ViewDefinition, ViewRendererDelegate, ViewSelector } from "./viewRenderer.js";
 import { AbstractSelectorBuilder, TemplateSelector } from "./selectorBuilder.js";
 
 
@@ -34,12 +34,14 @@ export function initListEffect(delegate: ViewRendererDelegate, zone: Zone, regis
   initListener(effect)
 }
 
-export class DomTemplateRenderer implements ViewRenderer {
+export class DomTemplateRenderer extends MagicElements {
   public effectTemplates: Array<EffectTemplate> = []
   public isFragment: boolean = false
   public templateType: TemplateType = TemplateType.Other
 
-  constructor(private delegate: ViewRendererDelegate, private zone: Zone, private idSequence: IdSequence, private root: Node, private location: EffectLocation) { }
+  constructor(private delegate: ViewRendererDelegate, private zone: Zone, private idSequence: IdSequence, private root: Node, private location: EffectLocation) {
+    super()
+  }
 
   textNode(value: string | Stateful<string>): this {
     if (this.root.nodeType === 1) {
@@ -156,8 +158,6 @@ export class DomTemplateRenderer implements ViewRenderer {
     return this
   }
 }
-
-decorateViewRenderer(DomTemplateRenderer)
 
 class DomTemplateConfig extends AbstractViewConfig {
   readonly effectTemplates: Array<EffectTemplate> = []

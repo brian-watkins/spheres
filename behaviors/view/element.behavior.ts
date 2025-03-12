@@ -16,6 +16,7 @@ export default behavior("View Elements", [
       ],
       observe: [
         theElementExists("DIV#funny-id"),
+        theElementExists("DIV P[data-blah='true']"),
         theElementHasText("DIV[silly-attribute='joke']", "This is silly!"),
         theElementHasText("DIV P.super-class", "This is text"),
         theElementExists("h3[data-title]"),

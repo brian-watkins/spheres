@@ -209,6 +209,7 @@ class DomElementConfig implements ViewConfig {
   //@ts-ignore
   constructor(private delegate: ViewConfigDelegate, private zone: Zone, private registry: TokenRegistry, private elementId: string, private element: Element) { }
 
+  // This needs a default value of "true" -- but needs a test
   dataAttribute(name: string, value: string | Stateful<string> = "true") {
     return this.attribute(`data-${name}`, value)
   }

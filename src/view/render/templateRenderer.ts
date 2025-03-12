@@ -179,7 +179,8 @@ class DomTemplateConfig implements ViewConfig {
 
   // note that this and innerHTML could be moved to an abstract base class
   // or something
-  dataAttribute(name: string, value: string | Stateful<string>): this {
+  // Need a test for the default value
+  dataAttribute(name: string, value: string | Stateful<string> = "true"): this {
     return this.attribute(`data-${name}`, value)
   }
 

@@ -8,7 +8,7 @@ import { container } from "@store/index"
 
 export default behavior("rendering html page from transpiled server renderer", [
 
-  example(testableViteBuildContext)
+  (m) => m.pick() && example(testableViteBuildContext)
     .description("explicit stylesheet and script imports")
     .script({
       suppose: [

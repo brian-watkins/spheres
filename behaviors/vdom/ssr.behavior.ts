@@ -1,5 +1,5 @@
 import { container, Container, State } from "@store/index.js";
-import { HTMLView } from "@view/index";
+import { HTMLView, SVGBuilder } from "@view/index";
 import { behavior, effect, example, fact, step } from "best-behavior";
 import { expect, resolvesTo } from "great-expectations";
 import { selectElement, selectElements } from "./helpers/displayElement";
@@ -168,6 +168,80 @@ export default behavior("ssr", [
           await expect(selectElements("[data-stateful-text]").map(el => el.property("className")), resolvesTo([
             "text-Yo", "text-Yo", "text-Yo"
           ]))
+        })
+      ]
+    }),
+
+  (m) => m.pick() && example(renderContext<BasicContext>())
+    .description("activating ssr svg elements")
+    .script({
+      suppose: [
+        fact("there is some state", (context) => {
+          context.setState({
+            message: container({ initialValue: "Nice!" })
+          })
+        }),
+        fact("a view with aria attributes is activated", (context) => {
+          function circle(root: SVGBuilder) {
+            root.text(({ config, children }) => {
+              config
+                .x("150")
+                .y("125")
+                .fontSize("60")
+                .fontWeight("bold")
+                .textAnchor("middle")
+                .fill("white")
+              children
+                .textNode(get => get(context.state.message))
+            })
+          }
+          
+          context.ssrAndActivate(root => {
+            root.main(el => {
+              el.children
+                .svg(({ config, children }) => {
+                  config
+                    .width("300")
+                    .height("200")
+                    .class("some-fun-drawing")
+
+                  children
+                    .rect(({ config }) => [
+                      config
+                        .width("100%")
+                        .height("100%")
+                        .fill("red")
+                    ])
+                    .circle(({ config }) => {
+                      config
+                        .cx("150")
+                        .cy("100")
+                        .r("80")
+                        .fill("green")
+                    })
+                    .subview(circle)
+                })
+            })
+          })
+        })
+      ],
+      observe: [
+        effect("the svg attributes are rendered", async () => {
+          await expect(selectElement("TEXT").attribute("font-weight"), resolvesTo("bold"))
+        }),
+        effect("the text is rendered", async () => {
+          await expect(selectElement("TEXT").text(), resolvesTo("Nice!"))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the state is updated", (context) => {
+          context.writeTo(context.state.message, "Wow!")
+        })
+      ],
+      observe: [
+        effect("the text is updated", async () => {
+          await expect(selectElement("TEXT").text(), resolvesTo("Wow!"))
         })
       ]
     })

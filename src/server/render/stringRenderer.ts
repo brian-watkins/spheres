@@ -11,6 +11,7 @@ import { ViteContext } from "./viteBuilder.js";
 import { ConfigurableElement, ElementDefinition, ViewConfig, ViewConfigDelegate, ViewDefinition, ViewRenderer, ViewRendererDelegate, ViewSelector } from "../../view/render/viewRenderer.js";
 import { ListItemTemplateContext } from "../../view/render/templateContext.js";
 import { TransformRendererDelegate } from "./transformDelegate.js";
+import { HtmlRendererDelegate } from "../../view/render/htmlDelegate.js";
 
 type StatefulString = (registry: TokenRegistry) => string
 
@@ -23,7 +24,7 @@ export function buildStringRenderer(view: HTMLView, viteContext?: ViteContext): 
   // const builder = new HtmlViewBuilder()
   // builder.subview(view)
   // const template = buildHtmlTemplate(builder.toVirtualNode(), new IdSequence(), viteContext)
-  const renderer = new StringRenderer(new StringRendererDelegate(), viteContext, new IdSequence())
+  const renderer = new StringRenderer(new HtmlRendererDelegate({ isSSR: true }), viteContext, new IdSequence())
 
   view(renderer as unknown as HTMLBuilder)
   const template = renderer.template
@@ -272,36 +273,36 @@ class StringTemplateSelectorBuilder implements ViewSelector {
 
 }
 
-class StringRendererDelegate implements ViewRendererDelegate {
-  constructor() { }
+// class StringRendererDelegate implements ViewRendererDelegate {
+//   constructor() { }
 
-  createElement(tag: string): Element {
-    return document.createElement(tag)
-  }
+//   createElement(tag: string): Element {
+//     return document.createElement(tag)
+//   }
 
-  getRendererDelegate(): ViewRendererDelegate {
-    return this
-  }
+//   getRendererDelegate(): ViewRendererDelegate {
+//     return this
+//   }
 
-  getConfigDelegate(): ViewConfigDelegate {
-    // if (tag === "script") {
-    //   return new ScriptConfigDelegate(this.viteContext)
-    // }
+//   getConfigDelegate(): ViewConfigDelegate {
+//     // if (tag === "script") {
+//     //   return new ScriptConfigDelegate(this.viteContext)
+//     // }
 
-    // if (tag === "link") {
-    //   return new LinkConfigDelegate(this.viteContext)
-    // }
+//     // if (tag === "link") {
+//     //   return new LinkConfigDelegate(this.viteContext)
+//     // }
 
-    return new StringConfigDelegate()
-  }
+//     return new StringConfigDelegate()
+//   }
 
-}
+// }
 
-class StringConfigDelegate implements ViewConfigDelegate {
-  defineAttribute(config: ViewConfig, name: string, value: string | Stateful<string>): ViewConfig {
-    return config.attribute(name, value)
-  }
-}
+// class StringConfigDelegate implements ViewConfigDelegate {
+//   defineAttribute(config: ViewConfig, name: string, value: string | Stateful<string>): ViewConfig {
+//     return config.attribute(name, value)
+//   }
+// }
 
 // class ScriptConfigDelegate extends StringConfigDelegate {
 //   constructor(private tag: string, private viteContext: ViteContext | undefined) {

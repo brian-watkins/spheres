@@ -4,7 +4,7 @@ import { ViewConfig, ViewConfigDelegate, ViewRendererDelegate } from "../../view
 import { HTMLTemplate } from "./stringRenderer";
 import { getLinkData, LinkData, ViteContext } from "./viteBuilder";
 
-interface TransformConfigDelegate {
+interface TransformConfigDelegate extends ViewConfigDelegate {
   template: HTMLTemplate | undefined
 }
 
@@ -34,17 +34,11 @@ export class TransformRendererDelegate implements ViewRendererDelegate {
       this.configDelegate = new LinkTransformConfigDelegate(this.viteContext)
       return this.configDelegate
     }
-    return new TransformConfigDelegate()
+    throw new Error(`Transform delegate does not support tag: ${tag}`)
   }
 }
 
-class TransformConfigDelegate implements ViewConfigDelegate {
-  defineAttribute(config: ViewConfig, name: string, value: string | Stateful<string>): ViewConfig {
-    return config.attribute(name, value)
-  }
-}
-
-class ScriptTransformConfigDelegate implements ViewConfigDelegate, TransformConfigDelegate {
+class ScriptTransformConfigDelegate implements TransformConfigDelegate {
   template: HTMLTemplate | undefined
 
   constructor(private viteContext: ViteContext | undefined) { }
@@ -57,7 +51,7 @@ class ScriptTransformConfigDelegate implements ViewConfigDelegate, TransformConf
   }
 }
 
-class LinkTransformConfigDelegate implements ViewConfigDelegate, TransformConfigDelegate {
+class LinkTransformConfigDelegate implements TransformConfigDelegate {
   template: HTMLTemplate | undefined
 
   constructor(private viteContext: ViteContext | undefined) { }

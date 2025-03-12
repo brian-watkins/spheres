@@ -3,9 +3,18 @@ import { booleanAttributes } from "../elementData";
 import { SvgConfigDelegate, SvgRendererDelegate } from "./svgDelegate";
 import { ViewConfig, ViewConfigDelegate, ViewRendererDelegate } from "./viewRenderer";
 
+export interface HTMLRendererDelegateOptions {
+  isSSR?: boolean
+}
+
 export class HtmlRendererDelegate implements ViewRendererDelegate {
-  private configDelegate = new HtmlConfigDelegate()
-  private inputConfigDelegate = new HtmlInputConfigDelegate()
+  private configDelegate: HtmlConfigDelegate
+  private inputConfigDelegate: HtmlInputConfigDelegate
+
+  constructor(private options: HTMLRendererDelegateOptions = {}) {
+    this.configDelegate = new HtmlConfigDelegate(options.isSSR ?? false)
+    this.inputConfigDelegate = new HtmlInputConfigDelegate(options.isSSR ?? false)
+  }
 
   createElement(tag: string): Element {
     if (tag === "svg") {
@@ -37,6 +46,8 @@ export class HtmlRendererDelegate implements ViewRendererDelegate {
 }
 
 export class HtmlConfigDelegate implements ViewConfigDelegate {
+  constructor(private isSSR: boolean) { }
+  
   // should probably check for boolean attributes here
   defineAttribute(config: ViewConfig, name: string, value: string | Stateful<string>) {
     if (name === "checked") {
@@ -77,6 +88,7 @@ export class HtmlConfigDelegate implements ViewConfigDelegate {
 
 export class HtmlInputConfigDelegate extends HtmlConfigDelegate {
   defineAttribute(config: ViewConfig, name: string, value: string | Stateful<string>): ViewConfig {
+    // need to fix this so it shows up as an attribute when SSR but need a test
     if (name === "value") {
       return config.property("value", value)
     }

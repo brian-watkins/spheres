@@ -11,7 +11,7 @@ export class HtmlRendererDelegate implements ViewRendererDelegate {
   private configDelegate: HtmlConfigDelegate
   private inputConfigDelegate: HtmlInputConfigDelegate
 
-  constructor(private options: HTMLRendererDelegateOptions = {}) {
+  constructor(options: HTMLRendererDelegateOptions = {}) {
     this.configDelegate = new HtmlConfigDelegate(options.isSSR ?? false)
     this.inputConfigDelegate = new HtmlInputConfigDelegate(options.isSSR ?? false)
   }
@@ -46,15 +46,15 @@ export class HtmlRendererDelegate implements ViewRendererDelegate {
 }
 
 export class HtmlConfigDelegate implements ViewConfigDelegate {
-  constructor(private isSSR: boolean) { }
+  constructor(protected isSSR: boolean) { }
   
   // should probably check for boolean attributes here
   defineAttribute(config: ViewConfig, name: string, value: string | Stateful<string>) {
-    if (name === "checked") {
+    if (!this.isSSR && name === "checked") {
       return config.property("checked", value)
     }
 
-    if (name === "class") {
+    if (!this.isSSR && name === "class") {
       return config.property("className", value)
     }
     
@@ -89,7 +89,7 @@ export class HtmlConfigDelegate implements ViewConfigDelegate {
 export class HtmlInputConfigDelegate extends HtmlConfigDelegate {
   defineAttribute(config: ViewConfig, name: string, value: string | Stateful<string>): ViewConfig {
     // need to fix this so it shows up as an attribute when SSR but need a test
-    if (name === "value") {
+    if (!this.isSSR && name === "value") {
       return config.property("value", value)
     }
 

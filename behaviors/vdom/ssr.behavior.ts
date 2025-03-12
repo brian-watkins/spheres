@@ -16,6 +16,51 @@ interface BasicContext {
 
 export default behavior("ssr", [
 
+  (m) => m.pick() && example(renderContext<BasicContext>())
+    .description("activating ssr with boolean attributes")
+    .script({
+      suppose: [
+        fact("there is some state", (context) => {
+          context.setState({
+            message: container({ initialValue: "Yo!" })
+          })
+        }),
+        fact("a view with aria attributes is activated", (context) => {
+          context.ssrAndActivate(root => {
+            root.form(el => {
+              el.children.select(el => {
+                el.children
+                  .option(el => {
+                    el.config.selected(false)
+                    el.children.textNode("one")
+                  })
+                  .option(el => {
+                    el.config
+                      .selected(true)
+                      .value("Second Thing")
+                    el.children.textNode("two")
+                  })
+                  .option(el => {
+                    el.config.selected(false)
+                    el.children.textNode("three")
+                  })
+              })
+            })
+          })
+        })
+      ],
+      observe: [
+        effect("the selected attribute is present on the second item only", async () => {
+          await expect(selectElements("[selected]").texts(), resolvesTo([
+            "two"
+          ]))
+        }),
+        effect("the correct item is selected", async () => {
+          await expect(selectElement("select").inputValue(), resolvesTo("Second Thing"))
+        })
+      ]
+    }),
+
   example(renderContext<BasicContext>())
     .description("activating ssr aria attribute")
     .script({
@@ -172,7 +217,7 @@ export default behavior("ssr", [
       ]
     }),
 
-  (m) => m.pick() && example(renderContext<BasicContext>())
+  example(renderContext<BasicContext>())
     .description("activating ssr svg elements")
     .script({
       suppose: [
@@ -195,7 +240,7 @@ export default behavior("ssr", [
                 .textNode(get => get(context.state.message))
             })
           }
-          
+
           context.ssrAndActivate(root => {
             root.main(el => {
               el.children

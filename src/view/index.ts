@@ -11,10 +11,6 @@ export type { ConfigurableElement } from "./render/viewRenderer.js"
 export type { RenderResult } from "./render/index.js"
 
 export function activateView(store: Store, element: Element, view: HTMLView): RenderResult {
-  // const builder = new HtmlViewBuilder()
-  // view(builder as unknown as HTMLBuilder)
-  // const vnode = builder.toVirtualNode()
-
   const root = new DOMRoot(getTokenRegistry(store), element)
   root.activate(view)
 
@@ -22,19 +18,8 @@ export function activateView(store: Store, element: Element, view: HTMLView): Re
 }
 
 export function renderToDOM(store: Store, element: Element, view: HTMLView): RenderResult {
-  // const renderer = new DomRenderer(getTokenRegistry(store), element)
-  // view(renderer as unknown as HTMLBuilder)
-
   const root = new DOMRoot(getTokenRegistry(store), element)
   root.mount(view)
 
   return root
-  // const builder = new HtmlViewBuilder()
-  // view(builder as unknown as HTMLBuilder)
-  // const vnode = builder.toVirtualNode()
-
-  // const root = new DOMRoot(getTokenRegistry(store), element)
-  // root.mount(vnode)
-
-  // return root
 }

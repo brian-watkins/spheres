@@ -1,21 +1,37 @@
-import { DOMTemplate, EffectTemplate, EventsToDelegate, Zone } from ".";
-import { Stateful, GetState, State } from "../../store";
-import { dispatchMessage } from "../../store/message";
-import { initListener, TokenRegistry } from "../../store/tokenRegistry";
-import { AriaAttribute } from "../elementData";
-import { SpecialElementAttributes } from "../specialAttributes";
-import { DomTemplateSelector, DomTemplateSelectorBuilder } from "./domRenderer";
-import { EffectLocation } from "./effectLocation";
-import { UpdateAttributeEffect } from "./effects/attributeEffect";
-import { ListEffect } from "./effects/listEffect";
-import { UpdatePropertyEffect } from "./effects/propertyEffect";
-import { SelectViewEffect } from "./effects/selectViewEffect";
-import { UpdateTextEffect } from "./effects/textEffect";
-import { setEventAttribute } from "./eventHelpers";
-import { findListEndNode, findSwitchEndNode, listEndIndicator, listStartIndicator, switchEndIndicator, switchStartIndicator } from "./fragmentHelpers";
-import { IdSequence } from "./idSequence";
-import { ListItemTemplateContext } from "./templateContext";
-import { ConfigurableElement, ElementDefinition, StoreEventHandler, ViewConfig, ViewConfigDelegate, ViewDefinition, ViewRenderer, ViewRendererDelegate, ViewSelector } from "./viewRenderer";
+import { DOMTemplate, EffectTemplate, EventsToDelegate, StoreEventHandler, Zone } from "./index.js";
+import { Stateful, GetState, State } from "../../store/index.js";
+import { dispatchMessage } from "../../store/message.js";
+import { initListener, TokenRegistry } from "../../store/tokenRegistry.js";
+import { EffectLocation } from "./effectLocation.js";
+import { UpdateAttributeEffect } from "./effects/attributeEffect.js";
+import { ListEffect } from "./effects/listEffect.js";
+import { UpdatePropertyEffect } from "./effects/propertyEffect.js";
+import { SelectViewEffect } from "./effects/selectViewEffect.js";
+import { UpdateTextEffect } from "./effects/textEffect.js";
+import { setEventAttribute } from "./eventHelpers.js";
+import { findListEndNode, findSwitchEndNode, listEndIndicator, listStartIndicator, switchEndIndicator, switchStartIndicator } from "./fragmentHelpers.js";
+import { IdSequence } from "./idSequence.js";
+import { ListItemTemplateContext } from "./templateContext.js";
+import { AbstractViewConfig, ViewConfigDelegate } from "./viewConfig.js";
+import { decorateViewRenderer, ElementDefinition, ViewDefinition, ViewRenderer, ViewRendererDelegate, ViewSelector } from "./viewRenderer.js";
+
+
+export function initListEffect(delegate: ViewRendererDelegate, zone: Zone, registry: TokenRegistry, elementId: string, listStart: Node, listEnd: Node, data: (get: GetState) => Array<any>,  viewGenerator: (item: State<any>, index?: State<number>) => ViewDefinition): void {
+  const templateElement = document.createElement("template")
+
+  const renderer = new DomTemplateRenderer(delegate, zone, new IdSequence(elementId), templateElement.content, new EffectLocation(root => root))
+  const templateContext = new ListItemTemplateContext(renderer, viewGenerator)
+
+  const domTemplate: DOMTemplate = {
+    isFragment: renderer.isFragment,
+    rootType: renderer.rootType,
+    element: templateElement,
+    effects: renderer.effectTemplates
+  }
+
+  const effect = new ListEffect(zone, registry, domTemplate, data, templateContext, listStart, listEnd)
+  initListener(effect)
+}
 
 export class DomTemplateRenderer implements ViewRenderer {
   public effectTemplates: Array<EffectTemplate> = []
@@ -44,11 +60,9 @@ export class DomTemplateRenderer implements ViewRenderer {
 
     const elementId = this.idSequence.next
 
-    // console.log("Root", this.root.nodeType)
     if (this.root.nodeType === 1) {
       this.location = this.root.hasChildNodes() ? this.location.nextSibling() : this.location.firstChild()
     }
-    // const 
 
     const config = new DomTemplateConfig(this.delegate.getConfigDelegate(tag), this.zone, elementId, element, this.location)
 
@@ -73,7 +87,6 @@ export class DomTemplateRenderer implements ViewRenderer {
   }
 
   subview(view: ViewDefinition): this {
-    // Need a test with a template that includes a subview
     const renderer = new DomTemplateRenderer(this.delegate, this.zone, this.idSequence, this.root, new EffectLocation(root => root))
     view(renderer)
 
@@ -83,18 +96,9 @@ export class DomTemplateRenderer implements ViewRenderer {
   }
 
   subviews<T>(data: (get: GetState) => T[], viewGenerator: (item: State<T>, index?: State<number>) => ViewDefinition): this {
-    // here need to set the isFragment flag
     this.isFragment = true
     this.rootType = "list"
 
-    // vnode.id = idSequence.next
-    //       const fragment = document.createDocumentFragment()
-    //       fragment.appendChild(document.createComment(listStartIndicator(vnode.id)))
-    //       fragment.appendChild(document.createComment(listEndIndicator(vnode.id)))
-    //       return {
-    //         node: fragment,
-    //         effects: [new ListEffectTemplate(vnode, location)]
-    //       }
     const elementId = this.idSequence.next
 
     const fragment = document.createDocumentFragment()
@@ -129,23 +133,17 @@ export class DomTemplateRenderer implements ViewRenderer {
   subviewOf(selectorGenerator: (selector: ViewSelector) => void): this {
     this.isFragment = true
     this.rootType = "select"
-    
-    // vnode.id = idSequence.next
+
     const elementId = this.idSequence.next
     const fragment = document.createDocumentFragment()
     fragment.appendChild(document.createComment(switchStartIndicator(elementId)))
     fragment.appendChild(document.createComment(switchEndIndicator(elementId)))
-    // return {
-    // node: fragment,
-    // effects: [new StatefulSelectEffectTemplate(vnode, location)]
-    // }
 
     if (this.root.nodeType === 1) {
       this.location = this.root.hasChildNodes() ? this.location.nextSibling() : this.location.firstChild()
     }
 
     this.root.appendChild(fragment)
-
 
     const selectorBuilder = new DomTemplateSelectorBuilder(this.delegate, this.zone, elementId)
     selectorGenerator(selectorBuilder)
@@ -156,39 +154,15 @@ export class DomTemplateRenderer implements ViewRenderer {
 
     return this
   }
-
 }
 
-const MagicElements = new Proxy({}, {
-  get: (_, prop, receiver) => {
-    return function (builder?: <A extends SpecialElementAttributes, B>(element: ConfigurableElement<A, B>) => void) {
-      return receiver.element(prop as string, builder)
-    }
-  }
-})
+decorateViewRenderer(DomTemplateRenderer)
 
-Object.setPrototypeOf(DomTemplateRenderer.prototype, MagicElements)
-
-
-class DomTemplateConfig implements ViewConfig {
+class DomTemplateConfig extends AbstractViewConfig {
   readonly effectTemplates: Array<EffectTemplate> = []
 
-  //@ts-ignore
-  constructor(private delegate: ViewConfigDelegate, private zone: Zone, private elementId: string, private element: Element, private location: EffectLocation) { }
-
-  // note that this and innerHTML could be moved to an abstract base class
-  // or something
-  // Need a test for the default value
-  dataAttribute(name: string, value: string | Stateful<string> = "true"): this {
-    return this.attribute(`data-${name}`, value)
-  }
-
-  innerHTML(html: string | Stateful<string>): this {
-    return this.property("innerHTML", html)
-  }
-
-  aria(name: AriaAttribute, value: string | Stateful<string>): this {
-    return this.attribute(`aria-${name}`, value)
+  constructor(delegate: ViewConfigDelegate, private zone: Zone, private elementId: string, private element: Element, private location: EffectLocation) {
+    super(delegate)
   }
 
   attribute(name: string, value: string | Stateful<string>): this {
@@ -212,11 +186,7 @@ class DomTemplateConfig implements ViewConfig {
   }
 
   on<E extends keyof HTMLElementEventMap | string>(event: E, handler: StoreEventHandler<any>): this {
-    // const events = vnode.data.on
-    // const elementId = idSequence.next
-    // for (const k in events) {
     if (EventsToDelegate.has(event)) {
-      console.log("Adding delegated event", event, this.elementId)
       setEventAttribute(this.element, event, this.elementId)
       this.zone.addEvent("template", this.elementId, event, handler)
     } else {
@@ -224,48 +194,7 @@ class DomTemplateConfig implements ViewConfig {
     }
     return this
   }
-
 }
-
-// const MagicConfig = new Proxy({}, {
-//   get: (_, prop, receiver) => {
-//     const attribute = prop as string
-//     if (booleanAttributes.has(attribute)) {
-//       return function (isSelected: boolean | Stateful<boolean>) {
-//         return receiver.recordBooleanAttribute(attribute, isSelected)
-//       }
-//     } else {
-//       return function (value: string | Stateful<string>) {
-//         return receiver.recordAttribute(attribute, value)
-//       }
-//     }
-//   }
-// })
-
-const MagicConfig = new Proxy({}, {
-  get: (_, prop, receiver) => {
-    const attribute = prop as string
-    // if (booleanAttributes.has(attribute)) {
-    //   return function (isSelected: boolean | Stateful<boolean>) {
-    //     if (typeof isSelected === "function") {
-    //       receiver.delegate.defineAttribute(receiver, attribute, (get: GetState) => isSelected(get) ? attribute : undefined)
-    //     } else {
-    //       receiver.delegate.defineAttribute(receiver, attribute, isSelected ? attribute : undefined)
-    //     }
-    //     return receiver
-    //     // return receiver.recordBooleanAttribute(attribute, isSelected)
-    //   }
-    // } else {
-      return function (value: string | Stateful<string>) {
-        // return receiver.recordAttribute(attribute, value)
-        receiver.delegate.defineAttribute(receiver, attribute, value)
-        return receiver
-      }
-    // }
-  }
-})
-
-Object.setPrototypeOf(DomTemplateConfig.prototype, MagicConfig)
 
 class TextEffectTemplate implements EffectTemplate {
   constructor(private generator: Stateful<string>, private location: EffectLocation) { }
@@ -296,7 +225,6 @@ class PropertyEffectTemplate implements EffectTemplate {
 
 
 class ListEffectTemplate implements EffectTemplate {
-  // constructor(private vnode: StatefulListNode, private location: EffectLocation) { }
   constructor(
     private domTemplate: DOMTemplate,
     private query: (get: GetState) => Array<any>,
@@ -309,24 +237,21 @@ class ListEffectTemplate implements EffectTemplate {
     const listStartIndicatorNode = this.location.findNode(root)
     const end = findListEndNode(listStartIndicatorNode, this.elementId)
 
-    // const effect = new ListEffect(zone, registry, this.vnode, listStartIndicatorNode, end, getDOMTemplate)
     const effect = new ListEffect(zone, registry, this.domTemplate, this.query, this.templateContext, listStartIndicatorNode, end)
     initListener(effect)
   }
 }
 
 class StatefulSelectEffectTemplate implements EffectTemplate {
-    // constructor(private vnode: StatefulSelectorNode, private location: EffectLocation) { }
-    constructor(private selectors: Array<DomTemplateSelector>, private elementId: string, private location: EffectLocation) { }
+  constructor(private selectors: Array<DomTemplateSelector>, private elementId: string, private location: EffectLocation) { }
 
-    attach(zone: Zone, registry: TokenRegistry, root: Node): void {
-      const startNode = this.location.findNode(root)
-      const endNode = findSwitchEndNode(startNode, this.elementId)
+  attach(zone: Zone, registry: TokenRegistry, root: Node): void {
+    const startNode = this.location.findNode(root)
+    const endNode = findSwitchEndNode(startNode, this.elementId)
 
-      // const effect = new SelectViewEffect(zone, registry, this.vnode, startNode, endNode, getDOMTemplate)
-      const effect = new SelectViewEffect(zone, registry, this.selectors, startNode, endNode)
-      initListener(effect)
-    }
+    const effect = new SelectViewEffect(zone, registry, this.selectors, startNode, endNode)
+    initListener(effect)
+  }
 }
 
 class EventEffectTemplate implements EffectTemplate {
@@ -338,5 +263,60 @@ class EventEffectTemplate implements EffectTemplate {
       const message = this.handler(evt)
       dispatchMessage(registry, message)
     })
+  }
+}
+
+export interface DomTemplateSelector {
+  select: (get: GetState) => boolean
+  template: () => DOMTemplate
+}
+
+export class DomTemplateSelectorBuilder implements ViewSelector {
+  private templateSelectors: Array<DomTemplateSelector> = []
+  private defaultSelector: DomTemplateSelector | undefined = undefined
+
+  constructor(private delegate: ViewRendererDelegate, private zone: Zone, private elementId: string) { }
+
+  get selectors(): Array<DomTemplateSelector> {
+    const selectors = [ ...this.templateSelectors ]
+
+    if (this.defaultSelector) {
+      selectors.push(this.defaultSelector)
+    }
+
+    return selectors
+  }
+
+  when(predicate: (get: GetState) => boolean, view: ViewDefinition): this {
+    const index = this.templateSelectors.length
+    this.templateSelectors.push({
+      select: predicate,
+      template: () => this.createTemplate(view, index)
+    })
+
+    return this
+  }
+
+  default(view: ViewDefinition): void {
+    this.defaultSelector = {
+      select: () => true,
+      template: () => this.createTemplate(view, this.templateSelectors.length)
+    }
+  }
+
+  private createTemplate(view: ViewDefinition, selectorId: number): DOMTemplate {
+    const templateElement = document.createElement("template")
+
+    const renderer = new DomTemplateRenderer(this.delegate, this.zone, new IdSequence(`${this.elementId}.${selectorId}`), templateElement.content, new EffectLocation(root => root))
+    view(renderer)
+    
+    const domTemplate: DOMTemplate = {
+      isFragment: renderer.isFragment,
+      rootType: renderer.rootType,
+      element: templateElement,
+      effects: renderer.effectTemplates
+    }
+
+    return domTemplate
   }
 }

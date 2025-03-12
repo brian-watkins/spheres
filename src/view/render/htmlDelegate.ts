@@ -1,7 +1,8 @@
-import { GetState, Stateful } from "../../store";
-import { booleanAttributes } from "../elementData";
-import { SvgConfigDelegate, SvgRendererDelegate } from "./svgDelegate";
-import { ViewConfig, ViewConfigDelegate, ViewRendererDelegate } from "./viewRenderer";
+import { GetState, Stateful } from "../../store/index.js";
+import { booleanAttributes } from "../elementData.js";
+import { SvgConfigDelegate, SvgRendererDelegate } from "./svgDelegate.js";
+import { ViewConfig, ViewConfigDelegate } from "./viewConfig.js";
+import { ViewRendererDelegate } from "./viewRenderer.js";
 
 export interface HTMLRendererDelegateOptions {
   isSSR?: boolean
@@ -48,7 +49,6 @@ export class HtmlRendererDelegate implements ViewRendererDelegate {
 export class HtmlConfigDelegate implements ViewConfigDelegate {
   constructor(protected isSSR: boolean) { }
   
-  // should probably check for boolean attributes here
   defineAttribute(config: ViewConfig, name: string, value: string | Stateful<string>) {
     if (!this.isSSR && name === "checked") {
       return config.property("checked", value)
@@ -71,24 +71,11 @@ export class HtmlConfigDelegate implements ViewConfigDelegate {
     }
 
     return config.attribute(name, value)
-
-    // switch (name) {
-    //   case "checked": {
-    //     console.log("Rendering property", name)
-        
-    //     break
-    //   }
-    //   default: {
-    //     console.log("Rendering attribute", name)
-    //     config.attribute(name, value)
-    //   }
-    // }
   }
 }
 
 export class HtmlInputConfigDelegate extends HtmlConfigDelegate {
   defineAttribute(config: ViewConfig, name: string, value: string | Stateful<string>): ViewConfig {
-    // need to fix this so it shows up as an attribute when SSR but need a test
     if (!this.isSSR && name === "value") {
       return config.property("value", value)
     }

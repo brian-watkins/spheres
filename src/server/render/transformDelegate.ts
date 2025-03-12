@@ -1,8 +1,9 @@
-import { Stateful } from "../../store";
-import { runQuery } from "../../store/tokenRegistry";
-import { ViewConfig, ViewConfigDelegate, ViewRendererDelegate } from "../../view/render/viewRenderer";
-import { HTMLTemplate } from "./stringRenderer";
-import { getLinkData, LinkData, ViteContext } from "./viteBuilder";
+import { Stateful } from "../../store/index.js";
+import { runQuery } from "../../store/tokenRegistry.js";
+import { ViewConfig, ViewConfigDelegate } from "../../view/render/viewConfig.js";
+import { ViewRendererDelegate } from "../../view/render/viewRenderer.js";
+import { HTMLTemplate } from "./stringRenderer.js";
+import { getLinkData, LinkData, ViteContext } from "./viteBuilder.js";
 
 interface TransformConfigDelegate extends ViewConfigDelegate {
   template: HTMLTemplate | undefined
@@ -12,9 +13,9 @@ export class TransformRendererDelegate implements ViewRendererDelegate {
   private configDelegate: TransformConfigDelegate | undefined
 
   constructor(private viteContext: ViteContext | undefined) { }
-  
+
   createElement(): Element {
-    throw new Error("Method not implemented.");
+    throw new Error("Transform renderer does not create elements.");
   }
 
   get template(): HTMLTemplate | undefined {
@@ -34,6 +35,7 @@ export class TransformRendererDelegate implements ViewRendererDelegate {
       this.configDelegate = new LinkTransformConfigDelegate(this.viteContext)
       return this.configDelegate
     }
+
     throw new Error(`Transform delegate does not support tag: ${tag}`)
   }
 }

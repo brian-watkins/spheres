@@ -1,22 +1,16 @@
-import { DOMTemplate, EventsToDelegate, Zone } from ".";
-import { Stateful, GetState, State } from "../../store";
-import { dispatchMessage } from "../../store/message";
-import { initListener, TokenRegistry } from "../../store/tokenRegistry";
-import { AriaAttribute } from "../elementData";
-import { SpecialElementAttributes } from "../specialAttributes";
-import { DomTemplateSelectorBuilder } from "./domRenderer";
-import { EffectLocation } from "./effectLocation";
-import { UpdateAttributeEffect } from "./effects/attributeEffect";
-import { ListEffect } from "./effects/listEffect";
-import { UpdatePropertyEffect } from "./effects/propertyEffect";
-import { SelectViewEffect } from "./effects/selectViewEffect";
-import { UpdateTextEffect } from "./effects/textEffect";
-import { getEventAttribute } from "./eventHelpers";
-import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementId } from "./fragmentHelpers";
-import { IdSequence } from "./idSequence";
-import { ListItemTemplateContext } from "./templateContext";
-import { DomTemplateRenderer } from "./templateRenderer";
-import { ConfigurableElement, ElementDefinition, StoreEventHandler, ViewConfig, ViewConfigDelegate, ViewDefinition, ViewRenderer, ViewRendererDelegate, ViewSelector } from "./viewRenderer";
+import { EventsToDelegate, StoreEventHandler, Zone } from "./index.js";
+import { Stateful, GetState, State } from "../../store/index.js";
+import { dispatchMessage } from "../../store/message.js";
+import { initListener, TokenRegistry } from "../../store/tokenRegistry.js";
+import { UpdateAttributeEffect } from "./effects/attributeEffect.js";
+import { UpdatePropertyEffect } from "./effects/propertyEffect.js";
+import { SelectViewEffect } from "./effects/selectViewEffect.js";
+import { UpdateTextEffect } from "./effects/textEffect.js";
+import { getEventAttribute } from "./eventHelpers.js";
+import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementId } from "./fragmentHelpers.js";
+import { DomTemplateSelectorBuilder, initListEffect } from "./templateRenderer.js";
+import { AbstractViewConfig, ViewConfigDelegate } from "./viewConfig.js";
+import { decorateViewRenderer, ElementDefinition, ViewDefinition, ViewRenderer, ViewRendererDelegate, ViewSelector } from "./viewRenderer.js";
 
 export class ActivateDomRenderer implements ViewRenderer {
   private currentNode: Node | null
@@ -58,26 +52,9 @@ export class ActivateDomRenderer implements ViewRenderer {
 
   subviews<T>(data: (get: GetState) => T[], viewGenerator: (item: State<T>, index?: State<number>) => ViewDefinition): this {
     const elementId = getListElementId(this.currentNode!)
-    console.log("Activating subviews", elementId)
     let end = findListEndNode(this.currentNode!, elementId)
 
-    const templateElement = document.createElement("template")
-
-    console.log("CReating new idsequence for list item template", elementId)
-    const renderer = new DomTemplateRenderer(this.delegate, this.zone, new IdSequence(elementId), templateElement.content, new EffectLocation(root => root))
-    const templateContext = new ListItemTemplateContext(renderer, viewGenerator)
-
-    const domTemplate: DOMTemplate = {
-      isFragment: renderer.isFragment,
-      rootType: renderer.rootType,
-      element: templateElement,
-      effects: renderer.effectTemplates
-    }
-
-
-    // const effect = new ListEffect(this.zone, this.registry, vnode, node, end, getDOMTemplate)
-    const effect = new ListEffect(this.zone, this.registry, domTemplate, data, templateContext, this.currentNode!, end)
-    initListener(effect)
+    initListEffect(this.delegate, this.zone, this.registry, elementId, this.currentNode!, end, data, viewGenerator)
 
     this.currentNode = end.nextSibling
 
@@ -86,14 +63,11 @@ export class ActivateDomRenderer implements ViewRenderer {
 
   subviewOf(selectorGenerator: (selector: ViewSelector) => void): this {
     const elementId = getSwitchElementId(this.currentNode!)
-    console.log("Activating conditional view", elementId)
     let end = findSwitchEndNode(this.currentNode!, elementId)
 
     const selectorBuilder = new DomTemplateSelectorBuilder(this.delegate, this.zone, elementId)
     selectorGenerator(selectorBuilder)
 
-
-    // const effect = new SelectViewEffect(zone, registry, vnode, node, end, getDOMTemplate)
     const effect = new SelectViewEffect(this.zone, this.registry, selectorBuilder.selectors, this.currentNode!, end)
     initListener(effect)
 
@@ -101,23 +75,13 @@ export class ActivateDomRenderer implements ViewRenderer {
 
     return this
   }
-
 }
 
-class ActivateDomConfig implements ViewConfig {
-  //@ts-ignore
-  constructor(private delegate: ViewConfigDelegate, private zone: Zone, private registry: TokenRegistry, private element: Element) { }
+decorateViewRenderer(ActivateDomRenderer)
 
-  dataAttribute(name: string, value: string | Stateful<string>): this {
-    return this.attribute(`data-${name}`, value)
-  }
-
-  innerHTML(html: string | Stateful<string>): this {
-    return this.property("innerHTML", html)
-  }
-
-  aria(name: AriaAttribute, value: string | Stateful<string>): this {
-    return this.attribute(`aria-${name}`, value)
+class ActivateDomConfig extends AbstractViewConfig {
+  constructor(delegate: ViewConfigDelegate, private zone: Zone, private registry: TokenRegistry, private element: Element) {
+    super(delegate)
   }
 
   attribute(name: string, value: string | Stateful<string>): this {
@@ -138,16 +102,10 @@ class ActivateDomConfig implements ViewConfig {
   }
 
   on<E extends keyof HTMLElementEventMap | string>(event: E, handler: StoreEventHandler<any>): this {
-
-    // const elementEvents = vnode.data.on
-    // for (const k in elementEvents) {
     if (EventsToDelegate.has(event)) {
-      console.log("Adding event to zone", event)
       const elementId = getEventAttribute(this.element, event)
       this.zone.addEvent("element", elementId, event, handler)
     } else {
-      // const handler = elementEvents[k]
-      console.log("Adding event to element", event, this.element.nodeValue)
       this.element.addEventListener(event, (evt) => {
         dispatchMessage(this.registry, handler(evt))
       })
@@ -155,57 +113,4 @@ class ActivateDomConfig implements ViewConfig {
 
     return this
   }
-
 }
-
-// const MagicConfig = new Proxy({}, {
-//   get: (_, prop, receiver) => {
-//     const attribute = prop as string
-//     if (booleanAttributes.has(attribute)) {
-//       return function (isSelected: boolean | Stateful<boolean>) {
-//         return receiver.recordBooleanAttribute(attribute, isSelected)
-//       }
-//     } else {
-//       return function (value: string | Stateful<string>) {
-//         return receiver.recordAttribute(attribute, value)
-//       }
-//     }
-//   }
-// })
-
-const MagicConfig = new Proxy({}, {
-  get: (_, prop, receiver) => {
-    const attribute = prop as string
-    // if (booleanAttributes.has(attribute)) {
-    //   return function (isSelected: boolean | Stateful<boolean>) {
-    //     if (typeof isSelected === "function") {
-    //       receiver.delegate.defineAttribute(receiver, attribute, (get: GetState) => isSelected(get) ? attribute : undefined)
-    //     } else {
-    //       receiver.delegate.defineAttribute(receiver, attribute, isSelected ? attribute : undefined)
-    //     }
-    //     return receiver
-    //     // return receiver.recordBooleanAttribute(attribute, isSelected)
-    //   }
-    // } else {
-    return function (value: string | Stateful<string>) {
-      // return receiver.recordAttribute(attribute, value)
-      receiver.delegate.defineAttribute(receiver, attribute, value)
-      return receiver
-    }
-    // }
-  }
-})
-
-
-Object.setPrototypeOf(ActivateDomConfig.prototype, MagicConfig)
-
-
-const MagicElements = new Proxy({}, {
-  get: (_, prop, receiver) => {
-    return function (builder?: <A extends SpecialElementAttributes, B>(element: ConfigurableElement<A, B>) => void) {
-      return receiver.element(prop as string, builder)
-    }
-  }
-})
-
-Object.setPrototypeOf(ActivateDomRenderer.prototype, MagicElements)

@@ -2,17 +2,15 @@ import { GetState } from "../../../store/index.js";
 import { DOMTemplate, Zone } from "../index.js";
 import { activateTemplateInstance, renderTemplateInstance } from "../renderTemplate.js";
 import { StateListener, TokenRegistry } from "../../../store/tokenRegistry.js";
-import { DomTemplateSelector } from "../domRenderer.js";
+import { DomTemplateSelector } from "../templateRenderer.js";
 
 export class SelectViewEffect implements StateListener {
   constructor(
     private zone: Zone,
     public registry: TokenRegistry,
     public selectors: Array<DomTemplateSelector>,
-    // private vnode: StatefulSelectorNode,
     public startNode: Node,
     public endNode: Node,
-    // private getDOMTemplate: GetDOMTemplate
   ) { }
 
   init(get: GetState): void {
@@ -55,18 +53,12 @@ export class SelectViewEffect implements StateListener {
   }
 
   private selectTemplate(get: GetState): DOMTemplate | undefined {
-    // const selectedIndex = this.vnode.selectors.findIndex(selector => selector.select(get))
     const selectedIndex = this.selectors.findIndex(selector => selector.select(get))
 
     if (selectedIndex === -1) {
       return undefined
     }
 
-    // return this.getDOMTemplate(
-      // this.zone,
-      // new IdSequence(`${this.vnode.id}.${selectedIndex}`),
-      // this.vnode.selectors[selectedIndex].template
-    // )
     return this.selectors[selectedIndex].template()
   }
 

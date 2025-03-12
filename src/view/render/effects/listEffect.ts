@@ -18,8 +18,8 @@ export interface VirtualItem {
   registry: ListItemOverlayTokenRegistry
 }
 
+
 export class ListEffect implements StateListener {
-  // private domTemplate: DOMTemplate
   private usesIndex: boolean
   private parentNode!: Node
   private first: VirtualItem | undefined
@@ -31,22 +31,13 @@ export class ListEffect implements StateListener {
     private domTemplate: DOMTemplate,
     private query: (get: GetState) => Array<any>,
     private templateContext: ListItemTemplateContext<any>,
-    // private listVnode: StatefulListNode,
     private listStart: Node,
     private listEnd: Node,
-    // getDomTemplate: GetDOMTemplate
   ) {
     this.usesIndex = this.templateContext.usesIndex
-    // this.usesIndex = this.listVnode.template.usesIndex
-    // this.domTemplate = getDomTemplate(
-    //   this.zone,
-    //   new IdSequence(this.listVnode.id),
-    //   this.listVnode.template
-    // )
   }
 
   init(get: GetState) {
-    // const data = this.listVnode.query(get)
     const data = this.query(get)
 
     if (this.listStart.nextSibling !== this.listEnd) {
@@ -63,7 +54,6 @@ export class ListEffect implements StateListener {
       return
     }
 
-    // const updatedData = this.listVnode.query(get)
     const updatedData = this.query(get)
 
     this.patch(updatedData)
@@ -314,7 +304,6 @@ export class ListEffect implements StateListener {
 
   updateIndex(index: number, item: VirtualItem): void {
     item.index = index
-    // dispatchMessage(item.registry, write(this.listVnode.template.indexToken, index))
     dispatchMessage(item.registry, write(this.templateContext.indexToken, index))
   }
 
@@ -325,14 +314,10 @@ export class ListEffect implements StateListener {
       prev: undefined
     }
 
-    console.log("Activating template instance!")
-
-    // const overlayRegistry = this.listVnode.template.createOverlayRegistry(this.registry, data, index)
     const overlayRegistry = this.templateContext.createOverlayRegistry(this.registry, data, index)
     activateTemplateInstance(this.zone, overlayRegistry, this.domTemplate, node)
     virtualItem.registry = overlayRegistry
 
-    // Should the node type come from the DOMTemplate?
     switch (this.domTemplate.rootType) {
       case "list": {
         virtualItem.firstNode = node
@@ -352,7 +337,6 @@ export class ListEffect implements StateListener {
   }
 
   createItem(index: number, data: any): VirtualItem {
-    // const overlayRegistry = this.listVnode.template.createOverlayRegistry(this.registry, data, index)
     const overlayRegistry = this.templateContext.createOverlayRegistry(this.registry, data, index)
     const node = renderTemplateInstance(this.zone, overlayRegistry, this.domTemplate)
 

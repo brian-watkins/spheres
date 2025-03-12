@@ -26,7 +26,6 @@ export class RenderApp<T> {
 
   ssrAndActivate(view: HTMLView) {
     const htmlString = createStringRenderer(view)(this.store)
-    console.log("HTML", htmlString)
     document.body.innerHTML = htmlString
     this.renderResult = activateView(this.store, document.body, view)
   }

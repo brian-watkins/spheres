@@ -1,6 +1,7 @@
-import { Stateful } from "../../store";
-import { svgAttributeNames } from "../elementData";
-import { ViewConfig, ViewConfigDelegate, ViewRendererDelegate } from "./viewRenderer";
+import { Stateful } from "../../store/index.js";
+import { svgAttributeNames } from "../elementData.js";
+import { ViewConfig, ViewConfigDelegate } from "./viewConfig.js";
+import { ViewRendererDelegate } from "./viewRenderer.js";
 
 export class SvgRendererDelegate implements ViewRendererDelegate {
   private configDelegate = new SvgConfigDelegate()

@@ -4,10 +4,7 @@ import { DOMTemplate, spheresTemplateData, Zone } from "./index.js"
 export function renderTemplateInstance(zone: Zone, registry: TokenRegistry, domTemplate: DOMTemplate) {
   const fragment = domTemplate.element.content.cloneNode(true)
 
-  console.log("Fragment child", (fragment.firstChild as HTMLElement).outerHTML)
-
   for (const effect of domTemplate.effects) {
-    console.log("Attaching effect", effect)
     effect.attach(zone, registry, fragment.firstChild!)
   }
 

@@ -1,8 +1,6 @@
-import { GetState, State, Stateful, StoreMessage } from "../../store"
-import { AriaAttribute } from "../elementData"
-import { SpecialElementAttributes } from "../specialAttributes"
-
-export type StoreEventHandler<T> = (evt: Event) => StoreMessage<T>
+import { GetState, State, Stateful } from "../../store/index.js"
+import { SpecialElementAttributes } from "../specialAttributes.js"
+import { ViewConfigDelegate } from "./viewConfig.js"
 
 export interface ConfigurableElement<A extends SpecialElementAttributes, B> {
   config: A
@@ -18,9 +16,6 @@ export interface ViewSelector {
   default(view: ViewDefinition): void;
 }
 
-// can we provide a decorator to handle special cases like the input element?
-// And providing the namespace for the svg builder? Also svg attribute names
-// need to be handled differently
 export interface ViewRenderer {
   textNode(value: string | Stateful<string>): this
   element(tag: string, builder?: ElementDefinition): this
@@ -32,23 +27,20 @@ export interface ViewRenderer {
   subviewOf(selectorGenerator: (selector: ViewSelector) => void): this
 }
 
-// Seems like this really should just be recordAttribute, recordProperty, and on
-// And then maybe we could provide a decorator or something?
-export interface ViewConfig {
-  dataAttribute(name: string, value: string | Stateful<string>): this
-  innerHTML(html: string | Stateful<string>): this
-  aria(name: AriaAttribute, value: string | Stateful<string>): this
-  attribute(name: string, value: string | Stateful<string>): this
-  property<T extends string | boolean>(name: string, value: T | Stateful<T>): this
-  on<E extends keyof HTMLElementEventMap | string>(event: E, handler: StoreEventHandler<any>): this
-}
-
 export interface ViewRendererDelegate {
-  createElement(tag: string): Element // for svg override
+  createElement(tag: string): Element
   getRendererDelegate(tag: string): ViewRendererDelegate
   getConfigDelegate(tag: string): ViewConfigDelegate
 }
 
-export interface ViewConfigDelegate {
-  defineAttribute(config: ViewConfig, name: string, value: string | Stateful<string>): ViewConfig
+const MagicElements = new Proxy({}, {
+  get: (_, prop, receiver) => {
+    return function (builder?: <A extends SpecialElementAttributes, B>(element: ConfigurableElement<A, B>) => void) {
+      return receiver.element(prop as string, builder)
+    }
+  }
+})
+
+export function decorateViewRenderer(renderer: any): void {
+  Object.setPrototypeOf(renderer.prototype, MagicElements)
 }

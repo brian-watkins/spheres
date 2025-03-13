@@ -1,4 +1,4 @@
-import { DOMTemplate, EffectTemplate, EventsToDelegate, StoreEventHandler, TemplateType, Zone } from "./index.js";
+import { EventsToDelegate, StoreEventHandler, Zone } from "./index.js";
 import { Stateful, GetState, State } from "../../store/index.js";
 import { dispatchMessage } from "../../store/message.js";
 import { initListener, TokenRegistry } from "../../store/tokenRegistry.js";
@@ -15,32 +15,39 @@ import { ListItemTemplateContext } from "./templateContext.js";
 import { AbstractViewConfig, ViewConfigDelegate } from "./viewConfig.js";
 import { ElementDefinition, isStateful, MagicElements, ViewDefinition, ViewRendererDelegate, ViewSelector } from "./viewRenderer.js";
 import { AbstractSelectorBuilder, TemplateSelector } from "./selectorBuilder.js";
+import { DOMTemplate, EffectTemplate, TemplateType } from "./domTemplate.js";
 
 
 export function initListEffect(delegate: ViewRendererDelegate, zone: Zone, registry: TokenRegistry, elementId: string, listStart: Node, listEnd: Node, data: (get: GetState) => Array<any>,  viewGenerator: (item: State<any>, index?: State<number>) => ViewDefinition): void {
-  const templateElement = document.createElement("template")
-
-  const renderer = new DomTemplateRenderer(delegate, zone, new IdSequence(elementId), templateElement.content, new EffectLocation(root => root))
+  const renderer = new DomTemplateRenderer(delegate, zone, new IdSequence(elementId), new EffectLocation(root => root))
   const templateContext = new ListItemTemplateContext(renderer, viewGenerator)
 
-  const domTemplate: DOMTemplate = {
-    isFragment: renderer.isFragment,
-    type: renderer.templateType,
-    element: templateElement,
-    effects: renderer.effectTemplates
-  }
-
-  const effect = new ListEffect(zone, registry, domTemplate, data, templateContext, listStart, listEnd)
+  const effect = new ListEffect(zone, registry, renderer.template, data, templateContext, listStart, listEnd)
   initListener(effect)
 }
 
 export class DomTemplateRenderer extends MagicElements {
   public effectTemplates: Array<EffectTemplate> = []
-  public isFragment: boolean = false
   public templateType: TemplateType = TemplateType.Other
+  private templateElement: HTMLTemplateElement | undefined
+  private root: Node
 
-  constructor(private delegate: ViewRendererDelegate, private zone: Zone, private idSequence: IdSequence, private root: Node, private location: EffectLocation) {
+  constructor(private delegate: ViewRendererDelegate, private zone: Zone, private idSequence: IdSequence, private location: EffectLocation, root?: Node) {
     super()
+    if (root === undefined) {
+      this.templateElement = document.createElement("template")
+      this.root = this.templateElement.content
+    } else {
+      this.root = root
+    }
+  }
+
+  get template(): DOMTemplate {
+    return new DOMTemplate(
+      this.templateType,
+      this.templateElement!,
+      this.effectTemplates
+    )
   }
 
   textNode(value: string | Stateful<string>): this {
@@ -69,13 +76,11 @@ export class DomTemplateRenderer extends MagicElements {
 
     const config = new DomTemplateConfig(this.delegate.getConfigDelegate(tag), this.zone, elementId, element, this.location)
 
-    // Is there a nicer way to do this? We need to add an attribute to the root
-    // element of the template (if there is one)
-    if (this.root.nodeType === 11) {
+    if (this.templateElement !== undefined) {
       config.attribute("data-spheres-template", "")
     }
 
-    const children = new DomTemplateRenderer(this.delegate.getRendererDelegate(tag), this.zone, this.idSequence, element, this.location)
+    const children = new DomTemplateRenderer(this.delegate.getRendererDelegate(tag), this.zone, this.idSequence, this.location, element)
 
     builder?.({
       config: config,
@@ -90,7 +95,7 @@ export class DomTemplateRenderer extends MagicElements {
   }
 
   subview(view: ViewDefinition): this {
-    const renderer = new DomTemplateRenderer(this.delegate, this.zone, this.idSequence, this.root, new EffectLocation(root => root))
+    const renderer = new DomTemplateRenderer(this.delegate, this.zone, this.idSequence, new EffectLocation(root => root), this.root)
     view(renderer)
 
     this.effectTemplates = this.effectTemplates.concat(renderer.effectTemplates)
@@ -99,7 +104,6 @@ export class DomTemplateRenderer extends MagicElements {
   }
 
   subviews<T>(data: (get: GetState) => T[], viewGenerator: (item: State<T>, index?: State<number>) => ViewDefinition): this {
-    this.isFragment = true
     this.templateType = TemplateType.List
 
     const elementId = this.idSequence.next
@@ -108,17 +112,8 @@ export class DomTemplateRenderer extends MagicElements {
     fragment.appendChild(document.createComment(listStartIndicator(elementId)))
     fragment.appendChild(document.createComment(listEndIndicator(elementId)))
 
-    const templateElement = document.createElement("template")
-
-    const renderer = new DomTemplateRenderer(this.delegate, this.zone, new IdSequence(elementId), templateElement.content, new EffectLocation(root => root))
+    const renderer = new DomTemplateRenderer(this.delegate, this.zone, new IdSequence(elementId), new EffectLocation(root => root))
     const templateContext = new ListItemTemplateContext(renderer, viewGenerator)
-
-    const domTemplate: DOMTemplate = {
-      isFragment: renderer.isFragment,
-      type: renderer.templateType,
-      element: templateElement,
-      effects: renderer.effectTemplates
-    }
 
     if (this.root.nodeType === 1) {
       this.location = this.root.hasChildNodes() ? this.location.nextSibling() : this.location.firstChild()
@@ -126,7 +121,7 @@ export class DomTemplateRenderer extends MagicElements {
 
     this.root.appendChild(fragment)
 
-    this.effectTemplates.push(new ListEffectTemplate(domTemplate, data, templateContext, elementId, this.location))
+    this.effectTemplates.push(new ListEffectTemplate(renderer.template, data, templateContext, elementId, this.location))
 
     this.location = this.location.nextCommentSiblingMatching(listEndIndicator(elementId))
 
@@ -134,7 +129,6 @@ export class DomTemplateRenderer extends MagicElements {
   }
 
   subviewOf(selectorGenerator: (selector: ViewSelector) => void): this {
-    this.isFragment = true
     this.templateType = TemplateType.Select
 
     const elementId = this.idSequence.next
@@ -272,18 +266,9 @@ export class DomTemplateSelectorBuilder extends AbstractSelectorBuilder<DOMTempl
   }
 
   protected createTemplate(view: ViewDefinition, selectorId: number): DOMTemplate {
-    const templateElement = document.createElement("template")
-
-    const renderer = new DomTemplateRenderer(this.delegate, this.zone, new IdSequence(`${this.elementId}.${selectorId}`), templateElement.content, new EffectLocation(root => root))
+    const renderer = new DomTemplateRenderer(this.delegate, this.zone, new IdSequence(`${this.elementId}.${selectorId}`), new EffectLocation(root => root))
     view(renderer)
     
-    const domTemplate: DOMTemplate = {
-      isFragment: renderer.isFragment,
-      type: renderer.templateType,
-      element: templateElement,
-      effects: renderer.effectTemplates
-    }
-
-    return domTemplate
+    return renderer.template
   }
 }

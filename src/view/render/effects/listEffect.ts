@@ -1,7 +1,7 @@
 import { GetState, write } from "../../../store/index.js"
 import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementId } from "../fragmentHelpers.js"
-import { DOMTemplate, TemplateType, Zone } from "../index.js"
-import { activateTemplateInstance, renderTemplateInstance } from "../renderTemplate.js"
+import { Zone } from "../index.js"
+import { DOMTemplate, TemplateType } from "../domTemplate.js"
 import { StateListener, TokenRegistry } from "../../../store/tokenRegistry.js"
 import { dispatchMessage } from "../../../store/message.js"
 import { ListItemOverlayTokenRegistry, ListItemTemplateContext } from "../templateContext.js"
@@ -315,7 +315,7 @@ export class ListEffect implements StateListener {
     }
 
     const overlayRegistry = this.templateContext.createOverlayRegistry(this.registry, data, index)
-    activateTemplateInstance(this.zone, overlayRegistry, this.domTemplate, node)
+    this.domTemplate.activate(this.zone, overlayRegistry, node)
     virtualItem.registry = overlayRegistry
 
     switch (this.domTemplate.type) {
@@ -338,7 +338,7 @@ export class ListEffect implements StateListener {
 
   createItem(index: number, data: any): VirtualItem {
     const overlayRegistry = this.templateContext.createOverlayRegistry(this.registry, data, index)
-    const node = renderTemplateInstance(this.zone, overlayRegistry, this.domTemplate)
+    const node = this.domTemplate.render(this.zone, overlayRegistry)
 
     const item: VirtualItem = {
       key: data,

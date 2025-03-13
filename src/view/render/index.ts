@@ -1,5 +1,4 @@
 import { StoreMessage } from "../../store/message.js"
-import { TokenRegistry } from "../../store/tokenRegistry.js"
 
 export type StoreEventHandler<T> = (evt: Event) => StoreMessage<T>
 
@@ -14,21 +13,6 @@ export interface Zone {
 
 export interface RenderResult {
   unmount: () => void
-}
-
-export interface EffectTemplate {
-  attach(zone: Zone, registry: TokenRegistry, root: Node): void
-}
-
-export enum TemplateType {
-  List, Select, Other
-}
-
-export interface DOMTemplate {
-  isFragment: boolean
-  type: TemplateType
-  element: HTMLTemplateElement
-  effects: Array<EffectTemplate>
 }
 
 export const spheresTemplateData = Symbol("spheresTemplateData")

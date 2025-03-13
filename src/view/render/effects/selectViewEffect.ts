@@ -1,6 +1,6 @@
 import { GetState } from "../../../store/index.js";
-import { DOMTemplate, Zone } from "../index.js";
-import { activateTemplateInstance, renderTemplateInstance } from "../renderTemplate.js";
+import { Zone } from "../index.js";
+import { DOMTemplate } from "../domTemplate.js";
 import { StateListener, TokenRegistry } from "../../../store/tokenRegistry.js";
 import { TemplateSelector } from "../selectorBuilder.js";
 
@@ -34,7 +34,7 @@ export class SelectViewEffect implements StateListener {
 
     if (template === undefined) return
 
-    activateTemplateInstance(this.zone, this.registry, template, this.startNode.nextSibling!)
+    template.activate(this.zone, this.registry, this.startNode.nextSibling!)
   }
 
   private switchView(get: GetState): void {
@@ -44,7 +44,7 @@ export class SelectViewEffect implements StateListener {
     if (template === undefined) {
       node = document.createTextNode("")
     } else {
-      node = renderTemplateInstance(this.zone, this.registry, template)
+      node = template.render(this.zone, this.registry)
     }
 
     this.clearView()

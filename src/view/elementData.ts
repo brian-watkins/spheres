@@ -1,21 +1,15 @@
 export type AriaAttribute = "activedescendant" | "atomic" | "autocomplete" | "busy" | "checked" | "colcount" | "colindex" | "colspan" | "controls" | "current" | "describedby" | "details" | "disabled" | "dropeffect" | "errormessage" | "expanded" | "flowto" | "grabbed" | "haspopup" | "hidden" | "invalid" | "keyshortcuts" | "label" | "labelledby" | "level" | "live" | "modal" | "multiline" | "multiselectable" | "orientation" | "owns" | "placeholder" | "posinset" | "pressed" | "readonly" | "relevant" | "required" | "roledescription" | "rowcount" | "rowindex" | "rowspan" | "selected" | "setsize" | "sort" | "valuemax" | "valuemin" | "valuenow" | "valuetext" | "";
 
-export const voidElements: Set<string> = new Set();
-voidElements.add("area")
-voidElements.add("base")
-voidElements.add("br")
-voidElements.add("col")
-voidElements.add("embed")
-voidElements.add("hr")
-voidElements.add("img")
-voidElements.add("input")
-voidElements.add("link")
-voidElements.add("menuitem")
-voidElements.add("meta")
-voidElements.add("param")
-voidElements.add("source")
-voidElements.add("track")
-voidElements.add("wbr")
+let voidElementData: Set<string> | undefined = undefined;
+
+export function voidElements(): Set<string> {
+    if (voidElementData === undefined) {
+      const data = "area,base,br,col,embed,hr,img,input,link,menuitem,meta,param,source,track,wbr"
+      voidElementData = new Set(data.split(','))
+    }
+
+    return voidElementData
+}
 
 export const svgAttributeNames: Map<string, string> = new Map();
 svgAttributeNames.set("alignmentBaseline", "alignment-baseline")

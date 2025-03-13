@@ -27,18 +27,28 @@ elementDataFile.addTypeAlias({
 // Void Elements Set
 
 elementDataFile.addVariableStatement({
-  declarationKind: VariableDeclarationKind.Const,
+  declarationKind: VariableDeclarationKind.Let,
   declarations: [
     {
-      name: "voidElements",
-      type: "Set<string>",
-      initializer: "new Set()"
+      name: "voidElementData",
+      type: "Set<string> | undefined",
+      initializer: "undefined"
     }
-  ],
-  isExported: true
+  ]
 })
 
-elementDataFile.addStatements(voidHtmlTags.map(tag => `voidElements.add("${tag}")`))
+elementDataFile.addFunction({
+  name: "voidElements",
+  returnType: "Set<string>",
+  isExported: true,
+  statements: [
+    "if (voidElementData === undefined) {",
+    `  const data = "${voidHtmlTags.join(",")}"`,
+    "  voidElementData = new Set(data.split(','))",
+    "}",
+    "return voidElementData"
+  ]
+})
 
 
 // SVG Attribute names

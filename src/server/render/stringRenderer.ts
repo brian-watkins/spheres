@@ -99,7 +99,7 @@ class StringRenderer extends MagicElements {
       statefuls: []
     })
 
-    if (voidElements.has(tag)) {
+    if (voidElements().has(tag)) {
       return this
     }
 

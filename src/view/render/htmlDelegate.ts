@@ -49,12 +49,12 @@ export class HtmlConfigDelegate implements ViewConfigDelegate {
   constructor(protected isSSR: boolean) { }
 
   defineAttribute(config: ViewConfig, name: string, value: string | boolean | Stateful<string | boolean>) {
-    if (!this.isSSR && name === "checked") {
-      return config.property("checked", value)
-    }
-
     if (!this.isSSR && name === "class") {
       return config.property("className", value)
+    }
+
+    if (!this.isSSR && name === "checked") {
+      return config.property("checked", value)
     }
 
     switch (typeof value) {

@@ -1,7 +1,6 @@
 import { ariaAttributes } from "aria-attributes"
 import { voidHtmlTags } from "html-tags"
 import { Project, VariableDeclarationKind } from "ts-morph"
-import { booleanAttributes } from "./booleanAttributes"
 import { svgTagNames } from "svg-tag-names"
 import { svgElementAttributes } from "svg-element-attributes"
 import { toCamel } from "./helpers"
@@ -40,23 +39,6 @@ elementDataFile.addVariableStatement({
 })
 
 elementDataFile.addStatements(voidHtmlTags.map(tag => `voidElements.add("${tag}")`))
-
-
-// Boolean Attributes Set
-
-elementDataFile.addVariableStatement({
-  declarationKind: VariableDeclarationKind.Const,
-  declarations: [
-    {
-      name: "booleanAttributes",
-      type: "Set<string>",
-      initializer: "new Set()"
-    }
-  ],
-  isExported: true
-})
-
-elementDataFile.addStatements(booleanAttributes.map(attr => `booleanAttributes.add("${attr}")`))
 
 
 // SVG Attribute names

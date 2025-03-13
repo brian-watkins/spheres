@@ -84,8 +84,33 @@ export default behavior("Render view to HTML string", [
       })
     })
     expect(actual, is(equalTo(`<main><hr><img src="/assets/myImg.png"></main>`)))
+  }),
+  renderTest("ignore stateful boolean attribute that is false", (renderer) => {
+    const coolness = container({ initialValue: false })
+    const actual = renderer.renderView(root => {
+      root.form(el => {
+        el.children.input(el => {
+          el.config
+            .type("text")
+            .disabled(get => get(coolness))
+        })
+      })
+    })
+    expect(actual, is(equalTo(`<form><input type="text"></form>`)))
+  }),
+  renderTest("render stateful boolean attribute that is true", (renderer) => {
+    const coolness = container({ initialValue: true })
+    const actual = renderer.renderView(root => {
+      root.form(el => {
+        el.children.input(el => {
+          el.config
+            .type("text")
+            .disabled(get => get(coolness))
+        })
+      })
+    })
+    expect(actual, is(equalTo(`<form><input type="text" disabled=""></form>`)))
   })
-  // NOTE: we need to have an example of renderToString with an SVG element ...
 ])
 
 class TestRenderer {

@@ -1,8 +1,7 @@
-import { GetState, Stateful } from "../../store/index.js";
-import { booleanAttributes } from "../elementData.js";
+import { Stateful } from "../../store/index.js";
 import { SvgConfigDelegate, SvgRendererDelegate } from "./svgDelegate.js";
 import { ViewConfig, ViewConfigDelegate } from "./viewConfig.js";
-import { isStateful, ViewRendererDelegate } from "./viewRenderer.js";
+import { ViewRendererDelegate } from "./viewRenderer.js";
 
 export interface HTMLRendererDelegateOptions {
   isSSR?: boolean
@@ -37,7 +36,7 @@ export class HtmlRendererDelegate implements ViewRendererDelegate {
     if (tag === "svg") {
       return new SvgConfigDelegate()
     }
-    
+
     if (tag === "input") {
       return this.inputConfigDelegate
     } else {
@@ -48,8 +47,8 @@ export class HtmlRendererDelegate implements ViewRendererDelegate {
 
 export class HtmlConfigDelegate implements ViewConfigDelegate {
   constructor(protected isSSR: boolean) { }
-  
-  defineAttribute(config: ViewConfig, name: string, value: string | Stateful<string>) {
+
+  defineAttribute(config: ViewConfig, name: string, value: string | boolean | Stateful<string | boolean>) {
     if (!this.isSSR && name === "checked") {
       return config.property("checked", value)
     }
@@ -57,20 +56,29 @@ export class HtmlConfigDelegate implements ViewConfigDelegate {
     if (!this.isSSR && name === "class") {
       return config.property("className", value)
     }
-    
-    if (booleanAttributes.has(name)) {
-      if (isStateful(value)) {
-        return config.attribute(name, (get: GetState) => value(get) ? name : undefined)
-      } else {
+
+    switch (typeof value) {
+      case "function": {
+        return config.attribute(name, (get) => {
+          const attrValue = value(get)
+          if (typeof attrValue === "boolean") {
+            return attrValue ? "" : undefined
+          } else {
+            return attrValue
+          }
+        })
+      }
+      case "boolean": {
         if (value) {
-          return config.attribute(name, name)
+          return config.attribute(name, "")
         } else {
           return config
         }
       }
+      default: {
+        return config.attribute(name, value)
+      }
     }
-
-    return config.attribute(name, value)
   }
 }
 

@@ -234,9 +234,16 @@ class StringConfig extends AbstractViewConfig {
   attribute(name: string, value: string | Stateful<string>): this {
     if (isStateful(value)) {
       this.appendToTemplate({
-        strings: [` ${name}="`, `"`],
+        strings: ["", ""],
         statefuls: [
-          toStatefulString(value)
+          toStatefulString((get) => {
+            const attrValue = value(get)
+            if (attrValue === undefined) {
+              return ""
+            } else {
+              return ` ${name}="${attrValue}"`
+            }
+          })
         ]
       })
     } else {

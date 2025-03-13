@@ -18,7 +18,16 @@ import { AbstractSelectorBuilder, TemplateSelector } from "./selectorBuilder.js"
 import { DOMTemplate, EffectTemplate, TemplateType } from "./domTemplate.js";
 
 
-export function initListEffect(delegate: ViewRendererDelegate, zone: Zone, registry: TokenRegistry, elementId: string, listStart: Node, listEnd: Node, data: (get: GetState) => Array<any>,  viewGenerator: (item: State<any>, index?: State<number>) => ViewDefinition): void {
+export function initListEffect(
+  delegate: ViewRendererDelegate,
+  zone: Zone,
+  registry: TokenRegistry,
+  elementId: string,
+  listStart: Node,
+  listEnd: Node,
+  data: (get: GetState) => Array<any>,
+  viewGenerator: (item: State<any>, index?: State<number>) => ViewDefinition
+): void {
   const renderer = new DomTemplateRenderer(delegate, zone, new IdSequence(elementId), new EffectLocation(root => root))
   const templateContext = new ListItemTemplateContext(renderer, viewGenerator)
 
@@ -268,7 +277,7 @@ export class DomTemplateSelectorBuilder extends AbstractSelectorBuilder<DOMTempl
   protected createTemplate(view: ViewDefinition, selectorId: number): DOMTemplate {
     const renderer = new DomTemplateRenderer(this.delegate, this.zone, new IdSequence(`${this.elementId}.${selectorId}`), new EffectLocation(root => root))
     view(renderer)
-    
+
     return renderer.template
   }
 }

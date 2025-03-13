@@ -12,7 +12,7 @@ export interface ViewConfig {
 }
 
 export interface ViewConfigDelegate {
-  defineAttribute(config: ViewConfig, name: string, value: string | Stateful<string>): ViewConfig
+  defineAttribute(config: ViewConfig, name: string, value: string | boolean | Stateful<string | boolean>): ViewConfig
 }
 
 export abstract class AbstractViewConfig implements ViewConfig {

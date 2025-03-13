@@ -10,6 +10,10 @@ interface ListContext {
   dependency?: Container<number>
 }
 
+interface BooleanListContext {
+  items: Container<Array<boolean>>
+}
+
 interface ContainerListContext {
   items: Container<Array<Container<string>>>
   containerA: Container<string>
@@ -131,6 +135,49 @@ export default behavior("list effects", [
             "Item 2",
             "Item A",
             "Item B",
+          ]))
+        })
+      ]
+    }),
+
+  example(renderContext<BooleanListContext>())
+    .description("list with boolean attributes")
+    .script({
+      suppose: [
+        fact("there is state", (context) => {
+          context.setState({
+            items: container({ initialValue: [false, true, false] })
+          })
+        }),
+        fact("a list is displayed based on the state", (context) => {
+          context.mountView((root) => {
+            root.form(el => {
+              el.children.select(el => {
+                el.children.subviews(get => get(context.state.items), (item, index) => root => {
+                  root.option(el => {
+                    el.config
+                      .disabled(false)
+                      .inert(true)
+                      .selected(get => get(item))
+                    el.children
+                      .textNode(get => `Item ${get(index) + 1}`)
+                  })
+                })
+              })
+            })
+          })
+        })
+      ],
+      observe: [
+        effect("the false static boolean attributes are not rendered", async () => {
+          await expect(selectElements("[disabled]").count(), resolvesTo(0))
+        }),
+        effect("the true static boolean attributes are rendered", async () => {
+          await expect(selectElements("[inert]").count(), resolvesTo(3))
+        }),
+        effect("the reactive boolean attribute is rendered when true", async () => {
+          await expect(selectElements("[selected]").texts(), resolvesTo([
+            "Item 2"
           ]))
         })
       ]

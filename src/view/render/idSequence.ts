@@ -7,8 +7,4 @@ export class IdSequence {
     this.val = this.val + 1
     return `${this.prefix}.${this.val.toString(36)}`
   }
-
-  reset() {
-    this.val = 0
-  }
 }

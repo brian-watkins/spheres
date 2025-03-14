@@ -22,10 +22,6 @@ export class TransformRendererDelegate implements ViewRendererDelegate {
     return this.configDelegate?.template
   }
 
-  getRendererDelegate(): ViewRendererDelegate {
-    return this
-  }
-
   getConfigDelegate(tag: string): ViewConfigDelegate {
     if (tag === "script") {
       this.configDelegate = new ScriptTransformConfigDelegate(this.viteContext)

@@ -2,8 +2,9 @@ import { Store } from "../store/index.js"
 import { getTokenRegistry } from "../store/store.js"
 import { HTMLBuilder, HTMLView } from "./htmlElements.js"
 import { HtmlViewBuilder } from "./htmlViewBuilder.js"
+import { IdSequence } from "./render/idSequence.js"
 import { RenderResult } from "./render/index.js"
-import { DOMRoot } from "./render/renderToDom.js"
+import { activateEffects, createNode, DOMRoot } from "./render/renderToDom.js"
 
 export * from "./htmlElements.js"
 export * from "./svgElements.js"
@@ -17,7 +18,9 @@ export function activateView(store: Store, element: Element, view: HTMLView): Re
   const vnode = builder.toVirtualNode()
 
   const root = new DOMRoot(getTokenRegistry(store), element)
-  root.activate(vnode)
+  // root.activate(vnode)
+  root.clean()
+  activateEffects(root, getTokenRegistry(store), vnode, element.firstChild!)
 
   return root
 }
@@ -28,7 +31,9 @@ export function renderToDOM(store: Store, element: Element, view: HTMLView): Ren
   const vnode = builder.toVirtualNode()
 
   const root = new DOMRoot(getTokenRegistry(store), element)
-  root.mount(vnode)
+  root.clear()
+  element.appendChild(createNode(root, getTokenRegistry(store), new IdSequence(), vnode))
+  // root.mount(vnode)
 
   return root
 }

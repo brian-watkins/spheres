@@ -169,7 +169,7 @@ function templateForElement(vnode: ElementNode, idSequence: IdSequence, viteCont
     currentString += `<script type="module" src="/@vite/client"></script>`
   }
 
-  if (voidElements.has(vnode.tag)) {
+  if (voidElements().has(vnode.tag)) {
     strings.push(currentString)
     return { strings, statefuls }
   }

@@ -19,15 +19,15 @@ export class DOMRoot implements Zone, RenderResult {
 
   constructor(readonly registry: TokenRegistry, readonly root: Element) { }
 
-  mount(vnode: VirtualNode) {
-    this.clearRoot()
-    this.root.appendChild(createNode(this, this.registry, new IdSequence(), vnode))
-  }
+  // mount(vnode: VirtualNode) {
+  //   this.clearRoot()
+  //   this.root.appendChild(createNode(this, this.registry, new IdSequence(), vnode))
+  // }
 
-  activate(vnode: VirtualNode) {
-    this.cleanRoot()
-    activateEffects(this, this.registry, vnode, this.root.firstChild!)
-  }
+  // activate(vnode: VirtualNode) {
+  //   this.cleanRoot()
+  //   activateEffects(this, this.registry, vnode, this.root.firstChild!)
+  // }
 
   addEvent(location: DOMEvent["location"], elementId: string, eventType: string, handler: StoreEventHandler<any>) {
     this.setupEventHandler(eventType)
@@ -71,16 +71,16 @@ export class DOMRoot implements Zone, RenderResult {
 
   unmount() {
     this.eventController.abort()
-    this.clearRoot()
+    this.clear()
   }
 
-  private clearRoot() {
+  clear() {
     while (this.root.hasChildNodes()) {
       this.root.removeChild(this.root.lastChild!)
     }
   }
 
-  private cleanRoot() {
+  clean() {
     for (let i = 0; i < this.root.childNodes.length; i++) {
       const node = this.root.childNodes[i]
       if (node.nodeType === NodeType.TEXT && node.nodeValue?.trim() === "") {
@@ -180,7 +180,7 @@ export function createNode(zone: Zone, registry: TokenRegistry, idSequence: IdSe
   }
 }
 
-function activateEffects(zone: Zone, registry: TokenRegistry, vnode: VirtualNode, node: Node): Node {
+export function activateEffects(zone: Zone, registry: TokenRegistry, vnode: VirtualNode, node: Node): Node {
   switch (vnode.type) {
     case NodeType.STATEFUL_TEXT: {
       const effect = new UpdateTextEffect(registry, node as Text, vnode.generator)

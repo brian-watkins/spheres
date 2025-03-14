@@ -1,10 +1,8 @@
 import { Container, GetState, State, Stateful } from "../store/index.js"
 import { makeZoneList, VirtualListItemTemplate, VirtualTemplate, VirtualNode, ViewSelector, makeStatefulSelector, StatefulSelectorNode } from "./render/virtualNode.js"
 import { HTMLElements, HTMLBuilder, HTMLView, SpecialHTMLElements, HTMLViewSelector, GlobalHTMLAttributes } from "./htmlElements.js"
-import { SVGElements } from "./svgElements.js"
 import { BasicElementConfig } from "./viewConfig.js"
 import { ConfigurableElement, ViewBuilder } from "./viewBuilder.js"
-import { buildSvgElement } from "./svgViewBuilder.js"
 import { recordTokens } from "../store/state/stateRecorder.js"
 import { SpecialElementAttributes } from "./specialAttributes.js"
 
@@ -56,10 +54,10 @@ export class HtmlViewBuilder extends ViewBuilder<SpecialElementAttributes & Glob
     return this.buildElement(tag, configBuilder, builder)
   }
 
-  svg(builder?: (element: ConfigurableElement<SpecialElementAttributes, SVGElements>) => void) {
-    this.storeNode(buildSvgElement(builder))
-    return this
-  }
+  // svg(builder?: (element: ConfigurableElement<SpecialElementAttributes, SVGElements>) => void) {
+  //   this.storeNode(buildSvgElement(builder))
+  //   return this
+  // }
 
   input(builder?: (element: ConfigurableElement<SpecialElementAttributes, HTMLElements>) => void) {
     return this.buildElement("input", inputConfigBuilder, builder)

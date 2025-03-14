@@ -9,7 +9,7 @@ import { svgAttributeNames } from "./elementData.js"
 
 class SVGElementConfig extends BasicElementConfig {
   recordAttribute(attributeAlias: string, value: string | Stateful<string>): this {
-    const attribute = svgAttributeNames.get(attributeAlias) ?? attributeAlias
+    const attribute = svgAttributeNames().get(attributeAlias) ?? attributeAlias
     return super.recordAttribute(attribute, value)
   }
 

@@ -7,7 +7,7 @@ import { EventsToDelegate, StoreEventHandler } from "../../view/render/index.js"
 import { listEndIndicator, listStartIndicator, switchEndIndicator, switchStartIndicator } from "../../view/render/fragmentHelpers.js";
 import { IdSequence } from "../../view/render/idSequence.js";
 import { ViteContext } from "./viteBuilder.js";
-import { ElementDefinition, isStateful, MagicElements, ViewDefinition, ViewRendererDelegate, ViewSelector } from "../../view/render/viewRenderer.js";
+import { AbstractViewRenderer, ElementDefinition, isStateful, ViewDefinition, ViewRendererDelegate, ViewSelector } from "../../view/render/viewRenderer.js";
 import { ListItemTemplateContext } from "../../view/render/templateContext.js";
 import { TransformRendererDelegate } from "./transformDelegate.js";
 import { HtmlRendererDelegate } from "../../view/render/htmlDelegate.js";
@@ -32,14 +32,14 @@ export function buildStringRenderer(view: HTMLView, viteContext?: ViteContext): 
   }
 }
 
-class StringRenderer extends MagicElements {
+class StringRenderer extends AbstractViewRenderer {
   readonly template: HTMLTemplate = {
     strings: [""],
     statefuls: []
   }
 
-  constructor(private delegate: ViewRendererDelegate, private viteContext: ViteContext | undefined, private idSequence: IdSequence, private isTemplate: boolean = false) {
-    super()
+  constructor(delegate: ViewRendererDelegate, private viteContext: ViteContext | undefined, private idSequence: IdSequence, private isTemplate: boolean = false) {
+    super(delegate)
   }
 
   private appendToTemplate(next: HTMLTemplate) {
@@ -75,8 +75,8 @@ class StringRenderer extends MagicElements {
       }
     }
 
-    const children = new StringRenderer(this.delegate.getRendererDelegate(tag), this.viteContext, this.idSequence)
     const config = new StringConfig(this.delegate.getConfigDelegate(tag), elementId)
+    const children = new StringRenderer(this.delegate, this.viteContext, this.idSequence)
 
     if (this.isTemplate) {
       config.attribute("data-spheres-template", "")
@@ -133,13 +133,6 @@ class StringRenderer extends MagicElements {
       statefuls: []
     })
 
-    return this
-  }
-
-  subview(view: ViewDefinition): this {
-    const renderer = new StringRenderer(this.delegate, this.viteContext, this.idSequence)
-    view(renderer as unknown as HTMLBuilder)
-    this.appendToTemplate(renderer.template)
     return this
   }
 

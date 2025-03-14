@@ -32,13 +32,6 @@ htmlElementsFile.addImportDeclarations([
       "SpecialElementAttributes"
     ],
     moduleSpecifier: "./specialAttributes.js"
-  },
-  {
-    namedImports: [
-      "SVGElements",
-      "SVGElementAttributes",
-    ],
-    moduleSpecifier: "./svgElements.js"
   }
 ])
 
@@ -148,26 +141,21 @@ const viewBuilderInterface = htmlElementsFile.addInterface({
 })
 
 for (const tag of htmlTags) {
+  if (tag === "svg") {
+    continue
+  }
+
   const methodSignature = viewBuilderInterface.addMethod({
     name: tag,
     returnType: "void"
   })
 
-  if (tag === "svg") {
-    methodSignature.addParameter({
-      name: "builder?",
-      type: (writer) => {
-        writer.write(`(element: ConfigurableElement<SVGElementAttributes, SVGElements>) => void`)
-      }
-    })
-  } else {
-    methodSignature.addParameter({
-      name: "builder?",
-      type: (writer) => {
-        writer.write(`(element: ConfigurableElement<${attributesName(tag)}, ${elementChildren(tag)}>) => void`)
-      }
-    })
-  }
+  methodSignature.addParameter({
+    name: "builder?",
+    type: (writer) => {
+      writer.write(`(element: ConfigurableElement<${attributesName(tag)}, ${elementChildren(tag)}>) => void`)
+    }
+  })
 }
 
 
@@ -182,26 +170,21 @@ const viewElementsInterface = htmlElementsFile.addInterface({
 })
 
 for (const tag of htmlTags) {
+  if (tag === "svg") {
+    continue
+  }
+
   const methodSignature = viewElementsInterface.addMethod({
     name: tag,
     returnType: "this"
   })
 
-  if (tag === "svg") {
-    methodSignature.addParameter({
-      name: "builder?",
-      type: (writer) => {
-        writer.write(`(element: ConfigurableElement<SVGElementAttributes, SVGElements>) => void`)
-      }
-    })
-  } else {
-    methodSignature.addParameter({
-      name: "builder?",
-      type: (writer) => {
-        writer.write(`(element: ConfigurableElement<${attributesName(tag)}, ${elementChildren(tag)}>) => void`)
-      }
-    })
-  }
+  methodSignature.addParameter({
+    name: "builder?",
+    type: (writer) => {
+      writer.write(`(element: ConfigurableElement<${attributesName(tag)}, ${elementChildren(tag)}>) => void`)
+    }
+  })
 }
 
 

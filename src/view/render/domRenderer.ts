@@ -11,11 +11,11 @@ import { listEndIndicator, listStartIndicator, switchEndIndicator, switchStartIn
 import { IdSequence } from "./idSequence.js"
 import { DomTemplateSelectorBuilder, initListEffect } from "./templateRenderer.js"
 import { AbstractViewConfig, ViewConfigDelegate } from "./viewConfig.js"
-import { ConfigurableElement, isStateful, MagicElements, ViewDefinition, ViewRendererDelegate, ViewSelector } from "./viewRenderer.js"
+import { AbstractViewRenderer, ConfigurableElement, isStateful, ViewDefinition, ViewRendererDelegate, ViewSelector } from "./viewRenderer.js"
 
-export class DomRenderer extends MagicElements {
-  constructor(private delegate: ViewRendererDelegate, protected zone: Zone, protected registry: TokenRegistry, protected idSequence: IdSequence, protected root: Element) {
-    super()
+export class DomRenderer extends AbstractViewRenderer {
+  constructor(delegate: ViewRendererDelegate, protected zone: Zone, protected registry: TokenRegistry, protected idSequence: IdSequence, protected root: Element) {
+    super(delegate)
   }
 
   textNode(value: string | Stateful<string>) {
@@ -37,17 +37,10 @@ export class DomRenderer extends MagicElements {
 
     builder?.({
       config: new DomElementConfig(this.delegate.getConfigDelegate(tag), this.zone, this.registry, elementId, el),
-      children: new DomRenderer(this.delegate.getRendererDelegate(tag), this.zone, this.registry, this.idSequence, el)
+      children: new DomRenderer(this.delegate, this.zone, this.registry, this.idSequence, el)
     })
 
     this.root.appendChild(el)
-
-    return this
-  }
-
-  subview(view: ViewDefinition): this {
-    const renderer = new DomRenderer(this.delegate, this.zone, this.registry, this.idSequence, this.root)
-    view(renderer)
 
     return this
   }

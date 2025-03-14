@@ -13,7 +13,7 @@ import { findListEndNode, findSwitchEndNode, listEndIndicator, listStartIndicato
 import { IdSequence } from "./idSequence.js";
 import { ListItemTemplateContext } from "./templateContext.js";
 import { AbstractViewConfig, ViewConfigDelegate } from "./viewConfig.js";
-import { ElementDefinition, isStateful, MagicElements, ViewDefinition, ViewRendererDelegate, ViewSelector } from "./viewRenderer.js";
+import { AbstractViewRenderer, ElementDefinition, isStateful, ViewDefinition, ViewRendererDelegate, ViewSelector } from "./viewRenderer.js";
 import { AbstractSelectorBuilder, TemplateSelector } from "./selectorBuilder.js";
 import { DOMTemplate, EffectTemplate, TemplateType } from "./domTemplate.js";
 
@@ -35,14 +35,14 @@ export function initListEffect(
   initListener(effect)
 }
 
-export class DomTemplateRenderer extends MagicElements {
+export class DomTemplateRenderer extends AbstractViewRenderer {
   public effectTemplates: Array<EffectTemplate> = []
   public templateType: TemplateType = TemplateType.Other
   private templateElement: HTMLTemplateElement | undefined
   private root: Node
 
-  constructor(private delegate: ViewRendererDelegate, private zone: Zone, private idSequence: IdSequence, private location: EffectLocation, root?: Node) {
-    super()
+  constructor(delegate: ViewRendererDelegate, private zone: Zone, private idSequence: IdSequence, private location: EffectLocation, root?: Node) {
+    super(delegate)
     if (root === undefined) {
       this.templateElement = document.createElement("template")
       this.root = this.templateElement.content
@@ -89,7 +89,7 @@ export class DomTemplateRenderer extends MagicElements {
       config.attribute("data-spheres-template", "")
     }
 
-    const children = new DomTemplateRenderer(this.delegate.getRendererDelegate(tag), this.zone, this.idSequence, this.location, element)
+    const children = new DomTemplateRenderer(this.delegate, this.zone, this.idSequence, this.location, element)
 
     builder?.({
       config: config,
@@ -99,15 +99,6 @@ export class DomTemplateRenderer extends MagicElements {
     this.root.appendChild(element)
 
     this.effectTemplates = this.effectTemplates.concat(config.effectTemplates, children.effectTemplates)
-
-    return this
-  }
-
-  subview(view: ViewDefinition): this {
-    const renderer = new DomTemplateRenderer(this.delegate, this.zone, this.idSequence, new EffectLocation(root => root), this.root)
-    view(renderer)
-
-    this.effectTemplates = this.effectTemplates.concat(renderer.effectTemplates)
 
     return this
   }

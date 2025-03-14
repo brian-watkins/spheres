@@ -17,6 +17,7 @@ export interface ViewSelector {
 }
 
 export interface ViewRenderer {
+  useDelegate(delegate: ViewRendererDelegate, runner: () => void): void
   textNode(value: string | Stateful<string>): this
   element(tag: string, builder?: ElementDefinition): this
   subview(view: ViewDefinition): this
@@ -29,7 +30,6 @@ export interface ViewRenderer {
 
 export interface ViewRendererDelegate {
   createElement(tag: string): Element
-  getRendererDelegate(tag: string): ViewRendererDelegate
   getConfigDelegate(tag: string): ViewConfigDelegate
 }
 
@@ -37,9 +37,28 @@ export function isStateful<T>(value: T | Stateful<T>): value is Stateful<T> {
   return typeof value === "function"
 }
 
-export class MagicElements { }
+export abstract class AbstractViewRenderer implements ViewRenderer {
+  constructor(protected delegate: ViewRendererDelegate) { }
 
-const MagicElementsProxy = new Proxy({}, {
+  abstract textNode(value: string | Stateful<string>): this
+  abstract element(tag: string, builder?: ElementDefinition): this
+  abstract subviews<T>(data: (get: GetState) => T[], viewGenerator: (item: State<T>, index?: State<number>) => ViewDefinition): this
+  abstract subviewOf(selectorGenerator: (selector: ViewSelector) => void): this
+
+  subview(view: ViewDefinition): this {
+    view(this)
+    return this
+  }
+
+  useDelegate(delegate: ViewRendererDelegate, runner: () => void) {
+    const oldDelegate = this.delegate
+    this.delegate = delegate
+    runner()
+    this.delegate = oldDelegate
+  }
+}
+
+const MagicElements = new Proxy({}, {
   get: (_, prop, receiver) => {
     return function (builder?: <A extends SpecialElementAttributes, B>(element: ConfigurableElement<A, B>) => void) {
       return receiver.element(prop as string, builder)
@@ -47,4 +66,4 @@ const MagicElementsProxy = new Proxy({}, {
   }
 })
 
-Object.setPrototypeOf(MagicElements.prototype, MagicElementsProxy)
+Object.setPrototypeOf(AbstractViewRenderer.prototype, MagicElements)

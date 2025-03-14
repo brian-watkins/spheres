@@ -1,5 +1,4 @@
 import { Stateful } from "../../store/index.js";
-import { SvgConfigDelegate, SvgRendererDelegate } from "./svgDelegate.js";
 import { ViewConfig, ViewConfigDelegate } from "./viewConfig.js";
 import { ViewRendererDelegate } from "./viewRenderer.js";
 
@@ -17,26 +16,10 @@ export class HtmlRendererDelegate implements ViewRendererDelegate {
   }
 
   createElement(tag: string): Element {
-    if (tag === "svg") {
-      return document.createElementNS("http://www.w3.org/2000/svg", "svg")
-    } else {
-      return document.createElement(tag)
-    }
-  }
-
-  getRendererDelegate(tag: string): ViewRendererDelegate {
-    if (tag === "svg") {
-      return new SvgRendererDelegate()
-    } else {
-      return this
-    }
+    return document.createElement(tag)
   }
 
   getConfigDelegate(tag: string): ViewConfigDelegate {
-    if (tag === "svg") {
-      return new SvgConfigDelegate()
-    }
-
     if (tag === "input") {
       return this.inputConfigDelegate
     } else {

@@ -10,13 +10,13 @@ import { getEventAttribute } from "./eventHelpers.js";
 import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementId } from "./fragmentHelpers.js";
 import { DomTemplateSelectorBuilder, initListEffect } from "./templateRenderer.js";
 import { AbstractViewConfig, ViewConfigDelegate } from "./viewConfig.js";
-import { ElementDefinition, isStateful, MagicElements, ViewDefinition, ViewRendererDelegate, ViewSelector } from "./viewRenderer.js";
+import { AbstractViewRenderer, ElementDefinition, isStateful, ViewDefinition, ViewRendererDelegate, ViewSelector } from "./viewRenderer.js";
 
-export class ActivateDomRenderer extends MagicElements {
+export class ActivateDomRenderer extends AbstractViewRenderer {
   private currentNode: Node | null
 
-  constructor(private delegate: ViewRendererDelegate, private zone: Zone, private registry: TokenRegistry, node: Node) {
-    super()
+  constructor(delegate: ViewRendererDelegate, private zone: Zone, private registry: TokenRegistry, node: Node) {
+    super(delegate)
     this.currentNode = node
   }
 
@@ -34,19 +34,10 @@ export class ActivateDomRenderer extends MagicElements {
   element(tag: string, builder?: ElementDefinition): this {
     builder?.({
       config: new ActivateDomConfig(this.delegate.getConfigDelegate(tag), this.zone, this.registry, this.currentNode as Element),
-      children: new ActivateDomRenderer(this.delegate.getRendererDelegate(tag), this.zone, this.registry, this.currentNode!.firstChild!)
+      children: new ActivateDomRenderer(this.delegate, this.zone, this.registry, this.currentNode!.firstChild!)
     })
 
     this.currentNode = this.currentNode!.nextSibling
-
-    return this
-  }
-
-  subview(view: ViewDefinition): this {
-    const renderer = new ActivateDomRenderer(this.delegate, this.zone, this.registry, this.currentNode!)
-    view(renderer)
-
-    this.currentNode = renderer.currentNode
 
     return this
   }

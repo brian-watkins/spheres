@@ -1,7 +1,7 @@
 import { batch, write, run, StoreMessage, State, use } from "spheres/store";
 import { CircleContainer, addCircleRule, adjustRadius, adjustRadiusRule, canRedo, canUndo, circleData, deselectCircle, dialog, redoRule, selectCircle, undoRule } from "./state";
 import { useValue } from "../helpers/helpers";
-import { HTMLBuilder, SVGView } from "../../../src/view";
+import { HTMLBuilder, svg, SVGView } from "../../../src/view";
 
 export function circles(root: HTMLBuilder) {
   root.main(({ children }) => {
@@ -27,7 +27,7 @@ export function circles(root: HTMLBuilder) {
               .textNode("Redo")
           })
       })
-      .svg(({ config, children }) => {
+      .subview(svg(({ config, children }) => {
         config
           .dataAttribute("canvas")
           .width("100%")
@@ -36,7 +36,7 @@ export function circles(root: HTMLBuilder) {
           .on("click", (evt) => use(addCircleRule({ x: evt.offsetX, y: evt.offsetY })))
         children
           .subviews(get => get(circleData), circleView)
-      })
+      }))
       .subview(optionsView)
   })
 }

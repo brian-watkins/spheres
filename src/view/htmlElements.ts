@@ -1,7 +1,6 @@
 import { ConfigurableElement } from "./render/viewRenderer.js";
 import { GetState, State, Stateful } from "../store/index.js";
 import { SpecialElementAttributes } from "./specialAttributes.js";
-import { SVGElements, SVGElementAttributes } from "./svgElements.js";
 
 export type HTMLView = (root: HTMLBuilder) => void;
 
@@ -151,7 +150,6 @@ export interface HTMLBuilder extends SpecialHTMLElements {
     sub(builder?: (element: ConfigurableElement<SubElementAttributes, HTMLElements>) => void): void;
     summary(builder?: (element: ConfigurableElement<SummaryElementAttributes, HTMLElements>) => void): void;
     sup(builder?: (element: ConfigurableElement<SupElementAttributes, HTMLElements>) => void): void;
-    svg(builder?: (element: ConfigurableElement<SVGElementAttributes, SVGElements>) => void): void;
     table(builder?: (element: ConfigurableElement<TableElementAttributes, HTMLElements>) => void): void;
     tbody(builder?: (element: ConfigurableElement<TbodyElementAttributes, HTMLElements>) => void): void;
     td(builder?: (element: ConfigurableElement<TdElementAttributes, HTMLElements>) => void): void;
@@ -272,7 +270,6 @@ export interface HTMLElements extends SpecialHTMLElements {
     sub(builder?: (element: ConfigurableElement<SubElementAttributes, HTMLElements>) => void): this;
     summary(builder?: (element: ConfigurableElement<SummaryElementAttributes, HTMLElements>) => void): this;
     sup(builder?: (element: ConfigurableElement<SupElementAttributes, HTMLElements>) => void): this;
-    svg(builder?: (element: ConfigurableElement<SVGElementAttributes, SVGElements>) => void): this;
     table(builder?: (element: ConfigurableElement<TableElementAttributes, HTMLElements>) => void): this;
     tbody(builder?: (element: ConfigurableElement<TbodyElementAttributes, HTMLElements>) => void): this;
     td(builder?: (element: ConfigurableElement<TdElementAttributes, HTMLElements>) => void): this;

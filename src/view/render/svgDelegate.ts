@@ -10,10 +10,6 @@ export class SvgRendererDelegate implements ViewRendererDelegate {
     return document.createElementNS("http://www.w3.org/2000/svg", tag)
   }
 
-  getRendererDelegate(): ViewRendererDelegate {
-    return this
-  }
-
   getConfigDelegate(): ViewConfigDelegate {
     return this.configDelegate
   }
@@ -21,7 +17,7 @@ export class SvgRendererDelegate implements ViewRendererDelegate {
 
 export class SvgConfigDelegate implements ViewConfigDelegate {
   defineAttribute(config: ViewConfig, name: string, value: string | Stateful<string>): ViewConfig {
-    const attribute = svgAttributeNames.get(name) ?? name
+    const attribute = svgAttributeNames().get(name) ?? name
     return config.attribute(attribute, value)
   }
 }

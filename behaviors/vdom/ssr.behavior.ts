@@ -1,5 +1,5 @@
 import { container, Container, State } from "@store/index.js";
-import { HTMLView, SVGBuilder } from "@view/index";
+import { HTMLView, svg, SVGBuilder } from "@view/index";
 import { behavior, effect, example, fact, step } from "best-behavior";
 import { expect, resolvesTo } from "great-expectations";
 import { selectElement, selectElements } from "./helpers/displayElement";
@@ -244,7 +244,7 @@ export default behavior("ssr", [
           context.ssrAndActivate(root => {
             root.main(el => {
               el.children
-                .svg(({ config, children }) => {
+                .subview(svg(({ config, children }) => {
                   config
                     .width("300")
                     .height("200")
@@ -265,7 +265,7 @@ export default behavior("ssr", [
                         .fill("green")
                     })
                     .subview(circle)
-                })
+                }))
             })
           })
         })

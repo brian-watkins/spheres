@@ -55,26 +55,40 @@ elementDataFile.addFunction({
 const kebabAttributes = new Set<string>()
 
 elementDataFile.addVariableStatement({
-  declarationKind: VariableDeclarationKind.Const,
+  declarationKind: VariableDeclarationKind.Let,
   declarations: [
     {
-      name: "svgAttributeNames",
-      type: "Map<string, string>",
-      initializer: "new Map()"
+      name: "svgAttributeData",
+      type: "Map<string, string> | undefined",
+      initializer: "undefined"
     }
-  ],
-  isExported: true
+  ]
 })
 
+const svgAttributeStatements: Array<string> = []
 for (const tag of svgTagNames) {
   for (const attribute of svgElementAttributes[tag]) {
     if (kebabAttributes.has(attribute)) continue
 
     if (attribute.includes("-")) {
       kebabAttributes.add(attribute)
-      elementDataFile.addStatements(`svgAttributeNames.set("${toCamel(attribute)}", "${attribute}")`)
+      svgAttributeStatements.push(`  svgAttributeData.set("${toCamel(attribute)}", "${attribute}")`)
     }
   }
 }
+
+elementDataFile.addFunction({
+  name: "svgAttributeNames",
+  returnType: "Map<string, string>",
+  isExported: true,
+  statements: [
+    "if (svgAttributeData === undefined) {",
+    "  svgAttributeData = new Map()",
+    ...svgAttributeStatements,
+    "}",
+    "return svgAttributeData"
+  ]
+})
+
 
 project.save()

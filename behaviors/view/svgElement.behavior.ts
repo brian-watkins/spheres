@@ -15,6 +15,9 @@ export default behavior("SVG", [
       observe: [
         effect("it renders the elements", async (context) => {
           await expect(context.display.select("text[text-anchor='middle']").text(), resolvesTo("SVG"))
+        }),
+        effect("it sets the class attribute on the svg element", async (context) => {
+          await expect(context.display.select("SVG").attribute("class"), resolvesTo("some-fun-drawing"))
         })
       ]
     }).andThen({

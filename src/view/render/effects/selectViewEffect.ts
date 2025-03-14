@@ -1,18 +1,14 @@
 import { GetState } from "../../../store/index.js";
-import { IdSequence } from "../idSequence.js";
-import { DOMTemplate, GetDOMTemplate, Zone } from "../index.js";
-import { StatefulSelectorNode } from "../virtualNode.js";
-import { activateTemplateInstance, renderTemplateInstance } from "../renderTemplate.js";
+import { DOMTemplate } from "../domTemplate.js";
 import { StateListener, TokenRegistry } from "../../../store/tokenRegistry.js";
+import { TemplateSelector } from "../selectorBuilder.js";
 
 export class SelectViewEffect implements StateListener {
   constructor(
-    private zone: Zone,
     public registry: TokenRegistry,
-    private vnode: StatefulSelectorNode,
+    public selectors: Array<TemplateSelector<DOMTemplate>>,
     public startNode: Node,
     public endNode: Node,
-    private getDOMTemplate: GetDOMTemplate
   ) { }
 
   init(get: GetState): void {
@@ -36,7 +32,7 @@ export class SelectViewEffect implements StateListener {
 
     if (template === undefined) return
 
-    activateTemplateInstance(this.zone, this.registry, template, this.startNode.nextSibling!)
+    template.activate(this.registry, this.startNode.nextSibling!)
   }
 
   private switchView(get: GetState): void {
@@ -46,7 +42,7 @@ export class SelectViewEffect implements StateListener {
     if (template === undefined) {
       node = document.createTextNode("")
     } else {
-      node = renderTemplateInstance(this.zone, this.registry, template)
+      node = template.render(this.registry)
     }
 
     this.clearView()
@@ -55,17 +51,13 @@ export class SelectViewEffect implements StateListener {
   }
 
   private selectTemplate(get: GetState): DOMTemplate | undefined {
-    const selectedIndex = this.vnode.selectors.findIndex(selector => selector.select(get))
+    const selectedIndex = this.selectors.findIndex(selector => selector.select(get))
 
     if (selectedIndex === -1) {
       return undefined
     }
 
-    return this.getDOMTemplate(
-      this.zone,
-      new IdSequence(`${this.vnode.id}.${selectedIndex}`),
-      this.vnode.selectors[selectedIndex].template
-    )
+    return this.selectors[selectedIndex].template()
   }
 
   private clearView() {

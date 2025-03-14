@@ -2,7 +2,7 @@ import { batch, container, State, use, write } from "@store/index.js";
 import { HTMLBuilder, HTMLView } from "@view/index.js";
 import { addItem, Item, items } from "./state";
 
-const inputField = container({ initialValue: "" })
+const inputField = container({ initialValue: "provided by server" })
 
 export function view(root: HTMLBuilder) {
   root.main(el => {

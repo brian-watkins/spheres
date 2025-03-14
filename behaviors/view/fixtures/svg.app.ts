@@ -1,23 +1,16 @@
 import { container, write } from "@store/index.js";
-import { HTMLBuilder, SVGBuilder } from "@view/index.js";
+import { HTMLBuilder, svg, SVGBuilder } from "@view/index.js";
 
 const message = container({ initialValue: "SVG" })
 
 export default function (root: HTMLBuilder) {
   root.main(({ children }) => {
     children
-      .form(({ children }) => {
-        children
-          .input(({ config }) => {
-            config
-              .type("text")
-              .on("input", (evt) => write(message, (evt.target as HTMLInputElement).value))
-          })
-      })
-      .svg(({ config, children }) => {
+      .subview(svg(({ config, children }) => {
         config
           .width("300")
           .height("200")
+          .class("some-fun-drawing")
 
         children
           .rect(({ config }) => [
@@ -34,6 +27,15 @@ export default function (root: HTMLBuilder) {
               .fill("green")
           })
           .subview(circle)
+      }))
+      .hr()
+      .form(({ children }) => {
+        children
+          .input(({ config }) => {
+            config
+              .type("text")
+              .on("input", (evt) => write(message, (evt.target as HTMLInputElement).value))
+          })
       })
   })
 }

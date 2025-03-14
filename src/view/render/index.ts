@@ -1,32 +1,22 @@
-import { TokenRegistry } from "../../store/tokenRegistry.js"
-import { IdSequence } from "./idSequence.js"
-import { StoreEventHandler, VirtualNode, VirtualTemplate } from "./virtualNode.js"
+import { StoreMessage } from "../../store/message.js"
 
-export type StringRenderer = (node: VirtualNode) => string
+export type StoreEventHandler<T> = (evt: Event) => StoreMessage<T>
+
+export enum DOMEventType {
+  Element, Template
+}
 
 export interface DOMEvent {
-  location: "element" | "template"
+  type: DOMEventType
   handler: StoreEventHandler<any>
 }
 
 export interface Zone {
-  addEvent(location: DOMEvent["location"], elementId: string, eventType: string, handler: StoreEventHandler<any>): void
+  addEvent(type: DOMEventType, elementId: string, eventType: string, handler: StoreEventHandler<any>): void
 }
 
 export interface RenderResult {
   unmount: () => void
-}
-
-export type GetDOMTemplate = (zone: Zone, idSequence: IdSequence, virtualTemplate: VirtualTemplate) => DOMTemplate
-
-export interface EffectTemplate {
-  attach(zone: Zone, registry: TokenRegistry, root: Node): void
-}
-
-export interface DOMTemplate {
-  isFragment: boolean
-  element: HTMLTemplateElement
-  effects: Array<EffectTemplate>
 }
 
 export const spheresTemplateData = Symbol("spheresTemplateData")

@@ -10,6 +10,10 @@ interface ListContext {
   dependency?: Container<number>
 }
 
+interface BooleanListContext {
+  items: Container<Array<boolean>>
+}
+
 interface ContainerListContext {
   items: Container<Array<Container<string>>>
   containerA: Container<string>
@@ -136,6 +140,140 @@ export default behavior("list effects", [
       ]
     }),
 
+  example(renderContext<BooleanListContext>())
+    .description("list with boolean attributes")
+    .script({
+      suppose: [
+        fact("there is state", (context) => {
+          context.setState({
+            items: container({ initialValue: [false, true, false] })
+          })
+        }),
+        fact("a list is displayed based on the state", (context) => {
+          context.mountView((root) => {
+            root.form(el => {
+              el.children.select(el => {
+                el.children.subviews(get => get(context.state.items), (item, index) => root => {
+                  root.option(el => {
+                    el.config
+                      .disabled(false)
+                      .inert(true)
+                      .selected(get => get(item))
+                    el.children
+                      .textNode(get => `Item ${get(index) + 1}`)
+                  })
+                })
+              })
+            })
+          })
+        })
+      ],
+      observe: [
+        effect("the false static boolean attributes are not rendered", async () => {
+          await expect(selectElements("[disabled]").count(), resolvesTo(0))
+        }),
+        effect("the true static boolean attributes are rendered", async () => {
+          await expect(selectElements("[inert]").count(), resolvesTo(3))
+        }),
+        effect("the reactive boolean attribute is rendered when true", async () => {
+          await expect(selectElements("[selected]").texts(), resolvesTo([
+            "Item 2"
+          ]))
+        })
+      ]
+    }),
+
+  example(renderContext<ListContext>())
+    .description("list with aria attributes")
+    .script({
+      suppose: [
+        fact("there is state", (context) => {
+          context.setState({
+            items: container({ initialValue: ["cat", "elephant"] })
+          })
+        }),
+        fact("a list is displayed", (context) => {
+          function itemView(item: State<string>): HTMLView {
+            return root => {
+              root.div(el => {
+                el.config
+                  .aria("label", get => get(item))
+                  .aria("disabled", "false")
+                el.children.textNode(get => `Hello: ${get(item)}`)
+              })
+            }
+          }
+
+          context.mountView(root => {
+            root.subviews(get => get(context.state.items), itemView)
+          })
+        })
+      ],
+      observe: [
+        effect("the aria attributes are displayed", async () => {
+          await expect(selectElements("DIV").map(el => el.attribute("aria-label")), resolvesTo([
+            "cat", "elephant"
+          ]))
+          await expect(selectElements("DIV").map(el => el.attribute("aria-disabled")), resolvesTo([
+            "false", "false"
+          ]))
+        })
+      ]
+    }),
+
+  example(renderContext<ListContext>())
+    .description("list with sibling inner html")
+    .script({
+      suppose: [
+        fact("there is state", (context) => {
+          context.setState({
+            items: container({ initialValue: ["cat", "elephant"] })
+          })
+        }),
+        fact("a list is displayed", (context) => {
+          function itemView(item: State<string>): HTMLView {
+            return root => {
+              root.section(el => {
+                el.children
+                  .h3(el => el.config.innerHTML("<b>Fun Stuff!</b>"))
+                  .div(el => {
+                    el.config
+                      .innerHTML(get => `<p>${get(item)}</p>`)
+                  })
+              })
+            }
+          }
+
+          context.mountView(root => {
+            root.subviews(get => get(context.state.items), itemView)
+          })
+        })
+      ],
+      observe: [
+        effect("the inner html is displayed", async () => {
+          await expect(selectElements("SECTION H3 B").texts(), resolvesTo([
+            "Fun Stuff!", "Fun Stuff!"
+          ]))
+          await expect(selectElements("SECTION DIV P").texts(), resolvesTo([
+            "cat", "elephant"
+          ]))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("update the state", context => {
+          context.writeTo(context.state.items, ["awesome", "cool", "fun"])
+        })
+      ],
+      observe: [
+        effect("the inner html updates", async () => {
+          await expect(selectElements("SECTION DIV P").texts(), resolvesTo([
+            "awesome", "cool", "fun"
+          ]))
+        })
+      ]
+    }),
+
   example(renderContext<ListContext>())
     .description("simple list with properties")
     .script({
@@ -170,6 +308,48 @@ export default behavior("list effects", [
       observe: [
         effect("the view is rendered with the correct property", async () => {
           await expect(selectElement("li").property("className"), resolvesTo("style-dog"))
+        })
+      ]
+    }),
+
+  example(renderContext<ListContext>())
+    .description("list with subviews")
+    .script({
+      suppose: [
+        fact("there is state", (context) => {
+          context.setState({
+            items: container({ initialValue: ["cat", "mouse"] })
+          })
+        }),
+        fact("a list is displayed based on the state", (context) => {
+          function decorativeText(text: State<string>): HTMLView {
+            return root => {
+              root.b(el => {
+                el.children.textNode(get => get(text))
+              })
+            }
+          }
+
+          function itemView(item: State<string>): HTMLView {
+            return root => {
+              root.li(li => {
+                li.children.subview(decorativeText(item))
+              })
+            }
+          }
+
+          context.mountView((root) => {
+            root.ul(el => {
+              el.children.subviews(get => get(context.state.items), itemView)
+            })
+          })
+        })
+      ],
+      observe: [
+        effect("the subviews are rendered", async () => {
+          await expect(selectElements("b").texts(), resolvesTo([
+            "cat", "mouse"
+          ]))
         })
       ]
     }),

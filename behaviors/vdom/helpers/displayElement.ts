@@ -41,11 +41,12 @@ export class DisplayElementList {
 export class DisplayElement {
   constructor(private selector: string, private index: number) { }
 
-  text(): Promise<string> {
-    return usePage((page, opt) => page.locator(opt.selector).nth(opt.index).innerText({ timeout: 200 }), {
+  async text(): Promise<string> {
+    const text = await usePage((page, opt) => page.locator(opt.selector).nth(opt.index).textContent({ timeout: 200 }), {
       selector: this.selector,
       index: this.index
     })
+    return text ?? ""
   }
 
   async attribute(name: string): Promise<string | undefined> {

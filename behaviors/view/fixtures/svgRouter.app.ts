@@ -1,5 +1,5 @@
 import { container, write } from "@store/index.js";
-import { HTMLBuilder, SVGBuilder } from "@view/index.js";
+import { HTMLBuilder, svg, SVGBuilder } from "@view/index.js";
 
 enum Shape {
   None = "none",
@@ -77,7 +77,7 @@ export default function (root: HTMLBuilder) {
           })
       })
       .hr()
-      .svg(el => {
+      .subview(svg(el => {
         el.config
           .width("300")
           .height("200")
@@ -86,6 +86,6 @@ export default function (root: HTMLBuilder) {
           .when(get => get(currentShape) === "circle", circleView)
           .when(get => get(currentShape) === "rectangle", rectangleView)
         )
-      })
+      }))
   })
 }

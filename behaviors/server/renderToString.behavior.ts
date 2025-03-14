@@ -12,7 +12,7 @@ export default behavior("Render view to HTML string", [
   }),
   renderTest("render view with properties and attributes", (renderer) => {
     const actual = renderer.renderView(appWithPropertiesAndAttributes({ name: "Awesome Person", age: 99 }))
-    expect(actual, is(equalTo(`<div id="element-1"><div data-person="Awesome Person" class="my-class another-class">99 years old</div></div>`)))
+    expect(actual, is(equalTo(`<div id="element-1"><div class="my-class another-class" data-person="Awesome Person">99 years old</div></div>`)))
   }),
   renderTest("render view with data attribute that has no value", (renderer) => {
     const actual = renderer.renderView(appWithDataAttributesNoValue({ name: "Funny Dude", age: 11 }))
@@ -84,6 +84,32 @@ export default behavior("Render view to HTML string", [
       })
     })
     expect(actual, is(equalTo(`<main><hr><img src="/assets/myImg.png"></main>`)))
+  }),
+  renderTest("ignore stateful boolean attribute that is false", (renderer) => {
+    const coolness = container({ initialValue: false })
+    const actual = renderer.renderView(root => {
+      root.form(el => {
+        el.children.input(el => {
+          el.config
+            .type("text")
+            .disabled(get => get(coolness))
+        })
+      })
+    })
+    expect(actual, is(equalTo(`<form><input type="text"></form>`)))
+  }),
+  renderTest("render stateful boolean attribute that is true", (renderer) => {
+    const coolness = container({ initialValue: true })
+    const actual = renderer.renderView(root => {
+      root.form(el => {
+        el.children.input(el => {
+          el.config
+            .type("text")
+            .disabled(get => get(coolness))
+        })
+      })
+    })
+    expect(actual, is(equalTo(`<form><input type="text" disabled=""></form>`)))
   })
 ])
 

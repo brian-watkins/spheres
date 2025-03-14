@@ -1,7 +1,6 @@
 import { ariaAttributes } from "aria-attributes"
 import { voidHtmlTags } from "html-tags"
 import { Project, VariableDeclarationKind } from "ts-morph"
-import { booleanAttributes } from "./booleanAttributes"
 import { svgTagNames } from "svg-tag-names"
 import { svgElementAttributes } from "svg-element-attributes"
 import { toCamel } from "./helpers"
@@ -28,61 +27,68 @@ elementDataFile.addTypeAlias({
 // Void Elements Set
 
 elementDataFile.addVariableStatement({
-  declarationKind: VariableDeclarationKind.Const,
+  declarationKind: VariableDeclarationKind.Let,
   declarations: [
     {
-      name: "voidElements",
-      type: "Set<string>",
-      initializer: "new Set()"
+      name: "voidElementData",
+      type: "Set<string> | undefined",
+      initializer: "undefined"
     }
-  ],
-  isExported: true
+  ]
 })
 
-elementDataFile.addStatements(voidHtmlTags.map(tag => `voidElements.add("${tag}")`))
-
-
-// Boolean Attributes Set
-
-elementDataFile.addVariableStatement({
-  declarationKind: VariableDeclarationKind.Const,
-  declarations: [
-    {
-      name: "booleanAttributes",
-      type: "Set<string>",
-      initializer: "new Set()"
-    }
-  ],
-  isExported: true
+elementDataFile.addFunction({
+  name: "voidElements",
+  returnType: "Set<string>",
+  isExported: true,
+  statements: [
+    "if (voidElementData === undefined) {",
+    `  const data = "${voidHtmlTags.join(",")}"`,
+    "  voidElementData = new Set(data.split(','))",
+    "}",
+    "return voidElementData"
+  ]
 })
-
-elementDataFile.addStatements(booleanAttributes.map(attr => `booleanAttributes.add("${attr}")`))
 
 
 // SVG Attribute names
 const kebabAttributes = new Set<string>()
 
 elementDataFile.addVariableStatement({
-  declarationKind: VariableDeclarationKind.Const,
+  declarationKind: VariableDeclarationKind.Let,
   declarations: [
     {
-      name: "svgAttributeNames",
-      type: "Map<string, string>",
-      initializer: "new Map()"
+      name: "svgAttributeData",
+      type: "Map<string, string> | undefined",
+      initializer: "undefined"
     }
-  ],
-  isExported: true
+  ]
 })
 
+const svgAttributeStatements: Array<string> = []
 for (const tag of svgTagNames) {
   for (const attribute of svgElementAttributes[tag]) {
     if (kebabAttributes.has(attribute)) continue
 
     if (attribute.includes("-")) {
       kebabAttributes.add(attribute)
-      elementDataFile.addStatements(`svgAttributeNames.set("${toCamel(attribute)}", "${attribute}")`)
+      svgAttributeStatements.push(`  svgAttributeData.set("${toCamel(attribute)}", "${attribute}")`)
     }
   }
 }
+
+elementDataFile.addFunction({
+  name: "svgAttributeNames",
+  returnType: "Map<string, string>",
+  isExported: true,
+  statements: [
+    "if (svgAttributeData === undefined) {",
+    "  svgAttributeData = new Map()",
+    ...svgAttributeStatements,
+    "}",
+    "return svgAttributeData"
+  ]
+})
+
 
 project.save()

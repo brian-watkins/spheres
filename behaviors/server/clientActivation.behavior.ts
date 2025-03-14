@@ -263,9 +263,15 @@ export default behavior("client activation of server rendered views", [
           await context.browser.loadApp()
         })
       ],
+      observe: [
+        effect("the default value is set on the input element", async (context) => {
+          await expect(context.browser.display.select("[data-item-input]").inputValue(), resolvesTo("provided by server"))
+        })
+      ]
+    }).andThen({
       perform: [
         step("add a new item to the list", async (context) => {
-          await context.browser.display.select("[data-item-input]").type("Super Cool Thing")
+          await context.browser.display.select("[data-item-input]").type("Super Cool Thing", { clear: true })
           await context.browser.display.select("[data-item-submit]").click()
         })
       ],

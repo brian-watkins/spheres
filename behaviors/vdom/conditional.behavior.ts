@@ -157,6 +157,37 @@ export default behavior("conditional zone", [
       ]
     }),
 
+  example(renderContext())
+    .description("conditional view with data attributes")
+    .script({
+      suppose: [
+        fact("there is a view with data attributes", (context) => {
+          context.mountView(root => {
+            root.main(el => {
+              el.children.subviewOf(selector => {
+                selector.default(root => {
+                  root.div(el => {
+                    el.config
+                      .dataAttribute("blah")
+                      .dataAttribute("name", "cool dude")
+                    el.children.textNode("Yo!")
+                  })
+                })
+              })
+            })
+          })
+        })
+      ],
+      observe: [
+        effect("the data attribute with no value is rendered", async () => {
+          await expect(selectElement("DIV[data-blah='true']").exists(), resolvesTo(true))
+        }),
+        effect("the data attribute with a value is rendered", async () => {
+          await expect(selectElement("DIV[data-name='cool dude']").exists(), resolvesTo(true))
+        })
+      ]
+    }),
+
   example(renderContext<Container<boolean>>())
     .description("multiple conditional views with events")
     .script({

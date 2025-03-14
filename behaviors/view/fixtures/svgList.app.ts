@@ -1,5 +1,5 @@
 import { State, container, use, write } from "@store/index.js";
-import { HTMLBuilder, SVGView } from "@view/index.js";
+import { HTMLBuilder, svg, SVGView } from "@view/index.js";
 
 interface Circle {
   label: string
@@ -30,19 +30,19 @@ const circleData = container<Array<Circle>, ListUpdate>({
 export default function (root: HTMLBuilder) {
   root.main(el => {
     el.children.
-      svg(el => {
+      subview(svg(el => {
         el.config
           .width("500")
           .height("300")
-        el.children.
-          rect(el => {
+        el.children
+          .rect(el => {
             el.config
               .width("100%")
               .height("100%")
               .fill("red")
           })
           .subviews(get => get(circleData), circleView)
-      })
+      }))
   })
 }
 

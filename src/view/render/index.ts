@@ -2,13 +2,17 @@ import { StoreMessage } from "../../store/message.js"
 
 export type StoreEventHandler<T> = (evt: Event) => StoreMessage<T>
 
+export enum DOMEventType {
+  Element, Template
+}
+
 export interface DOMEvent {
-  location: "element" | "template"
+  type: DOMEventType
   handler: StoreEventHandler<any>
 }
 
 export interface Zone {
-  addEvent(location: DOMEvent["location"], elementId: string, eventType: string, handler: StoreEventHandler<any>): void
+  addEvent(type: DOMEventType, elementId: string, eventType: string, handler: StoreEventHandler<any>): void
 }
 
 export interface RenderResult {

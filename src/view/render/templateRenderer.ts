@@ -1,4 +1,4 @@
-import { DOMEvent, EventsToDelegate, StoreEventHandler, Zone } from "./index.js";
+import { DOMEvent, DOMEventType, EventsToDelegate, StoreEventHandler, Zone } from "./index.js";
 import { Stateful, GetState, State } from "../../store/index.js";
 import { dispatchMessage } from "../../store/message.js";
 import { initListener, TokenRegistry } from "../../store/tokenRegistry.js";
@@ -18,30 +18,13 @@ import { AbstractSelectorBuilder, TemplateSelector } from "./selectorBuilder.js"
 import { DOMTemplate, EffectTemplate, TemplateType } from "./domTemplate.js";
 
 
-export function initListEffect(
-  delegate: ViewRendererDelegate,
-  zone: Zone,
-  registry: TokenRegistry,
-  elementId: string,
-  listStart: Node,
-  listEnd: Node,
-  data: (get: GetState) => Array<any>,
-  viewGenerator: (item: State<any>, index?: State<number>) => ViewDefinition
-): void {
-  const renderer = new DomTemplateRenderer(delegate, zone, new IdSequence(elementId), new EffectLocation(root => root))
-  const templateContext = new ListItemTemplateContext(renderer, viewGenerator)
-
-  const effect = new ListEffect(zone, registry, renderer.template, data, templateContext, listStart, listEnd)
-  initListener(effect)
-}
-
 export class DomTemplateRenderer extends AbstractViewRenderer {
   public effectTemplates: Array<EffectTemplate> = []
   public templateType: TemplateType = TemplateType.Other
   private templateElement: HTMLTemplateElement | undefined
   private root: Node
 
-  constructor(delegate: ViewRendererDelegate, private zone: Zone, private idSequence: IdSequence, private location: EffectLocation, root?: Node, private eventType: DOMEvent["location"] = "template") {
+  constructor(delegate: ViewRendererDelegate, private zone: Zone, private idSequence: IdSequence, private location: EffectLocation, root?: Node, private eventType: DOMEventType = DOMEventType.Template) {
     super(delegate)
     if (root === undefined) {
       this.templateElement = document.createElement("template")
@@ -156,7 +139,7 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
 class DomTemplateConfig extends AbstractViewConfig {
   readonly effectTemplates: Array<EffectTemplate> = []
 
-  constructor(delegate: ViewConfigDelegate, private zone: Zone, private elementId: string, private element: Element, private location: EffectLocation, private eventType: DOMEvent["location"]) {
+  constructor(delegate: ViewConfigDelegate, private zone: Zone, private elementId: string, private element: Element, private location: EffectLocation, private eventType: DOMEvent["type"]) {
     super(delegate)
   }
 
@@ -183,7 +166,6 @@ class DomTemplateConfig extends AbstractViewConfig {
   on<E extends keyof HTMLElementEventMap | string>(event: E, handler: StoreEventHandler<any>): this {
     if (EventsToDelegate.has(event)) {
       setEventAttribute(this.element, event, this.elementId)
-      // somehow if we haven't gone inside a sub-template we should use "element"
       this.zone.addEvent(this.eventType, this.elementId, event, handler)
     } else {
       this.effectTemplates.push(new EventEffectTemplate(event, handler, this.location))
@@ -195,7 +177,7 @@ class DomTemplateConfig extends AbstractViewConfig {
 class TextEffectTemplate implements EffectTemplate {
   constructor(private generator: Stateful<string>, private location: EffectLocation) { }
 
-  attach(_: Zone, registry: TokenRegistry, root: Node) {
+  attach(registry: TokenRegistry, root: Node) {
     const effect = new UpdateTextEffect(registry, this.location.findNode(root) as Text, this.generator)
     initListener(effect)
   }
@@ -204,7 +186,7 @@ class TextEffectTemplate implements EffectTemplate {
 class AttributeEffectTemplate implements EffectTemplate {
   constructor(private generator: Stateful<string>, private attribute: string, private location: EffectLocation) { }
 
-  attach(_: Zone, registry: TokenRegistry, root: Node) {
+  attach(registry: TokenRegistry, root: Node) {
     const effect = new UpdateAttributeEffect(registry, this.location.findNode(root) as Element, this.attribute, this.generator)
     initListener(effect)
   }
@@ -213,7 +195,7 @@ class AttributeEffectTemplate implements EffectTemplate {
 class PropertyEffectTemplate implements EffectTemplate {
   constructor(private generator: Stateful<string | boolean>, private property: string, private location: EffectLocation) { }
 
-  attach(_: Zone, registry: TokenRegistry, root: Node) {
+  attach(registry: TokenRegistry, root: Node) {
     const effect = new UpdatePropertyEffect(registry, this.location.findNode(root) as Element, this.property, this.generator)
     initListener(effect)
   }
@@ -228,11 +210,11 @@ class ListEffectTemplate implements EffectTemplate {
     private location: EffectLocation
   ) { }
 
-  attach(zone: Zone, registry: TokenRegistry, root: Node) {
+  attach(registry: TokenRegistry, root: Node) {
     const listStartIndicatorNode = this.location.findNode(root)
     const end = findListEndNode(listStartIndicatorNode, this.elementId)
 
-    const effect = new ListEffect(zone, registry, this.domTemplate, this.query, this.templateContext, listStartIndicatorNode, end)
+    const effect = new ListEffect(registry, this.domTemplate, this.query, this.templateContext, listStartIndicatorNode, end)
     initListener(effect)
   }
 }
@@ -240,11 +222,11 @@ class ListEffectTemplate implements EffectTemplate {
 class StatefulSelectEffectTemplate implements EffectTemplate {
   constructor(private selectors: Array<TemplateSelector<DOMTemplate>>, private elementId: string, private location: EffectLocation) { }
 
-  attach(zone: Zone, registry: TokenRegistry, root: Node): void {
+  attach(registry: TokenRegistry, root: Node): void {
     const startNode = this.location.findNode(root)
     const endNode = findSwitchEndNode(startNode, this.elementId)
 
-    const effect = new SelectViewEffect(zone, registry, this.selectors, startNode, endNode)
+    const effect = new SelectViewEffect(registry, this.selectors, startNode, endNode)
     initListener(effect)
   }
 }
@@ -252,7 +234,7 @@ class StatefulSelectEffectTemplate implements EffectTemplate {
 class EventEffectTemplate implements EffectTemplate {
   constructor(private eventType: string, private handler: StoreEventHandler<any>, private location: EffectLocation) { }
 
-  attach(_: Zone, registry: TokenRegistry, root: Node): void {
+  attach(registry: TokenRegistry, root: Node): void {
     const element = this.location.findNode(root)
     element.addEventListener(this.eventType, (evt) => {
       const message = this.handler(evt)

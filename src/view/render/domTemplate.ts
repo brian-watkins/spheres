@@ -1,8 +1,8 @@
 import { TokenRegistry } from "../../store/tokenRegistry.js"
-import { spheresTemplateData, Zone } from "./index.js"
+import { spheresTemplateData } from "./index.js"
 
 export interface EffectTemplate {
-  attach(zone: Zone, registry: TokenRegistry, root: Node): void
+  attach(registry: TokenRegistry, root: Node): void
 }
 
 export enum TemplateType {
@@ -20,11 +20,11 @@ export class DOMTemplate {
     this.isFragment = type === TemplateType.List || type === TemplateType.Select
   }
 
-  render(zone: Zone, registry: TokenRegistry): Node {
+  render(registry: TokenRegistry): Node {
     const fragment = this.element.content.cloneNode(true)
 
     for (const effect of this.effects) {
-      effect.attach(zone, registry, fragment.firstChild!)
+      effect.attach(registry, fragment.firstChild!)
     }
 
     if (this.isFragment) {
@@ -39,9 +39,9 @@ export class DOMTemplate {
     return rootElement
   }
 
-  activate(zone: Zone, registry: TokenRegistry, root: Node) {
+  activate(registry: TokenRegistry, root: Node) {
     for (const effect of this.effects) {
-      effect.attach(zone, registry, root)
+      effect.attach(registry, root)
     }
   
     if (!this.isFragment) {

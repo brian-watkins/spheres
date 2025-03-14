@@ -1,4 +1,4 @@
-import { EventsToDelegate, StoreEventHandler, Zone } from "./index.js";
+import { DOMEventType, EventsToDelegate, StoreEventHandler, Zone } from "./index.js";
 import { Stateful, GetState, State } from "../../store/index.js";
 import { dispatchMessage } from "../../store/message.js";
 import { initListener, TokenRegistry } from "../../store/tokenRegistry.js";
@@ -8,9 +8,13 @@ import { SelectViewEffect } from "./effects/selectViewEffect.js";
 import { UpdateTextEffect } from "./effects/textEffect.js";
 import { getEventAttribute } from "./eventHelpers.js";
 import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementId } from "./fragmentHelpers.js";
-import { DomTemplateSelectorBuilder, initListEffect } from "./templateRenderer.js";
+import { DomTemplateRenderer, DomTemplateSelectorBuilder } from "./templateRenderer.js";
 import { AbstractViewConfig, ViewConfigDelegate } from "./viewConfig.js";
 import { AbstractViewRenderer, ElementDefinition, isStateful, ViewDefinition, ViewRendererDelegate, ViewSelector } from "./viewRenderer.js";
+import { IdSequence } from "./idSequence.js";
+import { EffectLocation } from "./effectLocation.js";
+import { ListItemTemplateContext } from "./templateContext.js";
+import { ListEffect } from "./effects/listEffect.js";
 
 export class ActivateDomRenderer extends AbstractViewRenderer {
   private currentNode: Node | null
@@ -46,7 +50,11 @@ export class ActivateDomRenderer extends AbstractViewRenderer {
     const elementId = getListElementId(this.currentNode!)
     let end = findListEndNode(this.currentNode!, elementId)
 
-    initListEffect(this.delegate, this.zone, this.registry, elementId, this.currentNode!, end, data, viewGenerator)
+    const renderer = new DomTemplateRenderer(this.delegate, this.zone, new IdSequence(elementId), new EffectLocation(root => root))
+    const templateContext = new ListItemTemplateContext(renderer, viewGenerator)
+
+    const effect = new ListEffect(this.registry, renderer.template, data, templateContext, this.currentNode!, end)
+    initListener(effect)
 
     this.currentNode = end.nextSibling
 
@@ -60,7 +68,7 @@ export class ActivateDomRenderer extends AbstractViewRenderer {
     const selectorBuilder = new DomTemplateSelectorBuilder(this.delegate, this.zone, elementId)
     selectorGenerator(selectorBuilder)
 
-    const effect = new SelectViewEffect(this.zone, this.registry, selectorBuilder.selectors, this.currentNode!, end)
+    const effect = new SelectViewEffect(this.registry, selectorBuilder.selectors, this.currentNode!, end)
     initListener(effect)
 
     this.currentNode = end.nextSibling
@@ -94,7 +102,7 @@ class ActivateDomConfig extends AbstractViewConfig {
   on<E extends keyof HTMLElementEventMap | string>(event: E, handler: StoreEventHandler<any>): this {
     if (EventsToDelegate.has(event)) {
       const elementId = getEventAttribute(this.element, event)
-      this.zone.addEvent("element", elementId, event, handler)
+      this.zone.addEvent(DOMEventType.Element, elementId, event, handler)
     } else {
       this.element.addEventListener(event, (evt) => {
         dispatchMessage(this.registry, handler(evt))

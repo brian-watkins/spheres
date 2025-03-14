@@ -1,4 +1,4 @@
-import { DOMEvent, RenderResult, spheresTemplateData, StoreEventHandler, Zone } from "./index.js"
+import { DOMEvent, DOMEventType, RenderResult, spheresTemplateData, StoreEventHandler, Zone } from "./index.js"
 import { dispatchMessage } from "../../store/message.js"
 import { TokenRegistry } from "../../store/tokenRegistry.js"
 import { getEventAttribute, getNearestElementHandlingEvent } from "./eventHelpers.js"
@@ -10,9 +10,9 @@ export class DOMRoot implements Zone, RenderResult {
 
   constructor(readonly registry: TokenRegistry, readonly root: Element) { }
 
-  addEvent(location: DOMEvent["location"], elementId: string, eventType: string, handler: StoreEventHandler<any>) {
+  addEvent(location: DOMEventType, elementId: string, eventType: string, handler: StoreEventHandler<any>) {
     this.setupEventHandler(eventType)
-    this.events.set(`${eventType}-${elementId}`, { location, handler })
+    this.events.set(`${eventType}-${elementId}`, { type: location, handler })
   }
 
   private setupEventHandler(eventType: string) {
@@ -34,11 +34,11 @@ export class DOMRoot implements Zone, RenderResult {
       if (element) {
         const elementId = getEventAttribute(element, eventType)
         const domEvent = this.events.get(`${eventType}-${elementId}`)
-        switch (domEvent?.location) {
-          case "element":
+        switch (domEvent?.type) {
+          case DOMEventType.Element:
             dispatchMessage(this.registry, domEvent.handler(evt))
             break
-          case "template":
+          case DOMEventType.Template:
             const root = element.closest(`[data-spheres-template]`)!
             //@ts-ignore
             const registry = root[spheresTemplateData]
@@ -52,23 +52,23 @@ export class DOMRoot implements Zone, RenderResult {
 
   unmount() {
     this.eventController.abort()
-    this.clear()
+    clearRoot(this)
   }
+}
 
-  clear() {
-    while (this.root.hasChildNodes()) {
-      this.root.removeChild(this.root.lastChild!)
-    }
+export function clearRoot(domRoot: DOMRoot) {
+  while (domRoot.root.hasChildNodes()) {
+    domRoot.root.removeChild(domRoot.root.lastChild!)
   }
+}
 
-  clean() {
-    for (let i = 0; i < this.root.childNodes.length; i++) {
-      const node = this.root.childNodes[i]
-      if (node.nodeType === 3 && node.nodeValue?.trim() === "") {
-        this.root.removeChild(node)
-      } else {
-        break
-      }
+export function cleanRoot(domRoot: DOMRoot) {
+  for (let i = 0; i < domRoot.root.childNodes.length; i++) {
+    const node = domRoot.root.childNodes[i]
+    if (node.nodeType === 3 && node.nodeValue?.trim() === "") {
+      domRoot.root.removeChild(node)
+    } else {
+      break
     }
   }
 }

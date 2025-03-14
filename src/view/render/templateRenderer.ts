@@ -1,4 +1,4 @@
-import { EventsToDelegate, StoreEventHandler, Zone } from "./index.js";
+import { DOMEvent, EventsToDelegate, StoreEventHandler, Zone } from "./index.js";
 import { Stateful, GetState, State } from "../../store/index.js";
 import { dispatchMessage } from "../../store/message.js";
 import { initListener, TokenRegistry } from "../../store/tokenRegistry.js";
@@ -41,7 +41,7 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
   private templateElement: HTMLTemplateElement | undefined
   private root: Node
 
-  constructor(delegate: ViewRendererDelegate, private zone: Zone, private idSequence: IdSequence, private location: EffectLocation, root?: Node) {
+  constructor(delegate: ViewRendererDelegate, private zone: Zone, private idSequence: IdSequence, private location: EffectLocation, root?: Node, private eventType: DOMEvent["location"] = "template") {
     super(delegate)
     if (root === undefined) {
       this.templateElement = document.createElement("template")
@@ -83,13 +83,13 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
       this.location = this.root.hasChildNodes() ? this.location.nextSibling() : this.location.firstChild()
     }
 
-    const config = new DomTemplateConfig(this.delegate.getConfigDelegate(tag), this.zone, elementId, element, this.location)
+    const config = new DomTemplateConfig(this.delegate.getConfigDelegate(tag), this.zone, elementId, element, this.location, this.eventType)
 
     if (this.templateElement !== undefined) {
       config.attribute("data-spheres-template", "")
     }
 
-    const children = new DomTemplateRenderer(this.delegate, this.zone, this.idSequence, this.location, element)
+    const children = new DomTemplateRenderer(this.delegate, this.zone, this.idSequence, this.location, element, this.eventType)
 
     builder?.({
       config: config,
@@ -156,7 +156,7 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
 class DomTemplateConfig extends AbstractViewConfig {
   readonly effectTemplates: Array<EffectTemplate> = []
 
-  constructor(delegate: ViewConfigDelegate, private zone: Zone, private elementId: string, private element: Element, private location: EffectLocation) {
+  constructor(delegate: ViewConfigDelegate, private zone: Zone, private elementId: string, private element: Element, private location: EffectLocation, private eventType: DOMEvent["location"]) {
     super(delegate)
   }
 
@@ -183,7 +183,8 @@ class DomTemplateConfig extends AbstractViewConfig {
   on<E extends keyof HTMLElementEventMap | string>(event: E, handler: StoreEventHandler<any>): this {
     if (EventsToDelegate.has(event)) {
       setEventAttribute(this.element, event, this.elementId)
-      this.zone.addEvent("template", this.elementId, event, handler)
+      // somehow if we haven't gone inside a sub-template we should use "element"
+      this.zone.addEvent(this.eventType, this.elementId, event, handler)
     } else {
       this.effectTemplates.push(new EventEffectTemplate(event, handler, this.location))
     }

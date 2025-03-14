@@ -7,7 +7,7 @@ import { HTMLBuilder, HTMLView } from "@view/index.js";
 
 export default behavior("event handlers", [
 
-  example(renderContext<Container<number>>())
+  (m) => m.pick() && example(renderContext<Container<number>>())
     .description("mount an element with an event handler")
     .script({
       suppose: [

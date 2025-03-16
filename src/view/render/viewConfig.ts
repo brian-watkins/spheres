@@ -15,7 +15,7 @@ export interface ViewConfigDelegate {
   defineAttribute(config: ViewConfig, name: string, value: string | boolean | Stateful<string | boolean>): ViewConfig
 }
 
-export abstract class AbstractViewConfig implements ViewConfig {
+abstract class BaseViewConfig implements ViewConfig {
   constructor(protected delegate: ViewConfigDelegate) { }
 
   dataAttribute(name: string, value: string | Stateful<string> = "true"): this {
@@ -37,14 +37,21 @@ export abstract class AbstractViewConfig implements ViewConfig {
   abstract on<E extends keyof HTMLElementEventMap | string>(event: E, handler: StoreEventHandler<any>): this
 }
 
-const MagicConfig = new Proxy({}, {
-  get: (_, prop, receiver) => {
-    const attribute = prop as string
-    return function (value: string | Stateful<string>) {
-      receiver.delegate.defineAttribute(receiver, attribute, value)
-      return receiver
-    }
+export const AbstractViewConfig = new Proxy(BaseViewConfig, {
+  construct(targetClass, args, newInstanceClass) {
+    const obj = Reflect.construct(targetClass, args, newInstanceClass)
+    return new Proxy(obj, {
+      get: function (target, prop, receiver) {
+        if (Reflect.has(obj, prop)) {
+          return Reflect.get(target, prop, receiver)
+        }
+        else {
+          return function (value: string | Stateful<string>) {
+            target.delegate.defineAttribute(target, prop, value)
+            return receiver
+          }
+        }
+      }
+    })
   }
 })
-
-Object.setPrototypeOf(AbstractViewConfig.prototype, MagicConfig)

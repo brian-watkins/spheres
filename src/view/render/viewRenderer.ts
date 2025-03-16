@@ -37,7 +37,7 @@ export function isStateful<T>(value: T | Stateful<T>): value is Stateful<T> {
   return typeof value === "function"
 }
 
-export abstract class AbstractViewRenderer implements ViewRenderer {
+abstract class BaseViewRenderer implements ViewRenderer {
   constructor(protected delegate: ViewRendererDelegate) { }
 
   abstract textNode(value: string | Stateful<string>): this
@@ -58,12 +58,21 @@ export abstract class AbstractViewRenderer implements ViewRenderer {
   }
 }
 
-const MagicElements = new Proxy({}, {
-  get: (_, prop, receiver) => {
-    return function (builder?: <A extends SpecialElementAttributes, B>(element: ConfigurableElement<A, B>) => void) {
-      return receiver.element(prop as string, builder)
-    }
+export const AbstractViewRenderer = new Proxy(BaseViewRenderer, {
+  construct(targetClass, args, newInstanceClass) {
+    const obj = Reflect.construct(targetClass, args, newInstanceClass)
+    return new Proxy(obj, {
+      get: function (target, prop, receiver) {
+        if (Reflect.has(obj, prop)) {
+          return Reflect.get(target, prop, receiver)
+        }
+        else {
+          return function (builder?: <A extends SpecialElementAttributes, B>(element: ConfigurableElement<A, B>) => void) {
+            target.element(prop as string, builder)
+            return receiver
+          }
+        }
+      }
+    })
   }
 })
-
-Object.setPrototypeOf(AbstractViewRenderer.prototype, MagicElements)

@@ -1,4 +1,4 @@
-import { createStore } from "@store/index.js";
+import { createStore, useHooks } from "@store/index.js";
 import { activateView } from "@view/index";
 import { view } from "./view";
 import { tokenMap } from "./state";
@@ -6,10 +6,10 @@ import { tokenMap } from "./state";
 const store = createStore()
 store.deserialize(tokenMap)
 
-store.useHooks({
+useHooks(store, {
   onRegister() {
     // do something with the container
-  },
+  }
 })
 
 activateView(store, document.body, view)

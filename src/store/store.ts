@@ -71,31 +71,18 @@ export class Store {
     return this.registry
   }
 
+  set [tokenRegistry](registry: TokenRegistry) {
+    this.registry = registry
+  }
+
   dispatch(message: StoreMessage<any>) {
     dispatchMessage(this.registry, message)
   }
 
   useEffect(effect: ReactiveEffect): ReactiveEffectHandle {
-    const listener = new EffectListener(this[tokenRegistry], effect)
+    const listener = new EffectListener(this.registry, effect)
     initListener(listener)
     return listener
-  }
-
-  useHooks(hooks: StoreHooks) {
-    this.registry = new Proxy(this.registry, {
-      get(target, prop, receiver) {
-        if (prop === "registerState") {
-          return (token: State<any>, initialValue?: any): StatePublisher<any> => {
-            const controller = target.registerState(token, initialValue)
-            if (token instanceof Container) {
-              hooks.onRegister(token)
-            }
-            return controller
-          }
-        }
-        return Reflect.get(target, prop, receiver)
-      },
-    })
   }
 
   useCommand<M>(command: Command<M>, manager: CommandManager<M>) {
@@ -147,6 +134,25 @@ export class Store {
       }
     }
   }
+}
+
+export function useHooks(store: Store, hooks: StoreHooks) {
+  const registryWithHooks = new Proxy(getTokenRegistry(store), {
+    get(target, prop, receiver) {
+      if (prop === "registerState") {
+        return (token: State<any>, initialValue?: any): StatePublisher<any> => {
+          const controller = target.registerState(token, initialValue)
+          if (token instanceof Container) {
+            hooks.onRegister(token)
+          }
+          return controller
+        }
+      }
+      return Reflect.get(target, prop, receiver)
+    },
+  })
+
+  store[tokenRegistry] = registryWithHooks
 }
 
 interface SerializedValue {

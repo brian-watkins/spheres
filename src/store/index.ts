@@ -7,7 +7,8 @@ export {
   type Store,
   type ReactiveEffect,
   type ReactiveEffectHandle,
-  createStore
+  createStore,
+  useHooks
 } from "./store.js"
 export {
   type Command,

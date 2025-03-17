@@ -91,9 +91,11 @@ export class Store {
     command[initializeCommand](this.registry)
   }
 
-  initialize<S, T, M, E = unknown>(container: Container<T, M, E>, initializer: (actions: Initializer<T, M, E>) => S): S {
-    return initializer(initializerActions(this.registry, container))
-  }
+}
+
+export function initialize<S, T, M, E = unknown>(store: Store, container: Container<T, M, E>, initializer: (actions: Initializer<NoInfer<T>, NoInfer<M>, NoInfer<E>>) => S): S {
+  const registry = getTokenRegistry(store)
+  return initializer(initializerActions(registry, container))
 }
 
 export function useHooks(store: Store, hooks: StoreHooks) {
@@ -115,7 +117,7 @@ export function useHooks(store: Store, hooks: StoreHooks) {
   store[tokenRegistry] = registryWithHooks
 }
 
-export function useContainerHooks<T, M, E>(store: Store, container: Container<T, M>, hooks: ContainerHooks<T, M, E>) {
+export function useContainerHooks<T, M, E>(store: Store, container: Container<T, M>, hooks: ContainerHooks<NoInfer<T>, NoInfer<M>, NoInfer<E>>) {
   const registry = getTokenRegistry(store)
   const writerWithHooks = stateWriterWithHooks(registry, container, registry.get<StateWriter<any>>(container), hooks)
   registry.set(container, writerWithHooks)

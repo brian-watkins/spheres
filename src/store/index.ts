@@ -10,6 +10,7 @@ export {
   createStore,
   useHooks,
   useContainerHooks,
+  initialize,
   deserialize,
   serialize
 } from "./store.js"

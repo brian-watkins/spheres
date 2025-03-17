@@ -1,4 +1,4 @@
-import { Container, State, Store, write, StoreMessage, batch, GetState, reset, Command, CommandActions, ContainerHooks, ReactiveEffect, createStore, useContainerHooks } from "@store/index.js"
+import { Container, State, Store, write, StoreMessage, batch, GetState, reset, Command, CommandActions, ContainerHooks, ReactiveEffect, createStore, useContainerHooks, initialize, Initializer } from "@store/index.js"
 import { Context } from "best-behavior"
 
 export function testStoreContext<T>(): Context<TestStore<T>> {
@@ -24,6 +24,10 @@ export class TestStore<T> {
 
   constructor() {
     this.store = createStore()
+  }
+
+  initialize<C, M, E, S>(container: Container<C, M, E>, initializer: (actions: Initializer<NoInfer<C>, NoInfer<M>, NoInfer<E>>) => S): S {
+    return initialize(this.store, container, initializer)
   }
 
   registerEffect(definition: (get: GetState) => any, name: string) {

@@ -10,7 +10,7 @@ export default behavior("serialize state", [
     .script({
       perform: [
         step("initialize meta state of container", (context) => {
-          context.store.initialize(token, actions => {
+          context.initialize(token, actions => {
             actions.error("Failed!")
           })
         }),

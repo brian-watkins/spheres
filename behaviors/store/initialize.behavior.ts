@@ -1,4 +1,4 @@
-import { container, supplied, write } from "@store/index.js";
+import { container, initialize, supplied, write } from "@store/index.js";
 import { behavior, effect, example, step } from "best-behavior";
 import { arrayWith, equalTo, expect, is, objectWithProperty } from "great-expectations";
 import { errorMessage, okMessage, pendingMessage } from "./helpers/metaMatchers";
@@ -11,7 +11,7 @@ export default behavior("initialize state", [
     .script({
       perform: [
         step("initialize the store", async (context) => {
-          await context.store.initialize(testContainer, (actions) => {
+          await context.initialize(testContainer, (actions) => {
             return new Promise<void>(resolve => setTimeout(() => {
               actions.supply("Fun Stuff!")
               resolve()
@@ -38,7 +38,7 @@ export default behavior("initialize state", [
     }).andThen({
       perform: [
         step("use existing state in initialization", (context) => {
-          context.store.initialize(anotherTestContainer, (actions) => {
+          context.initialize(anotherTestContainer, (actions) => {
             const length = actions.get(testContainer).length
             actions.supply(length)
           })
@@ -61,7 +61,7 @@ export default behavior("initialize state", [
     .script({
       perform: [
         step("initialize meta container values", async (context) => {
-          await context.store.initialize(testContainer, async (actions) => {
+          await initialize(context.store, testContainer, async (actions) => {
             actions.pending({ action: "Loading!" })
           })
         }),
@@ -91,7 +91,7 @@ export default behavior("initialize state", [
     .script({
       perform: [
         step("initialize meta container values", async (context) => {
-          await context.store.initialize(testContainer, async (actions) => {
+          await context.initialize(testContainer, async (actions) => {
             actions.error("No reason!", { action: "Loading!" })
           })
         }),
@@ -121,7 +121,7 @@ export default behavior("initialize state", [
     .script({
       perform: [
         step("initialize readonly container pending state", (context) => {
-          context.store.initialize(readonlyContainer, actions => {
+          context.initialize(readonlyContainer, actions => {
             actions.pending()
           })
         }),
@@ -147,7 +147,7 @@ export default behavior("initialize state", [
     }).andThen({
       perform: [
         step("initialize with an error", (context) => {
-          context.store.initialize(readonlyContainer, actions => {
+          context.initialize(readonlyContainer, actions => {
             actions.error("It failed!")
           })
         })
@@ -168,7 +168,7 @@ export default behavior("initialize state", [
     }).andThen({
       perform: [
         step("a value is supplied", (context) => {
-          context.store.initialize(readonlyContainer, actions => {
+          context.initialize(readonlyContainer, actions => {
             actions.supply(31)
           })
         })

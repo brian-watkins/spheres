@@ -1,4 +1,4 @@
-import { createStore, GetState, ReactiveEffect, write } from "spheres/store";
+import { createStore, GetState, ReactiveEffect, useEffect, write } from "spheres/store";
 import { Context } from "best-behavior";
 import { CellContainer, cellContainer } from "../../../../src/cells/state";
 import { Result } from "../../../../src/cells/result";
@@ -34,7 +34,7 @@ export class TestStore {
     this.store.dispatch(write(cell, definition))
     const effect = new CellValueEffect(cell)
     this.cellValues.set(id, effect)
-    this.store.useEffect(effect)
+    useEffect(this.store, effect)
   }
 
   updateCell(id: string, value: string) {

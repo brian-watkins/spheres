@@ -1,4 +1,4 @@
-import { Container, State, Store, write, StoreMessage, batch, GetState, reset, Command, CommandActions, ContainerHooks, ReactiveEffect, createStore, useContainerHooks, initialize, Initializer } from "@store/index.js"
+import { Container, State, Store, write, StoreMessage, batch, GetState, reset, Command, CommandActions, ContainerHooks, ReactiveEffect, createStore, useContainerHooks, initialize, Initializer, useEffect, useCommand } from "@store/index.js"
 import { Context } from "best-behavior"
 
 export function testStoreContext<T>(): Context<TestStore<T>> {
@@ -33,17 +33,17 @@ export class TestStore<T> {
   registerEffect(definition: (get: GetState) => any, name: string) {
     const effect = new StoreValuesEffect(definition)
     this.values.set(name, effect)
-    this.store.useEffect(effect)
+    useEffect(this.store, effect)
   }
 
   subscribeTo<S>(token: State<S>, name: string) {
     const query = new StoreValuesEffect((get) => get(token))
     this.values.set(name, query)
-    this.store.useEffect(query)
+    useEffect(this.store, query)
   }
 
   useCommand<M>(command: Command<M>, handler: (message: M, actions: CommandActions) => void) {
-    this.store.useCommand(command, { exec: handler })
+    useCommand(this.store, command, { exec: handler })
   }
 
   useContainerHooks<T, M>(token: Container<T, M>, hooks: ContainerHooks<T, M, any>) {

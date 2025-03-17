@@ -8,6 +8,8 @@ export {
   type ReactiveEffect,
   type ReactiveEffectHandle,
   createStore,
+  useEffect,
+  useCommand,
   useHooks,
   useContainerHooks,
   initialize,

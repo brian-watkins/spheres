@@ -1,6 +1,6 @@
 import { createStringRenderer } from "@server/index.js";
 import { view } from "./view";
-import { command, createStore, exec, serialize, write } from "@store/index.js";
+import { command, createStore, exec, serialize, useCommand, write } from "@store/index.js";
 import { items, suppliedTitle, tokenMap } from "./state";
 import { SSRParts } from "../../../helpers/ssrApp";
 
@@ -12,7 +12,7 @@ store.dispatch(write(items, [
 
 const getSuppliedState = command<void>()
 
-store.useCommand(getSuppliedState, {
+useCommand(store, getSuppliedState, {
   exec(_, actions) {
     actions.supply(suppliedTitle, "Fun Stuff!")
   }

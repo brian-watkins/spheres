@@ -78,19 +78,20 @@ export class Store {
   dispatch(message: StoreMessage<any>) {
     dispatchMessage(this.registry, message)
   }
+}
 
-  useEffect(effect: ReactiveEffect): ReactiveEffectHandle {
-    const listener = new EffectListener(this.registry, effect)
-    initListener(listener)
-    return listener
-  }
+export function useEffect(store: Store, effect: ReactiveEffect): ReactiveEffectHandle {
+  const registry = getTokenRegistry(store)
+  const listener = new EffectListener(registry, effect)
+  initListener(listener)
+  return listener
+}
 
-  useCommand<M>(command: Command<M>, manager: CommandManager<M>) {
-    const controller = new ManagedCommandController(this.registry, manager)
-    this.registry.set(command, controller)
-    command[initializeCommand](this.registry)
-  }
-
+export function useCommand<M>(store: Store, command: Command<M>, manager: CommandManager<NoInfer<M>>) {
+  const registry = getTokenRegistry(store)
+  const controller = new ManagedCommandController(registry, manager)
+  registry.set(command, controller)
+  command[initializeCommand](registry)
 }
 
 export function initialize<S, T, M, E = unknown>(store: Store, container: Container<T, M, E>, initializer: (actions: Initializer<NoInfer<T>, NoInfer<M>, NoInfer<E>>) => S): S {

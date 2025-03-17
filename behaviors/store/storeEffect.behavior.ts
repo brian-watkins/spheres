@@ -1,4 +1,4 @@
-import { Container, DerivedState, GetState, ReactiveEffect, ReactiveEffectHandle, container, derived } from "@store/index.js"
+import { Container, DerivedState, GetState, ReactiveEffect, ReactiveEffectHandle, container, derived, useEffect } from "@store/index.js"
 import { ConfigurableExample, behavior, effect, example, fact, step } from "best-behavior"
 import { equalTo, expect, is } from "great-expectations"
 import { testStoreContext } from "./helpers/testStore.js"
@@ -147,7 +147,7 @@ const unsubscribingEffect: ConfigurableExample =
           })
         }),
         fact("an effect is registered", (context) => {
-          context.tokens.handle = context.store.useEffect(new UnsubscribingEffect(context.tokens.collector, (get) => {
+          context.tokens.handle = useEffect(context.store, new UnsubscribingEffect(context.tokens.collector, (get) => {
             return get(context.tokens.container) !== "unsub"
           }))
         })
@@ -206,7 +206,7 @@ const multipleDependencyEffect: ConfigurableExample =
           })
         }),
         fact("there is an effect with multiple dependencies", (context) => {
-          context.store.useEffect({
+          useEffect(context.store, {
             run: (get) => {
               if (get(context.tokens.derivedFirst) && get(context.tokens.derivedSecond)) {
                 context.tokens.effectRuns.push("All true")
@@ -255,7 +255,7 @@ const initializingEffectExample: ConfigurableExample =
           })
         }),
         fact("an effect is registered", (context) => {
-          context.store.useEffect(new InitializingEffect(context.tokens.collector, (get) => {
+          useEffect(context.store, new InitializingEffect(context.tokens.collector, (get) => {
             return get(context.tokens.container)
           }))
         })

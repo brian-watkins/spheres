@@ -91,11 +91,6 @@ export class Store {
     command[initializeCommand](this.registry)
   }
 
-  useContainerHooks<T, M, E>(container: Container<T, M>, hooks: ContainerHooks<T, M, E>) {
-    const writerWithHooks = stateWriterWithHooks(this.registry, container, this.registry.get<StateWriter<any>>(container), hooks)
-    this.registry.set(container, writerWithHooks)
-  }
-
   initialize<S, T, M, E = unknown>(container: Container<T, M, E>, initializer: (actions: Initializer<T, M, E>) => S): S {
     return initializer(initializerActions(this.registry, container))
   }
@@ -154,6 +149,13 @@ export function useHooks(store: Store, hooks: StoreHooks) {
 
   store[tokenRegistry] = registryWithHooks
 }
+
+export function useContainerHooks<T, M, E>(store: Store, container: Container<T, M>, hooks: ContainerHooks<T, M, E>) {
+  const registry = getTokenRegistry(store)
+  const writerWithHooks = stateWriterWithHooks(registry, container, registry.get<StateWriter<any>>(container), hooks)
+  registry.set(container, writerWithHooks)
+}
+
 
 interface SerializedValue {
   v: any

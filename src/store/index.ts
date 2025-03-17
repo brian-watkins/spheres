@@ -8,7 +8,8 @@ export {
   type ReactiveEffect,
   type ReactiveEffectHandle,
   createStore,
-  useHooks
+  useHooks,
+  useContainerHooks
 } from "./store.js"
 export {
   type Command,

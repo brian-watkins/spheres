@@ -1,4 +1,4 @@
-import { Container, State, Store, write, StoreMessage, batch, GetState, reset, Command, CommandActions, ContainerHooks, ReactiveEffect, createStore } from "@store/index.js"
+import { Container, State, Store, write, StoreMessage, batch, GetState, reset, Command, CommandActions, ContainerHooks, ReactiveEffect, createStore, useContainerHooks } from "@store/index.js"
 import { Context } from "best-behavior"
 
 export function testStoreContext<T>(): Context<TestStore<T>> {
@@ -43,7 +43,7 @@ export class TestStore<T> {
   }
 
   useContainerHooks<T, M>(token: Container<T, M>, hooks: ContainerHooks<T, M, any>) {
-    this.store.useContainerHooks(token, hooks)
+    useContainerHooks(this.store, token, hooks)
   }
 
   writeTo<S, M = S>(token: Container<S, M>, value: M) {

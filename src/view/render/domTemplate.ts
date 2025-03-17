@@ -23,20 +23,9 @@ export class DOMTemplate {
   render(registry: TokenRegistry): Node {
     const fragment = this.element.content.cloneNode(true)
 
-    for (const effect of this.effects) {
-      effect.attach(registry, fragment.firstChild!)
-    }
+    this.activate(registry, fragment.firstChild!)
 
-    if (this.isFragment) {
-      return fragment
-    }
-
-    const rootElement = fragment.firstChild!
-
-    // @ts-ignore
-    rootElement[spheresTemplateData] = registry
-
-    return rootElement
+    return this.isFragment ? fragment : fragment.firstChild!
   }
 
   activate(registry: TokenRegistry, root: Node) {

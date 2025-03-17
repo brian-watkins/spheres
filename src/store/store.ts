@@ -60,7 +60,7 @@ export interface Initializer<T, M, E = unknown> {
 
 export class Store {
   private registry: TokenRegistry
-  private id: string
+  readonly id: string
 
   constructor(options: StoreOptions = {}) {
     this.id = storeId(options.id)
@@ -93,41 +93,6 @@ export class Store {
 
   initialize<S, T, M, E = unknown>(container: Container<T, M, E>, initializer: (actions: Initializer<T, M, E>) => S): S {
     return initializer(initializerActions(this.registry, container))
-  }
-
-  serialize(map: Map<string, State<any>>): string {
-    const map_data = Array.from(map.entries())
-      .map(([key, token]) => {
-        const serializedValue: SerializedValue = {
-          v: this.registry.get<StatePublisher<any>>(token).getValue(),
-        }
-
-        if (token instanceof Container) {
-          const metaValue = this.registry.get<StatePublisher<Meta<any, any>>>(token.meta).getValue()
-          if (metaValue.type !== "ok") {
-            serializedValue.mv = metaValue
-          }
-        }
-
-        return `["${key}",${JSON.stringify(serializedValue)}]`
-      })
-      .join(",")
-
-    return `globalThis[Symbol.for("${this.id}")] = new Map([${map_data}]);`
-  }
-
-  deserialize(map: Map<string, State<any>>, scope: Record<symbol, any> = globalThis) {
-    const serializedData = scope[Symbol.for(this.id)]
-
-    for (const [id, token] of map) {
-      const deserialized: SerializedValue = serializedData?.get(id)
-      if (deserialized) {
-        this.registry.registerState(token, deserialized.v)
-        if (token instanceof Container && deserialized.mv !== undefined) {
-          this.registry.registerState(token.meta, deserialized.mv)
-        }
-      }
-    }
   }
 }
 
@@ -247,4 +212,41 @@ class EffectListener implements StateListener, ReactiveEffectHandle {
 
 function storeId(id: string | undefined): string {
   return `_spheres_store_data_${id ?? ""}`
+}
+
+export function serialize(store: Store, map: Map<string, State<any>>): string {
+  const registry = getTokenRegistry(store)
+  const map_data = Array.from(map.entries())
+    .map(([key, token]) => {
+      const serializedValue: SerializedValue = {
+        v: registry.get<StatePublisher<any>>(token).getValue(),
+      }
+
+      if (token instanceof Container) {
+        const metaValue = registry.get<StatePublisher<Meta<any, any>>>(token.meta).getValue()
+        if (metaValue.type !== "ok") {
+          serializedValue.mv = metaValue
+        }
+      }
+
+      return `["${key}",${JSON.stringify(serializedValue)}]`
+    })
+    .join(",")
+
+  return `globalThis[Symbol.for("${store.id}")] = new Map([${map_data}]);`
+}
+
+export function deserialize(store: Store, map: Map<string, State<any>>, scope: Record<symbol, any> = globalThis) {
+  const registry = getTokenRegistry(store)
+  const serializedData = scope[Symbol.for(store.id)]
+
+  for (const [id, token] of map) {
+    const deserialized: SerializedValue = serializedData?.get(id)
+    if (deserialized) {
+      registry.registerState(token, deserialized.v)
+      if (token instanceof Container && deserialized.mv !== undefined) {
+        registry.registerState(token.meta, deserialized.mv)
+      }
+    }
+  }
 }

@@ -1,4 +1,4 @@
-import { createStore, write } from "@store/index.js";
+import { createStore, serialize, write } from "@store/index.js";
 import viewGenerator from "./view.js"
 import { SSRParts } from "../../../helpers/ssrApp.js";
 import { clickCount } from "../state.js";
@@ -21,7 +21,7 @@ export default function (): SSRParts {
   <div id="fragment-b">${renderToString(storeB)}</div>
 </div>`,
     serializedStore: `
-${storeA.serialize(tokenMap)}
-${storeB.serialize(tokenMap)}`
+${serialize(storeA, tokenMap)}
+${serialize(storeB, tokenMap)}`
   }
 }

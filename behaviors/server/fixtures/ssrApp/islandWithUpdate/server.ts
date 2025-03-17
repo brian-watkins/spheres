@@ -1,4 +1,4 @@
-import { createStore, write } from "@store/index.js";
+import { createStore, serialize, write } from "@store/index.js";
 import { addItem, Item, items, tokenMap } from "./state";
 import { SSRParts } from "../../../helpers/ssrApp";
 import { createStringRenderer } from "@server/index.js";
@@ -18,6 +18,6 @@ store.dispatch(write(items, addItem(testItem(3))))
 export default function(): SSRParts {
   return {
     html: createStringRenderer(view)(store),
-    serializedStore: store.serialize(tokenMap)
+    serializedStore: serialize(store, tokenMap)
   }
 }

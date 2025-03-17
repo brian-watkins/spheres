@@ -9,7 +9,9 @@ export {
   type ReactiveEffectHandle,
   createStore,
   useHooks,
-  useContainerHooks
+  useContainerHooks,
+  deserialize,
+  serialize
 } from "./store.js"
 export {
   type Command,

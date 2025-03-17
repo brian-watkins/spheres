@@ -1,4 +1,4 @@
-import { createStore, ErrorMessage, State, supplied } from "@store/index.js";
+import { createStore, deserialize, ErrorMessage, serialize, State, supplied } from "@store/index.js";
 import { behavior, effect, example, step } from "best-behavior";
 import { arrayWith, equalTo, expect, is, objectWith } from "great-expectations";
 import { StoreValuesEffect, testStoreContext } from "./helpers/testStore";
@@ -18,8 +18,8 @@ export default behavior("serialize state", [
           const altStore = createStore();
           
           ((globalThis) => {
-            eval(context.store.serialize(tokenMap))
-            altStore.deserialize(tokenMap, globalThis)
+            eval(serialize(context.store, tokenMap))
+            deserialize(altStore, tokenMap, globalThis)
           })({})
 
           const tokenQuery = new StoreValuesEffect(get => get(token))

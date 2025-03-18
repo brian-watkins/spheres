@@ -1,4 +1,11 @@
 
+export function createFragment(start: string, end: string) {
+  const fragment = document.createDocumentFragment()
+  fragment.appendChild(document.createComment(start))
+  fragment.appendChild(document.createComment(end))
+  return fragment
+}
+
 export function switchStartIndicator(id: string): string {
   return `switch-start-${id}`
 }

@@ -9,7 +9,7 @@ import { UpdatePropertyEffect } from "./effects/propertyEffect.js";
 import { SelectViewEffect } from "./effects/selectViewEffect.js";
 import { UpdateTextEffect } from "./effects/textEffect.js";
 import { setEventAttribute } from "./eventHelpers.js";
-import { findListEndNode, findSwitchEndNode, listEndIndicator, listStartIndicator, switchEndIndicator, switchStartIndicator } from "./fragmentHelpers.js";
+import { createFragment, findListEndNode, findSwitchEndNode, listEndIndicator, listStartIndicator, switchEndIndicator, switchStartIndicator } from "./fragmentHelpers.js";
 import { IdSequence } from "./idSequence.js";
 import { ListItemTemplateContext } from "./templateContext.js";
 import { AbstractViewConfig, ViewConfigDelegate } from "./viewConfig.js";
@@ -90,10 +90,7 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
     this.templateType = TemplateType.List
 
     const elementId = this.idSequence.next
-
-    const fragment = document.createDocumentFragment()
-    fragment.appendChild(document.createComment(listStartIndicator(elementId)))
-    fragment.appendChild(document.createComment(listEndIndicator(elementId)))
+    const fragment = createFragment(listStartIndicator(elementId), listEndIndicator(elementId))
 
     const renderer = new DomTemplateRenderer(this.delegate, this.zone, new IdSequence(elementId), new EffectLocation(root => root))
     const templateContext = new ListItemTemplateContext(renderer, viewGenerator)
@@ -115,9 +112,7 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
     this.templateType = TemplateType.Select
 
     const elementId = this.idSequence.next
-    const fragment = document.createDocumentFragment()
-    fragment.appendChild(document.createComment(switchStartIndicator(elementId)))
-    fragment.appendChild(document.createComment(switchEndIndicator(elementId)))
+    const fragment = createFragment(switchStartIndicator(elementId), switchEndIndicator(elementId))
 
     if (this.root.nodeType === 1) {
       this.location = this.root.hasChildNodes() ? this.location.nextSibling() : this.location.firstChild()

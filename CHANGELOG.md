@@ -1,5 +1,11 @@
 # spheres
 
+## 0.21.1
+
+### Patch Changes
+
+- be2ebe4: Fix esm imports
+
 ## 0.21.0
 
 ### Minor Changes

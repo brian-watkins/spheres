@@ -1,21 +1,14 @@
 import { DOMEvent, DOMEventType, EventsToDelegate, StoreEventHandler, Zone } from "./index.js";
 import { Stateful, GetState, State } from "../../store/index.js";
-import { dispatchMessage } from "../../store/message.js";
-import { initListener, TokenRegistry } from "../../store/tokenRegistry.js";
 import { EffectLocation } from "./effectLocation.js";
-import { UpdateAttributeEffect } from "./effects/attributeEffect.js";
-import { ListEffect } from "./effects/listEffect.js";
-import { UpdatePropertyEffect } from "./effects/propertyEffect.js";
-import { SelectViewEffect } from "./effects/selectViewEffect.js";
-import { UpdateTextEffect } from "./effects/textEffect.js";
 import { setEventAttribute } from "./eventHelpers.js";
-import { createFragment, findListEndNode, findSwitchEndNode, listEndIndicator, listStartIndicator, switchEndIndicator, switchStartIndicator } from "./fragmentHelpers.js";
+import { createFragment, listEndIndicator, listStartIndicator, switchEndIndicator, switchStartIndicator } from "./fragmentHelpers.js";
 import { IdSequence } from "./idSequence.js";
 import { ListItemTemplateContext } from "./templateContext.js";
 import { AbstractViewConfig, ViewConfigDelegate } from "./viewConfig.js";
 import { AbstractViewRenderer, ElementDefinition, isStateful, ViewDefinition, ViewRendererDelegate, ViewSelector } from "./viewRenderer.js";
-import { AbstractSelectorBuilder, TemplateSelector } from "./selectorBuilder.js";
-import { DOMTemplate, EffectTemplate, TemplateType } from "./domTemplate.js";
+import { AbstractSelectorBuilder } from "./selectorBuilder.js";
+import { DOMTemplate, EffectTemplate, EffectTemplateTypes, TemplateType } from "./domTemplate.js";
 
 
 export class DomTemplateRenderer extends AbstractViewRenderer {
@@ -35,11 +28,12 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
   }
 
   get template(): DOMTemplate {
-    return new DOMTemplate(
-      this.templateType,
-      this.templateElement!,
-      this.effectTemplates
-    )
+    return {
+      type: this.templateType,
+      element: this.templateElement!,
+      effects: this.effectTemplates,
+      isFragment: this.templateType === TemplateType.List || this.templateType === TemplateType.Select
+    }
   }
 
   textNode(value: string | Stateful<string>): this {
@@ -49,7 +43,11 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
 
     if (isStateful(value)) {
       this.root.appendChild(document.createTextNode(""))
-      this.effectTemplates.push(new TextEffectTemplate(value, this.location))
+      this.effectTemplates.push({
+        type: EffectTemplateTypes.Text,
+        generator: value,
+        location: this.location
+      })
     } else {
       this.root.appendChild(document.createTextNode(value))
     }
@@ -101,7 +99,14 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
 
     this.root.appendChild(fragment)
 
-    this.effectTemplates.push(new ListEffectTemplate(renderer.template, data, templateContext, elementId, this.location))
+    this.effectTemplates.push({
+      type: EffectTemplateTypes.List,
+      domTemplate: renderer.template,
+      query: data,
+      context: templateContext,
+      elementId,
+      location: this.location
+    })
 
     this.location = this.location.nextCommentSiblingMatching(listEndIndicator(elementId))
 
@@ -123,7 +128,12 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
     const selectorBuilder = new DomTemplateSelectorBuilder(this.delegate, this.zone, elementId)
     selectorGenerator(selectorBuilder)
 
-    this.effectTemplates.push(new StatefulSelectEffectTemplate(selectorBuilder.selectors, elementId, this.location))
+    this.effectTemplates.push({
+      type: EffectTemplateTypes.Select,
+      selectors: selectorBuilder.selectors,
+      elementId,
+      location: this.location
+    })
 
     this.location = this.location.nextCommentSiblingMatching(switchEndIndicator(elementId))
 
@@ -140,7 +150,12 @@ class DomTemplateConfig extends AbstractViewConfig {
 
   attribute(name: string, value: string | Stateful<string>): this {
     if (isStateful(value)) {
-      this.effectTemplates.push(new AttributeEffectTemplate(value, name, this.location))
+      this.effectTemplates.push({
+        type: EffectTemplateTypes.Attribute,
+        name,
+        generator: value,
+        location: this.location
+      })
     } else {
       this.element.setAttribute(name, value)
     }
@@ -149,7 +164,12 @@ class DomTemplateConfig extends AbstractViewConfig {
 
   property<T extends string | boolean>(name: string, value: T | Stateful<T>): this {
     if (isStateful(value)) {
-      this.effectTemplates.push(new PropertyEffectTemplate(value, name, this.location))
+      this.effectTemplates.push({
+        type: EffectTemplateTypes.Property,
+        name,
+        generator: value,
+        location: this.location
+      })
     } else {
       //@ts-ignore
       this.element[name] = value
@@ -163,78 +183,14 @@ class DomTemplateConfig extends AbstractViewConfig {
       setEventAttribute(this.element, event, this.elementId)
       this.zone.addEvent(this.eventType, this.elementId, event, handler)
     } else {
-      this.effectTemplates.push(new EventEffectTemplate(event, handler, this.location))
+      this.effectTemplates.push({
+        type: EffectTemplateTypes.Event,
+        name: event,
+        handler,
+        location: this.location
+      })
     }
     return this
-  }
-}
-
-class TextEffectTemplate implements EffectTemplate {
-  constructor(private generator: Stateful<string>, private location: EffectLocation) { }
-
-  attach(registry: TokenRegistry, root: Node) {
-    const effect = new UpdateTextEffect(registry, this.location.findNode(root) as Text, this.generator)
-    initListener(effect)
-  }
-}
-
-class AttributeEffectTemplate implements EffectTemplate {
-  constructor(private generator: Stateful<string>, private attribute: string, private location: EffectLocation) { }
-
-  attach(registry: TokenRegistry, root: Node) {
-    const effect = new UpdateAttributeEffect(registry, this.location.findNode(root) as Element, this.attribute, this.generator)
-    initListener(effect)
-  }
-}
-
-class PropertyEffectTemplate implements EffectTemplate {
-  constructor(private generator: Stateful<string | boolean>, private property: string, private location: EffectLocation) { }
-
-  attach(registry: TokenRegistry, root: Node) {
-    const effect = new UpdatePropertyEffect(registry, this.location.findNode(root) as Element, this.property, this.generator)
-    initListener(effect)
-  }
-}
-
-class ListEffectTemplate implements EffectTemplate {
-  constructor(
-    private domTemplate: DOMTemplate,
-    private query: (get: GetState) => Array<any>,
-    private templateContext: ListItemTemplateContext<any>,
-    private elementId: string,
-    private location: EffectLocation
-  ) { }
-
-  attach(registry: TokenRegistry, root: Node) {
-    const listStartIndicatorNode = this.location.findNode(root)
-    const end = findListEndNode(listStartIndicatorNode, this.elementId)
-
-    const effect = new ListEffect(registry, this.domTemplate, this.query, this.templateContext, listStartIndicatorNode, end)
-    initListener(effect)
-  }
-}
-
-class StatefulSelectEffectTemplate implements EffectTemplate {
-  constructor(private selectors: Array<TemplateSelector<DOMTemplate>>, private elementId: string, private location: EffectLocation) { }
-
-  attach(registry: TokenRegistry, root: Node): void {
-    const startNode = this.location.findNode(root)
-    const endNode = findSwitchEndNode(startNode, this.elementId)
-
-    const effect = new SelectViewEffect(registry, this.selectors, startNode, endNode)
-    initListener(effect)
-  }
-}
-
-class EventEffectTemplate implements EffectTemplate {
-  constructor(private eventType: string, private handler: StoreEventHandler<any>, private location: EffectLocation) { }
-
-  attach(registry: TokenRegistry, root: Node): void {
-    const element = this.location.findNode(root)
-    element.addEventListener(this.eventType, (evt) => {
-      const message = this.handler(evt)
-      dispatchMessage(registry, message)
-    })
   }
 }
 

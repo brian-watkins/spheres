@@ -1,7 +1,7 @@
 import { GetState, write } from "../../../store/index.js"
 import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementId } from "../fragmentHelpers.js"
-import { DOMTemplate, TemplateType } from "../domTemplate.js"
-import { StateListener, TokenRegistry } from "../../../store/tokenRegistry.js"
+import { activate, DOMTemplate, render, TemplateType } from "../domTemplate.js"
+import { StateListener, StateListenerVersion, TokenRegistry } from "../../../store/tokenRegistry.js"
 import { dispatchMessage } from "../../../store/message.js"
 import { ListItemOverlayTokenRegistry, ListItemTemplateContext } from "../templateContext.js"
 
@@ -23,6 +23,7 @@ export class ListEffect implements StateListener {
   private parentNode!: Node
   private first: VirtualItem | undefined
   private itemCache: Map<any, VirtualItem> = new Map()
+  version?: StateListenerVersion = 0
 
   constructor(
     public registry: TokenRegistry,
@@ -35,16 +36,12 @@ export class ListEffect implements StateListener {
     this.usesIndex = this.templateContext.usesIndex
   }
 
-  init(get: GetState) {
-    const data = this.query(get)
+  setVirtualList(first: VirtualItem | undefined) {
+    this.first = first
+  }
 
-    if (this.listStart.nextSibling !== this.listEnd) {
-      // Note that this assumes the data is the same on the client
-      // as was on the server ...
-      this.activate(data)
-    } else {
-      this.patch(data)
-    }
+  init(get: GetState) {
+    this.patch(this.query(get))
   }
 
   run(get: GetState) {
@@ -52,27 +49,7 @@ export class ListEffect implements StateListener {
       return
     }
 
-    const updatedData = this.query(get)
-
-    this.patch(updatedData)
-  }
-
-  activate(data: Array<any>) {
-    let index = 0
-    let existingNode: Node = this.listStart.nextSibling!
-    let lastItem: VirtualItem | undefined
-    while (existingNode !== this.listEnd) {
-      const [item, nextNode] = this.activateItem(index, existingNode, data[index])
-      if (index === 0) {
-        this.first = item
-      } else {
-        lastItem!.next = item
-        item.prev = lastItem
-      }
-      lastItem = item
-      index++
-      existingNode = nextNode
-    }
+    this.patch(this.query(get))
   }
 
   patch(data: Array<any>) {
@@ -150,7 +127,7 @@ export class ListEffect implements StateListener {
         this.updateIndex(0, updated)
       }
       return updated
-    }  
+    }
 
     if (this.itemCache.has(this.first.key)) {
       const created = this.createItem(0, firstData)
@@ -305,38 +282,9 @@ export class ListEffect implements StateListener {
     dispatchMessage(item.registry, write(this.templateContext.indexToken, index))
   }
 
-  activateItem(index: number, node: Node, data: any): [VirtualItem, Node] {
-    let virtualItem: any = {
-      key: data,
-      next: undefined,
-      prev: undefined
-    }
-
-    const overlayRegistry = this.templateContext.createOverlayRegistry(this.registry, data, index)
-    this.domTemplate.activate(overlayRegistry, node)
-    virtualItem.registry = overlayRegistry
-
-    switch (this.domTemplate.type) {
-      case TemplateType.List: {
-        virtualItem.firstNode = node
-        virtualItem.lastNode = findListEndNode(node, getListElementId(node))
-        return [virtualItem, virtualItem.lastNode!.nextSibling!]
-      }
-      case TemplateType.Select: {
-        virtualItem.firstNode = node
-        virtualItem.lastNode = findSwitchEndNode(node, getSwitchElementId(node))
-        return [virtualItem, virtualItem.lastNode!.nextSibling!]
-      }
-      default: {
-        virtualItem.node = node
-        return [virtualItem, node.nextSibling!]
-      }
-    }
-  }
-
   createItem(index: number, data: any): VirtualItem {
     const overlayRegistry = this.templateContext.createOverlayRegistry(this.registry, data, index)
-    const node = this.domTemplate.render(overlayRegistry)
+    const node = render(this.domTemplate, overlayRegistry)
 
     const item: VirtualItem = {
       key: data,
@@ -354,5 +302,54 @@ export class ListEffect implements StateListener {
     }
 
     return item
+  }
+}
+
+export function activateList(registry: TokenRegistry, context: ListItemTemplateContext<any>, template: DOMTemplate, startNode: Node, endNode: Node, data: Array<any>) {
+  let index = 0
+  let existingNode: Node = startNode.nextSibling!
+  let firstItem: VirtualItem | undefined
+  let lastItem: VirtualItem | undefined
+  while (existingNode !== endNode) {
+    const [item, nextNode] = activateItem(registry, context, template, index, existingNode, data[index])
+    if (index === 0) {
+      firstItem = item
+    } else {
+      lastItem!.next = item
+      item.prev = lastItem
+    }
+    lastItem = item
+    index++
+    existingNode = nextNode
+  }
+  return firstItem
+}
+
+function activateItem(registry: TokenRegistry, context: ListItemTemplateContext<any>, template: DOMTemplate, index: number, node: Node, data: any): [VirtualItem, Node] {
+  let virtualItem: any = {
+    key: data,
+    next: undefined,
+    prev: undefined
+  }
+
+  const overlayRegistry = context.createOverlayRegistry(registry, data, index)
+  activate(template, overlayRegistry, node)
+  virtualItem.registry = overlayRegistry
+
+  switch (template.type) {
+    case TemplateType.List: {
+      virtualItem.firstNode = node
+      virtualItem.lastNode = findListEndNode(node, getListElementId(node))
+      return [virtualItem, virtualItem.lastNode!.nextSibling!]
+    }
+    case TemplateType.Select: {
+      virtualItem.firstNode = node
+      virtualItem.lastNode = findSwitchEndNode(node, getSwitchElementId(node))
+      return [virtualItem, virtualItem.lastNode!.nextSibling!]
+    }
+    default: {
+      virtualItem.node = node
+      return [virtualItem, node.nextSibling!]
+    }
   }
 }

@@ -2,7 +2,7 @@ export type GetState = <S>(state: State<S>) => S
 
 export type Stateful<T> = (get: GetState) => T | undefined
 
-function getState(listener: StateListener): GetState {
+export function subscribeOnGet(listener: StateListener): GetState {
   return function (token) {
     const publisher = listener.registry.get<StatePublisher<any>>(token)
     publisher.addListener(listener)
@@ -48,7 +48,7 @@ export interface StateListener {
 
 export function initListener(listener: StateListener) {
   listener.version = 0
-  listener.init(getState(listener))
+  listener.init(subscribeOnGet(listener))
 }
 
 export abstract class StatePublisher<T> {
@@ -79,7 +79,7 @@ export abstract class StatePublisher<T> {
     for (const [listener] of this.listeners) {
       if (listener.parent === this) {
         listener.version = listener.version! + 1
-        listener.run(getState(listener))
+        listener.run(subscribeOnGet(listener))
         listener.parent = undefined
       }
     }

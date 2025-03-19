@@ -1,10 +1,10 @@
 import { DOMEventType, EventsToDelegate, StoreEventHandler, Zone } from "./index.js";
 import { Stateful, GetState, State } from "../../store/index.js";
 import { dispatchMessage } from "../../store/message.js";
-import { initListener, TokenRegistry } from "../../store/tokenRegistry.js";
+import { subscribeOnGet, initListener, TokenRegistry } from "../../store/tokenRegistry.js";
 import { UpdateAttributeEffect } from "./effects/attributeEffect.js";
 import { UpdatePropertyEffect } from "./effects/propertyEffect.js";
-import { SelectViewEffect } from "./effects/selectViewEffect.js";
+import { activateSelect, SelectViewEffect } from "./effects/selectViewEffect.js";
 import { UpdateTextEffect } from "./effects/textEffect.js";
 import { getEventAttribute } from "./eventHelpers.js";
 import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementId } from "./fragmentHelpers.js";
@@ -14,7 +14,7 @@ import { AbstractViewRenderer, ElementDefinition, isStateful, ViewDefinition, Vi
 import { IdSequence } from "./idSequence.js";
 import { EffectLocation } from "./effectLocation.js";
 import { ListItemTemplateContext } from "./templateContext.js";
-import { ListEffect } from "./effects/listEffect.js";
+import { activateList, ListEffect } from "./effects/listEffect.js";
 
 export class ActivateDomRenderer extends AbstractViewRenderer {
   private currentNode: Node | null
@@ -46,15 +46,17 @@ export class ActivateDomRenderer extends AbstractViewRenderer {
     return this
   }
 
-  subviews<T>(data: (get: GetState) => T[], viewGenerator: (item: State<T>, index?: State<number>) => ViewDefinition): this {
+  subviews<T>(query: (get: GetState) => T[], viewGenerator: (item: State<T>, index?: State<number>) => ViewDefinition): this {
     const elementId = getListElementId(this.currentNode!)
     let end = findListEndNode(this.currentNode!, elementId)
 
     const renderer = new DomTemplateRenderer(this.delegate, this.zone, new IdSequence(elementId), new EffectLocation(root => root))
     const templateContext = new ListItemTemplateContext(renderer, viewGenerator)
 
-    const effect = new ListEffect(this.registry, renderer.template, data, templateContext, this.currentNode!, end)
-    initListener(effect)
+    const effect = new ListEffect(this.registry, renderer.template, query, templateContext, this.currentNode!, end)
+    const data = query(subscribeOnGet(effect))
+    const virtualList = activateList(this.registry, templateContext, renderer.template, this.currentNode!, end, data)
+    effect.setVirtualList(virtualList)
 
     this.currentNode = end.nextSibling
 
@@ -69,7 +71,7 @@ export class ActivateDomRenderer extends AbstractViewRenderer {
     selectorGenerator(selectorBuilder)
 
     const effect = new SelectViewEffect(this.registry, selectorBuilder.selectors, this.currentNode!, end)
-    initListener(effect)
+    activateSelect(this.registry, selectorBuilder.selectors, this.currentNode!, subscribeOnGet(effect))
 
     this.currentNode = end.nextSibling
 

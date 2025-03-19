@@ -6,15 +6,15 @@ export interface CommandInitializer<M> {
   trigger?: (get: GetState) => M
 }
 
-export function command<M>(initializer: CommandInitializer<M> = {}): Command<M> {
+export function command<M = never>(initializer: CommandInitializer<M> = {}): Command<M> {
   return new BasicCommand<M>(initializer.trigger)
 }
 
-export function exec<M>(command: Command<M>, message: M): ExecMessage<M> {
+export function exec<M = never>(command: Command<M>, ...message: NoInfer<M> extends never ? [] : [NoInfer<M>]): ExecMessage<M> {
   return {
     type: "exec",
     command,
-    message
+    message: message.length === 0 ? undefined : message[0] as any
   }
 }
 

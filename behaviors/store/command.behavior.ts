@@ -1,6 +1,6 @@
 import { Command, Container, StateCollection, SuppliedState, collection, command, container, exec, supplied } from "@store/index";
 import { behavior, effect, example, fact, step } from "best-behavior";
-import { arrayWith, expect, is } from "great-expectations";
+import { arrayWith, expect, is, objectWithProperty, stringContaining, throws } from "great-expectations";
 import { errorMessage, okMessage, pendingMessage } from "./helpers/metaMatchers";
 import { testStoreContext } from "./helpers/testStore";
 import { TestTask } from "./helpers/testTask";
@@ -8,6 +8,11 @@ import { TestTask } from "./helpers/testTask";
 interface FunCommandMessage {
   name: string
   value: number
+}
+
+interface NeverCommandContext {
+  command: Command<never>
+  execCount: number
 }
 
 interface TestCommandContext {
@@ -27,6 +32,48 @@ interface TestCommandGetStateContext {
 }
 
 export default behavior("command", [
+
+  example(testStoreContext())
+    .description("command that is not registered")
+    .script({
+      observe: [
+        effect("error is thrown when exec a command that has not been registered", (context) => {
+          expect(() => {
+            const unknownCommand = command()
+            context.store.dispatch(exec(unknownCommand))
+          }, throws(objectWithProperty("message", stringContaining("unknown command"))))
+        })
+      ]
+    }),
+
+  example(testStoreContext<NeverCommandContext>())
+    .description("command with no message")
+    .script({
+      suppose: [
+        fact("a command with no message is registered with the store", (context) => {
+          const neverCommand = command()
+          context.useCommand(neverCommand, () => {
+            context.tokens.execCount++
+          })
+          context.setTokens({
+            command: neverCommand,
+            execCount: 0
+          })
+        })
+      ],
+      perform: [
+        step("the command is executed several times", (context) => {
+          context.store.dispatch(exec(context.tokens.command))
+          context.store.dispatch(exec(context.tokens.command))
+          context.store.dispatch(exec(context.tokens.command))
+        })
+      ],
+      observe: [
+        effect("the handler runs for each command exec", (context) => {
+          expect(context.tokens.execCount, is(3))
+        })
+      ]
+    }),
 
   example(testStoreContext<TestCommandContext>())
     .description("basic command")

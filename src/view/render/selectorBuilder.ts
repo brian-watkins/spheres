@@ -1,5 +1,5 @@
-import { GetState } from "../../store";
-import { ViewDefinition, ViewSelector } from "./viewRenderer";
+import { GetState } from "../../store/index.js";
+import { ViewDefinition, ViewSelector } from "./viewRenderer.js";
 
 export interface TemplateSelector<T> {
   select: (get: GetState) => boolean

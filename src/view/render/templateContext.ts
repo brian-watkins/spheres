@@ -1,8 +1,8 @@
-import { Container, container, State } from "../../store";
-import { StateWriter } from "../../store/state/publisher/stateWriter";
-import { recordTokens } from "../../store/state/stateRecorder";
-import { Command, CommandController, createStatePublisher, StatePublisher, Token, TokenRegistry } from "../../store/tokenRegistry";
-import { ViewDefinition, ViewRenderer } from "./viewRenderer";
+import { Container, container, State } from "../../store/index.js";
+import { StateWriter } from "../../store/state/publisher/stateWriter.js";
+import { recordTokens } from "../../store/state/stateRecorder.js";
+import { Command, CommandController, createStatePublisher, StatePublisher, Token, TokenRegistry } from "../../store/tokenRegistry.js";
+import { ViewDefinition, ViewRenderer } from "./viewRenderer.js";
 
 export class ListItemTemplateContext<T> {
   protected itemToken = container<T | undefined>({ initialValue: undefined })

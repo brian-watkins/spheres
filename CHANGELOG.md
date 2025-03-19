@@ -1,5 +1,15 @@
 # spheres
 
+## 0.21.0
+
+### Minor Changes
+
+- 478fe1a: Enable tree shaking for SVG code
+
+### Patch Changes
+
+- 47cd3f9: Enable tree shaking for Store code
+
 ## 0.20.0
 
 ### Minor Changes

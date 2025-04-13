@@ -110,6 +110,21 @@ export default behavior("Render view to HTML string", [
       })
     })
     expect(actual, is(equalTo(`<form><input type="text" disabled=""></form>`)))
+  }),
+  renderTest("rendering html element adds DOCTYPE tag", (renderer) => {
+    const actual = renderer.renderView(root => {
+      root.html(el => {
+        el.config.lang("en")
+        el.children
+          .head(el => {
+            el.children.title(el => el.children.textNode("Fun Stuff"))
+          })
+          .body(el => {
+            el.children.h1(el => el.children.textNode("Hello!"))
+          })
+      })
+    })
+    expect(actual, is(`<!DOCTYPE html><html lang="en"><head><title>Fun Stuff</title></head><body><h1>Hello!</h1></body></html>`))
   })
 ])
 

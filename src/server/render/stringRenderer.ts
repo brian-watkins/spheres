@@ -46,6 +46,13 @@ class StringRenderer extends AbstractViewRenderer {
     addTemplate(this.template, next)
   }
 
+  private appendStringToTemplate(content: string) {
+    addTemplate(this.template, {
+      strings: [content],
+      statefuls: []
+    })
+  }
+
   textNode(value: string | Stateful<string>): this {
     if (isStateful(value)) {
       this.appendToTemplate({
@@ -53,7 +60,7 @@ class StringRenderer extends AbstractViewRenderer {
         statefuls: [toStatefulString(value)]
       })
     } else {
-      this.appendToTemplate({ strings: [value], statefuls: [] })
+      this.appendStringToTemplate(value)
     }
 
     return this
@@ -87,27 +94,22 @@ class StringRenderer extends AbstractViewRenderer {
       children: children
     })
 
-    this.appendToTemplate({
-      strings: [`<${tag}`],
-      statefuls: []
-    })
+    if (tag === "html") {
+      this.appendStringToTemplate("<!DOCTYPE html>")
+    }
+
+    this.appendStringToTemplate(`<${tag}`)
 
     this.appendToTemplate(config.template)
 
-    this.appendToTemplate({
-      strings: ['>'],
-      statefuls: []
-    })
+    this.appendStringToTemplate(">")
 
     if (voidElements().has(tag)) {
       return this
     }
 
     if (this.viteContext !== undefined && this.viteContext.command === "serve" && tag === "head") {
-      this.appendToTemplate({
-        strings: [`<script type="module" src="/@vite/client"></script>`],
-        statefuls: []
-      })
+      this.appendStringToTemplate(`<script type="module" src="/@vite/client"></script>`)
     }
 
     if (config.innerHTMLContent !== undefined) {
@@ -119,19 +121,13 @@ class StringRenderer extends AbstractViewRenderer {
           ]
         })
       } else {
-        this.appendToTemplate({
-          strings: [config.innerHTMLContent],
-          statefuls: []
-        })
+        this.appendStringToTemplate(config.innerHTMLContent)
       }
     } else {
       this.appendToTemplate(children.template)
     }
 
-    this.appendToTemplate({
-      strings: [`</${tag}>`],
-      statefuls: []
-    })
+    this.appendStringToTemplate(`</${tag}>`)
 
     return this
   }

@@ -16,6 +16,15 @@ export default defineConfig({
       "v8",
       "text"
     ],
+    all: {
+      dir: [ "./src" ],
+      filter: {
+        "**/src/view/htmlElements.ts": false,
+        "**/src/view/specialAttributes.ts": false,
+        "**/src/view/svgElements.ts": false,
+        "**/*": true
+      }
+    },
     entryFilter: (entry) => {
       return entry.url.includes("src") && !entry.url.includes("node_modules")
     },

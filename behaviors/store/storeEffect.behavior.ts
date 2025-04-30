@@ -20,9 +20,9 @@ const basicEffect: ConfigurableExample =
           })
         }),
         fact("a subscriber registers an effect involving the state", (context) => {
-          context.registerEffect((get) => {
+          context.registerEffect("sub-one", (get) => {
             return `${get(context.tokens.stringContainer)} ==> ${get(context.tokens.numberContainer)} times!`
-          }, "sub-one")
+          })
         })
       ],
       observe: [
@@ -71,14 +71,14 @@ const effectWithHiddenDependencies: ConfigurableExample =
           })
         }),
         fact("a subscriber registers an effect involving the state", (context) => {
-          context.registerEffect((get) => {
+          context.registerEffect("sub-one", (get) => {
             context.tokens.calls++
             if (get(context.tokens.stringContainer) === "reveal!") {
               return `The secret number is: ${get(context.tokens.numberContainer)}`
             } else {
               return `It's a secret!`
             }
-          }, "sub-one")
+          })
         })
       ],
       perform: [

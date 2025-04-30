@@ -30,7 +30,7 @@ export class TestStore<T> {
     return initialize(this.store, container, initializer)
   }
 
-  registerEffect(definition: (get: GetState) => any, name: string) {
+  registerEffect(name: string, definition: (get: GetState) => any) {
     const effect = new StoreValuesEffect(definition)
     this.values.set(name, effect)
     useEffect(this.store, effect)

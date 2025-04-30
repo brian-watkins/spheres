@@ -1,4 +1,4 @@
-import { collection, container, Container, State, StateCollection, update, use } from "@store/index.js";
+import { collection, container, Container, derived, State, StateCollection, update, use } from "@store/index.js";
 import { HTMLBuilder, HTMLView } from "@view/index";
 import { behavior, effect, example, fact, step } from "best-behavior";
 import { expect, is, resolvesTo } from "great-expectations";
@@ -287,6 +287,78 @@ export default behavior("conditional zone", [
       observe: [
         effect("the counter tally is correct", async () => {
           await expect(selectElement("h1").text(), resolvesTo("The count is: 6"))
+        })
+      ]
+    }),
+
+  example(renderContext<Container<{ name: string }>>())
+    .description("conditional view with state derived from condition")
+    .script({
+      suppose: [
+        fact("there is some state", (context) => {
+          context.setState(container({ initialValue: { name: "Bob" } }))
+        }),
+        fact("there is a conditional view with derived state", (context) => {
+          const nameState = derived(get => {
+            return get(context.state).name
+          })
+
+          function showName(root: HTMLBuilder) {
+            root.div(el => el.children.textNode(get => `The name is: ${get(nameState)}`))
+          }
+          function noName(root: HTMLBuilder) {
+            root.div(el => el.children.textNode("NO name!"))
+          }
+          context.mountView(root => {
+            root.main(el => {
+              el.children.subviewOf(selector => {
+                selector
+                  .when(get => get(context.state).name !== "Bob", showName)
+                  .default(noName)
+              })
+            })
+          })
+        })
+      ],
+      observe: [
+        effect("No name is shown", async () => {
+          await expect(selectElement("div").text(), resolvesTo("NO name!"))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("update the condition state", (context) => {
+          context.writeTo(context.state, { name: "Anne" })
+        })
+      ],
+      observe: [
+        effect("the name is shown", async () => {
+          await expect(selectElement("div").text(), resolvesTo("The name is: Anne"))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("show a different name", (context) => {
+          context.writeTo(context.state, { name: "Frank" })
+        })
+      ],
+      observe: [
+        effect("the new name is shown", async () => {
+          await expect(selectElement("div").text(), resolvesTo("The name is: Frank"))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("return to showing no name", (context) => {
+          context.writeTo(context.state, { name: "Bob" })
+        }),
+        step("show a different name", (context) => {
+          context.writeTo(context.state, { name: "Charles" })
+        })
+      ],
+      observe: [
+        effect("the new name is shown", async () => {
+          await expect(selectElement("div").text(), resolvesTo("The name is: Charles"))
         })
       ]
     }),

@@ -53,6 +53,7 @@ export function initListener(listener: StateListener) {
 
 export abstract class StatePublisher<T> {
   private listeners: Map<StateListener, StateListenerVersion> = new Map()
+  private runnables: Array<StateListener> | undefined
 
   abstract getValue(): T
 
@@ -65,24 +66,42 @@ export abstract class StatePublisher<T> {
   }
 
   notifyListeners() {
-    for (const [listener, version] of this.listeners) {
-      if (version === listener.version || listener.overrideVersionTracking) {
-        listener.parent = this
-        listener.notifyListeners?.()
+    this.runnables = []
+    const effects: Array<[StateListener, StateListenerVersion]> = []
+
+    for (const entry of this.listeners) {
+      if (entry[0] instanceof StatePublisher) {
+        this.checkRunnable(...entry)
       } else {
-        this.removeListener(listener)
+        effects.push(entry)
       }
+    }
+
+    for (const [listener, version] of effects) {
+      this.checkRunnable(listener, version)
+    }
+  }
+
+  private checkRunnable(listener: StateListener, version: StateListenerVersion) {
+    if (version === listener.version || listener.overrideVersionTracking) {
+      listener.parent = this
+      listener.notifyListeners?.()
+      this.runnables!.push(listener)
+    } else {
+      this.removeListener(listener)
     }
   }
 
   runListeners() {
-    for (const [listener] of this.listeners) {
+    for (const listener of this.runnables!) {
       if (listener.parent === this) {
         listener.version = listener.version! + 1
         listener.run(subscribeOnGet(listener))
         listener.parent = undefined
       }
     }
+
+    this.runnables = undefined
   }
 }
 

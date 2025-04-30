@@ -50,9 +50,9 @@ export default behavior("glitch-free effects", [
         fact("there is derived state that depends on state from another branch", (context) => {
           const root = container({ initialValue: "hello" })
           const first = derived({ query: (get) => `First ${get(root)} + ${get(third)}` })
-          const second = derived({ query: (get) => `Second ${get(root)}`})
-          const third = derived({ query: (get) => `Third ${get(second)}`})
-          const fourth = derived({ query: (get) => `Complex '${get(first)}' + '${get(third)}'`})
+          const second = derived({ query: (get) => `Second ${get(root)}` })
+          const third = derived({ query: (get) => `Third ${get(second)}` })
+          const fourth = derived({ query: (get) => `Complex '${get(first)}' + '${get(third)}'` })
           context.setTokens({
             rootContainer: root,
             complexDerived: fourth
@@ -117,6 +117,53 @@ export default behavior("glitch-free effects", [
       ]
     }),
 
+  example(testStoreContext<GlitchUndefinedEffectContext>())
+    .description("container that has effect that depends on state derived from that container")
+    .script({
+      suppose: [
+        fact("there is a root container and nested dependencies", (context) => {
+          const root = container<{ name: string | undefined }>({ initialValue: { name: undefined } })
+          const currentName = derived({
+            query: (get) => get(root).name ?? "Nobody"
+          })
+          let hasRegistered = false
+          context.registerEffect("conditional", (get) => {
+            if (get(root).name !== undefined) {
+              if (!hasRegistered) {
+                context.registerEffect("intermediate-effect", (get) => {
+                  return `The current name is: ${get(currentName)}`
+                })
+                hasRegistered = true
+              }
+              return context.valuesForSubscriber("intermediate-effect").join("; ")
+            } else {
+              return "nothing"
+            }
+          })
+          context.setTokens({
+            rootContainer: root
+          })
+        })
+      ],
+      perform: [
+        step("the root container is updated to register the next effect", (context) => {
+          context.writeTo(context.tokens.rootContainer, { name: "Awesome Person" })
+        }),
+        step("the root container is updated again", (context) => {
+          context.writeTo(context.tokens.rootContainer, { name: "Cool Dude" })
+        })
+      ],
+      observe: [
+        effect("the effect is always called with the latest derived value", (context) => {
+          expect(context.valuesForSubscriber("conditional"), is([
+            "nothing",
+            "The current name is: Awesome Person",
+            "The current name is: Awesome Person; The current name is: Cool Dude"
+          ]))
+        })
+      ]
+    })
+
 ])
 
 interface GlitchCommandContext {
@@ -127,4 +174,8 @@ interface GlitchCommandContext {
 interface GlitchEffectContext {
   rootContainer: Container<string>
   complexDerived: DerivedState<string>
+}
+
+interface GlitchUndefinedEffectContext {
+  rootContainer: Container<{ name: string | undefined }>
 }

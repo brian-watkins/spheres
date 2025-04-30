@@ -195,14 +195,22 @@ class DomTemplateConfig extends AbstractViewConfig {
 }
 
 export class DomTemplateSelectorBuilder extends AbstractSelectorBuilder<DOMTemplate> {
+  private templateCache: Map<ViewDefinition, DOMTemplate> = new Map()
+
   constructor(private delegate: ViewRendererDelegate, private zone: Zone, private elementId: string) {
     super()
   }
 
   protected createTemplate(view: ViewDefinition, selectorId: number): DOMTemplate {
-    const renderer = new DomTemplateRenderer(this.delegate, this.zone, new IdSequence(`${this.elementId}.${selectorId}`), new EffectLocation(root => root))
-    view(renderer)
+    let cached = this.templateCache.get(view)
 
-    return renderer.template
+    if (cached === undefined) {
+      const renderer = new DomTemplateRenderer(this.delegate, this.zone, new IdSequence(`${this.elementId}.${selectorId}`), new EffectLocation(root => root))
+      view(renderer)
+      cached = renderer.template
+      this.templateCache.set(view, cached)
+    }
+
+    return cached
   }
 }

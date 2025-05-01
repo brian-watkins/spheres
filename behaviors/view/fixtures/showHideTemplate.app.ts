@@ -3,7 +3,7 @@ import { HTMLBuilder, HTMLView } from "@view/index.js";
 
 function funTemplate(name: State<string>): HTMLView {
   return root => {
-    root.subviewOf(select => select.when(get => get(showLabels), root => {
+    root.subviewFrom(select => select.withConditions().when(get => get(showLabels), root => {
       root.div(el => {
         el.children
           .h3(el => {

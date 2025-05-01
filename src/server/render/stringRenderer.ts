@@ -159,7 +159,7 @@ class StringRenderer extends AbstractViewRenderer {
     return this
   }
 
-  subviewOf(selectorGenerator: (selector: ViewSelector) => void): this {
+  subviewFrom(selectorGenerator: (selector: ViewSelector) => void): this {
     const elementId = this.idSequence.next
     const templateSelectorBuilder = new StringTemplateSelectorBuilder(this.delegate, this.viteContext, elementId)
     selectorGenerator(templateSelectorBuilder)

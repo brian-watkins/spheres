@@ -11,9 +11,19 @@ export type ViewDefinition = (root: any) => void
 
 export type ElementDefinition = (el: ConfigurableElement<any, any>) => void
 
-export interface ViewSelector {
+export interface ViewCaseSelector<T> {
+    when<X extends T>(typePredicate: (val: T) => val is X, generator: (state: State<X>) => ViewDefinition): ViewCaseSelector<T>
+    default(generator: (state: State<T>) => ViewDefinition): void
+}
+
+export interface ViewConditionSelector {
   when(predicate: (get: GetState) => boolean, view: ViewDefinition): this
   default(view: ViewDefinition): void;
+}
+
+export interface ViewSelector {
+  withUnion<T>(state: State<T>): ViewCaseSelector<T>
+  withConditions(): ViewConditionSelector
 }
 
 export interface ViewRenderer {
@@ -25,7 +35,7 @@ export interface ViewRenderer {
     data: (get: GetState) => Array<T>,
     viewGenerator: (item: State<T>, index?: State<number>) => ViewDefinition
   ): this
-  subviewOf(selectorGenerator: (selector: ViewSelector) => void): this
+  subviewFrom(selectorGenerator: (selector: ViewSelector) => void): this
 }
 
 export interface ViewRendererDelegate {
@@ -43,7 +53,7 @@ abstract class BaseViewRenderer implements ViewRenderer {
   abstract textNode(value: string | Stateful<string>): this
   abstract element(tag: string, builder?: ElementDefinition): this
   abstract subviews<T>(data: (get: GetState) => T[], viewGenerator: (item: State<T>, index?: State<number>) => ViewDefinition): this
-  abstract subviewOf(selectorGenerator: (selector: ViewSelector) => void): this
+  abstract subviewFrom(selectorGenerator: (selector: ViewSelector) => void): this
 
   subview(view: ViewDefinition): this {
     view(this)

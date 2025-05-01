@@ -54,7 +54,7 @@ export default function (root: HTMLBuilder) {
             el.children.textNode("Regular")
           })
       })
-      .subviewOf(select => select
+      .subviewFrom(select => select.withConditions()
         .when(get => get(routePath) === "home", homeZone)
         .when(get => get(routePath) === "big", bigZone)
         .when(get => get(routePath) === "regular", regularZone)

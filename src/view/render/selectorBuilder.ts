@@ -1,5 +1,5 @@
-import { GetState } from "../../store/index.js";
-import { ViewDefinition, ViewSelector } from "./viewRenderer.js";
+import { GetState, State } from "../../store/index.js";
+import { ViewDefinition, ViewCaseSelector, ViewSelector, ViewConditionSelector } from "./viewRenderer.js";
 
 export interface TemplateSelector<T> {
   select: (get: GetState) => boolean
@@ -20,20 +20,46 @@ export abstract class AbstractSelectorBuilder<T> implements ViewSelector {
     return selectors
   }
 
-  when(predicate: (get: GetState) => boolean, view: ViewDefinition): this {
+  withUnion<T>(state: State<T>): ViewCaseSelector<T> {
     const index = this.templateSelectors.length
-    this.templateSelectors.push({
-      select: predicate,
-      template: () => this.createTemplate(view, index)
-    })
+    const self = this
 
-    return this
+    return {
+      when(typePredicate, viewGenerator) {
+        self.templateSelectors.push({
+          select: get => typePredicate(get(state)),
+          template: () => self.createTemplate(viewGenerator(state as State<any>), index)
+        })
+        return this
+      },
+      default(viewGenerator) {
+        self.defaultSelector = {
+          select: () => true,
+          template: () => self.createTemplate(viewGenerator(state), self.templateSelectors.length)
+        }
+      }
+    }
   }
-  
-  default(view: ViewDefinition): void {
-    this.defaultSelector = {
-      select: () => true,
-      template: () => this.createTemplate(view, this.templateSelectors.length)
+
+  withConditions(): ViewConditionSelector {
+    const self = this
+    
+    return {
+      when(predicate: (get: GetState) => boolean, view: ViewDefinition) {
+        const index = self.templateSelectors.length
+        self.templateSelectors.push({
+          select: predicate,
+          template: () => self.createTemplate(view, index)
+        })
+    
+        return this
+      },
+      default(view: ViewDefinition): void {
+        self.defaultSelector = {
+          select: () => true,
+          template: () => self.createTemplate(view, self.templateSelectors.length)
+        }
+      }
     }
   }
 

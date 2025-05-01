@@ -113,7 +113,7 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
     return this
   }
 
-  subviewOf(selectorGenerator: (selector: ViewSelector) => void): this {
+  subviewFrom(selectorGenerator: (selector: ViewSelector) => void): this {
     this.templateType = TemplateType.Select
 
     const elementId = this.idSequence.next

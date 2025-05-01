@@ -4,16 +4,26 @@ import { SpecialElementAttributes } from "./specialAttributes.js";
 
 export type HTMLView = (root: HTMLBuilder) => void;
 
-export interface HTMLViewSelector {
-    when(predicate: (get: GetState) => boolean, view: HTMLView): HTMLViewSelector;
+export interface HTMLCaseSelector<T> {
+    when<X extends T>(typePredicate: (val: T) => val is X, generator: (state: State<X>) => HTMLView): HTMLCaseSelector<T>;
+    default(generator: (state: State<T>) => HTMLView): void;
+}
+
+export interface HTMLConditionSelector {
+    when(predicate: (get: GetState) => boolean, view: HTMLView): HTMLConditionSelector;
     default(view: HTMLView): void;
+}
+
+export interface HTMLViewSelector {
+    withUnion<T>(state: State<T>): HTMLCaseSelector<T>;
+    withConditions(): HTMLConditionSelector;
 }
 
 export interface SpecialHTMLElements {
     element(tag: string, builder?: (element: ConfigurableElement<SpecialElementAttributes & GlobalHTMLAttributes, HTMLElements>) => void): this;
     textNode(value: string | Stateful<string>): this;
     subview(value: HTMLView): this;
-    subviewOf(selectorGenerator: (selector: HTMLViewSelector) => void): this;
+    subviewFrom(selectorGenerator: (selector: HTMLViewSelector) => void): this;
     subviews<T>(data: (get: GetState) => Array<T>, viewGenerator: (item: State<T>, index: State<number>) => HTMLView): this;
 }
 

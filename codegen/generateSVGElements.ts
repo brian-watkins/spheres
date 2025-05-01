@@ -39,26 +39,69 @@ svgElementsFile.addTypeAlias({
   type: "(root: SVGBuilder) => void"
 })
 
+const caseSelectorInterface = svgElementsFile.addInterface({
+  name: "SVGCaseSelector",
+  typeParameters: [ "T" ],
+  isExported: true
+})
+
+caseSelectorInterface.addMethod({
+  name: "when",
+  typeParameters: [ "X extends T" ],
+  parameters: [
+    { name: "typePredicate", type: "(val: T) => val is X" },
+    { name: "generator", type: "(state: State<X>) => SVGView" }
+  ],
+  returnType: "SVGCaseSelector<T>"
+})
+
+caseSelectorInterface.addMethod({
+  name: "default",
+  parameters: [
+    { name: "generator", "type": "(state: State<T>) => SVGView" }
+  ],
+  returnType: "void"
+})
+
+const predicateSelectorInterface = svgElementsFile.addInterface({
+  name: "SVGConditionSelector",
+  isExported: true
+})
+
+predicateSelectorInterface.addMethod({
+  name: "when",
+  parameters: [
+    { name: "predicate", type: "(get: GetState) => boolean" },
+    { name: "view", type: "SVGView" }
+  ],
+  returnType: "SVGConditionSelector"
+})
+
+predicateSelectorInterface.addMethod({
+  name: "default",
+  parameters: [
+    { name: "view", type: "SVGView" }
+  ],
+  returnType: "void"
+})
+
 const viewSelectorInterface = svgElementsFile.addInterface({
   name: "SVGViewSelector",
   isExported: true
 })
 
 viewSelectorInterface.addMethod({
-  name: "when",
+  name: "withUnion",
+  typeParameters: [ "T" ],
   parameters: [
-    { name: "predicate", type: "(get: GetState) => boolean" },
-    { name: "view", type: "SVGView" }
+    { name: "state", type: "State<T>" }
   ],
-  returnType: "SVGViewSelector"
+  returnType: "SVGCaseSelector<T>"
 })
 
 viewSelectorInterface.addMethod({
-  name: "default",
-  parameters: [
-    { name: "view", type: "SVGView" }
-  ],
-  returnType: "void"
+  name: "withConditions",
+  returnType: "SVGConditionSelector"
 })
 
 const specialSVGElementsInterface = svgElementsFile.addInterface({
@@ -92,7 +135,7 @@ specialSVGElementsInterface.addMethod({
 })
 
 specialSVGElementsInterface.addMethod({
-  name: "subviewOf",
+  name: "subviewFrom",
   parameters: [
     { name: "selectorGenerator", type: "(selector: SVGViewSelector) => void" }
   ],

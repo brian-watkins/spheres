@@ -41,26 +41,70 @@ htmlElementsFile.addTypeAlias({
   type: "(root: HTMLBuilder) => void"
 })
 
+const caseSelectorInterface = htmlElementsFile.addInterface({
+  name: "HTMLCaseSelector",
+  typeParameters: [ "T" ],
+  isExported: true
+})
+
+caseSelectorInterface.addMethod({
+  name: "when",
+  typeParameters: [ "X extends T" ],
+  parameters: [
+    { name: "typePredicate", type: "(val: T) => val is X" },
+    { name: "generator", type: "(state: State<X>) => HTMLView" }
+  ],
+  returnType: "HTMLCaseSelector<T>"
+})
+
+caseSelectorInterface.addMethod({
+  name: "default",
+  parameters: [
+    { name: "generator", "type": "(state: State<T>) => HTMLView" }
+  ],
+  returnType: "void"
+})
+
+const conditionSelectorInterface = htmlElementsFile.addInterface({
+  name: "HTMLConditionSelector",
+  isExported: true
+})
+
+conditionSelectorInterface.addMethod({
+  name: "when",
+  parameters: [
+    { name: "predicate", type: "(get: GetState) => boolean" },
+    { name: "view", type: "HTMLView" }
+  ],
+  returnType: "HTMLConditionSelector"
+})
+
+conditionSelectorInterface.addMethod({
+  name: "default",
+  parameters: [
+    { name: "view", type: "HTMLView" }
+  ],
+  returnType: "void"
+})
+
+
 const viewSelectorInterface = htmlElementsFile.addInterface({
   name: "HTMLViewSelector",
   isExported: true
 })
 
 viewSelectorInterface.addMethod({
-  name: "when",
+  name: "withUnion",
+  typeParameters: [ "T" ],
   parameters: [
-    { name: "predicate", type: "(get: GetState) => boolean" },
-    { name: "view", type: "HTMLView" }
+    { name: "state", type: "State<T>" }
   ],
-  returnType: "HTMLViewSelector"
+  returnType: "HTMLCaseSelector<T>"
 })
 
 viewSelectorInterface.addMethod({
-  name: "default",
-  parameters: [
-    { name: "view", type: "HTMLView" }
-  ],
-  returnType: "void"
+  name: "withConditions",
+  returnType: "HTMLConditionSelector"
 })
 
 const specialHtmlElementsInterface = htmlElementsFile.addInterface({
@@ -94,7 +138,7 @@ specialHtmlElementsInterface.addMethod({
 })
 
 specialHtmlElementsInterface.addMethod({
-  name: "subviewOf",
+  name: "subviewFrom",
   parameters: [
     { name: "selectorGenerator", type: "(selector: HTMLViewSelector) => void" }
   ],

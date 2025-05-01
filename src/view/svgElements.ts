@@ -4,16 +4,26 @@ import { SpecialElementAttributes } from "./specialAttributes.js";
 
 export type SVGView = (root: SVGBuilder) => void;
 
-export interface SVGViewSelector {
-    when(predicate: (get: GetState) => boolean, view: SVGView): SVGViewSelector;
+export interface SVGCaseSelector<T> {
+    when<X extends T>(typePredicate: (val: T) => val is X, generator: (state: State<X>) => SVGView): SVGCaseSelector<T>;
+    default(generator: (state: State<T>) => SVGView): void;
+}
+
+export interface SVGConditionSelector {
+    when(predicate: (get: GetState) => boolean, view: SVGView): SVGConditionSelector;
     default(view: SVGView): void;
+}
+
+export interface SVGViewSelector {
+    withUnion<T>(state: State<T>): SVGCaseSelector<T>;
+    withConditions(): SVGConditionSelector;
 }
 
 export interface SpecialSVGElements {
     element(tag: string, builder?: (element: ConfigurableElement<SpecialElementAttributes & GlobalSVGAttributes, SVGElements>) => void): this;
     textNode(value: string | Stateful<string>): this;
     subview(value: SVGView): this;
-    subviewOf(selectorGenerator: (selector: SVGViewSelector) => void): this;
+    subviewFrom(selectorGenerator: (selector: SVGViewSelector) => void): this;
     subviews<T>(data: (get: GetState) => Array<T>, viewGenerator: (item: State<T>, index: State<number>) => SVGView): this;
 }
 

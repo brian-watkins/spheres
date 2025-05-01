@@ -95,7 +95,7 @@ function optionsView(root: HTMLBuilder) {
           .class("w-96 m-8 bg-slate-100 hover:text-sky-600 font-bold text-sky-800")
           .on("click", () => use(get => write(dialog, { ...get(dialog)!, showDiameterSlider: true })))
         children
-          .subviewOf(select => select
+          .subviewFrom(select => select.withConditions()
             .when(get => get(dialog)?.showDiameterSlider ?? false, adjustRadiusView)
             .default(adjustmentMessage)
           )

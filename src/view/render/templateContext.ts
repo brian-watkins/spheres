@@ -1,7 +1,7 @@
 import { Container, container, State } from "../../store/index.js";
 import { StateWriter } from "../../store/state/publisher/stateWriter.js";
 import { recordTokens } from "../../store/state/stateRecorder.js";
-import { Command, CommandController, createStatePublisher, StatePublisher, Token, TokenRegistry } from "../../store/tokenRegistry.js";
+import { createStatePublisher, OverlayTokenRegistry, StatePublisher, Token, TokenRegistry } from "../../store/tokenRegistry.js";
 import { ViewDefinition, ViewRenderer } from "./viewRenderer.js";
 
 export class ListItemTemplateContext<T> {
@@ -51,23 +51,19 @@ export class ListItemTemplateContext<T> {
   }
 }
 
-export class ListItemOverlayTokenRegistry implements TokenRegistry {
+export class ListItemOverlayTokenRegistry extends OverlayTokenRegistry {
   private _tokenMap: Map<Token, StatePublisher<any>> | undefined
 
   constructor(
-    private rootRegistry: TokenRegistry,
+    rootRegistry: TokenRegistry,
     private item: State<any>,
     private itemPublisher: StateWriter<any>
-  ) { }
-
-  set(): void { }
+  ) {
+    super(rootRegistry)
+  }
 
   registerState<T>(token: State<T>, initialState?: T): StatePublisher<T> {
     return createStatePublisher(this, token, initialState)
-  }
-
-  registerCommand(token: Command<any>): CommandController<any> {
-    return this.rootRegistry.registerCommand(token)
   }
 
   private get tokenMap(): Map<Token, StatePublisher<any>> {
@@ -92,7 +88,7 @@ export class ListItemOverlayTokenRegistry implements TokenRegistry {
     if (token === this.item) {
       return this.itemPublisher
     }
-    return this._tokenMap?.get(token) ?? this.rootRegistry.get(token)
+    return this._tokenMap?.get(token) ?? super.get(token)
   }
 
   updateItemData(data: any) {

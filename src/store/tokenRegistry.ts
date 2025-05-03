@@ -93,7 +93,7 @@ export abstract class StatePublisher<T> {
   }
 
   runListeners() {
-    for (const listener of this.runnables!) {
+    for (const listener of this.runnables ?? []) {
       if (listener.parent === this) {
         listener.version = listener.version! + 1
         listener.run(subscribeOnGet(listener))
@@ -130,4 +130,24 @@ export interface TokenRegistry {
   set(token: Token, controller: any): void
   registerState<T>(token: State<T>, initialState?: T): StatePublisher<T>
   registerCommand<T>(token: Command<T>): CommandController<T>
+}
+
+export class OverlayTokenRegistry implements TokenRegistry {
+  constructor(protected parentRegistry: TokenRegistry) { }
+
+  get<C>(token: Token): C {
+    return this.parentRegistry.get(token)
+  }
+
+  set(token: Token, controller: any): void {
+    this.parentRegistry.set(token, controller)
+  }
+
+  registerState<T>(token: State<T>, initialState?: T): StatePublisher<T> {
+    return this.parentRegistry.registerState(token, initialState)
+  }
+
+  registerCommand<T>(token: Command<T>): CommandController<T> {
+    return this.parentRegistry.registerCommand(token)
+  }
 }

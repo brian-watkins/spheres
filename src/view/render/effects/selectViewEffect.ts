@@ -26,13 +26,23 @@ export class SelectViewEffect implements StateListener {
   }
 
   private switchView(get: GetState): void {
-    const template = selectTemplate(this.selectors, get)
+    const selector = this.selectors.find(selector => selector.select(get))
 
     let node: Node
-    if (template === undefined) {
+    if (selector === undefined) {
       node = document.createTextNode("")
     } else {
-      node = render(template, this.registry)
+      switch (selector.type) {
+        case "case-selector": {
+          const templateContext = selector.templateContext()
+          node = render(templateContext.template, templateContext.overlayRegistry(this.registry))
+          break
+        }
+        case "condition-selector": {
+          node = render(selector.template(), this.registry)
+          break
+        }
+      }
     }
 
     this.clearView()
@@ -48,20 +58,20 @@ export class SelectViewEffect implements StateListener {
   }
 }
 
-function selectTemplate(selectors: Array<TemplateSelector<DOMTemplate>>, get: GetState): DOMTemplate | undefined {
-  const selectedIndex = selectors.findIndex(selector => selector.select(get))
-
-  if (selectedIndex === -1) {
-    return undefined
-  }
-
-  return selectors[selectedIndex].template()
-}
-
 export function activateSelect(registry: TokenRegistry, selectors: Array<TemplateSelector<DOMTemplate>>, startNode: Node, get: GetState): void {
-  const template = selectTemplate(selectors, get)
+  const selector = selectors.find(selector => selector.select(get))
 
-  if (template === undefined) return
+  if (selector === undefined) return
 
-  activate(template, registry, startNode.nextSibling!)
+  switch (selector.type) {
+    case "case-selector": {
+      const templateContext = selector.templateContext()
+      activate(templateContext.template, templateContext.overlayRegistry(registry), startNode.nextSibling!)
+      break
+    }
+    case "condition-selector": {
+      activate(selector.template(), registry, startNode.nextSibling!)
+      break
+    }
+  }
 }

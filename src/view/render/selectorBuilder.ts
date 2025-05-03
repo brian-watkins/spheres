@@ -1,17 +1,35 @@
 import { GetState, State } from "../../store/index.js";
+import { recordTokens } from "../../store/state/stateRecorder.js";
+import { createStatePublisher, OverlayTokenRegistry, runQuery, StateListener, StatePublisher, Token, TokenRegistry } from "../../store/tokenRegistry.js";
 import { ViewDefinition, ViewCaseSelector, ViewSelector, ViewConditionSelector } from "./viewRenderer.js";
 
-export interface TemplateSelector<T> {
+export interface TemplateConditionSelector<T> {
+  type: "condition-selector"
   select: (get: GetState) => boolean
   template: () => T
 }
 
-export abstract class AbstractSelectorBuilder<T> implements ViewSelector {
+export interface TemplateContext<T> {
+  template: T
+  overlayRegistry: (registry: TokenRegistry) => TokenRegistry
+}
+
+export interface TemplateCaseSelector<T> {
+  type: "case-selector"
+  select: (get: GetState) => boolean
+  templateContext: () => TemplateContext<T>
+}
+
+export type TemplateSelector<T> = TemplateCaseSelector<T> | TemplateConditionSelector<T>
+
+export class SelectorBuilder<T> implements ViewSelector {
   private templateSelectors: Array<TemplateSelector<T>> = []
   private defaultSelector: TemplateSelector<T> | undefined = undefined
 
+  constructor(private createTemplate: (view: ViewDefinition, selectorId: number) => T) { }
+
   get selectors(): Array<TemplateSelector<T>> {
-    const selectors = [ ...this.templateSelectors ]
+    const selectors = [...this.templateSelectors]
 
     if (this.defaultSelector) {
       selectors.push(this.defaultSelector)
@@ -26,16 +44,38 @@ export abstract class AbstractSelectorBuilder<T> implements ViewSelector {
 
     return {
       when(typePredicate, viewGenerator) {
+        const selector = (get: GetState) => typePredicate(get(state))
         self.templateSelectors.push({
-          select: get => typePredicate(get(state)),
-          template: () => self.createTemplate(viewGenerator(state as State<any>), index)
+          type: "case-selector",
+          select: selector,
+          templateContext: memoize(() => {
+            let template!: any
+            const tokens = recordTokens(() => {
+              template = self.createTemplate(viewGenerator(state as State<any>), index)
+            })
+
+            return {
+              template,
+              overlayRegistry: (registry) => {
+                return new CaseViewOverlayTokenRegistry(registry, selector, tokens)
+              },
+            }
+          })
         })
         return this
       },
       default(viewGenerator) {
         self.defaultSelector = {
+          type: "case-selector",
           select: () => true,
-          template: () => self.createTemplate(viewGenerator(state), self.templateSelectors.length)
+          templateContext: memoize(() => {
+            return {
+              template: self.createTemplate(viewGenerator(state), self.templateSelectors.length),
+              overlayRegistry: (registry) => {
+                return new CaseViewOverlayTokenRegistry(registry, () => true, [])
+              }
+            }
+          })
         }
       }
     }
@@ -43,26 +83,84 @@ export abstract class AbstractSelectorBuilder<T> implements ViewSelector {
 
   withConditions(): ViewConditionSelector {
     const self = this
-    
+
     return {
       when(predicate: (get: GetState) => boolean, view: ViewDefinition) {
         const index = self.templateSelectors.length
         self.templateSelectors.push({
+          type: "condition-selector",
           select: predicate,
-          template: () => self.createTemplate(view, index)
+          template: memoize(() => self.createTemplate(view, index))
         })
-    
+
         return this
       },
       default(view: ViewDefinition): void {
         self.defaultSelector = {
+          type: "condition-selector",
           select: () => true,
-          template: () => self.createTemplate(view, self.templateSelectors.length)
+          template: memoize(() => self.createTemplate(view, self.templateSelectors.length))
         }
       }
     }
   }
+}
 
-  protected abstract createTemplate(view: ViewDefinition, selectorId: number): T
-  
+function memoize<X>(fun: () => X): () => X {
+  let value: X | undefined = undefined
+
+  return () => {
+    if (value === undefined) {
+      value = fun()
+    }
+    return value
+  }
+}
+
+class CaseViewOverlayTokenRegistry extends OverlayTokenRegistry {
+  private tokenMap: Map<State<any>, any> = new Map()
+  constructor(parentRegistry: TokenRegistry, private selector: (get: GetState) => boolean, private tokens: Array<State<any>>) {
+    super(parentRegistry)
+  }
+
+  get<C>(token: Token): C {
+    if (this.tokens.includes(token as State<any>)) {
+      let publisher = this.tokenMap.get(token as State<any>)
+      if (publisher === undefined) {
+        publisher = createStatePublisher(this, token as State<any>)
+        this.tokenMap.set(token as State<any>, this.createGuardedPublisher(publisher))
+      }
+      return publisher
+    }
+
+    const publisher = this.parentRegistry.get<StatePublisher<any>>(token)
+    return this.createGuardedPublisher(publisher) as any
+  }
+
+  private createGuardedPublisher(publisher: StatePublisher<any>): StatePublisher<any> {
+    return guardListenersStatePublisherProxy(
+      publisher,
+      () => runQuery(this.parentRegistry, this.selector)
+    ) as any
+  }
+}
+
+function guardListenersStatePublisherProxy(publisher: StatePublisher<any>, guard: () => boolean) {
+  return new Proxy(publisher, {
+    get(target, prop, receiver) {
+      if (prop === "addListener") {
+        return (listener: StateListener) => {
+          const runner = listener.run.bind(listener)
+          listener.run = function (get) {
+            if (guard()) {
+              runner(get)
+            }
+          }
+          target.addListener(listener)
+        }
+      } else {
+        return Reflect.get(target, prop, receiver)
+      }
+    }
+  })
 }

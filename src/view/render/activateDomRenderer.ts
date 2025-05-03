@@ -8,13 +8,14 @@ import { activateSelect, SelectViewEffect } from "./effects/selectViewEffect.js"
 import { UpdateTextEffect } from "./effects/textEffect.js";
 import { getEventAttribute } from "./eventHelpers.js";
 import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementId } from "./fragmentHelpers.js";
-import { DomTemplateRenderer, DomTemplateSelectorBuilder } from "./templateRenderer.js";
+import { createDOMTemplate, DomTemplateRenderer } from "./templateRenderer.js";
 import { AbstractViewConfig, ViewConfigDelegate } from "./viewConfig.js";
 import { AbstractViewRenderer, ElementDefinition, isStateful, ViewDefinition, ViewRendererDelegate, ViewSelector } from "./viewRenderer.js";
 import { IdSequence } from "./idSequence.js";
 import { EffectLocation } from "./effectLocation.js";
 import { ListItemTemplateContext } from "./templateContext.js";
 import { activateList, ListEffect } from "./effects/listEffect.js";
+import { SelectorBuilder } from "./selectorBuilder.js";
 
 export class ActivateDomRenderer extends AbstractViewRenderer {
   private currentNode: Node | null
@@ -67,7 +68,7 @@ export class ActivateDomRenderer extends AbstractViewRenderer {
     const elementId = getSwitchElementId(this.currentNode!)
     let end = findSwitchEndNode(this.currentNode!, elementId)
 
-    const selectorBuilder = new DomTemplateSelectorBuilder(this.delegate, this.zone, elementId)
+    const selectorBuilder = new SelectorBuilder(createDOMTemplate(this.delegate, this.zone, elementId))
     selectorGenerator(selectorBuilder)
 
     const effect = new SelectViewEffect(this.registry, selectorBuilder.selectors, this.currentNode!, end)

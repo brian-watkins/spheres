@@ -7,8 +7,8 @@ import { IdSequence } from "./idSequence.js";
 import { ListItemTemplateContext } from "./templateContext.js";
 import { AbstractViewConfig, ViewConfigDelegate } from "./viewConfig.js";
 import { AbstractViewRenderer, ElementDefinition, isStateful, ViewDefinition, ViewRendererDelegate, ViewSelector } from "./viewRenderer.js";
-import { AbstractSelectorBuilder } from "./selectorBuilder.js";
 import { DOMTemplate, EffectTemplate, EffectTemplateTypes, TemplateType } from "./domTemplate.js";
+import { SelectorBuilder } from "./selectorBuilder.js";
 
 
 export class DomTemplateRenderer extends AbstractViewRenderer {
@@ -125,7 +125,7 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
 
     this.root.appendChild(fragment)
 
-    const selectorBuilder = new DomTemplateSelectorBuilder(this.delegate, this.zone, elementId)
+    const selectorBuilder = new SelectorBuilder(createDOMTemplate(this.delegate, this.zone, elementId))
     selectorGenerator(selectorBuilder)
 
     this.effectTemplates.push({
@@ -194,23 +194,10 @@ class DomTemplateConfig extends AbstractViewConfig {
   }
 }
 
-export class DomTemplateSelectorBuilder extends AbstractSelectorBuilder<DOMTemplate> {
-  private templateCache: Map<ViewDefinition, DOMTemplate> = new Map()
-
-  constructor(private delegate: ViewRendererDelegate, private zone: Zone, private elementId: string) {
-    super()
-  }
-
-  protected createTemplate(view: ViewDefinition, selectorId: number): DOMTemplate {
-    let cached = this.templateCache.get(view)
-
-    if (cached === undefined) {
-      const renderer = new DomTemplateRenderer(this.delegate, this.zone, new IdSequence(`${this.elementId}.${selectorId}`), new EffectLocation(root => root))
-      view(renderer)
-      cached = renderer.template
-      this.templateCache.set(view, cached)
-    }
-
-    return cached
+export function createDOMTemplate(delegate: ViewRendererDelegate, zone: Zone, elementId: string): (view: ViewDefinition, selectorId: number) => DOMTemplate {
+  return (view, selectorId) => {
+    const renderer = new DomTemplateRenderer(delegate, zone, new IdSequence(`${elementId}.${selectorId}`), new EffectLocation(root => root))
+    view(renderer)
+    return renderer.template
   }
 }

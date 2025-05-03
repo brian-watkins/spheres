@@ -11,7 +11,7 @@ import { AbstractViewRenderer, ElementDefinition, isStateful, ViewDefinition, Vi
 import { ListItemTemplateContext } from "../../view/render/templateContext.js";
 import { TransformRendererDelegate } from "./transformDelegate.js";
 import { AbstractViewConfig, ViewConfigDelegate } from "../../view/render/viewConfig.js";
-import { AbstractSelectorBuilder } from "../../view/render/selectorBuilder.js";
+import { SelectorBuilder } from "../../view/render/selectorBuilder.js";
 import { BooleanAttributesDelegate } from "../../view/render/htmlDelegate.js";
 
 type StatefulString = (registry: TokenRegistry) => string
@@ -161,7 +161,7 @@ class StringRenderer extends AbstractViewRenderer {
 
   subviewFrom(selectorGenerator: (selector: ViewSelector) => void): this {
     const elementId = this.idSequence.next
-    const templateSelectorBuilder = new StringTemplateSelectorBuilder(this.delegate, this.viteContext, elementId)
+    const templateSelectorBuilder = new SelectorBuilder(createStringTemplate(this.delegate, this.viteContext, elementId))
     selectorGenerator(templateSelectorBuilder)
     const selectors = templateSelectorBuilder.selectors
 
@@ -178,7 +178,20 @@ class StringRenderer extends AbstractViewRenderer {
           if (selectedIndex === -1) {
             return ""
           }
-          return stringForTemplate(registry, selectors[selectedIndex].template())
+          const selector = selectors[selectedIndex]
+          switch (selector.type) {
+            case "case-selector": {
+              const templateContext = selector.templateContext()
+              return stringForTemplate(
+                templateContext.overlayRegistry(registry),
+                templateContext.template
+              )
+            }
+            case "condition-selector": {
+              return stringForTemplate(registry, selector.template())
+            }
+          }
+
         }
       ]
     })
@@ -187,13 +200,9 @@ class StringRenderer extends AbstractViewRenderer {
   }
 }
 
-class StringTemplateSelectorBuilder extends AbstractSelectorBuilder<HTMLTemplate> {
-  constructor(private delegate: ViewRendererDelegate, private viteContext: ViteContext | undefined, private elementId: string) {
-    super()
-  }
-
-  protected createTemplate(view: ViewDefinition, selectorId: number): HTMLTemplate {
-    const renderer = new StringRenderer(this.delegate, this.viteContext, new IdSequence(`${this.elementId}.${selectorId}`), true)
+function createStringTemplate(delegate: ViewRendererDelegate, viteContext: ViteContext | undefined, elementId: string): (view: ViewDefinition, selectorId: number) => HTMLTemplate {
+  return (view, selectorId) => {
+    const renderer = new StringRenderer(delegate, viteContext, new IdSequence(`${elementId}.${selectorId}`), true)
     view(renderer as unknown as HTMLBuilder)
     return renderer.template
   }

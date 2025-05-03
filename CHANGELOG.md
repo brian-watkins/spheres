@@ -1,5 +1,11 @@
 # spheres
 
+## 0.22.1
+
+### Patch Changes
+
+- 684bb85: Fix for when server rendered stateful text is empty
+
 ## 0.22.0
 
 ### Minor Changes

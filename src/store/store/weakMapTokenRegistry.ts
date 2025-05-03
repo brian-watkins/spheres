@@ -17,19 +17,27 @@ export class WeakMapTokenRegistry implements TokenRegistry {
     return controller
   }
 
-  get<C>(token: Token): C {
+  getState<C extends StatePublisher<any>>(token: State<any>): C {
+    let publisher = this.registry.get(token)
+    if (publisher === undefined) {
+      publisher = this.registerState(token)
+    }
+    return publisher
+  }
+
+  getCommand(token: Command<any>): CommandController<any> {
     let controller = this.registry.get(token)
     if (controller === undefined) {
-      if (token instanceof State) {
-        controller = this.registerState(token)
-      } else if (token instanceof Command) {
-        controller = this.registerCommand(token)
-      }
+      controller = this.registerCommand(token)
     }
     return controller
   }
 
-  set(token: Token, controller: any) {
+  setCommand(token: Command<any>, controller: CommandController<any>): void {
     this.registry.set(token, controller)
+  }
+
+  setState(state: State<any>, publisher: StatePublisher<any>): void {
+    this.registry.set(state, publisher)
   }
 }

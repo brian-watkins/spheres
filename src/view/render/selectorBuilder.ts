@@ -1,6 +1,6 @@
 import { GetState, State } from "../../store/index.js";
 import { recordTokens } from "../../store/state/stateRecorder.js";
-import { createStatePublisher, OverlayTokenRegistry, runQuery, StateListener, StatePublisher, Token, TokenRegistry } from "../../store/tokenRegistry.js";
+import { createStatePublisher, OverlayTokenRegistry, runQuery, StateListener, StatePublisher, TokenRegistry } from "../../store/tokenRegistry.js";
 import { ViewDefinition, ViewCaseSelector, ViewSelector, ViewConditionSelector } from "./viewRenderer.js";
 
 export interface TemplateConditionSelector<T> {
@@ -123,17 +123,17 @@ class CaseViewOverlayTokenRegistry extends OverlayTokenRegistry {
     super(parentRegistry)
   }
 
-  get<C>(token: Token): C {
-    if (this.tokens.includes(token as State<any>)) {
-      let publisher = this.tokenMap.get(token as State<any>)
+  getState<C extends StatePublisher<any>>(token: State<any>): C {
+    if (this.tokens.includes(token)) {
+      let publisher = this.tokenMap.get(token)
       if (publisher === undefined) {
-        publisher = createStatePublisher(this, token as State<any>)
-        this.tokenMap.set(token as State<any>, this.createGuardedPublisher(publisher))
+        publisher = createStatePublisher(this, token)
+        this.tokenMap.set(token, this.createGuardedPublisher(publisher))
       }
       return publisher
     }
 
-    const publisher = this.parentRegistry.get<StatePublisher<any>>(token)
+    const publisher = this.parentRegistry.getState(token)
     return this.createGuardedPublisher(publisher) as any
   }
 

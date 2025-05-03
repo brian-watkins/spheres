@@ -1,5 +1,5 @@
 import { StateWriter } from "./state/publisher/stateWriter.js"
-import { Command, CommandController, GetState, State, StatePublisher, TokenRegistry } from "./tokenRegistry.js"
+import { Command, GetState, State, TokenRegistry } from "./tokenRegistry.js"
 
 export const initialValue = Symbol("initialValue")
 
@@ -71,25 +71,25 @@ export function batch(messages: Array<StoreMessage<any>>): BatchMessage {
 export function dispatchMessage(registry: TokenRegistry, message: StoreMessage<any>) {
   switch (message.type) {
     case "write": {
-      registry.get<StateWriter<any>>(message.container).write(message.value)
+      registry.getState<StateWriter<any>>(message.container).write(message.value)
       break
     }
     case "update": {
-      const writer = registry.get<StateWriter<any>>(message.container)
+      const writer = registry.getState<StateWriter<any>>(message.container)
       writer.write(message.generator(writer.getValue()))
       break
     }
     case "exec": {
-      registry.get<CommandController<any>>(message.command).run(message.message)
+      registry.getCommand(message.command).run(message.message)
       break
     }
     case "reset": {
-      const writer = registry.get<StateWriter<any>>(message.container)
+      const writer = registry.getState<StateWriter<any>>(message.container)
       writer.write(message.container[initialValue])
       break
     }
     case "use": {
-      const get: GetState = (state) => registry.get<StatePublisher<any>>(state).getValue()
+      const get: GetState = (state) => registry.getState(state).getValue()
       const statefulMessage = message.rule(get) ?? { type: "batch", messages: [] }
       dispatchMessage(registry, statefulMessage)
       break

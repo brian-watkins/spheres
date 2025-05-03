@@ -4,7 +4,7 @@ export type Stateful<T> = (get: GetState) => T | undefined
 
 export function subscribeOnGet(listener: StateListener): GetState {
   return function (token) {
-    const publisher = listener.registry.get<StatePublisher<any>>(token)
+    const publisher = listener.registry.getState(token)
     publisher.addListener(listener)
     return publisher.getValue()
   }
@@ -12,7 +12,7 @@ export function subscribeOnGet(listener: StateListener): GetState {
 
 export function runQuery<M>(registry: TokenRegistry, query: (get: GetState) => M): M {
   return query((token) => {
-    const publisher = registry.get<StatePublisher<any>>(token)
+    const publisher = registry.getState(token)
     return publisher.getValue()
   })
 }
@@ -126,8 +126,10 @@ export interface CommandController<T> {
 export type Token = State<any> | Command<any>
 
 export interface TokenRegistry {
-  get<C>(token: Token): C
-  set(token: Token, controller: any): void
+  getState<C extends StatePublisher<any>>(token: State<any>): C
+  setState(state: State<any>, publisher: StatePublisher<any>): void
+  getCommand(token: Command<any>): CommandController<any>
+  setCommand(token: Command<any>, controller: CommandController<any>): void
   registerState<T>(token: State<T>, initialState?: T): StatePublisher<T>
   registerCommand<T>(token: Command<T>): CommandController<T>
 }
@@ -135,12 +137,20 @@ export interface TokenRegistry {
 export class OverlayTokenRegistry implements TokenRegistry {
   constructor(protected parentRegistry: TokenRegistry) { }
 
-  get<C>(token: Token): C {
-    return this.parentRegistry.get(token)
+  getState<C extends StatePublisher<any>>(token: State<any>): C {
+    return this.parentRegistry.getState(token)
   }
 
-  set(token: Token, controller: any): void {
-    this.parentRegistry.set(token, controller)
+  setState(state: State<any>, publisher: StatePublisher<any>): void {
+    return this.parentRegistry.setState(state, publisher)
+  }
+
+  getCommand(token: Command<any>): CommandController<any> {
+    return this.parentRegistry.getCommand(token)
+  }
+
+  setCommand(token: Command<any>, controller: CommandController<any>): void {
+    return this.parentRegistry.setCommand(token, controller)
   }
 
   registerState<T>(token: State<T>, initialState?: T): StatePublisher<T> {

@@ -90,7 +90,7 @@ export function useEffect(store: Store, effect: ReactiveEffect): ReactiveEffectH
 export function useCommand<M>(store: Store, command: Command<M>, manager: CommandManager<NoInfer<M>>) {
   const registry = getTokenRegistry(store)
   const controller = new ManagedCommandController(registry, manager)
-  registry.set(command, controller)
+  registry.setCommand(command, controller)
   command[initializeCommand](registry)
 }
 
@@ -120,8 +120,8 @@ export function useHooks(store: Store, hooks: StoreHooks) {
 
 export function useContainerHooks<T, M, E>(store: Store, container: Container<T, M>, hooks: ContainerHooks<NoInfer<T>, NoInfer<M>, NoInfer<E>>) {
   const registry = getTokenRegistry(store)
-  const writerWithHooks = stateWriterWithHooks(registry, container, registry.get<StateWriter<any>>(container), hooks)
-  registry.set(container, writerWithHooks)
+  const writerWithHooks = stateWriterWithHooks(registry, container, registry.getState<StateWriter<any>>(container), hooks)
+  registry.setState(container, writerWithHooks)
 }
 
 
@@ -148,26 +148,26 @@ function stateWriterWithHooks<T, M, E>(registry: TokenRegistry, container: Conta
 }
 
 function initializerActions<T, M, E>(registry: TokenRegistry, container: Container<T, M>): Initializer<T, M, E> {
-  const writer = registry.get<StateWriter<T>>(container)
+  const writer = registry.getState<StateWriter<T>>(container)
   return {
     get: (state) => {
-      return registry.get<StatePublisher<any>>(state).getValue()
+      return registry.getState(state).getValue()
     },
     supply: (value) => {
       writer.publish(value)
     },
     pending: (...message) => {
       if (message.length === 0) {
-        registry.get<StateWriter<Meta<undefined, E>>>(container.meta).publish(pending(undefined))
+        registry.getState<StateWriter<Meta<undefined, E>>>(container.meta).publish(pending(undefined))
       } else {
-        registry.get<StateWriter<Meta<M, E>>>(container.meta).publish(pending(message[0]))
+        registry.getState<StateWriter<Meta<M, E>>>(container.meta).publish(pending(message[0]))
       }
     },
     error: (reason, ...message) => {
       if (message.length === 0) {
-        registry.get<StateWriter<Meta<undefined, E>>>(container.meta).publish(error(reason, undefined))
+        registry.getState<StateWriter<Meta<undefined, E>>>(container.meta).publish(error(reason, undefined))
       } else {
-        registry.get<StateWriter<Meta<M, E>>>(container.meta).publish(error(reason, message[0]))
+        registry.getState<StateWriter<Meta<M, E>>>(container.meta).publish(error(reason, message[0]))
       }
     }
   }
@@ -176,16 +176,16 @@ function initializerActions<T, M, E>(registry: TokenRegistry, container: Contain
 function containerWriteActions<T, M, E>(registry: TokenRegistry, container: Container<T, M>, writer: StateWriter<T>): WriteHookActions<T, M, E> {
   return {
     get: (state) => {
-      return registry.get<StatePublisher<any>>(state).getValue()
+      return registry.getState(state).getValue()
     },
     ok: (message) => {
       writer.accept(message)
     },
     pending: (message) => {
-      registry.get<StateWriter<any>>(container.meta).write(pending(message))
+      registry.getState<StateWriter<any>>(container.meta).write(pending(message))
     },
     error: (reason, message) => {
-      registry.get<StateWriter<any>>(container.meta).write(error(reason, message))
+      registry.getState<StateWriter<any>>(container.meta).write(error(reason, message))
     },
     current: writer.getValue()
   }
@@ -222,11 +222,11 @@ export function serialize(store: Store, map: Map<string, State<any>>): string {
   const map_data = Array.from(map.entries())
     .map(([key, token]) => {
       const serializedValue: SerializedValue = {
-        v: registry.get<StatePublisher<any>>(token).getValue(),
+        v: registry.getState(token).getValue(),
       }
 
       if (token instanceof Container) {
-        const metaValue = registry.get<StatePublisher<Meta<any, any>>>(token.meta).getValue()
+        const metaValue = registry.getState(token.meta).getValue()
         if (metaValue.type !== "ok") {
           serializedValue.mv = metaValue
         }

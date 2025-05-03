@@ -84,11 +84,12 @@ export class ListItemOverlayTokenRegistry extends OverlayTokenRegistry {
     }
   }
 
-  get(token: Token): any {
+  getState<C extends StatePublisher<any>>(token: State<any>): C {
     if (token === this.item) {
-      return this.itemPublisher
+      return this.itemPublisher as any
     }
-    return this._tokenMap?.get(token) ?? super.get(token)
+
+    return (this._tokenMap?.get(token) ?? super.getState(token)) as any
   }
 
   updateItemData(data: any) {

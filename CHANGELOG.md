@@ -1,5 +1,16 @@
 # spheres
 
+## 0.22.0
+
+### Minor Changes
+
+- 946d1d3: Support for selecting views by case of discriminated unions
+
+### Patch Changes
+
+- da69e16: Add DOCTYPE when rendering html tag to string
+- de66acf: Fix possible glitches in nested effects with derived state
+
 ## 0.21.1
 
 ### Patch Changes

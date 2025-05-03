@@ -32,6 +32,8 @@ export function buildStringRenderer(view: HTMLView, viteContext?: ViteContext): 
   }
 }
 
+const ZERO_WIDTH_SPACE = "&#x200b;"
+
 class StringRenderer extends AbstractViewRenderer {
   readonly template: HTMLTemplate = {
     strings: [""],
@@ -57,7 +59,7 @@ class StringRenderer extends AbstractViewRenderer {
     if (isStateful(value)) {
       this.appendToTemplate({
         strings: ["", ""],
-        statefuls: [toStatefulString(value)]
+        statefuls: [toStatefulString(value, ZERO_WIDTH_SPACE)]
       })
     } else {
       this.appendStringToTemplate(value)
@@ -267,8 +269,8 @@ class StringConfig extends AbstractViewConfig {
   }
 }
 
-function toStatefulString(stateful: Stateful<string>): StatefulString {
-  return (registry) => runQuery(registry, stateful) ?? ""
+function toStatefulString(stateful: Stateful<string>, defaultValue: string = ""): StatefulString {
+  return (registry) => runQuery(registry, stateful) || defaultValue
 }
 
 function stringForTemplate(registry: TokenRegistry, template: HTMLTemplate): string {

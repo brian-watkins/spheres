@@ -286,6 +286,36 @@ export default behavior("client activation of server rendered views", [
             ]))
         })
       ]
+    }),
+
+  example(ssrTestAppContext())
+    .description("app with empty stateful text on server")
+    .script({
+      suppose: [
+        fact("the app is loaded in the browser", async (context) => {
+          context.server.setSSRApp({
+            template: "../fixtures/ssrApp/islandWithEmptyState/template.html",
+            view: "./behaviors/server/fixtures/ssrApp/islandWithEmptyState/server.ts"
+          })
+          await context.browser.loadApp()
+        })
+      ],
+      observe: [
+        effect("there is no stateful text displayed", async (context) => {
+          await expect(context.browser.display.select("[data-text]").text(), resolvesTo(""))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("enter some text into the text field", async (context) => {
+          await context.browser.display.select("input").type("Hello!")
+        })
+      ],
+      observe: [
+        effect("the stateful text updates", async (context) => {
+          await expect(context.browser.display.select("[data-text]").text(), resolvesTo("Hello!"))
+        })
+      ]
     })
 
 ])

@@ -125,6 +125,20 @@ export default behavior("Render view to HTML string", [
       })
     })
     expect(actual, is(`<!DOCTYPE html><html lang="en"><head><title>Fun Stuff</title></head><body><h1>Hello!</h1></body></html>`))
+  }),
+  renderTest("rendering empty stateful text adds a zero-width space", (renderer) => {
+    const text = container({ initialValue: "" })
+    const actual = renderer.renderView(root => {
+      root.div(el => el.children.textNode(get => get(text)))
+    })
+    expect(actual, is("<div>&#x200b;</div>"))
+  }),
+  renderTest("rendering undefined stateful text adds a zero-width space", (renderer) => {
+    const text = container({ initialValue: undefined })
+    const actual = renderer.renderView(root => {
+      root.div(el => el.children.textNode(get => get(text)))
+    })
+    expect(actual, is("<div>&#x200b;</div>"))
   })
 ])
 

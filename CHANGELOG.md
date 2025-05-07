@@ -1,5 +1,11 @@
 # spheres
 
+## 0.22.2
+
+### Patch Changes
+
+- 1fbb64e: Reset meta state value whenever a write hook sends an ok message
+
 ## 0.22.1
 
 ### Patch Changes

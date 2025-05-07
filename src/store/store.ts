@@ -1,6 +1,6 @@
 import { Container } from "./state/container.js"
 import { dispatchMessage, StoreMessage } from "./message.js"
-import { error, Meta, pending } from "./state/meta.js"
+import { error, Meta, ok, pending } from "./state/meta.js"
 import { WeakMapTokenRegistry } from "./store/weakMapTokenRegistry.js"
 import { StateWriter } from "./state/publisher/stateWriter.js"
 import { Command, GetState, initializeCommand, initListener, State, StateListener, StateListenerVersion, StatePublisher, TokenRegistry } from "./tokenRegistry.js"
@@ -180,6 +180,7 @@ function containerWriteActions<T, M, E>(registry: TokenRegistry, container: Cont
     },
     ok: (message) => {
       writer.accept(message)
+      registry.getState<StateWriter<any>>(container.meta).write(ok())
     },
     pending: (message) => {
       registry.getState<StateWriter<any>>(container.meta).write(pending(message))

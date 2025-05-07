@@ -18,10 +18,10 @@ export interface ErrorMessage<M, E> {
 
 export type Meta<M, E> = OkMessage | PendingMessage<M> | ErrorMessage<M, E>
 
+const okMessage: OkMessage = { type: "ok" }
+
 export function ok(): OkMessage {
-  return {
-    type: "ok"
-  }
+  return okMessage
 }
 
 export function pending<M>(message: M): PendingMessage<M> {

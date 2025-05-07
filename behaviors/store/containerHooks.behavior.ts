@@ -92,6 +92,87 @@ const basicContainerHooks: ConfigurableExample =
       ]
     })
 
+const okUpdateWithNoPublishExample: ConfigurableExample =
+  example(testStoreContext<BasicContainerHooksContext>())
+    .description("container hook ok does not result in publishing a new value")
+    .script({
+      suppose: [
+        fact("there is a container with onWrite hooks", (context) => {
+          const stringContainer = container({ initialValue: "initial" })
+          const writeTask = new TestTask<string>()
+          const hooks: ContainerHooks<string, string> = {
+            async onWrite(message, actions) {
+              actions.pending(`Writing: ${message}; Current is: ${actions.current}`)
+              const val = await writeTask.waitForIt()
+              actions.ok(val)
+            }
+          }
+          context.useContainerHooks(stringContainer, hooks)
+          context.setTokens({
+            container: stringContainer,
+            writeTask,
+          })
+        }),
+        fact("there is a subscriber to the container", (context) => {
+          context.subscribeTo(context.tokens.container, "sub-1")
+        }),
+        fact("there is a subscriber to the meta container", (context) => {
+          context.subscribeTo(context.tokens.container.meta, "meta-sub-1")
+        })
+      ],
+      observe: [
+        effect("the container subscriber receives the initial value", (context) => {
+          expect(context.valuesForSubscriber("sub-1"), is([
+            "initial"
+          ]))
+        }),
+        effect("the meta container subscriber receives an ok message", (context) => {
+          expect(context.valuesForSubscriber("meta-sub-1"), is(arrayWith([
+            okMessage()
+          ])))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("a message is written to the container", (context) => {
+          context.writeTo(context.tokens.container, "A new value!")
+        })
+      ],
+      observe: [
+        effect("the container subscriber receives nothing yet", (context) => {
+          expect(context.valuesForSubscriber("sub-1"), is([
+            "initial",
+          ]))
+        }),
+        effect("the meta container subscriber receives a pending message from the onWrite hook", (context) => {
+          expect(context.valuesForSubscriber("meta-sub-1"), is(arrayWith([
+            okMessage(),
+            pendingMessage("Writing: A new value!; Current is: initial")
+          ])))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the write hook resolves with data that will not cause an update to the container subscriber", (context) => {
+          context.tokens.writeTask.resolveWith("initial")
+        })
+      ],
+      observe: [
+        effect("the container subscriber receives the published value", (context) => {
+          expect(context.valuesForSubscriber("sub-1"), is([
+            "initial",
+          ]))
+        }),
+        effect("the meta subscriber receives an ok message", (context) => {
+          expect(context.valuesForSubscriber("meta-sub-1"), is(arrayWith([
+            okMessage(),
+            pendingMessage("Writing: A new value!; Current is: initial"),
+            okMessage()
+          ])))
+        })
+      ]
+    })
+
 interface ErrorInWriteHookContext {
   container: Container<string>
 }
@@ -244,6 +325,7 @@ const containerHooksWithReducer: ConfigurableExample =
 
 export default behavior("Container Hooks", [
   basicContainerHooks,
+  okUpdateWithNoPublishExample,
   errorInWriteHook,
   getStateInHooks,
   containerHooksWithReducer

@@ -1,5 +1,11 @@
 # spheres
 
+## 0.22.3
+
+### Patch Changes
+
+- 4b02a07: Fix events with union selectors
+
 ## 0.22.2
 
 ### Patch Changes

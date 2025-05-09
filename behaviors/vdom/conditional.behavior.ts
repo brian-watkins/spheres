@@ -376,7 +376,10 @@ export default behavior("conditional zone", [
   nestedSelectorExample("server rendered", (context, view) => context.ssrAndActivate(view)),
 
   conditionalListWithEvents("client rendered", (context, view) => context.mountView(view)),
-  conditionalListWithEvents("server rendered", (context, view) => context.ssrAndActivate(view))
+  conditionalListWithEvents("server rendered", (context, view) => context.ssrAndActivate(view)),
+
+  multipleConditionalListsWithEvents("client rendered", (context, view) => context.mountView(view)),
+  multipleConditionalListsWithEvents("server rendered", (context, view) => context.ssrAndActivate(view))
 
 ])
 
@@ -828,6 +831,118 @@ function conditionalListWithEvents(name: string, renderer: (context: RenderApp<N
     })
 }
 
+function multipleConditionalListsWithEvents(name: string, renderer: (context: RenderApp<NestedSelectViewContext>, view: HTMLView) => void) {
+  return example(renderContext<MultipleNestedSelectViewContext>())
+    .description(`conditional view with list as root that uses events (${name})`)
+    .script({
+      suppose: [
+        fact("there is some state", (context) => {
+          context.setState({
+            trigger: container<Things>({ initialValue: { type: "one-thing" } }),
+            listItems: container({ initialValue: ["cat", "frog", "snake"] }),
+            moreListItems: container({ initialValue: ["apple", "pear", "grape"] })
+          })
+        }),
+        fact("there is a conditional list view", (context) => {
+          function itemView(item: State<string>): HTMLView {
+            const counters = collection(() => container({ initialValue: 0 }))
+
+            return (root) => {
+              root.div(el => {
+                el.children
+                  .h3(el => {
+                    el.config
+                      .dataAttribute("item-count", get => get(item))
+                    el.children
+                      .textNode(get => `You clicked the ${get(item)} ${get(counters.get(get(item)))} times!`)
+                  })
+                  .button(el => {
+                    el.config.on("click", () => use(get => update(counters.get(get(item)), (val) => val + 1)))
+                    el.children.textNode(get => `Click the ${get(item)}`)
+                  })
+              })
+            }
+          }
+
+          function listView(root: HTMLBuilder) {
+            root.subviews(get => get(context.state.listItems), itemView)
+          }
+
+          function otherListView(root: HTMLBuilder) {
+            root.subviews(get => get(context.state.moreListItems), itemView)
+          }
+
+          renderer(context, (root) => {
+            root.main(el => {
+              el.children
+                .button(el => {
+                  el.config.on("click", () => update(context.state.trigger, (cur) => {
+                    if (cur.type === "one-thing") {
+                      return { type: "two-thing" } as Things
+                    } else {
+                      return { type: "one-thing" } as Things
+                    }
+                  }))
+                  el.children.textNode("switch lists")
+                })
+                .subviewFrom(selector => {
+                  selector.withUnion(context.state.trigger)
+                    .when(thing => thing.type === "one-thing", () => listView)
+                    .when(thing => thing.type === "two-thing", () => otherListView)
+                })
+            })
+          })
+        })
+      ],
+      perform: [
+        step("click the item multiple times", async () => {
+          await selectElementWithText("Click the frog").click()
+          await selectElementWithText("Click the frog").click()
+          await selectElementWithText("Click the frog").click()
+        })
+      ],
+      observe: [
+        step("the counter is updated", async () => {
+          await expect(selectElement("[data-item-count='frog']").text(),
+            resolvesTo("You clicked the frog 3 times!"))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("switch to the other list", (context) => {
+          context.writeTo(context.state.trigger, { type: "two-thing" } as Things)
+        }),
+        step("click some items", async () => {
+          await selectElementWithText("Click the grape").click()
+          await selectElementWithText("Click the grape").click()
+        })
+      ],
+      observe: [
+        step("the counter is updated", async () => {
+          await expect(selectElement("[data-item-count='grape']").text(),
+            resolvesTo("You clicked the grape 2 times!"))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("switch back to the first list", (context) => {
+          context.writeTo(context.state.trigger, { type: "one-thing" } as Things)
+        }),
+        step("click the same item again", async () => {
+          await selectElementWithText("Click the frog").click()
+        })
+      ],
+      observe: [
+        effect("the counter is updated", async () => {
+          await expect(selectElement("[data-item-count='frog']").text(),
+            resolvesTo("You clicked the frog 4 times!")
+          )
+        })
+      ]
+    })
+
+}
+
 type SelectOptions = "fruit" | "fruits" | "sport" | "sports" | "book" | "books"
 
 interface NestedSelectorContext {
@@ -907,6 +1022,17 @@ function itemToggle(context: RenderApp<ToggleableViewContext>, id: string): Cont
 
 interface NestedSelectViewContext {
   listItems: Container<Array<string>>
+}
+
+interface OneThing { type: "one-thing" }
+interface TwoThing { type: "two-thing" }
+
+type Things = OneThing | TwoThing
+
+interface MultipleNestedSelectViewContext {
+  trigger: Container<Things>
+  listItems: Container<Array<string>>
+  moreListItems: Container<Array<string>>
 }
 
 interface ToggleableNestedSelectViewContext extends ToggleableViewContext {

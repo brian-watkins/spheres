@@ -39,11 +39,11 @@ export class SelectorBuilder<T> implements ViewSelector {
   }
 
   withUnion<T>(state: State<T>): ViewCaseSelector<T> {
-    const index = this.templateSelectors.length
     const self = this
 
     return {
       when(typePredicate, viewGenerator) {
+        const index = self.templateSelectors.length
         const selector = (get: GetState) => typePredicate(get(state))
         self.templateSelectors.push({
           type: "case-selector",

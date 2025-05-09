@@ -5,7 +5,7 @@ import { createStringRenderer } from "@server/index"
 
 export class RenderApp<T> {
   private renderResult: RenderResult | undefined
-  private store: Store = createStore()
+  readonly store: Store = createStore()
   private _state: T | undefined
 
   setState(state: T) {

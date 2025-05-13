@@ -6,86 +6,41 @@ export function getEventAttribute(element: Element, eventType: string): string |
   return element.getAttribute(`data-spheres-${eventType}`)
 }
 
-export class EventWrapper implements Event {
-  NONE: 0 = 0
-  CAPTURING_PHASE: 1 = 1
-  AT_TARGET: 2 = 2
-  BUBBLING_PHASE: 3 = 3
+interface WrappedEvent extends Event {
+  propagationStopped: boolean
+  setCurrentTarget(target: EventTarget): void
+}
 
-  currentTarget: EventTarget | null
-
-  propagationStopped: boolean = false
-
-  constructor(private event: Event) {
-    this.currentTarget = event.currentTarget
+export function wrapEvent(event: Event): WrappedEvent {
+  const oldStopPropagation = event.stopPropagation.bind(event)
+  const oldStopImmediate = event.stopImmediatePropagation.bind(event)
+  
+  let hasStoppedPropagation = false
+  
+  event.stopPropagation = () => {
+    hasStoppedPropagation = true
+    oldStopPropagation()
   }
 
-  get bubbles(): boolean {
-    return this.event.bubbles
+  event.stopImmediatePropagation = () => {
+    hasStoppedPropagation = true
+    oldStopImmediate()
   }
 
-  // deprecated
-  cancelBubble: boolean = false
+  let currentTarget: EventTarget | null = null
+  let wrapped = Object.defineProperty(event, "currentTarget", {
+    get: () => currentTarget
+  })
 
-  get cancelable(): boolean {
-    return this.event.cancelable
-  }
+  wrapped = Object.defineProperty(wrapped, "setCurrentTarget", {
+    value: (target: EventTarget) => {
+      currentTarget = target
+    }
+  })
 
-  get composed(): boolean {
-    return this.event.composed
-  }
+  wrapped = Object.defineProperty(wrapped, "propagationStopped", {
+    get: () => hasStoppedPropagation,
+  })
 
-  get defaultPrevented(): boolean {
-    return this.event.defaultPrevented
-  }
-
-  get eventPhase(): number {
-    return this.event.eventPhase
-  }
-
-  get isTrusted(): boolean {
-    return this.event.isTrusted
-  }
-
-  get returnValue(): boolean {
-    return this.event.returnValue
-  }
-
-  get srcElement(): EventTarget | null {
-    return this.event.srcElement
-  }
-
-  get target(): EventTarget | null {
-    return this.event.target
-  }
-
-  get timeStamp(): number {
-    return this.event.timeStamp
-  }
-
-  get type(): string {
-    return this.event.type
-  }
-
-  composedPath(): EventTarget[] {
-    return this.event.composedPath()
-  }
-
-  initEvent(): void {
-    // nothing deprecated
-  }
-
-  preventDefault(): void {
-    this.event.preventDefault()
-  }
-
-  stopImmediatePropagation(): void {
-    this.propagationStopped = true
-    this.event.stopImmediatePropagation()
-  }
-
-  stopPropagation(): void {
-    this.propagationStopped = true
-    this.event.stopPropagation()
-  }
+  return wrapped as WrappedEvent
 }

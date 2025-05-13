@@ -1,7 +1,7 @@
 import { DOMEvent, DOMEventType, RenderResult, spheresTemplateData, StoreEventHandler, Zone } from "./index.js"
 import { dispatchMessage } from "../../store/message.js"
 import { TokenRegistry } from "../../store/tokenRegistry.js"
-import { EventWrapper, getEventAttribute } from "./eventHelpers.js"
+import { getEventAttribute, wrapEvent } from "./eventHelpers.js"
 
 export class DOMRoot implements Zone, RenderResult {
   private activeDocumentEvents = new Set<string>()
@@ -29,7 +29,7 @@ export class DOMRoot implements Zone, RenderResult {
 
   private createEventListener(eventType: string) {
     return (evt: Event) => {
-      const wrappedEvent = new EventWrapper(evt)
+      const wrappedEvent = wrapEvent(evt)
 
       const eventTargets = evt.composedPath()
       for (const target of eventTargets) {
@@ -40,7 +40,7 @@ export class DOMRoot implements Zone, RenderResult {
         const elementId = getEventAttribute(element, eventType)
         if (elementId !== null) {
           const domEvent = this.events.get(`${eventType}-${elementId}`)
-          wrappedEvent.currentTarget = target
+          wrappedEvent.setCurrentTarget(target)
 
           switch (domEvent?.type) {
             case DOMEventType.Element:

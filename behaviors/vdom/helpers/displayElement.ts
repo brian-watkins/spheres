@@ -91,10 +91,11 @@ export class DisplayElement {
     return elementCount > 0
   }
 
-  click(): Promise<void> {
-    return usePage((page, opt) => page.locator(opt.selector).nth(opt.index).click({ timeout: 200 }), {
+  click(position?: { x: number, y: number }): Promise<void> {
+    return usePage((page, opt) => page.locator(opt.selector).nth(opt.index).click({ position: opt.position, timeout: 200 }), {
       selector: this.selector,
-      index: this.index
+      index: this.index,
+      position
     })
   }
 

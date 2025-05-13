@@ -349,7 +349,7 @@ export default behavior("event handlers", [
                         .dataAttribute("element", "inner")
                         .style("background-color: blue; width:150px; height: 150px;")
                         .on("click", (evt) => {
-                          context.state.currentTargets.push(`INNER: ${(evt.currentTarget as HTMLElement).dataset.element}`)
+                          context.state.currentTargets.push(`INNER: ${(evt.currentTarget as HTMLElement).dataset.element} at (${evt.offsetX}, ${evt.offsetY})`)
                           return update(context.state.inner, (val) => val += 1)
                         })
                       el.children.textNode("click me!")
@@ -361,8 +361,8 @@ export default behavior("event handlers", [
       ],
       perform: [
         step("click the inner box", async () => {
-          await selectElement("[data-element='inner']").click()
-          await selectElement("[data-element='inner']").click()
+          await selectElement("[data-element='inner']").click({ x: 10, y: 10 })
+          await selectElement("[data-element='inner']").click({ x: 20, y: 20 })
         })
       ],
       observe: [
@@ -371,9 +371,9 @@ export default behavior("event handlers", [
         }),
         effect("the current target value is set to the element with the event handler", (context) => {
           expect(context.state.currentTargets, is([
-            "INNER: inner",
+            "INNER: inner at (10, 10)",
             "OUTER: outer",
-            "INNER: inner",
+            "INNER: inner at (20, 20)",
             "OUTER: outer",
           ]))
         })

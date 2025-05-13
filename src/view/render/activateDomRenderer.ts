@@ -105,7 +105,11 @@ class ActivateDomConfig extends AbstractViewConfig {
   on<E extends keyof HTMLElementEventMap | string>(event: E, handler: StoreEventHandler<any>): this {
     if (EventsToDelegate.has(event)) {
       const elementId = getEventAttribute(this.element, event)
-      this.zone.addEvent(DOMEventType.Element, elementId, event, handler)
+      if (elementId !== null) {
+        this.zone.addEvent(DOMEventType.Element, elementId, event, handler)
+      } else {
+        console.log(`Unable to activate a ${event} event for element`, this.element)
+      }
     } else {
       this.element.addEventListener(event, (evt) => {
         dispatchMessage(this.registry, handler(evt))

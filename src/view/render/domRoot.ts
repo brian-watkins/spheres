@@ -1,7 +1,7 @@
 import { DOMEvent, DOMEventType, RenderResult, spheresTemplateData, StoreEventHandler, Zone } from "./index.js"
 import { dispatchMessage } from "../../store/message.js"
 import { TokenRegistry } from "../../store/tokenRegistry.js"
-import { getEventAttribute, getNearestElementHandlingEvent } from "./eventHelpers.js"
+import { EventWrapper, getEventAttribute } from "./eventHelpers.js"
 
 export class DOMRoot implements Zone, RenderResult {
   private activeDocumentEvents = new Set<string>()
@@ -29,23 +29,31 @@ export class DOMRoot implements Zone, RenderResult {
 
   private createEventListener(eventType: string) {
     return (evt: Event) => {
-      const targetElement = evt.target as Element
-      const element = getNearestElementHandlingEvent(targetElement, eventType)
-      if (element) {
-        const elementId = getEventAttribute(element, eventType)
-        const domEvent = this.events.get(`${eventType}-${elementId}`)
-        switch (domEvent?.type) {
-          case DOMEventType.Element:
-            dispatchMessage(this.registry, domEvent.handler(evt))
-            break
-          case DOMEventType.Template:
-            const root = element.closest(`[data-spheres-template]`)!
-            //@ts-ignore
-            const registry = root[spheresTemplateData]
-            dispatchMessage(registry, domEvent.handler(evt))
-            break
+      const wrappedEvent = new EventWrapper(evt)
+
+      const eventTargets = evt.composedPath()
+      for (const target of eventTargets) {
+        if (target === this.root || wrappedEvent.propagationStopped) {
+          break
         }
-        evt.stopPropagation()
+        const element = target as Element
+        const elementId = getEventAttribute(element, eventType)
+        if (elementId !== null) {
+          const domEvent = this.events.get(`${eventType}-${elementId}`)
+          wrappedEvent.currentTarget = target
+
+          switch (domEvent?.type) {
+            case DOMEventType.Element:
+              dispatchMessage(this.registry, domEvent.handler(wrappedEvent))
+              break
+            case DOMEventType.Template:
+              const root = element.closest(`[data-spheres-template]`)!
+              //@ts-ignore
+              const registry = root[spheresTemplateData]
+              dispatchMessage(registry, domEvent.handler(wrappedEvent))
+              break
+          }
+        }
       }
     }
   }

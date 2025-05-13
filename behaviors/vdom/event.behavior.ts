@@ -1,5 +1,5 @@
 import { behavior, effect, Example, example, fact, step } from "best-behavior";
-import { equalTo, expect, resolvesTo } from "great-expectations";
+import { equalTo, expect, is, resolvesTo } from "great-expectations";
 import { selectElement } from "./helpers/displayElement.js";
 import { RenderApp, renderContext } from "./helpers/renderContext.js";
 import { Container, container, State, update, use, write } from "@store/index.js";
@@ -240,7 +240,7 @@ export default behavior("event handlers", [
     }),
 
   example(renderContext<MultipleEventContext>())
-    .description("nested template captures events")
+    .description("nested template handles its own events")
     .script({
       suppose: [
         fact("there is state", (context) => {
@@ -249,7 +249,7 @@ export default behavior("event handlers", [
             textMessage: container({ initialValue: "" })
           })
         }),
-        fact("there is a nested template that handles the same event type as its parent, with same id", (context) => {
+        fact("there is a nested template that handles the same event type as its parent", (context) => {
           const nestedZone = (root: HTMLBuilder) => {
             root.div(el => {
               el.children
@@ -313,6 +313,343 @@ export default behavior("event handlers", [
         }),
         effect("the parent template handles the click event", async () => {
           await expect(selectElement("[data-parent-text]").text(), resolvesTo("Clicked the outer button"))
+        })
+      ]
+    }),
+
+  example(renderContext<NestedEventsContext>())
+    .description("events continue propagating to parents")
+    .script({
+      suppose: [
+        fact("there is state", (context) => {
+          context.setState({
+            inner: container({ initialValue: 0 }),
+            outer: container({ initialValue: 20 }),
+            currentTargets: []
+          })
+        }),
+        fact("there is a view with nested events", (context) => {
+          context.mountView(root => {
+            root.main(el => {
+              el.children
+                .h3(el => {
+                  el.children.textNode(get => `Outer: ${get(context.state.outer)}; Inner: ${get(context.state.inner)}`)
+                })
+                .div(el => {
+                  el.config
+                    .style("background-color: green; width:400px; height:400px;")
+                    .dataAttribute("element", "outer")
+                    .on("click", (evt) => {
+                      context.state.currentTargets.push(`OUTER: ${(evt.currentTarget as HTMLElement).dataset.element}`)
+                      return update(context.state.outer, (val) => val += 10)
+                    })
+                  el.children
+                    .div(el => {
+                      el.config
+                        .dataAttribute("element", "inner")
+                        .style("background-color: blue; width:150px; height: 150px;")
+                        .on("click", (evt) => {
+                          context.state.currentTargets.push(`INNER: ${(evt.currentTarget as HTMLElement).dataset.element}`)
+                          return update(context.state.inner, (val) => val += 1)
+                        })
+                      el.children.textNode("click me!")
+                    })
+                })
+            })
+          })
+        })
+      ],
+      perform: [
+        step("click the inner box", async () => {
+          await selectElement("[data-element='inner']").click()
+          await selectElement("[data-element='inner']").click()
+        })
+      ],
+      observe: [
+        effect("the state updates due to the event propagating to both handlers", async () => {
+          await expect(selectElement("h3").text(), resolvesTo("Outer: 40; Inner: 2"))
+        }),
+        effect("the current target value is set to the element with the event handler", (context) => {
+          expect(context.state.currentTargets, is([
+            "INNER: inner",
+            "OUTER: outer",
+            "INNER: inner",
+            "OUTER: outer",
+          ]))
+        })
+      ]
+    }),
+
+  example(renderContext<NestedEventsContext>())
+    .description("when call stopPropagation the event no longer propagates")
+    .script({
+      suppose: [
+        fact("there is state", (context) => {
+          context.setState({
+            inner: container({ initialValue: 0 }),
+            outer: container({ initialValue: 20 }),
+            currentTargets: []
+          })
+        }),
+        fact("there is a view with nested events", (context) => {
+          context.mountView(root => {
+            root.main(el => {
+              el.children
+                .h3(el => {
+                  el.children.textNode(get => `Outer: ${get(context.state.outer)}; Inner: ${get(context.state.inner)}`)
+                })
+                .div(el => {
+                  el.config
+                    .style("background-color: green; width:400px; height:400px;")
+                    .dataAttribute("outer")
+                    .on("click", () => update(context.state.outer, (val) => val += 10))
+                  el.children
+                    .div(el => {
+                      el.config
+                        .dataAttribute("inner")
+                        .style("background-color: blue; width:150px; height: 150px;")
+                        .on("click", (evt) => {
+                          evt.stopPropagation()
+                          return update(context.state.inner, (val) => val += 1)
+                        })
+                      el.children.textNode("click me!")
+                    })
+                })
+            })
+          })
+        })
+      ],
+      perform: [
+        step("click the inner box", async () => {
+          await selectElement("[data-inner]").click()
+          await selectElement("[data-inner]").click()
+        })
+      ],
+      observe: [
+        effect("the state updates due to the event propagating to both handlers", async () => {
+          await expect(selectElement("h3").text(), resolvesTo("Outer: 20; Inner: 2"))
+        })
+      ]
+    }),
+
+  example(renderContext<NestedEventsContext>())
+    .description("when call stopImmediatePropagation the event no longer propagates")
+    .script({
+      suppose: [
+        fact("there is state", (context) => {
+          context.setState({
+            inner: container({ initialValue: 0 }),
+            outer: container({ initialValue: 20 }),
+            currentTargets: []
+          })
+        }),
+        fact("there is a view with nested events", (context) => {
+          context.mountView(root => {
+            root.main(el => {
+              el.children
+                .h3(el => {
+                  el.children.textNode(get => `Outer: ${get(context.state.outer)}; Inner: ${get(context.state.inner)}`)
+                })
+                .div(el => {
+                  el.config
+                    .style("background-color: green; width:400px; height:400px;")
+                    .dataAttribute("outer")
+                    .on("click", () => update(context.state.outer, (val) => val += 10))
+                  el.children
+                    .div(el => {
+                      el.config
+                        .dataAttribute("inner")
+                        .style("background-color: blue; width:150px; height: 150px;")
+                        .on("click", (evt) => {
+                          evt.stopImmediatePropagation()
+                          return update(context.state.inner, (val) => val += 1)
+                        })
+                      el.children.textNode("click me!")
+                    })
+                })
+            })
+          })
+        })
+      ],
+      perform: [
+        step("click the inner box", async () => {
+          await selectElement("[data-inner]").click()
+          await selectElement("[data-inner]").click()
+        })
+      ],
+      observe: [
+        effect("the state updates due to the event propagating to both handlers", async () => {
+          await expect(selectElement("h3").text(), resolvesTo("Outer: 20; Inner: 2"))
+        })
+      ]
+    }),
+
+  example(renderContext<NestedEventsContext>())
+    .description("when propagating events from nested templates")
+    .script({
+      suppose: [
+        fact("there is state", (context) => {
+          context.setState({
+            inner: container({ initialValue: 0 }),
+            outer: container({ initialValue: 20 }),
+            currentTargets: []
+          })
+        }),
+        fact("there is a view with events nested in templates", (context) => {
+          context.mountView(root => {
+            root.main(el => {
+              el.children
+                .h3(el => {
+                  el.children.textNode(get => `Outer: ${get(context.state.outer)}; Inner: ${get(context.state.inner)}`)
+                })
+                .div(el => {
+                  el.config
+                    .style("background-color: green; width:400px; height:400px;")
+                    .dataAttribute("outer")
+                    .on("click", () => update(context.state.outer, (val) => val += 10))
+                  el.children
+                    .subviews(() => ["a", "b", "c"], (label: State<string>): HTMLView => {
+                      return root => {
+                        root.div(el => {
+                          el.config
+                            .dataAttribute("element", get => `inner-${get(label)}`)
+                            .style("background-color: blue; width:100px; height: 100px;")
+                            .on("click", () => {
+                              return update(context.state.inner, (val) => val += 1)
+                            })
+                          el.children.textNode(get => `click me: ${get(label)}`)
+                        })
+                      }
+                    })
+                })
+            })
+          })
+        })
+      ],
+      perform: [
+        step("click the inner boxes", async () => {
+          await selectElement("[data-element='inner-a']").click()
+          await selectElement("[data-element='inner-b']").click()
+          await selectElement("[data-element='inner-c']").click()
+        })
+      ],
+      observe: [
+        effect("the state updates due to the event propagating to both handlers", async () => {
+          await expect(selectElement("h3").text(), resolvesTo("Outer: 50; Inner: 3"))
+        })
+      ]
+    }),
+
+  example(renderContext<NestedEventsContext>())
+    .description("when call stopPropagation events from nested templates")
+    .script({
+      suppose: [
+        fact("there is state", (context) => {
+          context.setState({
+            inner: container({ initialValue: 0 }),
+            outer: container({ initialValue: 20 }),
+            currentTargets: []
+          })
+        }),
+        fact("there is a view with events nested in templates", (context) => {
+          context.mountView(root => {
+            root.main(el => {
+              el.children
+                .h3(el => {
+                  el.children.textNode(get => `Outer: ${get(context.state.outer)}; Inner: ${get(context.state.inner)}`)
+                })
+                .div(el => {
+                  el.config
+                    .style("background-color: green; width:400px; height:400px;")
+                    .dataAttribute("outer")
+                    .on("click", () => update(context.state.outer, (val) => val += 10))
+                  el.children
+                    .subviews(() => ["a", "b", "c"], (label: State<string>): HTMLView => {
+                      return root => {
+                        root.div(el => {
+                          el.config
+                            .dataAttribute("element", get => `inner-${get(label)}`)
+                            .style("background-color: blue; width:100px; height: 100px;")
+                            .on("click", (evt) => {
+                              evt.stopPropagation()
+                              return update(context.state.inner, (val) => val += 1)
+                            })
+                          el.children.textNode(get => `click me: ${get(label)}`)
+                        })
+                      }
+                    })
+                })
+            })
+          })
+        })
+      ],
+      perform: [
+        step("click the inner boxes", async () => {
+          await selectElement("[data-element='inner-a']").click()
+          await selectElement("[data-element='inner-b']").click()
+          await selectElement("[data-element='inner-c']").click()
+        })
+      ],
+      observe: [
+        effect("the state updates due to the event propagating to both handlers", async () => {
+          await expect(selectElement("h3").text(), resolvesTo("Outer: 20; Inner: 3"))
+        })
+      ]
+    }),
+
+  example(renderContext<NestedEventsContext>())
+    .description("when call stopImmediatePropagation events from nested templates")
+    .script({
+      suppose: [
+        fact("there is state", (context) => {
+          context.setState({
+            inner: container({ initialValue: 0 }),
+            outer: container({ initialValue: 20 }),
+            currentTargets: []
+          })
+        }),
+        fact("there is a view with events nested in templates", (context) => {
+          context.mountView(root => {
+            root.main(el => {
+              el.children
+                .h3(el => {
+                  el.children.textNode(get => `Outer: ${get(context.state.outer)}; Inner: ${get(context.state.inner)}`)
+                })
+                .div(el => {
+                  el.config
+                    .style("background-color: green; width:400px; height:400px;")
+                    .dataAttribute("outer")
+                    .on("click", () => update(context.state.outer, (val) => val += 10))
+                  el.children
+                    .subviews(() => ["a", "b", "c"], (label: State<string>): HTMLView => {
+                      return root => {
+                        root.div(el => {
+                          el.config
+                            .dataAttribute("element", get => `inner-${get(label)}`)
+                            .style("background-color: blue; width:100px; height: 100px;")
+                            .on("click", (evt) => {
+                              evt.stopImmediatePropagation()
+                              return update(context.state.inner, (val) => val += 1)
+                            })
+                          el.children.textNode(get => `click me: ${get(label)}`)
+                        })
+                      }
+                    })
+                })
+            })
+          })
+        })
+      ],
+      perform: [
+        step("click the inner boxes", async () => {
+          await selectElement("[data-element='inner-a']").click()
+          await selectElement("[data-element='inner-b']").click()
+          await selectElement("[data-element='inner-c']").click()
+        })
+      ],
+      observe: [
+        effect("the state updates due to the event propagating to both handlers", async () => {
+          await expect(selectElement("h3").text(), resolvesTo("Outer: 20; Inner: 3"))
         })
       ]
     }),
@@ -494,4 +831,10 @@ interface MultipleEventContext {
 interface ListEventContext {
   message: Container<string>
   options: Container<Array<string>>
+}
+
+interface NestedEventsContext {
+  inner: Container<number>
+  outer: Container<number>
+  currentTargets: Array<string>
 }

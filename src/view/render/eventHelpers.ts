@@ -12,35 +12,35 @@ interface WrappedEvent extends Event {
 }
 
 export function wrapEvent(event: Event): WrappedEvent {
-  const oldStopPropagation = event.stopPropagation.bind(event)
-  const oldStopImmediate = event.stopImmediatePropagation.bind(event)
-  
-  let hasStoppedPropagation = false
-  
-  event.stopPropagation = () => {
-    hasStoppedPropagation = true
-    oldStopPropagation()
-  }
-
-  event.stopImmediatePropagation = () => {
-    hasStoppedPropagation = true
-    oldStopImmediate()
-  }
-
+  let hasStoppedPropagation: boolean = false
   let currentTarget: EventTarget | null = null
-  let wrapped = Object.defineProperty(event, "currentTarget", {
-    get: () => currentTarget
-  })
 
-  wrapped = Object.defineProperty(wrapped, "setCurrentTarget", {
-    value: (target: EventTarget) => {
-      currentTarget = target
-    }
-  })
-
-  wrapped = Object.defineProperty(wrapped, "propagationStopped", {
-    get: () => hasStoppedPropagation,
-  })
-
-  return wrapped as WrappedEvent
+  return new Proxy(event, {
+    get(target, property) {
+      if (property === "setCurrentTarget") {
+        return (target: EventTarget) => {
+          currentTarget = target
+        }
+      }
+      if (property === "propagationStopped") {
+        return hasStoppedPropagation
+      }
+      if (property === "stopPropagation") {
+        return () => {
+          hasStoppedPropagation = true
+          target.stopPropagation()
+        }
+      }
+      if (property === "currentTarget") {
+        return currentTarget
+      }
+      if (property === "stopImmediatePropagation") {
+        return () => {
+          hasStoppedPropagation = true
+          target.stopImmediatePropagation()
+        }
+      }
+      return Reflect.get(target, property)
+    },
+  }) as WrappedEvent
 }

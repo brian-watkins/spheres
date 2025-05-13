@@ -1,5 +1,11 @@
 # spheres
 
+## 0.22.4
+
+### Patch Changes
+
+- bb05d85: Support for event bubbling (and canceling via stopPropagation)
+
 ## 0.22.3
 
 ### Patch Changes

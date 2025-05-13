@@ -1,5 +1,11 @@
 # spheres
 
+## 0.22.5
+
+### Patch Changes
+
+- 053e9a5: Allow access to event subtype properties
+
 ## 0.22.4
 
 ### Patch Changes

@@ -1,7 +1,9 @@
 import { GetState } from "../../../store/index.js"
-import { Stateful, StateListener, TokenRegistry } from "../../../store/tokenRegistry.js";
+import { Stateful, StateListener, StateListenerType, TokenRegistry } from "../../../store/tokenRegistry.js";
 
 export class UpdateAttributeEffect implements StateListener {
+  readonly type = StateListenerType.SystemEffect
+
   constructor(public registry: TokenRegistry, private element: Element, private attribute: string, private generator: Stateful<string>) { }
 
   init(get: GetState): void {

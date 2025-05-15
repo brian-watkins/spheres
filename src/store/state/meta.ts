@@ -1,5 +1,5 @@
 import { StateWriter } from "./publisher/stateWriter.js"
-import { createPublisher, State, StateListener, StatePublisher, TokenRegistry } from "../tokenRegistry.js"
+import { createPublisher, State, StateListener, StateListenerType, StatePublisher, TokenRegistry } from "../tokenRegistry.js"
 
 export interface PendingMessage<M> {
   type: "pending"
@@ -56,6 +56,8 @@ export class MetaState<T, M, E = unknown> extends State<Meta<M, E>> {
 }
 
 class MetaStateListener<M, E> implements StateListener {
+  readonly type = StateListenerType.StateEffect
+
   overrideVersionTracking = true
 
   constructor(public registry: TokenRegistry, private writer: StateWriter<Meta<M, E>>) { }

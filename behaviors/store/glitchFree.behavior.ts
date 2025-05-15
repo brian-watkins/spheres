@@ -122,31 +122,38 @@ export default behavior("glitch-free effects", [
     .script({
       suppose: [
         fact("there is a root container and nested dependencies", (context) => {
+          const listenerLog: Array<string> = []
           const root = container<{ name: string | undefined }>({ initialValue: { name: undefined } })
           const currentName = derived({
-            query: (get) => get(root).name ?? "Nobody"
+            query: (get) => {
+              listenerLog.push("Running derived state")
+              return get(root).name ?? "Nobody"
+            }
           })
           let hasRegistered = false
           context.registerEffect("conditional", (get) => {
+            listenerLog.push("Running first effect")
             if (get(root).name !== undefined) {
               if (!hasRegistered) {
                 context.registerEffect("intermediate-effect", (get) => {
+                  listenerLog.push("Running second effect")
                   return `The current name is: ${get(currentName)}`
                 })
                 hasRegistered = true
               }
-              return context.valuesForSubscriber("intermediate-effect").join("; ")
+              return "some effect"
             } else {
               return "nothing"
             }
           })
           context.setTokens({
-            rootContainer: root
+            rootContainer: root,
+            listenerLog
           })
         })
       ],
       perform: [
-        step("the root container is updated to register the next effect", (context) => {
+        step("the root container is updated to register the next effect, which subscribes to the derived state", (context) => {
           context.writeTo(context.tokens.rootContainer, { name: "Awesome Person" })
         }),
         step("the root container is updated again", (context) => {
@@ -154,11 +161,21 @@ export default behavior("glitch-free effects", [
         })
       ],
       observe: [
-        effect("the effect is always called with the latest derived value", (context) => {
-          expect(context.valuesForSubscriber("conditional"), is([
-            "nothing",
+        effect("derived state is always called first, and then user defined effects in order of initialization", (context) => {
+          expect(context.tokens.listenerLog, is([
+            "Running first effect",
+            "Running first effect",
+            "Running second effect",
+            "Running derived state",
+            "Running derived state",
+            "Running first effect",
+            "Running second effect",
+          ]))
+        }),
+        effect("the second effect is updated with the latest derived value", (context) => {
+          expect(context.valuesForSubscriber("intermediate-effect"), is([
             "The current name is: Awesome Person",
-            "The current name is: Awesome Person; The current name is: Cool Dude"
+            "The current name is: Cool Dude"
           ]))
         })
       ]
@@ -178,4 +195,5 @@ interface GlitchEffectContext {
 
 interface GlitchUndefinedEffectContext {
   rootContainer: Container<{ name: string | undefined }>
+  listenerLog: Array<string>
 }

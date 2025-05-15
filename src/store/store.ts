@@ -3,7 +3,7 @@ import { dispatchMessage, StoreMessage } from "./message.js"
 import { error, Meta, ok, pending } from "./state/meta.js"
 import { WeakMapTokenRegistry } from "./store/weakMapTokenRegistry.js"
 import { StateWriter } from "./state/publisher/stateWriter.js"
-import { Command, GetState, initializeCommand, initListener, State, StateListener, StateListenerVersion, StatePublisher, TokenRegistry } from "./tokenRegistry.js"
+import { Command, GetState, initializeCommand, initListener, State, StateListener, StateListenerType, StateListenerVersion, StatePublisher, TokenRegistry } from "./tokenRegistry.js"
 import { CommandManager, ManagedCommandController } from "./command/managedCommandController.js"
 
 declare const globalThis: {
@@ -192,7 +192,8 @@ function containerWriteActions<T, M, E>(registry: TokenRegistry, container: Cont
   }
 }
 
-class EffectListener implements StateListener, ReactiveEffectHandle {
+export class EffectListener implements StateListener, ReactiveEffectHandle {
+  readonly type = StateListenerType.UserEffect
   version: StateListenerVersion = 0
 
   constructor(public registry: TokenRegistry, private effect: ReactiveEffect) { }

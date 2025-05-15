@@ -36,12 +36,17 @@ export abstract class State<T> {
 
 export type StateListenerVersion = number
 
+export enum StateListenerType {
+  StateEffect, SystemEffect, UserEffect
+}
+
 export interface StateListener {
+  readonly type: StateListenerType
   registry: TokenRegistry
   parent?: {}
   version?: StateListenerVersion
   overrideVersionTracking?: boolean
-  notifyListeners?: () => void
+  notifyListeners?: (userEffects: Array<StateListener>) => void
   init(get: GetState): void
   run(get: GetState): void
 }
@@ -65,36 +70,42 @@ export abstract class StatePublisher<T> {
     this.listeners.delete(listener)
   }
 
-  notifyListeners() {
+  notifyListeners(userEffects: Array<StateListener>) {
     this.runnables = []
-    const effects: Array<[StateListener, StateListenerVersion]> = []
+    const effects: Array<StateListener> = []
 
     for (const entry of this.listeners) {
-      if (entry[0] instanceof StatePublisher) {
-        this.checkRunnable(...entry)
+      const [listener, version] = entry
+      if (version === listener.version || listener.overrideVersionTracking) {
+        listener.parent = this
+        switch (listener.type) {
+          case StateListenerType.SystemEffect:
+            effects.push(listener)
+            break
+          case StateListenerType.StateEffect:
+            listener.notifyListeners?.(userEffects)
+            this.runnables.push(listener)
+            break
+          case StateListenerType.UserEffect:
+            effects.push(listener)
+            userEffects.push(listener)
+            break
+        }
       } else {
-        effects.push(entry)
+        this.removeListener(listener)
       }
     }
 
-    for (const [listener, version] of effects) {
-      this.checkRunnable(listener, version)
-    }
-  }
-
-  private checkRunnable(listener: StateListener, version: StateListenerVersion) {
-    if (version === listener.version || listener.overrideVersionTracking) {
-      listener.parent = this
-      listener.notifyListeners?.()
-      this.runnables!.push(listener)
-    } else {
-      this.removeListener(listener)
-    }
+    this.runnables = this.runnables.concat(effects)
   }
 
   runListeners() {
     for (const listener of this.runnables ?? []) {
       if (listener.parent === this) {
+        if (listener.type === StateListenerType.UserEffect) {
+          listener.parent = true
+          continue
+        }
         listener.version = listener.version! + 1
         listener.run(subscribeOnGet(listener))
         listener.parent = undefined
@@ -102,6 +113,16 @@ export abstract class StatePublisher<T> {
     }
 
     this.runnables = undefined
+  }
+
+  runUserEffects(effects: Array<StateListener>) {
+    for (const listener of effects) {
+      if (listener.parent === true) {
+        listener.version = listener.version! + 1
+        listener.run(subscribeOnGet(listener))
+        listener.parent = undefined
+      }
+    }
   }
 }
 

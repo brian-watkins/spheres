@@ -80,22 +80,22 @@ export abstract class StatePublisher<T> {
         listener.parent = this
         switch (listener.type) {
           case StateListenerType.SystemEffect:
-            this.runnables[index] = listener
+            this.runnables.push(listener)
             break
           case StateListenerType.StateEffect:
             listener.notifyListeners?.(userEffects)
             if (index > firstEffect) {
               const oldFirst = this.runnables[firstEffect]
               this.runnables[firstEffect] = listener
-              this.runnables[index] = oldFirst
+              this.runnables.push(oldFirst)
               firstEffect = firstEffect + 1
             } else {
-              this.runnables[index] = listener
+              this.runnables.push(listener)
               firstEffect++
             }
             break
           case StateListenerType.UserEffect:
-            this.runnables[index] = listener
+            this.runnables.push(listener)
             userEffects.push(listener)
             break
         }

@@ -1,5 +1,5 @@
 import { StateWriter } from "./publisher/stateWriter.js"
-import { createPublisher, State, StateListener, StateListenerType, StatePublisher, TokenRegistry } from "../tokenRegistry.js"
+import { createPublisher, GetState, State, StateListener, StateListenerType, StatePublisher, TokenRegistry } from "../tokenRegistry.js"
 
 export interface PendingMessage<M> {
   type: "pending"
@@ -49,7 +49,7 @@ export class MetaState<T, M, E = unknown> extends State<Meta<M, E>> {
 
     const writer = new StateWriter<Meta<M, E>>(serializedState ?? ok())
 
-    publisher.addListener(new MetaStateListener(registry, writer))
+    publisher.addListener(new MetaStateListener(registry, this.token, writer))
 
     return writer
   }
@@ -58,15 +58,16 @@ export class MetaState<T, M, E = unknown> extends State<Meta<M, E>> {
 class MetaStateListener<M, E> implements StateListener {
   readonly type = StateListenerType.StateEffect
 
-  overrideVersionTracking = true
+  constructor(public registry: TokenRegistry, private token: State<any>, private writer: StateWriter<Meta<M, E>>) { }
 
-  constructor(public registry: TokenRegistry, private writer: StateWriter<Meta<M, E>>) { }
-
-  init(): void {
-    this.run()
+  init(get: GetState): void {
+    this.run(get)
   }
 
-  run(): void {
+  run(get: GetState): void {
+    // to resubscribe to state updates on this token
+    get(this.token)
+
     this.writer.write(ok())
   }
 }

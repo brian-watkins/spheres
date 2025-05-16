@@ -45,7 +45,6 @@ export interface StateListener {
   registry: TokenRegistry
   parent?: StatePublisher<any> | boolean
   version?: StateListenerVersion
-  overrideVersionTracking?: boolean
   notifyListeners?: (userEffects: Array<StateListener>) => void
   init(get: GetState): void
   run(get: GetState): void
@@ -71,37 +70,34 @@ export abstract class StatePublisher<T> {
   }
 
   notifyListeners(userEffects: Array<StateListener>) {
-    this.runnables = []
+    this.runnables = [...this.listeners.keys()]
     let firstEffect = 0
-    let index = -1
-    for (const [listener, version] of this.listeners) {
-      if (version === listener.version || listener.overrideVersionTracking) {
-        index++
-        listener.parent = this
-        switch (listener.type) {
-          case StateListenerType.SystemEffect:
-            this.runnables.push(listener)
-            break
-          case StateListenerType.StateEffect:
-            listener.notifyListeners?.(userEffects)
-            if (index > firstEffect) {
-              const oldFirst = this.runnables[firstEffect]
-              this.runnables[firstEffect] = listener
-              this.runnables.push(oldFirst)
-              firstEffect = firstEffect + 1
-            } else {
-              this.runnables.push(listener)
-              firstEffect++
-            }
-            break
-          case StateListenerType.UserEffect:
-            this.runnables.push(listener)
-            userEffects.push(listener)
-            break
-        }
-      } else {
+    let index = 0
+    for (const listener of this.runnables.slice()) {
+      const version = this.listeners.get(listener)
+      if (version !== listener.version) {
         this.removeListener(listener)
+        this.runnables.splice(index, 1)
+        continue
       }
+      listener.parent = this
+      switch (listener.type) {
+        case StateListenerType.StateEffect:
+          listener.notifyListeners?.(userEffects)
+          if (index > firstEffect) {
+            const oldFirst = this.runnables[firstEffect]
+            this.runnables[firstEffect] = listener
+            this.runnables[index] = oldFirst
+            firstEffect = firstEffect + 1
+          } else {
+            firstEffect = firstEffect + 1
+          }
+          break
+        case StateListenerType.UserEffect:
+          userEffects.push(listener)
+          break
+      }
+      index++
     }
   }
 

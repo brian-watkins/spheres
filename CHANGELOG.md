@@ -1,5 +1,11 @@
 # spheres
 
+## 0.22.6
+
+### Patch Changes
+
+- 2cd8e07: Run user-defined effects after all rendering is complete
+
 ## 0.22.5
 
 ### Patch Changes

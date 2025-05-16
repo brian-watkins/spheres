@@ -43,7 +43,7 @@ export enum StateListenerType {
 export interface StateListener {
   readonly type: StateListenerType
   registry: TokenRegistry
-  parent?: {}
+  parent?: StatePublisher<any> | boolean
   version?: StateListenerVersion
   overrideVersionTracking?: boolean
   notifyListeners?: (userEffects: Array<StateListener>) => void
@@ -57,8 +57,8 @@ export function initListener(listener: StateListener) {
 }
 
 export abstract class StatePublisher<T> {
-  private listeners: Map<StateListener, StateListenerVersion> = new Map()
-  private runnables: Array<StateListener> | undefined
+  protected listeners: Map<StateListener, StateListenerVersion> = new Map()
+  private runnables: Array<StateListener> | undefined = undefined
 
   abstract getValue(): T
 
@@ -72,21 +72,30 @@ export abstract class StatePublisher<T> {
 
   notifyListeners(userEffects: Array<StateListener>) {
     this.runnables = []
-    const effects: Array<StateListener> = []
-
+    let firstEffect = 0
+    let index = -1
     for (const [listener, version] of this.listeners) {
       if (version === listener.version || listener.overrideVersionTracking) {
+        index++
         listener.parent = this
         switch (listener.type) {
           case StateListenerType.SystemEffect:
-            effects.push(listener)
+            this.runnables[index] = listener
             break
           case StateListenerType.StateEffect:
             listener.notifyListeners?.(userEffects)
-            this.runnables.push(listener)
+            if (index > firstEffect) {
+              const oldFirst = this.runnables[firstEffect]
+              this.runnables[firstEffect] = listener
+              this.runnables[index] = oldFirst
+              firstEffect = firstEffect + 1
+            } else {
+              this.runnables[index] = listener
+              firstEffect++
+            }
             break
           case StateListenerType.UserEffect:
-            effects.push(listener)
+            this.runnables[index] = listener
             userEffects.push(listener)
             break
         }
@@ -94,21 +103,18 @@ export abstract class StatePublisher<T> {
         this.removeListener(listener)
       }
     }
-
-    this.runnables = this.runnables.concat(effects)
   }
 
   runListeners() {
     for (const listener of this.runnables!) {
-      if (listener.parent === this) {
-        if (listener.type === StateListenerType.UserEffect) {
-          listener.parent = true
-          continue
-        }
-        listener.version = listener.version! + 1
-        listener.run(subscribeOnGet(listener))
-        listener.parent = undefined
+      if (listener.parent !== this) {
+        continue
       }
+      if (listener.type === StateListenerType.UserEffect) {
+        listener.parent = true
+        continue
+      }
+      this.runListener(listener)
     }
 
     this.runnables = undefined
@@ -117,11 +123,15 @@ export abstract class StatePublisher<T> {
   runUserEffects(effects: Array<StateListener>) {
     for (const listener of effects) {
       if (listener.parent === true) {
-        listener.version = listener.version! + 1
-        listener.run(subscribeOnGet(listener))
-        listener.parent = undefined
+        this.runListener(listener)
       }
     }
+  }
+
+  runListener(listener: StateListener) {
+    listener.version = listener.version! + 1
+    listener.run(subscribeOnGet(listener))
+    listener.parent = undefined
   }
 }
 

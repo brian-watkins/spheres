@@ -88,10 +88,8 @@ export abstract class StatePublisher<T> {
             const oldFirst = this.runnables[firstEffect]
             this.runnables[firstEffect] = listener
             this.runnables[index] = oldFirst
-            firstEffect = firstEffect + 1
-          } else {
-            firstEffect = firstEffect + 1
           }
+          firstEffect = firstEffect + 1
           break
         case StateListenerType.UserEffect:
           userEffects.push(listener)

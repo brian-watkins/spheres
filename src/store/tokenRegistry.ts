@@ -74,8 +74,7 @@ export abstract class StatePublisher<T> {
     this.runnables = []
     const effects: Array<StateListener> = []
 
-    for (const entry of this.listeners) {
-      const [listener, version] = entry
+    for (const [listener, version] of this.listeners) {
       if (version === listener.version || listener.overrideVersionTracking) {
         listener.parent = this
         switch (listener.type) {
@@ -100,7 +99,7 @@ export abstract class StatePublisher<T> {
   }
 
   runListeners() {
-    for (const listener of this.runnables ?? []) {
+    for (const listener of this.runnables!) {
       if (listener.parent === this) {
         if (listener.type === StateListenerType.UserEffect) {
           listener.parent = true

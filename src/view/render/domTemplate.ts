@@ -8,7 +8,7 @@ import { activateSelect, SelectViewEffect } from "./effects/selectViewEffect.js"
 import { UpdateTextEffect } from "./effects/textEffect.js"
 import { findListEndNode, findSwitchEndNode, getListElementId } from "./fragmentHelpers.js"
 import { spheresTemplateData, StoreEventHandler } from "./index.js"
-import { TemplateSelector } from "./selectorBuilder.js"
+import { SelectorCollection } from "./selectorBuilder.js"
 import { ListItemTemplateContext } from "./templateContext.js"
 
 export enum EffectTemplateTypes {
@@ -46,7 +46,7 @@ export interface ListEffectTemplate {
 
 export interface SelectEffectTemplate {
   type: EffectTemplateTypes.Select
-  selectors: Array<TemplateSelector<DOMTemplate>>
+  selectors: SelectorCollection<DOMTemplate>
   elementId: string
   location: EffectLocation
 }

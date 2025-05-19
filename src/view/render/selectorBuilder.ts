@@ -20,7 +20,12 @@ export interface TemplateCaseSelector<T> {
   templateContext: () => TemplateContext<T>
 }
 
-export type TemplateSelector<T> = TemplateCaseSelector<T> | TemplateConditionSelector<T>
+export interface EmptyTemplate {
+  type: "empty"
+  select: (get: GetState) => boolean
+}
+
+export type TemplateSelector<T> = EmptyTemplate | TemplateCaseSelector<T> | TemplateConditionSelector<T>
 
 export class SelectorBuilder<T> implements ViewSelector {
   private templateSelectors: Array<TemplateSelector<T>> = []
@@ -28,14 +33,14 @@ export class SelectorBuilder<T> implements ViewSelector {
 
   constructor(private createTemplate: (view: ViewDefinition, selectorId: number) => T) { }
 
-  get selectors(): Array<TemplateSelector<T>> {
+  get selectors(): SelectorCollection<T> {
     const selectors = [...this.templateSelectors]
 
     if (this.defaultSelector) {
       selectors.push(this.defaultSelector)
     }
 
-    return selectors
+    return new SelectorCollection(selectors)
   }
 
   withUnion<T>(state: State<T>): ViewCaseSelector<T> {
@@ -103,6 +108,19 @@ export class SelectorBuilder<T> implements ViewSelector {
         }
       }
     }
+  }
+}
+
+const emptySelector: TemplateSelector<any> = {
+  type: "empty",
+  select: () => true
+}
+
+export class SelectorCollection<T> {
+  constructor(private selectors: Array<TemplateSelector<T>>) { }
+
+  findSelector(get: GetState): TemplateSelector<T> {
+    return this.selectors.find(selector => selector.select(get)) ?? emptySelector
   }
 }
 

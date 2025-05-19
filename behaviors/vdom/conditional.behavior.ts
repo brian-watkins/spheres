@@ -1,7 +1,7 @@
 import { collection, container, Container, derived, State, StateCollection, update, use } from "@store/index.js";
 import { HTMLBuilder, HTMLView } from "@view/index";
 import { behavior, effect, example, fact, step } from "best-behavior";
-import { expect, is, resolvesTo } from "great-expectations";
+import { arrayContaining, equalTo, expect, is, resolvesTo } from "great-expectations";
 import { selectElement, selectElements, selectElementWithText } from "./helpers/displayElement";
 import { RenderApp, renderContext } from "./helpers/renderContext";
 
@@ -291,20 +291,26 @@ export default behavior("conditional zone", [
       ]
     }),
 
-  example(renderContext<Container<{ name: string }>>())
+  example(renderContext<ConditionalUpdatesContext>())
     .description("conditional view with state derived from condition")
     .script({
       suppose: [
         fact("there is some state", (context) => {
-          context.setState(container({ initialValue: { name: "Bob" } }))
+          context.setState({
+            root: container({ initialValue: { name: "Bob" } }),
+            log: []
+          })
         }),
         fact("there is a conditional view with derived state", (context) => {
           const nameState = derived(get => {
-            return get(context.state).name
+            return get(context.state.root).name
           })
 
           function showName(root: HTMLBuilder) {
-            root.div(el => el.children.textNode(get => `The name is: ${get(nameState)}`))
+            root.div(el => el.children.textNode(get => {
+              context.state.log.push("Running text effect")
+              return `The name is: ${get(nameState)}`
+            }))
           }
           function noName(root: HTMLBuilder) {
             root.div(el => el.children.textNode("NO name!"))
@@ -313,7 +319,7 @@ export default behavior("conditional zone", [
             root.main(el => {
               el.children.subviewFrom(selector => {
                 selector.withConditions()
-                  .when(get => get(context.state).name !== "Bob", showName)
+                  .when(get => get(context.state.root).name !== "Bob", showName)
                   .default(noName)
               })
             })
@@ -328,37 +334,54 @@ export default behavior("conditional zone", [
     }).andThen({
       perform: [
         step("update the condition state", (context) => {
-          context.writeTo(context.state, { name: "Anne" })
+          context.writeTo(context.state.root, { name: "Anne" })
         })
       ],
       observe: [
         effect("the name is shown", async () => {
           await expect(selectElement("div").text(), resolvesTo("The name is: Anne"))
+        }),
+        effect("the text effect renders once", (context) => {
+          expect(context.state.log, is(arrayContaining(equalTo("Running text effect"), { times: 1 })))
         })
       ]
     }).andThen({
       perform: [
         step("show a different name", (context) => {
-          context.writeTo(context.state, { name: "Frank" })
+          context.writeTo(context.state.root, { name: "Frank" })
         })
       ],
       observe: [
         effect("the new name is shown", async () => {
           await expect(selectElement("div").text(), resolvesTo("The name is: Frank"))
+        }),
+        effect("the text effect renders once more", (context) => {
+          expect(context.state.log, is(arrayContaining(equalTo("Running text effect"), { times: 2 })))
         })
       ]
     }).andThen({
       perform: [
         step("return to showing no name", (context) => {
-          context.writeTo(context.state, { name: "Bob" })
+          context.writeTo(context.state.root, { name: "Bob" })
         }),
         step("show a different name", (context) => {
-          context.writeTo(context.state, { name: "Charles" })
+          context.writeTo(context.state.root, { name: "Charles" })
         })
       ],
       observe: [
         effect("the new name is shown", async () => {
           await expect(selectElement("div").text(), resolvesTo("The name is: Charles"))
+        }),
+        effect("the text effect renders again", (context) => {
+          // note that maybe it would be nice if the text effect only ran three times but
+          // what happens is that since derived state is prioritized, it
+          // runs and then its children -- ie the text node updates
+          // *then* the select view runs and removes the text node from the view (when Bob is written
+          // to the root state). Then the effect runs again when Charles is written because it
+          // actually re-renders the template and initializes a new text effect. The old effect also
+          // actually runs again but it doesn't call the generator because it's detached from the dom
+          // and it will get removed as a listener on the next update.
+          expect(context.state.log, is(arrayContaining(equalTo("Running text effect"), { times: 4 })))
         })
       ]
     }),
@@ -382,6 +405,11 @@ export default behavior("conditional zone", [
   multipleConditionalListsWithEvents("server rendered", (context, view) => context.ssrAndActivate(view))
 
 ])
+
+interface ConditionalUpdatesContext {
+  root: Container<{ name: string }>
+  log: Array<string>
+}
 
 function basicSelectEmptyAtFirst(name: string, renderer: (context: RenderApp<Container<boolean>>, view: HTMLView) => void) {
   return example(renderContext<Container<boolean>>())

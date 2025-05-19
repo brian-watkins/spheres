@@ -174,14 +174,11 @@ class StringRenderer extends AbstractViewRenderer {
       ],
       statefuls: [
         (registry) => {
-          const selectedIndex = runQuery(registry, (get) => {
-            return selectors.findIndex(selector => selector.select(get))
-          })
-          if (selectedIndex === -1) {
-            return ""
-          }
-          const selector = selectors[selectedIndex]
+          const selector = runQuery(registry, (get) => selectors.findSelector(get))
           switch (selector.type) {
+            case "empty": {
+              return ""
+            }
             case "case-selector": {
               const templateContext = selector.templateContext()
               return stringForTemplate(

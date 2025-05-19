@@ -1,15 +1,16 @@
 import { GetState } from "../../../store/index.js";
 import { activate, DOMTemplate, render } from "../domTemplate.js";
 import { StateListener, StateListenerType, StateListenerVersion, TokenRegistry } from "../../../store/tokenRegistry.js";
-import { TemplateSelector } from "../selectorBuilder.js";
+import { SelectorCollection, TemplateSelector } from "../selectorBuilder.js";
 
 export class SelectViewEffect implements StateListener {
   readonly type = StateListenerType.SystemEffect
   version?: StateListenerVersion = 0
+  private currentSelector: TemplateSelector<DOMTemplate> | undefined
 
   constructor(
     public registry: TokenRegistry,
-    public selectors: Array<TemplateSelector<DOMTemplate>>,
+    public selectors: SelectorCollection<DOMTemplate>,
     public startNode: Node,
     public endNode: Node,
   ) { }
@@ -27,22 +28,28 @@ export class SelectViewEffect implements StateListener {
   }
 
   private switchView(get: GetState): void {
-    const selector = this.selectors.find(selector => selector.select(get))
+    const selector = this.selectors.findSelector(get)
+
+    if (selector === this.currentSelector) {
+      return
+    }
+
+    this.currentSelector = selector
 
     let node: Node
-    if (selector === undefined) {
-      node = document.createTextNode("")
-    } else {
-      switch (selector.type) {
-        case "case-selector": {
-          const templateContext = selector.templateContext()
-          node = render(templateContext.template, templateContext.overlayRegistry(this.registry))
-          break
-        }
-        case "condition-selector": {
-          node = render(selector.template(), this.registry)
-          break
-        }
+    switch (selector.type) {
+      case "empty": {
+        node = document.createTextNode("")
+        break
+      }
+      case "case-selector": {
+        const templateContext = selector.templateContext()
+        node = render(templateContext.template, templateContext.overlayRegistry(this.registry))
+        break
+      }
+      case "condition-selector": {
+        node = render(selector.template(), this.registry)
+        break
       }
     }
 
@@ -59,10 +66,8 @@ export class SelectViewEffect implements StateListener {
   }
 }
 
-export function activateSelect(registry: TokenRegistry, selectors: Array<TemplateSelector<DOMTemplate>>, startNode: Node, get: GetState): void {
-  const selector = selectors.find(selector => selector.select(get))
-
-  if (selector === undefined) return
+export function activateSelect(registry: TokenRegistry, selectors: SelectorCollection<DOMTemplate>, startNode: Node, get: GetState): void {
+  const selector = selectors.findSelector(get)
 
   switch (selector.type) {
     case "case-selector": {

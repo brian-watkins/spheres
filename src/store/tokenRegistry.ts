@@ -55,78 +55,123 @@ export function initListener(listener: StateListener) {
   listener.init(subscribeOnGet(listener))
 }
 
+function runListener(listener: StateListener) {
+  listener.version = listener.version! + 1
+  listener.run(subscribeOnGet(listener))
+  listener.parent = undefined
+}
+
+interface ListenerNode {
+  listener: StateListener
+  version: StateListenerVersion
+  next: ListenerNode | undefined
+}
+
 export abstract class StatePublisher<T> {
-  protected listeners: Map<StateListener, StateListenerVersion> = new Map()
-  private runnables: Array<StateListener> | undefined = undefined
+  head: ListenerNode | undefined
+  tail: ListenerNode | undefined
 
   abstract getValue(): T
 
-  addListener(listener: StateListener) {
-    this.listeners.set(listener, listener.version!)
+  addListener(listener: StateListener): void {
+    if (this.head === undefined) {
+      this.head = {
+        listener: listener,
+        version: listener.version!,
+        next: undefined
+      }
+      this.tail = this.head
+      return
+    }
+    if (listener.type === StateListenerType.StateEffect) {
+      const first = {
+        listener: listener,
+        version: listener.version!,
+        next: this.head
+      }
+      this.head = first
+    } else {
+      const next = {
+        listener: listener,
+        version: listener.version!,
+        next: undefined
+      }
+      this.tail!.next = next
+      this.tail = next
+    }
   }
 
-  removeListener(listener: StateListener) {
-    this.listeners.delete(listener)
+  private removeFromList(previous: ListenerNode | undefined, node: ListenerNode) {
+    if (previous === undefined) {
+      this.head = node.next
+    } else {
+      previous.next = node.next
+      if (this.tail === node) {
+        this.tail = previous
+      }
+    }
   }
 
-  notifyListeners(userEffects: Array<StateListener>) {
-    this.runnables = [...this.listeners.keys()]
-    let firstEffect = 0
-    let index = 0
-    for (const listener of this.runnables.slice()) {
-      const version = this.listeners.get(listener)
-      if (version !== listener.version) {
-        this.removeListener(listener)
-        this.runnables.splice(index, 1)
+  notifyListeners(userEffects: Array<StateListener>): void {
+    let previous: ListenerNode | undefined = undefined
+    let node = this.head
+    while (node !== undefined) {
+      if (node.listener.version !== node.version) {
+        this.removeFromList(previous, node)
+        node = node.next
         continue
       }
-      listener.parent = this
-      switch (listener.type) {
+      switch (node.listener.type) {
         case StateListenerType.StateEffect:
-          listener.notifyListeners?.(userEffects)
-          if (index > firstEffect) {
-            const oldFirst = this.runnables[firstEffect]
-            this.runnables[firstEffect] = listener
-            this.runnables[index] = oldFirst
-          }
-          firstEffect = firstEffect + 1
+          node.listener.notifyListeners?.(userEffects)
           break
         case StateListenerType.UserEffect:
-          userEffects.push(listener)
+          userEffects.push(node.listener)
           break
       }
-      index++
+      node.listener.parent = this
+
+      previous = node
+      node = node.next
     }
   }
 
-  runListeners() {
-    for (const listener of this.runnables!) {
-      if (listener.parent !== this) {
-        continue
-      }
-      if (listener.type === StateListenerType.UserEffect) {
-        listener.parent = true
-        continue
-      }
-      this.runListener(listener)
-    }
+  runListeners(): void {
+    let node = this.head
 
-    this.runnables = undefined
+    // Start a new list -- any listeners added while running the current listeners
+    // will be added to the new list
+    this.head = undefined
+    this.tail = undefined
+
+    while (node !== undefined) {
+      if (node.listener.parent !== this) {
+        node = node.next
+        continue
+      }
+
+      if (node.listener.type === StateListenerType.UserEffect) {
+        node.listener.parent = true
+        node = node.next
+        continue
+      }
+
+      runListener(node.listener)
+      node = node.next
+    }
   }
 
   runUserEffects(effects: Array<StateListener>) {
     for (const listener of effects) {
       if (listener.parent === true) {
-        this.runListener(listener)
+        runListener(listener)
       }
     }
   }
+}
 
-  runListener(listener: StateListener) {
-    listener.version = listener.version! + 1
-    listener.run(subscribeOnGet(listener))
-    listener.parent = undefined
-  }
+export interface CommandController<T> {
+  run(message: T): void
 }
 
 export const initializeCommand = Symbol("initializeCommand")
@@ -141,10 +186,6 @@ export abstract class Command<M> {
   toString() {
     return this.name ?? "Command"
   }
-}
-
-export interface CommandController<T> {
-  run(message: T): void
 }
 
 export type Token = State<any> | Command<any>

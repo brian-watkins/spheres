@@ -58,8 +58,9 @@ export class TestCirclesDisplay extends TestDisplay {
     return this.selectElement("input[name='radius']")
   }
 
-  closeDialog(): Promise<void> {
-    return this.page.keyboard.press("Escape")
+  async closeDialog(): Promise<void> {
+    await this.page.keyboard.press("Escape")
+    await this.selectElement("dialog").waitForHidden()
   }
 
   circleCenteredAt(x: number, y: number): CircleDisplayElement {

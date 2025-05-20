@@ -161,15 +161,15 @@ export default behavior("glitch-free effects", [
         })
       ],
       observe: [
-        effect("derived state is always called first, and then user defined effects in order of initialization", (context) => {
+        effect("derived state is always called first, and then user defined effects", (context) => {
           expect(context.tokens.listenerLog, is([
             "Running first effect",
             "Running first effect",
             "Running second effect",
             "Running derived state",
             "Running derived state",
-            "Running first effect",
             "Running second effect",
+            "Running first effect",
           ]))
         }),
         effect("the second effect is updated with the latest derived value", (context) => {

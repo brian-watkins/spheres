@@ -85,6 +85,15 @@ export default behavior("redo", [
         step("adjust the radius to 45", async (context) => {
           await context.display.circleCenteredAt(280, 190).adjustRadiusTo(45)
         }),
+      ]
+    }).andThen({
+      observe: [
+        effect("the circle has radius 45", async (context) => {
+          await expect(context.display.circleCenteredAt(280, 190).radius, resolvesTo(45))
+        })
+      ]
+    }).andThen({
+      perform: [
         step("undo twice", async (context) => {
           await context.display.undoButton.click()
           await context.display.undoButton.click()

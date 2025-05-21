@@ -49,7 +49,7 @@
     "aria-attributes": "^2.0.1",
     "best-behavior": "^0.15.2",
     "express": "^4.19.2",
-    "great-expectations": "^1.9.1",
+    "great-expectations": "^1.10.2",
     "html-element-attributes": "^3.4.0",
     "html-tags": "^4.0.0",
     "monocart-coverage-reports": "^2.12.3",

@@ -11,9 +11,9 @@ export default behavior("initialize state", [
     .script({
       perform: [
         step("initialize the store", async (context) => {
-          await context.initialize(testContainer, (actions) => {
+          await context.initialize((actions) => {
             return new Promise<void>(resolve => setTimeout(() => {
-              actions.supply("Fun Stuff!")
+              actions.supply(testContainer, "Fun Stuff!")
               resolve()
             }, 10))
           })
@@ -38,9 +38,9 @@ export default behavior("initialize state", [
     }).andThen({
       perform: [
         step("use existing state in initialization", (context) => {
-          context.initialize(anotherTestContainer, (actions) => {
+          context.initialize((actions) => {
             const length = actions.get(testContainer).length
-            actions.supply(length)
+            actions.supply(anotherTestContainer, length)
           })
         }),
         step("there is a subscriber to the new state", (context) => {
@@ -61,8 +61,8 @@ export default behavior("initialize state", [
     .script({
       perform: [
         step("initialize meta container values", async (context) => {
-          await initialize(context.store, testContainer, async (actions) => {
-            actions.pending({ action: "Loading!" })
+          await initialize(context.store, async (actions) => {
+            actions.pending(testContainer, { action: "Loading!" })
           })
         }),
         step("subscribe to updates on the container", (context) => {
@@ -91,8 +91,8 @@ export default behavior("initialize state", [
     .script({
       perform: [
         step("initialize meta container values", async (context) => {
-          await context.initialize(testContainer, async (actions) => {
-            actions.error("No reason!", { action: "Loading!" })
+          await context.initialize(async (actions) => {
+            actions.error(testContainer, "No reason!", { action: "Loading!" })
           })
         }),
         step("subscribe to updates on the container", (context) => {
@@ -121,8 +121,8 @@ export default behavior("initialize state", [
     .script({
       perform: [
         step("initialize readonly container pending state", (context) => {
-          context.initialize(readonlyContainer, actions => {
-            actions.pending()
+          context.initialize(actions => {
+            actions.pending(readonlyContainer)
           })
         }),
         step("there is a subscriber to the container", (context) => {
@@ -147,8 +147,8 @@ export default behavior("initialize state", [
     }).andThen({
       perform: [
         step("initialize with an error", (context) => {
-          context.initialize(readonlyContainer, actions => {
-            actions.error("It failed!")
+          context.initialize(actions => {
+            actions.error(readonlyContainer, "It failed!")
           })
         })
       ],
@@ -168,8 +168,8 @@ export default behavior("initialize state", [
     }).andThen({
       perform: [
         step("a value is supplied", (context) => {
-          context.initialize(readonlyContainer, actions => {
-            actions.supply(31)
+          context.initialize(actions => {
+            actions.supply(readonlyContainer, 31)
           })
         })
       ],

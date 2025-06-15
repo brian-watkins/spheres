@@ -51,11 +51,11 @@ export function getTokenRegistry(store: Store): TokenRegistry {
   return store[tokenRegistry]
 }
 
-export interface Initializer<T, M, E = unknown> {
+export interface Initializer {
   get: GetState
-  supply(value: T): void
-  pending(...value: NoInfer<M> extends never ? [] : [NoInfer<M>]): void
-  error(reason: E, ...message: NoInfer<M> extends never ? [] : [NoInfer<M>]): void
+  supply<T, M>(container: Container<T, M>, value: T): void
+  pending<T, M>(container: Container<T, M>, ...value: NoInfer<M> extends never ? [] : [NoInfer<M>]): void
+  error<T, M, E>(container: Container<T, M, E>, reason: E, ...message: NoInfer<M> extends never ? [] : [NoInfer<M>]): void
 }
 
 export class Store {
@@ -94,9 +94,9 @@ export function useCommand<M>(store: Store, command: Command<M>, manager: Comman
   command[initializeCommand](registry)
 }
 
-export function initialize<S, T, M, E = unknown>(store: Store, container: Container<T, M, E>, initializer: (actions: Initializer<NoInfer<T>, NoInfer<M>, NoInfer<E>>) => S): S {
+export function initialize<S>(store: Store, initializer: (actions: Initializer) => S): S {
   const registry = getTokenRegistry(store)
-  return initializer(initializerActions(registry, container))
+  return initializer(initializerActions(registry))
 }
 
 export function useHooks(store: Store, hooks: StoreHooks) {
@@ -147,23 +147,22 @@ function stateWriterWithHooks<T, M, E>(registry: TokenRegistry, container: Conta
   return withHooks
 }
 
-function initializerActions<T, M, E>(registry: TokenRegistry, container: Container<T, M>): Initializer<T, M, E> {
-  const writer = registry.getState<StateWriter<T>>(container)
+function initializerActions(registry: TokenRegistry): Initializer {
   return {
     get: (state) => {
       return registry.getState(state).getValue()
     },
-    supply: (value) => {
-      writer.publish(value)
+    supply: <T, M>(container: Container<T, M>, value: T) => {
+      registry.getState<StateWriter<T>>(container).publish(value)
     },
-    pending: (...message) => {
+    pending: <T, M, E> (container: Container<T, M>, ...message: NoInfer<M> extends never ? [] : [NoInfer<M>]) => {
       if (message.length === 0) {
         registry.getState<StateWriter<Meta<undefined, E>>>(container.meta).publish(pending(undefined))
       } else {
         registry.getState<StateWriter<Meta<M, E>>>(container.meta).publish(pending(message[0]))
       }
     },
-    error: (reason, ...message) => {
+    error: <T, M, E>(container: Container<T, M, E>, reason: E, ...message: NoInfer<M> extends never ? [] : [NoInfer<M>]) => {
       if (message.length === 0) {
         registry.getState<StateWriter<Meta<undefined, E>>>(container.meta).publish(error(reason, undefined))
       } else {

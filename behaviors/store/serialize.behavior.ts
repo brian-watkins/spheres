@@ -10,8 +10,8 @@ export default behavior("serialize state", [
     .script({
       perform: [
         step("initialize meta state of container", (context) => {
-          context.initialize(token, actions => {
-            actions.error("Failed!")
+          context.initialize(actions => {
+            actions.error(token, "Failed!")
           })
         }),
         step("serialize the tokens into an alt store and subscribe to the token", (context) => {

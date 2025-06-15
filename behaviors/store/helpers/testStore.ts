@@ -26,8 +26,8 @@ export class TestStore<T> {
     this.store = createStore()
   }
 
-  initialize<C, M, E, S>(container: Container<C, M, E>, initializer: (actions: Initializer<NoInfer<C>, NoInfer<M>, NoInfer<E>>) => S): S {
-    return initialize(this.store, container, initializer)
+  initialize<S>(initializer: (actions: Initializer) => S): S {
+    return initialize(this.store, initializer)
   }
 
   registerEffect(name: string, definition: (get: GetState) => any) {

@@ -13,7 +13,7 @@ export const percentComplete = derived({
 
 export interface RepeaterCommand {
   shouldRun: boolean
-  rule: (get: GetState) => StoreMessage<any>
+  rule: (get: GetState) => StoreMessage
   interval: number
 }
 

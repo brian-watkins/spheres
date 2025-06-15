@@ -54,7 +54,7 @@ export class TestStore<T> {
     this.store.dispatch(write(token, value))
   }
 
-  sendBatch(messages: Array<StoreMessage<any>>) {
+  sendBatch(messages: Array<StoreMessage>) {
     this.store.dispatch(batch(messages))
   }
 

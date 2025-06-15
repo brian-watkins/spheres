@@ -9,7 +9,7 @@ const makeEditable = (id: string) => (get: GetState) => {
   const editState = get(cellContainer(id)).editable
   const currentEditState = get(editableCell)
 
-  let messages: Array<StoreMessage<any>> = [
+  let messages: Array<StoreMessage> = [
     write(editState, true)
   ]
   if (currentEditState !== undefined) {

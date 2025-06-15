@@ -70,8 +70,8 @@ function circleContainer(center: Coordinate): CircleContainer {
 }
 
 interface Action {
-  execute: StoreMessage<any>
-  undo: StoreMessage<any>
+  execute: StoreMessage
+  undo: StoreMessage
 }
 
 const actions = container<Array<Action>>({
@@ -80,7 +80,7 @@ const actions = container<Array<Action>>({
 
 export const currentAction = container({ initialValue: -1 })
 
-function addActionMessage(get: GetState, message: Action): StoreMessage<any> {
+function addActionMessage(get: GetState, message: Action): StoreMessage {
   const actionIndex = get(currentAction)
   const currentActions = get(actions)
 

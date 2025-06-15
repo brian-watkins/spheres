@@ -103,7 +103,7 @@ function optionsView(root: HTMLBuilder) {
   })
 }
 
-function closeDialog(evt: Event): StoreMessage<any> {
+function closeDialog(evt: Event): StoreMessage {
   const target = evt.target as HTMLElement
   return target.tagName === "DIALOG" ?
     run(() => (target as HTMLDialogElement).close()) :

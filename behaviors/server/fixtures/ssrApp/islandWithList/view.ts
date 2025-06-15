@@ -49,7 +49,7 @@ export function itemInput(root: HTMLBuilder) {
   })
 }
 
-function submitForm(formData: FormData): StoreMessage<any> {
+function submitForm(formData: FormData): StoreMessage {
   const item: Item = {
     name: formData.get("item-name")?.valueOf() as string,
     color: formData.get("item-color")?.valueOf() as string

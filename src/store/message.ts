@@ -45,7 +45,7 @@ export interface BatchMessage {
   messages: Array<StoreMessage<any>>
 }
 
-export type StoreMessage<T, M = T> = WriteMessage<T, M> | UpdateMessage<T, M> | ResetMessage<T> | UseMessage | BatchMessage | RunMessage | ExecMessage<M>
+export type StoreMessage<T = any, M = T> = WriteMessage<T, M> | UpdateMessage<T, M> | ResetMessage<T> | UseMessage | BatchMessage | RunMessage | ExecMessage<M>
 
 export function use(rule: (get: GetState) => StoreMessage<any> | undefined): UseMessage {
   return {

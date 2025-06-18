@@ -1,14 +1,14 @@
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import express from "express"
+import express, { Response } from "express"
 import { Server } from "http"
 import { PluginOption, RunnableDevEnvironment, ViteDevServer, createServer as createViteServer } from "vite"
 import tsConfigPaths from "vite-tsconfig-paths"
 import { Context } from 'esbehavior'
 import { BrowserTestInstrument, useBrowser } from 'best-behavior/browser'
 import { useModule } from "best-behavior/transpiler"
-import { SSRParts } from './ssrApp.js'
+import { SSRParts, StreamingSSRParts } from './ssrApp.js'
 import { TestAppDisplay } from '../../helpers/testDisplay.js'
 import { spheres, SpheresPluginOptions } from '@server/index.js'
 
@@ -50,7 +50,7 @@ class TestBrowser {
   }
 
   async loadApp(): Promise<void> {
-    await this.browser.page.goto("http://localhost:9899/index.html")
+    await this.browser.page.goto("http://localhost:9899/app")
   }
 }
 
@@ -72,6 +72,10 @@ export class TestSSRServer {
 
   setSSRView(path: string) {
     this.renderer = new PageRenderer(path)
+  }
+
+  setStreamingSSRApp(options: SsrAppOptions) {
+    this.renderer = new StreamingRenderer(options)
   }
 
   useSpheresPlugin(options: SpheresPluginOptions = {}) {
@@ -118,17 +122,12 @@ export class TestSSRServer {
 
     app.use(this.viteDevServer.middlewares)
 
-    app.get("*", async (_, res, next) => {
-      try {
-        const html = await this.renderer?.renderHtml(this.viteDevServer!)
-
-        res.status(200)
-          .set({ 'Content-Type': 'text/html' })
-          .end(html)
-      } catch (err: any) {
-        this.viteDevServer!.ssrFixStacktrace(err)
-        next(err)
-      }
+    app.get("/app", (_, res, next) => {
+      this.renderer?.renderResponse(this.viteDevServer!, res)
+        .catch((err) => {
+          this.viteDevServer!.ssrFixStacktrace(err)
+          next(err)
+        })
     })
 
     this.server = app.listen(9899)
@@ -140,30 +139,36 @@ export class TestSSRServer {
         this.server?.closeAllConnections()
         this.server?.close(() => {
           resolve()
-        })  
+        })
       })
     })
   }
 }
 
 interface ServerSideRenderer {
-  renderHtml(viteDevServer: ViteDevServer): Promise<string>
+  renderResponse(viteDevServer: ViteDevServer, res: Response): Promise<void>
+}
+
+function sendHTMLResponse(res: Response, html: string): void {
+  res.status(200)
+    .set({ 'Content-Type': 'text/html' })
+    .end(html)
 }
 
 class PageRenderer implements ServerSideRenderer {
   constructor(private path: string) { }
 
-  async renderHtml(viteDevServer: ViteDevServer): Promise<string> {
+  async renderResponse(viteDevServer: ViteDevServer, res: Response): Promise<void> {
     const devEnvironment = viteDevServer.environments.server as RunnableDevEnvironment
     const renderer = await devEnvironment.runner.import(this.path)
-    return renderer.render()
+    sendHTMLResponse(res, renderer.render())
   }
 }
 
 class TemplateRenderer implements ServerSideRenderer {
   constructor(private contentOptions: SsrAppOptions) { }
 
-  async renderHtml(viteDevServer: ViteDevServer): Promise<string> {
+  async renderResponse(viteDevServer: ViteDevServer, res: Response): Promise<void> {
     let template = fs.readFileSync(
       path.resolve(__dirname, this.contentOptions.template),
       'utf-8',
@@ -180,6 +185,43 @@ class TemplateRenderer implements ServerSideRenderer {
       html = html.replace(`<!-- SSR-SERIALIZED-STORE -->`, `<script type="module">${ssrParts.serializedStore}</script>`)
     }
 
-    return html
+    sendHTMLResponse(res, html)
+  }
+}
+
+class StreamingRenderer implements ServerSideRenderer {
+  constructor(private contentOptions: SsrAppOptions) { }
+
+  async renderResponse(viteDevServer: ViteDevServer, res: Response): Promise<void> {
+    let template = fs.readFileSync(
+      path.resolve(__dirname, this.contentOptions.template),
+      'utf-8',
+    )
+
+    template = await viteDevServer.transformIndexHtml("index.html", template)
+
+    const viewRenderer = await useModule(this.contentOptions.view)
+    const ssrParts: StreamingSSRParts = viewRenderer.default()
+
+    let html = template.replace(`<!-- SSR-APP-HTML -->`, ssrParts.initialHTML)
+
+    if (ssrParts.serializedStore !== undefined) {
+      html = html.replace(`<!-- SSR-SERIALIZED-STORE -->`, `<script>${ssrParts.serializedStore}</script>`)
+    }
+
+    res.writeHead(200, {
+      'Content-Type': 'text/html',
+      'Transfer-Encoding': 'chunked'
+    })
+
+    res.write(html)
+
+    ssrParts.streamingData.addListener((tag) => {
+      if (tag !== undefined) {
+        res.write(tag)
+      } else {
+        res.end()
+      }
+    })
   }
 }

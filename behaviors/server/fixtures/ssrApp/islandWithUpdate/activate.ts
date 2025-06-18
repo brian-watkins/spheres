@@ -1,10 +1,10 @@
 import { createStore, deserialize, useHooks } from "@store/index.js";
 import { activateView } from "@view/index";
 import { view } from "./view";
-import { tokenMap } from "./state";
+import { serializedTokens } from "./state";
 
 const store = createStore()
-deserialize(store, tokenMap)
+deserialize(store, serializedTokens)
 
 useHooks(store, {
   onRegister() {

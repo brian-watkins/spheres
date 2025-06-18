@@ -1,4 +1,4 @@
-import { container, State, supplied } from "@store/index.js"
+import { container, supplied } from "@store/index.js"
 
 export interface Item {
   name: string
@@ -9,7 +9,6 @@ export const items = container<Array<Item>>({ initialValue: [] })
 
 export const suppliedTitle = supplied({ initialValue: "Fruits!" })
 
-export const tokenMap = new Map<string, State<any>>([
-  ["items", items],
-  ["title", suppliedTitle]
-])
+export const serializedTokens = {
+  items, suppliedTitle
+}

@@ -218,10 +218,11 @@ function storeId(id: string | undefined): string {
   return `_spheres_store_data_${id ?? ""}`
 }
 
-export function serialize(store: Store, map: Map<string, State<any>>): string {
+export function serialize(store: Store, map: Record<string, State<any>>): string {
   const registry = getTokenRegistry(store)
-  const map_data = Array.from(map.entries())
-    .map(([key, token]) => {
+  const map_data = Object.keys(map)
+    .map((key) => {
+      const token = map[key]
       const serializedValue: SerializedValue = {
         v: registry.getState(token).getValue(),
       }
@@ -240,13 +241,14 @@ export function serialize(store: Store, map: Map<string, State<any>>): string {
   return `globalThis[Symbol.for("${store.id}")] = new Map([${map_data}]);`
 }
 
-export function deserialize(store: Store, map: Map<string, State<any>>, scope: Record<symbol, any> = globalThis) {
+export function deserialize(store: Store, map: Record<string, State<any>>, scope: Record<symbol, any> = globalThis) {
   const registry = getTokenRegistry(store)
   const serializedData = scope[Symbol.for(store.id)]
 
-  for (const [id, token] of map) {
+  for (const id in map) {
     const deserialized: SerializedValue = serializedData?.get(id)
     if (deserialized) {
+      const token = map[id]
       registry.registerState(token, deserialized.v)
       if (token instanceof Container && deserialized.mv !== undefined) {
         registry.registerState(token.meta, deserialized.mv)

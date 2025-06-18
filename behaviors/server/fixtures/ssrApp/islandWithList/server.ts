@@ -1,7 +1,7 @@
 import { createStringRenderer } from "@server/index.js";
 import { view } from "./view";
 import { command, createStore, exec, serialize, useCommand, write } from "@store/index.js";
-import { items, suppliedTitle, tokenMap } from "./state";
+import { items, serializedTokens, suppliedTitle } from "./state";
 import { SSRParts } from "../../../helpers/ssrApp";
 
 const store = createStore()
@@ -23,6 +23,6 @@ store.dispatch(exec(getSuppliedState, undefined))
 export default function(): SSRParts {
   return {
     html: createStringRenderer(view)(store),
-    serializedStore: serialize(store, tokenMap)
+    serializedStore: serialize(store, serializedTokens)
   }
 }

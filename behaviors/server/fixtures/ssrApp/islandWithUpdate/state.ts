@@ -31,6 +31,6 @@ export const items = container<Array<Item>, ItemsMessage>({
   },
 })
 
-export const tokenMap = new Map([
-  ["items", items]
-])
+export const serializedTokens = {
+  items
+}

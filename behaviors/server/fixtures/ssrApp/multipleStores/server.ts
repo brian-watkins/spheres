@@ -2,8 +2,8 @@ import { createStore, serialize, write } from "@store/index.js";
 import viewGenerator from "./view.js"
 import { SSRParts } from "../../../helpers/ssrApp.js";
 import { clickCount } from "../state.js";
-import { tokenMap } from "./tokenMap.js";
 import { createStringRenderer } from "@server/index.js";
+import { serializedTokens } from "./tokenMap.js";
 
 const storeA = createStore("store-a")
 storeA.dispatch(write(clickCount, 4))
@@ -21,7 +21,7 @@ export default function (): SSRParts {
   <div id="fragment-b">${renderToString(storeB)}</div>
 </div>`,
     serializedStore: `
-${serialize(storeA, tokenMap)}
-${serialize(storeB, tokenMap)}`
+${serialize(storeA, serializedTokens)}
+${serialize(storeB, serializedTokens)}`
   }
 }

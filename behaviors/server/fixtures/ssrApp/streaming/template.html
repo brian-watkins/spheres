@@ -1,0 +1,17 @@
+<html>
+  <head>
+    <title>SSR with Streaming</title>
+    <link rel="icon" href="data:,">
+  </head>
+  <body>
+    <!-- SSR-APP-HTML -->
+    <!-- SSR-SERIALIZED-STORE -->
+    <script>
+      window.__spheresStoreMessages = []
+      window.addEventListener("spheres-store", (event) => {
+        window.__spheresStoreMessages.push(event.detail)
+      })
+    </script>
+    <script type="module" src="/behaviors/server/fixtures/ssrApp/streaming/activate.ts" async></script>
+  </body>
+</html>

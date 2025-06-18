@@ -107,7 +107,7 @@ export default behavior("rendering html page from transpiled server renderer", [
       ],
       perform: [
         step("the view is rendered", async (context) => {
-          await context.server.renderPage("/index.html")
+          await context.server.renderPage("/app")
         })
       ],
       observe: [

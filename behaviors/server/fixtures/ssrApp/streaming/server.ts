@@ -1,6 +1,6 @@
 import { createStringRenderer } from "@server/index"
 import view from "./view"
-import { createStore, initialize, serialize } from "@store/index"
+import { createStore, serialize } from "@store/index"
 import { SimpleQueue, StoreData, StreamingSSRParts } from "server/helpers/ssrApp"
 import { serializedTokens, Thing, things, thingValue } from "./state"
 
@@ -18,30 +18,31 @@ const thingsServerState: Array<Thing> = [
 const thingValueServerState = "tens of"
 
 export default function (): StreamingSSRParts {
-  const store = createStore()
-
   const queue = new SimpleQueue<string>()
 
-  initialize(store, (actions) => {
-    actions.pending(things, [])
-    actions.pending(thingValue, "")
+  const store = createStore({
+    initializer: async (actions) => {
+      actions.pending(things, [])
 
-    setTimeout(() => {
-      queue.push(scriptTag({
-        storeId: store.id,
-        token: "things",
-        data: thingsServerState
-      }))
-      queue.end()
-    }, 200)
+      setTimeout(() => {
+        queue.push(scriptTag({
+          storeId: store.id,
+          token: "things",
+          data: thingsServerState
+        }))
+        queue.end()
+      }, 200)
 
-    setTimeout(() => {
-      queue.push(scriptTag({
-        storeId: store.id,
-        token: "thingValue",
-        data: thingValueServerState
-      }))
-    }, 100)
+      actions.pending(thingValue, "")
+
+      setTimeout(() => {
+        queue.push(scriptTag({
+          storeId: store.id,
+          token: "thingValue",
+          data: thingValueServerState
+        }))
+      }, 100)
+    }
   })
 
   return {

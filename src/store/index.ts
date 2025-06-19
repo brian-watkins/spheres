@@ -3,7 +3,8 @@ export {
   type WriteHookActions,
   type ContainerHooks,
   type StoreHooks,
-  type Initializer,
+  type InitializerActions,
+  type StoreOptions,
   type Store,
   type ReactiveEffect,
   type ReactiveEffectHandle,
@@ -12,7 +13,6 @@ export {
   useCommand,
   useHooks,
   useContainerHooks,
-  initialize,
   deserialize,
   serialize
 } from "./store.js"

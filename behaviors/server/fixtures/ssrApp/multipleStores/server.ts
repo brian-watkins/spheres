@@ -5,10 +5,10 @@ import { clickCount } from "../state.js";
 import { createStringRenderer } from "@server/index.js";
 import { serializedTokens } from "./tokenMap.js";
 
-const storeA = createStore("store-a")
+const storeA = createStore({ id: "store-a" })
 storeA.dispatch(write(clickCount, 4))
 
-const storeB = createStore("store-b")
+const storeB = createStore({ id: "store-b" })
 storeB.dispatch(write(clickCount, 2))
 
 const renderToString = createStringRenderer(viewGenerator)

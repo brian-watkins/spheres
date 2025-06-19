@@ -10,10 +10,13 @@ declare const globalThis: {
   [key: symbol]: any
 } & Window
 
-export function createStore(id?: string): Store {
-  return new Store({
-    id
-  })
+export interface StoreOptions {
+  id?: string
+  initializer?: (actions: InitializerActions) => Promise<void>
+}
+
+export function createStore(options: StoreOptions = {}): Store {
+  return new Store(options)
 }
 
 export interface WriteHookActions<T, M, E> {
@@ -32,10 +35,6 @@ export interface StoreHooks {
   onRegister(container: Container<any>): void
 }
 
-interface StoreOptions {
-  id?: string
-}
-
 export interface ReactiveEffect {
   init?: (get: GetState) => void
   run: (get: GetState) => void
@@ -51,7 +50,7 @@ export function getTokenRegistry(store: Store): TokenRegistry {
   return store[tokenRegistry]
 }
 
-export interface Initializer {
+export interface InitializerActions {
   get: GetState
   supply<T, M>(container: Container<T, M>, value: T): void
   pending<T, M>(container: Container<T, M>, ...value: NoInfer<M> extends never ? [] : [NoInfer<M>]): void
@@ -61,10 +60,27 @@ export interface Initializer {
 export class Store {
   private registry: TokenRegistry
   readonly id: string
+  private initializerPromise: Promise<void> | undefined
 
   constructor(options: StoreOptions = {}) {
     this.id = storeId(options.id)
     this.registry = new WeakMapTokenRegistry()
+
+    if (options.initializer) {
+      this.initializerPromise = this.initialize(options.initializer)
+    }
+  }
+
+  private initialize(initializer: (actions: InitializerActions) => Promise<void>): Promise<void> {
+    return initializer(initializerActions(this.registry))
+  }
+
+  get initialized(): Promise<void> {
+    if (this.initializerPromise !== undefined) {
+      return this.initializerPromise
+    } else {
+      return Promise.resolve()
+    }
   }
 
   get [tokenRegistry](): TokenRegistry {
@@ -92,11 +108,6 @@ export function useCommand<M>(store: Store, command: Command<M>, manager: Comman
   const controller = new ManagedCommandController(registry, manager)
   registry.setCommand(command, controller)
   command[initializeCommand](registry)
-}
-
-export function initialize<S>(store: Store, initializer: (actions: Initializer) => S): S {
-  const registry = getTokenRegistry(store)
-  return initializer(initializerActions(registry))
 }
 
 export function useHooks(store: Store, hooks: StoreHooks) {
@@ -147,7 +158,7 @@ function stateWriterWithHooks<T, M, E>(registry: TokenRegistry, container: Conta
   return withHooks
 }
 
-function initializerActions(registry: TokenRegistry): Initializer {
+function initializerActions(registry: TokenRegistry): InitializerActions {
   return {
     get: (state) => {
       return registry.getState(state).getValue()
@@ -155,7 +166,7 @@ function initializerActions(registry: TokenRegistry): Initializer {
     supply: <T, M>(container: Container<T, M>, value: T) => {
       registry.getState<StateWriter<T>>(container).publish(value)
     },
-    pending: <T, M, E> (container: Container<T, M>, ...message: NoInfer<M> extends never ? [] : [NoInfer<M>]) => {
+    pending: <T, M, E>(container: Container<T, M>, ...message: NoInfer<M> extends never ? [] : [NoInfer<M>]) => {
       if (message.length === 0) {
         registry.getState<StateWriter<Meta<undefined, E>>>(container.meta).publish(pending(undefined))
       } else {

@@ -1,4 +1,4 @@
-import { Container, State, Store, write, StoreMessage, batch, GetState, reset, Command, CommandActions, ContainerHooks, ReactiveEffect, createStore, useContainerHooks, initialize, Initializer, useEffect, useCommand } from "@store/index.js"
+import { Container, State, Store, write, StoreMessage, batch, GetState, reset, Command, CommandActions, ContainerHooks, ReactiveEffect, createStore, useContainerHooks, useEffect, useCommand, InitializerActions } from "@store/index.js"
 import { Context } from "best-behavior"
 
 export function testStoreContext<T>(): Context<TestStore<T>> {
@@ -18,7 +18,7 @@ export class StoreValuesEffect implements ReactiveEffect {
 }
 
 export class TestStore<T> {
-  readonly store: Store
+  store: Store
   private _tokens: T | undefined
   private values: Map<string, StoreValuesEffect> = new Map()
 
@@ -26,8 +26,12 @@ export class TestStore<T> {
     this.store = createStore()
   }
 
-  initialize<S>(initializer: (actions: Initializer) => S): S {
-    return initialize(this.store, initializer)
+  initialize(initializer: (actions: InitializerActions) => Promise<void>): Promise<void> {
+    this.store = createStore({
+      initializer
+    })
+
+    return this.store.initialized
   }
 
   registerEffect(name: string, definition: (get: GetState) => any) {

@@ -17,7 +17,7 @@ class TestableStringRenderer {
   }
 
   renderView(view: HTMLView) {
-    const renderer = buildStringRenderer(view, { command: "build", base: "/", manifest: this.manifest })
+    const renderer = buildStringRenderer(view, { viteContext: { command: "build", base: "/", manifest: this.manifest } })
     this.html = renderer(createStore())
   }
 

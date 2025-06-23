@@ -1,16 +1,19 @@
-import { createStore } from "@store/store"
-import { activateView } from "@view/index"
 import { funView } from "./view"
+import { activateZone } from "@view/index"
 
 const { someView } = await import("./someView")
 
 export function activate() {
-  activateView(createStore(), document.body, (root) => {
-    root.main(el => {
-      el.children
-        .subview(someView)
-        .subview(funView)
-    })
+  activateZone({
+    view(activate) {
+      activate(document.body, (root) => {
+        root.main(el => {
+          el.children
+            .subview(someView)
+            .subview(funView)
+        })
+      })
+    }
   })
 }
 

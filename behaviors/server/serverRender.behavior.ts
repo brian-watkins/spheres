@@ -1,6 +1,6 @@
 import { behavior, effect, example, fact, step } from "best-behavior"
 import { testableViteBuildContext } from "./helpers/testableViteBuildContext"
-import { expect, is, stringMatching } from "great-expectations"
+import { expect, is, satisfying, stringContaining, stringMatching } from "great-expectations"
 import { testableStringRendererContext } from "./helpers/testableStringRendererContext"
 import { useModule } from "best-behavior/transpiler"
 import { ssrTestAppContext } from "./helpers/testSSRServer"
@@ -51,12 +51,12 @@ export default behavior("rendering html page from transpiled server renderer", [
         }),
         effect("the script import references the transpiled js", async (context) => {
           expect(context.getRenderedHTML(), is(
-            stringMatching(/<script type="module" src="\/assets\/client-.+\.js"><\/script>/)
+            stringMatching(/<script type="module" async src="\/assets\/client-.+\.js"><\/script>/)
           ))
         }),
         effect("the script tag for other transpiled js is included", async (context) => {
           expect(context.getRenderedHTML(), is(
-            stringMatching(/<link rel="modulepreload" href="\/assets\/helperView-.+\.js">/)
+            stringMatching(/<link rel="modulepreload" href="\/assets\/activate-.+\.js">/)
           ))
         }),
         effect("the stylesheet import references the transpiled css", async (context) => {
@@ -81,7 +81,7 @@ export default behavior("rendering html page from transpiled server renderer", [
         }),
         effect("link for css imported by an extra script is included", async (context) => {
           expect(context.getRenderedHTML(), is(
-            stringMatching(/<link rel="stylesheet" href="\/assets\/helperView-.+\.css">/)
+            stringMatching(/<link rel="stylesheet" href="\/assets\/activate-.+\.css">/)
           ))
         }),
         effect("link for dynamic script import is included", async (context) => {
@@ -118,7 +118,7 @@ export default behavior("rendering html page from transpiled server renderer", [
         }),
         effect("the rendered view does not transform the script imports", (context) => {
           expect(context.server.renderedHTML, is(
-            stringMatching(/<script type="module" src="\/src\/index.ts"><\/script>/))
+            stringMatching(/<script type="module" async src="\/src\/index.ts"><\/script><\/body>/))
           )
         })
       ]
@@ -155,11 +155,64 @@ export default behavior("rendering html page from transpiled server renderer", [
       ],
       observe: [
         effect("the head does not contain the vite client import", async (context) => {
-          expect(context.getRenderedHTML().includes(`src="/@vite/client"`), is(false))
+          expect(context.getRenderedHTML(), is(stringContaining(`src="/@vite/client"`, { times: 0 })))
         }),
         effect("the script import references the transpiled js", async (context) => {
           expect(context.getRenderedHTML(), is(
-            stringMatching(/<script type="module" src="\/awesome\/assets\/activate-.+\.js"><\/script>/)
+            stringMatching(/<script type="module" async src="\/awesome\/assets\/activate-.+\.js"><\/script>/)
+          ))
+        }),
+      ]
+    }),
+
+  example(testableViteBuildContext)
+    .description("build the render module for streaming zones")
+    .script({
+      suppose: [
+        fact("the renderer is built with the spheres vite plugin", async (context) => {
+          await context
+            .setBase("/fun")
+            .buildWithPlugin("./behaviors/server/fixtures/ssrApp/streamingZones", {
+              server: {
+                entries: {
+                  server: "./behaviors/server/fixtures/ssrApp/streamingZones/server.ts"
+                }
+              },
+              client: {
+                entries: {
+                  activateOne: "./behaviors/server/fixtures/ssrApp/streamingZones/activateOne.ts",
+                  activateTwo: "./behaviors/server/fixtures/ssrApp/streamingZones/activateTwo.ts"
+                }
+              }
+            })
+        }),
+      ],
+      perform: [
+        step("render the html", async (context) => {
+          await context.render(async () => {
+            const serverModule = await useModule("./behaviors/server/fixtures/ssrApp/streamingZones/dist/server.js")
+            const { stream } = serverModule.default()
+
+            let html = ""
+            for await (const chunk of stream) {
+              html += chunk
+            }
+
+            return html
+          })
+        })
+      ],
+      observe: [
+        effect("the head does not contain the vite client import", async (context) => {
+          expect(context.getRenderedHTML(), is(stringContaining(`src="/@vite/client"`, { times: 0 })))
+        }),
+        effect("the script import references the transpiled js", async (context) => {
+          expect(context.getRenderedHTML(), is(
+            satisfying([
+              stringMatching(/<script type="module" async src="\/fun\/assets\/activateOne-.+\.js"><\/script>/),
+              stringMatching(/<script type="module" async src="\/fun\/assets\/activateTwo-.+\.js"><\/script>/),
+              stringMatching(/<link rel="modulepreload" href="\/fun\/assets\/counter-.+\.js">/),
+            ])
           ))
         }),
       ]

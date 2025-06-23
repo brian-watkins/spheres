@@ -11,7 +11,7 @@ export interface DOMEvent {
   handler: StoreEventHandler<any>
 }
 
-export interface Zone {
+export interface EventZone {
   addEvent(type: DOMEventType, elementId: string, eventType: string, handler: StoreEventHandler<any>): void
 }
 

@@ -12,7 +12,7 @@ declare const globalThis: {
 
 export interface StoreOptions {
   id?: string
-  initializer?: (actions: InitializerActions) => Promise<void>
+  init?: (actions: InitializerActions, store: Store) => Promise<void>
 }
 
 export function createStore(options: StoreOptions = {}): Store {
@@ -66,13 +66,13 @@ export class Store {
     this.id = storeId(options.id)
     this.registry = new WeakMapTokenRegistry()
 
-    if (options.initializer) {
-      this.initializerPromise = this.initialize(options.initializer)
+    if (options.init) {
+      this.initializerPromise = this.initialize(options.init)
     }
   }
 
-  private initialize(initializer: (actions: InitializerActions) => Promise<void>): Promise<void> {
-    return initializer(initializerActions(this.registry))
+  private initialize(initializer: (actions: InitializerActions, store: Store) => Promise<void>): Promise<void> {
+    return initializer(initializerActions(this.registry), this)
   }
 
   get initialized(): Promise<void> {
@@ -133,12 +133,6 @@ export function useContainerHooks<T, M, E>(store: Store, container: Container<T,
   const registry = getTokenRegistry(store)
   const writerWithHooks = stateWriterWithHooks(registry, container, registry.getState<StateWriter<any>>(container), hooks)
   registry.setState(container, writerWithHooks)
-}
-
-
-interface SerializedValue {
-  v: any
-  mv?: Meta<any, any>
 }
 
 function stateWriterWithHooks<T, M, E>(registry: TokenRegistry, container: Container<T, M, E>, writer: StateWriter<T>, hooks: ContainerHooks<T, M, E>): StateWriter<T> {
@@ -227,43 +221,4 @@ export class EffectListener implements StateListener, ReactiveEffectHandle {
 
 function storeId(id: string | undefined): string {
   return `_spheres_store_data_${id ?? ""}`
-}
-
-export function serialize(store: Store, map: Record<string, State<any>>): string {
-  const registry = getTokenRegistry(store)
-  const map_data = Object.keys(map)
-    .map((key) => {
-      const token = map[key]
-      const serializedValue: SerializedValue = {
-        v: registry.getState(token).getValue(),
-      }
-
-      if (token instanceof Container) {
-        const metaValue = registry.getState(token.meta).getValue()
-        if (metaValue.type !== "ok") {
-          serializedValue.mv = metaValue
-        }
-      }
-
-      return `["${key}",${JSON.stringify(serializedValue)}]`
-    })
-    .join(",")
-
-  return `globalThis[Symbol.for("${store.id}")] = new Map([${map_data}]);`
-}
-
-export function deserialize(store: Store, map: Record<string, State<any>>, scope: Record<symbol, any> = globalThis) {
-  const registry = getTokenRegistry(store)
-  const serializedData = scope[Symbol.for(store.id)]
-
-  for (const id in map) {
-    const deserialized: SerializedValue = serializedData?.get(id)
-    if (deserialized) {
-      const token = map[id]
-      registry.registerState(token, deserialized.v)
-      if (token instanceof Container && deserialized.mv !== undefined) {
-        registry.registerState(token.meta, deserialized.mv)
-      }
-    }
-  }
 }

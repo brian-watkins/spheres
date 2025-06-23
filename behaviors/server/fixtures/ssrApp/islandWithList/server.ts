@@ -1,6 +1,6 @@
 import { createStringRenderer } from "@server/index.js";
 import { view } from "./view";
-import { command, createStore, exec, serialize, useCommand, write } from "@store/index.js";
+import { command, createStore, exec, useCommand, write } from "@store/index.js";
 import { items, serializedTokens, suppliedTitle } from "./state";
 import { SSRParts } from "../../../helpers/ssrApp";
 
@@ -20,9 +20,15 @@ useCommand(store, getSuppliedState, {
 
 store.dispatch(exec(getSuppliedState, undefined))
 
-export default function(): SSRParts {
+const stringRenderer = createStringRenderer(view, {
+  stateMap: serializedTokens,
+  activationScripts: [
+    "/behaviors/server/fixtures/ssrApp/islandWithList/activate.ts"
+  ]
+})
+
+export default function (): SSRParts {
   return {
-    html: createStringRenderer(view)(store),
-    serializedStore: serialize(store, serializedTokens)
+    html: stringRenderer(store),
   }
 }

@@ -1,6 +1,8 @@
-import { activateView } from "@view/index.js"
+import { activateZone } from "@view/index.js"
 import { view } from "./withState.js"
-import { createStore } from "@store/index.js"
 
-const store = createStore()
-activateView(store, document.getElementById("nested-state-island")!, view)
+activateZone({
+  view(activate) {
+    activate(document.getElementById("nested-state-island")!, view)
+  },
+})

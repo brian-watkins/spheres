@@ -1,9 +1,9 @@
-import { DOMEvent, DOMEventType, RenderResult, spheresTemplateData, StoreEventHandler, Zone } from "./index.js"
+import { DOMEvent, DOMEventType, RenderResult, spheresTemplateData, StoreEventHandler, EventZone } from "./index.js"
 import { dispatchMessage } from "../../store/message.js"
 import { TokenRegistry } from "../../store/tokenRegistry.js"
 import { getEventAttribute, wrapEvent } from "./eventHelpers.js"
 
-export class DOMRoot implements Zone, RenderResult {
+export class DOMRoot implements EventZone, RenderResult {
   private activeDocumentEvents = new Set<string>()
   private eventController = new AbortController()
   private events: Map<string, DOMEvent> = new Map()

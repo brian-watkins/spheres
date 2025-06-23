@@ -1,4 +1,5 @@
-import { Stateful, Store } from "../../store/index.js";
+import { Stateful, Store, write } from "../../store/index.js";
+import { Container, container } from "../../store/state/container.js"
 import { getTokenRegistry } from "../../store/store.js";
 import { GetState, runQuery, State, TokenRegistry } from "../../store/tokenRegistry.js";
 import { voidElements } from "../../view/elementData.js";
@@ -9,10 +10,11 @@ import { IdSequence } from "../../view/render/idSequence.js";
 import { ViteContext } from "./viteBuilder.js";
 import { AbstractViewRenderer, ElementDefinition, isStateful, ViewDefinition, ViewRendererDelegate, ViewSelector } from "../../view/render/viewRenderer.js";
 import { ListItemTemplateContext } from "../../view/render/templateContext.js";
-import { TransformRendererDelegate } from "./transformDelegate.js";
+import { shouldTransformImport, TransformRendererDelegate } from "./transformDelegate.js";
 import { AbstractViewConfig, ViewConfigDelegate } from "../../view/render/viewConfig.js";
 import { SelectorBuilder } from "../../view/render/selectorBuilder.js";
 import { BooleanAttributesDelegate } from "../../view/render/htmlDelegate.js";
+import { SerializedState } from "../../view/activate.js";
 
 type StatefulString = (registry: TokenRegistry) => string
 
@@ -21,35 +23,79 @@ export interface HTMLTemplate {
   statefuls: Array<StatefulString>
 }
 
-export function buildStringRenderer(view: HTMLView, viteContext?: ViteContext): (store: Store) => string {
-  const renderer = new StringRenderer(new StringRendererDelegate(), viteContext, new IdSequence())
+export interface StringRendererOptions {
+  stateMap?: Record<string, State<any>>
+  activationScripts?: Array<string>
+  viteContext?: ViteContext
+}
 
-  view(renderer as unknown as HTMLBuilder)
-  const template = renderer.template
+export function buildStringRenderer(view: HTMLView, options: StringRendererOptions): (store: Store) => string {
+  const renderer = new StringRenderer(new StringRendererDelegate(), options, new IdSequence())
+  renderer.subview(view)
+
+  const template = renderer.hasBodyElement ?
+    renderer.template :
+    addTemplate(renderer.template, getActivationTemplate(options))
 
   return (store) => {
+    store.dispatch(write(storeIdToken, store.id))
+
     return stringForTemplate(getTokenRegistry(store), template)
   }
+}
+
+export function buildActivationScripts(options: StringRendererOptions): (store: Store) => string {
+  const template = getActivationTemplate(options)
+
+  return (store) => {
+    store.dispatch(write(storeIdToken, store.id))
+
+    return stringForTemplate(getTokenRegistry(store), template)
+  }
+}
+
+function getActivationTemplate(options: StringRendererOptions): HTMLTemplate {
+  const renderer = new StringRenderer(new StringRendererDelegate(), options, new IdSequence())
+  if (options.stateMap) {
+    renderer.subview(serializedStore(options.stateMap))
+  }
+  if (options.activationScripts) {
+    for (const scriptSrc of options.activationScripts) {
+      renderer
+        .subview((root: HTMLBuilder) => {
+          root.script(el => {
+            el.config
+              .type("module")
+              .async(true)
+              .src(scriptSrc)
+          })
+        })
+    }
+  }
+
+  return renderer.template
 }
 
 const ZERO_WIDTH_SPACE = "&#x200b;"
 
 class StringRenderer extends AbstractViewRenderer {
-  readonly template: HTMLTemplate = {
+  hasBodyElement: boolean = false
+
+  template: HTMLTemplate = {
     strings: [""],
     statefuls: []
   }
 
-  constructor(delegate: ViewRendererDelegate, private viteContext: ViteContext | undefined, private idSequence: IdSequence, private isTemplate: boolean = false) {
+  constructor(delegate: ViewRendererDelegate, private options: StringRendererOptions, private idSequence: IdSequence, private isTemplate: boolean = false) {
     super(delegate)
   }
 
   private appendToTemplate(next: HTMLTemplate) {
-    addTemplate(this.template, next)
+    this.template = addTemplate(this.template, next)
   }
 
   private appendStringToTemplate(content: string) {
-    addTemplate(this.template, {
+    this.appendToTemplate({
       strings: [content],
       statefuls: []
     })
@@ -70,22 +116,21 @@ class StringRenderer extends AbstractViewRenderer {
 
   element(tag: string, builder?: ElementDefinition): this {
     const elementId = this.idSequence.next
-    if (tag === "script" || tag === "link") {
-      const delegate = new TransformRendererDelegate(this.viteContext)
-      const children = new StringRenderer(delegate, this.viteContext, this.idSequence)
+
+    if (shouldTransformImport(this.options.viteContext) && (tag === "script" || tag === "link")) {
+      const delegate = new TransformRendererDelegate(this.options.viteContext)
+      const children = new StringRenderer(delegate, this.options, this.idSequence)
       const config = new StringConfig(delegate.getConfigDelegate(tag), elementId)
       builder?.({
         config,
         children: children
       })
-      if (delegate.template !== undefined) {
-        this.appendToTemplate(delegate.template)
-        return this
-      }
+      this.appendToTemplate(delegate.template)
+      return this
     }
 
     const config = new StringConfig(this.delegate.getConfigDelegate(tag), elementId)
-    const children = new StringRenderer(this.delegate, this.viteContext, this.idSequence)
+    const children = new StringRenderer(this.delegate, this.options, this.idSequence)
 
     if (this.isTemplate) {
       config.attribute("data-spheres-template", "")
@@ -110,7 +155,7 @@ class StringRenderer extends AbstractViewRenderer {
       return this
     }
 
-    if (this.viteContext !== undefined && this.viteContext.command === "serve" && tag === "head") {
+    if (this.options.viteContext !== undefined && this.options.viteContext.command === "serve" && tag === "head") {
       this.appendStringToTemplate(`<script type="module" src="/@vite/client"></script>`)
     }
 
@@ -127,6 +172,14 @@ class StringRenderer extends AbstractViewRenderer {
       }
     } else {
       this.appendToTemplate(children.template)
+      if (children.hasBodyElement) {
+        this.hasBodyElement = true
+      }
+    }
+
+    if (tag === "body") {
+      this.hasBodyElement = true
+      this.appendToTemplate(getActivationTemplate(this.options))
     }
 
     this.appendStringToTemplate(`</${tag}>`)
@@ -137,7 +190,7 @@ class StringRenderer extends AbstractViewRenderer {
   subviews<T>(data: (get: GetState) => T[], viewGenerator: (item: State<T>, index?: State<number>) => ViewDefinition): this {
     const elementId = this.idSequence.next
 
-    const renderer = new StringRenderer(this.delegate, this.viteContext, new IdSequence(elementId), true)
+    const renderer = new StringRenderer(this.delegate, this.options, new IdSequence(elementId), true)
     const templateContext = new ListItemTemplateContext(renderer, viewGenerator)
 
     this.appendToTemplate({
@@ -163,7 +216,7 @@ class StringRenderer extends AbstractViewRenderer {
 
   subviewFrom(selectorGenerator: (selector: ViewSelector) => void): this {
     const elementId = this.idSequence.next
-    const templateSelectorBuilder = new SelectorBuilder(createStringTemplate(this.delegate, this.viteContext, elementId))
+    const templateSelectorBuilder = new SelectorBuilder(createStringTemplate(this.delegate, this.options, elementId))
     selectorGenerator(templateSelectorBuilder)
     const selectors = templateSelectorBuilder.selectors
 
@@ -199,16 +252,16 @@ class StringRenderer extends AbstractViewRenderer {
   }
 }
 
-function createStringTemplate(delegate: ViewRendererDelegate, viteContext: ViteContext | undefined, elementId: string): (view: ViewDefinition, selectorId: number) => HTMLTemplate {
+function createStringTemplate(delegate: ViewRendererDelegate, options: StringRendererOptions, elementId: string): (view: ViewDefinition, selectorId: number) => HTMLTemplate {
   return (view, selectorId) => {
-    const renderer = new StringRenderer(delegate, viteContext, new IdSequence(`${elementId}.${selectorId}`), true)
+    const renderer = new StringRenderer(delegate, options, new IdSequence(`${elementId}.${selectorId}`), true)
     view(renderer as unknown as HTMLBuilder)
     return renderer.template
   }
 }
 
 class StringConfig extends AbstractViewConfig {
-  readonly template: HTMLTemplate = {
+  template: HTMLTemplate = {
     strings: [""],
     statefuls: []
   }
@@ -220,7 +273,7 @@ class StringConfig extends AbstractViewConfig {
   }
 
   private appendToTemplate(next: HTMLTemplate) {
-    addTemplate(this.template, next)
+    this.template = addTemplate(this.template, next)
   }
 
   innerHTML(html: string | Stateful<string>): this {
@@ -238,14 +291,14 @@ class StringConfig extends AbstractViewConfig {
             if (attrValue === undefined) {
               return ""
             } else {
-              return ` ${name}="${attrValue}"`
+              return attributeString(name, attrValue)
             }
           })
         ]
       })
     } else {
       this.appendToTemplate({
-        strings: [` ${name}="${value}"`],
+        strings: [attributeString(name, value)],
         statefuls: []
       })
     }
@@ -266,6 +319,11 @@ class StringConfig extends AbstractViewConfig {
   }
 }
 
+function attributeString(name: string, value: string): string {
+  const valuePart = value === "" ? "" : `="${value}"`
+  return ` ${name}${valuePart}`
+}
+
 function toStatefulString(stateful: Stateful<string>, defaultValue: string = ""): StatefulString {
   return (registry) => runQuery(registry, stateful) || defaultValue
 }
@@ -281,16 +339,23 @@ function stringForTemplate(registry: TokenRegistry, template: HTMLTemplate): str
   return html
 }
 
-function addTemplate(current: HTMLTemplate, next: HTMLTemplate): void {
-  let currentString = current.strings[current.strings.length - 1]
+function addTemplate(current: HTMLTemplate, next: HTMLTemplate): HTMLTemplate {
+  const added: HTMLTemplate = {
+    strings: [...current.strings],
+    statefuls: [...current.statefuls]
+  }
+
+  let currentString = added.strings[added.strings.length - 1]
   currentString = currentString + (next.strings[0] ?? "")
   if (next.strings.length > 1) {
-    current.strings[current.strings.length - 1] = currentString
-    current.strings = current.strings.concat(next.strings.slice(1))
-    current.statefuls = current.statefuls.concat(next.statefuls ?? [])
+    added.strings[added.strings.length - 1] = currentString
+    added.strings = added.strings.concat(next.strings.slice(1))
+    added.statefuls = added.statefuls.concat(next.statefuls ?? [])
   } else {
-    current.strings[current.strings.length - 1] = currentString
+    added.strings[added.strings.length - 1] = currentString
   }
+
+  return added
 }
 
 class StringRendererDelegate implements ViewRendererDelegate {
@@ -302,5 +367,40 @@ class StringRendererDelegate implements ViewRendererDelegate {
 
   getConfigDelegate(): ViewConfigDelegate {
     return this.configDelegate
+  }
+}
+
+const storeIdToken = container({ initialValue: "" })
+
+
+export function serializedStore(stateMap: Record<string, State<any>>): HTMLView {
+  return root => {
+    root.script(el => {
+      el.config
+        .type("application/json")
+        .dataAttribute("spheres-store", get => get(storeIdToken))
+      el.children.textNode(get => {
+        const values: Array<SerializedState> = []
+
+        for (const key in stateMap) {
+          const token = stateMap[key]
+          const serializedValue: SerializedState = {
+            t: key,
+            v: get(token)
+          }
+
+          if (token instanceof Container) {
+            const metaValue = get(token.meta)
+            if (metaValue.type !== "ok") {
+              serializedValue.mv = metaValue
+            }
+          }
+
+          values.push(serializedValue)
+        }
+
+        return JSON.stringify(values)
+      })
+    })
   }
 }

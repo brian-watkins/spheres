@@ -1,10 +1,33 @@
-import { createStringRenderer } from "@server/index"
+import { createStreamRenderer } from "@server/index"
 import view from "./view"
-import { createStore, serialize } from "@store/index"
-import { SimpleQueue, StoreData, StreamingSSRParts } from "server/helpers/ssrApp"
+import { createStore } from "@store/index"
+import { StreamingSSRParts } from "server/helpers/ssrApp"
 import { serializedTokens, Thing, things, thingValue } from "./state"
+import { HTMLBuilder } from "@view/htmlElements"
 
-const viewRenderer = createStringRenderer(view)
+const streamRenderer = createStreamRenderer(page, {
+  stateMap: serializedTokens,
+  activationScripts: [
+    "/behaviors/server/fixtures/ssrApp/streaming/activate.ts"
+  ]
+})
+
+function page(root: HTMLBuilder) {
+  root.html(el => {
+    el.children
+      .head(el => {
+        el.children
+          .link(el => {
+            el.config
+              .rel("icon")
+              .href("data:,")
+          })
+      })
+      .body(el => {
+        el.children.subview(view)
+      })
+  })
+}
 
 const thingsServerState: Array<Thing> = [
   { name: "cows", color: "black and white" },
@@ -18,46 +41,31 @@ const thingsServerState: Array<Thing> = [
 const thingValueServerState = "tens of"
 
 export default function (): StreamingSSRParts {
-  const queue = new SimpleQueue<string>()
-
   const store = createStore({
-    initializer: async (actions) => {
+    init: async (actions) => {
       actions.pending(things, [])
 
-      setTimeout(() => {
-        queue.push(scriptTag({
-          storeId: store.id,
-          token: "things",
-          data: thingsServerState
-        }))
-        queue.end()
-      }, 200)
+      const thingPromise = new Promise<void>(resolve => {
+        setTimeout(() => {
+          actions.supply(things, thingsServerState)
+          resolve()
+        }, 200)
+      })
 
       actions.pending(thingValue, "")
 
-      setTimeout(() => {
-        queue.push(scriptTag({
-          storeId: store.id,
-          token: "thingValue",
-          data: thingValueServerState
-        }))
-      }, 100)
+      const thingValuePromise = new Promise<void>(resolve => {
+        setTimeout(() => {
+          actions.supply(thingValue, thingValueServerState)
+          resolve()
+        }, 100)
+      })
+
+      await Promise.all([thingPromise, thingValuePromise])
     }
   })
 
   return {
-    initialHTML: viewRenderer(store),
-    serializedStore: serialize(store, serializedTokens),
-    streamingData: queue
+    stream: streamRenderer(store)
   }
-}
-
-function scriptTag(data: StoreData): string {
-  return `<script>
-window.dispatchEvent(new CustomEvent("spheres-store", {
-  detail: ${JSON.stringify(data)},
-  bubbles: true,
-  cancelable: true
-}))
-</script>`
 }

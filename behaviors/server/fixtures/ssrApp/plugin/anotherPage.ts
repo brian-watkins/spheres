@@ -1,10 +1,13 @@
-import { createStore } from "spheres/store";
-import { activateView } from "spheres/view";
 import { anotherView } from "./anotherView";
+import { activateZone } from "@view/index";
 
 
 export function activate() {
-  activateView(createStore(), document.body, anotherView)
+  activateZone({
+    view(activate) {
+      activate(document.body, anotherView)
+    },
+  })
 }
 
 activate()

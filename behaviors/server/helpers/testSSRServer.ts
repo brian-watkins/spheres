@@ -181,10 +181,6 @@ class TemplateRenderer implements ServerSideRenderer {
 
     let html = template.replace(`<!-- SSR-APP-HTML -->`, ssrParts.html)
 
-    if (ssrParts.serializedStore !== undefined) {
-      html = html.replace(`<!-- SSR-SERIALIZED-STORE -->`, `<script type="module">${ssrParts.serializedStore}</script>`)
-    }
-
     sendHTMLResponse(res, html)
   }
 }
@@ -192,36 +188,19 @@ class TemplateRenderer implements ServerSideRenderer {
 class StreamingRenderer implements ServerSideRenderer {
   constructor(private contentOptions: SsrAppOptions) { }
 
-  async renderResponse(viteDevServer: ViteDevServer, res: Response): Promise<void> {
-    let template = fs.readFileSync(
-      path.resolve(__dirname, this.contentOptions.template),
-      'utf-8',
-    )
-
-    template = await viteDevServer.transformIndexHtml("index.html", template)
-
+  async renderResponse(_: ViteDevServer, res: Response): Promise<void> {
     const viewRenderer = await useModule(this.contentOptions.view)
     const ssrParts: StreamingSSRParts = viewRenderer.default()
-
-    let html = template.replace(`<!-- SSR-APP-HTML -->`, ssrParts.initialHTML)
-
-    if (ssrParts.serializedStore !== undefined) {
-      html = html.replace(`<!-- SSR-SERIALIZED-STORE -->`, `<script>${ssrParts.serializedStore}</script>`)
-    }
 
     res.writeHead(200, {
       'Content-Type': 'text/html',
       'Transfer-Encoding': 'chunked'
     })
 
-    res.write(html)
+    for await (const chunk of ssrParts.stream) {
+      res.write(chunk)
+    }
 
-    ssrParts.streamingData.addListener((tag) => {
-      if (tag !== undefined) {
-        res.write(tag)
-      } else {
-        res.end()
-      }
-    })
+    res.end()
   }
 }

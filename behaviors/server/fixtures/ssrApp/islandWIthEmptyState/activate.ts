@@ -1,6 +1,8 @@
-import { createStore } from "@store/store"
-import { activateView } from "@view/index"
 import { view } from "./view"
+import { activateZone } from "@view/index"
 
-const store = createStore()
-activateView(store, document.body, view)
+activateZone({
+  view(activate) {
+    activate(document.body, view)
+  }
+})

@@ -12,11 +12,23 @@ export function spheresInjectPlugin(): PluginOption {
     load(id) {
       if (id === resolvedVirtualModuleId) {
         return `
-import { createStringRenderer as internalCreateStringRenderer } from "spheres/server"
+import {
+  createStringRenderer as internalCreateStringRenderer,
+  createStreamRenderer as internalCreateStreamRenderer,
+  zone as internalZone
+} from "spheres/server"
 import { context } from "virtual:spheres/vite"
 
-export function createStringRenderer(view) {
-  return internalCreateStringRenderer(view, context)
+export function createStringRenderer(view, options) {
+  return internalCreateStringRenderer(view, { viteContext: context, ...options })
+}
+
+export function createStreamRenderer(view, options) {
+  return internalCreateStreamRenderer(view, { viteContext: context, ...options })
+}
+
+export function zone(view, options) {
+  return internalZone(view, { viteContext: context, ...options })
 }
 `
       }

@@ -11,6 +11,7 @@ type SSRManifestChunk = ManifestChunk & { manifestKey: string }
 export interface ScriptLink {
   type: "script"
   src: string
+  async: boolean
 }
 
 export interface ExtraScriptLink {
@@ -25,7 +26,7 @@ export interface StylesheetLink {
 
 export type LinkData = ScriptLink | ExtraScriptLink | StylesheetLink
 
-export function getLinkData(viteContext: ViteContext, assetType: "script" | "stylesheet", src: string): Array<LinkData> {
+export function getLinkData(viteContext: ViteContext, assetType: "script" | "stylesheet", src: string, isAsync: boolean): Array<LinkData> {
   const fetched: Set<string> = new Set()
 
   function findLinks(type: "script" | "stylesheet" | "extra-script", src: string): Array<LinkData> {
@@ -38,7 +39,7 @@ export function getLinkData(viteContext: ViteContext, assetType: "script" | "sty
     fetched.add(chunk.manifestKey)
 
     let linkData: Array<LinkData> = [
-      { type, src: chunk.file }
+      { type, src: chunk.file, async: isAsync }
     ]
 
     for (const script of chunk.imports ?? []) {

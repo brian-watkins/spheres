@@ -28,7 +28,7 @@ export class TestStore<T> {
 
   initialize(initializer: (actions: InitializerActions) => Promise<void>): Promise<void> {
     this.store = createStore({
-      initializer
+      init: initializer
     })
 
     return this.store.initialized

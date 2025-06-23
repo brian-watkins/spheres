@@ -3,7 +3,7 @@ import { equalTo, expect, is } from "great-expectations";
 import { appWithZone, appWithDataAttributesNoValue, appWithDeeplyNestedState, appWithInnerHTML, appWithNestedState, appWithPropertiesAndAttributes, appWithReactiveAttributes, appWithReactiveClass, appWithReactiveText, appWithSimpleState, appWithZones, staticApp, appWithViewSelector, appWithEvents } from "./fixtures/static.app.js";
 import { container, createStore } from "@store/index.js";
 import { HTMLView } from "@view/index.js";
-import { buildStringRenderer } from "@server/render/stringRenderer.js";
+import { createStringRenderer } from "@server/index.js";
 
 export default behavior("Render view to HTML string", [
   renderTest("render view with no event handlers or state", (renderer) => {
@@ -24,7 +24,7 @@ export default behavior("Render view to HTML string", [
   }),
   renderTest("render view with nested stateful views", (renderer) => {
     const actual = renderer.renderView(appWithNestedState)
-    expect(actual, is(equalTo(`<div><!--switch-start-0.2--><h2 data-spheres-template="">Cool Person!</h2><!--switch-end-0.2--></div>`)))
+    expect(actual, is(equalTo(`<div><!--switch-start-0.2--><h2 data-spheres-template>Cool Person!</h2><!--switch-end-0.2--></div>`)))
   }),
   renderTest("render view with deeply nested stateful views", (renderer) => {
     const actual = renderer.renderView(appWithDeeplyNestedState)
@@ -61,7 +61,7 @@ export default behavior("Render view to HTML string", [
   }),
   renderTest("render view with list with events", (renderer) => {
     const actual = renderer.renderView(appWithZones)
-    expect(actual, is(equalTo(`<div><!--list-start-0.2--><div data-spheres-template=""><h1>snake is at index 0</h1><button data-spheres-click="0.2.3">Click me!</button></div><div data-spheres-template=""><h1>eagle is at index 1</h1><button data-spheres-click="0.2.3">Click me!</button></div><!--list-end-0.2--></div>`)))
+    expect(actual, is(equalTo(`<div><!--list-start-0.2--><div data-spheres-template><h1>snake is at index 0</h1><button data-spheres-click="0.2.3">Click me!</button></div><div data-spheres-template><h1>eagle is at index 1</h1><button data-spheres-click="0.2.3">Click me!</button></div><!--list-end-0.2--></div>`)))
   }),
   renderTest("render view with non-bubbling events and bubbling events", (renderer) => {
     const actual = renderer.renderView(appWithEvents)
@@ -69,7 +69,7 @@ export default behavior("Render view to HTML string", [
   }),
   renderTest("render view with conditional view", (renderer) => {
     const actual = renderer.renderView(appWithViewSelector)
-    expect(actual, is(equalTo(`<div><!--switch-start-0.2--><h3 data-spheres-template="">Fun!</h3><!--switch-end-0.2--></div>`)))
+    expect(actual, is(equalTo(`<div><!--switch-start-0.2--><h3 data-spheres-template>Fun!</h3><!--switch-end-0.2--></div>`)))
   }),
   renderTest("render void elements without closing tags", (renderer) => {
     const imageName = container({ initialValue: "/assets/myImg" })
@@ -109,7 +109,7 @@ export default behavior("Render view to HTML string", [
         })
       })
     })
-    expect(actual, is(equalTo(`<form><input type="text" disabled=""></form>`)))
+    expect(actual, is(equalTo(`<form><input type="text" disabled></form>`)))
   }),
   renderTest("rendering html element adds DOCTYPE tag", (renderer) => {
     const actual = renderer.renderView(root => {
@@ -146,7 +146,7 @@ class TestRenderer {
   private store = createStore()
 
   renderView(view: HTMLView): string {
-    return buildStringRenderer(view)(this.store)
+    return createStringRenderer(view)(this.store)
   }
 }
 

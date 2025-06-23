@@ -20,6 +20,7 @@ export default function view(root: HTMLBuilder) {
         el.children.subviews(get => get(things), thingView)
       })
       .h1(el => {
+        el.config.dataAttribute("value")
         el.children
           .subviewFrom(selector => {
             selector.withConditions()

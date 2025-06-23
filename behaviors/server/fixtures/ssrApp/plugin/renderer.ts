@@ -2,8 +2,13 @@ import { HTMLBuilder } from "spheres/view"
 import { container, createStore } from "spheres/store"
 import { funView } from "./view"
 import { createStringRenderer } from "spheres/server"
+import { someView } from "./someView"
 
-const rendererToString = createStringRenderer(view)
+const rendererToString = createStringRenderer(view, {
+  activationScripts: [
+    "./index.ts"
+  ]
+})
 
 export function renderHTML(): string {
   return rendererToString(createStore())
@@ -25,11 +30,6 @@ function view(root: HTMLBuilder) {
           .script(el => {
             el.config
               .type("module")
-              .src("./index.ts")
-          })
-          .script(el => {
-            el.config
-              .type("module")
               .src((get) => `${get(someFilename)}.ts`)
           })
           .link(el => {
@@ -39,7 +39,9 @@ function view(root: HTMLBuilder) {
           })
       })
       .body(el => {
-        el.children.subview(funView)
+        el.children
+          .subview(someView)
+          .subview(funView)
       })
   })
 }

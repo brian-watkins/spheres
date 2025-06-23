@@ -1,4 +1,4 @@
-import { DOMEventType, EventsToDelegate, StoreEventHandler, Zone } from "./index.js";
+import { DOMEventType, EventsToDelegate, StoreEventHandler, EventZone } from "./index.js";
 import { Stateful, GetState, State } from "../../store/index.js";
 import { dispatchMessage } from "../../store/message.js";
 import { subscribeOnGet, initListener, TokenRegistry } from "../../store/tokenRegistry.js";
@@ -20,7 +20,7 @@ import { SelectorBuilder } from "./selectorBuilder.js";
 export class ActivateDomRenderer extends AbstractViewRenderer {
   private currentNode: Node | null
 
-  constructor(delegate: ViewRendererDelegate, private zone: Zone, private registry: TokenRegistry, node: Node) {
+  constructor(delegate: ViewRendererDelegate, private zone: EventZone, private registry: TokenRegistry, node: Node) {
     super(delegate)
     this.currentNode = node
   }
@@ -81,7 +81,7 @@ export class ActivateDomRenderer extends AbstractViewRenderer {
 }
 
 class ActivateDomConfig extends AbstractViewConfig {
-  constructor(delegate: ViewConfigDelegate, private zone: Zone, private registry: TokenRegistry, private element: Element) {
+  constructor(delegate: ViewConfigDelegate, private zone: EventZone, private registry: TokenRegistry, private element: Element) {
     super(delegate)
   }
 

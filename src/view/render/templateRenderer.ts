@@ -1,4 +1,4 @@
-import { DOMEvent, DOMEventType, EventsToDelegate, StoreEventHandler, Zone } from "./index.js";
+import { DOMEvent, DOMEventType, EventsToDelegate, StoreEventHandler, EventZone } from "./index.js";
 import { Stateful, GetState, State } from "../../store/index.js";
 import { EffectLocation } from "./effectLocation.js";
 import { setEventAttribute } from "./eventHelpers.js";
@@ -17,7 +17,7 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
   private templateElement: HTMLTemplateElement | undefined
   private root: Node
 
-  constructor(delegate: ViewRendererDelegate, private zone: Zone, private idSequence: IdSequence, private location: EffectLocation, root?: Node, private eventType: DOMEventType = DOMEventType.Template) {
+  constructor(delegate: ViewRendererDelegate, private zone: EventZone, private idSequence: IdSequence, private location: EffectLocation, root?: Node, private eventType: DOMEventType = DOMEventType.Template) {
     super(delegate)
     if (root === undefined) {
       this.templateElement = document.createElement("template")
@@ -144,7 +144,7 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
 class DomTemplateConfig extends AbstractViewConfig {
   readonly effectTemplates: Array<EffectTemplate> = []
 
-  constructor(delegate: ViewConfigDelegate, private zone: Zone, private elementId: string, private element: Element, private location: EffectLocation, private eventType: DOMEvent["type"]) {
+  constructor(delegate: ViewConfigDelegate, private zone: EventZone, private elementId: string, private element: Element, private location: EffectLocation, private eventType: DOMEvent["type"]) {
     super(delegate)
   }
 
@@ -194,7 +194,7 @@ class DomTemplateConfig extends AbstractViewConfig {
   }
 }
 
-export function createDOMTemplate(delegate: ViewRendererDelegate, zone: Zone, elementId: string): (view: ViewDefinition, selectorId: number) => DOMTemplate {
+export function createDOMTemplate(delegate: ViewRendererDelegate, zone: EventZone, elementId: string): (view: ViewDefinition, selectorId: number) => DOMTemplate {
   return (view, selectorId) => {
     const renderer = new DomTemplateRenderer(delegate, zone, new IdSequence(`${elementId}.${selectorId}`), new EffectLocation(root => root))
     view(renderer)

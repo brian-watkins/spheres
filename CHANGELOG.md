@@ -1,5 +1,18 @@
 # spheres
 
+## 0.23.0
+
+### Minor Changes
+
+- 00c0539: Support for streaming data during SSR
+- 6035e21: Initializer works with multiple containers
+- a0080ba: Define initializer when creating a store
+- 2338bbf: Use record with serializing/deserializing tokens
+
+### Patch Changes
+
+- 16218bc: Default StoreMessage type to any
+
 ## 0.22.7
 
 ### Patch Changes

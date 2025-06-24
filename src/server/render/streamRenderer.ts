@@ -2,13 +2,13 @@ import { State, Store, useEffect } from "../../store/index.js"
 import { Container } from "../../store/state/container.js"
 import { getTokenRegistry } from "../../store/store.js"
 import { TokenRegistry } from "../../store/tokenRegistry.js"
-import { SerializedState, SerializedStateType } from "../../view/activate.js"
+import { SerializedState, SerializedStateType, StateMap } from "../../view/activate.js"
 import { HTMLView } from "../../view/index.js"
 import { buildActivationScripts, buildStringRenderer } from "./stringRenderer.js"
 import { ViteContext } from "./viteBuilder.js"
 
 export interface StreamRendererOptions {
-  stateMap?: Record<string, State<any>>
+  stateMap?: StateMap
   activationScripts?: Array<string>
   zones?: Array<Zone>
   viteContext?: ViteContext
@@ -83,7 +83,7 @@ export class Zone {
 }
 
 export interface InternalZoneOptions {
-  stateMap?: Record<string, State<any>>
+  stateMap?: StateMap
   activationScripts?: Array<string>
   store: State<Store>
   mountPoint: string

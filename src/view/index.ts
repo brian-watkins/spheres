@@ -17,7 +17,7 @@ export * from "./svgElements.js"
 export * from "./specialAttributes.js"
 export type { ConfigurableElement } from "./render/viewRenderer.js"
 export type { RenderResult } from "./render/index.js"
-export type { ActivationOptions, ActivatedZone } from "./activate.js"
+export type { ActivationOptions, ActivatedZone, StateMap } from "./activate.js"
 export { activateZone } from "./activate.js"
 
 

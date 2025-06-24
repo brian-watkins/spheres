@@ -1,4 +1,4 @@
-import { Container, Meta, State, Store } from "../store/index.js"
+import { Container, Meta, Store } from "../store/index.js"
 import { createStore, getTokenRegistry, InitializerActions } from "../store/store.js"
 import { HTMLBuilder, HTMLView } from "./htmlElements.js"
 import { ActivateDomRenderer } from "./render/activateDomRenderer.js"
@@ -22,6 +22,8 @@ export interface SerializedMeta {
   v: Meta<any, any>
 }
 
+export type StateMap = Record<string, Container<any>>
+
 export type SerializedState = SerializedContainer | SerializedMeta
 
 export function activateView(store: Store, element: Element, view: HTMLView): RenderResult {
@@ -37,7 +39,7 @@ export function activateView(store: Store, element: Element, view: HTMLView): Re
 
 export interface ActivationOptions {
   storeId?: string
-  stateMap?: Record<string, State<any>>
+  stateMap?: StateMap
   view: (activate: (element: Element, view: HTMLView) => void) => void
 }
 
@@ -100,8 +102,8 @@ export function activateZone(options: ActivationOptions): ActivatedZone {
   return { store }
 }
 
-function deserializeState(stateMap: Record<string, State<any>>, actions: InitializerActions, state: SerializedState) {
-  const token = stateMap[state.t] as Container<any> | undefined
+function deserializeState(stateMap: Record<string, Container<any>>, actions: InitializerActions, state: SerializedState) {
+  const token = stateMap[state.t]
   if (token === undefined) return
 
   switch (state.k) {

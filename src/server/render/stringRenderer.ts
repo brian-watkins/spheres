@@ -14,7 +14,7 @@ import { shouldTransformImport, TransformRendererDelegate } from "./transformDel
 import { AbstractViewConfig, ViewConfigDelegate } from "../../view/render/viewConfig.js";
 import { SelectorBuilder } from "../../view/render/selectorBuilder.js";
 import { BooleanAttributesDelegate } from "../../view/render/htmlDelegate.js";
-import { SerializedState, SerializedStateType } from "../../view/activate.js";
+import { SerializedState, SerializedStateType, StateMap } from "../../view/activate.js";
 
 type StatefulString = (registry: TokenRegistry) => string
 
@@ -24,7 +24,7 @@ export interface HTMLTemplate {
 }
 
 export interface StringRendererOptions {
-  stateMap?: Record<string, State<any>>
+  stateMap?: Record<string, Container<any>>
   activationScripts?: Array<string>
   viteContext?: ViteContext
 }
@@ -373,7 +373,7 @@ class StringRendererDelegate implements ViewRendererDelegate {
 const storeIdToken = container({ initialValue: "" })
 
 
-export function serializedStore(stateMap: Record<string, State<any>>): HTMLView {
+export function serializedStore(stateMap: StateMap): HTMLView {
   return root => {
     root.script(el => {
       el.config

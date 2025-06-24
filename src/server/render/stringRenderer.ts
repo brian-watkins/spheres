@@ -14,7 +14,7 @@ import { shouldTransformImport, TransformRendererDelegate } from "./transformDel
 import { AbstractViewConfig, ViewConfigDelegate } from "../../view/render/viewConfig.js";
 import { SelectorBuilder } from "../../view/render/selectorBuilder.js";
 import { BooleanAttributesDelegate } from "../../view/render/htmlDelegate.js";
-import { SerializedState } from "../../view/activate.js";
+import { SerializedState, SerializedStateType } from "../../view/activate.js";
 
 type StatefulString = (registry: TokenRegistry) => string
 
@@ -384,19 +384,22 @@ export function serializedStore(stateMap: Record<string, State<any>>): HTMLView 
 
         for (const key in stateMap) {
           const token = stateMap[key]
-          const serializedValue: SerializedState = {
+          values.push({
+            k: SerializedStateType.Container,
             t: key,
             v: get(token)
-          }
+          })
 
           if (token instanceof Container) {
             const metaValue = get(token.meta)
             if (metaValue.type !== "ok") {
-              serializedValue.mv = metaValue
+              values.push({
+                k: SerializedStateType.Meta,
+                t: key,
+                v: metaValue
+              })
             }
           }
-
-          values.push(serializedValue)
         }
 
         return JSON.stringify(values)

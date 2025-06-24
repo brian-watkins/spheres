@@ -8,7 +8,7 @@ export default function (): StreamingSSRParts {
   const zones = collection(() => {
     return supplied({ initialValue: createStore() })
   })
-  
+
   const rootStream = createStreamRenderer(page, {
     zones: [
       zone(counter, {
@@ -25,6 +25,14 @@ export default function (): StreamingSSRParts {
         mountPoint: "[data-zone='two']",
         activationScripts: [
           "/behaviors/server/fixtures/ssrApp/streamingZones/activateTwo.ts"
+        ]
+      }),
+      zone(counter, {
+        stateMap: { count },
+        store: zones.get("three"),
+        mountPoint: "[data-zone='three']",
+        activationScripts: [
+          "/behaviors/server/fixtures/ssrApp/streamingZones/activateThree.ts"
         ]
       }),
     ]
@@ -57,6 +65,20 @@ export default function (): StreamingSSRParts {
               actions.supply(count, 21)
               resolve()
             }, 150)
+          })
+        }
+      }))
+
+      actions.supply(zones.get("three"), createStore({
+        id: "store-three",
+        async init(actions) {
+          actions.pending(count, 0)
+
+          return new Promise(resolve => {
+            setTimeout(() => {
+              actions.error(count, "failed", 0)
+              resolve()
+            }, 180)
           })
         }
       }))

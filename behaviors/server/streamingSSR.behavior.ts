@@ -31,6 +31,32 @@ export default behavior("ssr with streaming data", [
     }),
 
   example(ssrTestAppContext())
+    .description("error in streamed data")
+    .script({
+      suppose: [
+        fact("the app is loaded in the browser", async (context) => {
+          context.server.setStreamingSSRApp({
+            template: "unused",
+            view: "./behaviors/server/fixtures/ssrApp/streamingError/server.ts"
+          })
+          await context.browser.loadApp()
+        })
+      ],
+      observe: [
+        effect("the list error is shown eventually", async (context) => {
+          await expect(context.browser.display.select("[data-title]").text(), resolvesTo(
+            stringContaining("Oops!")
+          ))
+        }),
+        effect("the value is loaded eventually and updated after the response is complete", async (context) => {
+          await expect(context.browser.display.select("[data-value]").text(), resolvesTo(
+            stringContaining("hundreds of")
+          ))
+        })
+      ]
+    }),
+
+  example(ssrTestAppContext())
     .description("streaming multiple zones")
     .script({
       suppose: [
@@ -49,6 +75,9 @@ export default behavior("ssr with streaming data", [
           ))
           await expect(context.browser.display.select(`[data-zone="two"] h3`).text(), resolvesTo(
             "The count is 21"
+          ))
+          await expect(context.browser.display.select(`[data-zone="three"] h3`).text(), resolvesTo(
+            stringContaining("Oops")
           ))
         })
       ]
@@ -72,6 +101,9 @@ export default behavior("ssr with streaming data", [
           ))
           await expect(context.browser.display.select(`[data-zone="two"] h3`).text(), resolvesTo(
             "The count is 25"
+          ))
+          await expect(context.browser.display.select(`[data-zone="three"] h3`).text(), resolvesTo(
+            stringContaining("Oops")
           ))
         })
       ]

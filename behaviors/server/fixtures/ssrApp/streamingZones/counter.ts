@@ -5,9 +5,10 @@ export const count = container({ initialValue: 0 })
 
 export function counter(root: HTMLBuilder) {
   root.subviewFrom(selector => {
-    selector.withConditions()
-      .when(get => get(count.meta).type === "pending", pendingCounter)
-      .default(root => root.div(el => {
+    selector.withUnion(count.meta)
+      .when(meta => meta.type === "pending", () => pendingCounter)
+      .when(meta => meta.type === "error", () => errorCounter)
+      .default(() => root => root.div(el => {
         el.children
           .h3(el => {
             el.children.textNode(get => `The count is ${get(count)}`)
@@ -25,6 +26,15 @@ function pendingCounter(root: HTMLBuilder) {
     el.children
       .h3(el => {
         el.children.textNode("The counter is loading!")
+      })
+  })
+}
+
+function errorCounter(root: HTMLBuilder) {
+  root.div(el => {
+    el.children
+      .h3(el => {
+        el.children.textNode("Oops there was an error!")
       })
   })
 }

@@ -29,6 +29,11 @@ export function main(root: HTMLBuilder) {
         el.config.dataAttribute("zone", "two")
         el.children.subview(loadingView)
       })
+      .hr()
+      .div(el => {
+        el.config.dataAttribute("zone", "three")
+        el.children.subview(loadingView)
+      })
   })
 }
 

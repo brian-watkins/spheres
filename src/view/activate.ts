@@ -1,16 +1,28 @@
 import { Container, Meta, State, Store } from "../store/index.js"
-import { createStore, getTokenRegistry } from "../store/store.js"
+import { createStore, getTokenRegistry, InitializerActions } from "../store/store.js"
 import { HTMLBuilder, HTMLView } from "./htmlElements.js"
 import { ActivateDomRenderer } from "./render/activateDomRenderer.js"
 import { cleanRoot, DOMRoot } from "./render/domRoot.js"
 import { HtmlRendererDelegate } from "./render/htmlDelegate.js"
 import { RenderResult } from "./render/index.js"
 
-export interface SerializedState {
+export enum SerializedStateType {
+  Container, Meta
+}
+
+export interface SerializedContainer {
+  k: SerializedStateType.Container
   t: string
   v: any
-  mv?: Meta<any, any>
 }
+
+export interface SerializedMeta {
+  k: SerializedStateType.Meta
+  t: string
+  v: Meta<any, any>
+}
+
+export type SerializedState = SerializedContainer | SerializedMeta
 
 export function activateView(store: Store, element: Element, view: HTMLView): RenderResult {
   const registry = getTokenRegistry(store)
@@ -42,21 +54,7 @@ export function activateZone(options: ActivationOptions): ActivatedZone {
       if (tag !== null && options.stateMap !== undefined) {
         const data: Array<SerializedState> = JSON.parse(tag.textContent!)
         for (const value of data) {
-          const token = options.stateMap[value.t] as Container<any> | undefined
-          if (token === undefined) continue
-
-          actions.supply(token, value.v)
-          if (value.mv) {
-            const meta = value.mv
-            switch (meta.type) {
-              case "pending":
-                actions.pending(token, meta.message)
-                break
-              case "error":
-                actions.error(token, meta.reason, meta.message)
-                break
-            }
-          }
+          deserializeState(options.stateMap!, actions, value)
         }
       }
 
@@ -68,8 +66,7 @@ export function activateZone(options: ActivationOptions): ActivatedZone {
       // processing any streaming data that has already arrived
       const existingData = document.querySelectorAll(`script[data-spheres-stream="${store.id}"]`)
       existingData.forEach(el => {
-        const data: SerializedState = JSON.parse(el.textContent!)
-        actions.supply(options.stateMap![data.t] as Container<any>, data.v)
+        deserializeState(options.stateMap!, actions, JSON.parse(el.textContent!))
       })
 
       // notify on any incoming streaming data
@@ -80,8 +77,7 @@ export function activateZone(options: ActivationOptions): ActivatedZone {
               if (node.nodeType === Node.ELEMENT_NODE && node.nodeName === 'SCRIPT') {
                 const el = node as Element
                 if (el.getAttribute("data-spheres-stream") === store.id) {
-                  const data: SerializedState = JSON.parse(el.textContent!)
-                  actions.supply(options.stateMap![data.t] as Container<any>, data.v)
+                  deserializeState(options.stateMap!, actions, JSON.parse(el.textContent!))
                 }
               }
             })
@@ -89,10 +85,7 @@ export function activateZone(options: ActivationOptions): ActivatedZone {
         })
       })
 
-      observer.observe(document.body, {
-        childList: true,
-        subtree: true,
-      })
+      observer.observe(document.body, { childList: true })
 
       // wait for the response to end and then stop observing
       return new Promise(resolve => {
@@ -105,4 +98,26 @@ export function activateZone(options: ActivationOptions): ActivatedZone {
   })
 
   return { store }
+}
+
+function deserializeState(stateMap: Record<string, State<any>>, actions: InitializerActions, state: SerializedState) {
+  const token = stateMap[state.t] as Container<any> | undefined
+  if (token === undefined) return
+
+  switch (state.k) {
+    case SerializedStateType.Container:
+      actions.supply(token, state.v)
+      break
+    case SerializedStateType.Meta:
+      const meta = state.v
+      switch (meta.type) {
+        case "pending":
+          actions.pending(token, meta.message)
+          break
+        case "error":
+          actions.error(token, meta.reason, meta.message)
+          break
+      }
+      break
+  }
 }

@@ -1,10 +1,11 @@
-import { State, Store, useEffect } from "../../store/index.js";
-import { getTokenRegistry } from "../../store/store.js";
-import { TokenRegistry } from "../../store/tokenRegistry.js";
-import { SerializedState } from "../../view/activate.js";
-import { HTMLView } from "../../view/index.js";
-import { buildActivationScripts, buildStringRenderer } from "./stringRenderer.js";
-import { ViteContext } from "./viteBuilder.js";
+import { State, Store, useEffect } from "../../store/index.js"
+import { Container } from "../../store/state/container.js"
+import { getTokenRegistry } from "../../store/store.js"
+import { TokenRegistry } from "../../store/tokenRegistry.js"
+import { SerializedState, SerializedStateType } from "../../view/activate.js"
+import { HTMLView } from "../../view/index.js"
+import { buildActivationScripts, buildStringRenderer } from "./stringRenderer.js"
+import { ViteContext } from "./viteBuilder.js"
 
 export interface StreamRendererOptions {
   stateMap?: Record<string, State<any>>
@@ -25,22 +26,11 @@ export function buildStreamRenderer(view: HTMLView, options: StreamRendererOptio
 
         if (options.stateMap) {
           for (const key in options.stateMap) {
-            useEffect(store, {
-              init(get) {
-                get(options.stateMap![key])
-              },
-              run(get) {
-                controller.enqueue(scriptTag(store.id, {
-                  t: key,
-                  v: get(options.stateMap![key])
-                  // what about meta values for errors?
-                }))
-              },
-            })
+            streamUpdates(store, key, options.stateMap![key], controller)
           }
         }
 
-        const waitUntilAll: Array<Promise<void>> = [ store.initialized ]
+        const waitUntilAll: Array<Promise<void>> = [store.initialized]
 
         // stream zone
         for (const zone of options.zones ?? []) {
@@ -84,18 +74,7 @@ export class Zone {
     const stateMap = this.options.stateMap
     if (stateMap) {
       for (const key in stateMap) {
-        useEffect(zoneStore, {
-          init(get) {
-            get(stateMap![key])
-          },
-          run(get) {
-            controller.enqueue(scriptTag(zoneStore.id, {
-              t: key,
-              v: get(stateMap[key])
-              // what about meta values for errors?
-            }))
-          },
-        })
+        streamUpdates(zoneStore, key, stateMap![key], controller)
       }
     }
 
@@ -109,4 +88,36 @@ export interface InternalZoneOptions {
   store: State<Store>
   mountPoint: string
   viteContext?: ViteContext
+}
+
+function streamUpdates(store: Store, key: string, token: State<any>, controller: ReadableStreamDefaultController) {
+  useEffect(store, {
+    init(get) {
+      get(token)
+    },
+    run(get) {
+      controller.enqueue(scriptTag(store.id, {
+        k: SerializedStateType.Container,
+        t: key,
+        v: get(token)
+      }))
+    },
+  })
+  if (token instanceof Container) {
+    useEffect(store, {
+      init(get) {
+        get(token.meta)
+      },
+      run(get) {
+        const metaValue = get(token.meta)
+        if (metaValue.type !== "ok") {
+          controller.enqueue(scriptTag(store.id, {
+            k: SerializedStateType.Meta,
+            t: key,
+            v: get(token.meta)
+          }))
+        }
+      },
+    })
+  }
 }

@@ -59,6 +59,10 @@ export interface SsrAppOptions {
   view: string
 }
 
+export interface StreamingSsrAppOptions {
+  view: string
+}
+
 export class TestSSRServer {
   private server: Server<any, any> | undefined
   private viteDevServer: ViteDevServer | undefined
@@ -74,7 +78,7 @@ export class TestSSRServer {
     this.renderer = new PageRenderer(path)
   }
 
-  setStreamingSSRApp(options: SsrAppOptions) {
+  setStreamingSSRApp(options: StreamingSsrAppOptions) {
     this.renderer = new StreamingRenderer(options)
   }
 
@@ -186,7 +190,7 @@ class TemplateRenderer implements ServerSideRenderer {
 }
 
 class StreamingRenderer implements ServerSideRenderer {
-  constructor(private contentOptions: SsrAppOptions) { }
+  constructor(private contentOptions: StreamingSsrAppOptions) { }
 
   async renderResponse(_: ViteDevServer, res: Response): Promise<void> {
     const viewRenderer = await useModule(this.contentOptions.view)

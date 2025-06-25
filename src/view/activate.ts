@@ -71,6 +71,11 @@ export function activateZone(options: ActivationOptions): ActivatedZone {
         deserializeState(options.stateMap!, actions, JSON.parse(el.textContent!))
       })
 
+      if (document.readyState !== "loading") {
+        // the response is complete so no streaming to deal with
+        return
+      }
+
       // notify on any incoming streaming data
       const observer = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {

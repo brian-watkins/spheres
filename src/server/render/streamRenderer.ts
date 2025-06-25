@@ -90,7 +90,7 @@ export interface InternalZoneOptions {
   viteContext?: ViteContext
 }
 
-function streamUpdates(store: Store, key: string, token: State<any>, controller: ReadableStreamDefaultController) {
+function streamUpdates(store: Store, key: string, token: Container<any>, controller: ReadableStreamDefaultController) {
   useEffect(store, {
     init(get) {
       get(token)
@@ -103,21 +103,16 @@ function streamUpdates(store: Store, key: string, token: State<any>, controller:
       }))
     },
   })
-  if (token instanceof Container) {
-    useEffect(store, {
-      init(get) {
-        get(token.meta)
-      },
-      run(get) {
-        const metaValue = get(token.meta)
-        if (metaValue.type !== "ok") {
-          controller.enqueue(scriptTag(store.id, {
-            k: SerializedStateType.Meta,
-            t: key,
-            v: get(token.meta)
-          }))
-        }
-      },
-    })
-  }
+  useEffect(store, {
+    run(get) {
+      const metaValue = get(token.meta)
+      if (metaValue.type !== "ok") {
+        controller.enqueue(scriptTag(store.id, {
+          k: SerializedStateType.Meta,
+          t: key,
+          v: get(token.meta)
+        }))
+      }
+    },
+  })
 }

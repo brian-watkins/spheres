@@ -10,7 +10,6 @@ export default behavior("ssr with streaming data", [
       suppose: [
         fact("the app is loaded in the browser", async (context) => {
           context.server.setStreamingSSRApp({
-            template: "../fixtures/ssrApp/streaming/template.html",
             view: "./behaviors/server/fixtures/ssrApp/streaming/server.ts"
           })
           await context.browser.loadApp()
@@ -36,7 +35,6 @@ export default behavior("ssr with streaming data", [
       suppose: [
         fact("the app is loaded in the browser", async (context) => {
           context.server.setStreamingSSRApp({
-            template: "unused",
             view: "./behaviors/server/fixtures/ssrApp/streamingError/server.ts"
           })
           await context.browser.loadApp()
@@ -57,12 +55,36 @@ export default behavior("ssr with streaming data", [
     }),
 
   example(ssrTestAppContext())
+    .description("streaming but store init has no promises")
+    .script({
+      suppose: [
+        fact("the app is loaded in the browser", async (context) => {
+          context.server.setStreamingSSRApp({
+            view: "./behaviors/server/fixtures/ssrApp/streamingSync/server.ts"
+          })
+          await context.browser.loadApp()
+        })
+      ],
+      observe: [
+        effect("the list is loaded eventually", async (context) => {
+          await expect(context.browser.display.select("[data-title]").text(), resolvesTo(
+            "Behold, the 6 things!"
+          ))
+        }),
+        effect("the value is loaded eventually and updated after the response is complete", async (context) => {
+          await expect(context.browser.display.select("[data-value]").text(), resolvesTo(
+            stringContaining("hundreds of")
+          ))
+        })
+      ]
+    }),
+
+  example(ssrTestAppContext())
     .description("streaming multiple zones")
     .script({
       suppose: [
         fact("the app is loaded in the browser", async (context) => {
           context.server.setStreamingSSRApp({
-            template: "blah",
             view: "./behaviors/server/fixtures/ssrApp/streamingZones/server.ts"
           })
           await context.browser.loadApp()

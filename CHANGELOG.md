@@ -1,5 +1,11 @@
 # spheres
 
+## 0.23.1
+
+### Patch Changes
+
+- 05f9190: Streaming works even if there is no data to stream
+
 ## 0.23.0
 
 ### Minor Changes

@@ -49,9 +49,9 @@ export default behavior("rendering html page from transpiled server renderer", [
         effect("the head does not contain the vite client import", async (context) => {
           expect(context.getRenderedHTML().includes(`src="/@vite/client"`), is(false))
         }),
-        effect("the script import references the transpiled js", async (context) => {
+        effect("the script import references the transpiled js only once", async (context) => {
           expect(context.getRenderedHTML(), is(
-            stringMatching(/<script type="module" async src="\/assets\/client-.+\.js"><\/script>/)
+            stringMatching(/<script type="module" async src="\/assets\/client-[^"]+\.js"><\/script>/g, { times: 1 })
           ))
         }),
         effect("the script tag for other transpiled js is included", async (context) => {
@@ -139,7 +139,7 @@ export default behavior("rendering html page from transpiled server renderer", [
               },
               client: {
                 entries: {
-                  activate: "./behaviors/server/fixtures/ssrApp/page/src/index.ts"
+                  activate: "./behaviors/server/fixtures/ssrApp/page/src/index.ts",
                 }
               }
             })
@@ -154,14 +154,29 @@ export default behavior("rendering html page from transpiled server renderer", [
         })
       ],
       observe: [
-        effect("the head does not contain the vite client import", async (context) => {
+        effect("the head does not contain the vite client import", (context) => {
           expect(context.getRenderedHTML(), is(stringContaining(`src="/@vite/client"`, { times: 0 })))
         }),
-        effect("the script import references the transpiled js", async (context) => {
+        effect("the script import references the transpiled js", (context) => {
           expect(context.getRenderedHTML(), is(
             stringMatching(/<script type="module" async src="\/awesome\/assets\/activate-.+\.js"><\/script>/)
           ))
         }),
+        effect("the non-transformed script is included", (context) => {
+          expect(context.getRenderedHTML(), is(
+            stringMatching(/<script type="module" src="https:\/\/my-other-server\/js\/someScript.js"><\/script>/)
+          ))
+        }),
+        effect("a non-transformed stateful script is included", (context) => {
+          expect(context.getRenderedHTML(), is(
+            stringMatching(/<script type="module" src="https:\/\/some-resource\.com\/resource"><\/script>/)
+          ))
+        }),
+        effect("the script contains the initial state of the store", (context) => {
+          expect(context.getRenderedHTML(), is(
+            stringMatching(/<script type="application\/json" data-spheres-store="_spheres_store_data_">/)
+          ))
+        })
       ]
     }),
 

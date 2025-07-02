@@ -4,8 +4,10 @@ import { getTokenRegistry } from "../../store/store.js"
 import { TokenRegistry } from "../../store/tokenRegistry.js"
 import { SerializedState, SerializedStateType, StateMap } from "../../view/activate.js"
 import { HTMLView } from "../../view/index.js"
-import { buildActivationScripts, buildStringRenderer } from "./stringRenderer.js"
-import { ViteContext } from "./viteBuilder.js"
+import { getActivationTemplate } from "./elementRenderers/activationElements.js"
+import { buildStringRenderer } from "./stringRenderer.js"
+import { stringForTemplate } from "./template.js"
+import { ViteContext } from "./viteContext.js"
 
 export interface StreamRendererOptions {
   stateMap?: StateMap
@@ -53,23 +55,23 @@ function scriptTag(storeId: string, data: SerializedState): string {
 
 export class Zone {
   private buildHTMLString: (store: Store) => string
-  private buildActivationScripts: (store: Store) => string
 
   constructor(view: HTMLView, private options: InternalZoneOptions) {
     // just pass the vite context so we only generate the html
     this.buildHTMLString = buildStringRenderer(view, { viteContext: options.viteContext })
-    this.buildActivationScripts = buildActivationScripts(this.options)
   }
 
   useStream(registry: TokenRegistry, controller: ReadableStreamDefaultController): Promise<void> {
     const zoneStore: Store = registry.getState(this.options.store).getValue()
     const initialHtml = this.buildHTMLString(zoneStore)
-    const initialScripts = this.buildActivationScripts(zoneStore)
 
     const mountScript = `<script>document.querySelector("${this.options.mountPoint}").innerHTML = '${initialHtml}';</script>`
 
     controller.enqueue(mountScript)
-    controller.enqueue(initialScripts)
+
+    const activationTemplate = getActivationTemplate(this.options)
+    const activationString = stringForTemplate(getTokenRegistry(zoneStore), activationTemplate)
+    controller.enqueue(activationString)
 
     const stateMap = this.options.stateMap
     if (stateMap) {

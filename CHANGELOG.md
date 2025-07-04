@@ -1,5 +1,11 @@
 # spheres
 
+## 0.23.3
+
+### Patch Changes
+
+- 09086f4: Only stream changes to meta state
+
 ## 0.23.2
 
 ### Patch Changes

@@ -106,6 +106,9 @@ function streamUpdates(store: Store, key: string, token: Container<any>, control
     },
   })
   useEffect(store, {
+    init(get) {
+      get(token.meta)
+    },
     run(get) {
       const metaValue = get(token.meta)
       if (metaValue.type !== "ok") {

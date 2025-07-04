@@ -6,10 +6,10 @@ import { createFragment, listEndIndicator, listStartIndicator, switchEndIndicato
 import { IdSequence } from "./idSequence.js";
 import { ListItemTemplateContext } from "./templateContext.js";
 import { AbstractViewConfig, ViewConfigDelegate } from "./viewConfig.js";
-import { AbstractViewRenderer, ElementDefinition, isStateful, ViewDefinition, ViewRendererDelegate, ViewSelector } from "./viewRenderer.js";
+import { AbstractViewRenderer, ElementDefinition, isStateful, ViewDefinition, ViewSelector } from "./viewRenderer.js";
 import { DOMTemplate, EffectTemplate, EffectTemplateTypes, TemplateType } from "./domTemplate.js";
 import { SelectorBuilder } from "./selectorBuilder.js";
-
+import { DomRendererDelegate } from "./domRendererDelegate.js";
 
 export class DomTemplateRenderer extends AbstractViewRenderer {
   public effectTemplates: Array<EffectTemplate> = []
@@ -17,8 +17,8 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
   private templateElement: HTMLTemplateElement | undefined
   private root: Node
 
-  constructor(delegate: ViewRendererDelegate, private zone: EventZone, private idSequence: IdSequence, private location: EffectLocation, root?: Node, private eventType: DOMEventType = DOMEventType.Template) {
-    super(delegate)
+  constructor(private delegate: DomRendererDelegate, private zone: EventZone, private idSequence: IdSequence, private location: EffectLocation, root?: Node, private eventType: DOMEventType = DOMEventType.Template) {
+    super()
     if (root === undefined) {
       this.templateElement = document.createElement("template")
       this.root = this.templateElement.content
@@ -56,7 +56,9 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
   }
 
   element(tag: string, builder?: ElementDefinition): this {
-    const element = this.delegate.createElement(tag)
+    const rendererDelegate = this.delegate.useDelegate(tag)
+
+    const element = rendererDelegate.createElement(tag)
 
     const elementId = this.idSequence.next
 
@@ -64,13 +66,13 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
       this.location = this.root.hasChildNodes() ? this.location.nextSibling() : this.location.firstChild()
     }
 
-    const config = new DomTemplateConfig(this.delegate.getConfigDelegate(tag), this.zone, elementId, element, this.location, this.eventType)
+    const config = new DomTemplateConfig(rendererDelegate.getConfigDelegate(tag), this.zone, elementId, element, this.location, this.eventType)
 
     if (this.templateElement !== undefined) {
       config.attribute("data-spheres-template", "")
     }
 
-    const children = new DomTemplateRenderer(this.delegate, this.zone, this.idSequence, this.location, element, this.eventType)
+    const children = new DomTemplateRenderer(rendererDelegate, this.zone, this.idSequence, this.location, element, this.eventType)
 
     builder?.({
       config: config,
@@ -194,7 +196,7 @@ class DomTemplateConfig extends AbstractViewConfig {
   }
 }
 
-export function createDOMTemplate(delegate: ViewRendererDelegate, zone: EventZone, elementId: string): (view: ViewDefinition, selectorId: number) => DOMTemplate {
+export function createDOMTemplate(delegate: DomRendererDelegate, zone: EventZone, elementId: string): (view: ViewDefinition, selectorId: number) => DOMTemplate {
   return (view, selectorId) => {
     const renderer = new DomTemplateRenderer(delegate, zone, new IdSequence(`${elementId}.${selectorId}`), new EffectLocation(root => root))
     view(renderer)

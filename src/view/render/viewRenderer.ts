@@ -1,6 +1,5 @@
 import { GetState, State, Stateful } from "../../store/index.js"
 import { SpecialElementAttributes } from "../specialAttributes.js"
-import { ViewConfigDelegate } from "./viewConfig.js"
 
 export interface ConfigurableElement<A extends SpecialElementAttributes, B> {
   config: A
@@ -27,7 +26,6 @@ export interface ViewSelector {
 }
 
 export interface ViewRenderer {
-  useDelegate(delegate: ViewRendererDelegate, runner: () => void): void
   textNode(value: string | Stateful<string>): this
   element(tag: string, builder?: ElementDefinition): this
   subview(view: ViewDefinition): this
@@ -38,18 +36,11 @@ export interface ViewRenderer {
   subviewFrom(selectorGenerator: (selector: ViewSelector) => void): this
 }
 
-export interface ViewRendererDelegate {
-  createElement(tag: string): Element
-  getConfigDelegate(tag: string): ViewConfigDelegate
-}
-
 export function isStateful<T>(value: T | Stateful<T>): value is Stateful<T> {
   return typeof value === "function"
 }
 
 abstract class BaseViewRenderer implements ViewRenderer {
-  constructor(protected delegate: ViewRendererDelegate) { }
-
   abstract textNode(value: string | Stateful<string>): this
   abstract element(tag: string, builder?: ElementDefinition): this
   abstract subviews<T>(data: (get: GetState) => T[], viewGenerator: (item: State<T>, index?: State<number>) => ViewDefinition): this
@@ -58,13 +49,6 @@ abstract class BaseViewRenderer implements ViewRenderer {
   subview(view: ViewDefinition): this {
     view(this)
     return this
-  }
-
-  useDelegate(delegate: ViewRendererDelegate, runner: () => void) {
-    const oldDelegate = this.delegate
-    this.delegate = delegate
-    runner()
-    this.delegate = oldDelegate
   }
 }
 

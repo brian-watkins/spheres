@@ -1,18 +1,27 @@
 import { Stateful } from "../../store/index.js";
+import { DomRendererDelegate } from "./domRendererDelegate.js";
+import { SvgRendererDelegate } from "./svgDelegate.js";
 import { ViewConfig, ViewConfigDelegate } from "./viewConfig.js";
-import { ViewRendererDelegate } from "./viewRenderer.js";
 
-export class HtmlRendererDelegate implements ViewRendererDelegate {
+export class HtmlRendererDelegate implements DomRendererDelegate {
   private configDelegate: ViewConfigDelegate
   private inputConfigDelegate: ViewConfigDelegate
 
   constructor() {
-      this.configDelegate = new HtmlConfigDelegate()
-      this.inputConfigDelegate = new HtmlInputConfigDelegate()
+    this.configDelegate = new HtmlConfigDelegate()
+    this.inputConfigDelegate = new HtmlInputConfigDelegate()
   }
 
   createElement(tag: string): Element {
     return document.createElement(tag)
+  }
+
+  useDelegate(tag: string): DomRendererDelegate {
+    if (tag === "svg") {
+      return new SvgRendererDelegate()
+    } else {
+      return this
+    }
   }
 
   getConfigDelegate(tag: string): ViewConfigDelegate {

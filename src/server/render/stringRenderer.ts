@@ -8,7 +8,7 @@ import { EventsToDelegate, StoreEventHandler } from "../../view/render/index.js"
 import { listEndIndicator, listStartIndicator, switchEndIndicator, switchStartIndicator } from "../../view/render/fragmentHelpers.js";
 import { IdSequence } from "../../view/render/idSequence.js";
 import { ViteContext } from "./viteContext.js";
-import { AbstractViewRenderer, ElementDefinition, isStateful, ViewDefinition, ViewRendererDelegate, ViewSelector } from "../../view/render/viewRenderer.js";
+import { AbstractViewRenderer, ElementDefinition, isStateful, ViewDefinition, ViewSelector } from "../../view/render/viewRenderer.js";
 import { ListItemTemplateContext } from "../../view/render/templateContext.js";
 import { AbstractViewConfig, ViewConfigDelegate } from "../../view/render/viewConfig.js";
 import { SelectorBuilder } from "../../view/render/selectorBuilder.js";
@@ -21,6 +21,7 @@ import { BaseElementRenderer, ElementRenderer } from "./elementRenderers/element
 import { ScriptElementRenderer } from "./elementRenderers/scriptElementRenderer.js";
 import { getActivationTemplate, storeIdToken } from "./elementRenderers/activationElements.js";
 import { LinkElementRenderer } from "./elementRenderers/linkElementRenderer.js";
+import { SvgConfigDelegate } from "../../view/render/svgDelegate.js";
 
 export interface StringRendererOptions {
   stateMap?: Record<string, Container<any>>
@@ -49,8 +50,8 @@ class StringRenderer extends AbstractViewRenderer {
 
   template: HTMLTemplate = emptyTemplate()
 
-  constructor(delegate: ViewRendererDelegate, private options: StringRendererOptions, private idSequence: IdSequence, private isTemplate: boolean = false) {
-    super(delegate)
+  constructor(private delegate: StringRendererDelegate, private options: StringRendererOptions, private idSequence: IdSequence, private isTemplate: boolean = false) {
+    super()
   }
 
   private appendToTemplate(next: HTMLTemplate) {
@@ -92,12 +93,13 @@ class StringRenderer extends AbstractViewRenderer {
   element(tag: string, builder?: ElementDefinition): this {
     const elementId = this.idSequence.next
 
+    const rendererDelegate = this.delegate.useDelegate(tag)
     const elementRenderer = this.getElementRenderer(tag)
 
-    const configDelegate = elementRenderer.getConfigDelegate() ?? this.delegate.getConfigDelegate(tag)
+    const configDelegate = elementRenderer.getConfigDelegate() ?? rendererDelegate.getConfigDelegate()
 
     const config = new StringConfig(configDelegate, elementId)
-    const children = new StringRenderer(this.delegate, this.options, this.idSequence)
+    const children = new StringRenderer(rendererDelegate, this.options, this.idSequence)
 
     if (this.isTemplate) {
       config.attribute("data-spheres-template", "")
@@ -209,7 +211,7 @@ class StringRenderer extends AbstractViewRenderer {
   }
 }
 
-function createStringTemplate(delegate: ViewRendererDelegate, options: StringRendererOptions, elementId: string): (view: ViewDefinition, selectorId: number) => HTMLTemplate {
+function createStringTemplate(delegate: StringRendererDelegate, options: StringRendererOptions, elementId: string): (view: ViewDefinition, selectorId: number) => HTMLTemplate {
   return (view, selectorId) => {
     const renderer = new StringRenderer(delegate, options, new IdSequence(`${elementId}.${selectorId}`), true)
     view(renderer as unknown as HTMLBuilder)
@@ -273,14 +275,24 @@ function attributeString(name: string, value: string): string {
   return ` ${name}${valuePart}`
 }
 
-class StringRendererDelegate implements ViewRendererDelegate {
+class StringRendererDelegate {
   private configDelegate = new BooleanAttributesDelegate()
 
-  createElement(): Element {
-    throw new Error("SSR Renderer should not create element");
+  useDelegate(tag: string): StringRendererDelegate {
+    if (tag === "svg") {
+      return new SvgStringRendererDelegate()
+    } else {
+      return this
+    }
   }
 
   getConfigDelegate(): ViewConfigDelegate {
     return this.configDelegate
+  }
+}
+
+class SvgStringRendererDelegate extends StringRendererDelegate {
+  getConfigDelegate(): ViewConfigDelegate {
+    return new SvgConfigDelegate()
   }
 }

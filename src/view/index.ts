@@ -7,9 +7,8 @@ import { EffectLocation } from "./render/effectLocation.js"
 import { HtmlRendererDelegate } from "./render/htmlDelegate.js"
 import { IdSequence } from "./render/idSequence.js"
 import { DOMEventType, RenderResult } from "./render/index.js"
-import { SvgRendererDelegate } from "./render/svgDelegate.js"
 import { DomTemplateRenderer } from "./render/templateRenderer.js"
-import { ConfigurableElement, ViewRenderer } from "./render/viewRenderer.js"
+import { ConfigurableElement } from "./render/viewRenderer.js"
 import { SVGElementAttributes, SVGElements } from "./svgElements.js"
 
 export * from "./htmlElements.js"
@@ -34,9 +33,6 @@ export function renderToDOM(store: Store, element: Element, view: HTMLView): Ren
 
 export function svg(builder?: (el: ConfigurableElement<SVGElementAttributes, SVGElements>) => void): HTMLView {
   return root => {
-    const renderer = root as unknown as ViewRenderer
-    renderer.useDelegate(new SvgRendererDelegate(), () => {
-      root.element("svg", builder as (el: ConfigurableElement<any, any>) => void)
-    })
+    root.element("svg", builder as (el: ConfigurableElement<any, any>) => void)
   }
 }

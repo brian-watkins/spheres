@@ -10,18 +10,19 @@ import { getEventAttribute } from "./eventHelpers.js";
 import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementId } from "./fragmentHelpers.js";
 import { createDOMTemplate, DomTemplateRenderer } from "./templateRenderer.js";
 import { AbstractViewConfig, ViewConfigDelegate } from "./viewConfig.js";
-import { AbstractViewRenderer, ElementDefinition, isStateful, ViewDefinition, ViewRendererDelegate, ViewSelector } from "./viewRenderer.js";
+import { AbstractViewRenderer, ElementDefinition, isStateful, ViewDefinition, ViewSelector } from "./viewRenderer.js";
 import { IdSequence } from "./idSequence.js";
 import { EffectLocation } from "./effectLocation.js";
 import { ListItemTemplateContext } from "./templateContext.js";
 import { activateList, ListEffect } from "./effects/listEffect.js";
 import { SelectorBuilder } from "./selectorBuilder.js";
+import { DomRendererDelegate } from "./domRendererDelegate.js";
 
 export class ActivateDomRenderer extends AbstractViewRenderer {
   private currentNode: Node | null
 
-  constructor(delegate: ViewRendererDelegate, private zone: EventZone, private registry: TokenRegistry, node: Node) {
-    super(delegate)
+  constructor(private delegate: DomRendererDelegate, private zone: EventZone, private registry: TokenRegistry, node: Node) {
+    super()
     this.currentNode = node
   }
 
@@ -37,9 +38,11 @@ export class ActivateDomRenderer extends AbstractViewRenderer {
   }
 
   element(tag: string, builder?: ElementDefinition): this {
+    const rendererDelegate = this.delegate.useDelegate(tag)
+
     builder?.({
-      config: new ActivateDomConfig(this.delegate.getConfigDelegate(tag), this.zone, this.registry, this.currentNode as Element),
-      children: new ActivateDomRenderer(this.delegate, this.zone, this.registry, this.currentNode!.firstChild!)
+      config: new ActivateDomConfig(rendererDelegate.getConfigDelegate(tag), this.zone, this.registry, this.currentNode as Element),
+      children: new ActivateDomRenderer(rendererDelegate, this.zone, this.registry, this.currentNode!.firstChild!)
     })
 
     this.currentNode = this.currentNode!.nextSibling

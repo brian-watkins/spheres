@@ -1,13 +1,17 @@
 import { Stateful } from "../../store/index.js";
 import { svgAttributeNames } from "../elementData.js";
+import { DomRendererDelegate } from "./domRendererDelegate.js";
 import { ViewConfig, ViewConfigDelegate } from "./viewConfig.js";
-import { ViewRendererDelegate } from "./viewRenderer.js";
 
-export class SvgRendererDelegate implements ViewRendererDelegate {
+export class SvgRendererDelegate implements DomRendererDelegate {
   private configDelegate = new SvgConfigDelegate()
 
   createElement(tag: string): Element {
     return document.createElementNS("http://www.w3.org/2000/svg", tag)
+  }
+
+  useDelegate(): DomRendererDelegate {
+    return this
   }
 
   getConfigDelegate(): ViewConfigDelegate {

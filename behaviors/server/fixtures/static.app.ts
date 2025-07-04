@@ -1,5 +1,5 @@
 import { batch, container, State } from "@store/index"
-import { HTMLBuilder, HTMLView } from "@view/index"
+import { HTMLBuilder, HTMLView, svg } from "@view/index"
 
 interface StaticViewProps {
   name: string
@@ -179,5 +179,34 @@ export function appWithReactiveClass(root: HTMLBuilder) {
       .class((get) => `bg-red-${get(ageState)}`)
     el.children
       .textNode("Look at this!")
+  })
+}
+
+export function simpleSVGView(root: HTMLBuilder) {
+  root.main(el => {
+    el.children
+      .h1(el => el.children.textNode("Circles!"))
+      .subview(svg(el => {
+        el.config
+          .width("300")
+          .height("200")
+          .class("some-fun-drawing")
+
+        el.children
+          .rect(({ config }) => [
+            config
+              .width("100%")
+              .height("100%")
+              .fill("red")
+          ])
+          .circle(({ config }) => {
+            config
+              .cx("150")
+              .cy("100")
+              .r("80")
+              .fill("green")
+              .fillOpacity("0.7")
+          })
+      }))
   })
 }

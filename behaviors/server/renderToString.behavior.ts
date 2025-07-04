@@ -1,6 +1,6 @@
 import { behavior, effect, example, Example } from "best-behavior";
 import { equalTo, expect, is } from "great-expectations";
-import { appWithZone, appWithDataAttributesNoValue, appWithDeeplyNestedState, appWithInnerHTML, appWithNestedState, appWithPropertiesAndAttributes, appWithReactiveAttributes, appWithReactiveClass, appWithReactiveText, appWithSimpleState, appWithZones, staticApp, appWithViewSelector, appWithEvents } from "./fixtures/static.app.js";
+import { appWithZone, appWithDataAttributesNoValue, appWithDeeplyNestedState, appWithInnerHTML, appWithNestedState, appWithPropertiesAndAttributes, appWithReactiveAttributes, appWithReactiveClass, appWithReactiveText, appWithSimpleState, appWithZones, staticApp, appWithViewSelector, appWithEvents, simpleSVGView } from "./fixtures/static.app.js";
 import { container, createStore } from "@store/index.js";
 import { HTMLView } from "@view/index.js";
 import { createStringRenderer } from "@server/index.js";
@@ -139,7 +139,14 @@ export default behavior("Render view to HTML string", [
       root.div(el => el.children.textNode(get => get(text)))
     })
     expect(actual, is("<div>&#x200b;</div>"))
+  }),
+
+  renderTest("rendering svg", (renderer) => {
+    expect(renderer.renderView(simpleSVGView), is(
+      `<main><h1>Circles!</h1><svg width="300" height="200" class="some-fun-drawing"><rect width="100%" height="100%" fill="red"></rect><circle cx="150" cy="100" r="80" fill="green" fill-opacity="0.7"></circle></svg></main>`
+    ))
   })
+
 ])
 
 class TestRenderer {

@@ -1,5 +1,5 @@
 import { container, Container, State } from "@store/index.js";
-import { HTMLView, svg, SVGBuilder } from "@view/index";
+import { HTMLView, svg, SVGBuilder, SVGView } from "@view/index";
 import { behavior, effect, example, fact, step } from "best-behavior";
 import { expect, resolvesTo } from "great-expectations";
 import { selectElement, selectElements } from "./helpers/displayElement";
@@ -287,6 +287,97 @@ export default behavior("ssr", [
       observe: [
         effect("the text is updated", async () => {
           await expect(selectElement("TEXT").text(), resolvesTo("Wow!"))
+        })
+      ]
+    }),
+
+  example(renderContext<ListContext>())
+    .description("activating ssr svg list")
+    .script({
+      suppose: [
+        fact("there is some state", (context) => {
+          context.setState({
+            options: container({ initialValue: ["a", "b", "c"] }),
+            message: container({ initialValue: "Nice!" })
+          })
+        }),
+        fact("a view with svg list is activated", (context) => {
+          function circle(option: State<string>, index: State<number>): SVGView {
+            return root =>
+              root.g(el => {
+                el.children.
+                  circle(el => {
+                    el.config
+                      .cx(get => `${get(index) * 150 + 150}`)
+                      .cy("100")
+                      .r("80")
+                      .fill("green")
+                      .fillOpacity("0.7")
+                  })
+                  .text(({ config, children }) => {
+                    config
+                      .x(get => `${get(index) * 150 + 150}`)
+                      .y("125")
+                      .fontSize("60")
+                      .fontWeight("bold")
+                      .textAnchor("middle")
+                      .fill("white")
+                    children
+                      .textNode(get => get(option))
+                  })
+              })
+          }
+
+          context.ssrAndActivate(root => {
+            root.main(el => {
+              el.children
+                .subview(svg(({ config, children }) => {
+                  config
+                    .width("900")
+                    .height("200")
+                    .class("some-fun-drawing")
+
+                  children
+                    .rect(({ config }) => [
+                      config
+                        .width("100%")
+                        .height("100%")
+                        .fill("red")
+                    ])
+                    .subviews(get => get(context.state.options), circle)
+                }))
+            })
+          })
+        })
+      ],
+      observe: [
+        effect("the svg attributes are rendered", async () => {
+          await expect(selectElements("TEXT").map(el => el.attribute("font-weight")), resolvesTo([
+            "bold", "bold", "bold"
+          ]))
+        }),
+        effect("the text is rendered", async () => {
+          await expect(selectElements("TEXT").map(el => el.text()), resolvesTo([
+            "a", "b", "c"
+          ]))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the state is updated", (context) => {
+          context.writeTo(context.state.options, [ "a", "c", "d", "b", "e" ])
+        })
+      ],
+      observe: [
+        effect("the svg attributes are rendered", async () => {
+          await expect(selectElements("TEXT").map(el => el.attribute("font-weight")), resolvesTo([
+            "bold", "bold", "bold", "bold", "bold"
+          ]))
+        }),
+        effect("the text is rendered", async () => {
+          await expect(selectElements("TEXT").map(el => el.text()), resolvesTo([
+            "a", "c", "d", "b", "e"
+          ]))
         })
       ]
     })

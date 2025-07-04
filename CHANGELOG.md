@@ -1,5 +1,11 @@
 # spheres
 
+## 0.23.2
+
+### Patch Changes
+
+- dcc5fd3: SSR Store data is included in initial html when using built assets
+
 ## 0.23.1
 
 ### Patch Changes

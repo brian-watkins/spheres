@@ -30,6 +30,12 @@ svgElementsFile.addImportDeclarations([
       "SpecialElementAttributes"
     ],
     moduleSpecifier: "./specialAttributes.js"
+  },
+  {
+    namedImports: [
+      "ElementSupport"
+    ],
+    moduleSpecifier: "./elementSupport.js"
   }
 ])
 
@@ -113,7 +119,8 @@ specialSVGElementsInterface.addMethod({
   name: "element",
   parameters: [
     { name: "tag", type: "string" },
-    { name: "builder", type: "(element: ConfigurableElement<SpecialElementAttributes & GlobalSVGAttributes, SVGElements>) => void", hasQuestionToken: true }
+    { name: "builder", type: "(element: ConfigurableElement<SpecialElementAttributes & GlobalSVGAttributes, SVGElements>) => void", hasQuestionToken: true },
+    { name: "support", type: "ElementSupport", hasQuestionToken: true }
   ],
   returnType: "this"
 })

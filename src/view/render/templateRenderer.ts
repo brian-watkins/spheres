@@ -5,11 +5,11 @@ import { setEventAttribute } from "./eventHelpers.js";
 import { createFragment, listEndIndicator, listStartIndicator, switchEndIndicator, switchStartIndicator } from "./fragmentHelpers.js";
 import { IdSequence } from "./idSequence.js";
 import { ListItemTemplateContext } from "./templateContext.js";
-import { AbstractViewConfig, ViewConfigDelegate } from "./viewConfig.js";
+import { AbstractViewConfig } from "./viewConfig.js";
 import { AbstractViewRenderer, ElementDefinition, isStateful, ViewDefinition, ViewSelector } from "./viewRenderer.js";
 import { DOMTemplate, EffectTemplate, EffectTemplateTypes, TemplateType } from "./domTemplate.js";
 import { SelectorBuilder } from "./selectorBuilder.js";
-import { DomRendererDelegate } from "./domRendererDelegate.js";
+import { ElementConfigSupport, ElementSupport } from "../elementSupport.js";
 
 export class DomTemplateRenderer extends AbstractViewRenderer {
   public effectTemplates: Array<EffectTemplate> = []
@@ -17,7 +17,7 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
   private templateElement: HTMLTemplateElement | undefined
   private root: Node
 
-  constructor(private delegate: DomRendererDelegate, private zone: EventZone, private idSequence: IdSequence, private location: EffectLocation, root?: Node, private eventType: DOMEventType = DOMEventType.Template) {
+  constructor(private elementSupport: ElementSupport, private zone: EventZone, private idSequence: IdSequence, private location: EffectLocation, root?: Node, private eventType: DOMEventType = DOMEventType.Template) {
     super()
     if (root === undefined) {
       this.templateElement = document.createElement("template")
@@ -55,10 +55,10 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
     return this
   }
 
-  element(tag: string, builder?: ElementDefinition): this {
-    const rendererDelegate = this.delegate.useDelegate(tag)
+  element(tag: string, builder?: ElementDefinition, support?: ElementSupport): this {
+    const renderSupport = support ?? this.elementSupport
 
-    const element = rendererDelegate.createElement(tag)
+    const element = renderSupport.createElement(tag)
 
     const elementId = this.idSequence.next
 
@@ -66,13 +66,13 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
       this.location = this.root.hasChildNodes() ? this.location.nextSibling() : this.location.firstChild()
     }
 
-    const config = new DomTemplateConfig(rendererDelegate.getConfigDelegate(tag), this.zone, elementId, element, this.location, this.eventType)
+    const config = new DomTemplateConfig(renderSupport.getConfigSupport(tag), this.zone, elementId, element, this.location, this.eventType)
 
     if (this.templateElement !== undefined) {
       config.attribute("data-spheres-template", "")
     }
 
-    const children = new DomTemplateRenderer(rendererDelegate, this.zone, this.idSequence, this.location, element, this.eventType)
+    const children = new DomTemplateRenderer(renderSupport, this.zone, this.idSequence, this.location, element, this.eventType)
 
     builder?.({
       config: config,
@@ -92,7 +92,7 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
     const elementId = this.idSequence.next
     const fragment = createFragment(listStartIndicator(elementId), listEndIndicator(elementId))
 
-    const renderer = new DomTemplateRenderer(this.delegate, this.zone, new IdSequence(elementId), new EffectLocation(root => root))
+    const renderer = new DomTemplateRenderer(this.elementSupport, this.zone, new IdSequence(elementId), new EffectLocation(root => root))
     const templateContext = new ListItemTemplateContext(renderer, viewGenerator)
 
     if (this.root.nodeType === 1) {
@@ -127,7 +127,7 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
 
     this.root.appendChild(fragment)
 
-    const selectorBuilder = new SelectorBuilder(createDOMTemplate(this.delegate, this.zone, elementId))
+    const selectorBuilder = new SelectorBuilder(createDOMTemplate(this.elementSupport, this.zone, elementId))
     selectorGenerator(selectorBuilder)
 
     this.effectTemplates.push({
@@ -146,8 +146,8 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
 class DomTemplateConfig extends AbstractViewConfig {
   readonly effectTemplates: Array<EffectTemplate> = []
 
-  constructor(delegate: ViewConfigDelegate, private zone: EventZone, private elementId: string, private element: Element, private location: EffectLocation, private eventType: DOMEvent["type"]) {
-    super(delegate)
+  constructor(support: ElementConfigSupport, private zone: EventZone, private elementId: string, private element: Element, private location: EffectLocation, private eventType: DOMEvent["type"]) {
+    super(support)
   }
 
   attribute(name: string, value: string | Stateful<string>): this {
@@ -196,9 +196,9 @@ class DomTemplateConfig extends AbstractViewConfig {
   }
 }
 
-export function createDOMTemplate(delegate: DomRendererDelegate, zone: EventZone, elementId: string): (view: ViewDefinition, selectorId: number) => DOMTemplate {
+export function createDOMTemplate(elementSupport: ElementSupport, zone: EventZone, elementId: string): (view: ViewDefinition, selectorId: number) => DOMTemplate {
   return (view, selectorId) => {
-    const renderer = new DomTemplateRenderer(delegate, zone, new IdSequence(`${elementId}.${selectorId}`), new EffectLocation(root => root))
+    const renderer = new DomTemplateRenderer(elementSupport, zone, new IdSequence(`${elementId}.${selectorId}`), new EffectLocation(root => root))
     view(renderer)
     return renderer.template
   }

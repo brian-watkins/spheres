@@ -1,6 +1,7 @@
 import { ConfigurableElement } from "./render/viewRenderer.js";
 import { GetState, State, Stateful } from "../store/index.js";
 import { SpecialElementAttributes } from "./specialAttributes.js";
+import { ElementSupport } from "./elementSupport.js";
 
 export type HTMLView = (root: HTMLBuilder) => void;
 
@@ -20,7 +21,7 @@ export interface HTMLViewSelector {
 }
 
 export interface SpecialHTMLElements {
-    element(tag: string, builder?: (element: ConfigurableElement<SpecialElementAttributes & GlobalHTMLAttributes, HTMLElements>) => void): this;
+    element(tag: string, builder?: (element: ConfigurableElement<SpecialElementAttributes & GlobalHTMLAttributes, HTMLElements>) => void, support?: ElementSupport): this;
     textNode(value: string | Stateful<string>): this;
     subview(value: HTMLView): this;
     subviewFrom(selectorGenerator: (selector: HTMLViewSelector) => void): this;

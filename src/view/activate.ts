@@ -1,9 +1,9 @@
 import { Container, Meta, Store } from "../store/index.js"
 import { createStore, getTokenRegistry, InitializerActions } from "../store/store.js"
 import { HTMLBuilder, HTMLView } from "./htmlElements.js"
+import { HTMLElementSupport } from "./htmlElementSupport.js"
 import { ActivateDomRenderer } from "./render/activateDomRenderer.js"
 import { cleanRoot, DOMRoot } from "./render/domRoot.js"
-import { HtmlRendererDelegate } from "./render/htmlDelegate.js"
 import { RenderResult } from "./render/index.js"
 
 export enum SerializedStateType {
@@ -31,7 +31,7 @@ export function activateView(store: Store, element: Element, view: HTMLView): Re
 
   const root = new DOMRoot(registry, element)
   cleanRoot(root)
-  const renderer = new ActivateDomRenderer(new HtmlRendererDelegate(), root, registry, element.firstChild!)
+  const renderer = new ActivateDomRenderer(new HTMLElementSupport(), root, registry, element.firstChild!)
   view(renderer as unknown as HTMLBuilder)
 
   return root

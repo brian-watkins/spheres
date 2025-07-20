@@ -10,9 +10,8 @@ import { IdSequence } from "../../view/render/idSequence.js";
 import { ViteContext } from "./viteContext.js";
 import { AbstractViewRenderer, ElementDefinition, isStateful, ViewDefinition, ViewSelector } from "../../view/render/viewRenderer.js";
 import { ListItemTemplateContext } from "../../view/render/templateContext.js";
-import { AbstractViewConfig, ViewConfigDelegate } from "../../view/render/viewConfig.js";
+import { AbstractViewConfig } from "../../view/render/viewConfig.js";
 import { SelectorBuilder } from "../../view/render/selectorBuilder.js";
-import { BooleanAttributesDelegate } from "../../view/render/htmlDelegate.js";
 import { addTemplate, emptyTemplate, HTMLTemplate, stringForTemplate, templateFromStateful, templateFromString, toStatefulString } from "./template.js";
 import { HeadElementRenderer } from "./elementRenderers/headElementRenderer.js";
 import { HtmlElementRenderer } from "./elementRenderers/htmlElementRenderer.js";
@@ -21,7 +20,7 @@ import { BaseElementRenderer, ElementRenderer } from "./elementRenderers/element
 import { ScriptElementRenderer } from "./elementRenderers/scriptElementRenderer.js";
 import { getActivationTemplate, storeIdToken } from "./elementRenderers/activationElements.js";
 import { LinkElementRenderer } from "./elementRenderers/linkElementRenderer.js";
-import { SvgConfigDelegate } from "../../view/render/svgDelegate.js";
+import { BasicElementConfigSupport, ElementConfigSupport, ElementSupport } from "../../view/elementSupport.js";
 
 export interface StringRendererOptions {
   stateMap?: Record<string, Container<any>>
@@ -30,7 +29,7 @@ export interface StringRendererOptions {
 }
 
 export function buildStringRenderer(view: HTMLView, options: StringRendererOptions): (store: Store) => string {
-  const renderer = new StringRenderer(new StringRendererDelegate(), options, new IdSequence())
+  const renderer = new StringRenderer(new HTMLMarkupSupport(), options, new IdSequence())
   renderer.subview(view)
 
   const template = renderer.hasBodyElement ?
@@ -50,7 +49,7 @@ class StringRenderer extends AbstractViewRenderer {
 
   template: HTMLTemplate = emptyTemplate()
 
-  constructor(private delegate: StringRendererDelegate, private options: StringRendererOptions, private idSequence: IdSequence, private isTemplate: boolean = false) {
+  constructor(private elementSupport: ElementSupport, private options: StringRendererOptions, private idSequence: IdSequence, private isTemplate: boolean = false) {
     super()
   }
 
@@ -90,15 +89,15 @@ class StringRenderer extends AbstractViewRenderer {
     }
   }
 
-  element(tag: string, builder?: ElementDefinition): this {
+  element(tag: string, builder?: ElementDefinition, support?: ElementSupport): this {
     const elementId = this.idSequence.next
 
-    const rendererDelegate = this.delegate.useDelegate(tag)
+    const rendererDelegate = support ?? this.elementSupport
     const elementRenderer = this.getElementRenderer(tag)
 
-    const configDelegate = elementRenderer.getConfigDelegate() ?? rendererDelegate.getConfigDelegate()
+    const configSupport = elementRenderer.getConfigSupport() ?? rendererDelegate.getConfigSupport(tag)
 
-    const config = new StringConfig(configDelegate, elementId)
+    const config = new StringConfig(configSupport, elementId)
     const children = new StringRenderer(rendererDelegate, this.options, this.idSequence)
 
     if (this.isTemplate) {
@@ -149,7 +148,7 @@ class StringRenderer extends AbstractViewRenderer {
   subviews<T>(data: (get: GetState) => T[], viewGenerator: (item: State<T>, index?: State<number>) => ViewDefinition): this {
     const elementId = this.idSequence.next
 
-    const renderer = new StringRenderer(this.delegate, this.options, new IdSequence(elementId), true)
+    const renderer = new StringRenderer(this.elementSupport, this.options, new IdSequence(elementId), true)
     const templateContext = new ListItemTemplateContext(renderer, viewGenerator)
 
     this.appendToTemplate({
@@ -175,7 +174,7 @@ class StringRenderer extends AbstractViewRenderer {
 
   subviewFrom(selectorGenerator: (selector: ViewSelector) => void): this {
     const elementId = this.idSequence.next
-    const templateSelectorBuilder = new SelectorBuilder(createStringTemplate(this.delegate, this.options, elementId))
+    const templateSelectorBuilder = new SelectorBuilder(createStringTemplate(this.elementSupport, this.options, elementId))
     selectorGenerator(templateSelectorBuilder)
     const selectors = templateSelectorBuilder.selectors
 
@@ -211,9 +210,9 @@ class StringRenderer extends AbstractViewRenderer {
   }
 }
 
-function createStringTemplate(delegate: StringRendererDelegate, options: StringRendererOptions, elementId: string): (view: ViewDefinition, selectorId: number) => HTMLTemplate {
+function createStringTemplate(elementSupport: ElementSupport, options: StringRendererOptions, elementId: string): (view: ViewDefinition, selectorId: number) => HTMLTemplate {
   return (view, selectorId) => {
-    const renderer = new StringRenderer(delegate, options, new IdSequence(`${elementId}.${selectorId}`), true)
+    const renderer = new StringRenderer(elementSupport, options, new IdSequence(`${elementId}.${selectorId}`), true)
     view(renderer as unknown as HTMLBuilder)
     return renderer.template
   }
@@ -227,8 +226,8 @@ class StringConfig extends AbstractViewConfig {
 
   innerHTMLContent: string | Stateful<string> | undefined = undefined
 
-  constructor(delegate: ViewConfigDelegate, private elementId: string) {
-    super(delegate)
+  constructor(configSupport: ElementConfigSupport, private elementId: string) {
+    super(configSupport)
   }
 
   private appendToTemplate(next: HTMLTemplate) {
@@ -275,24 +274,15 @@ function attributeString(name: string, value: string): string {
   return ` ${name}${valuePart}`
 }
 
-class StringRendererDelegate {
-  private configDelegate = new BooleanAttributesDelegate()
+class HTMLMarkupSupport implements ElementSupport {
+  rootTag: string = "html"
+  private configSupport = new BasicElementConfigSupport()
 
-  useDelegate(tag: string): StringRendererDelegate {
-    if (tag === "svg") {
-      return new SvgStringRendererDelegate()
-    } else {
-      return this
-    }
+  createElement(_: string): Element {
+    throw new Error("Creating elements not supported during SSR.");
   }
-
-  getConfigDelegate(): ViewConfigDelegate {
-    return this.configDelegate
-  }
-}
-
-class SvgStringRendererDelegate extends StringRendererDelegate {
-  getConfigDelegate(): ViewConfigDelegate {
-    return new SvgConfigDelegate()
+  
+  getConfigSupport(): ElementConfigSupport {
+    return this.configSupport
   }
 }

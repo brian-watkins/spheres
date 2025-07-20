@@ -1,27 +1,26 @@
 import { Stateful } from "../../../store/index.js";
 import { runQuery } from "../../../store/tokenRegistry.js";
-import { BooleanAttributesDelegate } from "../../../view/render/htmlDelegate.js";
-import { ViewConfig, ViewConfigDelegate } from "../../../view/render/viewConfig.js";
+import { BasicElementConfigSupport, ElementConfig, ElementConfigSupport } from "../../../view/elementSupport.js";
 import { addTemplate, emptyTemplate, HTMLTemplate, stringForTemplate, templateFromStateful } from "../template.js";
 import { getExtraResources, getTransformedResource, shouldTransformImport, ViteContext } from "../viteContext.js";
 import { templateForResource } from "./activationElements.js";
 import { BaseElementRenderer } from "./elementRenderer.js";
 
 export class ScriptElementRenderer extends BaseElementRenderer {
-  private configDelegate: ScriptConfigDelegate
+  private configSupport: ScriptConfigSupport
 
   constructor(private viteContext: ViteContext | undefined) {
     super()
-    this.configDelegate = new ScriptConfigDelegate(viteContext)
+    this.configSupport = new ScriptConfigSupport(viteContext, new BasicElementConfigSupport())
   }
 
-  getConfigDelegate(): ViewConfigDelegate | undefined {
-    return this.configDelegate
+  getConfigSupport(): ElementConfigSupport | undefined {
+    return this.configSupport
   }
 
   postTagTemplate(): HTMLTemplate {
-    if (this.configDelegate.scriptSrc !== undefined && shouldTransformImport(this.viteContext)) {
-      const scriptSrc = this.configDelegate.scriptSrc
+    if (this.configSupport.scriptSrc !== undefined && shouldTransformImport(this.viteContext)) {
+      const scriptSrc = this.configSupport.scriptSrc
       if (typeof scriptSrc === "function") {
         return templateFromStateful((registry) => {
           const src = runQuery(registry, scriptSrc) ?? ""
@@ -46,28 +45,27 @@ export class ScriptElementRenderer extends BaseElementRenderer {
   }
 }
 
-class ScriptConfigDelegate extends BooleanAttributesDelegate {
+class ScriptConfigSupport implements ElementConfigSupport {
   scriptSrc: string | Stateful<string> | undefined = undefined
 
-  constructor(private viteContext: ViteContext | undefined) {
-    super()
-  }
+  constructor(private viteContext: ViteContext | undefined, private next: ElementConfigSupport) { }
 
-  defineAttribute(config: ViewConfig, name: string, value: string | Stateful<string>): ViewConfig {
+  configure(config: ElementConfig, name: string, args: Array<any>): void {
     if (name === "src" && shouldTransformImport(this.viteContext)) {
+      const value = args[0]
       this.scriptSrc = value
       if (typeof value === "function") {
-        return config.attribute(name, (get) => {
+        config.attribute(name, (get) => {
           const src = value(get) ?? ""
           const transformedResource = getTransformedResource(this.viteContext!, "script", src)
           return transformedResource.src
         })
       } else {
         const transformedResource = getTransformedResource(this.viteContext, "script", value)
-        return config.attribute(name, transformedResource.src)
+        config.attribute(name, transformedResource.src)
       }
+    } else {
+      this.next.configure(config, name, args)
     }
-
-    return super.defineAttribute(config, name, value)
   }
 }

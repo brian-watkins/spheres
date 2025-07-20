@@ -1,4 +1,5 @@
 import { GetState, State, Stateful } from "../../store/index.js"
+import { ElementSupport } from "../elementSupport.js"
 import { SpecialElementAttributes } from "../specialAttributes.js"
 
 export interface ConfigurableElement<A extends SpecialElementAttributes, B> {
@@ -27,7 +28,7 @@ export interface ViewSelector {
 
 export interface ViewRenderer {
   textNode(value: string | Stateful<string>): this
-  element(tag: string, builder?: ElementDefinition): this
+  element(tag: string, builder?: ElementDefinition, support?: ElementSupport): this
   subview(view: ViewDefinition): this
   subviews<T>(
     data: (get: GetState) => Array<T>,
@@ -42,7 +43,7 @@ export function isStateful<T>(value: T | Stateful<T>): value is Stateful<T> {
 
 abstract class BaseViewRenderer implements ViewRenderer {
   abstract textNode(value: string | Stateful<string>): this
-  abstract element(tag: string, builder?: ElementDefinition): this
+  abstract element(tag: string, builder?: ElementDefinition, support?: ElementSupport): this
   abstract subviews<T>(data: (get: GetState) => T[], viewGenerator: (item: State<T>, index?: State<number>) => ViewDefinition): this
   abstract subviewFrom(selectorGenerator: (selector: ViewSelector) => void): this
 

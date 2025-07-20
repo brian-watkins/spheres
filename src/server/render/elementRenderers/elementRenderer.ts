@@ -1,8 +1,8 @@
-import { ViewConfigDelegate } from "../../../view/render/viewConfig.js"
+import { ElementConfigSupport } from "../../../view/elementSupport.js"
 import { emptyTemplate, HTMLTemplate } from "../template.js"
 
 export interface ElementRenderer {
-  getConfigDelegate(): ViewConfigDelegate | undefined
+  getConfigSupport(): ElementConfigSupport | undefined
   preTagTemplate(): HTMLTemplate
   preChildrenTemplate(): HTMLTemplate
   postChildrenTemplate(): HTMLTemplate
@@ -10,7 +10,7 @@ export interface ElementRenderer {
 }
 
 export class BaseElementRenderer implements ElementRenderer {
-  getConfigDelegate(): ViewConfigDelegate | undefined {
+  getConfigSupport(): ElementConfigSupport | undefined {
     return undefined
   }
 

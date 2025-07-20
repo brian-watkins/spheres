@@ -9,19 +9,19 @@ import { UpdateTextEffect } from "./effects/textEffect.js";
 import { getEventAttribute } from "./eventHelpers.js";
 import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementId } from "./fragmentHelpers.js";
 import { createDOMTemplate, DomTemplateRenderer } from "./templateRenderer.js";
-import { AbstractViewConfig, ViewConfigDelegate } from "./viewConfig.js";
+import { AbstractViewConfig } from "./viewConfig.js";
 import { AbstractViewRenderer, ElementDefinition, isStateful, ViewDefinition, ViewSelector } from "./viewRenderer.js";
 import { IdSequence } from "./idSequence.js";
 import { EffectLocation } from "./effectLocation.js";
 import { ListItemTemplateContext } from "./templateContext.js";
 import { activateList, ListEffect } from "./effects/listEffect.js";
 import { SelectorBuilder } from "./selectorBuilder.js";
-import { DomRendererDelegate } from "./domRendererDelegate.js";
+import { ElementConfigSupport, ElementSupport } from "../elementSupport.js";
 
 export class ActivateDomRenderer extends AbstractViewRenderer {
   private currentNode: Node | null
 
-  constructor(private delegate: DomRendererDelegate, private zone: EventZone, private registry: TokenRegistry, node: Node) {
+  constructor(private elementSupport: ElementSupport, private zone: EventZone, private registry: TokenRegistry, node: Node) {
     super()
     this.currentNode = node
   }
@@ -37,12 +37,12 @@ export class ActivateDomRenderer extends AbstractViewRenderer {
     return this
   }
 
-  element(tag: string, builder?: ElementDefinition): this {
-    const rendererDelegate = this.delegate.useDelegate(tag)
+  element(tag: string, builder?: ElementDefinition, support?: ElementSupport): this {
+    const renderSupport = support ?? this.elementSupport
 
     builder?.({
-      config: new ActivateDomConfig(rendererDelegate.getConfigDelegate(tag), this.zone, this.registry, this.currentNode as Element),
-      children: new ActivateDomRenderer(rendererDelegate, this.zone, this.registry, this.currentNode!.firstChild!)
+      config: new ActivateDomConfig(renderSupport.getConfigSupport(tag), this.zone, this.registry, this.currentNode as Element),
+      children: new ActivateDomRenderer(renderSupport, this.zone, this.registry, this.currentNode!.firstChild!)
     })
 
     this.currentNode = this.currentNode!.nextSibling
@@ -54,7 +54,7 @@ export class ActivateDomRenderer extends AbstractViewRenderer {
     const elementId = getListElementId(this.currentNode!)
     let end = findListEndNode(this.currentNode!, elementId)
 
-    const renderer = new DomTemplateRenderer(this.delegate, this.zone, new IdSequence(elementId), new EffectLocation(root => root))
+    const renderer = new DomTemplateRenderer(this.elementSupport, this.zone, new IdSequence(elementId), new EffectLocation(root => root))
     const templateContext = new ListItemTemplateContext(renderer, viewGenerator)
 
     const effect = new ListEffect(this.registry, renderer.template, query, templateContext, this.currentNode!, end)
@@ -71,7 +71,7 @@ export class ActivateDomRenderer extends AbstractViewRenderer {
     const elementId = getSwitchElementId(this.currentNode!)
     let end = findSwitchEndNode(this.currentNode!, elementId)
 
-    const selectorBuilder = new SelectorBuilder(createDOMTemplate(this.delegate, this.zone, elementId))
+    const selectorBuilder = new SelectorBuilder(createDOMTemplate(this.elementSupport, this.zone, elementId))
     selectorGenerator(selectorBuilder)
 
     const effect = new SelectViewEffect(this.registry, selectorBuilder.selectors, this.currentNode!, end)
@@ -84,8 +84,8 @@ export class ActivateDomRenderer extends AbstractViewRenderer {
 }
 
 class ActivateDomConfig extends AbstractViewConfig {
-  constructor(delegate: ViewConfigDelegate, private zone: EventZone, private registry: TokenRegistry, private element: Element) {
-    super(delegate)
+  constructor(configSupport: ElementConfigSupport, private zone: EventZone, private registry: TokenRegistry, private element: Element) {
+    super(configSupport)
   }
 
   attribute(name: string, value: string | Stateful<string>): this {

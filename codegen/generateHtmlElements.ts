@@ -32,6 +32,12 @@ htmlElementsFile.addImportDeclarations([
       "SpecialElementAttributes"
     ],
     moduleSpecifier: "./specialAttributes.js"
+  },
+  {
+    namedImports: [
+      "ElementSupport"
+    ],
+    moduleSpecifier: "./elementSupport.js"
   }
 ])
 
@@ -43,13 +49,13 @@ htmlElementsFile.addTypeAlias({
 
 const caseSelectorInterface = htmlElementsFile.addInterface({
   name: "HTMLCaseSelector",
-  typeParameters: [ "T" ],
+  typeParameters: ["T"],
   isExported: true
 })
 
 caseSelectorInterface.addMethod({
   name: "when",
-  typeParameters: [ "X extends T" ],
+  typeParameters: ["X extends T"],
   parameters: [
     { name: "typePredicate", type: "(val: T) => val is X" },
     { name: "generator", type: "(state: State<X>) => HTMLView" }
@@ -95,7 +101,7 @@ const viewSelectorInterface = htmlElementsFile.addInterface({
 
 viewSelectorInterface.addMethod({
   name: "withUnion",
-  typeParameters: [ "T" ],
+  typeParameters: ["T"],
   parameters: [
     { name: "state", type: "State<T>" }
   ],
@@ -116,7 +122,8 @@ specialHtmlElementsInterface.addMethod({
   name: "element",
   parameters: [
     { name: "tag", type: "string" },
-    { name: "builder", type: "(element: ConfigurableElement<SpecialElementAttributes & GlobalHTMLAttributes, HTMLElements>) => void", hasQuestionToken: true }
+    { name: "builder", type: "(element: ConfigurableElement<SpecialElementAttributes & GlobalHTMLAttributes, HTMLElements>) => void", hasQuestionToken: true },
+    { name: "support", type: "ElementSupport", hasQuestionToken: true }
   ],
   returnType: "this"
 })

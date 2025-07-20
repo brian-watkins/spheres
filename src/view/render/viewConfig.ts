@@ -1,39 +1,18 @@
 import { StoreEventHandler } from "./index.js"
 import { Stateful } from "../../store/index.js"
-import { AriaAttribute } from "../elementData.js"
+import { ElementConfigSupport } from "../elementSupport.js"
 
 export interface ViewConfig {
-  dataAttribute(name: string, value: string | Stateful<string>): this
-  innerHTML(html: string | Stateful<string>): this
-  aria(name: AriaAttribute, value: string | Stateful<string>): this
   attribute(name: string, value: string | Stateful<string>): this
   property<T extends string | boolean>(name: string, value: T | Stateful<T>): this
   on<E extends keyof HTMLElementEventMap | string>(event: E, handler: StoreEventHandler<any>): this
 }
 
-export interface ViewConfigDelegate {
-  defineAttribute(config: ViewConfig, name: string, value: string | boolean | Stateful<string | boolean>): ViewConfig
-}
-
 abstract class BaseViewConfig implements ViewConfig {
-  constructor(protected delegate: ViewConfigDelegate) { }
-
-  dataAttribute(name: string, value: string | Stateful<string> = "true"): this {
-    return this.attribute(`data-${name}`, value)
-  }
-
-  innerHTML(html: string | Stateful<string>): this {
-    return this.property("innerHTML", html)
-  }
-
-  aria(name: AriaAttribute, value: string | Stateful<string>): this {
-    return this.attribute(`aria-${name}`, value)
-  }
+  constructor(protected configSupport: ElementConfigSupport) { }
 
   abstract attribute(name: string, value: string | Stateful<string>): this
-
   abstract property<T extends string | boolean>(name: string, value: T | Stateful<T>): this
-
   abstract on<E extends keyof HTMLElementEventMap | string>(event: E, handler: StoreEventHandler<any>): this
 }
 
@@ -46,8 +25,8 @@ export const AbstractViewConfig = new Proxy(BaseViewConfig, {
           return Reflect.get(target, prop, receiver)
         }
         else {
-          return function (value: string | Stateful<string>) {
-            target.delegate.defineAttribute(target, prop, value)
+          return function (...args: Array<any>) {
+            target.configSupport.configure(target, prop, args)
             return receiver
           }
         }

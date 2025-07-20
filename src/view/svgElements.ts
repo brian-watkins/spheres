@@ -1,6 +1,7 @@
 import { ConfigurableElement } from "./render/viewRenderer.js";
 import { GetState, State, Stateful } from "../store/index.js";
 import { SpecialElementAttributes } from "./specialAttributes.js";
+import { ElementSupport } from "./elementSupport.js";
 
 export type SVGView = (root: SVGBuilder) => void;
 
@@ -20,7 +21,7 @@ export interface SVGViewSelector {
 }
 
 export interface SpecialSVGElements {
-    element(tag: string, builder?: (element: ConfigurableElement<SpecialElementAttributes & GlobalSVGAttributes, SVGElements>) => void): this;
+    element(tag: string, builder?: (element: ConfigurableElement<SpecialElementAttributes & GlobalSVGAttributes, SVGElements>) => void, support?: ElementSupport): this;
     textNode(value: string | Stateful<string>): this;
     subview(value: SVGView): this;
     subviewFrom(selectorGenerator: (selector: SVGViewSelector) => void): this;

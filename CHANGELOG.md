@@ -1,5 +1,11 @@
 # spheres
 
+## 0.24.0
+
+### Minor Changes
+
+- 4e2712e: Better support for special markup, like SVG
+
 ## 0.23.3
 
 ### Patch Changes

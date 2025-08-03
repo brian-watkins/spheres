@@ -5,7 +5,7 @@ import { StateListener, StateListenerType, StateListenerVersion, TokenRegistry }
 import { dispatchMessage } from "../../../store/message.js"
 import { ListItemOverlayTokenRegistry, ListItemTemplateContext } from "../templateContext.js"
 
-export interface VirtualItem {
+interface VirtualItem {
   key: any
   index: number
   isDetached: boolean

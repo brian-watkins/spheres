@@ -80,6 +80,22 @@ export default behavior("reorder list", [
     }),
 
   example(renderContext<ListExamplesState>())
+    .description("move so the end is earlier and the list truncated")
+    .script({
+      suppose: renderAppBasedOnState(["one", "two", "three", "four", "five"]),
+      perform: [
+        updateState("the list is reordered", [
+          "five", "two", "three"
+        ])
+      ],
+      observe: [
+        childElementText("the elements are in the expected order", [
+          "five (0)", "two (1)", "three (2)"
+        ])
+      ]
+    }),
+
+  example(renderContext<ListExamplesState>())
     .description("move last toward the front after activating ssr")
     .script({
       suppose: ssrAndActivateBasedOnState(["one", "two", "three", "four", "five"]),
@@ -119,6 +135,17 @@ export default behavior("reorder list", [
       observe: [
         childElementText("the elements are in their original order", [
           "one (0)", "two (1)", "three (2)", "four (3)", "five (4)", "six (5)", "seven (6)"
+        ])
+      ]
+    }).andThen({
+      perform: [
+        updateState("swap the elements again", [
+          "one", "six", "three", "four", "five", "two", "seven"
+        ])
+      ],
+      observe: [
+        childElementText("the elements are swapped", [
+          "one (0)", "six (1)", "three (2)", "four (3)", "five (4)", "two (5)", "seven (6)"
         ])
       ]
     }),

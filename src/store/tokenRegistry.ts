@@ -101,9 +101,24 @@ export abstract class StatePublisher<T> {
     }
   }
 
+  removeListener(listener: StateListener): void {
+    let node = this.head
+    let previous = undefined
+    while (node !== undefined) {
+      if (node.listener === listener) {
+        this.removeFromList(previous, node)
+        break
+      } else {
+        previous = node
+        node = node.next
+      }
+    }
+  }
+
   private removeFromList(previous: ListenerNode | undefined, node: ListenerNode) {
     if (previous === undefined) {
       this.head = node.next
+      this.tail = undefined
     } else {
       previous.next = node.next
       if (this.tail === node) {

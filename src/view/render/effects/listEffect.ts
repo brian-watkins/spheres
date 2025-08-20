@@ -3,7 +3,7 @@ import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementI
 import { activate, DOMTemplate, render, TemplateType } from "../domTemplate.js"
 import { StateListener, StateListenerType, StateListenerVersion, TokenRegistry } from "../../../store/tokenRegistry.js"
 import { dispatchMessage } from "../../../store/message.js"
-import { ListItemOverlayTokenRegistry, ListItemTemplateContext } from "../templateContext.js"
+import { ListItemOverlayTokenRegistry, ListItemTemplateContext, unsubscribeAllOuterTokens } from "../templateContext.js"
 
 interface VirtualItem {
   key: any
@@ -62,6 +62,7 @@ export class ListEffect implements StateListener {
       if (this.first !== undefined) {
         this.removeAllAfter(this.first)
         this.first = undefined
+        unsubscribeAllOuterTokens(this.registry)
       }
       return
     }
@@ -206,6 +207,12 @@ export class ListEffect implements StateListener {
           item.isDetached = false
         } else {
           this.itemCache.delete(item.key)
+          // const next = this.createItem(item.index, data)
+          // this.replaceNode(item, next)
+          // this.replaceListItem(item, next)
+          // if (next.prev === undefined) {
+          //   this.first = next
+          // }
           this.updateItemData(item, data)
         }
       }

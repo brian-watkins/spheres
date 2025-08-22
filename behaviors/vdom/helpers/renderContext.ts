@@ -3,11 +3,14 @@ import { Context } from "best-behavior"
 import { Container, createStore, Store, write } from "@store/index.js"
 import { createStringRenderer } from "@server/index"
 import { activateView } from "@view/activate"
+import { DOMChangeRecord, structureChangeRecord, textChangeRecord } from "./changeRecords"
 
 export class RenderApp<T> {
   private renderResult: RenderResult | undefined
   readonly store: Store = createStore()
   private _state: T | undefined
+  private observer: MutationObserver | undefined
+  public changeRecords: Array<DOMChangeRecord> = []
 
   setState(state: T) {
     this._state = state
@@ -31,8 +34,38 @@ export class RenderApp<T> {
     this.renderResult = activateView(this.store, document.body, view)
   }
 
+  observe(selector: string) {
+    this.observer?.disconnect()
+    this.changeRecords = []
+
+    const target: HTMLElement = document.querySelector(selector)!
+
+    this.observer = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        switch (mutation.type) {
+          case "characterData":
+            this.changeRecords.push(textChangeRecord())
+            break
+          case "childList":
+            this.changeRecords.push(structureChangeRecord({
+              removedNodes: mutation.removedNodes.length,
+              addedNodes: mutation.addedNodes.length
+            }))
+            break
+        }
+      }
+    })
+
+    this.observer.observe(target, {
+      childList: true,
+      subtree: true,
+      characterData: true
+    })
+  }
+
   destroy() {
     this.renderResult?.unmount()
+    this.observer?.disconnect()
   }
 }
 

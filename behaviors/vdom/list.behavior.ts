@@ -1,7 +1,7 @@
 import { collection, container, Container, derived, State, StateCollection, use, write } from "@store/index.js";
 import { HTMLView } from "@view/index";
 import { behavior, effect, example, fact, step } from "best-behavior";
-import { expect, is, resolvesTo } from "great-expectations";
+import { arrayContaining, equalTo, expect, is, objectWithProperty, resolvesTo } from "great-expectations";
 import { selectElement, selectElements } from "./helpers/displayElement";
 import { RenderApp, renderContext } from "./helpers/renderContext";
 
@@ -19,6 +19,16 @@ interface ContainerListContext {
   containerA: Container<string>
   containerB: Container<string>
   containerC: Container<string>
+}
+
+interface ListItem {
+  id: string
+  name: string
+}
+
+interface ListItemContext {
+  items: Container<Array<ListItem>>
+  values: Container<Array<string>>
 }
 
 export default behavior("list effects", [
@@ -217,6 +227,116 @@ export default behavior("list effects", [
           await expect(selectElements("DIV").map(el => el.attribute("aria-disabled")), resolvesTo([
             "false", "false"
           ]))
+        })
+      ]
+    }),
+
+  example(renderContext<ListItemContext>())
+    .description("list data update")
+    .script({
+      suppose: [
+        fact("there is state with an id defined", (context) => {
+          context.setState({
+            items: container({
+              initialValue: [
+                { id: "1", name: "Awesome" },
+                { id: "2", name: "Fun" },
+                { id: "3", name: "Cool" },
+              ]
+            }),
+            values: container({ initialValue: ["one", "two", "three"] })
+          })
+        }),
+        fact("a list is displayed with the data", (context) => {
+          function itemView(item: State<ListItem>): HTMLView {
+            return root => {
+              root.li(el => {
+                el.children.textNode(get => get(item).name)
+              })
+            }
+          }
+
+          function valueView(item: State<string>): HTMLView {
+            return root => {
+              root.li(el => {
+                el.children.textNode(get => get(item))
+              })
+            }
+          }
+
+          context.mountView(root => {
+            root.div(el => {
+              el.children
+                .ul(el => {
+                  el.config.dataAttribute("list-type", "items")
+                  el.children.subviews(get => get(context.state.items), itemView)
+                })
+                .hr()
+                .ul(el => {
+                  el.config.dataAttribute("list-type", "values")
+                  el.children.subviews(get => get(context.state.values), valueView)
+                })
+            })
+          })
+        }),
+      ],
+      observe: [
+        effect("the items are displayed", async () => {
+          await expect(selectElements("LI").texts(), resolvesTo([
+            "Awesome", "Fun", "Cool", "one", "two", "three"
+          ]))
+        })
+      ]
+    }).andThen({
+      suppose: [
+        fact("observe changes on items", (context) => {
+          context.observe("UL[data-list-type='items']")
+        }),
+      ],
+      perform: [
+        step("update the data without changing the id", (context) => {
+          context.writeTo(context.state.items, [
+            { id: "1", name: "Awesome" },
+            { id: "2", name: "Amazing!" },
+            { id: "3", name: "Cool" },
+          ])
+        })
+      ],
+      observe: [
+        effect("the item is updated", async () => {
+          await expect(selectElements("UL[data-list-type='items'] LI").texts(), resolvesTo([
+            "Awesome", "Amazing!", "Cool"
+          ]))
+        }),
+        effect("the rows are not replaced, only updated", context => {
+          expect(context.changeRecords, is(arrayContaining(
+            objectWithProperty("type", equalTo("structure")), { times: 0 }
+          )))
+        })
+      ]
+    }).andThen({
+      suppose: [
+        fact("observe changes on values", (context) => {
+          context.observe("UL[data-list-type='values']")
+        }),
+      ],
+      perform: [
+        step("update the values", (context) => {
+          context.writeTo(context.state.values, [
+            "one", "six", "three"
+          ])
+        })
+      ],
+      observe: [
+        effect("the values are updated", async () => {
+          await expect(selectElements("UL[data-list-type='values'] LI").texts(), resolvesTo([
+            "one", "six", "three"
+          ]))
+        }),
+        effect("the row is replaced", (context) => {
+          expect(context.changeRecords, is(arrayContaining(
+            objectWithProperty("type", equalTo("structure")), { times: 1 }
+          )))
         })
       ]
     }),

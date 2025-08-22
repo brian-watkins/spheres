@@ -118,12 +118,12 @@ export class ListEffect implements StateListener {
       }
     }
 
-    this.updateChangedItems()
-
     if (last?.next !== undefined) {
       this.removeAllAfter(last.next)
       last.next = undefined
     }
+
+    this.updateChangedItems()
   }
 
   private updateItem(index: number, last: VirtualItem, data: any): VirtualItem {
@@ -206,7 +206,16 @@ export class ListEffect implements StateListener {
           item.isDetached = false
         } else {
           this.itemCache.delete(item.key)
-          this.updateItemData(item, data)
+          if (data.id !== undefined && data.id === item.key.id) {
+            this.updateItemData(item, data)
+          } else {
+            const next = this.createItem(item.index, data)
+            this.replaceNode(item, next)
+            this.replaceListItem(item, next)
+            if (next.prev === undefined) {
+              this.first = next
+            }
+          }
         }
       }
 

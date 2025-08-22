@@ -33,7 +33,7 @@ export class ListItemTemplateContext<T> {
 
   get indexToken(): Container<number> {
     if (this._indexToken === undefined) {
-      this._indexToken = container({ name: "index-token", initialValue: -1 })
+      this._indexToken = container({ initialValue: -1 })
     }
 
     return this._indexToken
@@ -53,6 +53,8 @@ export class ListItemTemplateContext<T> {
 
 export class ListItemOverlayTokenRegistry extends OverlayTokenRegistry {
   private _tokenMap: Map<Token, StatePublisher<any>> | undefined
+  private index: State<number> | undefined
+  private indexPublisher: StateWriter<number> | undefined
 
   constructor(
     rootRegistry: TokenRegistry,
@@ -74,7 +76,8 @@ export class ListItemOverlayTokenRegistry extends OverlayTokenRegistry {
   }
 
   setIndexState(token: State<number>, value: number) {
-    this.tokenMap.set(token, this.registerState(token, value))
+    this.index = token
+    this.indexPublisher = new StateWriter(value)
   }
 
   setUserTokens(tokens: Array<State<any>>) {
@@ -89,10 +92,18 @@ export class ListItemOverlayTokenRegistry extends OverlayTokenRegistry {
       return this.itemPublisher as any
     }
 
+    if (token === this.index) {
+      return this.indexPublisher as any
+    }
+
     return (this._tokenMap?.get(token) ?? super.getState(token)) as any
   }
 
   updateItemData(data: any) {
     this.itemPublisher.publish(data)
+  }
+
+  updateIndex(index: number) {
+    this.indexPublisher?.publish(index)
   }
 }

@@ -1,8 +1,7 @@
-import { GetState, write } from "../../../store/index.js"
+import { GetState } from "../../../store/index.js"
 import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementId } from "../fragmentHelpers.js"
 import { activate, DOMTemplate, render, TemplateType } from "../domTemplate.js"
 import { StateListener, StateListenerType, StateListenerVersion, TokenRegistry } from "../../../store/tokenRegistry.js"
-import { dispatchMessage } from "../../../store/message.js"
 import { ListItemOverlayTokenRegistry, ListItemTemplateContext } from "../templateContext.js"
 
 interface VirtualItem {
@@ -310,8 +309,8 @@ export class ListEffect implements StateListener {
   }
 
   private updateIndex(index: number, item: VirtualItem): void {
+    item.registry.updateIndex(index)
     item.index = index
-    dispatchMessage(item.registry, write(this.templateContext.indexToken, index))
   }
 
   private createItem(index: number, data: any): VirtualItem {

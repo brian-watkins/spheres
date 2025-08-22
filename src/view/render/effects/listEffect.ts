@@ -205,7 +205,6 @@ export class ListEffect implements StateListener {
           this.replaceListItem(item, next)
           item.isDetached = false
         } else {
-          this.itemCache.delete(item.key)
           if (data.id !== undefined && data.id === item.key.id) {
             this.updateItemData(item, data)
           } else {

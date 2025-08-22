@@ -174,7 +174,7 @@ function activateEffect(registry: TokenRegistry, root: Node, effect: EffectTempl
       let end = findListEndNode(listStartIndicatorNode, elementId)
 
       const listEffect = new ListEffect(registry, effect.domTemplate, effect.query, effect.context, listStartIndicatorNode, end)
-      const data = effect.query(subscribeOnGet(listEffect))
+      const data = effect.query(subscribeOnGet.bind(listEffect))
       const virtualList = activateList(registry, effect.context, effect.domTemplate, listStartIndicatorNode, end, data)
       listEffect.setVirtualList(virtualList)
 
@@ -185,7 +185,7 @@ function activateEffect(registry: TokenRegistry, root: Node, effect: EffectTempl
       const endNode = findSwitchEndNode(startNode, effect.elementId)
 
       const selectEffect = new SelectViewEffect(registry, effect.selectors, startNode, endNode)
-      activateSelect(registry, effect.selectors, startNode, subscribeOnGet(selectEffect))
+      activateSelect(registry, effect.selectors, startNode, subscribeOnGet.bind(selectEffect))
 
       break
     }

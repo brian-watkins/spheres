@@ -2,12 +2,10 @@ export type GetState = <S>(state: State<S>) => S
 
 export type Stateful<T> = (get: GetState) => T | undefined
 
-export function subscribeOnGet(listener: StateListener): GetState {
-  return function (token) {
-    const publisher = listener.registry.getState(token)
-    publisher.addListener(listener)
-    return publisher.getValue()
-  }
+export function subscribeOnGet(this: StateListener, token: State<any>): any {
+  const publisher = this.registry.getState(token)
+  publisher.addListener(this)
+  return publisher.getValue()
 }
 
 export function runQuery<M>(registry: TokenRegistry, query: (get: GetState) => M): M {
@@ -52,12 +50,12 @@ export interface StateListener {
 
 export function initListener(listener: StateListener) {
   listener.version = 0
-  listener.init(subscribeOnGet(listener))
+  listener.init(subscribeOnGet.bind(listener))
 }
 
 function runListener(listener: StateListener) {
   listener.version = listener.version! + 1
-  listener.run(subscribeOnGet(listener))
+  listener.run(subscribeOnGet.bind(listener))
   listener.parent = undefined
 }
 

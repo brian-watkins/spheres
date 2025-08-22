@@ -1,23 +1,10 @@
 import { Locator, Page } from "playwright"
-import { DOMChangeRecord } from "../view/helpers/changeRecords.js"
 
 export class TestAppDisplay {
   constructor(private page: Page) {}
 
   pause(): Promise<void> {
     return this.page.pause()
-  }
-
-  observe(selector: string): Promise<void> {
-    return this.page.evaluate((selector) => {
-      window.esdisplay_testApp.observe(selector)
-    }, selector)
-  }
-
-  changeRecords(): Promise<Array<DOMChangeRecord>> {
-    return this.page.evaluate(() => {
-      return window.esdisplay_testApp.changeRecords
-    })
   }
 
   select(selector: string): DisplayElement {

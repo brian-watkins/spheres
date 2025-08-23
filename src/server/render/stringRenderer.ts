@@ -9,7 +9,7 @@ import { listEndIndicator, listStartIndicator, switchEndIndicator, switchStartIn
 import { IdSequence } from "../../view/render/idSequence.js";
 import { ViteContext } from "./viteContext.js";
 import { AbstractViewRenderer, ElementDefinition, isStateful, ViewDefinition, ViewSelector } from "../../view/render/viewRenderer.js";
-import { ListItemTemplateContext } from "../../view/render/templateContext.js";
+import { createOverlayRegistry, ListItemTemplateContext } from "../../view/render/templateContext.js";
 import { AbstractViewConfig } from "../../view/render/viewConfig.js";
 import { SelectorBuilder } from "../../view/render/selectorBuilder.js";
 import { addTemplate, emptyTemplate, HTMLTemplate, stringForTemplate, templateFromStateful, templateFromString, toStatefulString } from "./template.js";
@@ -161,7 +161,7 @@ class StringRenderer extends AbstractViewRenderer {
           const listData = runQuery(registry, data)
           let html: string = ""
           for (let i = 0; i < listData.length; i++) {
-            let overlayRegistry = templateContext.createOverlayRegistry(registry, listData[i], i)
+            let overlayRegistry = createOverlayRegistry(templateContext, registry, listData[i], i)
             html += stringForTemplate(overlayRegistry, renderer.template)
           }
           return html

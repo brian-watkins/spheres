@@ -5,10 +5,10 @@ import { createStatePublisher, OverlayTokenRegistry, StatePublisher, Token, Toke
 import { ViewDefinition, ViewRenderer } from "./viewRenderer.js";
 
 export class ListItemTemplateContext<T> {
-  protected itemToken = container<T | undefined>({ initialValue: undefined })
+  public itemToken = container<T | undefined>({ initialValue: undefined })
   private _indexToken: Container<number> | undefined = undefined
   public usesIndex = true
-  private tokens: Array<State<any>> | undefined
+  public tokens: Array<State<any>> | undefined
 
   constructor(viewRenderer: ViewRenderer, generator: (item: State<T>, index?: State<number>) => ViewDefinition) {
     this.usesIndex = generator.length == 2
@@ -38,18 +38,18 @@ export class ListItemTemplateContext<T> {
 
     return this._indexToken
   }
+}
 
-  createOverlayRegistry(rootRegistry: TokenRegistry, itemData: any, index: number): ListItemOverlayTokenRegistry {
-    const registry = new ListItemOverlayTokenRegistry(rootRegistry, this.itemToken, new StateWriter(itemData))
-    if (this.usesIndex) {
-      registry.setIndexState(this.indexToken, index)
+export function createOverlayRegistry(context: ListItemTemplateContext<any>, rootRegistry: TokenRegistry, itemData: any, index: number): ListItemOverlayTokenRegistry {
+    const registry = new ListItemOverlayTokenRegistry(rootRegistry, context.itemToken, new StateWriter(itemData))
+    if (context.usesIndex) {
+      registry.setIndexState(context.indexToken, index)
     }
-    if (this.tokens !== undefined) {
-      registry.setUserTokens(this.tokens)
+    if (context.tokens !== undefined) {
+      registry.setUserTokens(context.tokens)
     }
     return registry
   }
-}
 
 export class ListItemOverlayTokenRegistry extends OverlayTokenRegistry {
   private _tokenMap: Map<Token, StatePublisher<any>> | undefined

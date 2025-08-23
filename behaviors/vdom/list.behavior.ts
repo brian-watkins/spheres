@@ -850,6 +850,7 @@ export default behavior("list effects", [
   listOfSwitchExample("server rendered", (context, view) => context.ssrAndActivate(view)),
 
   listOfSwitchWithDerivedStateExample("client rendered", (context, view) => context.mountView(view)),
+  listOfSwitchWithDerivedStateExample("server rendered", (context, view) => context.ssrAndActivate(view))
 
 ])
 
@@ -931,7 +932,9 @@ function listOfSwitchWithDerivedStateExample(name: string, renderer: (context: R
         }),
         fact("there is a view with a list where items define derived state used in a conditional view", (context) => {
           function itemView(item: State<string>, index: State<number>): HTMLView {
-            const reverseItemToggle = derived({ query: get => !get(context.state.toggle.get(`${get(index)}`)) })
+            const reverseItemToggle = derived({
+              query: get => !get(context.state.toggle.get(`${get(index)}`))
+            })
 
             return root => {
               root.subviewFrom(select => select.withConditions()

@@ -1,21 +1,105 @@
 import { GetState } from "../../../store/index.js"
 import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementId } from "../fragmentHelpers.js"
 import { activate, DOMTemplate, render, TemplateType } from "../domTemplate.js"
-import { StateListener, StateListenerType, StateListenerVersion, TokenRegistry } from "../../../store/tokenRegistry.js"
-import { ListItemOverlayTokenRegistry, ListItemTemplateContext } from "../templateContext.js"
+import { createStatePublisher, OverlayTokenRegistry, State, StateListener, StateListenerType, StateListenerVersion, StatePublisher, Token, TokenRegistry } from "../../../store/tokenRegistry.js"
+import { ListItemTemplateContext } from "../templateContext.js"
+import { StateWriter } from "../../../store/state/publisher/stateWriter.js"
 
-interface VirtualItem {
-  key: any
-  index: number
-  isDetached: boolean
-  prev: VirtualItem | undefined
-  next: VirtualItem | undefined
-  node: Node
-  firstNode?: Node
-  lastNode?: Node
-  registry: ListItemOverlayTokenRegistry
-  nextData: any | undefined
-  nextUpdate: VirtualItem | undefined
+class VirtualItem extends OverlayTokenRegistry {
+  node!: Node
+  firstNode: Node | undefined = undefined
+  lastNode: Node | undefined = undefined
+  isDetached: boolean = false
+  prev: VirtualItem | undefined = undefined
+  next: VirtualItem | undefined = undefined
+  nextData: any | undefined = undefined
+  nextUpdate: VirtualItem | undefined = undefined
+
+  static newInstance(data: any, index: number, registry: TokenRegistry, context: ListItemTemplateContext<any>): VirtualItem {
+    const item = new VirtualItem(data, index, registry, context.itemToken, new StateWriter(data))
+
+    if (context.usesIndex) {
+      item.setIndexState(context.indexToken, index)
+    }
+
+    if (context.tokens !== undefined) {
+      item.setUserTokens(context.tokens)
+    }
+
+    return item
+  }
+
+  private constructor(
+    public key: any,
+    public index: number,
+    public registry: TokenRegistry,
+    private itemToken: State<any>,
+    private itemPublisher: StateWriter<any>
+  ) { super(registry) }
+
+  private tokenMap: Map<Token, StatePublisher<any>> | undefined
+  private indexToken: State<number> | undefined
+  private indexPublisher: StateWriter<number> | undefined
+
+  setNode(node: Node, firstNode: Node | undefined, lastNode: Node | undefined) {
+    this.node = node
+    this.firstNode = firstNode
+    this.lastNode = lastNode
+  }
+
+  clone(): VirtualItem {
+    const clone = new VirtualItem(
+      this.key,
+      this.index,
+      this.registry,
+      this.itemToken,
+      this.itemPublisher
+    )
+
+    clone.node = this.node
+    clone.firstNode = this.firstNode
+    clone.lastNode = this.lastNode
+    clone.indexToken = this.indexToken
+    clone.indexPublisher = this.indexPublisher
+    clone.isDetached = this.isDetached
+    clone.prev = this.prev
+    clone.next = this.next
+
+    return clone
+  }
+
+  setIndexState(token: State<number>, value: number) {
+    this.indexToken = token
+    this.indexPublisher = new StateWriter(value)
+  }
+
+  setUserTokens(tokens: Array<State<any>>) {
+    this.tokenMap = new Map()
+    
+    for (const token of tokens) {
+      this.tokenMap.set(token, createStatePublisher(this, token))
+    }
+  }
+
+  getState<C extends StatePublisher<any>>(token: State<any>): C {
+    if (token === this.itemToken) {
+      return this.itemPublisher as any
+    }
+
+    if (token === this.indexToken) {
+      return this.indexPublisher as any
+    }
+
+    return (this.tokenMap?.get(token) ?? super.getState(token)) as any
+  }
+
+  updateItemData(data: any) {
+    this.itemPublisher.publish(data)
+  }
+
+  updateIndex(index: number) {
+    this.indexPublisher?.publish(index)
+  }
 }
 
 
@@ -172,7 +256,7 @@ export class ListEffect implements StateListener {
       const cached = this.itemCache.get(data)
 
       if (cached !== undefined) {
-        const itemToMove: VirtualItem = { ...cached }
+        const itemToMove = cached.clone()
         if (itemToMove.isDetached) {
           if (item.isDetached) {
             this.insertNode(item, itemToMove)
@@ -304,32 +388,24 @@ export class ListEffect implements StateListener {
   }
 
   private updateItemData(item: VirtualItem, itemData: any): void {
-    item.registry.updateItemData(itemData)
+    item.updateItemData(itemData)
     item.key = itemData
   }
 
   private updateIndex(index: number, item: VirtualItem): void {
-    item.registry.updateIndex(index)
+    item.updateIndex(index)
     item.index = index
   }
 
   private createItem(index: number, data: any): VirtualItem {
-    const overlayRegistry = this.templateContext.createOverlayRegistry(this.registry, data, index)
-    const node = render(this.domTemplate, overlayRegistry)
+    const item = VirtualItem.newInstance(data, index, this.registry, this.templateContext)
 
-    const item: VirtualItem = {
-      key: data,
-      index,
-      isDetached: false,
-      prev: undefined,
-      next: undefined,
-      registry: overlayRegistry,
-      firstNode: this.domTemplate.isFragment ? node.firstChild! : undefined,
-      lastNode: this.domTemplate.isFragment ? node.lastChild! : undefined,
+    const node = render(this.domTemplate, item)
+    item.setNode(
       node,
-      nextData: undefined,
-      nextUpdate: undefined
-    }
+      this.domTemplate.isFragment ? node.firstChild! : undefined,
+      this.domTemplate.isFragment ? node.lastChild! : undefined
+    )
 
     return item
   }
@@ -356,15 +432,8 @@ export function activateList(registry: TokenRegistry, context: ListItemTemplateC
 }
 
 function activateItem(registry: TokenRegistry, context: ListItemTemplateContext<any>, template: DOMTemplate, index: number, node: Node, data: any): [VirtualItem, Node] {
-  let virtualItem: any = {
-    key: data,
-    next: undefined,
-    prev: undefined
-  }
-
-  const overlayRegistry = context.createOverlayRegistry(registry, data, index)
-  activate(template, overlayRegistry, node)
-  virtualItem.registry = overlayRegistry
+  const virtualItem = VirtualItem.newInstance(data, index, registry, context)
+  activate(template, virtualItem, node)
 
   switch (template.type) {
     case TemplateType.List: {

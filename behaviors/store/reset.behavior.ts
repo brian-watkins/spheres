@@ -37,6 +37,49 @@ export default behavior("reset container", [
           ])))
         })
       ]
+    }),
+
+  example(testStoreContext<Container<number, string>>())
+    .description("reset container that uses messages")
+    .script({
+      suppose: [
+        fact("there is a container", (context) => {
+          context.setTokens(container({
+            initialValue: 0,
+            update(message, current) {
+              if (message === "increment") {
+                return { value: current + 1 }
+              } else {
+                return { value: current - 1 }
+              }
+            },
+          }))
+        }),
+        fact("there is a subscriber", (context) => {
+          context.subscribeTo(context.tokens, "sub-one")
+        })
+      ],
+      perform: [
+        step("a message is written to the container", (context) => {
+          context.writeTo(context.tokens, "increment")
+        }),
+        step("another message is written to the container", (context) => {
+          context.writeTo(context.tokens, "increment")
+        }),
+        step("a reset message is sent to the store", (context) => {
+          context.sendReset(context.tokens)
+        })
+      ],
+      observe: [
+        effect("the subscriber receives the initial state when the reset message is sent", (context) => {
+          expect(context.valuesForSubscriber("sub-one"), is([
+            0,
+            1,
+            2,
+            0
+          ]))
+        })
+      ]
     })
 
 ])

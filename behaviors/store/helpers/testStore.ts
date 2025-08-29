@@ -65,7 +65,7 @@ export class TestStore<T> {
     this.store.dispatch(use(get => get(token).write(id, message)))
   }
 
-  writeTo<S, M = S>(token: WritableState<M>, value: M) {
+  writeTo<S, M>(token: WritableState<S>, value: M) {
     //@ts-ignore
     this.store.dispatch(write(token, value))
   }

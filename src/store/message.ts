@@ -85,7 +85,7 @@ export function dispatchMessage(registry: TokenRegistry, message: StoreMessage<a
     }
     case "reset": {
       const writer = registry.getState<StateWriter<any>>(message.container)
-      writer.write(message.container[initialValue])
+      writer.publish(message.container[initialValue])
       break
     }
     case "use": {

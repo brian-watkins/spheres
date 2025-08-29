@@ -6,7 +6,7 @@ import { HTMLBuilder, HTMLView } from "../../../src/view/index.js";
 const editableCell = container<Container<boolean> | undefined>({ initialValue: undefined })
 
 const makeEditable = (id: string) => (get: GetState) => {
-  const editState = get(cellContainer(id)).editable
+  const editState = get(cellContainer(get, id)).editable
   const currentEditState = get(editableCell)
 
   let messages: Array<StoreMessage> = [
@@ -71,7 +71,7 @@ function cell(id: string): HTMLView {
       config
         .dataAttribute("cell", id)
         .class(get => {
-          const cellDetails = get(cellContainer(id))
+          const cellDetails = get(cellContainer(get, id))
           if (get(cellDetails.cellValue).isErr) {
             return "shrink-0 h-8 w-40 bg-fuchsia-300 relative italic"
           } else {
@@ -86,10 +86,10 @@ function cell(id: string): HTMLView {
         .div(({ config, children }) => {
           config
             .class("px-1 py-1")
-            .hidden(get => get(get(cellContainer(id)).editable) ? "hidden" : undefined)
+            .hidden(get => get(get(cellContainer(get, id)).editable) ? "hidden" : undefined)
           children
             .textNode(get => {
-              const cellValue = get(get(cellContainer(id)).cellValue)
+              const cellValue = get(get(cellContainer(get, id)).cellValue)
               return cellValue.resolve({
                 ok: (val) => val,
                 err: (error) => {
@@ -106,14 +106,14 @@ function cell(id: string): HTMLView {
         .form(({ config, children }) => {
           config
             .class("absolute top-1 left-0")
-            .hidden(get => get(get(cellContainer(id)).editable) ? undefined : "hidden")
+            .hidden(get => get(get(cellContainer(get, id)).editable) ? undefined : "hidden")
             .on("submit", (evt) => {
               evt.preventDefault()
               const cellDefinition = ((evt.target as HTMLFormElement).elements.namedItem(id) as HTMLInputElement).value
               return batch([
                 write(editableCell, undefined),
-                use(get => write(get(cellContainer(id)).editable, false)),
-                write(cellContainer(id), cellDefinition)
+                use(get => write(get(cellContainer(get, id)).editable, false)),
+                use(get => write(cellContainer(get, id), cellDefinition))
               ])
             })
           children

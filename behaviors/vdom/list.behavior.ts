@@ -1,4 +1,4 @@
-import { collection, container, Container, derived, State, StateCollection, use, write } from "@store/index.js";
+import { Collection, collection, container, Container, derived, State, use, write } from "@store/index.js";
 import { HTMLView } from "@view/index";
 import { behavior, effect, example, fact, step } from "best-behavior";
 import { arrayContaining, equalTo, expect, is, objectWithProperty, resolvesTo } from "great-expectations";
@@ -855,7 +855,7 @@ export default behavior("list effects", [
 ])
 
 interface ToggleableListContext {
-  toggle: StateCollection<Container<boolean>>
+  toggle: Collection<string, boolean>
   items: Container<Array<string>>
   dependency?: Container<number>
 }
@@ -868,14 +868,14 @@ function listOfSwitchExample(name: string, renderer: (context: RenderApp<ListCon
         fact("there is a list of strings", (context) => {
           context.setState({
             items: container({ initialValue: ["one", "two", "three"] }),
-            toggle: collection(() => container({ initialValue: true }))
+            toggle: collection({ initialValues: () => true })
           })
         }),
         fact("there is a view with a list where items are conditional views", (context) => {
           function itemView(item: State<string>, index: State<number>): HTMLView {
             return root => {
               root.subviewFrom(select => select.withConditions()
-                .when(get => get(context.state.toggle.get(`${get(index)}`)), root => {
+                .when(get => get(context.state.toggle).get(`${get(index)}`), root => {
                   root.div(el => {
                     el.children
                       .h4(el => {
@@ -927,13 +927,13 @@ function listOfSwitchWithDerivedStateExample(name: string, renderer: (context: R
         fact("there is a list of strings", (context) => {
           context.setState({
             items: container({ initialValue: ["one", "two", "three"] }),
-            toggle: collection(() => container({ initialValue: true }))
+            toggle: collection({ initialValues: () => true })
           })
         }),
         fact("there is a view with a list where items define derived state used in a conditional view", (context) => {
           function itemView(item: State<string>, index: State<number>): HTMLView {
             const reverseItemToggle = derived({
-              query: get => !get(context.state.toggle.get(`${get(index)}`))
+              query: get => !get(context.state.toggle).get(`${get(index)}`)
             })
 
             return root => {
@@ -969,7 +969,7 @@ function listOfSwitchWithDerivedStateExample(name: string, renderer: (context: R
     }).andThen({
       perform: [
         step("the derived state is updated for an item", (context) => {
-          context.writeTo(context.state.toggle.get("0"), false)
+          context.store.dispatch(use(get => get(context.state.toggle).write("0", false)))
         })
       ],
       observe: [

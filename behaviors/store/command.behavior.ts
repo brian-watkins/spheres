@@ -1,4 +1,4 @@
-import { Command, Container, StateCollection, SuppliedState, collection, command, container, exec, supplied } from "@store/index";
+import { Command, Container, SuppliedState, command, container, exec, supplied } from "@store/index";
 import { behavior, effect, example, fact, step } from "best-behavior";
 import { arrayWith, expect, is, objectWithProperty, stringContaining, throws } from "great-expectations";
 import { errorMessage, okMessage, pendingMessage } from "./helpers/metaMatchers";
@@ -263,57 +263,6 @@ export default behavior("command", [
       ]
     }),
 
-  example(testStoreContext<SuppliedStateWithIdContext>())
-    .description("supplied state referenced by id via a collection")
-    .script({
-      suppose: [
-        fact("there is a command", (context) => {
-          const myCommand = command<string>()
-          const task = new TestTask<string>()
-          const suppliedCollection = collection(() => supplied({ initialValue: "initial" }))
-          context.setTokens({
-            collection: suppliedCollection,
-            command: myCommand,
-            task
-          })
-          context.useCommand(myCommand, async (message, actions) => {
-            actions.pending(suppliedCollection.get("fun-stuff"))
-            await task.waitForIt()
-            actions.supply(suppliedCollection.get("fun-stuff"), `From command: ${message}`)
-          })
-        }),
-        fact("there is a subscriber to the supplied state", (context) => {
-          context.subscribeTo(context.tokens.collection.get("fun-stuff"), "supplied-sub")
-        }),
-        fact("there is a subscriber to the meta state", (context) => {
-          context.subscribeTo(context.tokens.collection.get("fun-stuff").meta, "meta-supplied-sub")
-        })
-      ],
-      perform: [
-        step("the command is executed", (context) => {
-          context.store.dispatch(exec(context.tokens.command, "yo yo yo"))
-        }),
-        step("the command's task resolves", (context) => {
-          context.tokens.task.resolveWith("hello")
-        })
-      ],
-      observe: [
-        effect("the subscriber gets the values", (context) => {
-          expect(context.valuesForSubscriber("supplied-sub"), is([
-            "initial",
-            "From command: yo yo yo"
-          ]))
-        }),
-        effect("the meta subscriber gets the values", (context) => {
-          expect(context.valuesForSubscriber("meta-supplied-sub"), is(arrayWith([
-            okMessage(),
-            pendingMessage(undefined),
-            okMessage()
-          ])))
-        })
-      ]
-    }),
-
   example(testStoreContext<SuppliedState<string, string>>())
     .description("when the name is set")
     .script({
@@ -333,12 +282,6 @@ export default behavior("command", [
     })
 
 ])
-
-interface SuppliedStateWithIdContext {
-  collection: StateCollection<SuppliedState<string>>
-  command: Command<string>
-  task: TestTask<string>
-}
 
 interface TestQueryCommandState {
   container: Container<number>,

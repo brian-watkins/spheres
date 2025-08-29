@@ -2,12 +2,8 @@ import { MetaState } from "./meta.js"
 import { didCreateToken } from "./stateRecorder.js"
 import { createPublisher, State, TokenRegistry } from "../tokenRegistry.js"
 import { StateWriter } from "./publisher/stateWriter.js"
-import { dispatchMessage, initialValue, ResetMessage, StoreMessage, UpdateMessage, WritableState, WriteMessage } from "../message.js"
-
-export interface UpdateResult<T> {
-  value: T
-  message?: StoreMessage<any>
-}
+import { initialValue, ResetMessage, UpdateMessage, WritableState, WriteMessage } from "../message.js"
+import { MessageDispatchingStateWriter, UpdateResult } from "./publisher/messageDispatchingStateWriter.js"
 
 export interface ContainerInitializer<T, M> {
   initialValue: T,
@@ -74,19 +70,5 @@ export class Container<T, M = T, E = any> extends State<T> implements WritableSt
       this._meta = new MetaState(this)
     }
     return this._meta
-  }
-}
-
-export class MessageDispatchingStateWriter<T, M> extends StateWriter<T> {
-  constructor(private registry: TokenRegistry, initialValue: T, private update: ((message: M, current: T) => UpdateResult<T>)) {
-    super(initialValue)
-  }
-
-  accept(message: M): void {
-    const result = this.update(message, this.getValue())
-    this.publish(result.value)
-    if (result.message !== undefined) {
-      dispatchMessage(this.registry, result.message)
-    }
   }
 }

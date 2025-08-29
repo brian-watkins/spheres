@@ -1,19 +1,21 @@
 import { createStreamRenderer, zone } from "spheres/server"
-import { createStore, collection, supplied } from "spheres/store";
+import { createStore, supplied, Store, SuppliedState } from "spheres/store";
 import { StreamingSSRParts } from "server/helpers/ssrApp";
 import { count, counter } from "./counter";
 import { page } from "./page";
 
 export default function (): StreamingSSRParts {
-  const zones = collection(() => {
-    return supplied({ initialValue: createStore() })
-  })
+  const zones: Array<SuppliedState<Store>> = [
+    supplied({ initialValue: createStore() }),
+    supplied({ initialValue: createStore() }),
+    supplied({ initialValue: createStore() }),
+  ]
 
   const rootStream = createStreamRenderer(page, {
     zones: [
       zone(counter, {
         stateMap: { count },
-        store: zones.get("one"),
+        store: zones[0],
         mountPoint: "[data-zone='one']",
         activationScripts: [
           "/behaviors/server/fixtures/ssrApp/streamingZones/activateOne.ts"
@@ -21,7 +23,7 @@ export default function (): StreamingSSRParts {
       }),
       zone(counter, {
         stateMap: { count },
-        store: zones.get("two"),
+        store: zones[1],
         mountPoint: "[data-zone='two']",
         activationScripts: [
           "/behaviors/server/fixtures/ssrApp/streamingZones/activateTwo.ts"
@@ -29,7 +31,7 @@ export default function (): StreamingSSRParts {
       }),
       zone(counter, {
         stateMap: { count },
-        store: zones.get("three"),
+        store: zones[2],
         mountPoint: "[data-zone='three']",
         activationScripts: [
           "/behaviors/server/fixtures/ssrApp/streamingZones/activateThree.ts"
@@ -41,7 +43,7 @@ export default function (): StreamingSSRParts {
   const rootStore = createStore({
     async init(actions) {
 
-      actions.supply(zones.get("one"), createStore({
+      actions.supply(zones[0], createStore({
         id: "store-one",
         async init(actions) {
           actions.pending(count, 0)
@@ -55,7 +57,7 @@ export default function (): StreamingSSRParts {
         }
       }))
 
-      actions.supply(zones.get("two"), createStore({
+      actions.supply(zones[1], createStore({
         id: "store-two",
         async init(actions) {
           actions.pending(count, 0)
@@ -69,7 +71,7 @@ export default function (): StreamingSSRParts {
         }
       }))
 
-      actions.supply(zones.get("three"), createStore({
+      actions.supply(zones[2], createStore({
         id: "store-three",
         async init(actions) {
           actions.pending(count, 0)

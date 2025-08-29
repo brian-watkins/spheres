@@ -23,12 +23,14 @@ export {
 export {
   type ContainerInitializer,
   type Container,
-  type UpdateResult,
   container,
   write,
   update,
   reset
 } from "./state/container.js"
+export {
+  type UpdateResult,
+} from "./state/publisher/messageDispatchingStateWriter.js"
 export {
   command,
   type CommandInitializer,
@@ -70,6 +72,7 @@ export {
   supplied
 } from "./state/supplied.js"
 export {
-  type StateCollection,
+  type Collection,
+  type CollectionActions,
   collection
 } from "./state/collection.js"

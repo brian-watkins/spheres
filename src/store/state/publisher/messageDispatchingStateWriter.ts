@@ -1,6 +1,6 @@
-import { dispatchMessage, StoreMessage } from "../../message"
-import { TokenRegistry } from "../../tokenRegistry"
-import { StateWriter } from "./stateWriter"
+import { dispatchMessage, StoreMessage } from "../../message.js"
+import { TokenRegistry } from "../../tokenRegistry.js"
+import { StateWriter } from "./stateWriter.js"
 
 export interface UpdateResult<T> {
   value: T

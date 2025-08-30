@@ -1,7 +1,7 @@
-import { run, StoreMessage } from "../message"
-import { createPublisher, State, StateListener, StatePublisher, TokenRegistry } from "../tokenRegistry"
-import { MessageDispatchingStateWriter, UpdateResult } from "./publisher/messageDispatchingStateWriter"
-import { StateWriter } from "./publisher/stateWriter"
+import { run, StoreMessage } from "../message.js"
+import { createPublisher, State, StateListener, StatePublisher, TokenRegistry } from "../tokenRegistry.js"
+import { MessageDispatchingStateWriter, UpdateResult } from "./publisher/messageDispatchingStateWriter.js"
+import { StateWriter } from "./publisher/stateWriter.js"
 
 export interface CollectionInitializer<Key, Value, Message = Value> {
   initialValues: (id: Key) => Value,

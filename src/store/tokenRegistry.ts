@@ -189,16 +189,17 @@ export abstract class Command<M> {
 export type Token = State<any> | Command<any>
 
 export interface TokenRegistry {
+  onRegister(handler: (token: Token) => void): void
   getState<C extends StatePublisher<any>>(token: State<any>): C
   setState(state: State<any>, publisher: StatePublisher<any>): void
   getCommand(token: Command<any>): CommandController<any>
   setCommand(token: Command<any>, controller: CommandController<any>): void
-  registerState<T>(token: State<T>, initialState?: T): StatePublisher<T>
-  registerCommand<T>(token: Command<T>): CommandController<T>
 }
 
 export class OverlayTokenRegistry implements TokenRegistry {
   constructor(protected parentRegistry: TokenRegistry) { }
+
+  onRegister(): void { }
 
   getState<C extends StatePublisher<any>>(token: State<any>): C {
     return this.parentRegistry.getState(token)
@@ -214,13 +215,5 @@ export class OverlayTokenRegistry implements TokenRegistry {
 
   setCommand(token: Command<any>, controller: CommandController<any>): void {
     return this.parentRegistry.setCommand(token, controller)
-  }
-
-  registerState<T>(token: State<T>, initialState?: T): StatePublisher<T> {
-    return this.parentRegistry.registerState(token, initialState)
-  }
-
-  registerCommand<T>(token: Command<T>): CommandController<T> {
-    return this.parentRegistry.registerCommand(token)
   }
 }

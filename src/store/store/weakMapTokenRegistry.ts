@@ -2,12 +2,18 @@ import { Command, CommandController, createController, createPublisher, State, S
 
 export class WeakMapTokenRegistry implements TokenRegistry {
   protected registry: WeakMap<Token, any> = new WeakMap();
+  private onRegisterHook: ((token: Token) => void) | undefined
 
   constructor() { }
+
+  onRegister(handler: (token: Token) => void): void {
+    this.onRegisterHook = handler
+  }
 
   registerState<T>(token: State<any>, initialState?: T): StatePublisher<T> {
     const controller = token[createPublisher](this, initialState)
     this.registry.set(token, controller)
+    this.onRegisterHook?.(token)
     return controller
   }
 

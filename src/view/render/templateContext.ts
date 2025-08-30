@@ -64,10 +64,6 @@ export class ListItemOverlayTokenRegistry extends OverlayTokenRegistry {
     super(rootRegistry)
   }
 
-  registerState<T>(token: State<T>, initialState?: T): StatePublisher<T> {
-    return createStatePublisher(this, token, initialState)
-  }
-
   private get tokenMap(): Map<Token, StatePublisher<any>> {
     if (this._tokenMap === undefined) {
       this._tokenMap = new Map()
@@ -82,8 +78,7 @@ export class ListItemOverlayTokenRegistry extends OverlayTokenRegistry {
 
   setUserTokens(tokens: Array<State<any>>) {
     for (const token of tokens) {
-      const controller = this.registerState(token)
-      this.tokenMap.set(token, controller)
+      this.tokenMap.set(token, createStatePublisher(this, token))
     }
   }
 

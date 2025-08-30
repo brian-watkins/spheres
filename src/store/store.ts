@@ -3,12 +3,8 @@ import { dispatchMessage, StoreMessage } from "./message.js"
 import { error, Meta, ok, pending } from "./state/meta.js"
 import { WeakMapTokenRegistry } from "./store/weakMapTokenRegistry.js"
 import { StateWriter } from "./state/publisher/stateWriter.js"
-import { Command, GetState, initializeCommand, initListener, State, StateListener, StateListenerType, StateListenerVersion, StatePublisher, TokenRegistry } from "./tokenRegistry.js"
+import { Command, GetState, initializeCommand, initListener, StateListener, StateListenerType, StateListenerVersion, TokenRegistry } from "./tokenRegistry.js"
 import { CommandManager, ManagedCommandController } from "./command/managedCommandController.js"
-
-declare const globalThis: {
-  [key: symbol]: any
-} & Window
 
 export interface StoreOptions {
   id?: string
@@ -111,22 +107,11 @@ export function useCommand<M>(store: Store, command: Command<M>, manager: Comman
 }
 
 export function useHooks(store: Store, hooks: StoreHooks) {
-  const registryWithHooks = new Proxy(getTokenRegistry(store), {
-    get(target, prop, receiver) {
-      if (prop === "registerState") {
-        return (token: State<any>, initialValue?: any): StatePublisher<any> => {
-          const controller = target.registerState(token, initialValue)
-          if (token instanceof Container) {
-            hooks.onRegister(token)
-          }
-          return controller
-        }
-      }
-      return Reflect.get(target, prop, receiver)
-    },
+  getTokenRegistry(store).onRegister((token) => {
+    if (token instanceof Container) {
+      hooks.onRegister(token)
+    }
   })
-
-  store[tokenRegistry] = registryWithHooks
 }
 
 export function useContainerHooks<T, M, E>(store: Store, container: Container<T, M>, hooks: ContainerHooks<NoInfer<T>, NoInfer<M>, NoInfer<E>>) {

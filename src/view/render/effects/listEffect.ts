@@ -1,11 +1,46 @@
 import { GetState } from "../../../store/index.js"
+import { Collection } from "../../../store/state/collection.js"
 import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementId } from "../fragmentHelpers.js"
 import { activate, DOMTemplate, render, TemplateType } from "../domTemplate.js"
-import { createStatePublisher, OverlayTokenRegistry, State, StateListener, StateListenerType, StateListenerVersion, StatePublisher, Token, TokenRegistry } from "../../../store/tokenRegistry.js"
+import { createStatePublisher, initListener, OverlayTokenRegistry, State, StateListener, StateListenerType, StateListenerVersion, StatePublisher, Token, TokenRegistry } from "../../../store/tokenRegistry.js"
 import { ListItemTemplateContext } from "../templateContext.js"
 import { StateWriter } from "../../../store/state/publisher/stateWriter.js"
+import { DerivedStatePublisher } from "../../../store/state/derived.js"
+
+class DerivedStateTrackingPublisher extends DerivedStatePublisher<any> {
+  private listeners: Map<VirtualItem, Set<StateListener>> = new Map()
+  private currentItem: VirtualItem | undefined
+
+  partitionBy(item: VirtualItem) {
+    this.currentItem = item
+  }
+
+  removeListenersFor(item: VirtualItem) {
+    const listeners = this.listeners.get(item)
+    for (const listener of listeners ?? []) {
+      this.removeListener(listener)
+    }
+    this.listeners.delete(item)
+  }
+
+  addListener(listener: StateListener): void {
+    // this.listeners.add(listener)
+    if (this.currentItem !== undefined) {
+      let itemListeners = this.listeners.get(this.currentItem)
+      if (itemListeners === undefined) {
+        itemListeners = new Set([listener])
+        this.listeners.set(this.currentItem, itemListeners)
+      } else {
+        itemListeners.add(listener)
+      }
+    }
+    super.addListener(listener)
+  }
+}
 
 class VirtualItem extends OverlayTokenRegistry {
+  public static externalState: Map<State<any>, StatePublisher<any>> = new Map()
+
   node!: Node
   firstNode: Node | undefined = undefined
   lastNode: Node | undefined = undefined
@@ -14,6 +49,7 @@ class VirtualItem extends OverlayTokenRegistry {
   next: VirtualItem | undefined = undefined
   nextData: any | undefined = undefined
   nextUpdate: VirtualItem | undefined = undefined
+  trackExternal: boolean = true
 
   static newInstance(data: any, index: number, registry: TokenRegistry, context: ListItemTemplateContext<any>): VirtualItem {
     const item = new VirtualItem(data, index, registry, context.itemToken, new StateWriter(data))
@@ -68,6 +104,17 @@ class VirtualItem extends OverlayTokenRegistry {
     return clone
   }
 
+  willRemove() {
+    // for external tokens
+    // there could be several listeners (from effects in the template item)
+    // we need to remove each listener 
+    // but basically we need to know what the listeners are, then we could
+    // remove them from the publisher in the external state map.
+    for (const [_, trackingPublisher] of VirtualItem.externalState) {
+      (trackingPublisher as DerivedStateTrackingPublisher).removeListenersFor(this)
+    }
+  }
+
   setIndexState(token: State<number>, value: number) {
     this.indexToken = token
     this.indexPublisher = new StateWriter(value)
@@ -90,7 +137,28 @@ class VirtualItem extends OverlayTokenRegistry {
       return this.indexPublisher as any
     }
 
-    return (this.tokenMap?.get(token) ?? super.getState(token)) as any
+    // return (this.tokenMap?.get(token) ?? super.getState(token)) as any
+    return (this.tokenMap?.get(token) ?? this.getExternalState(token)) as C
+  }
+
+  private getExternalState(token: State<any>): StatePublisher<any> {
+    // I guess if it's a collection we should just return super.getState?
+    // Then VirtualItem.externalState just holds DerivedStateTrackingPublishers
+    if (!this.trackExternal || token instanceof Collection) {
+      return super.getState(token)
+    }
+
+    let publisher = VirtualItem.externalState.get(token) as DerivedStateTrackingPublisher
+    if (publisher === undefined) {
+      // This would track ALL listeners across all template instances
+      let derivedPublisher = new DerivedStateTrackingPublisher(this.registry, get => get(token))
+      initListener(derivedPublisher)
+      publisher = derivedPublisher
+      VirtualItem.externalState.set(token, publisher)
+    }
+    // so we have to set it to store listeners in a particular list for this item
+    publisher.partitionBy(this)
+    return publisher
   }
 
   updateItemData(data: any) {
@@ -145,6 +213,11 @@ export class ListEffect implements StateListener {
       if (this.first !== undefined) {
         this.removeAllAfter(this.first)
         this.first = undefined
+        // VirtualItem.unsubscribeFromExternalState()
+        for (const [token, publisher] of VirtualItem.externalState) {
+          this.registry.getState(token).removeListener(publisher as DerivedStatePublisher<any>)
+        }
+        VirtualItem.externalState.clear()
       }
       return
     }
@@ -174,6 +247,8 @@ export class ListEffect implements StateListener {
     if (this.first.next?.key === firstData) {
       this.itemCache.set(this.first.key, this.first)
       this.removeNode(this.first)
+      // needs a test
+      // this.first.willRemove()
       this.first.isDetached = true
       this.first = this.first.next
       this.first!.prev = undefined
@@ -227,6 +302,7 @@ export class ListEffect implements StateListener {
     if (data === current.next?.key) {
       this.itemCache.set(current.key, current)
       this.removeNode(current)
+      current.willRemove()
       current.isDetached = true
       last.next = current.next
       current.next!.prev = last
@@ -300,6 +376,10 @@ export class ListEffect implements StateListener {
           }
         }
       }
+
+      // somehow can we know which items have been replaced with new data
+      // and thus removed from the list -- in that case we should call willRemove
+      // on them ...
 
       nextUpdate = nextUpdate.nextUpdate
       item.nextData = undefined

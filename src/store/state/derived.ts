@@ -27,7 +27,7 @@ export class DerivedState<T> extends State<T> {
   }
 }
 
-class DerivedStatePublisher<T> extends StatePublisher<T> implements StateListener {
+export class DerivedStatePublisher<T> extends StatePublisher<T> implements StateListener {
   readonly type = StateListenerType.StateEffect
   private _value!: T
 

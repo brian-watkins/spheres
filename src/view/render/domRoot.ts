@@ -50,7 +50,9 @@ export class DOMRoot implements EventZone, RenderResult {
               const root = element.closest(`[data-spheres-template]`)!
               //@ts-ignore
               const registry = root[spheresTemplateData]
+              registry.trackExternal = false
               dispatchMessage(registry, domEvent.handler(wrappedEvent))
+              registry.trackExternal = true
               break
           }
         }

@@ -401,7 +401,7 @@ export default behavior("conditional zone", [
   conditionalListWithEvents("client rendered", (context, view) => context.mountView(view)),
   conditionalListWithEvents("server rendered", (context, view) => context.ssrAndActivate(view)),
 
-  multipleConditionalListsWithEvents("client rendered", (context, view) => context.mountView(view)),
+  (m) => m.pick() && multipleConditionalListsWithEvents("client rendered", (context, view) => context.mountView(view)),
   multipleConditionalListsWithEvents("server rendered", (context, view) => context.ssrAndActivate(view))
 
 ])

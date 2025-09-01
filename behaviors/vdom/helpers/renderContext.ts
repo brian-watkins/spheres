@@ -26,6 +26,8 @@ export class RenderApp<T> {
 
   mountView(view: HTMLView) {
     this.renderResult = renderToDOM(this.store, document.body, view)
+    //@ts-ignore
+    // window._renderResult = this.renderResult
   }
 
   ssrAndActivate(view: HTMLView) {

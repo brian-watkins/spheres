@@ -1,5 +1,4 @@
-import { Stateful, Store } from "../../store/index.js";
-import { Container, write } from "../../store/state/container.js"
+import { Container, Stateful, Store, write } from "../../store/index.js";
 import { getTokenRegistry } from "../../store/store.js";
 import { GetState, runQuery, State } from "../../store/tokenRegistry.js";
 import { voidElements } from "../../view/elementData.js";

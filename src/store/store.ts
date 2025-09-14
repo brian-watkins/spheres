@@ -3,7 +3,7 @@ import { dispatchMessage, StoreMessage } from "./message.js"
 import { error, Meta, ok, pending } from "./state/meta.js"
 import { WeakMapTokenRegistry } from "./store/weakMapTokenRegistry.js"
 import { StateWriter } from "./state/publisher/stateWriter.js"
-import { Command, GetState, initializeCommand, initListener, StateListener, StateListenerType, StateListenerVersion, TokenRegistry } from "./tokenRegistry.js"
+import { Command, GetState, initializeCommand, initListener, runQuery, StateListener, StateListenerType, StateListenerVersion, TokenRegistry } from "./tokenRegistry.js"
 import { CommandManager, ManagedCommandController } from "./command/managedCommandController.js"
 
 export interface StoreOptions {
@@ -139,9 +139,7 @@ function stateWriterWithHooks<T, M, E>(registry: TokenRegistry, container: Conta
 
 function initializerActions(registry: TokenRegistry): InitializerActions {
   return {
-    get: (state) => {
-      return registry.getState(state).getValue()
-    },
+    get: (state) => runQuery(registry, get => get(state)),
     supply: <T, M>(container: Container<T, M>, value: T) => {
       registry.getState<StateWriter<T>>(container).publish(value)
     },
@@ -164,9 +162,7 @@ function initializerActions(registry: TokenRegistry): InitializerActions {
 
 function containerWriteActions<T, M, E>(registry: TokenRegistry, container: Container<T, M>, writer: StateWriter<T>): WriteHookActions<T, M, E> {
   return {
-    get: (state) => {
-      return registry.getState(state).getValue()
-    },
+    get: (state) => runQuery(registry, get => get(state)),
     ok: (message) => {
       writer.accept(message)
       registry.getState<StateWriter<any>>(container.meta).write(ok())

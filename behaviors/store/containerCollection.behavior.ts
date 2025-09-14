@@ -1,4 +1,4 @@
-import { collection, use } from "@store/index.js";
+import { collection, update } from "@store/index.js";
 import { behavior, effect, example, fact, step } from "best-behavior";
 import { expect, is } from "great-expectations";
 import { testStoreContext } from "./helpers/testStore";
@@ -125,7 +125,7 @@ export default behavior("container collection", [
       ],
       perform: [
         step("update the value of a collection item", (context) => {
-          context.store.dispatch(use(get => get(context.tokens.collection).update(1, (curr) => `Size: ${curr.words.length}`)))
+          context.store.dispatch(update(context.tokens.collection.at(1), (curr) => `Size: ${curr.words.length}`))
         })
       ],
       observe: [

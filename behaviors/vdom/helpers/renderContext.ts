@@ -1,6 +1,6 @@
 import { HTMLView, RenderResult, renderToDOM } from "@view/index.js"
 import { Context } from "best-behavior"
-import { Container, createStore, Store, write } from "@store/index.js"
+import { Collection, Container, createStore, Store, write } from "@store/index.js"
 import { createStringRenderer } from "@server/index"
 import { activateView } from "@view/activate"
 import { DOMChangeRecord, structureChangeRecord, textChangeRecord } from "./changeRecords"
@@ -22,6 +22,10 @@ export class RenderApp<T> {
 
   writeTo<S, M = S>(token: Container<S, M>, value: M) {
     this.store.dispatch(write(token, value))
+  }
+
+  writeToCollection<K, V, M = V>(collection: Collection<K, V, M>, key: K, value: M) {
+    this.store.dispatch(write(collection.at(key), value))
   }
 
   mountView(view: HTMLView) {

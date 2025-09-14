@@ -1,7 +1,7 @@
 import { DOMEventType, EventsToDelegate, StoreEventHandler, EventZone } from "./index.js";
 import { Stateful, GetState, State } from "../../store/index.js";
 import { dispatchMessage } from "../../store/message.js";
-import { subscribeOnGet, initListener, TokenRegistry } from "../../store/tokenRegistry.js";
+import { getStateFunctionWithListener, initListener, TokenRegistry } from "../../store/tokenRegistry.js";
 import { UpdateAttributeEffect } from "./effects/attributeEffect.js";
 import { UpdatePropertyEffect } from "./effects/propertyEffect.js";
 import { activateSelect, SelectViewEffect } from "./effects/selectViewEffect.js";
@@ -58,7 +58,7 @@ export class ActivateDomRenderer extends AbstractViewRenderer {
     const templateContext = new ListItemTemplateContext(renderer, viewGenerator)
 
     const effect = new ListEffect(this.registry, renderer.template, query, templateContext, this.currentNode!, end)
-    const data = query(subscribeOnGet.bind(effect))
+    const data = query(getStateFunctionWithListener(effect))
     const virtualList = activateList(this.registry, templateContext, renderer.template, this.currentNode!, end, data)
     effect.setVirtualList(virtualList)
 
@@ -75,7 +75,7 @@ export class ActivateDomRenderer extends AbstractViewRenderer {
     selectorGenerator(selectorBuilder)
 
     const effect = new SelectViewEffect(this.registry, selectorBuilder.selectors, this.currentNode!, end)
-    activateSelect(this.registry, selectorBuilder.selectors, this.currentNode!, subscribeOnGet.bind(effect))
+    activateSelect(this.registry, selectorBuilder.selectors, this.currentNode!, getStateFunctionWithListener(effect))
 
     this.currentNode = end.nextSibling
 

@@ -1,5 +1,4 @@
 import { Container, State, Store, write, StoreMessage, batch, GetState, reset, Command, CommandActions, ContainerHooks, ReactiveEffect, createStore, useContainerHooks, useEffect, useCommand, InitializerActions, Collection } from "@store/index.js"
-import { use, WritableState } from "@store/message"
 import { Context } from "best-behavior"
 
 export function testStoreContext<T>(): Context<TestStore<T>> {
@@ -42,7 +41,7 @@ export class TestStore<T> {
   }
 
   subscribeToCollection<K, S, M>(token: Collection<K, S, M>, id: K, name: string) {
-    const query = new StoreValuesEffect((get) => get(token).get(id))
+    const query = new StoreValuesEffect((get) => get(token.at(id)))
     this.values.set(name, query)
     useEffect(this.store, query)
   }
@@ -62,11 +61,10 @@ export class TestStore<T> {
   }
 
   writeToCollection<K, S, M = S>(token: Collection<K, S, M>, id: K, message: M) {
-    this.store.dispatch(use(get => get(token).write(id, message)))
+    this.store.dispatch(write(token.at(id), message))
   }
 
-  writeTo<S, M>(token: WritableState<S>, value: M) {
-    //@ts-ignore
+  writeTo<S, M>(token: Container<S, M>, value: M) {
     this.store.dispatch(write(token, value))
   }
 

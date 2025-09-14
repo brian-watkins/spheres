@@ -24,8 +24,6 @@ export {
   type ContainerInitializer,
   type Container,
   container,
-  write,
-  update,
   reset
 } from "./state/container.js"
 export {
@@ -57,7 +55,9 @@ export {
   type StoreMessage,
   use,
   run,
-  batch
+  batch,
+  write,
+  update
 } from "./message.js"
 export {
  type PendingMessage,
@@ -73,6 +73,6 @@ export {
 } from "./state/supplied.js"
 export {
   type Collection,
-  type CollectionActions,
-  collection
+  collection,
+  clear
 } from "./state/collection.js"

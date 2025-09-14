@@ -1,8 +1,8 @@
 import { MetaState } from "./meta.js"
 import { didCreateToken } from "./stateRecorder.js"
-import { createPublisher, State, TokenRegistry } from "../tokenRegistry.js"
+import { createPublisher, TokenRegistry } from "../tokenRegistry.js"
 import { StateWriter } from "./publisher/stateWriter.js"
-import { initialValue, ResetMessage, UpdateMessage, WritableState, WriteMessage } from "../message.js"
+import { initialValue, ResetMessage, ResettableState, WritableState } from "../message.js"
 import { MessageDispatchingStateWriter, UpdateResult } from "./publisher/messageDispatchingStateWriter.js"
 
 export interface ContainerInitializer<T, M> {
@@ -21,22 +21,6 @@ export function container<T, M = T, E = any>(initializer: ContainerInitializer<T
   return token
 }
 
-export function write<T, M = T>(container: Container<T, M>, value: NoInfer<M>): WriteMessage<T, M> {
-  return {
-    type: "write",
-    container,
-    value
-  }
-}
-
-export function update<T, M = T>(container: Container<T, M>, generator: (current: NoInfer<T>) => NoInfer<M>): UpdateMessage<T, M> {
-  return {
-    type: "update",
-    container,
-    generator
-  }
-}
-
 export function reset<T, M = T>(container: Container<T, M>): ResetMessage<T> {
   return {
     type: "reset",
@@ -44,15 +28,15 @@ export function reset<T, M = T>(container: Container<T, M>): ResetMessage<T> {
   }
 }
 
-export class Container<T, M = T, E = any> extends State<T> implements WritableState<T> {
+export class Container<T, M = T, E = any> extends WritableState<T, M> implements ResettableState<T> {
   private _meta: MetaState<T, M, E> | undefined
 
   constructor(
     name: string | undefined,
     private initialValue: T,
-    private update: ((message: M, current: T) => UpdateResult<T>) | undefined,
+    update: ((message: M, current: T) => UpdateResult<T>) | undefined,
   ) {
-    super(name)
+    super(name, update)
   }
 
   get [initialValue](): T {

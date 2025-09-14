@@ -1,17 +1,46 @@
-export type GetState = <S>(state: State<S>) => S
+
+export interface IndexableState<K> extends State<any> {
+  at(index: K): IndexableStateReference<K, this>
+}
+
+export type IndexableStateReference<K, X extends IndexableState<K>> = [token: X, key: K]
+
+export function isIndexableStateReference(state: StateReference<any>): state is IndexableStateReference<any, any> {
+  return Array.isArray(state)
+}
+
+export type StateReference<X extends State<any>> = X extends IndexableState<infer K> ? IndexableStateReference<K, X> : X
+
+export type GetState = <X extends State<any>>(
+  state: StateReference<X>
+) => X extends State<infer S> ? S : never
 
 export type Stateful<T> = (get: GetState) => T | undefined
 
-export function subscribeOnGet(this: StateListener, token: State<any>): any {
-  const publisher = this.registry.getState(token)
-  publisher.addListener(this)
-  return publisher.getValue()
+function subscribeOnGet(this: StateListener, token: StateReference<any>): any {
+  if (isIndexableStateReference(token)) {
+    let publisher = this.registry.getState<IndexedStatePublisher<any, any>>(token[0])
+    let indexedPublisher = publisher.indexedBy(token[1])
+    indexedPublisher.addListener(this)
+    return indexedPublisher.getValue()
+  } else {
+    let publisher = this.registry.getState(token)
+    publisher.addListener(this)
+    return publisher.getValue()
+  }
+}
+
+export function getStateFunctionWithListener(listener: StateListener): GetState {
+  return subscribeOnGet.bind(listener) as GetState
 }
 
 export function runQuery<M>(registry: TokenRegistry, query: (get: GetState) => M): M {
   return query((token) => {
-    const publisher = registry.getState(token)
-    return publisher.getValue()
+    if (isIndexableStateReference(token)) {
+      return registry.getState<IndexedStatePublisher<any, any>>(token[0]).indexedBy(token[1]).getValue()
+    } else {
+      return registry.getState(token).getValue()
+    }
   })
 }
 
@@ -50,12 +79,12 @@ export interface StateListener {
 
 export function initListener(listener: StateListener) {
   listener.version = 0
-  listener.init(subscribeOnGet.bind(listener))
+  listener.init(getStateFunctionWithListener(listener))
 }
 
 function runListener(listener: StateListener) {
   listener.version = listener.version! + 1
-  listener.run(subscribeOnGet.bind(listener))
+  listener.run(getStateFunctionWithListener(listener))
   listener.parent = undefined
 }
 
@@ -166,6 +195,11 @@ export abstract class StatePublisher<T> {
       }
     }
   }
+}
+
+export abstract class IndexedStatePublisher<Key, Value> extends StatePublisher<Value> {
+  abstract indexedBy<C extends StatePublisher<Value>>(key: Key): C
+  abstract clear(): void
 }
 
 export interface CommandController<T> {

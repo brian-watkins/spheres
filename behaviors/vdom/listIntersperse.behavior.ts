@@ -296,7 +296,7 @@ interface NestedListSelectorState {
 }
 
 function nestedListData(get: GetState, context: RenderApp<NestedListSelectorState>, id: string): Array<string> {
-  return get(context.state.nestedData).get(id)
+  return get(context.state.nestedData.at(id))
 }
 
 function nestedListSelectorExample(name: string, renderer: (context: RenderApp<NestedListSelectorState>, view: HTMLView) => void) {
@@ -311,9 +311,9 @@ function nestedListSelectorExample(name: string, renderer: (context: RenderApp<N
           })
         }),
         fact("for each main list item there is a sub list", (context) => {
-          context.store.dispatch(use(get => get(context.state.nestedData).write("sub-one", ["apple", "airline", "autumn"])))
-          context.store.dispatch(use(get => get(context.state.nestedData).write("sub-two", ["basket", "beet", "berry"])))
-          context.store.dispatch(use(get => get(context.state.nestedData).write("sub-three", ["cat", "column", "cataract"])))
+          context.writeToCollection(context.state.nestedData, "sub-one",  ["apple", "airline", "autumn"])
+          context.writeToCollection(context.state.nestedData, "sub-two",  ["basket", "beet", "berry"])
+          context.writeToCollection(context.state.nestedData, "sub-three",  ["cat", "column", "cataract"])
         }),
         fact("there is a view with nested list and nested selector", (context) => {
           function simpleView(item: State<string>): (subItem: State<string>) => HTMLView {
@@ -352,7 +352,7 @@ function nestedListSelectorExample(name: string, renderer: (context: RenderApp<N
     }).andThen({
       perform: [
         step("update a sublist state", (context) => {
-          context.store.dispatch(use(get => get(context.state.nestedData).write("sub-two", ["funny", "fair", "fabulous", "fascinating"])))
+          context.writeToCollection(context.state.nestedData, "sub-two", ["funny", "fair", "fabulous", "fascinating"])
         })
       ],
       observe: [

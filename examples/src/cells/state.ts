@@ -48,5 +48,5 @@ const cellCollection = collection({
 })
 
 export function cellContainer(get: GetState, id: string): CellContainer {
-  return get(cellCollection).get(id)
+  return get(cellCollection.at(id))
 }

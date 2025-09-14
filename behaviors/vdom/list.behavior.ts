@@ -875,7 +875,7 @@ function listOfSwitchExample(name: string, renderer: (context: RenderApp<ListCon
           function itemView(item: State<string>, index: State<number>): HTMLView {
             return root => {
               root.subviewFrom(select => select.withConditions()
-                .when(get => get([context.state.toggle, "89"]), root => {
+                .when(get => get(context.state.toggle.at(get(item))), root => {
                   root.div(el => {
                     el.children
                       .h4(el => {

@@ -10,17 +10,28 @@ export interface CollectionInitializer<Key, Value, Message = Value> {
 }
 
 export function collection<Key, Value, Message = Value>(initializer: CollectionInitializer<Key, Value, Message>): Collection<Key, Value, Message> {
-  return new Collection(initializer.name, initializer.initialValues, initializer.update)
+  const token = new CollectionState(initializer.name, initializer.initialValues, initializer.update)
+  return {
+    [collectionToken]: token,
+    at: (index: Key) => [token, index]
+  }
 }
 
 export function clear(collection: Collection<any, any>): ClearMessage {
   return {
     type: "clear",
-    collection
+    collection: collection[collectionToken]
   }
 }
 
-export class Collection<Key, Value, Message = Value> extends WritableState<Value, Message> implements IndexableState<Key>  {
+const collectionToken = Symbol("token")
+
+export interface Collection<Key, Value, Message = Value> {
+  [collectionToken]: CollectionState<Key, Value, Message>
+  at(index: Key): IndexableStateReference<Key, CollectionState<Key, Value, Message>>
+}
+
+export class CollectionState<Key, Value, Message = Value> extends WritableState<Value, Message> implements IndexableState<Key, Value> {
   constructor(
     name: string | undefined,
     private generator: (id: Key) => Value,
@@ -29,12 +40,8 @@ export class Collection<Key, Value, Message = Value> extends WritableState<Value
     super(name, update)
   }
 
-  [createPublisher](registry: TokenRegistry): StatePublisher<Value> {
+  [createPublisher](registry: TokenRegistry): IndexedStatePublisher<Key, Value> {
     return new ReactiveContainerCollection(registry, this.generator, this.update)
-  }
-
-  at(index: Key): IndexableStateReference<Key, this> {
-    return [this, index]
   }
 }
 
@@ -46,6 +53,7 @@ class ReactiveContainerCollection<Key, Value, Message> extends IndexedStatePubli
   }
 
   addListener(): void { }
+  getValue(): any { }
 
   indexedBy<C extends StatePublisher<Value>>(id: Key): C {
     let writer = this.writers.get(id)
@@ -58,8 +66,6 @@ class ReactiveContainerCollection<Key, Value, Message> extends IndexedStatePubli
     }
     return writer
   }
-
-  getValue(): any { }
 
   clear(): void {
     this.writers.clear()

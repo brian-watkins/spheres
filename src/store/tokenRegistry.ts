@@ -1,15 +1,15 @@
 
-export interface IndexableState<K> extends State<any> {
-  at(index: K): IndexableStateReference<K, this>
+export interface IndexableState<K, V> extends State<V> {
+  [createPublisher](registry: TokenRegistry): IndexedStatePublisher<K, V>
 }
 
-export type IndexableStateReference<K, X extends IndexableState<K>> = [token: X, key: K]
+export type IndexableStateReference<K, X extends IndexableState<K, any>> = [token: X, key: K]
 
 export function isIndexableStateReference(state: StateReference<any>): state is IndexableStateReference<any, any> {
   return Array.isArray(state)
 }
 
-export type StateReference<X extends State<any>> = X extends IndexableState<infer K> ? IndexableStateReference<K, X> : X
+export type StateReference<X extends State<any>> = X extends IndexableState<infer K, any> ? IndexableStateReference<K, X> : X
 
 export type GetState = <X extends State<any>>(
   state: StateReference<X>

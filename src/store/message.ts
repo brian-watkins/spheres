@@ -45,7 +45,7 @@ export interface ResetMessage<T> {
 
 export interface ClearMessage {
   type: "clear"
-  collection: IndexableState<any>
+  collection: IndexableState<any, any>
 }
 
 export interface UseMessage {

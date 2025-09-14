@@ -49,7 +49,7 @@ export default behavior("container collection", [
           ]))
         }),
         effect("the debug name is equal to the id", (context) => {
-          expect(context.tokens.collection.toString(), is("Fun-Collection"))
+          expect(context.tokens.collection.at("container-1").toString(), is("Fun-Collection,container-1"))
         })
       ]
     }),

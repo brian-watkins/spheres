@@ -5,7 +5,7 @@ export interface IndexableState<K, V> extends State<V> {
 
 export type IndexableStateReference<K, X extends IndexableState<K, any>> = [token: X, key: K]
 
-export function isIndexableStateReference(state: StateReference<any>): state is IndexableStateReference<any, any> {
+function isIndexableStateReference(state: StateReference<any>): state is IndexableStateReference<any, any> {
   return Array.isArray(state)
 }
 
@@ -18,16 +18,9 @@ export type GetState = <X extends State<any>>(
 export type Stateful<T> = (get: GetState) => T | undefined
 
 function subscribeOnGet(this: StateListener, token: StateReference<any>): any {
-  if (isIndexableStateReference(token)) {
-    let publisher = this.registry.getState<IndexableStatePublisher<any, any>>(token[0])
-    let indexedPublisher = publisher.indexedBy(token[1])
-    indexedPublisher.addListener(this)
-    return indexedPublisher.getValue()
-  } else {
-    let publisher = this.registry.getState(token)
-    publisher.addListener(this)
-    return publisher.getValue()
-  }
+  const publisher = getStatePublisher(this.registry, token)
+  publisher.addListener(this)
+  return publisher.getValue()
 }
 
 export function getStateFunctionWithListener(listener: StateListener): GetState {
@@ -35,13 +28,16 @@ export function getStateFunctionWithListener(listener: StateListener): GetState 
 }
 
 export function runQuery<M>(registry: TokenRegistry, query: (get: GetState) => M): M {
-  return query((token) => {
-    if (isIndexableStateReference(token)) {
-      return registry.getState<IndexableStatePublisher<any, any>>(token[0]).indexedBy(token[1]).getValue()
-    } else {
-      return registry.getState(token).getValue()
-    }
-  })
+  return query((token) => getStatePublisher(registry, token).getValue())
+}
+
+export function getStatePublisher<C extends StatePublisher<any>>(registry: TokenRegistry, token: StateReference<any>): C {
+  if (isIndexableStateReference(token)) {
+    return registry.getState<IndexableStatePublisher<any, any>>(token[0])
+      .indexedBy<C>(token[1])
+  } else {
+    return registry.getState<C>(token)
+  }
 }
 
 export function createStatePublisher(registry: TokenRegistry, token: State<any>, initialValue?: any): StatePublisher<any> {

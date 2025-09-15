@@ -1,5 +1,5 @@
 import { StateWriter } from "./state/publisher/stateWriter.js"
-import { Command, GetState, IndexableState, IndexableStatePublisher, isIndexableStateReference, runQuery, State, StateReference, TokenRegistry } from "./tokenRegistry.js"
+import { Command, GetState, getStatePublisher, IndexableState, IndexableStatePublisher, runQuery, State, StateReference, TokenRegistry } from "./tokenRegistry.js"
 
 export const initialValue = Symbol("initialValue")
 
@@ -103,11 +103,11 @@ export function update<T, M, X extends WritableState<T, M>>(state: StateReferenc
 export function dispatchMessage(registry: TokenRegistry, message: StoreMessage<any>) {
   switch (message.type) {
     case "write": {
-      getWriter(registry, message.token).write(message.value)
+      getStatePublisher<StateWriter<any>>(registry, message.token).write(message.value)
       break
     }
     case "update": {
-      const writer = getWriter(registry, message.token)
+      const writer = getStatePublisher<StateWriter<any>>(registry, message.token)
       writer.write(message.generator(writer.getValue()))
       break
     }
@@ -140,14 +140,5 @@ export function dispatchMessage(registry: TokenRegistry, message: StoreMessage<a
       }
       break
     }
-  }
-}
-
-function getWriter(registry: TokenRegistry, token: StateReference<WritableState<any, any>>): StateWriter<any> {
-  if (isIndexableStateReference(token)) {
-    return registry.getState<IndexableStatePublisher<any, any>>(token[0])
-      .indexedBy<StateWriter<any>>(token[1])
-  } else {
-    return registry.getState<StateWriter<any>>(token)
   }
 }

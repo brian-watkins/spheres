@@ -1,5 +1,5 @@
 import { StateWriter } from "./state/publisher/stateWriter.js"
-import { Command, GetState, IndexableState, IndexedStatePublisher, isIndexableStateReference, runQuery, State, StateReference, TokenRegistry } from "./tokenRegistry.js"
+import { Command, GetState, IndexableState, IndexableStatePublisher, isIndexableStateReference, runQuery, State, StateReference, TokenRegistry } from "./tokenRegistry.js"
 
 export const initialValue = Symbol("initialValue")
 
@@ -20,15 +20,13 @@ export abstract class WritableState<Value, Message> extends State<Value> {
 
 export interface WriteMessage<T, M = T> {
   type: "write"
-  container: WritableState<T, M>
-  index?: any
+  token: StateReference<WritableState<T, M>>
   value: M
 }
 
 export interface UpdateMessage<T, M = T> {
   type: "update"
-  container: WritableState<T, M>
-  index?: any
+  token: StateReference<WritableState<T, M>>
   generator: (current: T) => M
 }
 
@@ -87,54 +85,29 @@ export function batch(messages: Array<StoreMessage<any>>): BatchMessage {
 }
 
 export function write<T, M, X extends WritableState<T, M>>(state: StateReference<X>, message: NoInfer<M>): WriteMessage<T, M> {
-  if (isIndexableStateReference(state)) {
-    return {
-      type: "write",
-      container: state[0],
-      index: state[1],
-      value: message
-    }
-  } else {
-    return {
-      type: "write",
-      container: state,
-      value: message
-    }
+  return {
+    type: "write",
+    token: state,
+    value: message
   }
 }
 
 export function update<T, M, X extends WritableState<T, M>>(state: StateReference<X>, generator: (current: NoInfer<T>) => NoInfer<M>): UpdateMessage<T, M> {
-  if (isIndexableStateReference(state)) {
-    return {
-      type: "update",
-      container: state[0],
-      index: state[1],
-      generator
-    }
-  } else {
-    return {
-      type: "update",
-      container: state,
-      generator
-    }
+  return {
+    type: "update",
+    token: state,
+    generator
   }
 }
 
 export function dispatchMessage(registry: TokenRegistry, message: StoreMessage<any>) {
   switch (message.type) {
     case "write": {
-      let publisher = registry.getState<StateWriter<any>>(message.container)
-      if (publisher instanceof IndexedStatePublisher) {
-        publisher = publisher.indexedBy<StateWriter<any>>(message.index)
-      }
-      publisher.write(message.value)
+      getWriter(registry, message.token).write(message.value)
       break
     }
     case "update": {
-      let writer = registry.getState<StateWriter<any>>(message.container)
-      if (writer instanceof IndexedStatePublisher) {
-        writer = writer.indexedBy<StateWriter<any>>(message.index)
-      }
+      const writer = getWriter(registry, message.token)
       writer.write(message.generator(writer.getValue()))
       break
     }
@@ -148,7 +121,7 @@ export function dispatchMessage(registry: TokenRegistry, message: StoreMessage<a
       break
     }
     case "clear": {
-      const publisher = registry.getState<IndexedStatePublisher<any, any>>(message.collection)
+      const publisher = registry.getState<IndexableStatePublisher<any, any>>(message.collection)
       publisher.clear()
       break
     }
@@ -167,5 +140,14 @@ export function dispatchMessage(registry: TokenRegistry, message: StoreMessage<a
       }
       break
     }
+  }
+}
+
+function getWriter(registry: TokenRegistry, token: StateReference<WritableState<any, any>>): StateWriter<any> {
+  if (isIndexableStateReference(token)) {
+    return registry.getState<IndexableStatePublisher<any, any>>(token[0])
+      .indexedBy<StateWriter<any>>(token[1])
+  } else {
+    return registry.getState<StateWriter<any>>(token)
   }
 }

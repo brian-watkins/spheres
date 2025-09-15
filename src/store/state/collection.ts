@@ -1,5 +1,5 @@
 import { ClearMessage, WritableState } from "../message.js"
-import { createPublisher, IndexableState, IndexableStateReference, IndexedStatePublisher, StatePublisher, TokenRegistry } from "../tokenRegistry.js"
+import { createPublisher, IndexableState, IndexableStateReference, IndexableStatePublisher, StatePublisher, TokenRegistry } from "../tokenRegistry.js"
 import { MessageDispatchingStateWriter, UpdateResult } from "./publisher/messageDispatchingStateWriter.js"
 import { StateWriter } from "./publisher/stateWriter.js"
 
@@ -40,12 +40,12 @@ export class CollectionState<Key, Value, Message = Value> extends WritableState<
     super(name, update)
   }
 
-  [createPublisher](registry: TokenRegistry): IndexedStatePublisher<Key, Value> {
+  [createPublisher](registry: TokenRegistry): IndexableStatePublisher<Key, Value> {
     return new ReactiveContainerCollection(registry, this.generator, this.update)
   }
 }
 
-class ReactiveContainerCollection<Key, Value, Message> extends IndexedStatePublisher<Key, Value> {
+class ReactiveContainerCollection<Key, Value, Message> extends StatePublisher<Value> implements IndexableStatePublisher<Key, Value> {
   private writers = new Map<Key, any>()
 
   constructor(private registry: TokenRegistry, private generator: (id: Key) => Value, private reducer?: (message: Message, current: Value) => UpdateResult<Value>) {

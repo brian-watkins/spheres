@@ -1,6 +1,6 @@
 
 export interface IndexableState<K, V> extends State<V> {
-  [createPublisher](registry: TokenRegistry): IndexedStatePublisher<K, V>
+  [createPublisher](registry: TokenRegistry): IndexableStatePublisher<K, V>
 }
 
 export type IndexableStateReference<K, X extends IndexableState<K, any>> = [token: X, key: K]
@@ -19,7 +19,7 @@ export type Stateful<T> = (get: GetState) => T | undefined
 
 function subscribeOnGet(this: StateListener, token: StateReference<any>): any {
   if (isIndexableStateReference(token)) {
-    let publisher = this.registry.getState<IndexedStatePublisher<any, any>>(token[0])
+    let publisher = this.registry.getState<IndexableStatePublisher<any, any>>(token[0])
     let indexedPublisher = publisher.indexedBy(token[1])
     indexedPublisher.addListener(this)
     return indexedPublisher.getValue()
@@ -37,7 +37,7 @@ export function getStateFunctionWithListener(listener: StateListener): GetState 
 export function runQuery<M>(registry: TokenRegistry, query: (get: GetState) => M): M {
   return query((token) => {
     if (isIndexableStateReference(token)) {
-      return registry.getState<IndexedStatePublisher<any, any>>(token[0]).indexedBy(token[1]).getValue()
+      return registry.getState<IndexableStatePublisher<any, any>>(token[0]).indexedBy(token[1]).getValue()
     } else {
       return registry.getState(token).getValue()
     }
@@ -197,9 +197,9 @@ export abstract class StatePublisher<T> {
   }
 }
 
-export abstract class IndexedStatePublisher<Key, Value> extends StatePublisher<Value> {
-  abstract indexedBy<C extends StatePublisher<Value>>(key: Key): C
-  abstract clear(): void
+export interface IndexableStatePublisher<Key, Value> extends StatePublisher<Value> {
+  indexedBy<C extends StatePublisher<Value>>(key: Key): C
+  clear(): void
 }
 
 export interface CommandController<T> {

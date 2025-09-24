@@ -22,7 +22,7 @@ export class DerivedState<T> extends State<T> {
 
   [createPublisher](registry: TokenRegistry): StatePublisher<T> {
     const publisher = new DerivedStatePublisher(registry, this.derivation)
-    initListener(publisher)
+    initListener(registry, publisher)
     return publisher
   }
 }

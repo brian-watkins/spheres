@@ -1,4 +1,4 @@
-import { StateListener, StatePublisher } from "../../tokenRegistry.js"
+import { StatePublisher, Subscriber } from "../../tokenRegistry.js"
 
 export class StateWriter<T> extends StatePublisher<T> {
   constructor(private _value: T) {
@@ -18,7 +18,7 @@ export class StateWriter<T> extends StatePublisher<T> {
 
     this._value = value
 
-    const userEffects: Array<StateListener> = []
+    const userEffects: Array<Subscriber> = []
     this.notifyListeners(userEffects)
 
     this.runListeners()

@@ -9,7 +9,7 @@ export class SelectViewEffect implements StateListener {
   private currentSelector: TemplateSelector<DOMTemplate> | undefined
 
   constructor(
-    public registry: TokenRegistry,
+    private registry: TokenRegistry,
     public selectors: SelectorCollection<DOMTemplate>,
     public startNode: Node,
     public endNode: Node,

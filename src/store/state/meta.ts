@@ -1,5 +1,5 @@
 import { StateWriter } from "./publisher/stateWriter.js"
-import { createPublisher, GetState, State, StateListener, StateListenerType, StatePublisher, TokenRegistry } from "../tokenRegistry.js"
+import { createPublisher, GetState, State, StateListener, StateListenerType, StatePublisher, createSubscriber, TokenRegistry } from "../tokenRegistry.js"
 
 export interface PendingMessage<M> {
   type: "pending"
@@ -49,7 +49,7 @@ export class MetaState<T, M, E = unknown> extends State<Meta<M, E>> {
 
     const writer = new StateWriter<Meta<M, E>>(serializedState ?? ok())
 
-    publisher.addListener(new MetaStateListener(registry, this.token, writer))
+    publisher.addListener(createSubscriber(registry, new MetaStateListener(registry, this.token, writer)))
 
     return writer
   }

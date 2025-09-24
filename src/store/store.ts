@@ -3,7 +3,7 @@ import { dispatchMessage, StoreMessage } from "./message.js"
 import { error, Meta, ok, pending } from "./state/meta.js"
 import { WeakMapTokenRegistry } from "./store/weakMapTokenRegistry.js"
 import { StateWriter } from "./state/publisher/stateWriter.js"
-import { Command, GetState, initializeCommand, initListener, runQuery, StateListener, StateListenerType, StateListenerVersion, TokenRegistry } from "./tokenRegistry.js"
+import { Command, GetState, initializeCommand, initListener, runQuery, setVersion, StateListener, StateListenerType, TokenRegistry } from "./tokenRegistry.js"
 import { CommandManager, ManagedCommandController } from "./command/managedCommandController.js"
 
 export interface StoreOptions {
@@ -94,9 +94,13 @@ export class Store {
 
 export function useEffect(store: Store, effect: ReactiveEffect): ReactiveEffectHandle {
   const registry = getTokenRegistry(store)
-  const listener = new EffectListener(registry, effect)
-  initListener(listener)
-  return listener
+  const listener = new EffectListener(effect)
+  const subscriber = initListener(registry, listener)
+  return {
+    unsubscribe: () => {
+      setVersion(subscriber, -1)
+    }
+  }
 }
 
 export function useCommand<M>(store: Store, command: Command<M>, manager: CommandManager<NoInfer<M>>) {
@@ -177,11 +181,10 @@ function containerWriteActions<T, M, E>(registry: TokenRegistry, container: Cont
   }
 }
 
-export class EffectListener implements StateListener, ReactiveEffectHandle {
+export class EffectListener implements StateListener {
   readonly type = StateListenerType.UserEffect
-  version: StateListenerVersion = 0
 
-  constructor(public registry: TokenRegistry, private effect: ReactiveEffect) { }
+  constructor(private effect: ReactiveEffect) { }
 
   init(get: GetState): void {
     if (this.effect.init !== undefined) {
@@ -193,10 +196,6 @@ export class EffectListener implements StateListener, ReactiveEffectHandle {
 
   run(get: GetState): void {
     this.effect.run(get)
-  }
-
-  unsubscribe() {
-    this.version = -1
   }
 }
 

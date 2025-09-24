@@ -10,6 +10,9 @@ import { AbstractViewRenderer, ElementDefinition, isStateful, ViewDefinition, Vi
 import { DOMTemplate, EffectTemplate, EffectTemplateTypes, TemplateType } from "./domTemplate.js";
 import { SelectorBuilder } from "./selectorBuilder.js";
 import { ElementConfigSupport, ElementSupport } from "../elementSupport.js";
+import { UpdateTextEffect } from "./effects/textEffect.js";
+import { UpdateAttributeEffect } from "./effects/attributeEffect.js";
+import { UpdatePropertyEffect } from "./effects/propertyEffect.js";
 
 export class DomTemplateRenderer extends AbstractViewRenderer {
   public effectTemplates: Array<EffectTemplate> = []
@@ -45,8 +48,7 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
       this.root.appendChild(document.createTextNode(""))
       this.effectTemplates.push({
         type: EffectTemplateTypes.Text,
-        generator: value,
-        location: this.location
+        effect: new UpdateTextEffect(this.location, value)
       })
     } else {
       this.root.appendChild(document.createTextNode(value))
@@ -154,9 +156,7 @@ class DomTemplateConfig extends AbstractViewConfig {
     if (isStateful(value)) {
       this.effectTemplates.push({
         type: EffectTemplateTypes.Attribute,
-        name,
-        generator: value,
-        location: this.location
+        effect: new UpdateAttributeEffect(this.location, name, value)
       })
     } else {
       this.element.setAttribute(name, value)
@@ -168,9 +168,7 @@ class DomTemplateConfig extends AbstractViewConfig {
     if (isStateful(value)) {
       this.effectTemplates.push({
         type: EffectTemplateTypes.Property,
-        name,
-        generator: value,
-        location: this.location
+        effect: new UpdatePropertyEffect(this.location, name, value)
       })
     } else {
       //@ts-ignore

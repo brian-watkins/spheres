@@ -32,7 +32,7 @@ class VirtualItem extends OverlayTokenRegistry {
   private constructor(
     public key: any,
     public index: number,
-    public registry: TokenRegistry,
+    registry: TokenRegistry,
     private itemToken: State<any>,
     private itemPublisher: StateWriter<any>
   ) { super(registry) }
@@ -51,16 +51,15 @@ class VirtualItem extends OverlayTokenRegistry {
     const clone = new VirtualItem(
       this.key,
       this.index,
-      this.registry,
+      this.parentRegistry,
       this.itemToken,
-      this.itemPublisher
+      this.itemPublisher,
     )
 
-    clone.node = this.node
-    clone.firstNode = this.firstNode
-    clone.lastNode = this.lastNode
+    clone.setNode(this.node, this.firstNode, this.lastNode)
     clone.indexToken = this.indexToken
     clone.indexPublisher = this.indexPublisher
+    clone.tokenMap = this.tokenMap
     clone.isDetached = this.isDetached
     clone.prev = this.prev
     clone.next = this.next

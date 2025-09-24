@@ -41,7 +41,7 @@ export function getListElementId(element: Node): string {
 
 export function findListEndNode(start: Node, id: string): Node {
   let end = start.nextSibling!
-  while (end && end.nodeValue !== `list-end-${id}`) {
+  while (end && end.nodeValue !== listEndIndicator(id)) {
     end = end.nextSibling!
   }
   return end

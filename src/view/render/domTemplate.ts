@@ -1,11 +1,8 @@
 import { dispatchMessage } from "../../store/message.js"
-import { GetState, getStateFunctionWithListener, initListener, Stateful, TokenRegistry } from "../../store/tokenRegistry.js"
+import { GetState, getStateFunctionWithListener, initListener, StateListener, createSubscriber, TokenRegistry } from "../../store/tokenRegistry.js"
 import { EffectLocation } from "./effectLocation.js"
-import { UpdateAttributeEffect } from "./effects/attributeEffect.js"
 import { activateList, ListEffect } from "./effects/listEffect.js"
-import { UpdatePropertyEffect } from "./effects/propertyEffect.js"
 import { activateSelect, SelectViewEffect } from "./effects/selectViewEffect.js"
-import { UpdateTextEffect } from "./effects/textEffect.js"
 import { findListEndNode, findSwitchEndNode, getListElementId } from "./fragmentHelpers.js"
 import { spheresTemplateData, StoreEventHandler } from "./index.js"
 import { SelectorCollection } from "./selectorBuilder.js"
@@ -17,22 +14,17 @@ export enum EffectTemplateTypes {
 
 export interface TextEffectTemplate {
   type: EffectTemplateTypes.Text
-  generator: Stateful<string>
-  location: EffectLocation
+  effect: StateListener
 }
 
 export interface AttributeEffectTemplate {
   type: EffectTemplateTypes.Attribute
-  name: string
-  generator: Stateful<string>
-  location: EffectLocation
+  effect: StateListener
 }
 
 export interface PropertyEffectTemplate {
   type: EffectTemplateTypes.Property
-  name: string
-  generator: Stateful<any>
-  location: EffectLocation
+  effect: StateListener
 }
 
 export interface ListEffectTemplate {
@@ -109,19 +101,10 @@ export function activate(template: DOMTemplate, registry: TokenRegistry, root: N
 
 function initializeEffect(registry: TokenRegistry, root: Node, effect: EffectTemplate) {
   switch (effect.type) {
-    case EffectTemplateTypes.Text: {
-      const textEffect = new UpdateTextEffect(registry, effect.location.findNode(root) as Text, effect.generator)
-      initListener(textEffect)
-      break
-    }
-    case EffectTemplateTypes.Attribute: {
-      const attributeEffect = new UpdateAttributeEffect(registry, effect.location.findNode(root) as Element, effect.name, effect.generator)
-      initListener(attributeEffect)
-      break
-    }
+    case EffectTemplateTypes.Text:
+    case EffectTemplateTypes.Attribute:
     case EffectTemplateTypes.Property: {
-      const propertyEffect = new UpdatePropertyEffect(registry, effect.location.findNode(root) as Element, effect.name, effect.generator)
-      initListener(propertyEffect)
+      initListener(registry, effect.effect, root)
       break
     }
     case EffectTemplateTypes.List: {
@@ -129,7 +112,7 @@ function initializeEffect(registry: TokenRegistry, root: Node, effect: EffectTem
       const end = findListEndNode(listStartIndicatorNode, effect.elementId)
 
       const listEffect = new ListEffect(registry, effect.domTemplate, effect.query, effect.context, listStartIndicatorNode, end)
-      initListener(listEffect)
+      initListener(registry, listEffect)
       break
     }
     case EffectTemplateTypes.Select: {
@@ -137,7 +120,7 @@ function initializeEffect(registry: TokenRegistry, root: Node, effect: EffectTem
       const endNode = findSwitchEndNode(startNode, effect.elementId)
 
       const selectEffect = new SelectViewEffect(registry, effect.selectors, startNode, endNode)
-      initListener(selectEffect)
+      initListener(registry, selectEffect)
       break
     }
     case EffectTemplateTypes.Event: {
@@ -153,19 +136,10 @@ function initializeEffect(registry: TokenRegistry, root: Node, effect: EffectTem
 
 function activateEffect(registry: TokenRegistry, root: Node, effect: EffectTemplate) {
   switch (effect.type) {
-    case EffectTemplateTypes.Text: {
-      const textEffect = new UpdateTextEffect(registry, effect.location.findNode(root) as Text, effect.generator)
-      initListener(textEffect)
-      break
-    }
-    case EffectTemplateTypes.Attribute: {
-      const attributeEffect = new UpdateAttributeEffect(registry, effect.location.findNode(root) as Element, effect.name, effect.generator)
-      initListener(attributeEffect)
-      break
-    }
+    case EffectTemplateTypes.Text:
+    case EffectTemplateTypes.Attribute:
     case EffectTemplateTypes.Property: {
-      const propertyEffect = new UpdatePropertyEffect(registry, effect.location.findNode(root) as Element, effect.name, effect.generator)
-      initListener(propertyEffect)
+      initListener(registry, effect.effect, root)
       break
     }
     case EffectTemplateTypes.List: {
@@ -174,7 +148,7 @@ function activateEffect(registry: TokenRegistry, root: Node, effect: EffectTempl
       let end = findListEndNode(listStartIndicatorNode, elementId)
 
       const listEffect = new ListEffect(registry, effect.domTemplate, effect.query, effect.context, listStartIndicatorNode, end)
-      const data = effect.query(getStateFunctionWithListener(listEffect))
+      const data = effect.query(getStateFunctionWithListener(createSubscriber(registry, listEffect)))
       const virtualList = activateList(registry, effect.context, effect.domTemplate, listStartIndicatorNode, end, data)
       listEffect.setVirtualList(virtualList)
 
@@ -185,7 +159,7 @@ function activateEffect(registry: TokenRegistry, root: Node, effect: EffectTempl
       const endNode = findSwitchEndNode(startNode, effect.elementId)
 
       const selectEffect = new SelectViewEffect(registry, effect.selectors, startNode, endNode)
-      activateSelect(registry, effect.selectors, startNode, getStateFunctionWithListener(selectEffect))
+      activateSelect(registry, effect.selectors, startNode, getStateFunctionWithListener(createSubscriber(registry, selectEffect)))
 
       break
     }

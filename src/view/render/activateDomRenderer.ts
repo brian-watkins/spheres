@@ -1,13 +1,13 @@
 import { DOMEventType, EventsToDelegate, StoreEventHandler, EventZone } from "./index.js";
 import { Stateful, GetState, State } from "../../store/index.js";
 import { dispatchMessage } from "../../store/message.js";
-import { getStateFunctionWithListener, initListener, TokenRegistry } from "../../store/tokenRegistry.js";
+import { getStateFunctionWithListener, initListener, createSubscriber, TokenRegistry } from "../../store/tokenRegistry.js";
 import { UpdateAttributeEffect } from "./effects/attributeEffect.js";
 import { UpdatePropertyEffect } from "./effects/propertyEffect.js";
 import { activateSelect, SelectViewEffect } from "./effects/selectViewEffect.js";
 import { UpdateTextEffect } from "./effects/textEffect.js";
 import { getEventAttribute } from "./eventHelpers.js";
-import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementId } from "./fragmentHelpers.js";
+import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementId, listEndIndicator } from "./fragmentHelpers.js";
 import { createDOMTemplate, DomTemplateRenderer } from "./templateRenderer.js";
 import { AbstractViewConfig } from "./viewConfig.js";
 import { AbstractViewRenderer, ElementDefinition, isStateful, ViewDefinition, ViewSelector } from "./viewRenderer.js";
@@ -17,22 +17,27 @@ import { ListItemTemplateContext } from "./templateContext.js";
 import { activateList, ListEffect } from "./effects/listEffect.js";
 import { SelectorBuilder } from "./selectorBuilder.js";
 import { ElementConfigSupport, ElementSupport } from "../elementSupport.js";
+import { DOMRoot } from "./domRoot.js";
 
 export class ActivateDomRenderer extends AbstractViewRenderer {
   private currentNode: Node | null
+  private currentLocation: EffectLocation
 
-  constructor(private elementSupport: ElementSupport, private zone: EventZone, private registry: TokenRegistry, node: Node) {
+  constructor(private elementSupport: ElementSupport, private zone: DOMRoot, private registry: TokenRegistry, node: Node, location: EffectLocation) {
     super()
+
     this.currentNode = node
+    this.currentLocation = location
   }
 
   textNode(value: string | Stateful<string>): this {
     if (isStateful(value)) {
-      const effect = new UpdateTextEffect(this.registry, this.currentNode as Text, value)
-      initListener(effect)
+      const effect = new UpdateTextEffect(this.currentLocation, value)
+      initListener(this.registry, effect, this.zone.root)
     }
 
     this.currentNode = this.currentNode!.nextSibling
+    this.currentLocation = this.currentLocation.nextSibling()
 
     return this
   }
@@ -41,11 +46,12 @@ export class ActivateDomRenderer extends AbstractViewRenderer {
     const renderSupport = support ?? this.elementSupport
 
     builder?.({
-      config: new ActivateDomConfig(renderSupport.getConfigSupport(tag), this.zone, this.registry, this.currentNode as Element),
-      children: new ActivateDomRenderer(renderSupport, this.zone, this.registry, this.currentNode!.firstChild!)
+      config: new ActivateDomConfig(renderSupport.getConfigSupport(tag), this.zone, this.registry, this.zone.root, this.currentNode as Element, this.currentLocation),
+      children: new ActivateDomRenderer(renderSupport, this.zone, this.registry, this.currentNode!.firstChild!, this.currentLocation.firstChild())
     })
 
     this.currentNode = this.currentNode!.nextSibling
+    this.currentLocation = this.currentLocation.nextSibling()
 
     return this
   }
@@ -58,11 +64,12 @@ export class ActivateDomRenderer extends AbstractViewRenderer {
     const templateContext = new ListItemTemplateContext(renderer, viewGenerator)
 
     const effect = new ListEffect(this.registry, renderer.template, query, templateContext, this.currentNode!, end)
-    const data = query(getStateFunctionWithListener(effect))
+    const data = query(getStateFunctionWithListener(createSubscriber(this.registry, effect)))
     const virtualList = activateList(this.registry, templateContext, renderer.template, this.currentNode!, end, data)
     effect.setVirtualList(virtualList)
 
     this.currentNode = end.nextSibling
+    this.currentLocation = this.currentLocation.nextCommentSiblingMatching(listEndIndicator(elementId)).nextSibling()
 
     return this
   }
@@ -75,31 +82,32 @@ export class ActivateDomRenderer extends AbstractViewRenderer {
     selectorGenerator(selectorBuilder)
 
     const effect = new SelectViewEffect(this.registry, selectorBuilder.selectors, this.currentNode!, end)
-    activateSelect(this.registry, selectorBuilder.selectors, this.currentNode!, getStateFunctionWithListener(effect))
+    activateSelect(this.registry, selectorBuilder.selectors, this.currentNode!, getStateFunctionWithListener(createSubscriber(this.registry, effect)))
 
     this.currentNode = end.nextSibling
+    this.currentLocation = this.currentLocation.nextSibling()
 
     return this
   }
 }
 
 class ActivateDomConfig extends AbstractViewConfig {
-  constructor(configSupport: ElementConfigSupport, private zone: EventZone, private registry: TokenRegistry, private element: Element) {
+  constructor(configSupport: ElementConfigSupport, private zone: EventZone, private registry: TokenRegistry, private root: Node, private element: Element, private location: EffectLocation) {
     super(configSupport)
   }
 
   attribute(name: string, value: string | Stateful<string>): this {
     if (isStateful(value)) {
-      const attributeEffect = new UpdateAttributeEffect(this.registry, this.element, name, value)
-      initListener(attributeEffect)
+      const attributeEffect = new UpdateAttributeEffect(this.location, name, value)
+      initListener(this.registry, attributeEffect, this.root)
     }
     return this
   }
 
   property<T extends string | boolean>(name: string, value: T | Stateful<T>): this {
     if (isStateful(value)) {
-      const propertyEffect = new UpdatePropertyEffect(this.registry, this.element, name, value)
-      initListener(propertyEffect)
+      const propertyEffect = new UpdatePropertyEffect(this.location, name, value)
+      initListener(this.registry, propertyEffect, this.root)
     }
 
     return this

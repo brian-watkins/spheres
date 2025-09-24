@@ -29,7 +29,7 @@ export class BasicCommand<M> extends Command<M> {
 
   [initializeCommand](registry: TokenRegistry): void {
     if (this.trigger !== undefined) {
-      initListener(new DispatchCommandQuery(registry, this, this.trigger))
+      initListener(registry, new DispatchCommandQuery(registry, this, this.trigger))
     }
   }
 }

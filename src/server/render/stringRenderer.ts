@@ -189,15 +189,12 @@ class StringRenderer extends AbstractViewRenderer {
             case "empty": {
               return ""
             }
-            case "case-selector": {
+            case "view": {
               const templateContext = selector.templateContext()
               return stringForTemplate(
                 templateContext.overlayRegistry(registry),
                 templateContext.template
               )
-            }
-            case "condition-selector": {
-              return stringForTemplate(registry, selector.template())
             }
           }
 

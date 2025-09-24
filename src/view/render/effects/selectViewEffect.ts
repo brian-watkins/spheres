@@ -42,13 +42,9 @@ export class SelectViewEffect implements StateListener {
         node = document.createTextNode("")
         break
       }
-      case "case-selector": {
+      case "view": {
         const templateContext = selector.templateContext()
         node = render(templateContext.template, templateContext.overlayRegistry(this.registry))
-        break
-      }
-      case "condition-selector": {
-        node = render(selector.template(), this.registry)
         break
       }
     }
@@ -69,15 +65,8 @@ export class SelectViewEffect implements StateListener {
 export function activateSelect(registry: TokenRegistry, selectors: SelectorCollection<DOMTemplate>, startNode: Node, get: GetState): void {
   const selector = selectors.findSelector(get)
 
-  switch (selector.type) {
-    case "case-selector": {
-      const templateContext = selector.templateContext()
-      activate(templateContext.template, templateContext.overlayRegistry(registry), startNode.nextSibling!)
-      break
-    }
-    case "condition-selector": {
-      activate(selector.template(), registry, startNode.nextSibling!)
-      break
-    }
+  if (selector.type === "view") {
+    const templateContext = selector.templateContext()
+    activate(templateContext.template, templateContext.overlayRegistry(registry), startNode.nextSibling!)
   }
 }

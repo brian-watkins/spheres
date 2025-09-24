@@ -267,11 +267,26 @@ export default behavior("conditional zone", [
             })
           }
 
+          function defaultView(root: HTMLBuilder) {
+            const count = container({ initialValue: 0 })
+
+            root.div(el => {
+              el.children
+                .h1(el => {
+                  el.children.textNode(get => `The default count is: ${get(count)}`)
+                })
+                .button(el => {
+                  el.config.on("click", () => update(count, (val) => val + 2))
+                  el.children.textNode("Increment default count!")
+                })
+            })
+          }
+
           context.mountView(root => {
             root.main(el => {
               el.children.subviewFrom(selector => selector.withConditions()
                 .when(get => get(context.state).length > 3, counterView)
-                .default(root => root.div(el => el.children.textNode("Just wait!")))
+                .default(defaultView)
               )
             })
           })
@@ -287,6 +302,23 @@ export default behavior("conditional zone", [
       observe: [
         effect("the counter tally is correct", async () => {
           await expect(selectElement("h1").text(), resolvesTo("The count is: 6"))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("update the state so that the default view is shown", (context) => {
+          context.writeTo(context.state, "aa")
+        }),
+        step("click the button in the default view", async () => {
+          await selectElement("button").click()
+          await selectElement("button").click()
+          await selectElement("button").click()
+          await selectElement("button").click()
+        })
+      ],
+      observe: [
+        effect("the default counter tally is correct", async () => {
+          await expect(selectElement("h1").text(), resolvesTo("The default count is: 8"))
         })
       ]
     }),

@@ -3,19 +3,13 @@ import { recordTokens } from "../../store/state/stateRecorder.js";
 import { createStatePublisher, OverlayTokenRegistry, runQuery, StateListener, StatePublisher, TokenRegistry } from "../../store/tokenRegistry.js";
 import { ViewDefinition, ViewCaseSelector, ViewSelector, ViewConditionSelector } from "./viewRenderer.js";
 
-export interface TemplateConditionSelector<T> {
-  type: "condition-selector"
-  select: (get: GetState) => boolean
-  template: () => T
-}
-
 export interface TemplateContext<T> {
   template: T
   overlayRegistry: (registry: TokenRegistry) => TokenRegistry
 }
 
-export interface TemplateCaseSelector<T> {
-  type: "case-selector"
+export interface TemplateView<T> {
+  type: "view"
   select: (get: GetState) => boolean
   templateContext: () => TemplateContext<T>
 }
@@ -25,7 +19,7 @@ export interface EmptyTemplate {
   select: (get: GetState) => boolean
 }
 
-export type TemplateSelector<T> = EmptyTemplate | TemplateCaseSelector<T> | TemplateConditionSelector<T>
+export type TemplateSelector<T> = EmptyTemplate | TemplateView<T>
 
 export class SelectorBuilder<T> implements ViewSelector {
   private templateSelectors: Array<TemplateSelector<T>> = []
@@ -51,7 +45,7 @@ export class SelectorBuilder<T> implements ViewSelector {
         const index = self.templateSelectors.length
         const selector = (get: GetState) => typePredicate(get(state))
         self.templateSelectors.push({
-          type: "case-selector",
+          type: "view",
           select: selector,
           templateContext: memoize(() => {
             let template!: any
@@ -71,14 +65,15 @@ export class SelectorBuilder<T> implements ViewSelector {
       },
       default(viewGenerator) {
         self.defaultSelector = {
-          type: "case-selector",
+          type: "view",
           select: () => true,
           templateContext: memoize(() => {
             return {
               template: self.createTemplate(viewGenerator(state), self.templateSelectors.length),
-              overlayRegistry: (registry) => {
-                return new CaseViewOverlayTokenRegistry(registry, () => true, [])
-              }
+              // Note: No need for an overlay registry here as the default view does not get
+              // a particular discrimiant as its state argument -- the guard provided by
+              // the registry is not needed
+              overlayRegistry: (registry) => registry
             }
           })
         }
@@ -93,18 +88,28 @@ export class SelectorBuilder<T> implements ViewSelector {
       when(predicate: (get: GetState) => boolean, view: ViewDefinition) {
         const index = self.templateSelectors.length
         self.templateSelectors.push({
-          type: "condition-selector",
+          type: "view",
           select: predicate,
-          template: memoize(() => self.createTemplate(view, index))
+          templateContext: memoize(() => {
+            return {
+              template: self.createTemplate(view, index),
+              overlayRegistry: (registry) => registry
+            }
+          })
         })
 
         return this
       },
       default(view: ViewDefinition): void {
         self.defaultSelector = {
-          type: "condition-selector",
+          type: "view",
           select: () => true,
-          template: memoize(() => self.createTemplate(view, self.templateSelectors.length))
+          templateContext: memoize(() => {
+            return {
+              template: self.createTemplate(view, self.templateSelectors.length),
+              overlayRegistry: (registry) => registry
+            }
+          })
         }
       }
     }

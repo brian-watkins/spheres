@@ -75,12 +75,6 @@ export function initListener(registry: TokenRegistry, listener: StateListener, c
   return subscriber
 }
 
-function runListener(key: Subscriber) {
-  setVersion(key, getVersion(key) + 1)
-  key[1].run(getStateFunctionWithListener(key), key[4])
-  setParent(key, undefined)
-}
-
 export type Subscriber = [
   registry: TokenRegistry,
   listener: StateListener,
@@ -96,8 +90,8 @@ interface ListenerNode {
 }
 
 export abstract class StatePublisher<T> {
-  head: ListenerNode | undefined
-  tail: ListenerNode | undefined
+  private head: ListenerNode | undefined
+  private tail: ListenerNode | undefined
 
   abstract getValue(): T
 
@@ -188,7 +182,7 @@ export abstract class StatePublisher<T> {
         continue
       }
 
-      runListener(node.subscriber)
+      this.runListener(node.subscriber)
       node = node.next
     }
   }
@@ -196,9 +190,15 @@ export abstract class StatePublisher<T> {
   runUserEffects(subscribers: Array<Subscriber>) {
     for (const subscriber of subscribers) {
       if (getParent(subscriber) === true) {
-        runListener(subscriber)
+        this.runListener(subscriber)
       }
     }
+  }
+
+  private runListener(key: Subscriber) {
+    setVersion(key, getVersion(key) + 1)
+    key[1].run(getStateFunctionWithListener(key), key[4])
+    setParent(key, undefined)
   }
 }
 

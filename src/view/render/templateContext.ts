@@ -57,7 +57,7 @@ export class ListItemTemplateContext<T> {
   }
 
   getStateMap(): Map<Token, StatePublisherCollection> {
-    return new Map(this.tokenMap)
+    return this.tokenMap
   }
 
   get indexToken(): Container<number> {

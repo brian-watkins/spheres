@@ -85,7 +85,7 @@ class VirtualItem extends OverlayTokenRegistry {
   nextUpdate: VirtualItem | undefined = undefined
 
   static newInstance(data: any, index: number, registry: TokenRegistry, context: ListItemTemplateContext<any>, stateMap: Map<Token, StatePublisherCollection>): VirtualItem {
-    const item = new VirtualItem(data, index, registry, context.itemToken, new StateWriter(data), stateMap)
+    const item = new VirtualItem(data, index, registry, context.itemToken, new StateWriter(data), new Map(stateMap))
 
     if (context.usesIndex) {
       item.setIndexState(context.indexToken, index)
@@ -168,6 +168,12 @@ class VirtualItem extends OverlayTokenRegistry {
     return publisher.getStatePublisher(this)
   }
 
+  unsubscribeFromExternalState() {
+    this.tokenMap.forEach(publisherCollection => {
+      publisherCollection.deleteStatePublisher(this)
+    })
+  }
+
   updateItemData(data: any) {
     this.itemPublisher.publish(data)
   }
@@ -221,9 +227,6 @@ export class ListEffect implements StateListener {
       if (this.first !== undefined) {
         this.removeAllAfter(this.first)
         this.first = undefined
-        this.stateMap.forEach((value) => {
-          value.clear()
-        })
       }
       return
     }
@@ -282,12 +285,6 @@ export class ListEffect implements StateListener {
 
     if (last?.next !== undefined) {
       this.removeAllAfter(last.next)
-      let item: VirtualItem | undefined = last.next
-      while (item !== undefined) {
-        this.unsubscribeFromState(item)
-        item = item.next
-      }
-
       last.next = undefined
     }
 
@@ -444,7 +441,7 @@ export class ListEffect implements StateListener {
       current.next.prev = replacement
     }
     replacement.next = current.next
-    this.unsubscribeFromState(current)
+    current.unsubscribeFromExternalState()
   }
 
   private removeNode(item: VirtualItem): void {
@@ -456,7 +453,7 @@ export class ListEffect implements StateListener {
     } else {
       this.parentNode.removeChild(item.node)
     }
-    this.unsubscribeFromState(item)
+    item.unsubscribeFromExternalState()
   }
 
   private removeAllAfter(start: VirtualItem) {
@@ -472,12 +469,12 @@ export class ListEffect implements StateListener {
     }
 
     range.deleteContents()
-  }
 
-  private unsubscribeFromState(item: VirtualItem) {
-    this.stateMap.forEach((collection) => {
-      collection.deleteStatePublisher(item)
-    })
+    let item: VirtualItem | undefined = start
+    while (item !== undefined) {
+      item.unsubscribeFromExternalState()
+      item = item.next
+    }
   }
 
   private updateItemData(item: VirtualItem, itemData: any): void {

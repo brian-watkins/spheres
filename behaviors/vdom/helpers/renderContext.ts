@@ -11,6 +11,7 @@ export class RenderApp<T> {
   private _state: T | undefined
   private observer: MutationObserver | undefined
   public changeRecords: Array<DOMChangeRecord> = []
+  public ssrHtmlString = ""
 
   setState(state: T) {
     this._state = state
@@ -33,8 +34,8 @@ export class RenderApp<T> {
   }
 
   ssrAndActivate(view: HTMLView) {
-    const htmlString = createStringRenderer(view)(this.store)
-    document.body.innerHTML = htmlString
+    this.ssrHtmlString = createStringRenderer(view)(this.store)
+    document.body.innerHTML = this.ssrHtmlString
     this.renderResult = activateView(this.store, document.body, view)
   }
 

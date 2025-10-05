@@ -6,10 +6,6 @@ export class StateWriter<T> extends StatePublisher<T> {
   }
 
   write(value: any) {
-    this.accept(value)
-  }
-
-  accept(value: any) {
     this.publish(value)
   }
 

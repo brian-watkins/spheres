@@ -125,11 +125,10 @@ export function useContainerHooks<T, M, E>(store: Store, container: Container<T,
 }
 
 function stateWriterWithHooks<T, M, E>(registry: TokenRegistry, container: Container<T, M, E>, writer: StateWriter<T>, hooks: ContainerHooks<T, M, E>): StateWriter<T> {
-  let withHooks: StateWriter<T> = writer
   if (hooks.onWrite) {
-    withHooks = new Proxy(withHooks, {
+    return new Proxy(writer, {
       get: (target, prop, receiver) => {
-        if (prop === "accept") {
+        if (prop === "write") {
           return (message: any) => {
             hooks.onWrite!(message, containerWriteActions(registry, container, target))
           }
@@ -137,8 +136,9 @@ function stateWriterWithHooks<T, M, E>(registry: TokenRegistry, container: Conta
         return Reflect.get(target, prop, receiver)
       }
     })
+  } else {
+    return writer
   }
-  return withHooks
 }
 
 function initializerActions(registry: TokenRegistry): InitializerActions {
@@ -168,7 +168,7 @@ function containerWriteActions<T, M, E>(registry: TokenRegistry, container: Cont
   return {
     get: (state) => runQuery(registry, get => get(state)),
     ok: (message) => {
-      writer.accept(message)
+      writer.write(message)
       registry.getState<StateWriter<any>>(container.meta).write(ok())
     },
     pending: (message) => {

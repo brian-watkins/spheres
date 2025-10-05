@@ -12,7 +12,7 @@ export class MessageDispatchingStateWriter<T, M> extends StateWriter<T> {
     super(initialValue)
   }
 
-  accept(message: M): void {
+  write(message: M): void {
     const result = this.update(message, this.getValue())
     this.publish(result.value)
     if (result.message !== undefined) {

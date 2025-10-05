@@ -110,6 +110,10 @@ However, at least we wouldn't have to track dependencies on a per effect basis,
 as this would track state at the overlay registry level that all the effects
 for a particular list item share.
 
+[Note: we implemented this change and it results in better performance
+overall for cases with per-item external state, and doesn't seem to
+degrade performance for other cases]
+
 #### Other cases
 
 A switch view is the other case where views can be added and removed

@@ -1,9 +1,13 @@
-import { container, Container, State } from "@store/index.js";
+import { container, Container, derived, State, update } from "@store/index.js";
 import { HTMLView, svg, SVGBuilder, SVGView } from "@view/index";
 import { behavior, effect, example, fact, step } from "best-behavior";
-import { expect, resolvesTo } from "great-expectations";
+import { expect, resolvesTo, is, stringContaining } from "great-expectations";
 import { selectElement, selectElements } from "./helpers/displayElement";
 import { renderContext } from "./helpers/renderContext";
+
+interface SimpleListContext {
+  items: Container<Array<string>>
+}
 
 interface ListContext {
   options: Container<Array<string>>
@@ -217,6 +221,88 @@ export default behavior("ssr", [
       ]
     }),
 
+  example(renderContext<SimpleListContext>())
+    .description("activate list items with inner state")
+    .script({
+      suppose: [
+        fact("there is some state", (context) => {
+          context.setState({
+            items: container({ initialValue: ["Sweet!", "Awesome!", "Cool!"] })
+          })
+        }),
+        fact("a view with items with inner state is activated", (context) => {
+          function itemView(state: State<string>, index: State<number>): HTMLView {
+            const counter = container({ initialValue: 0 })
+            const counterName = derived(get => {
+              return `[${get(state).toLowerCase().slice(0, -1)}-${get(index) + 1}]`
+            })
+
+            return root => {
+              root.div(el => {
+                el.children
+                  .h2(el => {
+                    el.children.textNode(get => get(state))
+                  })
+                  .p(el => {
+                    el.config.dataAttribute("click-count")
+                    el.children.textNode(get => `You clicked ${get(counterName)} ${get(counter)} times.`)
+                  })
+                  .button(el => {
+                    el.config
+                      .on("click", () => update(counter, (val) => val + 1))
+                    el.children.textNode("Increment")
+                  })
+              })
+            }
+          }
+
+          context.ssrAndActivate((root) => {
+            root.div(el => [
+              el.children
+                .div(el => {
+                  el.children.subviews(get => get(context.state.items), itemView)
+                })
+            ])
+          })
+        })
+      ],
+      observe: [
+        effect("the ssr html has the correct state", (context) => {
+          expect(context.ssrHtmlString, is(stringContaining("You clicked [sweet-1] 0 times.")))
+          expect(context.ssrHtmlString, is(stringContaining("You clicked [awesome-2] 0 times.")))
+          expect(context.ssrHtmlString, is(stringContaining("You clicked [cool-3] 0 times.")))
+        }),
+        effect("the items are rendered in the dom (activated) with the default state", async () => {
+          await expect(selectElements("[data-click-count]").texts(), resolvesTo([
+            "You clicked [sweet-1] 0 times.",
+            "You clicked [awesome-2] 0 times.",
+            "You clicked [cool-3] 0 times."
+          ]))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("click the second button", async () => {
+          await selectElements("button").at(1).click()
+          await selectElements("button").at(1).click()
+        }),
+        step("click the third button", async () => {
+          await selectElements("button").at(2).click()
+          await selectElements("button").at(2).click()
+          await selectElements("button").at(2).click()
+        })
+      ],
+      observe: [
+        effect("the labels reflect the number of clicks", async () => {
+          await expect(selectElements("[data-click-count]").texts(), resolvesTo([
+            "You clicked [sweet-1] 0 times.",
+            "You clicked [awesome-2] 2 times.",
+            "You clicked [cool-3] 3 times."
+          ]))
+        })
+      ]
+    }),
+
   example(renderContext<BasicContext>())
     .description("activating ssr svg elements")
     .script({
@@ -365,7 +451,7 @@ export default behavior("ssr", [
     }).andThen({
       perform: [
         step("the state is updated", (context) => {
-          context.writeTo(context.state.options, [ "a", "c", "d", "b", "e" ])
+          context.writeTo(context.state.options, ["a", "c", "d", "b", "e"])
         })
       ],
       observe: [

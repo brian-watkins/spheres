@@ -3,7 +3,7 @@ import { dispatchMessage, StoreMessage } from "./message.js"
 import { error, Meta, ok, pending } from "./state/meta.js"
 import { WeakMapTokenRegistry } from "./store/weakMapTokenRegistry.js"
 import { StateWriter } from "./state/publisher/stateWriter.js"
-import { Command, GetState, initializeCommand, initListener, runQuery, setVersion, StateListener, StateListenerType, TokenRegistry } from "./tokenRegistry.js"
+import { Command, GetState, initializeCommand, initListener, runQuery, StateListener, StateListenerType, StateReference, TokenRegistry } from "./tokenRegistry.js"
 import { CommandManager, ManagedCommandController } from "./command/managedCommandController.js"
 
 export interface StoreOptions {
@@ -95,10 +95,10 @@ export class Store {
 export function useEffect(store: Store, effect: ReactiveEffect): ReactiveEffectHandle {
   const registry = getTokenRegistry(store)
   const listener = new EffectListener(effect)
-  const subscriber = initListener(registry, listener)
+  initListener(registry, listener)
   return {
     unsubscribe: () => {
-      setVersion(subscriber, -1)
+      listener.unsubscribe(registry)
     }
   }
 }
@@ -183,19 +183,37 @@ function containerWriteActions<T, M, E>(registry: TokenRegistry, container: Cont
 
 export class EffectListener implements StateListener {
   readonly type = StateListenerType.UserEffect
+  private dependencies = new Set<StateReference<any>>()
 
   constructor(private effect: ReactiveEffect) { }
 
   init(get: GetState): void {
     if (this.effect.init !== undefined) {
-      this.effect.init(get)
+      this.effect.init((ref) => {
+        this.dependencies.add(ref)
+        return get(ref)
+      })
     } else {
-      this.effect.run(get)
+      this.effect.run((ref) => {
+        this.dependencies.add(ref)
+        return get(ref)
+      })
     }
   }
 
   run(get: GetState): void {
-    this.effect.run(get)
+    this.dependencies.clear()
+    this.effect.run((ref) => {
+      this.dependencies.add(ref)
+      return get(ref)
+    })
+  }
+
+  unsubscribe(registry: TokenRegistry) {
+    for (const token of this.dependencies) {
+      registry.getState(token).removeListener(this)
+    }
+    this.dependencies.clear()
   }
 }
 

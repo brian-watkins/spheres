@@ -1,4 +1,4 @@
-import { Collection, collection, container, Container, derived, State, use, write } from "@store/index.js";
+import { Collection, collection, container, Container, derived, reset, State, update, use, write } from "@store/index.js";
 import { HTMLView } from "@view/index";
 import { behavior, effect, example, fact, step } from "best-behavior";
 import { arrayContaining, equalTo, expect, is, objectWithProperty, resolvesTo } from "great-expectations";
@@ -841,6 +841,128 @@ export default behavior("list effects", [
             "Revealed: 0",
             "Revealed: 4",
             "Revealed: 0"
+          ]))
+        })
+      ]
+    }),
+
+  example(renderContext<ListContext>())
+    .description("list items with buttons that reference external container")
+    .script({
+      suppose: [
+        fact("there is a list of strings and an external counter container", (context) => {
+          context.setState({
+            items: container({ initialValue: ["apple", "banana", "pear"] }),
+            dependency: container({ initialValue: 0 })
+          })
+        }),
+        fact("there is a view with a counter and list where items have increment and reset buttons", (context) => {
+          const externalDerivation = derived(get => `[${get(context.state.dependency!)}]`)
+
+          function itemView(item: State<string>): HTMLView {
+            return root => {
+              root.li(el => {
+                el.config.dataAttribute("item")
+                el.children
+                  .div(el => {
+                    el.config.dataAttribute("title")
+                    el.children.textNode(get => `${get(item)} (${get(context.state.dependency!)}) ${get(externalDerivation)}`)
+                  })
+                  .button(el => {
+                    el.config
+                      .dataAttribute("increment-btn")
+                      .on("click", () => update(context.state.dependency!, (val) => val + 1))
+                    el.children.textNode("Increment")
+                  })
+                  .button(el => {
+                    el.config
+                      .dataAttribute("reset-btn")
+                      .on("click", () => reset(context.state.dependency!))
+                    el.children.textNode("Reset")
+                  })
+              })
+            }
+          }
+
+          context.mountView(root => {
+            root.main(el => {
+              el.children
+                .h1(el => {
+                  el.config.dataAttribute("counter")
+                  el.children.textNode(get => `Count: ${get(context.state.dependency!)}`)
+                })
+                .ul(el => {
+                  el.children.subviews(get => get(context.state.items), itemView)
+                })
+            })
+          })
+        })
+      ],
+      observe: [
+        effect("the view is rendered with count at 0", async () => {
+          await expect(selectElement("[data-counter]").text(), resolvesTo("Count: 0"))
+        }),
+        effect("the list items are rendered", async () => {
+          await expect(selectElements("[data-title]").texts(), resolvesTo([
+            "apple (0) [0]",
+            "banana (0) [0]",
+            "pear (0) [0]"
+          ]))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("click increment on items", async () => {
+          await selectElements("[data-item] [data-increment-btn]").at(0).click()
+          await selectElements("[data-item] [data-increment-btn]").at(1).click()
+          await selectElements("[data-item] [data-increment-btn]").at(1).click()
+        })
+      ],
+      observe: [
+        effect("the main count increases", async () => {
+          await expect(selectElement("[data-counter]").text(), resolvesTo("Count: 3"))
+        }),
+        effect("the list items are updated", async () => {
+          await expect(selectElements("[data-title]").texts(), resolvesTo([
+            "apple (3) [3]",
+            "banana (3) [3]",
+            "pear (3) [3]"
+          ]))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("click reset on third item", async () => {
+          await selectElements("[data-item] [data-reset-btn]").at(2).click()
+        })
+      ],
+      observe: [
+        effect("the main count resets to 0", async () => {
+          await expect(selectElement("[data-counter]").text(), resolvesTo("Count: 0"))
+        }),
+        effect("the list items are reset", async () => {
+          await expect(selectElements("[data-title]").texts(), resolvesTo([
+            "apple (0) [0]",
+            "banana (0) [0]",
+            "pear (0) [0]"
+          ]))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("click increment on first item again", async () => {
+          await selectElements("[data-item] [data-increment-btn]").at(0).click()
+        })
+      ],
+      observe: [
+        effect("the main count increases from 0 to 1", async () => {
+          await expect(selectElement("[data-counter]").text(), resolvesTo("Count: 1"))
+        }),
+        effect("the list items are updated", async () => {
+          await expect(selectElements("[data-title]").texts(), resolvesTo([
+            "apple (1) [1]",
+            "banana (1) [1]",
+            "pear (1) [1]"
           ]))
         })
       ]

@@ -69,10 +69,9 @@ export interface StateListener {
   run(get: GetState, context?: any): void
 }
 
-export function initListener(registry: TokenRegistry, listener: StateListener, context?: any): Subscriber {
+export function initListener(registry: TokenRegistry, listener: StateListener, context?: any): void {
   const subscriber = createSubscriber(registry, listener, context)
   listener.init(getStateFunctionWithListener(subscriber), context)
-  return subscriber
 }
 
 export type Subscriber = [
@@ -120,6 +119,18 @@ export abstract class StatePublisher<T> {
       }
       this.tail!.next = next
       this.tail = next
+    }
+  }
+
+  removeListener(listener: StateListener) {
+    let node = this.head
+    let previous = undefined
+    while (node !== undefined) {
+      if (getListener(node.subscriber) === listener) {
+        this.removeFromList(previous, node)
+      }
+      previous = node
+      node = node.next
     }
   }
 
@@ -218,7 +229,7 @@ function getVersion(key: Subscriber): StateListenerVersion {
   return key[2]
 }
 
-export function setVersion(key: Subscriber, version: StateListenerVersion): void {
+function setVersion(key: Subscriber, version: StateListenerVersion): void {
   key[2] = version
 }
 

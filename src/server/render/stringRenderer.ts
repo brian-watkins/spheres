@@ -8,7 +8,7 @@ import { listEndIndicator, listStartIndicator, switchEndIndicator, switchStartIn
 import { IdSequence } from "../../view/render/idSequence.js";
 import { ViteContext } from "./viteContext.js";
 import { AbstractViewRenderer, ElementDefinition, isStateful, ViewDefinition, ViewSelector } from "../../view/render/viewRenderer.js";
-import { createOverlayRegistry, ListItemTemplateContext } from "../../view/render/templateContext.js";
+import { ListItemTemplateContext } from "../../view/render/templateContext.js";
 import { AbstractViewConfig } from "../../view/render/viewConfig.js";
 import { SelectorBuilder } from "../../view/render/selectorBuilder.js";
 import { addTemplate, emptyTemplate, HTMLTemplate, stringForTemplate, templateFromStateful, templateFromString, toStatefulString } from "./template.js";
@@ -20,6 +20,7 @@ import { ScriptElementRenderer } from "./elementRenderers/scriptElementRenderer.
 import { getActivationTemplate, storeIdToken } from "./elementRenderers/activationElements.js";
 import { LinkElementRenderer } from "./elementRenderers/linkElementRenderer.js";
 import { BasicElementConfigSupport, ElementConfigSupport, ElementSupport } from "../../view/elementSupport.js";
+import { createOverlayRegistry } from "./templateOverlayRegistry.js";
 
 export interface StringRendererOptions {
   stateMap?: Record<string, Container<any>>

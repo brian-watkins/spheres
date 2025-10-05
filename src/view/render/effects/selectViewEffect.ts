@@ -1,11 +1,10 @@
 import { GetState } from "../../../store/index.js";
 import { activate, DOMTemplate, render } from "../domTemplate.js";
-import { StateListener, StateListenerType, StateListenerVersion, TokenRegistry } from "../../../store/tokenRegistry.js";
+import { StateListener, StateListenerType, TokenRegistry } from "../../../store/tokenRegistry.js";
 import { SelectorCollection, TemplateSelector } from "../selectorBuilder.js";
 
 export class SelectViewEffect implements StateListener {
   readonly type = StateListenerType.SystemEffect
-  version?: StateListenerVersion = 0
   private currentSelector: TemplateSelector<DOMTemplate> | undefined
 
   constructor(

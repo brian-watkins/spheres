@@ -110,7 +110,6 @@ export class ListEffect implements StateListener {
   private itemCache: Map<any, VirtualItem> = new Map()
   private firstUpdate: VirtualItem | undefined
   private lastUpdate: VirtualItem | undefined
-  version?: StateListenerVersion = 0
 
   constructor(
     public registry: TokenRegistry,

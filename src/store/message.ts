@@ -1,5 +1,6 @@
+import { CollectionState, ReactiveContainerCollection } from "./state/collection.js"
 import { StateWriter } from "./state/publisher/stateWriter.js"
-import { Command, GetState, getStatePublisher, IndexableState, IndexableStatePublisher, runQuery, State, StateReference, TokenRegistry } from "./tokenRegistry.js"
+import { Command, getPublisher, GetState, runQuery, State, StateReference, TokenRegistry } from "./tokenRegistry.js"
 
 export const initialValue = Symbol("initialValue")
 
@@ -12,21 +13,20 @@ export interface UpdateResult<T> {
   message?: StoreMessage
 }
 
-export abstract class WritableState<Value, Message> extends State<Value> {
-  constructor(name: string | undefined, protected update: ((message: Message, current: Value) => UpdateResult<Value>) | undefined) {
-    super(name)
-  }
+export interface WritableState<T, M> extends StateReference<T> {
+  [getPublisher](registry: TokenRegistry): StateWriter<T, M>
 }
+
 
 export interface WriteMessage<T, M = T> {
   type: "write"
-  token: StateReference<WritableState<T, M>>
+  token: WritableState<T, M>
   value: M
 }
 
 export interface UpdateMessage<T, M = T> {
   type: "update"
-  token: StateReference<WritableState<T, M>>
+  token: WritableState<T, M>
   generator: (current: T) => M
 }
 
@@ -43,7 +43,7 @@ export interface ResetMessage<T> {
 
 export interface ClearMessage {
   type: "clear"
-  collection: IndexableState<any, any>
+  collection: CollectionState<any, any>
 }
 
 export interface UseMessage {
@@ -84,7 +84,7 @@ export function batch(messages: Array<StoreMessage<any>>): BatchMessage {
   }
 }
 
-export function write<T, M, X extends WritableState<T, M>>(state: StateReference<X>, message: NoInfer<M>): WriteMessage<T, M> {
+export function write<T, M>(state: WritableState<T, M>, message: NoInfer<M>): WriteMessage<T, M> {
   return {
     type: "write",
     token: state,
@@ -92,7 +92,7 @@ export function write<T, M, X extends WritableState<T, M>>(state: StateReference
   }
 }
 
-export function update<T, M, X extends WritableState<T, M>>(state: StateReference<X>, generator: (current: NoInfer<T>) => NoInfer<M>): UpdateMessage<T, M> {
+export function update<T, M>(state: WritableState<T, M>, generator: (current: NoInfer<T>) => NoInfer<M>): UpdateMessage<T, M> {
   return {
     type: "update",
     token: state,
@@ -103,11 +103,11 @@ export function update<T, M, X extends WritableState<T, M>>(state: StateReferenc
 export function dispatchMessage(registry: TokenRegistry, message: StoreMessage<any>) {
   switch (message.type) {
     case "write": {
-      getStatePublisher<StateWriter<any>>(registry, message.token).write(message.value)
+      message.token[getPublisher](registry).write(message.value)
       break
     }
     case "update": {
-      const writer = getStatePublisher<StateWriter<any>>(registry, message.token)
+      const writer = message.token[getPublisher](registry)
       writer.write(message.generator(writer.getValue()))
       break
     }
@@ -116,13 +116,14 @@ export function dispatchMessage(registry: TokenRegistry, message: StoreMessage<a
       break
     }
     case "reset": {
-      const writer = registry.getState<StateWriter<any>>(message.container)
+      const writer = registry.getState<StateWriter<unknown>>(message.container)
       writer.publish(message.container[initialValue])
       break
     }
     case "clear": {
-      const publisher = registry.getState<IndexableStatePublisher<any, any>>(message.collection)
-      publisher.clear()
+      registry
+        .getState<ReactiveContainerCollection<unknown, unknown, unknown>>(message.collection)
+        .clear()
       break
     }
     case "use": {

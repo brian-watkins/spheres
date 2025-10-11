@@ -1,4 +1,5 @@
 import { Container, State, Store, write, StoreMessage, batch, GetState, reset, Command, CommandActions, ContainerHooks, ReactiveEffect, createStore, useContainerHooks, useEffect, useCommand, InitializerActions, Collection } from "@store/index.js"
+import { WritableState } from "@store/message"
 import { Context } from "best-behavior"
 
 export function testStoreContext<T>(): Context<TestStore<T>> {
@@ -61,10 +62,10 @@ export class TestStore<T> {
   }
 
   writeToCollection<K, S, M = S>(token: Collection<K, S, M>, id: K, message: M) {
-    this.store.dispatch(write(token.at(id), message))
+    this.writeTo(token.at(id), message)
   }
 
-  writeTo<S, M>(token: Container<S, M>, value: M) {
+  writeTo<S, M>(token: WritableState<S, M>, value: M) {
     this.store.dispatch(write(token, value))
   }
 

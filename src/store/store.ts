@@ -3,7 +3,7 @@ import { dispatchMessage, StoreMessage } from "./message.js"
 import { error, Meta, ok, pending } from "./state/meta.js"
 import { WeakMapTokenRegistry } from "./store/weakMapTokenRegistry.js"
 import { StateWriter } from "./state/publisher/stateWriter.js"
-import { Command, GetState, initializeCommand, initListener, runQuery, StateListener, StateListenerType, StateReference, TokenRegistry } from "./tokenRegistry.js"
+import { Command, getPublisher, GetState, initializeCommand, initListener, runQuery, StateListener, StateListenerType, StateReference, TokenRegistry } from "./tokenRegistry.js"
 import { CommandManager, ManagedCommandController } from "./command/managedCommandController.js"
 
 export interface StoreOptions {
@@ -124,7 +124,7 @@ export function useContainerHooks<T, M, E>(store: Store, container: Container<T,
   registry.setState(container, writerWithHooks)
 }
 
-function stateWriterWithHooks<T, M, E>(registry: TokenRegistry, container: Container<T, M, E>, writer: StateWriter<T>, hooks: ContainerHooks<T, M, E>): StateWriter<T> {
+function stateWriterWithHooks<T, M, E>(registry: TokenRegistry, container: Container<T, M, E>, writer: StateWriter<T, M>, hooks: ContainerHooks<T, M, E>): StateWriter<T, M> {
   if (hooks.onWrite) {
     return new Proxy(writer, {
       get: (target, prop, receiver) => {
@@ -164,7 +164,7 @@ function initializerActions(registry: TokenRegistry): InitializerActions {
   }
 }
 
-function containerWriteActions<T, M, E>(registry: TokenRegistry, container: Container<T, M>, writer: StateWriter<T>): WriteHookActions<T, M, E> {
+function containerWriteActions<T, M, E>(registry: TokenRegistry, container: Container<T, M>, writer: StateWriter<T, M>): WriteHookActions<T, M, E> {
   return {
     get: (state) => runQuery(registry, get => get(state)),
     ok: (message) => {
@@ -211,7 +211,7 @@ export class EffectListener implements StateListener {
 
   unsubscribe(registry: TokenRegistry) {
     for (const token of this.dependencies) {
-      registry.getState(token).removeListener(this)
+      token[getPublisher](registry).removeListener(this)
     }
     this.dependencies.clear()
   }

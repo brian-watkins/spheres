@@ -1,23 +1,15 @@
-export interface IndexableState<K, V> extends State<V> {
-  [createPublisher](registry: TokenRegistry): IndexableStatePublisher<K, V>
+export const getPublisher = Symbol("getPublisher")
+
+export interface StateReference<Value> {
+  [getPublisher](registry: TokenRegistry): StatePublisher<Value>
 }
 
-export type IndexableStateReference<K, X extends IndexableState<K, any>> = [token: X, key: K]
-
-function isIndexableStateReference(state: StateReference<any>): state is IndexableStateReference<any, any> {
-  return Array.isArray(state)
-}
-
-export type StateReference<X extends State<any>> = X extends IndexableState<infer K, any> ? IndexableStateReference<K, X> : X
-
-export type GetState = <X extends State<any>>(
-  state: StateReference<X>
-) => X extends State<infer S> ? S : never
+export type GetState = <S>(state: StateReference<S>) => S
 
 export type Stateful<T> = (get: GetState) => T | undefined
 
 function subscribeOnGet(this: Subscriber, token: StateReference<any>): any {
-  const publisher = getStatePublisher(this[0], token)
+  const publisher = token[getPublisher](this[0])
   publisher.addListener(this)
   return publisher.getValue()
 }
@@ -27,16 +19,7 @@ export function getStateFunctionWithListener(key: Subscriber): GetState {
 }
 
 export function runQuery<M>(registry: TokenRegistry, query: (get: GetState) => M): M {
-  return query((token) => getStatePublisher(registry, token).getValue())
-}
-
-export function getStatePublisher<C extends StatePublisher<any>>(registry: TokenRegistry, token: StateReference<any>): C {
-  if (isIndexableStateReference(token)) {
-    return registry.getState<IndexableStatePublisher<any, any>>(token[0])
-      .indexedBy<C>(token[1])
-  } else {
-    return registry.getState<C>(token)
-  }
+  return query((token) => token[getPublisher](registry).getValue())
 }
 
 export function createStatePublisher(registry: TokenRegistry, token: State<any>, initialValue?: any): StatePublisher<any> {
@@ -46,10 +29,14 @@ export function createStatePublisher(registry: TokenRegistry, token: State<any>,
 export const createController = Symbol("createController")
 export const createPublisher = Symbol("createPublisher")
 
-export abstract class State<T> {
+export abstract class State<T> implements StateReference<T> {
   constructor(readonly name: string | undefined) { }
 
   abstract [createPublisher](registry: TokenRegistry, initialState?: T): StatePublisher<T>
+
+  [getPublisher]<X extends StatePublisher<T>>(registry: TokenRegistry): X {
+    return registry.getState(this)
+  }
 
   toString() {
     return this.name ?? "State"
@@ -235,11 +222,6 @@ function setVersion(key: Subscriber, version: StateListenerVersion): void {
 
 function getListener(key: Subscriber): StateListener {
   return key[1]
-}
-
-export interface IndexableStatePublisher<Key, Value> extends StatePublisher<Value> {
-  indexedBy<C extends StatePublisher<Value>>(key: Key): C
-  clear(): void
 }
 
 export interface CommandController<T> {

@@ -1,18 +1,16 @@
 import { StatePublisher, Subscriber } from "../../tokenRegistry.js"
 
-export class StateWriter<T> extends StatePublisher<T> {
-  constructor(private _value: T) {
+export abstract class StateWriter<T, M = T> extends StatePublisher<T> {
+  constructor(protected currentValue: T) {
     super()
   }
 
-  write(value: any) {
-    this.publish(value)
-  }
+  abstract write(value: M): void
 
   publish(value: T) {
-    if (Object.is(this._value, value)) return
+    if (Object.is(this.currentValue, value)) return
 
-    this._value = value
+    this.currentValue = value
 
     const userEffects: Array<Subscriber> = []
     this.notifyListeners(userEffects)
@@ -23,6 +21,6 @@ export class StateWriter<T> extends StatePublisher<T> {
   }
 
   getValue(): T {
-    return this._value
+    return this.currentValue
   }
 }

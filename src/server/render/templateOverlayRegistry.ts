@@ -1,9 +1,10 @@
 import { StateWriter } from "../../store/state/publisher/stateWriter.js"
+import { ValueWriter } from "../../store/state/publisher/valueWriter.js"
 import { OverlayTokenRegistry, State, StatePublisher, Token, TokenRegistry } from "../../store/tokenRegistry.js"
 import { ListItemTemplateContext, StatePublisherCollection } from "../../view/render/templateContext.js"
 
 export function createOverlayRegistry(context: ListItemTemplateContext<any>, rootRegistry: TokenRegistry, itemData: any, index: number): ListItemOverlayTokenRegistry {
-  const registry = new ListItemOverlayTokenRegistry(rootRegistry, context.itemToken, new StateWriter(itemData))
+  const registry = new ListItemOverlayTokenRegistry(rootRegistry, context.itemToken, new ValueWriter(itemData))
   if (context.usesIndex) {
     registry.setIndexState(context.indexToken, index)
   }
@@ -28,7 +29,7 @@ export class ListItemOverlayTokenRegistry extends OverlayTokenRegistry {
 
   setIndexState(token: State<number>, value: number) {
     this.index = token
-    this.indexPublisher = new StateWriter(value)
+    this.indexPublisher = new ValueWriter(value)
   }
 
   setUserTokens(tokens: Map<Token, StatePublisherCollection>) {

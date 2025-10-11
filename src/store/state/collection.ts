@@ -1,7 +1,7 @@
 import { ClearMessage, WritableState } from "../message.js"
-import { createPublisher, IndexableState, IndexableStateReference, IndexableStatePublisher, StatePublisher, TokenRegistry } from "../tokenRegistry.js"
+import { createPublisher, StatePublisher, TokenRegistry, State, getPublisher } from "../tokenRegistry.js"
 import { MessageDispatchingStateWriter, UpdateResult } from "./publisher/messageDispatchingStateWriter.js"
-import { StateWriter } from "./publisher/stateWriter.js"
+import { ValueWriter } from "./publisher/valueWriter.js"
 
 export interface CollectionInitializer<Key, Value, Message = Value> {
   initialValues: (id: Key) => Value,
@@ -13,7 +13,17 @@ export function collection<Key, Value, Message = Value>(initializer: CollectionI
   const token = new CollectionState(initializer.name, initializer.initialValues, initializer.update)
   return {
     [collectionToken]: token,
-    at: (index: Key) => [token, index]
+    at: (index: Key) => {
+      return {
+        [getPublisher](registry) {
+          const indexedPublisher = registry.getState<ReactiveContainerCollection<Key, Value, Message>>(token)
+          return indexedPublisher.indexedBy(index)
+        },
+        toString() {
+          return `${token.toString()}[${index}]`
+        }
+      }
+    }
   }
 }
 
@@ -28,24 +38,24 @@ const collectionToken = Symbol("token")
 
 export interface Collection<Key, Value, Message = Value> {
   [collectionToken]: CollectionState<Key, Value, Message>
-  at(index: Key): IndexableStateReference<Key, CollectionState<Key, Value, Message>>
+  at(index: Key): WritableState<Value, Message>
 }
 
-export class CollectionState<Key, Value, Message = Value> extends WritableState<Value, Message> implements IndexableState<Key, Value> {
+export class CollectionState<Key, Value, Message = Value> extends State<Value> {
   constructor(
     name: string | undefined,
     private generator: (id: Key) => Value,
-    update: ((message: Message, current: Value) => UpdateResult<Value>) | undefined,
+    private update: ((message: Message, current: Value) => UpdateResult<Value>) | undefined,
   ) {
-    super(name, update)
+    super(name)
   }
 
-  [createPublisher](registry: TokenRegistry): IndexableStatePublisher<Key, Value> {
+  [createPublisher](registry: TokenRegistry): ReactiveContainerCollection<Key, Value, Message> {
     return new ReactiveContainerCollection(registry, this.generator, this.update)
   }
 }
 
-class ReactiveContainerCollection<Key, Value, Message> extends StatePublisher<Value> implements IndexableStatePublisher<Key, Value> {
+export class ReactiveContainerCollection<Key, Value, Message> extends StatePublisher<Value> {
   private writers = new Map<Key, any>()
 
   constructor(private registry: TokenRegistry, private generator: (id: Key) => Value, private reducer?: (message: Message, current: Value) => UpdateResult<Value>) {
@@ -61,7 +71,7 @@ class ReactiveContainerCollection<Key, Value, Message> extends StatePublisher<Va
       const initialValue = this.generator(id)
       writer = this.reducer ?
         new MessageDispatchingStateWriter(this.registry, initialValue, this.reducer) :
-        new StateWriter(initialValue)
+        new ValueWriter(initialValue)
       this.writers.set(id, writer)
     }
     return writer

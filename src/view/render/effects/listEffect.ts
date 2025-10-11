@@ -3,8 +3,9 @@ import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementI
 import { activate, DOMTemplate, render, TemplateType } from "../domTemplate.js"
 import { createSubscriber, OverlayTokenRegistry, State, StateListener, StateListenerType, StatePublisher, Subscriber, Token, TokenRegistry } from "../../../store/tokenRegistry.js"
 import { ListItemTemplateContext, StatePublisherCollection } from "../templateContext.js"
-import { StateWriter } from "../../../store/state/publisher/stateWriter.js"
 import { CollectionState } from "../../../store/state/collection.js"
+import { ValueWriter } from "../../../store/state/publisher/valueWriter.js"
+import { StateWriter } from "../../../store/state/publisher/stateWriter.js"
 
 class OverlayPublisher extends StatePublisher<any> {
   constructor(private writer: StateWriter<any>) {
@@ -85,7 +86,7 @@ class VirtualItem extends OverlayTokenRegistry {
   nextUpdate: VirtualItem | undefined = undefined
 
   static newInstance(data: any, index: number, registry: TokenRegistry, context: ListItemTemplateContext<any>, stateMap: Map<Token, StatePublisherCollection>): VirtualItem {
-    const item = new VirtualItem(data, index, registry, context.itemToken, new StateWriter(data), new Map(stateMap))
+    const item = new VirtualItem(data, index, registry, context.itemToken, new ValueWriter(data), new Map(stateMap))
 
     if (context.usesIndex) {
       item.setIndexState(context.indexToken, index)
@@ -134,7 +135,7 @@ class VirtualItem extends OverlayTokenRegistry {
 
   setIndexState(token: State<number>, value: number) {
     this.indexToken = token
-    this.indexPublisher = new StateWriter(value)
+    this.indexPublisher = new ValueWriter(value)
   }
 
   getState<C extends StatePublisher<any>>(token: State<any>): C {

@@ -7,7 +7,7 @@ export interface UpdateResult<T> {
   message?: StoreMessage
 }
 
-export class MessageDispatchingStateWriter<T, M> extends StateWriter<T> {
+export class MessageDispatchingStateWriter<T, M> extends StateWriter<T, M> {
   constructor(private registry: TokenRegistry, initialValue: T, private update: ((message: M, current: T) => UpdateResult<T>)) {
     super(initialValue)
   }

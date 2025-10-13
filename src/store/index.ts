@@ -18,7 +18,8 @@ export {
   type Command,
   type State,
   type GetState,
-  type Stateful
+  type Stateful,
+  // type Flux,
 } from "./tokenRegistry.js"
 export {
   type ContainerInitializer,
@@ -26,6 +27,11 @@ export {
   container,
   reset
 } from "./state/container.js"
+export {
+  type Entity,
+  // type Lens,
+  entity
+} from "./state/entity.js"
 export {
   type UpdateResult,
 } from "./state/publisher/messageDispatchingStateWriter.js"

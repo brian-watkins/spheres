@@ -25,6 +25,7 @@ export interface SpecialHTMLElements {
     textNode(value: string | Stateful<string>): this;
     subview(value: HTMLView): this;
     subviewFrom(selectorGenerator: (selector: HTMLViewSelector) => void): this;
+    // subviews<T>(data: (get: GetState) => Array<T>, viewGenerator: (item: T extends Entity<infer S> ? Entity<S> : State<T>, index: State<number>) => HTMLView): this
     subviews<T>(data: (get: GetState) => Array<T>, viewGenerator: (item: State<T>, index: State<number>) => HTMLView): this;
 }
 

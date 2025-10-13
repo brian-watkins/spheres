@@ -9,6 +9,7 @@ export type GetState = <S>(state: StateReference<S>) => S
 export type Stateful<T> = (get: GetState) => T | undefined
 
 function subscribeOnGet(this: Subscriber, token: StateReference<any>): any {
+  // console.log("subscribing token", token)
   const publisher = token[getPublisher](this[0])
   publisher.addListener(this)
   return publisher.getValue()
@@ -43,9 +44,22 @@ export abstract class State<T> implements StateReference<T> {
   }
 }
 
+// export class Flux<T> extends State<T> {
+//   constructor(private publisher: StatePublisher<T>) {
+//     super(undefined)
+//   }
+
+//   [createPublisher](): StatePublisher<T> {
+//     return this.publisher
+//   }
+
+// }
+
 export type StateListenerVersion = number
 
 export enum StateListenerType {
+  // SystemEffect could be RenderEffect
+  // Or InternalEffect?
   StateEffect, SystemEffect, UserEffect
 }
 
@@ -71,6 +85,7 @@ export type Subscriber = [
 
 interface ListenerNode {
   subscriber: Subscriber
+  tag: string | undefined
   version: StateListenerVersion
   next: ListenerNode | undefined
 }
@@ -78,13 +93,16 @@ interface ListenerNode {
 export abstract class StatePublisher<T> {
   private head: ListenerNode | undefined
   private tail: ListenerNode | undefined
+  public filter: string | undefined
 
   abstract getValue(): T
 
-  addListener(subscriber: Subscriber): void {
+  addListener(subscriber: Subscriber, tag?: string): void {
+    // console.log("Subscribing with tag", tag)
     if (this.head === undefined) {
       this.head = {
         subscriber: subscriber,
+        tag,
         version: getVersion(subscriber),
         next: undefined
       }
@@ -94,6 +112,7 @@ export abstract class StatePublisher<T> {
     if (subscriber[1].type === StateListenerType.StateEffect) {
       const first = {
         subscriber,
+        tag,
         version: getVersion(subscriber),
         next: this.head
       }
@@ -101,6 +120,7 @@ export abstract class StatePublisher<T> {
     } else {
       const next = {
         subscriber,
+        tag,
         version: getVersion(subscriber),
         next: undefined
       }
@@ -140,6 +160,7 @@ export abstract class StatePublisher<T> {
     let node = this.head
     while (node !== undefined) {
       if (getVersion(node.subscriber) !== node.version) {
+        // console.log("Removing subscriber with tag", node.tag)
         this.removeFromList(previous, node)
         node = node.next
         continue
@@ -169,6 +190,14 @@ export abstract class StatePublisher<T> {
     this.tail = undefined
 
     while (node !== undefined) {
+      if (this.filter !== undefined && !this.filter.startsWith(node.tag ?? "undefined")) {
+        // when this happens
+        // console.log("skipping node because tag does not start with filter", this.filter, node.tag)
+        this.addListener(node.subscriber, node.tag)
+        node = node.next
+        continue
+      }
+
       if (getParent(node.subscriber) !== this) {
         node = node.next
         continue

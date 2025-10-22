@@ -12,7 +12,7 @@ interface Item {
 export default behavior("entity state", [
 
   example(testStoreContext<Entity<Item>>())
-    .description("subscribe to entity property")
+    .description("entity object")
     .script({
       suppose: [
         fact("there is an entity", (context) => {
@@ -144,7 +144,71 @@ export default behavior("entity state", [
           ]))
         })
       ]
-    })
+    }),
 
+  (m) => m.pick() && example(testStoreContext<Entity<Array<Item>>>())
+    .description("entity array")
+    .script({
+      suppose: [
+        fact("there is an entity", (context) => {
+          context.setTokens(entity({
+            initialValue: [
+              {
+                name: "Mr. Cool",
+                label: { type: "a", content: "boat" },
+                count: 14
+              },
+              {
+                name: "Ms. Fun",
+                label: { type: "b", content: "bike" },
+                count: 6
+              },
+              {
+                name: "Dr. Awesome",
+                label: { type: "b", content: "car" },
+                count: 83
+              }
+            ]
+          }))
+        }),
+        fact("there is a subscriber to an item", (context) => {
+          context.subscribeTo(context.tokens[0].name, "name-sub-1")
+        }),
+        fact("there is a subscriber to another item", (context) => {
+          context.subscribeTo(context.tokens[2].name, "name-sub-2")
+        }),
+      ],
+      observe: [
+        effect("the subscriber gets the initial value", (context) => {
+          expect(context.valuesForSubscriber("name-sub-1"), is([
+            "Mr. Cool"
+          ]))
+        }),
+        effect("the other subscriber gets the initial value", (context) => {
+          expect(context.valuesForSubscriber("name-sub-2"), is([
+            "Dr. Awesome"
+          ]))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("update one of the items", (context) => {
+          context.writeTo(context.tokens[2].name, "Ms. Great")
+        })
+      ],
+      observe: [
+        effect("the other subscriber does not update", (context) => {
+          expect(context.valuesForSubscriber("name-sub-1"), is([
+            "Mr. Cool"
+          ]))
+        }),
+        effect("the subscriber to the changed value updates", (context) => {
+          expect(context.valuesForSubscriber("name-sub-2"), is([
+            "Dr. Awesome",
+            "Ms. Great"
+          ]))
+        })
+      ]
+    })
 ])
 

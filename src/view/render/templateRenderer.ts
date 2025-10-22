@@ -1,10 +1,10 @@
 import { DOMEvent, DOMEventType, EventsToDelegate, StoreEventHandler, EventZone } from "./index.js";
-import { Stateful, GetState, State } from "../../store/index.js";
+import { Stateful, GetState, State, Entity } from "../../store/index.js";
 import { EffectLocation } from "./effectLocation.js";
 import { setEventAttribute } from "./eventHelpers.js";
 import { createFragment, listEndIndicator, listStartIndicator, switchEndIndicator, switchStartIndicator } from "./fragmentHelpers.js";
 import { IdSequence } from "./idSequence.js";
-import { ListItemTemplateContext } from "./templateContext.js";
+import { ListEntityTemplateContext, ListItemTemplateContext } from "./templateContext.js";
 import { AbstractViewConfig } from "./viewConfig.js";
 import { AbstractViewRenderer, ElementDefinition, isStateful, ViewDefinition, ViewSelector } from "./viewRenderer.js";
 import { DOMTemplate, EffectTemplate, EffectTemplateTypes, TemplateType } from "./domTemplate.js";
@@ -13,6 +13,7 @@ import { ElementConfigSupport, ElementSupport } from "../elementSupport.js";
 import { UpdateTextEffect } from "./effects/textEffect.js";
 import { UpdateAttributeEffect } from "./effects/attributeEffect.js";
 import { UpdatePropertyEffect } from "./effects/propertyEffect.js";
+import { EntityRef } from "../../store/state/entity.js";
 
 export class DomTemplateRenderer extends AbstractViewRenderer {
   public effectTemplates: Array<EffectTemplate> = []
@@ -84,6 +85,40 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
     this.root.appendChild(element)
 
     this.effectTemplates = this.effectTemplates.concat(config.effectTemplates, children.effectTemplates)
+
+    return this
+  }
+
+  entityViews<T>(data: (get: GetState) => Entity<Array<T>>, viewGenerator: (item: EntityRef<T>, index?: State<number>) => ViewDefinition): this {
+    this.templateType = TemplateType.List
+
+    const elementId = this.idSequence.next
+    const fragment = createFragment(listStartIndicator(elementId), listEndIndicator(elementId))
+
+    // this determines how the template is generated
+    const renderer = new DomTemplateRenderer(this.elementSupport, this.zone, new IdSequence(elementId), new EffectLocation(root => root))
+    
+    // this calls the renderer and provides some tokens thast will be captured
+    // by the effects. It also records any tokens created inside the
+    // view function
+    const templateContext = new ListEntityTemplateContext(renderer, viewGenerator)
+  
+    if (this.root.nodeType === 1) {
+      this.location = this.root.hasChildNodes() ? this.location.nextSibling() : this.location.firstChild()
+    }
+
+    this.root.appendChild(fragment)
+
+    this.effectTemplates.push({
+      type: EffectTemplateTypes.ListEntity,
+      domTemplate: renderer.template,
+      query: data,
+      context: templateContext,
+      elementId,
+      location: this.location
+    })
+
+    this.location = this.location.nextCommentSiblingMatching(listEndIndicator(elementId))
 
     return this
   }

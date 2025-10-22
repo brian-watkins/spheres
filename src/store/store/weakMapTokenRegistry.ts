@@ -1,6 +1,7 @@
 import { Command, CommandController, createController, createPublisher, State, StatePublisher, Token, TokenRegistry } from "../tokenRegistry.js";
 
 export class WeakMapTokenRegistry implements TokenRegistry {
+  filter: string | undefined
   protected registry: WeakMap<Token, any> = new WeakMap();
   private onRegisterHook: ((token: Token) => void) | undefined
 

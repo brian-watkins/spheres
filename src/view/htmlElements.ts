@@ -1,7 +1,8 @@
 import { ConfigurableElement } from "./render/viewRenderer.js";
-import { GetState, State, Stateful } from "../store/index.js";
+import { Entity, GetState, State, Stateful } from "../store/index.js";
 import { SpecialElementAttributes } from "./specialAttributes.js";
 import { ElementSupport } from "./elementSupport.js";
+import { EntityRef } from "../store/state/entity.js";
 
 export type HTMLView = (root: HTMLBuilder) => void;
 
@@ -27,6 +28,7 @@ export interface SpecialHTMLElements {
     subviewFrom(selectorGenerator: (selector: HTMLViewSelector) => void): this;
     // subviews<T>(data: (get: GetState) => Array<T>, viewGenerator: (item: T extends Entity<infer S> ? Entity<S> : State<T>, index: State<number>) => HTMLView): this
     subviews<T>(data: (get: GetState) => Array<T>, viewGenerator: (item: State<T>, index: State<number>) => HTMLView): this;
+    entityViews<T>(data: (get: GetState) => Entity<Array<T>>, viewGenerator: (item: EntityRef<T>, index: State<number>) => HTMLView): this;
 }
 
 export interface GlobalHTMLAttributes {

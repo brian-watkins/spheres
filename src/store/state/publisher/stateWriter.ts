@@ -7,7 +7,7 @@ export abstract class StateWriter<T, M = T> extends StatePublisher<T> {
 
   abstract write(value: M): void
 
-  publish(value: T) {
+  publish(value: T, tag?: string) {
     if (Object.is(this.currentValue, value)) return
 
     this.currentValue = value
@@ -15,7 +15,7 @@ export abstract class StateWriter<T, M = T> extends StatePublisher<T> {
     const userEffects: Array<Subscriber> = []
     this.notifyListeners(userEffects)
 
-    this.runListeners()
+    this.runListeners(tag)
 
     this.runUserEffects(userEffects)
   }

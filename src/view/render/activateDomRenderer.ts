@@ -74,6 +74,10 @@ export class ActivateDomRenderer extends AbstractViewRenderer {
     return this
   }
 
+  entityViews(): this {
+    return this
+  }
+
   subviewFrom(selectorGenerator: (selector: ViewSelector) => void): this {
     const elementId = getSwitchElementId(this.currentNode!)
     let end = findSwitchEndNode(this.currentNode!, elementId)

@@ -1,15 +1,17 @@
+import { Entity } from "../../store/index.js"
 import { dispatchMessage } from "../../store/message.js"
 import { GetState, getStateFunctionWithListener, initListener, StateListener, createSubscriber, TokenRegistry } from "../../store/tokenRegistry.js"
 import { EffectLocation } from "./effectLocation.js"
 import { activateList, ListEffect } from "./effects/listEffect.js"
+import { ListEntityEffect } from "./effects/listEntityEffect.js"
 import { activateSelect, SelectViewEffect } from "./effects/selectViewEffect.js"
 import { findListEndNode, findSwitchEndNode, getListElementId } from "./fragmentHelpers.js"
 import { spheresTemplateData, StoreEventHandler } from "./index.js"
 import { SelectorCollection } from "./selectorBuilder.js"
-import { ListItemTemplateContext } from "./templateContext.js"
+import { ListEntityTemplateContext, ListItemTemplateContext } from "./templateContext.js"
 
 export enum EffectTemplateTypes {
-  Text, Attribute, Property, List, Select, Event
+  Text, Attribute, Property, List, ListEntity, Select, Event
 }
 
 export interface TextEffectTemplate {
@@ -36,6 +38,15 @@ export interface ListEffectTemplate {
   location: EffectLocation
 }
 
+export interface ListEntityEffectTemplate {
+  type: EffectTemplateTypes.ListEntity
+  domTemplate: DOMTemplate
+  query: (get: GetState) => Entity<Array<any>>
+  context: ListEntityTemplateContext<any>
+  elementId: string
+  location: EffectLocation
+}
+
 export interface SelectEffectTemplate {
   type: EffectTemplateTypes.Select
   selectors: SelectorCollection<DOMTemplate>
@@ -55,6 +66,7 @@ export type EffectTemplate
   | AttributeEffectTemplate
   | PropertyEffectTemplate
   | ListEffectTemplate
+  | ListEntityEffectTemplate
   | SelectEffectTemplate
   | EventEffectTemplate
 
@@ -112,6 +124,16 @@ function initializeEffect(registry: TokenRegistry, root: Node, effect: EffectTem
       const end = findListEndNode(listStartIndicatorNode, effect.elementId)
 
       const listEffect = new ListEffect(registry, effect.domTemplate, effect.query, effect.context, listStartIndicatorNode, end)
+      initListener(registry, listEffect)
+      break
+    }
+    case EffectTemplateTypes.ListEntity: {
+      console.log("Creating a list entity effect!")
+      // create some effect that can handle a list entity
+      const listStartIndicatorNode = effect.location.findNode(root)
+      const listEndIndicatorNode = findListEndNode(listStartIndicatorNode, effect.elementId)
+
+      const listEffect = new ListEntityEffect(registry, effect.domTemplate, effect.query, effect.context, listStartIndicatorNode, listEndIndicatorNode)
       initListener(registry, listEffect)
       break
     }

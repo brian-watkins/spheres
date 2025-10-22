@@ -1,4 +1,5 @@
-import { GetState, State, Stateful } from "../../store/index.js"
+import { Entity, GetState, State, Stateful } from "../../store/index.js"
+import { EntityRef } from "../../store/state/entity.js"
 import { ElementSupport } from "../elementSupport.js"
 import { SpecialElementAttributes } from "../specialAttributes.js"
 
@@ -46,7 +47,9 @@ abstract class BaseViewRenderer implements ViewRenderer {
   abstract element(tag: string, builder?: ElementDefinition, support?: ElementSupport): this
   abstract subviews<T>(data: (get: GetState) => T[], viewGenerator: (item: State<T>, index?: State<number>) => ViewDefinition): this
   abstract subviewFrom(selectorGenerator: (selector: ViewSelector) => void): this
-
+  // abstract entityViews<T>(data: (get: GetState) => Array<Entity<T>>, viewGenerator: (withState: <S>(run: (state: Entity<T>, get: GetState) => S) => Stateful<S>) => ViewDefinition): this;
+  abstract entityViews<T>(data: (get: GetState) => Entity<Array<T>>, viewGenerator: (item: EntityRef<T>, index?: State<number>) => ViewDefinition): this
+  
   subview(view: ViewDefinition): this {
     view(this)
     return this

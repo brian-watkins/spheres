@@ -31,16 +31,17 @@ export const createController = Symbol("createController")
 export const createPublisher = Symbol("createPublisher")
 
 export abstract class State<T> implements StateReference<T> {
-  constructor(readonly name: string | undefined) { }
+  constructor(private __name: string | undefined) { }
 
   abstract [createPublisher](registry: TokenRegistry, initialState?: T): StatePublisher<T>
 
   [getPublisher]<X extends StatePublisher<T>>(registry: TokenRegistry): X {
+    // console.log("get pub in state", this)
     return registry.getState(this)
   }
 
   toString() {
-    return this.name ?? "State"
+    return this.__name ?? "State"
   }
 }
 
@@ -98,7 +99,7 @@ export abstract class StatePublisher<T> {
   abstract getValue(): T
 
   addListener(subscriber: Subscriber, tag?: string): void {
-    // console.log("Subscribing with tag", tag)
+    console.log("Subscribing with tag", tag)
     if (this.head === undefined) {
       this.head = {
         subscriber: subscriber,
@@ -181,7 +182,7 @@ export abstract class StatePublisher<T> {
     }
   }
 
-  runListeners(): void {
+  runListeners(filter?: string): void {
     let node = this.head
 
     // Start a new list -- any listeners added while running the current listeners
@@ -190,12 +191,18 @@ export abstract class StatePublisher<T> {
     this.tail = undefined
 
     while (node !== undefined) {
-      if (this.filter !== undefined && !this.filter.startsWith(node.tag ?? "undefined")) {
+      // console.log("Attempting to run node", node.tag)
+      // if (filter !== undefined && !filter.startsWith(node.tag ?? "undefined")) {
+      // const subscriberTag = `$.${node.subscriber[0].filter}.${node.tag}`
+      const subscriberTag = node.tag
+      if (filter !== subscriberTag) {
         // when this happens
-        // console.log("skipping node because tag does not start with filter", this.filter, node.tag)
+        console.log("skipping node because tag does not equal filter", filter, subscriberTag)
         this.addListener(node.subscriber, node.tag)
         node = node.next
         continue
+      } else {
+        console.log("Running node with filter", node.tag)
       }
 
       if (getParent(node.subscriber) !== this) {
@@ -274,6 +281,7 @@ export abstract class Command<M> {
 export type Token = State<any> | Command<any>
 
 export interface TokenRegistry {
+  filter: string | number | undefined
   onRegister(handler: (token: Token) => void): void
   getState<C extends StatePublisher<any>>(token: State<any>): C
   setState(state: State<any>, publisher: StatePublisher<any>): void
@@ -282,6 +290,8 @@ export interface TokenRegistry {
 }
 
 export class OverlayTokenRegistry implements TokenRegistry {
+  filter: string | number | undefined
+
   constructor(protected parentRegistry: TokenRegistry) { }
 
   onRegister(): void { }

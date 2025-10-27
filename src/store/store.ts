@@ -181,7 +181,8 @@ function containerWriteActions<T, M, E>(registry: TokenRegistry, container: Cont
   }
 }
 
-export class EffectListener implements StateListener {
+// This does not need to be exported -- and should not be
+class EffectListener implements StateListener {
   readonly type = StateListenerType.UserEffect
   private dependencies = new Set<StateReference<any>>()
 

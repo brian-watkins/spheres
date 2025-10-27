@@ -36,7 +36,7 @@ export abstract class State<T> implements StateReference<T> {
   abstract [createPublisher](registry: TokenRegistry, initialState?: T): StatePublisher<T>
 
   [getPublisher]<X extends StatePublisher<T>>(registry: TokenRegistry): X {
-    // console.log("get pub in state", this)
+    console.log("get pub in state", this)
     return registry.getState(this)
   }
 
@@ -66,7 +66,7 @@ export enum StateListenerType {
 
 export interface StateListener {
   readonly type: StateListenerType
-  notifyListeners?: (userEffects: Array<Subscriber>) => void
+  notifyListeners?: (userEffects: Array<ListenerNode>) => void
   init(get: GetState, context?: any): void
   run(get: GetState, context?: any): void
 }
@@ -84,26 +84,37 @@ export type Subscriber = [
   context: any
 ]
 
-interface ListenerNode {
+export interface ListenerNode {
   subscriber: Subscriber
-  tag: string | undefined
+  tags: Array<StateTag> | undefined
   version: StateListenerVersion
   next: ListenerNode | undefined
 }
 
-export abstract class StatePublisher<T> {
+export type StateTag = string | number
+
+export interface StatePublisher<T> {
+  getValue(): T
+  addListener(subscriber: Subscriber): void
+  removeListener(listener: StateListener): void
+  notifyListeners(userEffects: Array<ListenerNode>): void
+  runListeners(): void
+  runUserEffects(subscribers: Array<ListenerNode>): void
+}
+
+export abstract class ImmutableStatePublisher<T> implements StatePublisher<T> {
   private head: ListenerNode | undefined
   private tail: ListenerNode | undefined
   public filter: string | undefined
 
   abstract getValue(): T
 
-  addListener(subscriber: Subscriber, tag?: string): void {
-    console.log("Subscribing with tag", tag)
+  addListener(subscriber: Subscriber, tags?: Array<StateTag>): void {
+    // console.log("Subscribing with tag", tag)
     if (this.head === undefined) {
       this.head = {
         subscriber: subscriber,
-        tag,
+        tags,
         version: getVersion(subscriber),
         next: undefined
       }
@@ -113,7 +124,7 @@ export abstract class StatePublisher<T> {
     if (subscriber[1].type === StateListenerType.StateEffect) {
       const first = {
         subscriber,
-        tag,
+        tags,
         version: getVersion(subscriber),
         next: this.head
       }
@@ -121,7 +132,7 @@ export abstract class StatePublisher<T> {
     } else {
       const next = {
         subscriber,
-        tag,
+        tags,
         version: getVersion(subscriber),
         next: undefined
       }
@@ -156,7 +167,7 @@ export abstract class StatePublisher<T> {
     }
   }
 
-  notifyListeners(userEffects: Array<Subscriber>): void {
+  notifyListeners(userEffects: Array<ListenerNode>): void {
     let previous: ListenerNode | undefined = undefined
     let node = this.head
     while (node !== undefined) {
@@ -172,7 +183,7 @@ export abstract class StatePublisher<T> {
           listener.notifyListeners?.(userEffects)
           break
         case StateListenerType.UserEffect:
-          userEffects.push(node.subscriber)
+          userEffects.push(node)
           break
       }
       setParent(node.subscriber, this)
@@ -182,7 +193,8 @@ export abstract class StatePublisher<T> {
     }
   }
 
-  runListeners(filter?: string): void {
+  runListeners(tags?: Array<StateTag>): void {
+    console.log("A tags", tags)
     let node = this.head
 
     // Start a new list -- any listeners added while running the current listeners
@@ -194,46 +206,57 @@ export abstract class StatePublisher<T> {
       // console.log("Attempting to run node", node.tag)
       // if (filter !== undefined && !filter.startsWith(node.tag ?? "undefined")) {
       // const subscriberTag = `$.${node.subscriber[0].filter}.${node.tag}`
-      const subscriberTag = node.tag
-      if (filter !== subscriberTag) {
-        // when this happens
-        console.log("skipping node because tag does not equal filter", filter, subscriberTag)
-        this.addListener(node.subscriber, node.tag)
-        node = node.next
-        continue
-      } else {
-        console.log("Running node with filter", node.tag)
-      }
+      // const subscriberTag = node.tag
+      // if (filter !== subscriberTag) {
+      //   // when this happens
+      //   console.log("skipping node because tag does not equal filter", filter, subscriberTag)
+      //   this.addListener(node.subscriber)
+      //   node = node.next
+      //   continue
+      // } else {
+      //   console.log("Running node with filter", node.tag)
+      // }
 
       if (getParent(node.subscriber) !== this) {
+        console.log("B")
         node = node.next
         continue
       }
 
       if (getListener(node.subscriber).type === StateListenerType.UserEffect) {
+        console.log("C")
         setParent(node.subscriber, true)
         node = node.next
         continue
       }
 
-      this.runListener(node.subscriber)
+      console.log("Calling run listener with tags", tags)
+      // don't we have enough info to check for changes here?
+      this.runListener(node, tags)
       node = node.next
     }
   }
 
-  runUserEffects(subscribers: Array<Subscriber>) {
-    for (const subscriber of subscribers) {
-      if (getParent(subscriber) === true) {
-        this.runListener(subscriber)
+  runUserEffects(nodes: Array<ListenerNode>, tags?: Array<StateTag>) {
+    for (const node of nodes) {
+      if (getParent(node.subscriber) === true) {
+        this.runListener(node, tags)
       }
     }
   }
 
-  private runListener(key: Subscriber) {
+  protected runListener(node: ListenerNode, tags?: Array<StateTag>) {
+    const key = node.subscriber
     setVersion(key, getVersion(key) + 1)
     key[1].run(getStateFunctionWithListener(key), key[4])
     setParent(key, undefined)
   }
+}
+
+export function runListener(key: Subscriber) {
+  setVersion(key, getVersion(key) + 1)
+  key[1].run(getStateFunctionWithListener(key), key[4])
+  setParent(key, undefined)
 }
 
 export function createSubscriber(registry: TokenRegistry, listener: StateListener, context?: any): Subscriber {

@@ -1,13 +1,13 @@
 import { GetState } from "../../../store/index.js"
 import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementId } from "../fragmentHelpers.js"
 import { activate, DOMTemplate, render, TemplateType } from "../domTemplate.js"
-import { createSubscriber, OverlayTokenRegistry, State, StateListener, StateListenerType, StatePublisher, Subscriber, Token, TokenRegistry } from "../../../store/tokenRegistry.js"
+import { createSubscriber, ImmutableStatePublisher, OverlayTokenRegistry, State, StateListener, StateListenerType, StatePublisher, Subscriber, Token, TokenRegistry } from "../../../store/tokenRegistry.js"
 import { ListItemTemplateContext, StatePublisherCollection } from "../templateContext.js"
 import { CollectionState } from "../../../store/state/collection.js"
 import { ValueWriter } from "../../../store/state/publisher/valueWriter.js"
 import { StateWriter } from "../../../store/state/publisher/stateWriter.js"
 
-class OverlayPublisher extends StatePublisher<any> {
+class OverlayPublisher extends ImmutableStatePublisher<any> {
   constructor(private writer: StateWriter<any>) {
     super()
   }

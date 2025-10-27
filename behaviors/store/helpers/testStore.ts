@@ -49,7 +49,11 @@ export class TestStore<T> {
   }
 
   subscribeTo<S>(token: StateReference<S>, name: string) {
-    const query = new StoreValuesEffect((get) => get(token))
+    const query = new StoreValuesEffect((get) => {
+      const val = get(token)
+      console.log("Got val", val)
+      return val
+    })
     this.values.set(name, query)
     useEffect(this.store, query)
   }

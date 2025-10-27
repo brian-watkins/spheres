@@ -36,19 +36,25 @@ export default behavior("entity list", [
           const selected = container<Entity<boolean> | undefined>({ initialValue: undefined })
 
           function selectRow(entity: Entity<Item>, get: GetState) {
+            console.log("A")
             const previouslySelected = get(selected)
+            console.log("B")
+            // Not great that we have to do this ... should fix
+            const isSelected = entity.isSelected
             if (previouslySelected === undefined) {
+              console.log("C")
+
               return batch([
                 //@ts-ignore
-                write(entity.isSelected, true),
-                write(selected, entity.isSelected)
+                write(isSelected, true),
+                write(selected, isSelected)
               ])
             } else {
               return batch([
                 //@ts-ignore
-                write(entity.isSelected, true),
+                write(isSelected, true),
                 write(previouslySelected, false),
-                write(selected, entity.isSelected)
+                write(selected, isSelected)
               ])
             }
           }
@@ -165,7 +171,7 @@ export default behavior("entity list", [
         step("items are rearranged", (context) => {
           // @ts-ignore
           context.store.dispatch(update(context.state.items, (val) => {
-            const updated = [ ...val ]
+            const updated = [...val]
             const item = val[4]
             updated[4] = updated[1]
             updated[1] = item
@@ -197,6 +203,23 @@ export default behavior("entity list", [
           await expect(selectElement("[data-item='3']").text(), resolvesTo("label-3"))
           await expect(selectElement("[data-item='1']").text(), resolvesTo("label-1 !!! !!!"))
           await expect(selectElement("[data-item='5']").text(), resolvesTo("label-5"))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("select a different item", async () => {
+          await selectElement("[data-item='1']").click()
+        })
+      ],
+      observe: [
+        effect("the selected item is selected", async () => {
+          await expect(selectElement("[data-item='0']").property("className"), resolvesTo(""))
+          await expect(selectElement("[data-item='4']").property("className"), resolvesTo(""))
+          await expect(selectElement("[data-item='2']").property("className"),resolvesTo(""))
+          await expect(selectElement("[data-item='3']").property("className"), resolvesTo(""))
+          await expect(selectElement("[data-item='1']").property("className"),
+            resolvesTo(assignedWith(stringContaining("selected-item"))))
+          await expect(selectElement("[data-item='5']").property("className"), resolvesTo(""))
         })
       ]
     })

@@ -1,5 +1,5 @@
 import { didCreateToken } from "./stateRecorder.js";
-import { GetState, State, StateListener, StateListenerType, StatePublisher, TokenRegistry, createPublisher, initListener } from "../tokenRegistry.js";
+import { GetState, ImmutableStatePublisher, State, StateListener, StateListenerType, StatePublisher, TokenRegistry, createPublisher, initListener } from "../tokenRegistry.js";
 
 export interface DerivedStateInitializer<T> {
   query: (get: GetState) => T
@@ -27,7 +27,7 @@ export class DerivedState<T> extends State<T> {
   }
 }
 
-class DerivedStatePublisher<T> extends StatePublisher<T> implements StateListener {
+class DerivedStatePublisher<T> extends ImmutableStatePublisher<T> implements StateListener {
   readonly type = StateListenerType.StateEffect
   private _value!: T
 

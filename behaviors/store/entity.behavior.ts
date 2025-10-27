@@ -1,6 +1,6 @@
 import { behavior, effect, example, fact, step } from "best-behavior";
 import { testStoreContext } from "./helpers/testStore";
-import { entity, Entity, write } from "@store/index";
+import { derived, entity, Entity, update, write } from "@store/index";
 import { arrayWith, equalTo, expect, is, objectWithProperty } from "great-expectations";
 
 interface Item {
@@ -209,6 +209,122 @@ export default behavior("entity state", [
           ]))
         })
       ]
-    })
+    }).andThen({
+      perform: [
+        step("update the array", (context) => {
+          //@ts-ignore
+          context.store.dispatch(update(context.tokens, (list) => [list[1], list[2], list[0]]))
+        })
+      ],
+      observe: [
+        effect("the subscribers update", (context) => {
+          expect(context.valuesForSubscriber("name-sub-1"), is([
+            "Mr. Cool",
+            "Ms. Fun"
+          ]))
+          expect(context.valuesForSubscriber("name-sub-2"), is([
+            "Dr. Awesome",
+            "Ms. Great",
+            "Mr. Cool"
+          ]))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("update the array, but not items 0 or 2", (context) => {
+          //@ts-ignore
+          context.store.dispatch(update(context.tokens, (list) => [
+            list[0],
+            {
+              name: "Mr. Cool",
+              label: { type: "a", content: "boat" },
+              count: 14
+            },
+            list[2]
+          ]))
+        })
+      ],
+      observe: [
+        effect("the subscribers do not update", (context) => {
+          expect(context.valuesForSubscriber("name-sub-1"), is([
+            "Mr. Cool",
+            "Ms. Fun"
+          ]))
+          expect(context.valuesForSubscriber("name-sub-2"), is([
+            "Dr. Awesome",
+            "Ms. Great",
+            "Mr. Cool"
+          ]))
+        })
+      ]
+    }),
+
+  example(testStoreContext<Entity<Array<Item>>>())
+    .description("entity array reference in derived state")
+    .script({
+      suppose: [
+        fact("there is an entity", (context) => {
+          context.setTokens(entity({
+            initialValue: [
+              {
+                name: "Mr. Cool",
+                label: { type: "a", content: "boat" },
+                count: 14
+              },
+              {
+                name: "Ms. Fun",
+                label: { type: "b", content: "bike" },
+                count: 6
+              },
+              {
+                name: "Dr. Awesome",
+                label: { type: "b", content: "car" },
+                count: 83
+              }
+            ]
+          }))
+        }),
+        fact("there is derived state that references the entity", (context) => {
+          const secondLabelState = derived(get => `derived: ${get(context.tokens[1].label.content)}`)
+          context.subscribeTo(secondLabelState, "derived-state-sub")
+        })
+      ],
+      observe: [
+        effect("the subscriber gets the iniial derived value", (context) => {
+          expect(context.valuesForSubscriber("derived-state-sub"), is([
+            "derived: bike"
+          ]))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("update a different item", (context) => {
+          context.writeTo(context.tokens[0].label.content, "submarine")
+        })
+      ],
+      observe: [
+        effect("the subscriber does not update", (context) => {
+          expect(context.valuesForSubscriber("derived-state-sub"), is([
+            "derived: bike"
+          ]))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the array is updated", (context) => {
+          //@ts-ignore
+          context.store.dispatch(update(context.tokens, (list) => [list[2], list[0], list[1]]))
+        })
+      ],
+      observe: [
+        effect("the subscriber updates with the new value", (context) => {
+          expect(context.valuesForSubscriber("derived-state-sub"), is([
+            "derived: bike",
+            "derived: submarine",
+          ]))
+        })
+      ]
+    }),
+
 ])
 

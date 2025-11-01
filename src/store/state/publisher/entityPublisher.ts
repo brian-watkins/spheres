@@ -35,7 +35,7 @@ export class EntityPublisher extends EventTarget implements StatePublisher<any> 
     this.addEventListener(`spheres-notify-${tagName}`, subscriber, { once: true })
     this.addEventListener(`spheres-publish-${tagName}`, subscriber, { once: true })
 
-    console.log("Adding listener", tagName)
+    // console.log("Adding listener", tagName)
 
     // Navigate/create the path in the trie
     let currentNode = this.root;
@@ -53,27 +53,27 @@ export class EntityPublisher extends EventTarget implements StatePublisher<any> 
     currentNode.hasListeners = true
   }
 
-  removeListener(listener: StateListener): void {
+  removeListener(_: StateListener): void {
     throw new Error("Method not implemented.");
   }
 
-  notifyListeners(nodes: Array<ListenerNode>, tags?: Array<StateTag>) {
+  notifyListeners(nodes: Array<ListenerNode>, tags?: Array<string>) {
     // this.dispatchEvent(new CustomEvent(`spheres-notify-${tags?.join(".")}`))
-    console.log("notify listeners", tags)
-    const allTags = this.getListenersInPath(tags ?? [])
-    console.log("All tags", allTags)
-    for (const tagName of allTags) {
-      console.log("Dispatching notify event", tagName)
+    // console.log("notify listeners", tags)
+    // const allTags = this.getListenersInPath(tags ?? [])
+    // console.log("All tags", allTags)
+    for (const tagName of tags ?? []) {
+      // console.log("Dispatching notify event", tagName)
       this.dispatchEvent(new CustomEvent(`spheres-notify-${tagName}`, { detail: nodes }))
     }
   }
 
-  runListeners(tags?: Array<StateTag>) {
-    console.log("run listeners", tags)
-    const allTags = this.getListenersInPath(tags ?? [])
-    console.log("All tags", allTags)
-    for (const tagName of allTags) {
-      console.log("Dispatching publish event", tagName)
+  runListeners(tags?: Array<string>) {
+    // console.log("run listeners", tags)
+    // const allTags = this.getListenersInPath(tags ?? [])  
+    // console.log("All tags", allTags)
+    for (const tagName of tags ?? []) {
+      // console.log("Dispatching publish event", tagName)
       this.dispatchEvent(new CustomEvent(`spheres-publish-${tagName}`))
     }
   }
@@ -84,15 +84,15 @@ export class EntityPublisher extends EventTarget implements StatePublisher<any> 
       .map(tags => tags.join("."))
   }
 
-  runUserEffects(nodes: Array<ListenerNode>, tags?: Array<StateTag>) {
-    console.log("Running user effects", nodes, tags)
+  runUserEffects(nodes: Array<ListenerNode>, _?: Array<StateTag>) {
+    // console.log("Running user effects", nodes, tags)
     runUserEffects(nodes)
   }
 
   write(val: any, at?: Array<StateTag>): void {
     console.log("Entity publisher should write", val, at)
     if (at === undefined) {
-      console.log("No tags passed to write??")
+      // console.log("No tags passed to write??")
       // this.currentValue = val
       this.diff = [ this.currentValue, val ]
       this.update(val, ["$"])
@@ -101,10 +101,10 @@ export class EntityPublisher extends EventTarget implements StatePublisher<any> 
 
     // const parentVal = at.slice(0, -1)
     //   .reduce((acc, cur) => acc[cur], this.getValue())
-    console.log("Writing value", this.getValue(), at, val)
+    // console.log("Writing value", this.getValue(), at, val)
     const parentVal = getValueAt(this.getValue(), at.slice(0, -1))
 
-    console.log("entity publisher write", parentVal, at[at.length - 1], val)
+    // console.log("entity publisher write", parentVal, at[at.length - 1], val)
 
     // I'm mutating the value ... so how do I compare old and new?
     this.diff = [ parentVal[at[at.length - 1]], val ]
@@ -125,13 +125,15 @@ export class EntityPublisher extends EventTarget implements StatePublisher<any> 
       this.currentValue = value
     }
 
+    const allTags = this.getListenersInPath(tags ?? [])
+
     const userEffects: Array<ListenerNode> = []
     // not sure what we have todo user effects like this, why
     // not just track in the state publisher and run at the end of the list?
-    this.notifyListeners(userEffects, tags)
+    this.notifyListeners(userEffects, allTags)
 
     console.log("Run listeners with tags", tags)
-    this.runListeners(tags)
+    this.runListeners(allTags)
     console.log("Done running listeners")
 
     this.runUserEffects(userEffects, tags)
@@ -170,7 +172,7 @@ export class EntityPublisher extends EventTarget implements StatePublisher<any> 
     //   result.push(prefix.slice(0, -(prefix.length - i)))
     // }
     // result.push(prefix)
-    console.log("Parent tags", result.slice(0, -1))
+    // console.log("Parent tags", result.slice(0, -1))
 
     return result.slice(0, -1)
   }
@@ -194,7 +196,7 @@ export class EntityPublisher extends EventTarget implements StatePublisher<any> 
       currentNode = currentNode.children[key];
       if (!currentNode) {
         // Prefix not found, return empty array
-        console.log("Prefix not found", prefix)
+        // console.log("Prefix not found", prefix)
         return result;
       }
     }
@@ -203,7 +205,7 @@ export class EntityPublisher extends EventTarget implements StatePublisher<any> 
     // Couldn't this also be any tag paths that startWith this tag path?
     this.collectAllPaths(currentNode, prefix, [], result);
 
-    console.log("Got all child paths", result)
+    // console.log("Got all child paths", result)
 
     return result;
   }
@@ -214,6 +216,8 @@ export class EntityPublisher extends EventTarget implements StatePublisher<any> 
       if (getValueAt(this.diff[0], childPath) === getValueAt(this.diff[1], childPath)) {
         console.log("No diff at", childPath)
         return
+      } else {
+        console.log("Got diff", this.diff, childPath)
       }
       result.push([...currentPath]);
     }
@@ -227,7 +231,7 @@ export class EntityPublisher extends EventTarget implements StatePublisher<any> 
 }
 
 function getValueAt(current: any, props: Array<StateTag> = []) {
-  console.log("Getting value at", JSON.stringify(current), props)
+  console.log("Getting value at", current, props)
   return props.filter(tag => tag !== "$").reduce((acc, cur) => acc[cur], current) ?? current
 }
 

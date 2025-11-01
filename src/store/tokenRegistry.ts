@@ -10,7 +10,7 @@ export type Stateful<T> = (get: GetState) => T | undefined
 
 function subscribeOnGet(this: Subscriber, token: StateReference<any>): any {
   // console.log("subscribing token", token)
-  const publisher = token[getPublisher](this[0])
+  const publisher = token[getPublisher](this.registry)
   publisher.addListener(this)
   return publisher.getValue()
 }
@@ -36,7 +36,6 @@ export abstract class State<T> implements StateReference<T> {
   abstract [createPublisher](registry: TokenRegistry, initialState?: T): StatePublisher<T>
 
   [getPublisher]<X extends StatePublisher<T>>(registry: TokenRegistry): X {
-    console.log("get pub in state", this)
     return registry.getState(this)
   }
 
@@ -45,22 +44,9 @@ export abstract class State<T> implements StateReference<T> {
   }
 }
 
-// export class Flux<T> extends State<T> {
-//   constructor(private publisher: StatePublisher<T>) {
-//     super(undefined)
-//   }
-
-//   [createPublisher](): StatePublisher<T> {
-//     return this.publisher
-//   }
-
-// }
-
 export type StateListenerVersion = number
 
 export enum StateListenerType {
-  // SystemEffect could be RenderEffect
-  // Or InternalEffect?
   StateEffect, SystemEffect, UserEffect
 }
 
@@ -76,17 +62,17 @@ export function initListener(registry: TokenRegistry, listener: StateListener, c
   listener.init(getStateFunctionWithListener(subscriber), context)
 }
 
-export type Subscriber = [
+export interface Subscriber {
   registry: TokenRegistry,
   listener: StateListener,
   version: StateListenerVersion,
   parent: any,
   context: any
-]
+  handleEvent(evt: Event): void
+}
 
 export interface ListenerNode {
   subscriber: Subscriber
-  tags: Array<StateTag> | undefined
   version: StateListenerVersion
   next: ListenerNode | undefined
 }
@@ -109,31 +95,27 @@ export abstract class ImmutableStatePublisher<T> implements StatePublisher<T> {
 
   abstract getValue(): T
 
-  addListener(subscriber: Subscriber, tags?: Array<StateTag>): void {
-    // console.log("Subscribing with tag", tag)
+  addListener(subscriber: Subscriber): void {
     if (this.head === undefined) {
       this.head = {
         subscriber: subscriber,
-        tags,
-        version: getVersion(subscriber),
+        version: subscriber.version,
         next: undefined
       }
       this.tail = this.head
       return
     }
-    if (subscriber[1].type === StateListenerType.StateEffect) {
+    if (subscriber.listener.type === StateListenerType.StateEffect) {
       const first = {
         subscriber,
-        tags,
-        version: getVersion(subscriber),
+        version: subscriber.version,
         next: this.head
       }
       this.head = first
     } else {
       const next = {
         subscriber,
-        tags,
-        version: getVersion(subscriber),
+        version: subscriber.version,
         next: undefined
       }
       this.tail!.next = next
@@ -145,7 +127,7 @@ export abstract class ImmutableStatePublisher<T> implements StatePublisher<T> {
     let node = this.head
     let previous = undefined
     while (node !== undefined) {
-      if (getListener(node.subscriber) === listener) {
+      if (node.subscriber.listener === listener) {
         this.removeFromList(previous, node)
       }
       previous = node
@@ -171,13 +153,12 @@ export abstract class ImmutableStatePublisher<T> implements StatePublisher<T> {
     let previous: ListenerNode | undefined = undefined
     let node = this.head
     while (node !== undefined) {
-      if (getVersion(node.subscriber) !== node.version) {
-        // console.log("Removing subscriber with tag", node.tag)
+      if (node.subscriber.version !== node.version) {
         this.removeFromList(previous, node)
         node = node.next
         continue
       }
-      const listener = getListener(node.subscriber)
+      const listener = node.subscriber.listener
       switch (listener.type) {
         case StateListenerType.StateEffect:
           listener.notifyListeners?.(userEffects)
@@ -186,15 +167,14 @@ export abstract class ImmutableStatePublisher<T> implements StatePublisher<T> {
           userEffects.push(node)
           break
       }
-      setParent(node.subscriber, this)
+      node.subscriber.parent = this
 
       previous = node
       node = node.next
     }
   }
 
-  runListeners(tags?: Array<StateTag>): void {
-    console.log("A tags", tags)
+  runListeners(): void {
     let node = this.head
 
     // Start a new list -- any listeners added while running the current listeners
@@ -203,84 +183,77 @@ export abstract class ImmutableStatePublisher<T> implements StatePublisher<T> {
     this.tail = undefined
 
     while (node !== undefined) {
-      // console.log("Attempting to run node", node.tag)
-      // if (filter !== undefined && !filter.startsWith(node.tag ?? "undefined")) {
-      // const subscriberTag = `$.${node.subscriber[0].filter}.${node.tag}`
-      // const subscriberTag = node.tag
-      // if (filter !== subscriberTag) {
-      //   // when this happens
-      //   console.log("skipping node because tag does not equal filter", filter, subscriberTag)
-      //   this.addListener(node.subscriber)
-      //   node = node.next
-      //   continue
-      // } else {
-      //   console.log("Running node with filter", node.tag)
-      // }
-
-      if (getParent(node.subscriber) !== this) {
-        console.log("B")
+      if (node.subscriber.parent !== this) {
         node = node.next
         continue
       }
 
-      if (getListener(node.subscriber).type === StateListenerType.UserEffect) {
-        console.log("C")
-        setParent(node.subscriber, true)
+      if (node.subscriber.listener.type === StateListenerType.UserEffect) {
+        node.subscriber.parent = true
         node = node.next
         continue
       }
 
-      console.log("Calling run listener with tags", tags)
-      // don't we have enough info to check for changes here?
-      this.runListener(node, tags)
+      this.runListener(node)
       node = node.next
     }
   }
 
-  runUserEffects(nodes: Array<ListenerNode>, tags?: Array<StateTag>) {
+  runUserEffects(nodes: Array<ListenerNode>) {
     for (const node of nodes) {
-      if (getParent(node.subscriber) === true) {
-        this.runListener(node, tags)
+      if (node.subscriber.parent === true) {
+        this.runListener(node)
       }
     }
   }
 
-  protected runListener(node: ListenerNode, tags?: Array<StateTag>) {
+  protected runListener(node: ListenerNode) {
     const key = node.subscriber
-    setVersion(key, getVersion(key) + 1)
-    key[1].run(getStateFunctionWithListener(key), key[4])
-    setParent(key, undefined)
+    key.version = key.version + 1
+    key.listener.run(getStateFunctionWithListener(key), key.context)
+    key.parent = undefined
   }
 }
 
 export function runListener(key: Subscriber) {
-  setVersion(key, getVersion(key) + 1)
-  key[1].run(getStateFunctionWithListener(key), key[4])
-  setParent(key, undefined)
+  key.version = key.version + 1
+  key.listener.run(getStateFunctionWithListener(key), key.context)
+  key.parent = undefined
+}
+
+export function runUserEffects(nodes: Array<ListenerNode>) {
+  for (const node of nodes) {
+    if (node.subscriber.parent === true) {
+      runListener(node.subscriber)
+    }
+  }
 }
 
 export function createSubscriber(registry: TokenRegistry, listener: StateListener, context?: any): Subscriber {
-  return [registry, listener, 0, undefined, context]
-}
-
-function getParent(key: Subscriber): any {
-  return key[3]
-}
-
-function setParent(key: Subscriber, parent: any): void {
-  key[3] = parent
-}
-
-function getVersion(key: Subscriber): StateListenerVersion {
-  return key[2]
-}
-
-function setVersion(key: Subscriber, version: StateListenerVersion): void {
-  key[2] = version
-}
-
-function getListener(key: Subscriber): StateListener {
-  return key[1]
+  return {
+    registry,
+    listener,
+    version: 0,
+    parent: undefined,
+    context,
+    handleEvent(evt) {
+      console.log("SPHERES EVENT", evt.type)
+      if (evt.type.startsWith("spheres-notify")) {
+        console.log("SUBSCRIBER NOTIFY EVENT HANDLER")
+        this.parent = evt.target
+        if (listener.type === StateListenerType.StateEffect) {
+          //@ts-ignore
+          listener.notifyListeners?.(evt.detail)
+        }
+      } else {
+        console.log("SUBSCRIBER PUBLISH EVENT HANDLER")
+        if (this.parent === evt.target) {
+          console.log("SUBSCRIBER RUNNING LISTENER")
+          runListener(this)
+        }
+      }
+    },
+  }
 }
 
 export interface CommandController<T> {

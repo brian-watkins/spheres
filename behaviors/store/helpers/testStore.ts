@@ -1,5 +1,5 @@
 import { WritableState } from "@store/message"
-import { Container, State, Store, write, StoreMessage, batch, GetState, reset, Command, CommandActions, ContainerHooks, ReactiveEffect, createStore, useContainerHooks, useEffect, useCommand, InitializerActions, Collection, Entity } from "@store/index.js"
+import { Container, Store, write, StoreMessage, batch, GetState, reset, Command, CommandActions, ContainerHooks, ReactiveEffect, createStore, useContainerHooks, useEffect, useCommand, InitializerActions, Collection } from "@store/index.js"
 import { Context } from "best-behavior"
 import { StateReference } from "@store/tokenRegistry"
 
@@ -15,7 +15,9 @@ export class StoreValuesEffect implements ReactiveEffect {
   constructor(private definition: (get: GetState) => any) { }
 
   run(get: GetState): void {
-    this.values.push(this.definition(get))
+    const update = this.definition(get)
+    // clone to create a snapshot object since we mutate sometimes now
+    this.values.push(structuredClone(update))
   }
 }
 
@@ -49,28 +51,10 @@ export class TestStore<T> {
   }
 
   subscribeTo<S>(token: StateReference<S>, name: string) {
-    const query = new StoreValuesEffect((get) => {
-      const val = get(token)
-      console.log("Got val", val)
-      return val
-    })
+    const query = new StoreValuesEffect((get) => get(token))
     this.values.set(name, query)
     useEffect(this.store, query)
   }
-
-  // subscribeToFlux<S>(token: State<S>, selector: (val: S) => Flux<any>, name: string) {
-  //   // const query = new StoreValuesEffect((get) => get(selector(get(token))))
-  //   const query = new StoreValuesEffect((get) => get(lens(token, selector)))
-  //   this.values.set(name, query)
-  //   useEffect(this.store, query)
-  // }
-
-  // subscribeToEntity<S>(lens: Lens<S>, name: string) {
-  //   // const query = new StoreValuesEffect((get) => get(selector(get(entity))))
-  //   const query = new StoreValuesEffect((get) => get(lens))
-  //   this.values.set(name, query)
-  //   useEffect(this.store, query)
-  // }
 
   useCommand<M>(command: Command<M>, handler: (message: M, actions: CommandActions) => void) {
     useCommand(this.store, command, { exec: handler })

@@ -146,7 +146,7 @@ export default behavior("entity state", [
       ]
     }),
 
-  (m) => m.pick() && example(testStoreContext<Entity<Array<Item>>>())
+  example(testStoreContext<Entity<Array<Item>>>())
     .description("entity array")
     .script({
       suppose: [

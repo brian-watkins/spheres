@@ -173,11 +173,11 @@ function guardListenersStatePublisherProxy(publisher: StatePublisher<any>, guard
     get(target, prop, receiver) {
       if (prop === "addListener") {
         return (key: Subscriber) => {
-          const listener = key[1]
+          const listener = key.listener
           const runner = listener.run.bind(listener)
           listener.run = function (get) {
             if (guard()) {
-              runner(get, key[4])
+              runner(get, key.context)
             }
           }
           target.addListener(key)

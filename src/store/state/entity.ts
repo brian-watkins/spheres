@@ -48,7 +48,7 @@ export class PropertyCarrier implements StateReference<any> {
   }
 
   [getPublisher](registry: TokenRegistry): StatePublisher<any> {
-    console.log("Property carrier get publisher")
+    // console.log("Property carrier get publisher")
     const entityPublisher = this.token[getPublisher](registry) as EntityPublisher
     return {
       addListener: (subscriber) => {
@@ -56,7 +56,7 @@ export class PropertyCarrier implements StateReference<any> {
         entityPublisher.addListener(subscriber, this.props)
       },
       getValue: () => {
-        console.log("Getting value for carrier", this.props)
+        // console.log("Getting value for carrier", this.props)
         return entityPublisher.getValue(this.props)
       },
       write: (val) => {
@@ -70,7 +70,7 @@ function createEntityProxy<T>(state: StateReference<T>): Entity<T> {
   return new Proxy(state, {
     get(target, prop, receiver) {
       if (Reflect.has(target, prop)) {
-        console.log("Calling on target", target, prop, receiver)
+        // console.log("Calling on target", target, prop, receiver)
         const accessed = Reflect.get(target, prop, target)
         if (typeof accessed === 'function') {
           return accessed.bind(target);
@@ -79,18 +79,21 @@ function createEntityProxy<T>(state: StateReference<T>): Entity<T> {
         }
       } else {
         if (target instanceof EntityState) {
-          console.log("Creating new carrier with prop", prop)
+          // console.log("Creating new carrier with prop", prop)
           const carrier = new PropertyCarrier(target)
           carrier.addProperty(prop as StateTag)
           return createEntityProxy(carrier)
         } else {
-          console.log("Adding prop for existing carrier", prop)
-          // const carrier = new PropertyCarrier(target.token, target.props)
+          // console.log("Adding prop for existing carrier", prop)
+          const oldCarrier = target as PropertyCarrier
+          // console.log("Adding prop for existing carrier", oldCarrier.props, prop)
+          // NOTE need a test for this!!!!!!!!!
+          const carrier = new PropertyCarrier(oldCarrier.token, [...oldCarrier.props, prop as StateTag])
           // carrier.addProperty(prop as StateTag)
           // @ts-ignore
-          target.addProperty(prop as StateTag)
-          return receiver
-          // return createEntityProxy(carrier)
+          // target.addProperty(prop as StateTag)
+          // return receiver
+          return createEntityProxy(carrier)
         }
 
       }
@@ -119,7 +122,7 @@ export function entityRef<T>(): EntityRef<T> {
 
   const entityToken = {
     [getPublisher](registry) {
-      console.log("getting entity token")
+      // console.log("getting entity token")
       return registry.getState(this)
     }
   } as State<Entity<T>>
@@ -129,7 +132,7 @@ export function entityRef<T>(): EntityRef<T> {
       return token
     },
     get $self() {
-      console.log("Getting self token!!")
+      // console.log("Getting self token!!")
       return entityToken
     }
   }, {
@@ -141,12 +144,12 @@ export function entityRef<T>(): EntityRef<T> {
         // this should be provided by the virtual itsm
         // >>> const publisher = new EntityPublisher(root)
         // >>> publisher[addProperty](index)
-        console.log("Adding prop", prop, target)
+        // console.log("Adding prop", prop, target)
         if (target instanceof PropertyCarrier) {
           target.addProperty(prop as StateTag)
           return receiver
         } else {
-          console.log("Creating new carrier")
+          // console.log("Creating new carrier")
           const carrier = new PropertyCarrier(token)
           carrier.addProperty(prop as StateTag)
           return createEntityProxy(carrier)

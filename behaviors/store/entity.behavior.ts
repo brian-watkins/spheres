@@ -268,7 +268,7 @@ export default behavior("entity state", [
             initialValue: [
               {
                 name: "Mr. Cool",
-                label: { type: "a", content: "boat" },
+                label: { type: "a", content: "apple" },
                 count: 14
               },
               {
@@ -278,21 +278,24 @@ export default behavior("entity state", [
               },
               {
                 name: "Dr. Awesome",
-                label: { type: "b", content: "car" },
+                label: { type: "c", content: "car" },
                 count: 83
               }
             ]
           }))
         }),
         fact("there is derived state that references the entity", (context) => {
-          const secondLabelState = derived(get => `derived: ${get(context.tokens[1].label.content)}`)
+          const secondLabelState = derived(get => {
+            const item = context.tokens[1]
+            return `derived: ${get(item.label.type)} => ${get(item.label.content)}`
+          })
           context.subscribeTo(secondLabelState, "derived-state-sub")
         })
       ],
       observe: [
         effect("the subscriber gets the iniial derived value", (context) => {
           expect(context.valuesForSubscriber("derived-state-sub"), is([
-            "derived: bike"
+            "derived: b => bike"
           ]))
         })
       ]
@@ -305,7 +308,7 @@ export default behavior("entity state", [
       observe: [
         effect("the subscriber does not update", (context) => {
           expect(context.valuesForSubscriber("derived-state-sub"), is([
-            "derived: bike"
+            "derived: b => bike"
           ]))
         })
       ]
@@ -319,8 +322,8 @@ export default behavior("entity state", [
       observe: [
         effect("the subscriber updates with the new value", (context) => {
           expect(context.valuesForSubscriber("derived-state-sub"), is([
-            "derived: bike",
-            "derived: submarine",
+            "derived: b => bike",
+            "derived: a => submarine",
           ]))
         })
       ]

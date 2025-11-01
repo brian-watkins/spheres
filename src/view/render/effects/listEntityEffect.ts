@@ -1,6 +1,7 @@
 import { Entity } from "../../../store/index.js";
 import { EntityPublisher } from "../../../store/state/publisher/entityPublisher.js";
-import { getPublisher, GetState, ListenerNode, OverlayTokenRegistry, runListener, State, StateListener, StateListenerType, StatePublisher, StateTag, Subscriber, TokenRegistry } from "../../../store/tokenRegistry.js"
+import { ValueWriter } from "../../../store/state/publisher/valueWriter.js";
+import { getPublisher, GetState, OverlayTokenRegistry, runListener, State, StateListener, StateListenerType, StatePublisher, StateTag, Subscriber, TokenRegistry } from "../../../store/tokenRegistry.js"
 import { DOMTemplate, render } from "../domTemplate.js";
 import { spheresTemplateData } from "../index.js";
 import { ListEntityTemplateContext } from "../templateContext.js";
@@ -36,11 +37,11 @@ export class ListEntityEffect implements StateListener {
     // subscriber to get updates when a write occurs
     this.rootPublisher.onPropertyWrite((tags, value) => {
       const path = tags.slice(1)
-      console.log("Need to update", path, value)
+      // console.log("Need to update", path, value)
       let item = this.first
       while (item && item.index != path[0]) {
         item = item.next
-        console.log("Next item index", item?.index)
+        // console.log("Next item index", item?.index)
       }
       
       item?.updateAt(path.slice(1), value)
@@ -58,7 +59,7 @@ export class ListEntityEffect implements StateListener {
   }
 
   run(get: GetState): void {
-    console.log("update list in list entity")
+    // console.log("update list in list entity")
 
     this.rootEntity = this.query(get)
     this.rootPublisher = this.rootEntity[getPublisher](this.registry) as EntityPublisher
@@ -330,14 +331,14 @@ export class ListEntityEffect implements StateListener {
     }
   }
 
-  private updateItemData(item: VirtualItem, itemData: any): void {
+  private updateItemData(_: VirtualItem, __: any): void {
     // item.updateItemData(itemData)
     // item.key = itemData
   }
 
   private updateIndex(index: number, item: VirtualItem): void {
     // item.updateIndex(index)
-    console.log("updating index", item.key, index)
+    // console.log("updating index", item.key, index)
     item.index = index
     // need to put this in a better spot
     // item.filter = `$.${index}`
@@ -435,21 +436,22 @@ class VirtualItem extends OverlayTokenRegistry {
   }
 
   getValue(tags: Array<StateTag>) {
-    const val = this.entityPublisher.getValue([this.index, ...tags])
-    console.log("Virtual item got val", this.index, val)
+    const path = tags.slice(1)
+    const val = this.entityPublisher.getValue(["$", this.index, ...path])
+    // console.log("Virtual item got val", path, this.index, val)
     return val
   }
 
   addListener(subscriber: Subscriber, tags: Array<StateTag>): void {
     const path = tags.slice(1)
-    console.log("Virtual Item Adding subscriber at", path)
+    // console.log("Virtual Item Adding subscriber at", path)
     let node = this.subscribers
     for (const tag of path) {
       const nextNode = node.tags[tag]
       if (nextNode === undefined) {
-        console.log("SUBSCRIBING at", tag)
+        // console.log("SUBSCRIBING at", tag)
         node.tags[tag] = { tags: {}, listeners: [ subscriber ] }
-        console.log("SUBSCRIBERS TAG IS NOW", this.subscribers.tags)
+        // console.log("SUBSCRIBERS TAG IS NOW", this.subscribers.tags)
         return
       }
       node = nextNode
@@ -457,14 +459,14 @@ class VirtualItem extends OverlayTokenRegistry {
     node.listeners.push(subscriber)
   }
 
-  updateAt(tags: Array<StateTag>, value: any) {
-    console.log("Updating at", this.index, this.key, tags)
+  updateAt(tags: Array<StateTag>, _: any) {
+    // console.log("Updating at", this.index, this.key, tags)
     let subscriberNode = this.subscribers
     for (const tag of tags) {
-      console.log("Subscriber node tags", subscriberNode.tags)
+      // console.log("Subscriber node tags", subscriberNode.tags)
       subscriberNode = subscriberNode.tags[tag]
       if (subscriberNode === undefined) {
-        console.log("No subscribers at", tag)
+        // console.log("No subscribers at", tag)
         // shouldn't happen?
         return
       }
@@ -472,16 +474,16 @@ class VirtualItem extends OverlayTokenRegistry {
     for (const listener of Array.from(subscriberNode.listeners)) {
       // Problem here is that the subscriber stores a reference
       // to the registry which in our case is a virtual item
-      console.log("Running listener!")
+      // console.log("Running listener!")
       listener.registry = this
       runListener(listener)
     } 
   }
 
   getState<C extends StatePublisher<any>>(token: State<any>): C {
-    console.log("get state in overlay registry", token, this.itemToken)
+    // console.log("get state in overlay registry", token, this.itemToken)
     if (token === this.itemToken) {
-      console.log("returning entity prop publisher for shared token", this.index)
+      // console.log("returning entity prop publisher for shared token", this.index)
       //@ts-ignore
       return this
       // return new EntityPropertyPublisher(this.rootPublisher, this.index) as any
@@ -508,15 +510,16 @@ class VirtualItem extends OverlayTokenRegistry {
       // return pub[getPublisher](this) as C
 
 
-      return {
-        getValue: () => {
-          console.log("********* INDEX FOR SELF", this.index)
-          return this.entity[this.index]
-        }
-      } as C
+      // return {
+      //   getValue: () => {
+      //     // console.log("********* INDEX FOR SELF", this.index)
+      //     return this.entity[this.index]
+      //   }
+      // } as C
+      return new ValueWriter(this.entity[this.index]) as unknown as C
     }
 
-    console.log("Getting entity from parent registry")
+    // console.log("Getting entity from parent registry")
     return this.parentRegistry.getState(token)
   }
 

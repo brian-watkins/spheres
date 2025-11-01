@@ -128,7 +128,7 @@ function initializeEffect(registry: TokenRegistry, root: Node, effect: EffectTem
       break
     }
     case EffectTemplateTypes.ListEntity: {
-      console.log("Creating a list entity effect!")
+      // console.log("Creating a list entity effect!")
       // create some effect that can handle a list entity
       const listStartIndicatorNode = effect.location.findNode(root)
       const listEndIndicatorNode = findListEndNode(listStartIndicatorNode, effect.elementId)

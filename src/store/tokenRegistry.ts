@@ -237,18 +237,18 @@ export function createSubscriber(registry: TokenRegistry, listener: StateListene
     parent: undefined,
     context,
     handleEvent(evt) {
-      console.log("SPHERES EVENT", evt.type)
+      // console.log("SPHERES EVENT", evt.type)
       if (evt.type.startsWith("spheres-notify")) {
-        console.log("SUBSCRIBER NOTIFY EVENT HANDLER")
+        // console.log("SUBSCRIBER NOTIFY EVENT HANDLER")
         this.parent = evt.target
         if (listener.type === StateListenerType.StateEffect) {
           //@ts-ignore
           listener.notifyListeners?.(evt.detail)
         }
       } else {
-        console.log("SUBSCRIBER PUBLISH EVENT HANDLER")
+        // console.log("SUBSCRIBER PUBLISH EVENT HANDLER")
         if (this.parent === evt.target) {
-          console.log("SUBSCRIBER RUNNING LISTENER")
+          // console.log("SUBSCRIBER RUNNING LISTENER")
           runListener(this)
         }
       }

@@ -1,7 +1,7 @@
 import { GetState } from "../../../store/index.js"
 import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementId } from "../fragmentHelpers.js"
 import { activate, DOMTemplate, render, TemplateType } from "../domTemplate.js"
-import { createSubscriber, ImmutableStatePublisher, OverlayTokenRegistry, State, StateListener, StateListenerType, StatePublisher, Subscriber, Token, TokenRegistry } from "../../../store/tokenRegistry.js"
+import { createSubscriber, ImmutableStatePublisher, ListenerNode, OverlayTokenRegistry, State, StateListener, StateListenerType, StatePublisher, Token, TokenRegistry } from "../../../store/tokenRegistry.js"
 import { ListItemTemplateContext, StatePublisherCollection } from "../templateContext.js"
 import { CollectionState } from "../../../store/state/collection.js"
 import { ValueWriter } from "../../../store/state/publisher/valueWriter.js"
@@ -30,10 +30,11 @@ class DerivedStateCollection implements StateListener, StatePublisherCollection 
   private writers = new Map<OverlayTokenRegistry, any>()
 
   constructor(private registry: TokenRegistry, private parentPublisher: StateWriter<any>, private onUnsubscribe: () => void) {
+    // @ts-ignore
     this.parentPublisher.addListener(createSubscriber(registry, this))
   }
 
-  notifyListeners(userEffects: Array<Subscriber>): void {
+  notifyListeners(userEffects: Array<ListenerNode>): void {
     for (const publisher of Array.from(this.writers.values())) {
       publisher.notifyListeners?.(userEffects)
     }
@@ -61,6 +62,7 @@ class DerivedStateCollection implements StateListener, StatePublisherCollection 
   }
 
   private disconnect() {
+    // @ts-ignore
     this.parentPublisher.removeListener(this)
     this.onUnsubscribe()
   }

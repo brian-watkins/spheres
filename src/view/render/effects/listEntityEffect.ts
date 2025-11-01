@@ -1,5 +1,5 @@
 import { Entity } from "../../../store/index.js";
-import { EntityPublisher, PropertyCarrier } from "../../../store/state/entity.js";
+import { EntityPublisher } from "../../../store/state/publisher/entityPublisher.js";
 import { getPublisher, GetState, ListenerNode, OverlayTokenRegistry, runListener, State, StateListener, StateListenerType, StatePublisher, StateTag, Subscriber, TokenRegistry } from "../../../store/tokenRegistry.js"
 import { DOMTemplate, render } from "../domTemplate.js";
 import { spheresTemplateData } from "../index.js";
@@ -35,14 +35,15 @@ export class ListEntityEffect implements StateListener {
 
     // subscriber to get updates when a write occurs
     this.rootPublisher.onPropertyWrite((tags, value) => {
-      console.log("Need to update", tags, value)
+      const path = tags.slice(1)
+      console.log("Need to update", path, value)
       let item = this.first
-      while (item && item.index != tags[0]) {
+      while (item && item.index != path[0]) {
         item = item.next
         console.log("Next item index", item?.index)
       }
       
-      item?.updateAt(tags.slice(1), value)
+      item?.updateAt(path.slice(1), value)
     })
 
     this.patch(get(this.rootEntity))
@@ -440,9 +441,10 @@ class VirtualItem extends OverlayTokenRegistry {
   }
 
   addListener(subscriber: Subscriber, tags: Array<StateTag>): void {
-    console.log("Virtual Item Adding subscriber at", tags)
+    const path = tags.slice(1)
+    console.log("Virtual Item Adding subscriber at", path)
     let node = this.subscribers
-    for (const tag of tags) {
+    for (const tag of path) {
       const nextNode = node.tags[tag]
       if (nextNode === undefined) {
         console.log("SUBSCRIBING at", tag)
@@ -471,7 +473,7 @@ class VirtualItem extends OverlayTokenRegistry {
       // Problem here is that the subscriber stores a reference
       // to the registry which in our case is a virtual item
       console.log("Running listener!")
-      listener[0] = this
+      listener.registry = this
       runListener(listener)
     } 
   }
@@ -480,6 +482,7 @@ class VirtualItem extends OverlayTokenRegistry {
     console.log("get state in overlay registry", token, this.itemToken)
     if (token === this.itemToken) {
       console.log("returning entity prop publisher for shared token", this.index)
+      //@ts-ignore
       return this
       // return new EntityPropertyPublisher(this.rootPublisher, this.index) as any
 

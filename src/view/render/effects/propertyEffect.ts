@@ -1,8 +1,8 @@
 import { GetState } from "../../../store/index.js";
-import { Stateful, StateListener, StateListenerType } from "../../../store/tokenRegistry.js";
+import { StateEffect, Stateful, StateListenerType } from "../../../store/tokenRegistry.js";
 import { EffectLocation } from "../effectLocation.js";
 
-export class UpdatePropertyEffect implements StateListener {
+export class UpdatePropertyEffect implements StateEffect {
   readonly type = StateListenerType.SystemEffect
 
   constructor(private location: EffectLocation, private property: string, private generator: Stateful<any>) { }

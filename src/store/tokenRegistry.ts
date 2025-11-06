@@ -9,7 +9,7 @@ export type GetState = <S>(state: StateReference<S>) => S
 export type Stateful<T> = (get: GetState) => T | undefined
 
 function subscribeOnGet(this: Subscriber, token: StateReference<any>): any {
-  const publisher = token[getPublisher](this[0])
+  const publisher = token[getPublisher](this.registry)
   publisher.addListener(this)
   return publisher.getValue()
 }
@@ -46,182 +46,61 @@ export abstract class State<T> implements StateReference<T> {
 export type StateListenerVersion = number
 
 export enum StateListenerType {
-  StateEffect, SystemEffect, UserEffect
+  Derivation, SystemEffect, UserEffect
 }
 
-export interface StateListener {
-  readonly type: StateListenerType
-  notifyListeners?: (userEffects: Array<Subscriber>) => void
+export interface StateDerivation {
+  readonly type: StateListenerType.Derivation
+  notifyListeners: (userEffects: Array<Subscriber>) => void
   init(get: GetState, context?: any): void
   run(get: GetState, context?: any): void
 }
 
-export function initListener(registry: TokenRegistry, listener: StateListener, context?: any): void {
+export interface StateEffect {
+  readonly type: StateListenerType.SystemEffect | StateListenerType.UserEffect
+  init(get: GetState, context?: any): void
+  run(get: GetState, context?: any): void
+}
+
+export type StateListener = StateEffect | StateDerivation
+
+export function initListener(registry: TokenRegistry, listener: StateListener, context?: any): Subscriber {
   const subscriber = createSubscriber(registry, listener, context)
   listener.init(getStateFunctionWithListener(subscriber), context)
+  return subscriber
 }
 
-export type Subscriber = [
-  registry: TokenRegistry,
-  listener: StateListener,
-  version: StateListenerVersion,
-  parent: any,
-  context: any
-]
+export function runListener(key: Subscriber) {
+  key.version = key.version + 1
+  key.listener.run(getStateFunctionWithListener(key), key.context)
+  key.parent = undefined
+}
 
-interface ListenerNode {
-  subscriber: Subscriber
+export interface Subscriber {
+  registry: TokenRegistry
+  listener: StateListener
   version: StateListenerVersion
-  next: ListenerNode | undefined
+  parent: any
+  context: any
 }
 
-export abstract class StatePublisher<T> {
-  private head: ListenerNode | undefined
-  private tail: ListenerNode | undefined
-
-  abstract getValue(): T
-
-  addListener(subscriber: Subscriber): void {
-    if (this.head === undefined) {
-      this.head = {
-        subscriber: subscriber,
-        version: getVersion(subscriber),
-        next: undefined
-      }
-      this.tail = this.head
-      return
-    }
-    if (subscriber[1].type === StateListenerType.StateEffect) {
-      const first = {
-        subscriber,
-        version: getVersion(subscriber),
-        next: this.head
-      }
-      this.head = first
-    } else {
-      const next = {
-        subscriber,
-        version: getVersion(subscriber),
-        next: undefined
-      }
-      this.tail!.next = next
-      this.tail = next
-    }
-  }
-
-  removeListener(listener: StateListener) {
-    let node = this.head
-    let previous = undefined
-    while (node !== undefined) {
-      if (getListener(node.subscriber) === listener) {
-        this.removeFromList(previous, node)
-      }
-      previous = node
-      node = node.next
-    }
-  }
-
-  private removeFromList(previous: ListenerNode | undefined, node: ListenerNode) {
-    if (previous === undefined) {
-      this.head = node.next
-      if (this.tail === node) {
-        this.tail = this.head
-      }
-    } else {
-      previous.next = node.next
-      if (this.tail === node) {
-        this.tail = previous
-      }
-    }
-  }
-
-  notifyListeners(userEffects: Array<Subscriber>): void {
-    let previous: ListenerNode | undefined = undefined
-    let node = this.head
-    while (node !== undefined) {
-      if (getVersion(node.subscriber) !== node.version) {
-        this.removeFromList(previous, node)
-        node = node.next
-        continue
-      }
-      const listener = getListener(node.subscriber)
-      switch (listener.type) {
-        case StateListenerType.StateEffect:
-          listener.notifyListeners?.(userEffects)
-          break
-        case StateListenerType.UserEffect:
-          userEffects.push(node.subscriber)
-          break
-      }
-      setParent(node.subscriber, this)
-
-      previous = node
-      node = node.next
-    }
-  }
-
-  runListeners(): void {
-    let node = this.head
-
-    // Start a new list -- any listeners added while running the current listeners
-    // will be added to the new list
-    this.head = undefined
-    this.tail = undefined
-
-    while (node !== undefined) {
-      if (getParent(node.subscriber) !== this) {
-        node = node.next
-        continue
-      }
-
-      if (getListener(node.subscriber).type === StateListenerType.UserEffect) {
-        setParent(node.subscriber, true)
-        node = node.next
-        continue
-      }
-
-      this.runListener(node.subscriber)
-      node = node.next
-    }
-  }
-
-  runUserEffects(subscribers: Array<Subscriber>) {
-    for (const subscriber of subscribers) {
-      if (getParent(subscriber) === true) {
-        this.runListener(subscriber)
-      }
-    }
-  }
-
-  private runListener(key: Subscriber) {
-    setVersion(key, getVersion(key) + 1)
-    key[1].run(getStateFunctionWithListener(key), key[4])
-    setParent(key, undefined)
-  }
+export interface StatePublisher<T> {
+  getValue(): T
+  addListener(subscriber: Subscriber): void
+  removeListener(subscriber: Subscriber): void
+  notifyListeners(userEffects: Array<Subscriber>): void
+  runListeners(): void
+  runUserEffects(subscribers: Array<Subscriber>): void
 }
 
 export function createSubscriber(registry: TokenRegistry, listener: StateListener, context?: any): Subscriber {
-  return [registry, listener, 0, undefined, context]
-}
-
-function getParent(key: Subscriber): any {
-  return key[3]
-}
-
-function setParent(key: Subscriber, parent: any): void {
-  key[3] = parent
-}
-
-function getVersion(key: Subscriber): StateListenerVersion {
-  return key[2]
-}
-
-function setVersion(key: Subscriber, version: StateListenerVersion): void {
-  key[2] = version
-}
-
-function getListener(key: Subscriber): StateListener {
-  return key[1]
+  return {
+    registry,
+    listener,
+    version: 0,
+    parent: undefined,
+    context
+  }
 }
 
 export interface CommandController<T> {
@@ -250,26 +129,4 @@ export interface TokenRegistry {
   setState(state: State<any>, publisher: StatePublisher<any>): void
   getCommand(token: Command<any>): CommandController<any>
   setCommand(token: Command<any>, controller: CommandController<any>): void
-}
-
-export class OverlayTokenRegistry implements TokenRegistry {
-  constructor(protected parentRegistry: TokenRegistry) { }
-
-  onRegister(): void { }
-
-  getState<C extends StatePublisher<any>>(token: State<any>): C {
-    return this.parentRegistry.getState(token)
-  }
-
-  setState(state: State<any>, publisher: StatePublisher<any>): void {
-    return this.parentRegistry.setState(state, publisher)
-  }
-
-  getCommand(token: Command<any>): CommandController<any> {
-    return this.parentRegistry.getCommand(token)
-  }
-
-  setCommand(token: Command<any>, controller: CommandController<any>): void {
-    return this.parentRegistry.setCommand(token, controller)
-  }
 }

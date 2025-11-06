@@ -1,5 +1,6 @@
 import { ClearMessage, WritableState } from "../message.js"
 import { createPublisher, StatePublisher, TokenRegistry, State, getPublisher } from "../tokenRegistry.js"
+import { LinkedListStatePublisher } from "./publisher/linkedListStatePublisher.js"
 import { MessageDispatchingStateWriter, UpdateResult } from "./publisher/messageDispatchingStateWriter.js"
 import { ValueWriter } from "./publisher/valueWriter.js"
 
@@ -55,7 +56,7 @@ export class CollectionState<Key, Value, Message = Value> extends State<Value> {
   }
 }
 
-export class ReactiveContainerCollection<Key, Value, Message> extends StatePublisher<Value> {
+export class ReactiveContainerCollection<Key, Value, Message> extends LinkedListStatePublisher<Value> {
   private writers = new Map<Key, any>()
 
   constructor(private registry: TokenRegistry, private generator: (id: Key) => Value, private reducer?: (message: Message, current: Value) => UpdateResult<Value>) {

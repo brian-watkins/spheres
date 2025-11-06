@@ -1,5 +1,5 @@
 import { dispatchMessage, ExecMessage } from "./message.js";
-import { Command, CommandController, createController, GetState, initializeCommand, initListener, StateListener, StateListenerType, TokenRegistry } from "./tokenRegistry.js";
+import { Command, CommandController, createController, GetState, initializeCommand, initListener, StateEffect, StateListenerType, TokenRegistry } from "./tokenRegistry.js";
 import { DefaultCommandController } from "./command/defaultCommandController.js";
 
 export interface CommandInitializer<M> {
@@ -34,7 +34,7 @@ export class BasicCommand<M> extends Command<M> {
   }
 }
 
-class DispatchCommandQuery<M> implements StateListener {
+class DispatchCommandQuery<M> implements StateEffect {
   readonly type = StateListenerType.UserEffect
 
   constructor(public registry: TokenRegistry, private command: Command<M>, private trigger: (get: GetState) => M) { }

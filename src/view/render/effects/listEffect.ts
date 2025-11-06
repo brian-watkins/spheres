@@ -1,13 +1,15 @@
 import { GetState } from "../../../store/index.js"
 import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementId } from "../fragmentHelpers.js"
 import { activate, DOMTemplate, render, TemplateType } from "../domTemplate.js"
-import { createSubscriber, OverlayTokenRegistry, State, StateListener, StateListenerType, StatePublisher, Subscriber, Token, TokenRegistry } from "../../../store/tokenRegistry.js"
+import { createSubscriber, State, StateDerivation, StateEffect, StateListenerType, StatePublisher, Subscriber, Token, TokenRegistry } from "../../../store/tokenRegistry.js"
 import { ListItemTemplateContext, StatePublisherCollection } from "../templateContext.js"
 import { CollectionState } from "../../../store/state/collection.js"
 import { ValueWriter } from "../../../store/state/publisher/valueWriter.js"
 import { StateWriter } from "../../../store/state/publisher/stateWriter.js"
+import { LinkedListStatePublisher } from "../../../store/state/publisher/linkedListStatePublisher.js"
+import { OverlayTokenRegistry } from "../../../store/registry/overlayTokenRegistry.js"
 
-class OverlayPublisher extends StatePublisher<any> {
+class OverlayPublisher extends LinkedListStatePublisher<any> {
   constructor(private writer: StateWriter<any>) {
     super()
   }
@@ -25,12 +27,14 @@ class OverlayPublisher extends StatePublisher<any> {
   }
 }
 
-class DerivedStateCollection implements StateListener, StatePublisherCollection {
-  type: StateListenerType = StateListenerType.StateEffect
+class DerivedStateCollection implements StateDerivation, StatePublisherCollection {
+  readonly type = StateListenerType.Derivation
   private writers = new Map<OverlayTokenRegistry, any>()
+  private subscriber: Subscriber
 
   constructor(private registry: TokenRegistry, private parentPublisher: StateWriter<any>, private onUnsubscribe: () => void) {
-    this.parentPublisher.addListener(createSubscriber(registry, this))
+    this.subscriber = createSubscriber(this.registry, this)
+    this.parentPublisher.addListener(this.subscriber)
   }
 
   notifyListeners(userEffects: Array<Subscriber>): void {
@@ -45,7 +49,7 @@ class DerivedStateCollection implements StateListener, StatePublisherCollection 
     for (const publisher of Array.from(this.writers.values())) {
       publisher.runListeners()
     }
-    this.parentPublisher.addListener(createSubscriber(this.registry, this))
+    this.parentPublisher.addListener(this.subscriber)
   }
 
   deleteStatePublisher(key: OverlayTokenRegistry): void {
@@ -61,7 +65,7 @@ class DerivedStateCollection implements StateListener, StatePublisherCollection 
   }
 
   private disconnect() {
-    this.parentPublisher.removeListener(this)
+    this.parentPublisher.removeListener(this.subscriber)
     this.onUnsubscribe()
   }
 
@@ -185,7 +189,7 @@ class VirtualItem extends OverlayTokenRegistry {
 }
 
 
-export class ListEffect implements StateListener {
+export class ListEffect implements StateEffect {
   readonly type = StateListenerType.SystemEffect
   private usesIndex: boolean
   private parentNode!: Node

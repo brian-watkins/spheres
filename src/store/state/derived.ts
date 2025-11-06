@@ -1,5 +1,6 @@
 import { didCreateToken } from "./stateRecorder.js";
-import { GetState, State, StateListener, StateListenerType, StatePublisher, TokenRegistry, createPublisher, initListener } from "../tokenRegistry.js";
+import { GetState, State, StateDerivation, StateListenerType, StatePublisher, TokenRegistry, createPublisher, initListener } from "../tokenRegistry.js";
+import { LinkedListStatePublisher } from "./publisher/linkedListStatePublisher.js";
 
 export interface DerivedStateInitializer<T> {
   query: (get: GetState) => T
@@ -27,8 +28,8 @@ export class DerivedState<T> extends State<T> {
   }
 }
 
-class DerivedStatePublisher<T> extends StatePublisher<T> implements StateListener {
-  readonly type = StateListenerType.StateEffect
+class DerivedStatePublisher<T> extends LinkedListStatePublisher<T> implements StateDerivation {
+  readonly type = StateListenerType.Derivation
   private _value!: T
 
   constructor(public registry: TokenRegistry, private derivation: (get: GetState) => T) {

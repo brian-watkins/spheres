@@ -1,9 +1,9 @@
 import { Container } from "./state/container.js"
 import { dispatchMessage, StoreMessage } from "./message.js"
 import { error, Meta, ok, pending } from "./state/meta.js"
-import { WeakMapTokenRegistry } from "./store/weakMapTokenRegistry.js"
+import { WeakMapTokenRegistry } from "./registry/weakMapTokenRegistry.js"
 import { StateWriter } from "./state/publisher/stateWriter.js"
-import { Command, getPublisher, GetState, initializeCommand, initListener, runQuery, StateListener, StateListenerType, StateReference, TokenRegistry } from "./tokenRegistry.js"
+import { Command, getPublisher, GetState, initializeCommand, initListener, runQuery, StateEffect, StateListenerType, StateReference, Subscriber, TokenRegistry } from "./tokenRegistry.js"
 import { CommandManager, ManagedCommandController } from "./command/managedCommandController.js"
 
 export interface StoreOptions {
@@ -93,14 +93,7 @@ export class Store {
 }
 
 export function useEffect(store: Store, effect: ReactiveEffect): ReactiveEffectHandle {
-  const registry = getTokenRegistry(store)
-  const listener = new EffectListener(effect)
-  initListener(registry, listener)
-  return {
-    unsubscribe: () => {
-      listener.unsubscribe(registry)
-    }
-  }
+  return new EffectListener(getTokenRegistry(store), effect)
 }
 
 export function useCommand<M>(store: Store, command: Command<M>, manager: CommandManager<NoInfer<M>>) {
@@ -181,11 +174,14 @@ function containerWriteActions<T, M, E>(registry: TokenRegistry, container: Cont
   }
 }
 
-export class EffectListener implements StateListener {
+export class EffectListener implements StateEffect, ReactiveEffectHandle {
   readonly type = StateListenerType.UserEffect
   private dependencies = new Set<StateReference<any>>()
+  private subscriber: Subscriber
 
-  constructor(private effect: ReactiveEffect) { }
+  constructor(private registry: TokenRegistry, private effect: ReactiveEffect) {
+    this.subscriber = initListener(registry, this)
+  }
 
   init(get: GetState): void {
     if (this.effect.init !== undefined) {
@@ -209,9 +205,9 @@ export class EffectListener implements StateListener {
     })
   }
 
-  unsubscribe(registry: TokenRegistry) {
+  unsubscribe() {
     for (const token of this.dependencies) {
-      token[getPublisher](registry).removeListener(this)
+      token[getPublisher](this.registry).removeListener(this.subscriber)
     }
     this.dependencies.clear()
   }

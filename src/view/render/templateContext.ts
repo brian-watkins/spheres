@@ -1,6 +1,7 @@
 import { Container, container, State } from "../../store/index.js";
+import { OverlayTokenRegistry } from "../../store/registry/overlayTokenRegistry.js";
 import { recordTokens } from "../../store/state/stateRecorder.js";
-import { createStatePublisher, OverlayTokenRegistry, StatePublisher, Token } from "../../store/tokenRegistry.js";
+import { createStatePublisher, StatePublisher, Token } from "../../store/tokenRegistry.js";
 import { ViewDefinition, ViewRenderer } from "./viewRenderer.js";
 
 export interface StatePublisherCollection {

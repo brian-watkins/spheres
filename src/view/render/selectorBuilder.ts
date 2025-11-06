@@ -1,6 +1,7 @@
 import { GetState, State } from "../../store/index.js";
+import { OverlayTokenRegistry } from "../../store/registry/overlayTokenRegistry.js";
 import { recordTokens } from "../../store/state/stateRecorder.js";
-import { createStatePublisher, OverlayTokenRegistry, runQuery, StatePublisher, Subscriber, TokenRegistry } from "../../store/tokenRegistry.js";
+import { createStatePublisher, runQuery, StatePublisher, Subscriber, TokenRegistry } from "../../store/tokenRegistry.js";
 import { ViewDefinition, ViewCaseSelector, ViewSelector, ViewConditionSelector } from "./viewRenderer.js";
 
 export interface TemplateContext<T> {
@@ -173,11 +174,11 @@ function guardListenersStatePublisherProxy(publisher: StatePublisher<any>, guard
     get(target, prop, receiver) {
       if (prop === "addListener") {
         return (key: Subscriber) => {
-          const listener = key[1]
+          const listener = key.listener
           const runner = listener.run.bind(listener)
           listener.run = function (get) {
             if (guard()) {
-              runner(get, key[4])
+              runner(get, key.context)
             }
           }
           target.addListener(key)

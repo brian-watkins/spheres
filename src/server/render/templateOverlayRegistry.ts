@@ -1,6 +1,7 @@
+import { OverlayTokenRegistry } from "../../store/registry/overlayTokenRegistry.js"
 import { StateWriter } from "../../store/state/publisher/stateWriter.js"
 import { ValueWriter } from "../../store/state/publisher/valueWriter.js"
-import { OverlayTokenRegistry, State, StatePublisher, Token, TokenRegistry } from "../../store/tokenRegistry.js"
+import { State, StatePublisher, Token, TokenRegistry } from "../../store/tokenRegistry.js"
 import { ListItemTemplateContext, StatePublisherCollection } from "../../view/render/templateContext.js"
 
 export function createOverlayRegistry(context: ListItemTemplateContext<any>, rootRegistry: TokenRegistry, itemData: any, index: number): ListItemOverlayTokenRegistry {

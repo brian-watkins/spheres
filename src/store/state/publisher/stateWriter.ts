@@ -1,6 +1,7 @@
-import { StatePublisher, Subscriber } from "../../tokenRegistry.js"
+import { Subscriber } from "../../tokenRegistry.js"
+import { LinkedListStatePublisher } from "./linkedListStatePublisher.js"
 
-export abstract class StateWriter<T, M = T> extends StatePublisher<T> {
+export abstract class StateWriter<T, M = T> extends LinkedListStatePublisher<T> {
   constructor(protected currentValue: T) {
     super()
   }

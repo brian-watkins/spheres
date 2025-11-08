@@ -1,83 +1,13 @@
 import { GetState } from "../../../store/index.js"
 import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementId } from "../fragmentHelpers.js"
 import { activate, DOMTemplate, render, TemplateType } from "../domTemplate.js"
-import { createSubscriber, State, StateDerivation, StateEffect, StateListenerType, StatePublisher, Subscriber, Token, TokenRegistry } from "../../../store/tokenRegistry.js"
-import { ListItemTemplateContext, StatePublisherCollection } from "../templateContext.js"
+import { createStatePublisher, State, StateEffect, StateListenerType, StatePublisher, Token, TokenRegistry } from "../../../store/tokenRegistry.js"
+import { ListItemTemplateContext } from "../templateContext.js"
 import { CollectionState } from "../../../store/state/collection.js"
 import { ValueWriter } from "../../../store/state/publisher/valueWriter.js"
 import { StateWriter } from "../../../store/state/publisher/stateWriter.js"
-import { LinkedListStatePublisher } from "../../../store/state/publisher/linkedListStatePublisher.js"
 import { OverlayTokenRegistry } from "../../../store/registry/overlayTokenRegistry.js"
-
-class OverlayPublisher extends LinkedListStatePublisher<any> {
-  constructor(private writer: StateWriter<any>) {
-    super()
-  }
-
-  write(value: any) {
-    this.writer.write(value)
-  }
-
-  publish(value: any) {
-    this.writer.publish(value)
-  }
-
-  getValue() {
-    return this.writer.getValue()
-  }
-}
-
-class DerivedStateCollection implements StateDerivation, StatePublisherCollection {
-  readonly type = StateListenerType.Derivation
-  private writers = new Map<OverlayTokenRegistry, any>()
-  private subscriber: Subscriber
-
-  constructor(private registry: TokenRegistry, private parentPublisher: StateWriter<any>, private onUnsubscribe: () => void) {
-    this.subscriber = createSubscriber(this.registry, this)
-    this.parentPublisher.addListener(this.subscriber)
-  }
-
-  notifyListeners(userEffects: Array<Subscriber>): void {
-    for (const publisher of Array.from(this.writers.values())) {
-      publisher.notifyListeners?.(userEffects)
-    }
-  }
-
-  init(): void { }
-
-  run(): void {
-    for (const publisher of Array.from(this.writers.values())) {
-      publisher.runListeners()
-    }
-    this.parentPublisher.addListener(this.subscriber)
-  }
-
-  deleteStatePublisher(key: OverlayTokenRegistry): void {
-    this.writers.delete(key)
-    if (this.writers.size === 0) {
-      this.disconnect()
-    }
-  }
-
-  clear(): void {
-    this.writers.clear()
-    this.disconnect()
-  }
-
-  private disconnect() {
-    this.parentPublisher.removeListener(this.subscriber)
-    this.onUnsubscribe()
-  }
-
-  getStatePublisher(key: OverlayTokenRegistry): StatePublisher<any> {
-    let publisher = this.writers.get(key)
-    if (publisher === undefined) {
-      publisher = new OverlayPublisher(this.parentPublisher)
-      this.writers.set(key, publisher)
-    }
-    return publisher
-  }
-}
+import { OverlayPublisher } from "../../../store/state/publisher/overlayPublisher.js"
 
 class VirtualItem extends OverlayTokenRegistry {
   node!: Node
@@ -88,9 +18,10 @@ class VirtualItem extends OverlayTokenRegistry {
   next: VirtualItem | undefined = undefined
   nextData: any | undefined = undefined
   nextUpdate: VirtualItem | undefined = undefined
+  private registry: Map<Token, StatePublisher<any>> = new Map()
 
-  static newInstance(data: any, index: number, registry: TokenRegistry, context: ListItemTemplateContext<any>, stateMap: Map<Token, StatePublisherCollection>): VirtualItem {
-    const item = new VirtualItem(data, index, registry, context.itemToken, new ValueWriter(data), new Map(stateMap))
+  static newInstance(data: any, index: number, registry: TokenRegistry, context: ListItemTemplateContext<any>): VirtualItem {
+    const item = new VirtualItem(data, index, registry, context.itemToken, new ValueWriter(data), context.viewTokens)
 
     if (context.usesIndex) {
       item.setIndexState(context.indexToken, index)
@@ -105,7 +36,7 @@ class VirtualItem extends OverlayTokenRegistry {
     registry: TokenRegistry,
     private itemToken: State<any>,
     private itemPublisher: StateWriter<any>,
-    private tokenMap: Map<Token, StatePublisherCollection>,
+    private viewTokens: Set<Token>
   ) { super(registry) }
 
   private indexToken: State<number> | undefined
@@ -124,7 +55,7 @@ class VirtualItem extends OverlayTokenRegistry {
       this.parentRegistry,
       this.itemToken,
       this.itemPublisher,
-      this.tokenMap,
+      this.viewTokens,
     )
 
     clone.setNode(this.node, this.firstNode, this.lastNode)
@@ -151,32 +82,38 @@ class VirtualItem extends OverlayTokenRegistry {
       return this.indexPublisher as any
     }
 
-    return this.tokenMap.get(token)?.getStatePublisher(this) ??
-      this.createDerivedStateCollection(token)
+    let publisher = this.registry.get(token)
+    if (publisher === undefined) {
+      publisher = this.createPublisher(token)
+      this.registry.set(token, publisher)
+    }
+
+    return publisher as C
   }
 
-  private createDerivedStateCollection(token: State<any>): any {
+  private createPublisher(token: State<any>): StatePublisher<any> {
     if (token instanceof CollectionState) {
       return this.parentRegistry.getState(token)
     }
 
-    // could be DerivedStatePublisher too but
-    // we really only care about getValue and methods
-    // called as part of processing a store message
-    // dispatched from an event handler, which is covered by StateWriter
-    const actualPublisher = this.parentRegistry.getState<StateWriter<any>>(token)
-    const publisher = new DerivedStateCollection(this.parentRegistry, actualPublisher, () => {
-      this.tokenMap.delete(token)
-    })
-    this.tokenMap.set(token, publisher)
+    if (this.viewTokens.has(token)) {
+      return createStatePublisher(this, token)
+    }
 
-    return publisher.getStatePublisher(this)
+    const actualPublisher = this.parentRegistry.getState<StateWriter<any>>(token)
+    const overlayPublisher = new OverlayPublisher(this.parentRegistry, actualPublisher)
+    overlayPublisher.init()
+
+    return overlayPublisher
   }
 
   unsubscribeFromExternalState() {
-    this.tokenMap.forEach(publisherCollection => {
-      publisherCollection.deleteStatePublisher(this)
+    this.registry.forEach(publisher => {
+      if (publisher instanceof OverlayPublisher) {
+        publisher.detach()
+      }
     })
+    this.registry.clear()
   }
 
   updateItemData(data: any) {
@@ -197,7 +134,7 @@ export class ListEffect implements StateEffect {
   private itemCache: Map<any, VirtualItem> = new Map()
   private firstUpdate: VirtualItem | undefined
   private lastUpdate: VirtualItem | undefined
-  private stateMap: Map<Token, StatePublisherCollection>
+  // private stateMap: Map<Token, StatePublisherCollection>
 
   constructor(
     private registry: TokenRegistry,
@@ -208,7 +145,7 @@ export class ListEffect implements StateEffect {
     private listEnd: Node,
   ) {
     this.usesIndex = this.templateContext.usesIndex
-    this.stateMap = this.templateContext.getStateMap()
+    // this.stateMap = this.templateContext.getStateMap()
   }
 
   setVirtualList(first: VirtualItem | undefined) {
@@ -493,7 +430,7 @@ export class ListEffect implements StateEffect {
   }
 
   private createItem(index: number, data: any): VirtualItem {
-    const item = VirtualItem.newInstance(data, index, this.registry, this.templateContext, this.stateMap)
+    const item = VirtualItem.newInstance(data, index, this.registry, this.templateContext)
 
     const node = render(this.domTemplate, item)
     item.setNode(
@@ -511,9 +448,8 @@ export function activateList(registry: TokenRegistry, context: ListItemTemplateC
   let existingNode: Node = startNode.nextSibling!
   let firstItem: VirtualItem | undefined
   let lastItem: VirtualItem | undefined
-  const stateMap = context.getStateMap()
   while (existingNode !== endNode) {
-    const [item, nextNode] = activateItem(registry, context, stateMap, template, index, existingNode, data[index])
+    const [item, nextNode] = activateItem(registry, context, template, index, existingNode, data[index])
     if (index === 0) {
       firstItem = item
     } else {
@@ -527,8 +463,8 @@ export function activateList(registry: TokenRegistry, context: ListItemTemplateC
   return firstItem
 }
 
-function activateItem(registry: TokenRegistry, context: ListItemTemplateContext<any>, stateMap: Map<Token, StatePublisherCollection>, template: DOMTemplate, index: number, node: Node, data: any): [VirtualItem, Node] {
-  const virtualItem = VirtualItem.newInstance(data, index, registry, context, stateMap)
+function activateItem(registry: TokenRegistry, context: ListItemTemplateContext<any>, template: DOMTemplate, index: number, node: Node, data: any): [VirtualItem, Node] {
+  const virtualItem = VirtualItem.newInstance(data, index, registry, context)
   activate(template, virtualItem, node)
 
   switch (template.type) {

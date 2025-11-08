@@ -1,4 +1,4 @@
-import { batch, write, run, StoreMessage, State, use } from "spheres/store";
+import { batch, write, run, StoreMessage, State, use, update } from "spheres/store";
 import { CircleContainer, addCircleRule, adjustRadius, adjustRadiusRule, canRedo, canUndo, circleData, deselectCircle, dialog, redoRule, selectCircle, undoRule } from "./state";
 import { useValue } from "../helpers/helpers";
 import { HTMLBuilder, svg, SVGView } from "../../../src/view";
@@ -85,15 +85,14 @@ function optionsView(root: HTMLBuilder) {
       .on("close", () => {
         return batch([
           use(adjustRadiusRule),
-          use(get => write(get(dialog)!.circle, deselectCircle())),
-          write(dialog, undefined),
+          use(get => write(get(dialog)!.circle, deselectCircle()))
         ])
       })
     children
       .div(({ config, children }) => {
         config
           .class("w-96 m-8 bg-slate-100 hover:text-sky-600 font-bold text-sky-800")
-          .on("click", () => use(get => write(dialog, { ...get(dialog)!, showDiameterSlider: true })))
+          .on("click", () => update(dialog, d => ({ ...d, showDiameterSlider: true })))
         children
           .subviewFrom(select => select.withConditions()
             .when(get => get(dialog)?.showDiameterSlider ?? false, adjustRadiusView)

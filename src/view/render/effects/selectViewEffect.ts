@@ -1,18 +1,25 @@
 import { GetState } from "../../../store/index.js";
 import { activate, DOMTemplate, render } from "../domTemplate.js";
-import { StateEffect, StateListenerType, TokenRegistry } from "../../../store/tokenRegistry.js";
+import { State, StateEffect, StateListenerType, StatePublisher, Token, TokenRegistry } from "../../../store/tokenRegistry.js";
 import { SelectorCollection, TemplateSelector } from "../selectorBuilder.js";
+import { OverlayTokenRegistry } from "../../../store/registry/overlayTokenRegistry.js";
+import { OverlayPublisher } from "../../../store/state/publisher/overlayPublisher.js";
+import { StateWriter } from "../../../store/state/publisher/stateWriter.js";
+import { CollectionState } from "../../../store/state/collection.js";
 
 export class SelectViewEffect implements StateEffect {
   readonly type = StateListenerType.SystemEffect
   private currentSelector: TemplateSelector<DOMTemplate> | undefined
+  private registry: ConditionalViewOverlayRegistry
 
   constructor(
-    private registry: TokenRegistry,
+    parentRegistry: TokenRegistry,
     public selectors: SelectorCollection<DOMTemplate>,
     public startNode: Node,
     public endNode: Node,
-  ) { }
+  ) {
+    this.registry = new ConditionalViewOverlayRegistry(parentRegistry)
+  }
 
   init(get: GetState): void {
     this.switchView(get)
@@ -35,6 +42,9 @@ export class SelectViewEffect implements StateEffect {
 
     this.currentSelector = selector
 
+    this.clearView()
+    this.registry.reset()
+
     let node: Node
     switch (selector.type) {
       case "empty": {
@@ -47,8 +57,6 @@ export class SelectViewEffect implements StateEffect {
         break
       }
     }
-
-    this.clearView()
 
     this.startNode.parentNode?.insertBefore(node, this.endNode!)
   }
@@ -67,5 +75,40 @@ export function activateSelect(registry: TokenRegistry, selectors: SelectorColle
   if (selector.type === "view") {
     const templateContext = selector.templateContext()
     activate(templateContext.template, templateContext.overlayRegistry(registry), startNode.nextSibling!)
+  }
+}
+
+class ConditionalViewOverlayRegistry extends OverlayTokenRegistry {
+  private registry: Map<Token, StatePublisher<any>> = new Map()
+
+  getState<C extends StatePublisher<any>>(token: State<any>): C {
+    let publisher = this.registry.get(token)
+    if (publisher === undefined) {
+      publisher = this.createPublisher(token)
+      this.registry.set(token, publisher)
+    }
+
+    return publisher as C
+  }
+
+  private createPublisher(token: State<any>): StatePublisher<any> {
+    if (token instanceof CollectionState) {
+      return this.parentRegistry.getState(token)
+    }
+
+    const actualPublisher = this.parentRegistry.getState<StateWriter<any>>(token)
+    const overlayPublisher = new OverlayPublisher(this.parentRegistry, actualPublisher)
+    overlayPublisher.init()
+
+    return overlayPublisher
+  }
+
+  reset() {
+    this.registry.forEach(publisher => {
+      if (publisher instanceof OverlayPublisher) {
+        publisher.detach()
+      }
+    })
+    this.registry.clear()
   }
 }

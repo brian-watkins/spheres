@@ -4,13 +4,8 @@ import { ListExamplesState } from "./helpers/listHelpers";
 import { container, derived, State } from "@store/index";
 import { HTMLView } from "@view/htmlElements";
 import { expect, is } from "great-expectations";
-import { usePage } from "best-behavior/page";
+import { requestGC } from "./helpers/memoryHelpers";
 
-declare global {
-  interface Window {
-    __element_ref: WeakRef<any>
-  }
-}
 
 const externalToken = container({ initialValue: 0 })
 
@@ -251,9 +246,3 @@ export default behavior("list memory", [
 
 ])
 
-function requestGC(): Promise<void> {
-  return usePage(async (page) => {
-    await page.requestGC()
-    await new Promise(resolve => setTimeout(resolve, 50))
-  })
-}

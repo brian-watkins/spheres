@@ -1,4 +1,4 @@
-import { createStore, GetState, ReactiveEffect, use, useEffect, write } from "spheres/store";
+import { createStore, GetState, ReactiveEffect, useEffect, write } from "spheres/store";
 import { Context } from "best-behavior";
 import { cellContainer } from "../../../../src/cells/state";
 import { Result } from "../../../../src/cells/result";
@@ -17,7 +17,7 @@ class CellValueEffect implements ReactiveEffect {
 
   run(get: GetState): void {
     try {
-      this.cellValue = get(get(cellContainer(get, this.cellId)).cellValue)
+      this.cellValue = get(get(cellContainer(this.cellId)).cellValue)
     } catch (err) {
       console.log("Erro", err)
       throw err
@@ -30,14 +30,14 @@ export class TestStore {
   private cellValues = new Map<string, CellValueEffect>()
 
   defineCell(id: string, definition: string) {
-    this.store.dispatch(use(get => write(cellContainer(get, id), definition)))
+    this.store.dispatch(write(cellContainer(id), definition))
     const effect = new CellValueEffect(id)
     this.cellValues.set(id, effect)
     useEffect(this.store, effect)
   }
 
   updateCell(id: string, value: string) {
-    this.store.dispatch(use(get => write(cellContainer(get, id), value)))
+    this.store.dispatch(write(cellContainer(id), value))
   }
 
   getCellValue(id: string): string {

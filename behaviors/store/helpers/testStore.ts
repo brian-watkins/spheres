@@ -41,7 +41,7 @@ export class TestStore<T> {
     useEffect(this.store, effect)
   }
 
-  subscribeToCollection<K, S, M>(token: Collection<K, S, M>, id: K, name: string) {
+  subscribeToCollection<K, S extends State<any>>(token: Collection<K, S>, id: K, name: string) {
     const query = new StoreValuesEffect((get) => get(token.at(id)))
     this.values.set(name, query)
     useEffect(this.store, query)
@@ -61,7 +61,7 @@ export class TestStore<T> {
     useContainerHooks(this.store, token, hooks)
   }
 
-  writeToCollection<K, S, M = S>(token: Collection<K, S, M>, id: K, message: M) {
+  writeToCollection<K, M, S extends Container<any>>(token: Collection<K, S>, id: K, message: M) {
     this.writeTo(token.at(id), message)
   }
 

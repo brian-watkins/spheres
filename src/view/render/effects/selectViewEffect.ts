@@ -5,7 +5,6 @@ import { SelectorCollection, TemplateSelector } from "../selectorBuilder.js";
 import { OverlayTokenRegistry } from "../../../store/registry/overlayTokenRegistry.js";
 import { OverlayPublisher } from "../../../store/state/publisher/overlayPublisher.js";
 import { StateWriter } from "../../../store/state/publisher/stateWriter.js";
-import { CollectionState } from "../../../store/state/collection.js";
 
 export class SelectViewEffect implements StateEffect {
   readonly type = StateListenerType.SystemEffect
@@ -92,10 +91,6 @@ class ConditionalViewOverlayRegistry extends OverlayTokenRegistry {
   }
 
   private createPublisher(token: State<any>): StatePublisher<any> {
-    if (token instanceof CollectionState) {
-      return this.parentRegistry.getState(token)
-    }
-
     const actualPublisher = this.parentRegistry.getState<StateWriter<any>>(token)
     const overlayPublisher = new OverlayPublisher(this.parentRegistry, actualPublisher)
     overlayPublisher.init()

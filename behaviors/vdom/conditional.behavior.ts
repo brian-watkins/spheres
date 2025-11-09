@@ -607,13 +607,11 @@ function nestedSiblingSelectViewExample(name: string, renderer: (context: Render
         fact("there is some state for a list", (context) => {
           context.setState({
             listItems: container({ initialValue: ["a", "b", "c"] }),
-            toggles: collection({
-              initialValues: () => true
-            })
+            toggles: collection(() => container({ initialValue: true }))
           })
         }),
         fact("there are multiple conditional views with events in each list item", (context) => {
-          const counters = collection({ initialValues: () => 0 })
+          const counters = collection(() => container({ initialValue: 0 }))
 
           function counterView(name: string, index: State<number>): HTMLView {
             return root => root.div(el => {
@@ -733,11 +731,11 @@ function siblingSelectViewExample(name: string, renderer: (context: RenderApp<To
       suppose: [
         fact("there is some state for toggling views", (context) => {
           context.setState({
-            toggles: collection({ initialValues: () => true })
+            toggles: collection(() => container({ initialValue: true }))
           })
         }),
         fact("there are sibling conditional views", (context) => {
-          const counters = collection({ initialValues: () => 0 })
+          const counters = collection(() => container({ initialValue: 0 }))
 
           function counterView(name: string): HTMLView {
             return root => root.div(el => {
@@ -847,7 +845,7 @@ function conditionalListWithEvents(name: string, renderer: (context: RenderApp<N
         }),
         fact("there is a conditional list view", (context) => {
           function itemView(item: State<string>): HTMLView {
-            const counters = collection({ initialValues: () => 0 })
+            const counters = collection(() => container({ initialValue: 0 }))
 
             return (root) => {
               root.div(el => {
@@ -907,7 +905,7 @@ function multipleConditionalListsWithEvents(name: string, renderer: (context: Re
         }),
         fact("there is a conditional list view", (context) => {
           function itemView(item: State<string>): HTMLView {
-            const counters = collection({ initialValues: () => 0 })
+            const counters = collection(() => container({ initialValue: 0 }))
 
             return (root) => {
               root.div(el => {
@@ -1102,5 +1100,5 @@ interface ToggleableNestedSelectViewContext extends ToggleableViewContext {
 }
 
 interface ToggleableViewContext {
-  toggles: Collection<string, boolean>
+  toggles: Collection<string, Container<boolean>>
 }

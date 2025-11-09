@@ -292,7 +292,7 @@ function nestedListsExample(name: string, renderer: (context: RenderApp<NestedLi
 
 interface NestedListSelectorState {
   mainList: Container<Array<string>>
-  nestedData: Collection<string, Array<string>>
+  nestedData: Collection<string, Container<Array<string>>>
 }
 
 function nestedListData(get: GetState, context: RenderApp<NestedListSelectorState>, id: string): Array<string> {
@@ -307,7 +307,7 @@ function nestedListSelectorExample(name: string, renderer: (context: RenderApp<N
         fact("there is stateful list data", (context) => {
           context.setState({
             mainList: container({ initialValue: ["one", "two", "three"] }),
-            nestedData: collection<string, Array<string>>({ initialValues: () => [] })
+            nestedData: collection(() => container<Array<string>>({ initialValue: [] }))
           })
         }),
         fact("for each main list item there is a sub list", (context) => {

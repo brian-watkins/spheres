@@ -3,7 +3,6 @@ import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementI
 import { activate, DOMTemplate, render, TemplateType } from "../domTemplate.js"
 import { createStatePublisher, State, StateEffect, StateListenerType, StatePublisher, Token, TokenRegistry } from "../../../store/tokenRegistry.js"
 import { ListItemTemplateContext } from "../templateContext.js"
-import { CollectionState } from "../../../store/state/collection.js"
 import { ValueWriter } from "../../../store/state/publisher/valueWriter.js"
 import { StateWriter } from "../../../store/state/publisher/stateWriter.js"
 import { OverlayTokenRegistry } from "../../../store/registry/overlayTokenRegistry.js"
@@ -92,10 +91,6 @@ class VirtualItem extends OverlayTokenRegistry {
   }
 
   private createPublisher(token: State<any>): StatePublisher<any> {
-    if (token instanceof CollectionState) {
-      return this.parentRegistry.getState(token)
-    }
-
     if (this.viewTokens.has(token)) {
       return createStatePublisher(this, token)
     }

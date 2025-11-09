@@ -977,7 +977,7 @@ export default behavior("list effects", [
 ])
 
 interface ToggleableListContext {
-  toggle: Collection<string, boolean>
+  toggle: Collection<string, Container<boolean>>
   items: Container<Array<string>>
   dependency?: Container<number>
 }
@@ -990,7 +990,7 @@ function listOfSwitchExample(name: string, renderer: (context: RenderApp<ListCon
         fact("there is a list of strings", (context) => {
           context.setState({
             items: container({ initialValue: ["one", "two", "three"] }),
-            toggle: collection({ initialValues: () => true })
+            toggle: collection(() => container({ initialValue: true }))
           })
         }),
         fact("there is a view with a list where items are conditional views", (context) => {
@@ -1049,7 +1049,7 @@ function listOfSwitchWithDerivedStateExample(name: string, renderer: (context: R
         fact("there is a list of strings", (context) => {
           context.setState({
             items: container({ initialValue: ["one", "two", "three"] }),
-            toggle: collection({ initialValues: () => true })
+            toggle: collection(() => container({ initialValue: true }))
           })
         }),
         fact("there is a view with a list where items define derived state used in a conditional view", (context) => {

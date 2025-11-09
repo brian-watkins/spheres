@@ -73,6 +73,5 @@ export {
 } from "./state/supplied.js"
 export {
   type Collection,
-  collection,
-  clear
+  collection
 } from "./state/collection.js"

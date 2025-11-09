@@ -1,8 +1,9 @@
-import { collection, update } from "@store/index.js";
+import { collection, container, Container, update } from "@store/index.js";
 import { behavior, effect, example, fact, step } from "best-behavior";
-import { expect, is } from "great-expectations";
+import { arrayWith, expect, is } from "great-expectations";
 import { testStoreContext } from "./helpers/testStore";
 import { Collection } from "@store/state/collection";
+import { errorMessage, okMessage } from "./helpers/metaMatchers";
 
 export default behavior("container collection", [
 
@@ -12,10 +13,10 @@ export default behavior("container collection", [
       suppose: [
         fact("there is a collection", (context) => {
           context.setTokens({
-            collection: collection({
-              initialValues: () => "",
-              name: "Fun-Collection"
-            }),
+            collection: collection((id) => container({
+              initialValue: "",
+              name: `Fun-Collection[${id}]`
+            }))
           })
         }),
         fact("there are subscribers for the containers with the same id", (context) => {
@@ -60,14 +61,14 @@ export default behavior("container collection", [
       suppose: [
         fact("there is a collection", (context) => {
           context.setTokens({
-            collection: collection({
-              initialValues: (id) => ({ words: `${id}` }),
+            collection: collection((id) => container({
+              initialValue: { words: `${id}` },
               update: (message, current) => {
                 return {
                   value: { words: `${current.words} + ${message}` }
                 }
               }
-            }),
+            }))
           })
         }),
         fact("there are subscribers for the collection containers", (context) => {
@@ -109,14 +110,14 @@ export default behavior("container collection", [
       suppose: [
         fact("there is a collection", (context) => {
           context.setTokens({
-            collection: collection({
-              initialValues: (id) => ({ words: `${id}` }),
+            collection: collection((id) => container({
+              initialValue: { words: `${id}` },
               update: (message, current) => {
                 return {
                   value: { words: `${current.words} + ${message}` }
                 }
               }
-            }),
+            }))
           })
         }),
         fact("there is a subscriber for a collection container", (context) => {
@@ -136,8 +137,52 @@ export default behavior("container collection", [
           ]))
         })
       ]
-    })
+    }),
 
+  example(testStoreContext<ContainerIdTestContext<string, string>>())
+    .description("the meta container is referenced")
+    .script({
+      suppose: [
+        fact("three references are created to the same container", (context) => {
+          const containerCollection = collection((id: string) => container({
+            name: id,
+            initialValue: "",
+            update: (message, current) => {
+              return { value: `${current} ${message}`.trim() }
+            }
+          }))
+          context.setTokens({
+            collection: containerCollection,
+            // one: containerCollection.at("container-1"),
+            // two: containerCollection.at("container-1"),
+            // three: containerCollection.at("container-1"),
+          })
+        }),
+        fact("there is a subscriber to the meta container for the container with the same id", (context) => {
+          context.subscribeTo(context.tokens.collection.at("container-1").meta, "meta-sub-1")
+        }),
+        fact("there are container hooks defined for the container", (context) => {
+          context.useContainerHooks(context.tokens.collection.at("container-1"), {
+            async onWrite(message, actions) {
+              actions.error("Oops!", message)
+            },
+          })
+        })
+      ],
+      perform: [
+        step("an error is thrown in the reducer", (context) => {
+          context.writeTo(context.tokens.collection.at("container-1"), "BLOWUP")
+        })
+      ],
+      observe: [
+        effect("the meta container has the expected value", (context) => {
+          expect(context.valuesForSubscriber("meta-sub-1"), is(arrayWith([
+            okMessage(),
+            errorMessage("BLOWUP", "Oops!")
+          ])))
+        })
+      ]
+    })
 ])
 
 interface CollectionResult {
@@ -145,5 +190,5 @@ interface CollectionResult {
 }
 
 interface ContainerIdTestContext<Key, Value, Message = Value> {
-  collection: Collection<Key, Value, Message>
+  collection: Collection<Key, Container<Value, Message>>
 }

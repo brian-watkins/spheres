@@ -1,4 +1,3 @@
-import { CollectionState, ReactiveContainerCollection } from "./state/collection.js"
 import { StateWriter } from "./state/publisher/stateWriter.js"
 import { Command, getPublisher, GetState, runQuery, State, StateReference, TokenRegistry } from "./tokenRegistry.js"
 
@@ -41,11 +40,6 @@ export interface ResetMessage<T> {
   container: ResettableState<T>
 }
 
-export interface ClearMessage {
-  type: "clear"
-  collection: CollectionState<any, any>
-}
-
 export interface UseMessage {
   type: "use"
   rule: (get: GetState) => StoreMessage<any> | undefined
@@ -61,7 +55,7 @@ export interface BatchMessage {
   messages: Array<StoreMessage<any>>
 }
 
-export type StoreMessage<T = any, M = T> = WriteMessage<T, M> | UpdateMessage<T, M> | ResetMessage<T> | ClearMessage | UseMessage | BatchMessage | RunMessage | ExecMessage<M>
+export type StoreMessage<T = any, M = T> = WriteMessage<T, M> | UpdateMessage<T, M> | ResetMessage<T> | UseMessage | BatchMessage | RunMessage | ExecMessage<M>
 
 export function use(rule: (get: GetState) => StoreMessage<any> | undefined): UseMessage {
   return {
@@ -118,12 +112,6 @@ export function dispatchMessage(registry: TokenRegistry, message: StoreMessage<a
     case "reset": {
       const writer = registry.getState<StateWriter<unknown>>(message.container)
       writer.publish(message.container[initialValue])
-      break
-    }
-    case "clear": {
-      registry
-        .getState<ReactiveContainerCollection<unknown, unknown, unknown>>(message.collection)
-        .clear()
       break
     }
     case "use": {

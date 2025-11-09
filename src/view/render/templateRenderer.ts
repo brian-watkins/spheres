@@ -48,7 +48,8 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
       this.root.appendChild(document.createTextNode(""))
       this.effectTemplates.push({
         type: EffectTemplateTypes.Text,
-        effect: new UpdateTextEffect(this.location, value)
+        effect: new UpdateTextEffect(value),
+        location: this.location
       })
     } else {
       this.root.appendChild(document.createTextNode(value))
@@ -156,7 +157,8 @@ class DomTemplateConfig extends AbstractViewConfig {
     if (isStateful(value)) {
       this.effectTemplates.push({
         type: EffectTemplateTypes.Attribute,
-        effect: new UpdateAttributeEffect(this.location, name, value)
+        effect: new UpdateAttributeEffect(name, value),
+        location: this.location
       })
     } else {
       this.element.setAttribute(name, value)
@@ -168,7 +170,8 @@ class DomTemplateConfig extends AbstractViewConfig {
     if (isStateful(value)) {
       this.effectTemplates.push({
         type: EffectTemplateTypes.Property,
-        effect: new UpdatePropertyEffect(this.location, name, value)
+        effect: new UpdatePropertyEffect(name, value),
+        location: this.location
       })
     } else {
       //@ts-ignore

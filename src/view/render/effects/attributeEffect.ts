@@ -1,23 +1,19 @@
 import { GetState } from "../../../store/index.js"
 import { StateEffect, Stateful, StateListenerType } from "../../../store/tokenRegistry.js";
-import { EffectLocation } from "../effectLocation.js";
 
 export class UpdateAttributeEffect implements StateEffect {
   readonly type = StateListenerType.SystemEffect
 
-  constructor(private location: EffectLocation, private attribute: string, private generator: Stateful<string>) { }
+  constructor(private attribute: string, private generator: Stateful<string>) { }
 
-  init(get: GetState, root: Node): void {
+  init(get: GetState, element: Element): void {
     const val = this.generator(get)
     if (val !== undefined) {
-      const element = this.location.findNode(root) as Element
       element.setAttribute(this.attribute, val)
     }
   }
 
-  run(get: GetState, root: Node): void {
-    const element = this.location.findNode(root) as Element
-    
+  run(get: GetState, element: Element): void {
     if (!element.isConnected) {
       return
     }

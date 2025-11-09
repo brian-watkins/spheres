@@ -32,8 +32,8 @@ export class ActivateDomRenderer extends AbstractViewRenderer {
 
   textNode(value: string | Stateful<string>): this {
     if (isStateful(value)) {
-      const effect = new UpdateTextEffect(this.currentLocation, value)
-      initListener(this.registry, effect, this.zone.root)
+      const effect = new UpdateTextEffect(value)
+      initListener(this.registry, effect, this.currentLocation.findNode(this.zone.root))
     }
 
     this.currentNode = this.currentNode!.nextSibling
@@ -98,16 +98,16 @@ class ActivateDomConfig extends AbstractViewConfig {
 
   attribute(name: string, value: string | Stateful<string>): this {
     if (isStateful(value)) {
-      const attributeEffect = new UpdateAttributeEffect(this.location, name, value)
-      initListener(this.registry, attributeEffect, this.root)
+      const attributeEffect = new UpdateAttributeEffect(name, value)
+      initListener(this.registry, attributeEffect, this.location.findNode(this.root))
     }
     return this
   }
 
   property<T extends string | boolean>(name: string, value: T | Stateful<T>): this {
     if (isStateful(value)) {
-      const propertyEffect = new UpdatePropertyEffect(this.location, name, value)
-      initListener(this.registry, propertyEffect, this.root)
+      const propertyEffect = new UpdatePropertyEffect(name, value)
+      initListener(this.registry, propertyEffect, this.location.findNode(this.root))
     }
 
     return this

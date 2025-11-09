@@ -15,16 +15,19 @@ export enum EffectTemplateTypes {
 export interface TextEffectTemplate {
   type: EffectTemplateTypes.Text
   effect: StateListener
+  location: EffectLocation
 }
 
 export interface AttributeEffectTemplate {
   type: EffectTemplateTypes.Attribute
   effect: StateListener
+  location: EffectLocation
 }
 
 export interface PropertyEffectTemplate {
   type: EffectTemplateTypes.Property
   effect: StateListener
+  location: EffectLocation
 }
 
 export interface ListEffectTemplate {
@@ -104,7 +107,7 @@ function initializeEffect(registry: TokenRegistry, root: Node, effect: EffectTem
     case EffectTemplateTypes.Text:
     case EffectTemplateTypes.Attribute:
     case EffectTemplateTypes.Property: {
-      initListener(registry, effect.effect, root)
+      initListener(registry, effect.effect, effect.location.findNode(root))
       break
     }
     case EffectTemplateTypes.List: {
@@ -139,7 +142,7 @@ function activateEffect(registry: TokenRegistry, root: Node, effect: EffectTempl
     case EffectTemplateTypes.Text:
     case EffectTemplateTypes.Attribute:
     case EffectTemplateTypes.Property: {
-      initListener(registry, effect.effect, root)
+      initListener(registry, effect.effect, effect.location.findNode(root))
       break
     }
     case EffectTemplateTypes.List: {

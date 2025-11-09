@@ -10,8 +10,8 @@ export class WeakMapTokenRegistry implements TokenRegistry {
     this.onRegisterHook = handler
   }
 
-  registerState<T>(token: State<any>, initialState?: T): StatePublisher<T> {
-    const controller = token[createPublisher](this, initialState)
+  registerState<T>(token: State<any>): StatePublisher<T> {
+    const controller = token[createPublisher](this)
     this.registry.set(token, controller)
     this.onRegisterHook?.(token)
     return controller

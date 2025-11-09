@@ -22,8 +22,8 @@ export function runQuery<M>(registry: TokenRegistry, query: (get: GetState) => M
   return query((token) => token[getPublisher](registry).getValue())
 }
 
-export function createStatePublisher(registry: TokenRegistry, token: State<any>, initialValue?: any): StatePublisher<any> {
-  return token[createPublisher](registry, initialValue)
+export function createStatePublisher(registry: TokenRegistry, token: State<any>): StatePublisher<any> {
+  return token[createPublisher](registry)
 }
 
 export const createController = Symbol("createController")
@@ -32,7 +32,7 @@ export const createPublisher = Symbol("createPublisher")
 export abstract class State<T> implements StateReference<T> {
   constructor(readonly name: string | undefined) { }
 
-  abstract [createPublisher](registry: TokenRegistry, initialState?: T): StatePublisher<T>
+  abstract [createPublisher](registry: TokenRegistry): StatePublisher<T>
 
   [getPublisher]<X extends StatePublisher<T>>(registry: TokenRegistry): X {
     return registry.getState(this)

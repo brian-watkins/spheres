@@ -1,5 +1,6 @@
 import { Container, State, Store, write, StoreMessage, batch, GetState, reset, Command, CommandActions, ContainerHooks, ReactiveEffect, createStore, useContainerHooks, useEffect, useCommand, InitializerActions, Collection } from "@store/index.js"
 import { WritableState } from "@store/message"
+import { StateReference } from "@store/tokenRegistry"
 import { Context } from "best-behavior"
 
 export function testStoreContext<T>(): Context<TestStore<T>> {
@@ -47,7 +48,7 @@ export class TestStore<T> {
     useEffect(this.store, query)
   }
 
-  subscribeTo<S>(token: State<S>, name: string) {
+  subscribeTo<S>(token: StateReference<S>, name: string) {
     const query = new StoreValuesEffect((get) => get(token))
     this.values.set(name, query)
     useEffect(this.store, query)

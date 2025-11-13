@@ -75,3 +75,8 @@ export {
   type Collection,
   collection
 } from "./state/collection.js"
+export {
+  type Value,
+  value,
+  valueAt
+} from "./state/value.js"

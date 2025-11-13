@@ -12,7 +12,7 @@ export interface UpdateResult<T> {
   message?: StoreMessage
 }
 
-export interface WritableState<T, M> extends StateReference<T> {
+export interface WritableState<T, M = T> extends StateReference<T> {
   [getPublisher](registry: TokenRegistry): StateWriter<T, M>
 }
 

@@ -12,6 +12,10 @@ export abstract class LinkedListStatePublisher<T> implements StatePublisher<T> {
 
   abstract getValue(): T
 
+  getPublisherAt<S extends StatePublisher<any>>(locator: (value: T) => S): S {
+    return locator(this.getValue())
+  }
+
   addListener(subscriber: Subscriber): void {
     if (this.head === undefined) {
       this.head = {

@@ -85,6 +85,7 @@ export interface Subscriber {
 }
 
 export interface StatePublisher<T> {
+  getPublisherAt<S extends StatePublisher<any>>(locator: (value: T) => S): S
   getValue(): T
   addListener(subscriber: Subscriber): void
   removeListener(subscriber: Subscriber): void

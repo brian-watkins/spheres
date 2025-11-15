@@ -23,3 +23,12 @@ export function valueAt<T, S>(state: State<T>, locator: (val: T) => Value<S>): W
     }
   }
 }
+
+// Alternative interface with getState function ...
+// export function valueAtGet<S>(query: (get: GetState) => Value<S>): WritableState<S> {
+//   return {
+//     [getPublisher](registry) {
+//       return runQuery(registry, query)
+//     }
+//   }
+// }

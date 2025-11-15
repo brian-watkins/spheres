@@ -1,7 +1,7 @@
-import { MetaState } from "./meta.js"
+import { MetaState, WithMetaState } from "./meta.js"
 import { didCreateToken } from "./stateRecorder.js"
-import { createStateHandler, getStateHandler, State, StatePublisher, StateWriter, TokenRegistry } from "../tokenRegistry.js"
-import { initialValue, ResettableState, WritableState } from "../message.js"
+import { createStateHandler, getStateHandler, State, StatePublisher, StateWriter, TokenRegistry, WritableState } from "../tokenRegistry.js"
+import { initialValue, ResettableState } from "../message.js"
 import { MessageWriter, UpdateResult } from "./publisher/messageWriter.js"
 import { Writer } from "./publisher/writer.js"
 
@@ -21,7 +21,7 @@ export function container<T, M = T, E = any>(initializer: ContainerInitializer<T
   return token
 }
 
-export class Container<T, M = T, E = any> extends State<T> implements ResettableState<T>, WritableState<T, M, E> {
+export class Container<T, M = T, E = any> extends State<T> implements ResettableState<T>, WritableState<T, M>, WithMetaState<T, M, E> {
   private _meta: MetaState<T, M, E> | undefined
 
   constructor(

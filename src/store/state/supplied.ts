@@ -1,16 +1,35 @@
-import { WritableState } from "../message.js"
-import { container } from "./container.js"
+import { createStateHandler, getStateHandler, PublishableState, State, StatePublisher, TokenRegistry } from "../tokenRegistry.js"
+import { MetaState, WithMetaState } from "./meta.js"
+import { SubscriberSetPublisher } from "./publisher/subscriberSetPublisher.js"
 
 export interface SuppliedStateInitializer<T> {
   name?: string
   initialValue: T
 }
 
-export type SuppliedState<T, E = any> = WritableState<T, never, E>
-
 export function supplied<T, E = any>(initializer: SuppliedStateInitializer<T>): SuppliedState<T, E> {
-  return container<T, never, E>({
-    initialValue: initializer.initialValue,
-    name: initializer.name
-  })
+  return new SuppliedState(initializer.name, initializer.initialValue)
+}
+
+export class SuppliedState<T, E = any> extends State<T> implements PublishableState<T>, WithMetaState<T, never, E> {
+  private _meta: MetaState<T, never, E> | undefined
+
+  constructor(name: string | undefined, private initialValue: T) {
+    super(name)
+  }
+
+  [createStateHandler](): StatePublisher<T> {
+    return new SubscriberSetPublisher(this.initialValue)
+  }
+
+  [getStateHandler](registry: TokenRegistry): StatePublisher<T> {
+    return registry.getState(this)
+  }
+
+  get meta(): MetaState<T, never, E> {
+    if (this._meta === undefined) {
+      this._meta = new MetaState(this)
+    }
+    return this._meta
+  }
 }

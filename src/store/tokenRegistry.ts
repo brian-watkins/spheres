@@ -99,6 +99,14 @@ export interface StateWriter<T, M> extends StatePublisher<T> {
   write(value: M): void
 }
 
+export interface PublishableState<T> extends StateReference<T> {
+  [getStateHandler](registry: TokenRegistry): StatePublisher<T>
+}
+
+export interface WritableState<T, M> extends StateReference<T> {
+  [getStateHandler](registry: TokenRegistry): StateWriter<T, M>
+}
+
 export function createSubscriber(registry: TokenRegistry, listener: StateListener, context?: any): Subscriber {
   return {
     registry,

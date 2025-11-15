@@ -1,4 +1,4 @@
-import { createStateHandler, GetState, State, StateListenerType, StatePublisher, createSubscriber, TokenRegistry, StateEffect, getStateHandler } from "../tokenRegistry.js"
+import { createStateHandler, GetState, State, StateListenerType, StatePublisher, createSubscriber, TokenRegistry, StateEffect, getStateHandler, StateReference, PublishableState } from "../tokenRegistry.js"
 import { SubscriberSetPublisher } from "./publisher/subscriberSetPublisher.js"
 
 export interface PendingMessage<M> {
@@ -39,7 +39,11 @@ export function error<M, E>(reason: E, message: M): ErrorMessage<M, E> {
   }
 }
 
-export class MetaState<T, M, E = unknown> extends State<Meta<M, E>> {
+export interface WithMetaState<T, M, E = any> extends StateReference<T> {
+  meta: MetaState<T, M, E>
+}
+
+export class MetaState<T, M, E = unknown> extends State<Meta<M, E>> implements PublishableState<Meta<M, E>> {
   constructor(private token: State<T>) {
     super(`meta[${token}]`)
   }

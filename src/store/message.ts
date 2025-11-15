@@ -1,5 +1,4 @@
-import { MetaState } from "./state/meta.js"
-import { Command, getStateHandler, GetState, runQuery, State, StatePublisher, StateReference, StateWriter, TokenRegistry } from "./tokenRegistry.js"
+import { Command, getStateHandler, GetState, runQuery, State, StatePublisher, TokenRegistry, WritableState } from "./tokenRegistry.js"
 
 export const initialValue = Symbol("initialValue")
 
@@ -11,11 +10,6 @@ export interface ResettableState<T> extends State<T> {
 export interface UpdateResult<T> {
   value: T
   message?: StoreMessage
-}
-
-export interface WritableState<T, M, E = any> extends StateReference<T> {
-  [getStateHandler](registry: TokenRegistry): StateWriter<T, M>
-  meta: MetaState<T, M, E>
 }
 
 export interface WriteMessage<T, M = T> {

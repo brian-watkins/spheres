@@ -1,8 +1,8 @@
 import { Container } from "./state/container.js"
-import { dispatchMessage, StoreMessage, WritableState } from "./message.js"
-import { error, Meta, ok, pending } from "./state/meta.js"
+import { dispatchMessage, StoreMessage } from "./message.js"
+import { error, Meta, ok, pending, WithMetaState } from "./state/meta.js"
 import { WeakMapTokenRegistry } from "./registry/weakMapTokenRegistry.js"
-import { Command, getStateHandler, GetState, initializeCommand, initListener, runQuery, StateEffect, StateListenerType, StateReference, StateWriter, Subscriber, TokenRegistry } from "./tokenRegistry.js"
+import { Command, getStateHandler, GetState, initializeCommand, initListener, runQuery, StateEffect, StateListenerType, StateReference, StateWriter, Subscriber, TokenRegistry, PublishableState } from "./tokenRegistry.js"
 import { CommandManager, ManagedCommandController } from "./command/managedCommandController.js"
 
 export interface StoreOptions {
@@ -47,9 +47,9 @@ export function getTokenRegistry(store: Store): TokenRegistry {
 
 export interface InitializerActions {
   get: GetState
-  supply<T>(container: WritableState<T, unknown>, value: T): void
-  pending<T, M>(container: WritableState<T, M>, ...value: NoInfer<M> extends never ? [] : [NoInfer<M>]): void
-  error<T, M, E>(container: WritableState<T, M, E>, reason: E, ...message: NoInfer<M> extends never ? [] : [NoInfer<M>]): void
+  supply<T>(container: PublishableState<T>, value: T): void
+  pending<T, M>(container: WithMetaState<T, M>, ...value: NoInfer<M> extends never ? [] : [NoInfer<M>]): void
+  error<T, M, E>(container: WithMetaState<T, M, E>, reason: E, ...message: NoInfer<M> extends never ? [] : [NoInfer<M>]): void
 }
 
 export class Store {
@@ -136,17 +136,17 @@ function stateWriterWithHooks<T, M, E>(registry: TokenRegistry, container: Conta
 function initializerActions(registry: TokenRegistry): InitializerActions {
   return {
     get: (state) => runQuery(registry, get => get(state)),
-    supply: <T>(writable: WritableState<T, unknown>, value: T) => {
+    supply: <T>(writable: PublishableState<T>, value: T) => {
       writable[getStateHandler](registry).publish(value)
     },
-    pending: <T, M, E>(writable: WritableState<T, M>, ...message: NoInfer<M> extends never ? [] : [NoInfer<M>]) => {
+    pending: <T, M, E>(writable: WithMetaState<T, M>, ...message: NoInfer<M> extends never ? [] : [NoInfer<M>]) => {
       if (message.length === 0) {
         writable.meta[getStateHandler](registry).publish(pending(undefined) as Meta<never, E>)
       } else {
         writable.meta[getStateHandler](registry).publish(pending(message[0]))
       }
     },
-    error: <T, M, E>(writable: WritableState<T, M, E>, reason: E, ...message: NoInfer<M> extends never ? [] : [NoInfer<M>]) => {
+    error: <T, M, E>(writable: WithMetaState<T, M, E>, reason: E, ...message: NoInfer<M> extends never ? [] : [NoInfer<M>]) => {
       if (message.length === 0) {
         writable.meta[getStateHandler](registry).publish(error(reason, undefined) as Meta<never, E>)
       } else {

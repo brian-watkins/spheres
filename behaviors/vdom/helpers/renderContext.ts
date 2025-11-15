@@ -4,6 +4,7 @@ import { Collection, Container, createStore, Store, write } from "@store/index.j
 import { createStringRenderer } from "@server/index"
 import { activateView } from "@view/activate"
 import { DOMChangeRecord, structureChangeRecord, textChangeRecord } from "./changeRecords"
+import { WritableState } from "@store/message"
 
 export class RenderApp<T> {
   private renderResult: RenderResult | undefined
@@ -25,7 +26,7 @@ export class RenderApp<T> {
     this.store.dispatch(write(token, value))
   }
 
-  writeToCollection<K, V, M = V>(collection: Collection<K, V, M>, key: K, value: M) {
+  writeToCollection<K, M, S extends WritableState<unknown, M>>(collection: Collection<K, S>, key: K, value: M) {
     this.store.dispatch(write(collection.at(key), value))
   }
 

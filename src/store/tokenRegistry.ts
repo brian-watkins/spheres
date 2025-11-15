@@ -1,17 +1,17 @@
-export const getPublisher = Symbol("getPublisher")
+export const getStateHandler = Symbol("getStateHandler")
 
 export interface StateReference<Value> {
-  [getPublisher](registry: TokenRegistry): StatePublisher<Value>
+  [getStateHandler](registry: TokenRegistry): StateReader<Value>
 }
 
 export type GetState = <S>(state: StateReference<S>) => S
 
 export type Stateful<T> = (get: GetState) => T | undefined
 
-function subscribeOnGet(this: Subscriber, token: StateReference<any>): any {
-  const publisher = token[getPublisher](this.registry)
-  publisher.addListener(this)
-  return publisher.getValue()
+function subscribeOnGet<T>(this: Subscriber, token: StateReference<T>): T {
+  const reader = token[getStateHandler](this.registry)
+  reader.addSubscriber(this)
+  return reader.getValue()
 }
 
 export function getStateFunctionWithListener(key: Subscriber): GetState {
@@ -19,24 +19,22 @@ export function getStateFunctionWithListener(key: Subscriber): GetState {
 }
 
 export function runQuery<M>(registry: TokenRegistry, query: (get: GetState) => M): M {
-  return query((token) => token[getPublisher](registry).getValue())
+  return query((token) => token[getStateHandler](registry).getValue())
 }
 
-export function createStatePublisher(registry: TokenRegistry, token: State<any>): StatePublisher<any> {
-  return token[createPublisher](registry)
+export function generateStateManager<S>(registry: TokenRegistry, token: State<S>): StateReader<S> {
+  return token[createStateHandler](registry)
 }
 
 export const createController = Symbol("createController")
-export const createPublisher = Symbol("createPublisher")
+export const createStateHandler = Symbol("createStateHandler")
 
 export abstract class State<T> implements StateReference<T> {
   constructor(readonly name: string | undefined) { }
 
-  abstract [createPublisher](registry: TokenRegistry): StatePublisher<T>
+  abstract [createStateHandler](registry: TokenRegistry): StateReader<T>
 
-  [getPublisher]<X extends StatePublisher<T>>(registry: TokenRegistry): X {
-    return registry.getState(this)
-  }
+  abstract [getStateHandler](registry: TokenRegistry): StateReader<T>
 
   toString() {
     return this.name ?? "State"
@@ -84,13 +82,21 @@ export interface Subscriber {
   context: any
 }
 
-export interface StatePublisher<T> {
+export interface Subscribable {
+  addSubscriber(subscriber: Subscriber): void
+  removeSubscriber(subscriber: Subscriber): void
+}
+
+export interface StateReader<T> extends Subscribable {
   getValue(): T
-  addListener(subscriber: Subscriber): void
-  removeListener(subscriber: Subscriber): void
-  notifyListeners(userEffects: Array<Subscriber>): void
-  runListeners(): void
-  runUserEffects(subscribers: Array<Subscriber>): void
+}
+
+export interface StatePublisher<T> extends StateReader<T> {
+  publish(value: T): void
+}
+
+export interface StateWriter<T, M> extends StatePublisher<T> {
+  write(value: M): void
 }
 
 export function createSubscriber(registry: TokenRegistry, listener: StateListener, context?: any): Subscriber {
@@ -121,12 +127,14 @@ export abstract class Command<M> {
   }
 }
 
-export type Token = State<any> | Command<any>
+export type Token = State<unknown> | Command<unknown>
+
+export type StateHandler<S extends State<unknown>> = ReturnType<S[typeof getStateHandler]>
 
 export interface TokenRegistry {
   onRegister(handler: (token: Token) => void): void
-  getState<C extends StatePublisher<any>>(token: State<any>): C
-  setState(state: State<any>, publisher: StatePublisher<any>): void
-  getCommand(token: Command<any>): CommandController<any>
-  setCommand(token: Command<any>, controller: CommandController<any>): void
+  getState<S extends State<unknown>>(token: S): StateHandler<S>
+  setState<T>(state: State<T>, publisher: StateReader<T>): void
+  getCommand(token: Command<unknown>): CommandController<unknown>
+  setCommand(token: Command<unknown>, controller: CommandController<unknown>): void
 }

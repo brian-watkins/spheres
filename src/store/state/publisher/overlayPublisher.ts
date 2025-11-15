@@ -1,27 +1,26 @@
-import { createSubscriber, StateDerivation, StateListenerType, Subscriber, TokenRegistry } from "../../tokenRegistry.js"
-import { LinkedListStatePublisher } from "./linkedListStatePublisher.js"
-import { StateWriter } from "./stateWriter.js"
+import { createSubscriber, StateDerivation, StateListenerType, StateWriter, Subscriber, TokenRegistry } from "../../tokenRegistry.js"
+import { SubscriberSet } from "./subscriberSet.js"
 
-export class OverlayPublisher extends LinkedListStatePublisher<any> implements StateDerivation {
+export class OverlayPublisher extends SubscriberSet implements StateWriter<any, any>, StateDerivation {
   readonly type = StateListenerType.Derivation
   private subscriber: Subscriber
 
-  constructor(registry: TokenRegistry, private parent: StateWriter<any>) {
+  constructor(registry: TokenRegistry, private parent: StateWriter<any, any>) {
     super()
     this.subscriber = createSubscriber(registry, this)
   }
 
   init(): void {
-    this.parent.addListener(this.subscriber)
+    this.parent.addSubscriber(this.subscriber)
   }
 
   run(): void {
     this.runListeners()
-    this.parent.addListener(this.subscriber)
+    this.parent.addSubscriber(this.subscriber)
   }
 
   detach(): void {
-    this.parent.removeListener(this.subscriber)
+    this.parent.removeSubscriber(this.subscriber)
   }
 
   write(value: any) {

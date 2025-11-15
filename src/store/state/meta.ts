@@ -1,6 +1,5 @@
-import { StateWriter } from "./publisher/stateWriter.js"
-import { createPublisher, GetState, State, StateListenerType, StatePublisher, createSubscriber, TokenRegistry, StateEffect } from "../tokenRegistry.js"
-import { ValueWriter } from "./publisher/valueWriter.js"
+import { createStateHandler, GetState, State, StateListenerType, StatePublisher, createSubscriber, TokenRegistry, StateEffect, getStateHandler } from "../tokenRegistry.js"
+import { SubscriberSetPublisher } from "./publisher/subscriberSetPublisher.js"
 
 export interface PendingMessage<M> {
   type: "pending"
@@ -45,12 +44,16 @@ export class MetaState<T, M, E = unknown> extends State<Meta<M, E>> {
     super(`meta[${token}]`)
   }
 
-  [createPublisher](registry: TokenRegistry, serializedState?: Meta<M, E>): StatePublisher<Meta<M, E>> {
+  [getStateHandler](registry: TokenRegistry): StatePublisher<Meta<M, E>> {
+    return registry.getState(this)
+  }
+
+  [createStateHandler](registry: TokenRegistry, serializedState?: Meta<M, E>): StatePublisher<Meta<M, E>> {
     const publisher = registry.getState(this.token)
 
-    const writer = new ValueWriter<Meta<M, E>>(serializedState ?? ok())
+    const writer = new SubscriberSetPublisher<Meta<M, E>>(serializedState ?? ok())
 
-    publisher.addListener(createSubscriber(registry, new MetaStateListener(this.token, writer)))
+    publisher.addSubscriber(createSubscriber(registry, new MetaStateListener(this.token, writer)))
 
     return writer
   }
@@ -59,7 +62,7 @@ export class MetaState<T, M, E = unknown> extends State<Meta<M, E>> {
 class MetaStateListener<M, E> implements StateEffect {
   readonly type = StateListenerType.SystemEffect
 
-  constructor(private token: State<any>, private writer: StateWriter<Meta<M, E>>) { }
+  constructor(private token: State<any>, private publisher: StatePublisher<Meta<M, E>>) { }
 
   init(get: GetState): void {
     this.run(get)
@@ -69,6 +72,6 @@ class MetaStateListener<M, E> implements StateEffect {
     // to resubscribe to state updates on this token
     get(this.token)
 
-    this.writer.write(ok())
+    this.publisher.publish(ok())
   }
 }

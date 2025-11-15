@@ -1,7 +1,7 @@
 import { GetState, State } from "../../store/index.js";
 import { OverlayTokenRegistry } from "../../store/registry/overlayTokenRegistry.js";
 import { recordTokens } from "../../store/state/stateRecorder.js";
-import { createStatePublisher, runQuery, StatePublisher, Subscriber, TokenRegistry } from "../../store/tokenRegistry.js";
+import { generateStateManager, runQuery, Subscriber, Subscribable, TokenRegistry, StateHandler } from "../../store/tokenRegistry.js";
 import { ViewDefinition, ViewCaseSelector, ViewSelector, ViewConditionSelector } from "./viewRenderer.js";
 
 export interface TemplateContext<T> {
@@ -147,32 +147,32 @@ class CaseViewOverlayTokenRegistry extends OverlayTokenRegistry {
     super(parentRegistry)
   }
 
-  getState<C extends StatePublisher<any>>(token: State<any>): C {
+  getState<S extends State<unknown>>(token: S): StateHandler<S> {
     if (this.tokens.includes(token)) {
       let publisher = this.tokenMap.get(token)
       if (publisher === undefined) {
-        publisher = createStatePublisher(this, token)
-        this.tokenMap.set(token, this.createGuardedPublisher(publisher))
+        publisher = generateStateManager(this, token)
+        this.tokenMap.set(token, this.createGuardedStateManager(publisher))
       }
       return publisher
     }
 
     const publisher = this.parentRegistry.getState(token)
-    return this.createGuardedPublisher(publisher) as any
+    return this.createGuardedStateManager(publisher)
   }
 
-  private createGuardedPublisher(publisher: StatePublisher<any>): StatePublisher<any> {
+  private createGuardedStateManager(subscribable: Subscribable): StateHandler<any> {
     return guardListenersStatePublisherProxy(
-      publisher,
+      subscribable,
       () => runQuery(this.parentRegistry, this.selector)
-    ) as any
+    )
   }
 }
 
-function guardListenersStatePublisherProxy(publisher: StatePublisher<any>, guard: () => boolean) {
-  return new Proxy(publisher, {
-    get(target, prop, receiver) {
-      if (prop === "addListener") {
+function guardListenersStatePublisherProxy(subscribable: Subscribable, guard: () => boolean) {
+  return new Proxy(subscribable, {
+    get<P extends keyof Subscribable>(target: Subscribable, prop: P, receiver: any) {
+      if (prop === "addSubscriber") {
         return (key: Subscriber) => {
           const listener = key.listener
           const runner = listener.run.bind(listener)
@@ -181,7 +181,7 @@ function guardListenersStatePublisherProxy(publisher: StatePublisher<any>, guard
               runner(get, key.context)
             }
           }
-          target.addListener(key)
+          target.addSubscriber(key)
         }
       } else {
         return Reflect.get(target, prop, receiver)

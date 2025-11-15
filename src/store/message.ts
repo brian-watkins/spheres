@@ -1,10 +1,11 @@
-import { StateWriter } from "./state/publisher/stateWriter.js"
-import { Command, getPublisher, GetState, runQuery, State, StateReference, TokenRegistry } from "./tokenRegistry.js"
+import { MetaState } from "./state/meta.js"
+import { Command, getStateHandler, GetState, runQuery, State, StatePublisher, StateReference, StateWriter, TokenRegistry } from "./tokenRegistry.js"
 
 export const initialValue = Symbol("initialValue")
 
 export interface ResettableState<T> extends State<T> {
   [initialValue]: T
+  [getStateHandler](registry: TokenRegistry): StatePublisher<T>
 }
 
 export interface UpdateResult<T> {
@@ -12,10 +13,10 @@ export interface UpdateResult<T> {
   message?: StoreMessage
 }
 
-export interface WritableState<T, M> extends StateReference<T> {
-  [getPublisher](registry: TokenRegistry): StateWriter<T, M>
+export interface WritableState<T, M, E = any> extends StateReference<T> {
+  [getStateHandler](registry: TokenRegistry): StateWriter<T, M>
+  meta: MetaState<T, M, E>
 }
-
 
 export interface WriteMessage<T, M = T> {
   type: "write"
@@ -94,14 +95,21 @@ export function update<T, M>(state: WritableState<T, M>, generator: (current: No
   }
 }
 
+export function reset<T>(container: ResettableState<T>): ResetMessage<T> {
+  return {
+    type: "reset",
+    container
+  }
+}
+
 export function dispatchMessage(registry: TokenRegistry, message: StoreMessage<any>) {
   switch (message.type) {
     case "write": {
-      message.token[getPublisher](registry).write(message.value)
+      message.token[getStateHandler](registry).write(message.value)
       break
     }
     case "update": {
-      const writer = message.token[getPublisher](registry)
+      const writer = message.token[getStateHandler](registry)
       writer.write(message.generator(writer.getValue()))
       break
     }
@@ -110,8 +118,7 @@ export function dispatchMessage(registry: TokenRegistry, message: StoreMessage<a
       break
     }
     case "reset": {
-      const writer = registry.getState<StateWriter<unknown>>(message.container)
-      writer.publish(message.container[initialValue])
+      registry.getState(message.container).publish(message.container[initialValue])
       break
     }
     case "use": {

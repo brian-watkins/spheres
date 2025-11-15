@@ -1,10 +1,9 @@
 import { MetaState } from "./meta.js"
 import { didCreateToken } from "./stateRecorder.js"
-import { createPublisher, State, TokenRegistry } from "../tokenRegistry.js"
-import { StateWriter } from "./publisher/stateWriter.js"
-import { initialValue, ResetMessage, ResettableState, WritableState } from "../message.js"
-import { MessageDispatchingStateWriter, UpdateResult } from "./publisher/messageDispatchingStateWriter.js"
-import { ValueWriter } from "./publisher/valueWriter.js"
+import { createStateHandler, getStateHandler, State, StatePublisher, StateWriter, TokenRegistry } from "../tokenRegistry.js"
+import { initialValue, ResettableState, WritableState } from "../message.js"
+import { MessageWriter, UpdateResult } from "./publisher/messageWriter.js"
+import { Writer } from "./publisher/writer.js"
 
 export interface ContainerInitializer<T, M> {
   initialValue: T,
@@ -13,7 +12,7 @@ export interface ContainerInitializer<T, M> {
 }
 
 export function container<T, M = T, E = any>(initializer: ContainerInitializer<T, M>): Container<T, M, E> {
-  const token = new Container(
+  const token = new Container<T, M, E>(
     initializer.name,
     initializer.initialValue,
     initializer.update
@@ -22,14 +21,7 @@ export function container<T, M = T, E = any>(initializer: ContainerInitializer<T
   return token
 }
 
-export function reset<T, M = T>(container: Container<T, M>): ResetMessage<T> {
-  return {
-    type: "reset",
-    container
-  }
-}
-
-export class Container<T, M = T, E = any> extends State<T> implements ResettableState<T>, WritableState<T, M> {
+export class Container<T, M = T, E = any> extends State<T> implements ResettableState<T>, WritableState<T, M, E> {
   private _meta: MetaState<T, M, E> | undefined
 
   constructor(
@@ -44,10 +36,14 @@ export class Container<T, M = T, E = any> extends State<T> implements Resettable
     return this.initialValue
   }
 
-  [createPublisher](registry: TokenRegistry, serializedState?: T): StateWriter<T, unknown> {
+  [getStateHandler](registry: TokenRegistry): StateWriter<T, M> {
+    return registry.getState(this)
+  }
+
+  [createStateHandler](registry: TokenRegistry, serializedState?: T): StatePublisher<T> {
     return this.update ?
-      new MessageDispatchingStateWriter(registry, serializedState ?? this.initialValue, this.update) :
-      new ValueWriter(serializedState ?? this.initialValue)
+      new MessageWriter(registry, serializedState ?? this.initialValue, this.update) :
+      new Writer(serializedState ?? this.initialValue)
   }
 
   get meta(): MetaState<T, M, E> {

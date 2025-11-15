@@ -1,11 +1,10 @@
 import { OverlayTokenRegistry } from "../../store/registry/overlayTokenRegistry.js"
-import { StateWriter } from "../../store/state/publisher/stateWriter.js"
-import { ValueWriter } from "../../store/state/publisher/valueWriter.js"
-import { createStatePublisher, State, StatePublisher, Token, TokenRegistry } from "../../store/tokenRegistry.js"
+import { Writer } from "../../store/state/publisher/writer.js"
+import { generateStateManager, State, StatePublisher, StateReader, StateHandler, Token, TokenRegistry } from "../../store/tokenRegistry.js"
 import { ListItemTemplateContext } from "../../view/render/templateContext.js"
 
 export function createOverlayRegistry(context: ListItemTemplateContext<any>, rootRegistry: TokenRegistry, itemData: any, index: number): ListItemOverlayTokenRegistry {
-  const registry = new ListItemOverlayTokenRegistry(rootRegistry, context.itemToken, new ValueWriter(itemData), context.viewTokens)
+  const registry = new ListItemOverlayTokenRegistry(rootRegistry, context.itemToken, new Writer(itemData), context.viewTokens)
   if (context.usesIndex) {
     registry.setIndexState(context.indexToken, index)
   }
@@ -15,13 +14,13 @@ export function createOverlayRegistry(context: ListItemTemplateContext<any>, roo
 
 export class ListItemOverlayTokenRegistry extends OverlayTokenRegistry {
   private index: State<number> | undefined
-  private indexPublisher: StateWriter<number> | undefined
-  private registry: Map<Token, StatePublisher<any>> = new Map()
+  private indexPublisher: StatePublisher<number> | undefined
+  private registry: Map<Token, StateReader<unknown>> = new Map()
 
   constructor(
     rootRegistry: TokenRegistry,
-    private item: State<any>,
-    private itemPublisher: StateWriter<any>,
+    private item: State<unknown>,
+    private itemPublisher: StatePublisher<unknown>,
     private viewTokens: Set<Token>
   ) {
     super(rootRegistry)
@@ -29,25 +28,25 @@ export class ListItemOverlayTokenRegistry extends OverlayTokenRegistry {
 
   setIndexState(token: State<number>, value: number) {
     this.index = token
-    this.indexPublisher = new ValueWriter(value)
+    this.indexPublisher = new Writer(value)
   }
 
-  getState<C extends StatePublisher<any>>(token: State<any>): C {
+  getState<S extends State<unknown>>(token: S): StateHandler<S> {
     if (token === this.item) {
-      return this.itemPublisher as any
+      return this.itemPublisher as StateHandler<S>
     }
 
     if (token === this.index) {
-      return this.indexPublisher as any
+      return this.indexPublisher! as StateHandler<S>
     }
 
     if (this.viewTokens.has(token)) {
       let publisher = this.registry.get(token)
       if (publisher === undefined) {
-        publisher = createStatePublisher(this, token)
+        publisher = generateStateManager(this, token)
         this.registry.set(token, publisher)
       }
-      return publisher as C
+      return publisher as StateHandler<S>
     }
 
     return super.getState(token)

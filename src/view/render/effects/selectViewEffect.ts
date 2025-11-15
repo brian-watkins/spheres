@@ -1,10 +1,9 @@
 import { GetState } from "../../../store/index.js";
 import { activate, DOMTemplate, render } from "../domTemplate.js";
-import { State, StateEffect, StateListenerType, StatePublisher, Token, TokenRegistry } from "../../../store/tokenRegistry.js";
+import { State, StateEffect, StateListenerType, StateReader, StateWriter, StateHandler, Token, TokenRegistry } from "../../../store/tokenRegistry.js";
 import { SelectorCollection, TemplateSelector } from "../selectorBuilder.js";
 import { OverlayTokenRegistry } from "../../../store/registry/overlayTokenRegistry.js";
 import { OverlayPublisher } from "../../../store/state/publisher/overlayPublisher.js";
-import { StateWriter } from "../../../store/state/publisher/stateWriter.js";
 
 export class SelectViewEffect implements StateEffect {
   readonly type = StateListenerType.SystemEffect
@@ -78,24 +77,24 @@ export function activateSelect(registry: TokenRegistry, selectors: SelectorColle
 }
 
 class ConditionalViewOverlayRegistry extends OverlayTokenRegistry {
-  private registry: Map<Token, StatePublisher<any>> = new Map()
+  private registry: Map<Token, StateReader<any>> = new Map()
 
-  getState<C extends StatePublisher<any>>(token: State<any>): C {
+  getState<S extends State<unknown>>(token: S): StateHandler<S> {
     let publisher = this.registry.get(token)
     if (publisher === undefined) {
       publisher = this.createPublisher(token)
       this.registry.set(token, publisher)
     }
 
-    return publisher as C
+    return publisher as StateHandler<S>
   }
 
-  private createPublisher(token: State<any>): StatePublisher<any> {
-    const actualPublisher = this.parentRegistry.getState<StateWriter<any>>(token)
+  private createPublisher<S extends State<unknown>>(token: S): StateHandler<S> {
+    const actualPublisher = this.parentRegistry.getState(token) as StateWriter<any, any>
     const overlayPublisher = new OverlayPublisher(this.parentRegistry, actualPublisher)
     overlayPublisher.init()
 
-    return overlayPublisher
+    return overlayPublisher as StateHandler<S>
   }
 
   reset() {

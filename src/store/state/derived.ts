@@ -1,6 +1,6 @@
 import { didCreateToken } from "./stateRecorder.js";
-import { GetState, State, StateDerivation, StateListenerType, StatePublisher, TokenRegistry, createPublisher, initListener } from "../tokenRegistry.js";
-import { LinkedListStatePublisher } from "./publisher/linkedListStatePublisher.js";
+import { GetState, State, StateReader, TokenRegistry, createStateHandler, getStateHandler, initListener } from "../tokenRegistry.js";
+import { DerivedStateReader } from "./publisher/derivedReader.js";
 
 export interface DerivedStateInitializer<T> {
   query: (get: GetState) => T
@@ -15,44 +15,18 @@ export function derived<T>(initializer: DerivedStateInitializer<T> | ((get: GetS
   return token
 }
 
-
 export class DerivedState<T> extends State<T> {
   constructor(name: string | undefined, private derivation: (get: GetState) => T) {
     super(name)
   }
 
-  [createPublisher](registry: TokenRegistry): StatePublisher<T> {
-    const publisher = new DerivedStatePublisher(registry, this.derivation)
-    initListener(registry, publisher)
-    return publisher
-  }
-}
-
-class DerivedStatePublisher<T> extends LinkedListStatePublisher<T> implements StateDerivation {
-  readonly type = StateListenerType.Derivation
-  private _value!: T
-
-  constructor(public registry: TokenRegistry, private derivation: (get: GetState) => T) {
-    super()
+  [getStateHandler](registry: TokenRegistry): StateReader<T> {
+    return registry.getState(this)
   }
 
-  init(get: GetState): void {
-    this._value = this.derivation(get)
-  }
-
-  run(get: GetState): void {
-    const derived = this.derivation(get)
-
-    if (Object.is(derived, this._value)) {
-      return
-    }
-
-    this._value = derived
-
-    this.runListeners()
-  }
-
-  getValue(): T {
-    return this._value
+  [createStateHandler](registry: TokenRegistry): StateReader<T> {
+    const reader = new DerivedStateReader(this.derivation)
+    initListener(registry, reader)
+    return reader
   }
 }

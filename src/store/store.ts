@@ -1,9 +1,8 @@
 import { Container } from "./state/container.js"
-import { dispatchMessage, StoreMessage } from "./message.js"
+import { dispatchMessage, StoreMessage, WritableState } from "./message.js"
 import { error, Meta, ok, pending } from "./state/meta.js"
 import { WeakMapTokenRegistry } from "./registry/weakMapTokenRegistry.js"
-import { StateWriter } from "./state/publisher/stateWriter.js"
-import { Command, getPublisher, GetState, initializeCommand, initListener, runQuery, StateEffect, StateListenerType, StateReference, Subscriber, TokenRegistry } from "./tokenRegistry.js"
+import { Command, getStateHandler, GetState, initializeCommand, initListener, runQuery, StateEffect, StateListenerType, StateReference, StateWriter, Subscriber, TokenRegistry } from "./tokenRegistry.js"
 import { CommandManager, ManagedCommandController } from "./command/managedCommandController.js"
 
 export interface StoreOptions {
@@ -48,9 +47,9 @@ export function getTokenRegistry(store: Store): TokenRegistry {
 
 export interface InitializerActions {
   get: GetState
-  supply<T, M>(container: Container<T, M>, value: T): void
-  pending<T, M>(container: Container<T, M>, ...value: NoInfer<M> extends never ? [] : [NoInfer<M>]): void
-  error<T, M, E>(container: Container<T, M, E>, reason: E, ...message: NoInfer<M> extends never ? [] : [NoInfer<M>]): void
+  supply<T>(container: WritableState<T, unknown>, value: T): void
+  pending<T, M>(container: WritableState<T, M>, ...value: NoInfer<M> extends never ? [] : [NoInfer<M>]): void
+  error<T, M, E>(container: WritableState<T, M, E>, reason: E, ...message: NoInfer<M> extends never ? [] : [NoInfer<M>]): void
 }
 
 export class Store {
@@ -111,9 +110,9 @@ export function useHooks(store: Store, hooks: StoreHooks) {
   })
 }
 
-export function useContainerHooks<T, M, E>(store: Store, container: Container<T, M>, hooks: ContainerHooks<NoInfer<T>, NoInfer<M>, NoInfer<E>>) {
+export function useContainerHooks<T, M, E>(store: Store, container: Container<T, M, E>, hooks: ContainerHooks<NoInfer<T>, NoInfer<M>, NoInfer<E>>) {
   const registry = getTokenRegistry(store)
-  const writerWithHooks = stateWriterWithHooks(registry, container, registry.getState<StateWriter<any>>(container), hooks)
+  const writerWithHooks = stateWriterWithHooks(registry, container, registry.getState(container), hooks)
   registry.setState(container, writerWithHooks)
 }
 
@@ -137,21 +136,21 @@ function stateWriterWithHooks<T, M, E>(registry: TokenRegistry, container: Conta
 function initializerActions(registry: TokenRegistry): InitializerActions {
   return {
     get: (state) => runQuery(registry, get => get(state)),
-    supply: <T, M>(container: Container<T, M>, value: T) => {
-      registry.getState<StateWriter<T>>(container).publish(value)
+    supply: <T>(writable: WritableState<T, unknown>, value: T) => {
+      writable[getStateHandler](registry).publish(value)
     },
-    pending: <T, M, E>(container: Container<T, M>, ...message: NoInfer<M> extends never ? [] : [NoInfer<M>]) => {
+    pending: <T, M, E>(writable: WritableState<T, M>, ...message: NoInfer<M> extends never ? [] : [NoInfer<M>]) => {
       if (message.length === 0) {
-        registry.getState<StateWriter<Meta<undefined, E>>>(container.meta).publish(pending(undefined))
+        writable.meta[getStateHandler](registry).publish(pending(undefined) as Meta<never, E>)
       } else {
-        registry.getState<StateWriter<Meta<M, E>>>(container.meta).publish(pending(message[0]))
+        writable.meta[getStateHandler](registry).publish(pending(message[0]))
       }
     },
-    error: <T, M, E>(container: Container<T, M, E>, reason: E, ...message: NoInfer<M> extends never ? [] : [NoInfer<M>]) => {
+    error: <T, M, E>(writable: WritableState<T, M, E>, reason: E, ...message: NoInfer<M> extends never ? [] : [NoInfer<M>]) => {
       if (message.length === 0) {
-        registry.getState<StateWriter<Meta<undefined, E>>>(container.meta).publish(error(reason, undefined))
+        writable.meta[getStateHandler](registry).publish(error(reason, undefined) as Meta<never, E>)
       } else {
-        registry.getState<StateWriter<Meta<M, E>>>(container.meta).publish(error(reason, message[0]))
+        writable.meta[getStateHandler](registry).publish(error(reason, message[0]))
       }
     }
   }
@@ -162,13 +161,13 @@ function containerWriteActions<T, M, E>(registry: TokenRegistry, container: Cont
     get: (state) => runQuery(registry, get => get(state)),
     ok: (message) => {
       writer.write(message)
-      registry.getState<StateWriter<any>>(container.meta).write(ok())
+      registry.getState(container.meta).publish(ok())
     },
     pending: (message) => {
-      registry.getState<StateWriter<any>>(container.meta).write(pending(message))
+      registry.getState(container.meta).publish(pending(message))
     },
     error: (reason, message) => {
-      registry.getState<StateWriter<any>>(container.meta).write(error(reason, message))
+      registry.getState(container.meta).publish(error(reason, message))
     },
     current: writer.getValue()
   }
@@ -207,7 +206,7 @@ export class EffectListener implements StateEffect, ReactiveEffectHandle {
 
   unsubscribe() {
     for (const token of this.dependencies) {
-      token[getPublisher](this.registry).removeListener(this.subscriber)
+      token[getStateHandler](this.registry).removeSubscriber(this.subscriber)
     }
     this.dependencies.clear()
   }

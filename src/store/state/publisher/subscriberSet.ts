@@ -1,18 +1,18 @@
-import { runListener, StateListenerType, StateListenerVersion, StatePublisher, Subscriber } from "../../tokenRegistry.js"
+import { Subscribable, runListener, StateListenerType, StateListenerVersion, Subscriber } from "../../tokenRegistry.js"
 
-interface ListenerNode {
+interface SubscriberNode {
   subscriber: Subscriber
   version: StateListenerVersion
-  next: ListenerNode | undefined
+  next: SubscriberNode | undefined
 }
 
-export abstract class LinkedListStatePublisher<T> implements StatePublisher<T> {
-  private head: ListenerNode | undefined
-  private tail: ListenerNode | undefined
+export class SubscriberSet implements Subscribable {
+  private head: SubscriberNode | undefined
+  private tail: SubscriberNode | undefined
 
-  abstract getValue(): T
+  constructor() { }
 
-  addListener(subscriber: Subscriber): void {
+  addSubscriber(subscriber: Subscriber): void {
     if (this.head === undefined) {
       this.head = {
         subscriber: subscriber,
@@ -40,7 +40,7 @@ export abstract class LinkedListStatePublisher<T> implements StatePublisher<T> {
     }
   }
 
-  removeListener(subscriber: Subscriber) {
+  removeSubscriber(subscriber: Subscriber) {
     let node = this.head
     let previous = undefined
     while (node !== undefined) {
@@ -52,7 +52,7 @@ export abstract class LinkedListStatePublisher<T> implements StatePublisher<T> {
     }
   }
 
-  private removeFromList(previous: ListenerNode | undefined, node: ListenerNode) {
+  private removeFromList(previous: SubscriberNode | undefined, node: SubscriberNode) {
     if (previous === undefined) {
       this.head = node.next
       if (this.tail === node) {
@@ -67,7 +67,7 @@ export abstract class LinkedListStatePublisher<T> implements StatePublisher<T> {
   }
 
   notifyListeners(userEffects: Array<Subscriber>): void {
-    let previous: ListenerNode | undefined = undefined
+    let previous: SubscriberNode | undefined = undefined
     let node = this.head
     while (node !== undefined) {
       if (node.subscriber.version !== node.version) {
@@ -123,5 +123,4 @@ export abstract class LinkedListStatePublisher<T> implements StatePublisher<T> {
       }
     }
   }
-
 }

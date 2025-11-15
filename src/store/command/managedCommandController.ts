@@ -1,13 +1,12 @@
-import { StateWriter } from "../state/publisher/stateWriter.js"
-import { error, pending } from "../state/meta.js"
-import { CommandController, State, TokenRegistry } from "../tokenRegistry.js"
-import { Container } from "../state/container.js"
+import { error, Meta, pending } from "../state/meta.js"
+import { CommandController, getStateHandler, State, TokenRegistry } from "../tokenRegistry.js"
+import { WritableState } from "../message.js"
 
 export interface CommandActions {
   get<T>(state: State<T>): T
-  supply<T, M, E>(state: Container<T, M, E>, value: NoInfer<T>): void
-  pending<T, M, E>(state: Container<T, M, E>, ...message: NoInfer<M> extends never ? [] : [NoInfer<M>]): void
-  error<T, M, E>(state: Container<T, M, E>, reason: NoInfer<E>, ...message: NoInfer<M> extends never ? [] : [NoInfer<M>]): void
+  supply<T>(state: WritableState<T, unknown>, value: NoInfer<T>): void
+  pending<T, M, E>(state: WritableState<T, M, E>, ...message: NoInfer<M> extends never ? [] : [NoInfer<M>]): void
+  error<T, M, E>(state: WritableState<T, M, E>, reason: NoInfer<E>, ...message: NoInfer<M> extends never ? [] : [NoInfer<M>]): void
 }
 
 export interface CommandManager<M> {
@@ -23,20 +22,20 @@ export class ManagedCommandController<T> implements CommandController<T> {
         return this.registry.getState(state).getValue()
       },
       supply: (token, value) => {
-        this.registry.getState<StateWriter<any>>(token).publish(value)
+        token[getStateHandler](this.registry).publish(value)
       },
-      pending: (token, ...message) => {
+      pending: <T, M, E>(token: WritableState<T, M, E>, ...message: NoInfer<M> extends never ? [] : [NoInfer<M>]) => {
         if (message.length === 0) {
-          this.registry.getState<StateWriter<any>>(token.meta).write(pending(undefined))
+          token.meta[getStateHandler](this.registry).publish(pending(undefined) as Meta<never, E>)
         } else {
-          this.registry.getState<StateWriter<any>>(token.meta).write(pending(message[0]))
+          token.meta[getStateHandler](this.registry).publish(pending(message[0]))
         }
       },
-      error: (token, reason, ...message) => {
+      error: <T, M, E>(token: WritableState<T, M, E>, reason: NoInfer<E>, ...message: NoInfer<M> extends never ? [] : [NoInfer<M>]) => {
         if (message.length === 0) {
-          this.registry.getState<StateWriter<any>>(token.meta).write(error(reason, undefined))
+          token.meta[getStateHandler](this.registry).publish(error(reason, undefined) as Meta<never, E>)
         } else {
-          this.registry.getState<StateWriter<any>>(token.meta).write(error(reason, message[0]))
+          token.meta[getStateHandler](this.registry).publish(error(reason, message[0]))
         }
       }
     })

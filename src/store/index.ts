@@ -23,12 +23,11 @@ export {
 export {
   type ContainerInitializer,
   type Container,
-  container,
-  reset
+  container
 } from "./state/container.js"
 export {
   type UpdateResult,
-} from "./state/publisher/messageDispatchingStateWriter.js"
+} from "./state/publisher/messageWriter.js"
 export {
   command,
   type CommandInitializer,
@@ -57,7 +56,8 @@ export {
   run,
   batch,
   write,
-  update
+  update,
+  reset
 } from "./message.js"
 export {
  type PendingMessage,

@@ -1,6 +1,6 @@
 import { didCreateToken } from "./stateRecorder.js";
 import { GetState, State, StateReader, TokenRegistry, createStateHandler, getStateHandler, initListener } from "../tokenRegistry.js";
-import { DerivedStateReader } from "./publisher/derivedReader.js";
+import { DerivedStateReader } from "./handler/derivedReader.js";
 
 export interface DerivedStateInitializer<T> {
   query: (get: GetState) => T

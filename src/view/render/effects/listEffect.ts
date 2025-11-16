@@ -4,8 +4,8 @@ import { activate, DOMTemplate, render, TemplateType } from "../domTemplate.js"
 import { generateStateManager, State, StateEffect, StateListenerType, StatePublisher, StateReader, StateWriter, StateHandler, Token, TokenRegistry } from "../../../store/tokenRegistry.js"
 import { ListItemTemplateContext } from "../templateContext.js"
 import { OverlayTokenRegistry } from "../../../store/registry/overlayTokenRegistry.js"
-import { OverlayPublisher } from "../../../store/state/publisher/overlayPublisher.js"
-import { SubscriberSetPublisher } from "../../../store/state/publisher/subscriberSetPublisher.js"
+import { OverlayStateHandler } from "../../../store/state/handler/overlayStateHandler.js"
+import { Publisher } from "../../../store/state/handler/publisher.js"
 
 class VirtualItem extends OverlayTokenRegistry {
   node!: Node
@@ -19,7 +19,7 @@ class VirtualItem extends OverlayTokenRegistry {
   private registry: Map<Token, StateReader<any>> = new Map()
 
   static newInstance(data: any, index: number, registry: TokenRegistry, context: ListItemTemplateContext<any>): VirtualItem {
-    const item = new VirtualItem(data, index, registry, context.itemToken, new SubscriberSetPublisher(data), context.viewTokens)
+    const item = new VirtualItem(data, index, registry, context.itemToken, new Publisher(data), context.viewTokens)
 
     if (context.usesIndex) {
       item.setIndexState(context.indexToken, index)
@@ -68,7 +68,7 @@ class VirtualItem extends OverlayTokenRegistry {
 
   setIndexState(token: State<number>, value: number) {
     this.indexToken = token
-    this.indexPublisher = new SubscriberSetPublisher(value)
+    this.indexPublisher = new Publisher(value)
   }
 
   getState<S extends State<unknown>>(token: S): StateHandler<S> {
@@ -95,7 +95,7 @@ class VirtualItem extends OverlayTokenRegistry {
     }
 
     const actualPublisher = this.parentRegistry.getState(token) as StateWriter<any, any>
-    const overlayPublisher = new OverlayPublisher(this.parentRegistry, actualPublisher)
+    const overlayPublisher = new OverlayStateHandler(this.parentRegistry, actualPublisher)
     overlayPublisher.init()
 
     return overlayPublisher as StateHandler<S>
@@ -103,7 +103,7 @@ class VirtualItem extends OverlayTokenRegistry {
 
   unsubscribeFromExternalState() {
     this.registry.forEach(publisher => {
-      if (publisher instanceof OverlayPublisher) {
+      if (publisher instanceof OverlayStateHandler) {
         publisher.detach()
       }
     })

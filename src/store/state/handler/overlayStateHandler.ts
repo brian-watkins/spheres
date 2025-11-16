@@ -1,7 +1,7 @@
 import { createSubscriber, StateDerivation, StateListenerType, StateWriter, Subscriber, TokenRegistry } from "../../tokenRegistry.js"
 import { SubscriberSet } from "./subscriberSet.js"
 
-export class OverlayPublisher extends SubscriberSet implements StateWriter<any, any>, StateDerivation {
+export class OverlayStateHandler extends SubscriberSet implements StateWriter<any, any>, StateDerivation {
   readonly type = StateListenerType.Derivation
   private subscriber: Subscriber
 

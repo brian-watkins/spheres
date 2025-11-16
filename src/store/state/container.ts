@@ -2,8 +2,8 @@ import { MetaState, WithMetaState } from "./meta.js"
 import { didCreateToken } from "./stateRecorder.js"
 import { createStateHandler, getStateHandler, State, StatePublisher, StateWriter, TokenRegistry, WritableState } from "../tokenRegistry.js"
 import { initialValue, ResettableState } from "../message.js"
-import { MessageWriter, UpdateResult } from "./publisher/messageWriter.js"
-import { Writer } from "./publisher/writer.js"
+import { MessageWriter, UpdateResult } from "./handler/messageWriter.js"
+import { Writer } from "./handler/writer.js"
 
 export interface ContainerInitializer<T, M> {
   initialValue: T,

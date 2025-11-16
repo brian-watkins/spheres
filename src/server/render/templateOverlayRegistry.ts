@@ -1,5 +1,5 @@
 import { OverlayTokenRegistry } from "../../store/registry/overlayTokenRegistry.js"
-import { Writer } from "../../store/state/publisher/writer.js"
+import { Writer } from "../../store/state/handler/writer.js"
 import { generateStateManager, State, StatePublisher, StateReader, StateHandler, Token, TokenRegistry } from "../../store/tokenRegistry.js"
 import { ListItemTemplateContext } from "../../view/render/templateContext.js"
 

@@ -29,7 +29,7 @@ export {
 } from "./state/container.js"
 export {
   type UpdateResult,
-} from "./state/publisher/messageWriter.js"
+} from "./state/handler/messageWriter.js"
 export {
   command,
   type CommandInitializer,

@@ -1,6 +1,6 @@
 import { createStateHandler, getStateHandler, PublishableState, State, StatePublisher, TokenRegistry } from "../tokenRegistry.js"
 import { MetaState, WithMetaState } from "./meta.js"
-import { SubscriberSetPublisher } from "./publisher/subscriberSetPublisher.js"
+import { Publisher } from "./handler/publisher.js"
 
 export interface SuppliedStateInitializer<T> {
   name?: string
@@ -19,7 +19,7 @@ export class SuppliedState<T, E = any> extends State<T> implements PublishableSt
   }
 
   [createStateHandler](): StatePublisher<T> {
-    return new SubscriberSetPublisher(this.initialValue)
+    return new Publisher(this.initialValue)
   }
 
   [getStateHandler](registry: TokenRegistry): StatePublisher<T> {

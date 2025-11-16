@@ -3,7 +3,7 @@ import { activate, DOMTemplate, render } from "../domTemplate.js";
 import { State, StateEffect, StateListenerType, StateReader, StateWriter, StateHandler, Token, TokenRegistry } from "../../../store/tokenRegistry.js";
 import { SelectorCollection, TemplateSelector } from "../selectorBuilder.js";
 import { OverlayTokenRegistry } from "../../../store/registry/overlayTokenRegistry.js";
-import { OverlayPublisher } from "../../../store/state/publisher/overlayPublisher.js";
+import { OverlayStateHandler } from "../../../store/state/handler/overlayStateHandler.js";
 
 export class SelectViewEffect implements StateEffect {
   readonly type = StateListenerType.SystemEffect
@@ -91,7 +91,7 @@ class ConditionalViewOverlayRegistry extends OverlayTokenRegistry {
 
   private createPublisher<S extends State<unknown>>(token: S): StateHandler<S> {
     const actualPublisher = this.parentRegistry.getState(token) as StateWriter<any, any>
-    const overlayPublisher = new OverlayPublisher(this.parentRegistry, actualPublisher)
+    const overlayPublisher = new OverlayStateHandler(this.parentRegistry, actualPublisher)
     overlayPublisher.init()
 
     return overlayPublisher as StateHandler<S>
@@ -99,7 +99,7 @@ class ConditionalViewOverlayRegistry extends OverlayTokenRegistry {
 
   reset() {
     this.registry.forEach(publisher => {
-      if (publisher instanceof OverlayPublisher) {
+      if (publisher instanceof OverlayStateHandler) {
         publisher.detach()
       }
     })

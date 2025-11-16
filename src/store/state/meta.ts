@@ -1,5 +1,5 @@
 import { createStateHandler, GetState, State, StateListenerType, StatePublisher, createSubscriber, TokenRegistry, StateEffect, getStateHandler, StateReference, PublishableState } from "../tokenRegistry.js"
-import { SubscriberSetPublisher } from "./publisher/subscriberSetPublisher.js"
+import { Publisher } from "./handler/publisher.js"
 
 export interface PendingMessage<M> {
   type: "pending"
@@ -55,7 +55,7 @@ export class MetaState<T, M, E = unknown> extends State<Meta<M, E>> implements P
   [createStateHandler](registry: TokenRegistry, serializedState?: Meta<M, E>): StatePublisher<Meta<M, E>> {
     const publisher = registry.getState(this.token)
 
-    const writer = new SubscriberSetPublisher<Meta<M, E>>(serializedState ?? ok())
+    const writer = new Publisher<Meta<M, E>>(serializedState ?? ok())
 
     publisher.addSubscriber(createSubscriber(registry, new MetaStateListener(this.token, writer)))
 

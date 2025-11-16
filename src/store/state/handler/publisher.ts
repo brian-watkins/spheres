@@ -1,7 +1,7 @@
 import { StatePublisher, Subscriber } from "../../tokenRegistry.js"
 import { SubscriberSet } from "./subscriberSet.js"
 
-export class SubscriberSetPublisher<T> extends SubscriberSet implements StatePublisher<T> {
+export class Publisher<T> extends SubscriberSet implements StatePublisher<T> {
   constructor(private value: T) {
     super()
   }

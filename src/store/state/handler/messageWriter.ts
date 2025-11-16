@@ -1,13 +1,13 @@
 import { dispatchMessage, StoreMessage } from "../../message.js"
 import { StateWriter, TokenRegistry } from "../../tokenRegistry.js"
-import { SubscriberSetPublisher } from "./subscriberSetPublisher.js"
+import { Publisher } from "./publisher.js"
 
 export interface UpdateResult<T> {
   value: T
   message?: StoreMessage
 }
 
-export class MessageWriter<T, M> extends SubscriberSetPublisher<T> implements StateWriter<T, M> {
+export class MessageWriter<T, M> extends Publisher<T> implements StateWriter<T, M> {
   constructor(private registry: TokenRegistry, initialValue: T, private update: ((message: M, current: T) => UpdateResult<T>)) {
     super(initialValue)
   }

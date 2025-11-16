@@ -40,10 +40,10 @@ export class Container<T, M = T, E = any> extends State<T> implements Resettable
     return registry.getState(this)
   }
 
-  [createStateHandler](registry: TokenRegistry, serializedState?: T): StatePublisher<T> {
+  [createStateHandler](registry: TokenRegistry): StatePublisher<T> {
     return this.update ?
-      new MessageWriter(registry, serializedState ?? this.initialValue, this.update) :
-      new Writer(serializedState ?? this.initialValue)
+      new MessageWriter(registry, this.initialValue, this.update) :
+      new Writer(this.initialValue)
   }
 
   get meta(): MetaState<T, M, E> {

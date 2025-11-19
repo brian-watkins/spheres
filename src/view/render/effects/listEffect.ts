@@ -202,6 +202,11 @@ export class ListEffect implements StateEffect {
       return this.first!
     }
 
+    if (Object.hasOwn(firstData, "id") && firstData.id === this.first.key.id) {
+      this.updateItemData(this.first, firstData)
+      return this.first
+    }
+
     this.firstUpdate = this.first
     this.firstUpdate.nextData = firstData
     this.lastUpdate = this.firstUpdate
@@ -224,7 +229,11 @@ export class ListEffect implements StateEffect {
       last.next = undefined
     }
 
-    this.updateChangedItems()
+    if (this.itemCache.size === data.length) {
+      this.replaceAll(data)
+    } else {
+      this.updateChangedItems()
+    }
   }
 
   private updateItem(index: number, last: VirtualItem, data: any): VirtualItem {
@@ -251,6 +260,11 @@ export class ListEffect implements StateEffect {
       return current.next!
     }
 
+    if (Object.hasOwn(data, "id") && data.id === current.key.id) {
+      this.updateItemData(current, data)
+      return current
+    }
+
     if (this.lastUpdate === undefined) {
       this.firstUpdate = current
       this.firstUpdate.nextData = data
@@ -263,6 +277,22 @@ export class ListEffect implements StateEffect {
     this.itemCache.set(current.key, current)
 
     return current
+  }
+
+  private replaceAll(data: Array<any>) {
+    this.removeAllAfter(this.first!)
+
+    this.first = this.createItem(0, data[0])
+    this.appendNode(this.first)
+
+    let last: VirtualItem | undefined = this.first
+    for (let i = 1; i < data.length; i++) {
+      const next = this.createItem(i, data[i])
+      this.appendNode(next)
+      last.next = next
+      next.prev = last
+      last = next
+    }
   }
 
   private updateChangedItems() {
@@ -306,15 +336,11 @@ export class ListEffect implements StateEffect {
           this.replaceListItem(item, next)
           item.isDetached = false
         } else {
-          if (data.id !== undefined && data.id === item.key.id) {
-            this.updateItemData(item, data)
-          } else {
-            const next = this.createItem(item.index, data)
-            this.replaceNode(item, next)
-            this.replaceListItem(item, next)
-            if (next.prev === undefined) {
-              this.first = next
-            }
+          const next = this.createItem(item.index, data)
+          this.replaceNode(item, next)
+          this.replaceListItem(item, next)
+          if (next.prev === undefined) {
+            this.first = next
           }
         }
       }

@@ -1,7 +1,7 @@
-import { State, use, write } from "spheres/store";
+import { use, write } from "spheres/store";
 import { DataRecord, createRecord, deleteSelected, filterPrefix, filteredRecords, records, selectedRecord, updateSelected } from "./state.js";
 import { names, useValue } from "../helpers/helpers.js";
-import { HTMLBuilder, HTMLView } from "../../../src/view/index.js";
+import { HTMLBuilder, HTMLView, UseData } from "../../../src/view/index.js";
 
 export function crud(root: HTMLBuilder) {
   root.main(({ config, children }) => {
@@ -139,14 +139,14 @@ function recordsView(root: HTMLBuilder) {
   })
 }
 
-function optionView(record: State<DataRecord>): HTMLView {
+function optionView(useData: UseData<DataRecord>): HTMLView {
   return root => {
     root
       .option(({ config, children }) => {
         config
-          .value(get => `${get(record).id}`)
+          .value(useData((get, record) => `${get(record).id}`))
         children
-          .textNode(get => `${get(record).lastName}, ${get(record).firstName}`)
+          .textNode(useData((get, record) => `${get(record).lastName}, ${get(record).firstName}`))
       })
   }
 }

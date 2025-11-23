@@ -1,5 +1,5 @@
 import { DOMEventType, EventsToDelegate, StoreEventHandler, EventZone } from "./index.js";
-import { Stateful, GetState, State } from "../../store/index.js";
+import { Stateful, GetState } from "../../store/index.js";
 import { dispatchMessage } from "../../store/message.js";
 import { getStateFunctionWithListener, initListener, createSubscriber, TokenRegistry } from "../../store/tokenRegistry.js";
 import { UpdateAttributeEffect } from "./effects/attributeEffect.js";
@@ -10,7 +10,7 @@ import { getEventAttribute } from "./eventHelpers.js";
 import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementId, listEndIndicator } from "./fragmentHelpers.js";
 import { createDOMTemplate, DomTemplateRenderer } from "./templateRenderer.js";
 import { AbstractViewConfig } from "./viewConfig.js";
-import { AbstractViewRenderer, ElementDefinition, isStateful, ViewDefinition, ViewSelector } from "./viewRenderer.js";
+import { AbstractViewRenderer, ElementDefinition, isStateful, UseData, ViewDefinition, ViewSelector } from "./viewRenderer.js";
 import { IdSequence } from "./idSequence.js";
 import { EffectLocation } from "./effectLocation.js";
 import { ListItemTemplateContext } from "./templateContext.js";
@@ -56,7 +56,7 @@ export class ActivateDomRenderer extends AbstractViewRenderer {
     return this
   }
 
-  subviews<T>(query: (get: GetState) => T[], viewGenerator: (item: State<T>, index?: State<number>) => ViewDefinition): this {
+  subviews<T>(query: (get: GetState) => T[], viewGenerator: (useData: UseData<T>) => ViewDefinition): this {
     const elementId = getListElementId(this.currentNode!)
     let end = findListEndNode(this.currentNode!, elementId)
 

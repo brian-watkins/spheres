@@ -2,8 +2,8 @@ import { Action, Observation, Presupposition, effect, fact, step } from "best-be
 import { RenderApp } from "./renderContext"
 import { selectElements } from "./displayElement"
 import { expect, is } from "great-expectations"
-import { container, Container, State } from "@store/index.js"
-import { HTMLView } from "@view/index"
+import { container, Container } from "@store/index.js"
+import { HTMLView, UseData } from "@view/index"
 
 export interface ListExamplesState {
   listContainer: Container<Array<string>>
@@ -45,20 +45,20 @@ export function ssrAndActivateBasedOnState(data: Array<string>): Array<Presuppos
   ]
 }
 
-export function itemView(item: State<string>, index: State<number>): HTMLView {
+export function itemView(stateful: UseData<string>): HTMLView {
   return (root) => {
     root.p(el => {
       el.config.dataAttribute("child")
-      el.children.textNode(get => `${get(item)} (${get(index)})`)
+      el.children.textNode(stateful((get, item, index) => `${get(item)} (${get(index)})`))
     })
   }
 }
 
-export function otherItemView(item: State<string>, index: State<number>): HTMLView {
+export function otherItemView(stateful: UseData<string>): HTMLView {
   return root => {
     root.h1(el => {
       el.config.dataAttribute("child")
-      el.children.textNode(get => `Other ${get(item)} (${get(index)})`)
+      el.children.textNode(stateful((get, item, index) => `Other ${get(item)} (${get(index)})`))
     })
   }
 }

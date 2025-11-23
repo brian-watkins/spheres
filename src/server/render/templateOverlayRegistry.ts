@@ -1,34 +1,30 @@
 import { OverlayTokenRegistry } from "../../store/registry/overlayTokenRegistry.js"
-import { Writer } from "../../store/state/handler/writer.js"
-import { generateStateManager, State, StatePublisher, StateReader, StateHandler, Token, TokenRegistry } from "../../store/tokenRegistry.js"
+import { Constant } from "../../store/state/constant.js"
+import { Value } from "../../store/state/value.js"
+import { generateStateManager, State, StatePublisher, StateReader, StateHandler, Token, TokenRegistry, StateReference } from "../../store/tokenRegistry.js"
 import { ListItemTemplateContext } from "../../view/render/templateContext.js"
 
 export function createOverlayRegistry(context: ListItemTemplateContext<any>, rootRegistry: TokenRegistry, itemData: any, index: number): ListItemOverlayTokenRegistry {
-  const registry = new ListItemOverlayTokenRegistry(rootRegistry, context.itemToken, new Writer(itemData), context.viewTokens)
-  if (context.usesIndex) {
-    registry.setIndexState(context.indexToken, index)
-  }
-
-  return registry
+  return new ListItemOverlayTokenRegistry(
+    rootRegistry,
+    context.itemToken, new Constant(new Value(itemData)),
+    context.indexToken, new Constant(new Value(index)),
+    context.viewTokens
+  )
 }
 
 export class ListItemOverlayTokenRegistry extends OverlayTokenRegistry {
-  private index: State<number> | undefined
-  private indexPublisher: StatePublisher<number> | undefined
   private registry: Map<Token, StateReader<unknown>> = new Map()
 
   constructor(
     rootRegistry: TokenRegistry,
     private item: State<unknown>,
-    private itemPublisher: StatePublisher<unknown>,
+    private itemPublisher: StateReader<StatePublisher<unknown>>,
+    private indexToken: State<StateReference<number>>,
+    private indexPublisher: StateReader<StatePublisher<number>>,
     private viewTokens: Set<Token>
   ) {
     super(rootRegistry)
-  }
-
-  setIndexState(token: State<number>, value: number) {
-    this.index = token
-    this.indexPublisher = new Writer(value)
   }
 
   getState<S extends State<unknown>>(token: S): StateHandler<S> {
@@ -36,8 +32,8 @@ export class ListItemOverlayTokenRegistry extends OverlayTokenRegistry {
       return this.itemPublisher as StateHandler<S>
     }
 
-    if (token === this.index) {
-      return this.indexPublisher! as StateHandler<S>
+    if (token === this.indexToken) {
+      return this.indexPublisher as StateHandler<S>
     }
 
     if (this.viewTokens.has(token)) {

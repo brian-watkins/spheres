@@ -1,7 +1,6 @@
 import { MethodSignatureStructure, OptionalKind, ParameterDeclarationStructure, Project, VariableDeclarationKind } from "ts-morph"
 import { htmlElementAttributes } from "html-element-attributes"
 import htmlTags, { voidHtmlTags } from "html-tags"
-import { ariaAttributes } from "aria-attributes"
 import { booleanAttributes } from "./booleanAttributes"
 import { toCamel } from "./helpers"
 
@@ -15,7 +14,8 @@ const htmlElementsFile = project.createSourceFile("./src/view/htmlElements.ts", 
 htmlElementsFile.addImportDeclarations([
   {
     namedImports: [
-      "ConfigurableElement"
+      "ConfigurableElement",
+      "UseData"
     ],
     moduleSpecifier: "./render/viewRenderer.js"
   },
@@ -131,7 +131,7 @@ specialHtmlElementsInterface.addMethod({
 specialHtmlElementsInterface.addMethod({
   name: "textNode",
   parameters: [
-    { name: "value", type: "string | Stateful<string>" }
+    { name: "value", type: "string | Stateful<string | undefined>" }
   ],
   returnType: "this"
 })
@@ -159,7 +159,7 @@ specialHtmlElementsInterface.addMethod({
   ],
   parameters: [
     { name: "data", type: "(get: GetState) => Array<T>" },
-    { name: "viewGenerator", type: "(item: State<T>, index: State<number>) => HTMLView" }
+    { name: "viewGenerator", type: "(useData: UseData<T>) => HTMLView" }
   ],
   returnType: "this"
 })
@@ -267,11 +267,11 @@ function buildAttributeProperty(returnType: string): (attribute: string) => Opti
     let parameters: Array<OptionalKind<ParameterDeclarationStructure>> = []
     if (booleanAttributes.includes(attribute)) {
       parameters = [
-        { name: "value", type: "boolean | Stateful<boolean>" }
+        { name: "value", type: "boolean | Stateful<boolean | undefined>" }
       ]
     } else {
       parameters = [
-        { name: "value", type: "string | Stateful<string>" }
+        { name: "value", type: "string | Stateful<string | undefined>" }
       ]
     }
 

@@ -2,8 +2,8 @@ import { behavior, effect, example, fact, step } from "best-behavior"
 import { equalTo, expect, is, resolvesTo } from "great-expectations"
 import { selectElement, selectElementWithText, selectElements } from "./helpers/displayElement.js"
 import { renderContext } from "./helpers/renderContext.js"
-import { container, State } from "@store/index.js"
-import { HTMLView } from "@view/index"
+import { container } from "@store/index.js"
+import { HTMLView, UseData } from "@view/index"
 
 export default behavior("mount", [
 
@@ -172,8 +172,8 @@ export default behavior("mount", [
       suppose: [
         fact("zones are mounted", (context) => {
           const data = container({ initialValue: ["apple", "pizza", "hotdog"] })
-          const dataView = (name: State<string>): HTMLView => root => {
-            root.div(el => el.children.textNode(get => get(name)))
+          const dataView = (stateful: UseData<string>): HTMLView => root => {
+            root.div(el => el.children.textNode(stateful((get, name) => get(name))))
           }
           context.mountView(root => {
             root.subviews(get => get(data), dataView)

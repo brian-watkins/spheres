@@ -218,10 +218,12 @@ export default behavior("reorder list", [
         fact("there is a list of lists", (context) => {
           context.mountView(root => {
             root.main(el => {
-              el.children.subviews(get => get(context.state.items), (item, index) => root => {
-                root.subviews(() => ["a", "b"], (subItem, subIndex) => root => {
+              el.children.subviews(get => get(context.state.items), (stateful) => root => {
+                root.subviews(() => ["a", "b"], (subStateful) => root => {
                   root.div(el => {
-                    el.children.textNode(get => `${get(item)} at ${get(index)} => ${get(subItem)} at ${get(subIndex)}`)
+                    el.children.textNode(subStateful((get, subItem, subIndex) => {
+                      return stateful((_, item, index) => `${get(item)} at ${get(index)} => ${get(subItem)} at ${get(subIndex)}`)(get)
+                    }))
                   })
                 })
               })

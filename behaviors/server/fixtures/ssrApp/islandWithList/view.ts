@@ -1,5 +1,5 @@
-import { batch, State, StoreMessage, update, use } from "@store/index.js";
-import { HTMLBuilder, HTMLView } from "@view/index.js";
+import { batch, StoreMessage, update, use } from "@store/index.js";
+import { HTMLBuilder, HTMLView, UseData } from "@view/index.js";
 import { Item, items, suppliedTitle } from "./state";
 
 export function view(root: HTMLBuilder) {
@@ -75,7 +75,7 @@ function textField(name: string, label: string): HTMLView {
   }
 }
 
-function itemView(item: State<Item>): HTMLView {
+function itemView(useItem: UseData<Item>): HTMLView {
   return root => {
     root.li(el => {
       el.config
@@ -87,14 +87,14 @@ function itemView(item: State<Item>): HTMLView {
           el.children
             .div(el => {
               el.config.dataAttribute("item-name")
-              el.children.textNode(get => `${get(item).name}, ${get(item).color}`)
+              el.children.textNode(useItem((get, item) => `${get(item).name}, ${get(item).color}`))
             })
             .button(el => {
               el.config
-                .dataAttribute("delete-item", get => get(item).name)
-                .on("click", () => use(get => {
+                .dataAttribute("delete-item", useItem((get, item) => get(item).name))
+                .on("click", () => use(useItem((get, item) => {
                   return update(items, (current) => current.filter(i => i.name !== get(item).name))
-                }))
+                })))
               el.children.textNode("Delete Item")
             })
         })

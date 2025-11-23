@@ -1,5 +1,5 @@
-import { batch, container, State, use, write } from "@store/index.js";
-import { HTMLBuilder, HTMLView } from "@view/index.js";
+import { batch, container, use, write } from "@store/index.js";
+import { HTMLBuilder, HTMLView, UseData } from "@view/index.js";
 import { addItem, Item, items } from "./state";
 
 const inputField = container({ initialValue: "provided by server" })
@@ -35,10 +35,10 @@ export function view(root: HTMLBuilder) {
   })
 }
 
-function itemView(item: State<Item>): HTMLView {
+function itemView(useItem: UseData<Item>): HTMLView {
   return (root) => {
     root.li(el => {
-      el.children.textNode(get => get(item).name)
+      el.children.textNode(useItem((get, item) => get(item).name))
     })
   }
 }

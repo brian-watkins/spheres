@@ -2,8 +2,8 @@ import { behavior, effect, Example, example, fact, step } from "best-behavior";
 import { equalTo, expect, is, resolvesTo } from "great-expectations";
 import { selectElement } from "./helpers/displayElement.js";
 import { RenderApp, renderContext } from "./helpers/renderContext.js";
-import { Container, container, State, update, use, write } from "@store/index.js";
-import { HTMLBuilder, HTMLView } from "@view/index.js";
+import { Container, container, update, use, write } from "@store/index.js";
+import { HTMLBuilder, HTMLView, UseData } from "@view/index.js";
 
 export default behavior("event handlers", [
 
@@ -508,16 +508,16 @@ export default behavior("event handlers", [
                     .dataAttribute("outer")
                     .on("click", () => update(context.state.outer, (val) => val += 10))
                   el.children
-                    .subviews(() => ["a", "b", "c"], (label: State<string>): HTMLView => {
+                    .subviews(() => ["a", "b", "c"], (stateful: UseData<string>): HTMLView => {
                       return root => {
                         root.div(el => {
                           el.config
-                            .dataAttribute("element", get => `inner-${get(label)}`)
+                            .dataAttribute("element", stateful((get, label) => `inner-${get(label)}`))
                             .style("background-color: blue; width:100px; height: 100px;")
                             .on("click", () => {
                               return update(context.state.inner, (val) => val += 1)
                             })
-                          el.children.textNode(get => `click me: ${get(label)}`)
+                          el.children.textNode(stateful((get, label) => `click me: ${get(label)}`))
                         })
                       }
                     })
@@ -564,17 +564,17 @@ export default behavior("event handlers", [
                     .dataAttribute("outer")
                     .on("click", () => update(context.state.outer, (val) => val += 10))
                   el.children
-                    .subviews(() => ["a", "b", "c"], (label: State<string>): HTMLView => {
+                    .subviews(() => ["a", "b", "c"], (stateful: UseData<string>): HTMLView => {
                       return root => {
                         root.div(el => {
                           el.config
-                            .dataAttribute("element", get => `inner-${get(label)}`)
+                            .dataAttribute("element", stateful((get, label) => `inner-${get(label)}`))
                             .style("background-color: blue; width:100px; height: 100px;")
                             .on("click", (evt) => {
                               evt.stopPropagation()
                               return update(context.state.inner, (val) => val += 1)
                             })
-                          el.children.textNode(get => `click me: ${get(label)}`)
+                          el.children.textNode(stateful((get, label) => `click me: ${get(label)}`))
                         })
                       }
                     })
@@ -621,17 +621,17 @@ export default behavior("event handlers", [
                     .dataAttribute("outer")
                     .on("click", () => update(context.state.outer, (val) => val += 10))
                   el.children
-                    .subviews(() => ["a", "b", "c"], (label: State<string>): HTMLView => {
+                    .subviews(() => ["a", "b", "c"], (stateful: UseData<string>): HTMLView => {
                       return root => {
                         root.div(el => {
                           el.config
-                            .dataAttribute("element", get => `inner-${get(label)}`)
+                            .dataAttribute("element", stateful((get, label) => `inner-${get(label)}`))
                             .style("background-color: blue; width:100px; height: 100px;")
                             .on("click", (evt) => {
                               evt.stopImmediatePropagation()
                               return update(context.state.inner, (val) => val += 1)
                             })
-                          el.children.textNode(get => `click me: ${get(label)}`)
+                          el.children.textNode(stateful((get, label) => `click me: ${get(label)}`))
                         })
                       }
                     })
@@ -665,21 +665,21 @@ export default behavior("event handlers", [
           })
         }),
         fact("these is a list of templates and each template has an event that depends on state", (context) => {
-          function viewZone(name: State<string>): HTMLView {
+          function viewZone(stateful: UseData<string>): HTMLView {
             return root =>
               root.li(el => {
                 el.children
                   .button(el => {
                     el.config
-                      .dataAttribute("button-name", get => get(name))
-                      .on("click", () => use(get => {
+                      .dataAttribute("button-name", stateful((get, name) => get(name)))
+                      .on("click", () => use(stateful((get, name) => {
                         if (get(name) === "trees") {
                           return write(context.state.message, get(name))
                         } else {
                           return undefined
                         }
-                      }))
-                    el.children.textNode(get => `Click to get ${get(name)}`)
+                      })))
+                    el.children.textNode(stateful((get, name) => `Click to get ${get(name)}`))
                   })
               })
           }
@@ -783,16 +783,16 @@ function templateInstanceWithNonBubblingEvent(title: string, renderer: (context:
           })
         }),
         fact("there is a list view with a focus event, which does not bubble", (context) => {
-          function optionView(option: State<string>): HTMLView {
+          function optionView(stateful: UseData<string>): HTMLView {
             return (root) => {
               root.form(el => {
                 el.children.label(el => {
                   el.children
-                    .textNode(get => get(option))
+                    .textNode(stateful((get, option) => get(option)))
                     .input(el => {
                       el.config
-                        .name(get => get(option).toLowerCase())
-                        .on("focus", () => use(get => write(context.state.message, `${get(option)} is focused!`)))
+                        .name(stateful((get, option) => get(option).toLowerCase()))
+                        .on("focus", () => use(stateful((get, option) => write(context.state.message, `${get(option)} is focused!`))))
                     })
                 })
               })

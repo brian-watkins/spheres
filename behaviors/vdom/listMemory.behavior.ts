@@ -1,10 +1,11 @@
 import { behavior, effect, example, fact, step } from "best-behavior";
 import { renderContext } from "./helpers/renderContext";
 import { ListExamplesState } from "./helpers/listHelpers";
-import { container, derived, State } from "@store/index";
+import { container, derived } from "@store/index";
 import { HTMLView } from "@view/htmlElements";
 import { expect, is } from "great-expectations";
 import { requestGC } from "./helpers/memoryHelpers";
+import { UseData } from "@view/index";
 
 
 const externalToken = container({ initialValue: 0 })
@@ -21,11 +22,11 @@ export default behavior("list memory", [
           })
         }),
         fact("there is a view for the list", (context) => {
-          function itemView(item: State<string>, index: State<number>): HTMLView {
+          function itemView(stateful: UseData<string>): HTMLView {
             return (root) => {
               root.div(el => {
                 el.config.dataAttribute("list-item")
-                el.children.textNode(get => `${get(item)} (${get(externalToken) + get(index)})`)
+                el.children.textNode(stateful((get, item, index) => `${get(item)} (${get(externalToken) + get(index)})`))
               })
             }
           }
@@ -165,9 +166,9 @@ export default behavior("list memory", [
           })
         }),
         fact("there is a view for the list", (context) => {
-          function itemView(item: State<string>, index: State<number>): HTMLView {
+          function itemView(stateful: UseData<string>): HTMLView {
             return (root) => {
-              const label = derived(get => `${get(item)} (${get(externalToken) + get(index)})`)
+              const label = derived(stateful((get, item, index) => `${get(item)} (${get(externalToken) + get(index)})`))
 
               root.div(el => {
                 el.config.dataAttribute("list-item")

@@ -1,11 +1,12 @@
 import { GetState } from "../../../store/index.js"
 import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementId } from "../fragmentHelpers.js"
 import { activate, DOMTemplate, render, TemplateType } from "../domTemplate.js"
-import { generateStateManager, State, StateEffect, StateListenerType, StatePublisher, StateReader, StateWriter, StateHandler, Token, TokenRegistry } from "../../../store/tokenRegistry.js"
+import { generateStateManager, State, StateEffect, StateListenerType, StatePublisher, StateReader, StateWriter, StateHandler, Token, TokenRegistry, StateReference } from "../../../store/tokenRegistry.js"
 import { ListItemTemplateContext } from "../templateContext.js"
 import { OverlayTokenRegistry } from "../../../store/registry/overlayTokenRegistry.js"
 import { OverlayStateHandler } from "../../../store/state/handler/overlayStateHandler.js"
-import { Publisher } from "../../../store/state/handler/publisher.js"
+import { Value } from "../../../store/state/value.js"
+import { Constant } from "../../../store/state/constant.js"
 
 class VirtualItem extends OverlayTokenRegistry {
   node!: Node
@@ -17,28 +18,28 @@ class VirtualItem extends OverlayTokenRegistry {
   nextData: any | undefined = undefined
   nextUpdate: VirtualItem | undefined = undefined
   private registry: Map<Token, StateReader<any>> = new Map()
+  private indexHandler: StateReader<StatePublisher<number>> | undefined
 
   static newInstance(data: any, index: number, registry: TokenRegistry, context: ListItemTemplateContext<any>): VirtualItem {
-    const item = new VirtualItem(data, index, registry, context.itemToken, new Publisher(data), context.viewTokens)
-
-    if (context.usesIndex) {
-      item.setIndexState(context.indexToken, index)
-    }
-
-    return item
+    return new VirtualItem(
+      data, index, registry,
+      context.itemToken, new Constant(new Value(data)),
+      context.indexToken,
+      context.viewTokens
+    )
   }
 
   private constructor(
     public key: any,
     public index: number,
     registry: TokenRegistry,
-    private itemToken: State<any>,
-    private itemPublisher: StatePublisher<any>,
+    private itemToken: State<Value<any>>,
+    private itemPublisher: StateReader<StatePublisher<any>>,
+    private indexToken: State<StateReference<number>>,
     private viewTokens: Set<Token>
-  ) { super(registry) }
-
-  private indexToken: State<number> | undefined
-  private indexPublisher: StatePublisher<number> | undefined
+  ) { 
+    super(registry) 
+  }
 
   setNode(node: Node, firstNode: Node | undefined, lastNode: Node | undefined) {
     this.node = node
@@ -53,12 +54,12 @@ class VirtualItem extends OverlayTokenRegistry {
       this.parentRegistry,
       this.itemToken,
       this.itemPublisher,
+      this.indexToken,
       this.viewTokens,
     )
 
     clone.setNode(this.node, this.firstNode, this.lastNode)
-    clone.indexToken = this.indexToken
-    clone.indexPublisher = this.indexPublisher
+    clone.indexHandler = this.indexHandler
     clone.isDetached = this.isDetached
     clone.prev = this.prev
     clone.next = this.next
@@ -66,18 +67,16 @@ class VirtualItem extends OverlayTokenRegistry {
     return clone
   }
 
-  setIndexState(token: State<number>, value: number) {
-    this.indexToken = token
-    this.indexPublisher = new Publisher(value)
-  }
-
   getState<S extends State<unknown>>(token: S): StateHandler<S> {
     if (token === this.itemToken) {
-      return this.itemPublisher as any
+      return this.itemPublisher as StateHandler<S>
     }
 
     if (token === this.indexToken) {
-      return this.indexPublisher as any
+      if (this.indexHandler === undefined) {
+        this.indexHandler = new Constant(new Value(this.index))
+      }
+      return this.indexHandler as StateHandler<S>
     }
 
     let publisher = this.registry.get(token)
@@ -111,24 +110,22 @@ class VirtualItem extends OverlayTokenRegistry {
   }
 
   updateItemData(data: any) {
-    this.itemPublisher.publish(data)
+    this.itemPublisher.getValue().publish(data)
   }
 
   updateIndex(index: number) {
-    this.indexPublisher?.publish(index)
+    this.indexHandler?.getValue().publish(index)
   }
 }
 
 
 export class ListEffect implements StateEffect {
   readonly type = StateListenerType.SystemEffect
-  private usesIndex: boolean
   private parentNode!: Node
   private first: VirtualItem | undefined
   private itemCache: Map<any, VirtualItem> = new Map()
   private firstUpdate: VirtualItem | undefined
   private lastUpdate: VirtualItem | undefined
-  // private stateMap: Map<Token, StatePublisherCollection>
 
   constructor(
     private registry: TokenRegistry,
@@ -137,10 +134,7 @@ export class ListEffect implements StateEffect {
     private templateContext: ListItemTemplateContext<any>,
     private listStart: Node,
     private listEnd: Node,
-  ) {
-    this.usesIndex = this.templateContext.usesIndex
-    // this.stateMap = this.templateContext.getStateMap()
-  }
+  ) { }
 
   setVirtualList(first: VirtualItem | undefined) {
     this.first = first
@@ -195,7 +189,7 @@ export class ListEffect implements StateEffect {
       this.first.isDetached = true
       this.first = this.first.next
       this.first!.prev = undefined
-      if (this.usesIndex && this.first !== undefined) {
+      if (this.first !== undefined) {
         this.updateIndex(0, this.first)
       }
 
@@ -219,7 +213,7 @@ export class ListEffect implements StateEffect {
     let last = first
     for (let i = 1; i < data.length; i++) {
       last = this.updateItem(i, last, data[i])
-      if (this.usesIndex && last.index !== i) {
+      if (last.index !== i) {
         this.updateIndex(i, last)
       }
     }
@@ -326,7 +320,7 @@ export class ListEffect implements StateEffect {
           item.isDetached = true
           cached.isDetached = true
         }
-        if (this.usesIndex && itemToMove.index !== item.index) {
+        if (itemToMove.index !== item.index) {
           this.updateIndex(item.index, itemToMove)
         }
       } else {
@@ -334,11 +328,13 @@ export class ListEffect implements StateEffect {
           const next = this.createItem(item.index, data)
           this.insertNode(item, next)
           this.replaceListItem(item, next)
+          item.unsubscribeFromExternalState()
           item.isDetached = false
         } else {
           const next = this.createItem(item.index, data)
           this.replaceNode(item, next)
           this.replaceListItem(item, next)
+          item.unsubscribeFromExternalState()
           if (next.prev === undefined) {
             this.first = next
           }
@@ -403,7 +399,6 @@ export class ListEffect implements StateEffect {
       current.next.prev = replacement
     }
     replacement.next = current.next
-    current.unsubscribeFromExternalState()
   }
 
   private removeNode(item: VirtualItem): void {

@@ -1,6 +1,6 @@
-import { container, GetState, State, use, write } from "@store/index.js"
+import { container, GetState, use, write } from "@store/index.js"
 import { useValue } from "./helpers"
-import { HTMLBuilder, HTMLView } from "@view/index.js"
+import { HTMLBuilder, HTMLView, UseData } from "@view/index.js"
 
 interface Person {
   name: string
@@ -20,11 +20,11 @@ function peopleView(root: HTMLBuilder) {
   })
 }
 
-function personView(person: State<Person>): HTMLView {
+function personView(usePerson: UseData<Person>): HTMLView {
   return root => {
     root.li(el => {
       el.config.dataAttribute("person")
-      el.children.textNode(get => `${get(person).name} - ${get(person).age}`)
+      el.children.textNode(usePerson((get, person) => `${get(person).name} - ${get(person).age}`))
     })
   }
 }

@@ -1,21 +1,21 @@
-import { container, State, update, use, write } from "@store/index.js";
-import { HTMLBuilder, HTMLView } from "@view/index.js";
+import { container, update, use, write } from "@store/index.js";
+import { HTMLBuilder, HTMLView, UseData } from "@view/index.js";
 
-function funTemplate(name: State<string>): HTMLView {
+function funTemplate(useItem: UseData<string>): HTMLView {
   return root => {
     root.subviewFrom(select => select.withConditions().when(get => get(showLabels), root => {
       root.div(el => {
         el.children
           .h3(el => {
             el.config.dataAttribute("toggleable-view")
-            el.children.textNode(get => `You are ${get(name)}!`)
+            el.children.textNode(useItem((get, item) => `You are ${get(item)}!`))
           })
           .button(el => {
             el.config
-              .dataAttribute("delete-button", get => get(name))
-              .on("click", () => use(get => {
-                return write(names, get(names).filter(n => n !== get(name)))
-              }))
+              .dataAttribute("delete-button", useItem((get, item) => get(item)))
+              .on("click", () => use(useItem((get, item) => {
+                return write(names, get(names).filter(n => n !== get(item)))
+              })))
             el.children.textNode("Delete")
           })
       })

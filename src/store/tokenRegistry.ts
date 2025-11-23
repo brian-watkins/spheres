@@ -6,7 +6,7 @@ export interface StateReference<Value> {
 
 export type GetState = <S>(state: StateReference<S>) => S
 
-export type Stateful<T> = (get: GetState) => T | undefined
+export type Stateful<T> = (get: GetState) => T
 
 function subscribeOnGet<T>(this: Subscriber, token: StateReference<T>): T {
   const reader = token[getStateHandler](this.registry)

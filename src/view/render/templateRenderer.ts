@@ -1,12 +1,12 @@
 import { DOMEvent, DOMEventType, EventsToDelegate, StoreEventHandler, EventZone } from "./index.js";
-import { Stateful, GetState, State } from "../../store/index.js";
+import { Stateful, GetState } from "../../store/index.js";
 import { EffectLocation } from "./effectLocation.js";
 import { setEventAttribute } from "./eventHelpers.js";
 import { createFragment, listEndIndicator, listStartIndicator, switchEndIndicator, switchStartIndicator } from "./fragmentHelpers.js";
 import { IdSequence } from "./idSequence.js";
 import { ListItemTemplateContext } from "./templateContext.js";
 import { AbstractViewConfig } from "./viewConfig.js";
-import { AbstractViewRenderer, ElementDefinition, isStateful, ViewDefinition, ViewSelector } from "./viewRenderer.js";
+import { AbstractViewRenderer, ElementDefinition, isStateful, UseData, ViewDefinition, ViewSelector } from "./viewRenderer.js";
 import { DOMTemplate, EffectTemplate, EffectTemplateTypes, TemplateType } from "./domTemplate.js";
 import { SelectorBuilder } from "./selectorBuilder.js";
 import { ElementConfigSupport, ElementSupport } from "../elementSupport.js";
@@ -89,7 +89,10 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
     return this
   }
 
-  subviews<T>(data: (get: GetState) => T[], viewGenerator: (item: State<T>, index?: State<number>) => ViewDefinition): this {
+  subviews<T>(
+    data: (get: GetState) => Array<T>,
+    viewGenerator: (useData: UseData<T>) => ViewDefinition
+  ): this {
     this.templateType = TemplateType.List
 
     const elementId = this.idSequence.next

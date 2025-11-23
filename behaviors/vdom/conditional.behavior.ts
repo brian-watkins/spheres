@@ -1,5 +1,5 @@
-import { Collection, collection, container, Container, derived, GetState, State, update, use } from "@store/index.js";
-import { HTMLBuilder, HTMLView } from "@view/index";
+import { Collection, collection, container, Container, derived, GetState, update, use } from "@store/index.js";
+import { HTMLBuilder, HTMLView, UseData } from "@view/index";
 import { behavior, effect, example, fact, step } from "best-behavior";
 import { arrayContaining, equalTo, expect, is, resolvesTo } from "great-expectations";
 import { selectElement, selectElements, selectElementWithText } from "./helpers/displayElement";
@@ -515,10 +515,10 @@ function multipleSelectFragmentsExample(name: string, renderer: (context: Render
 
           function fragmentView(name: string): HTMLView {
             return root =>
-              root.subviews(get => get(context.state.items), item => root => {
+              root.subviews(get => get(context.state.items), stateful => root => {
                 root.div(el => {
                   el.config.dataAttribute("item-text")
-                  el.children.textNode(get => `${name} => ${get(item)}`)
+                  el.children.textNode(stateful((get, item) => `${name} => ${get(item)}`))
                 })
               })
           }
@@ -613,45 +613,45 @@ function nestedSiblingSelectViewExample(name: string, renderer: (context: Render
         fact("there are multiple conditional views with events in each list item", (context) => {
           const counters = collection(() => container({ initialValue: 0 }))
 
-          function counterView(name: string, index: State<number>): HTMLView {
+          function counterView(name: string, stateful: UseData<string>): HTMLView {
             return root => root.div(el => {
               el.children
                 .p(el => {
                   el.config
-                    .class(get => `counter-style-${name}-${get(index)}-${get(counters.at(`${name}-${get(index)}`))}`)
-                    .dataAttribute("counter-text", get => `${name}-${get(index)}`)
+                    .class(stateful((get, _, index) => `counter-style-${name}-${get(index)}-${get(counters.at(`${name}-${get(index)}`))}`))
+                    .dataAttribute("counter-text", stateful((get, _, index) => `${name}-${get(index)}`))
                   el.children
-                    .textNode(get => `${name} total: ${get(counters.at(`${name}-${get(index)}`))}`)
+                    .textNode(stateful((get, _, index) => `${name} total: ${get(counters.at(`${name}-${get(index)}`))}`))
                 })
                 .button(el => {
                   el.config
-                    .dataAttribute("counter-button", get => `${name}-${get(index)}`)
-                    .on("click", () => use(get => update(counters.at(`${name}-${get(index)}`), (val) => val + 1)))
+                    .dataAttribute("counter-button", stateful((get, _, index) => `${name}-${get(index)}`))
+                    .on("click", () => use(stateful((get, _, index) => update(counters.at(`${name}-${get(index)}`), (val) => val + 1))))
                   el.children.textNode("Click me!")
                 })
             })
           }
 
-          function basicView(name: string, index: State<number>): HTMLView {
+          function basicView(name: string, stateful: UseData<string>): HTMLView {
             return root =>
               root.h3(el => {
-                el.config.dataAttribute("hidden-view", get => `${name}-${get(index)}`)
+                el.config.dataAttribute("hidden-view", stateful((get, _, index) => `${name}-${get(index)}`))
                 el.children.textNode(`Just wait and see! (${name})`)
               })
           }
 
-          function itemView(item: State<string>, index: State<number>): HTMLView {
+          function itemView(stateful: UseData<string>): HTMLView {
             return (root) => {
               root.div(el => {
                 el.children
-                  .h1(el => el.children.textNode(get => get(item)))
+                  .h1(el => el.children.textNode(stateful((get, item) => get(item))))
                   .subviewFrom(select => select.withConditions()
-                    .when(get => itemToggle(get, context, `first-${get(index)}`), counterView("first", index))
-                    .default(basicView("first", index))
+                    .when(stateful((get, _, index) => itemToggle(get, context, `first-${get(index)}`)), counterView("first", stateful))
+                    .default(basicView("first", stateful))
                   )
                   .subviewFrom(select => select.withConditions()
-                    .when(get => itemToggle(get, context, `second-${get(index)}`), counterView("second", index))
-                    .default(basicView("second", index))
+                    .when(stateful((get, _, index) => itemToggle(get, context, `second-${get(index)}`)), counterView("second", stateful))
+                    .default(basicView("second", stateful))
                   )
                   .hr()
               })
@@ -844,7 +844,7 @@ function conditionalListWithEvents(name: string, renderer: (context: RenderApp<N
           })
         }),
         fact("there is a conditional list view", (context) => {
-          function itemView(item: State<string>): HTMLView {
+          function itemView(stateful: UseData<string>): HTMLView {
             const counters = collection(() => container({ initialValue: 0 }))
 
             return (root) => {
@@ -852,13 +852,13 @@ function conditionalListWithEvents(name: string, renderer: (context: RenderApp<N
                 el.children
                   .h3(el => {
                     el.config
-                      .dataAttribute("item-count", get => get(item))
+                      .dataAttribute("item-count", stateful((get, item) => get(item)))
                     el.children
-                      .textNode(get => `You clicked the ${get(item)} ${get(counters.at(get(item)))} times!`)
+                      .textNode(stateful((get, item) => `You clicked the ${get(item)} ${get(counters.at(get(item)))} times!`))
                   })
                   .button(el => {
-                    el.config.on("click", () => use(get => update(counters.at(get(item)), (val) => val + 1)))
-                    el.children.textNode(get => `Click the ${get(item)}`)
+                    el.config.on("click", () => use(stateful((get, item) => update(counters.at(get(item)), (val) => val + 1))))
+                    el.children.textNode(stateful((get, item) => `Click the ${get(item)}`))
                   })
               })
             }
@@ -904,7 +904,7 @@ function multipleConditionalListsWithEvents(name: string, renderer: (context: Re
           })
         }),
         fact("there is a conditional list view", (context) => {
-          function itemView(item: State<string>): HTMLView {
+          function itemView(stateful: UseData<string>): HTMLView {
             const counters = collection(() => container({ initialValue: 0 }))
 
             return (root) => {
@@ -912,13 +912,13 @@ function multipleConditionalListsWithEvents(name: string, renderer: (context: Re
                 el.children
                   .h3(el => {
                     el.config
-                      .dataAttribute("item-count", get => get(item))
+                      .dataAttribute("item-count", stateful((get, item) => get(item)))
                     el.children
-                      .textNode(get => `You clicked the ${get(item)} ${get(counters.at(get(item)))} times!`)
+                      .textNode(stateful((get, item) => `You clicked the ${get(item)} ${get(counters.at(get(item)))} times!`))
                   })
                   .button(el => {
-                    el.config.on("click", () => use(get => update(counters.at(get(item)), (val) => val + 1)))
-                    el.children.textNode(get => `Click the ${get(item)}`)
+                    el.config.on("click", () => use(stateful((get, item) => update(counters.at(get(item)), (val) => val + 1))))
+                    el.children.textNode(stateful((get, item) => `Click the ${get(item)}`))
                   })
               })
             }
@@ -1030,15 +1030,15 @@ function nestedSelectorExample(name: string, renderer: (context: RenderApp<Neste
             return root => root.div(el => el.children.textNode(`These are ${name}!`))
           }
 
-          function itemView(item: State<SelectOptions>): HTMLView {
+          function itemView(stateful: UseData<SelectOptions>): HTMLView {
             return root => {
               root.subviewFrom(select => select.withConditions()
-                .when(get => `${get(item)}${get(context.state.modifier)}` === "fruit", singleItemDescription("fruit"))
-                .when(get => `${get(item)}${get(context.state.modifier)}` === "fruits", pluralItemDescription("fruits"))
-                .when(get => `${get(item)}${get(context.state.modifier)}` === "sport", singleItemDescription("sport"))
-                .when(get => `${get(item)}${get(context.state.modifier)}` === "sports", pluralItemDescription("sports"))
-                .when(get => `${get(item)}${get(context.state.modifier)}` === "book", singleItemDescription("book"))
-                .when(get => `${get(item)}${get(context.state.modifier)}` === "books", pluralItemDescription("books"))
+                .when(stateful((get, item) => `${get(item)}${get(context.state.modifier)}` === "fruit"), singleItemDescription("fruit"))
+                .when(stateful((get, item) => `${get(item)}${get(context.state.modifier)}` === "fruits"), pluralItemDescription("fruits"))
+                .when(stateful((get, item) => `${get(item)}${get(context.state.modifier)}` === "sport"), singleItemDescription("sport"))
+                .when(stateful((get, item) => `${get(item)}${get(context.state.modifier)}` === "sports"), pluralItemDescription("sports"))
+                .when(stateful((get, item) => `${get(item)}${get(context.state.modifier)}` === "book"), singleItemDescription("book"))
+                .when(stateful((get, item) => `${get(item)}${get(context.state.modifier)}` === "books"), pluralItemDescription("books"))
                 .default(root => root.h1(el => el.children.textNode("WHAT??!")))
               )
             }

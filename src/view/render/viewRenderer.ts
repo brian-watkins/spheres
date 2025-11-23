@@ -1,4 +1,5 @@
 import { GetState, State, Stateful } from "../../store/index.js"
+import { StateReference } from "../../store/tokenRegistry.js"
 import { ElementSupport } from "../elementSupport.js"
 import { SpecialElementAttributes } from "../specialAttributes.js"
 
@@ -12,8 +13,8 @@ export type ViewDefinition = (root: any) => void
 export type ElementDefinition = (el: ConfigurableElement<any, any>) => void
 
 export interface ViewCaseSelector<T> {
-    when<X extends T>(typePredicate: (val: T) => val is X, generator: (state: State<X>) => ViewDefinition): ViewCaseSelector<T>
-    default(generator: (state: State<T>) => ViewDefinition): void
+  when<X extends T>(typePredicate: (val: T) => val is X, generator: (state: State<X>) => ViewDefinition): ViewCaseSelector<T>
+  default(generator: (state: State<T>) => ViewDefinition): void
 }
 
 export interface ViewConditionSelector {
@@ -26,13 +27,20 @@ export interface ViewSelector {
   withConditions(): ViewConditionSelector
 }
 
+export type UseData<T> = <S>(
+  generator: (
+    get: GetState, dataReference: StateReference<T>,
+    indexReference: StateReference<number>
+  ) => S
+) => Stateful<S>
+
 export interface ViewRenderer {
   textNode(value: string | Stateful<string>): this
   element(tag: string, builder?: ElementDefinition, support?: ElementSupport): this
   subview(view: ViewDefinition): this
   subviews<T>(
     data: (get: GetState) => Array<T>,
-    viewGenerator: (item: State<T>, index?: State<number>) => ViewDefinition
+    viewGenerator: (useData: UseData<T>) => ViewDefinition
   ): this
   subviewFrom(selectorGenerator: (selector: ViewSelector) => void): this
 }
@@ -44,8 +52,8 @@ export function isStateful<T>(value: T | Stateful<T>): value is Stateful<T> {
 abstract class BaseViewRenderer implements ViewRenderer {
   abstract textNode(value: string | Stateful<string>): this
   abstract element(tag: string, builder?: ElementDefinition, support?: ElementSupport): this
-  abstract subviews<T>(data: (get: GetState) => T[], viewGenerator: (item: State<T>, index?: State<number>) => ViewDefinition): this
   abstract subviewFrom(selectorGenerator: (selector: ViewSelector) => void): this
+  abstract subviews<T>(data: (get: GetState) => Array<T>, viewGenerator: (useData: UseData<T>) => ViewDefinition): this
 
   subview(view: ViewDefinition): this {
     view(this)

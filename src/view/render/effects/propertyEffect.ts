@@ -20,6 +20,6 @@ export class UpdatePropertyEffect implements StateEffect {
     }
 
     // @ts-ignore
-    element[this.property] = this.generator(get) ?? ""
+    element[this.property] = this.generator(get)
   }
 }

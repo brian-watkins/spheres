@@ -14,6 +14,7 @@ svgElementsFile.addImportDeclarations([
   {
     namedImports: [
       "ConfigurableElement",
+      "UseData"
     ],
     moduleSpecifier: "./render/viewRenderer.js"
   },
@@ -128,7 +129,7 @@ specialSVGElementsInterface.addMethod({
 specialSVGElementsInterface.addMethod({
   name: "textNode",
   parameters: [
-    { name: "value", type: "string | Stateful<string>" }
+    { name: "value", type: "string | Stateful<string | undefined>" }
   ],
   returnType: "this"
 })
@@ -156,7 +157,7 @@ specialSVGElementsInterface.addMethod({
   ],
   parameters: [
     { name: "data", type: "(get: GetState) => Array<T>" },
-    { name: "viewGenerator", type: "(item: State<T>, index: State<number>) => SVGView" }
+    { name: "viewGenerator", type: "(useData: UseData<T>) => SVGView" }
   ],
   returnType: "this"
 })
@@ -252,7 +253,7 @@ function buildAttributeProperty(returnType: string): (attribute: string) => Opti
   return (attribute) => {
     let parameters: Array<OptionalKind<ParameterDeclarationStructure>> = []
     parameters = [
-      { name: "value", type: "string | Stateful<string>" }
+      { name: "value", type: "string | Stateful<string | undefined>" }
     ]
 
     return {

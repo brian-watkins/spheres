@@ -1,40 +1,43 @@
-import { Container, container, State } from "../../store/index.js";
-import { OverlayTokenRegistry } from "../../store/registry/overlayTokenRegistry.js";
+import { State } from "../../store/index.js";
+import { Constant } from "../../store/state/constant.js";
 import { recordTokens } from "../../store/state/stateRecorder.js";
-import { StatePublisher, Token } from "../../store/tokenRegistry.js";
-import { ViewDefinition, ViewRenderer } from "./viewRenderer.js";
-
-export interface StatePublisherCollection {
-  getStatePublisher(key: OverlayTokenRegistry): StatePublisher<any>
-  deleteStatePublisher(key: OverlayTokenRegistry): void
-  clear(): void
-}
+import { Value } from "../../store/state/value.js";
+import { getStateHandler, StateReader, StateReference, Token, TokenRegistry } from "../../store/tokenRegistry.js";
+import { UseData, ViewDefinition, ViewRenderer } from "./viewRenderer.js";
 
 export class ListItemTemplateContext<T> {
-  public itemToken = container<T | undefined>({ initialValue: undefined })
-  private _indexToken: Container<number> | undefined = undefined
-  public usesIndex = true
+  readonly itemToken: State<Value<T>> = stateReference()
+  readonly indexToken: State<StateReference<number>> = stateReference()
   readonly viewTokens = new Set<Token>()
 
-  constructor(viewRenderer: ViewRenderer, generator: (item: State<T>, index?: State<number>) => ViewDefinition) {
-    this.usesIndex = generator.length == 2
-
-    let indexToken: Container<number> | undefined = undefined
-    if (this.usesIndex) {
-      indexToken = this.indexToken
-    }
-
+  constructor(viewRenderer: ViewRenderer, generator: (stateful: UseData<T>) => ViewDefinition) {
     recordTokens(() => {
-      generator(this.itemToken as State<T>, indexToken)(viewRenderer)
+      generator(createStatefulGenerator(this.itemToken, this.indexToken))(viewRenderer)
     })
       .forEach(token => this.viewTokens.add(token))
   }
+}
 
-  get indexToken(): Container<number> {
-    if (this._indexToken === undefined) {
-      this._indexToken = container({ initialValue: -1 })
+const fakeIndex = new Constant(-1)
+
+function createStatefulGenerator<T>(itemToken: State<Value<T>>, indexToken: State<StateReference<number>>): UseData<T> {
+  return function (useItem) {
+    if (useItem.length === 3) {
+      return function (get) {
+        return useItem(get, get(itemToken), get(indexToken))
+      }
+    } else {
+      return function (get) {
+        return useItem(get, get(itemToken), fakeIndex)
+      }
     }
-
-    return this._indexToken
   }
+}
+
+function stateReference<T>(): State<T> {
+  return {
+    [getStateHandler](registry: TokenRegistry): StateReader<T> {
+      return registry.getState(this)
+    }
+  } as State<T>
 }

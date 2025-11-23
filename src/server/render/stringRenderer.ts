@@ -1,13 +1,13 @@
 import { Container, Stateful, Store, write } from "../../store/index.js";
 import { getTokenRegistry } from "../../store/store.js";
-import { GetState, runQuery, State } from "../../store/tokenRegistry.js";
+import { GetState, runQuery } from "../../store/tokenRegistry.js";
 import { voidElements } from "../../view/elementData.js";
 import { HTMLBuilder, HTMLView } from "../../view/index.js";
 import { EventsToDelegate, StoreEventHandler } from "../../view/render/index.js";
 import { listEndIndicator, listStartIndicator, switchEndIndicator, switchStartIndicator } from "../../view/render/fragmentHelpers.js";
 import { IdSequence } from "../../view/render/idSequence.js";
 import { ViteContext } from "./viteContext.js";
-import { AbstractViewRenderer, ElementDefinition, isStateful, ViewDefinition, ViewSelector } from "../../view/render/viewRenderer.js";
+import { AbstractViewRenderer, ElementDefinition, isStateful, UseData, ViewDefinition, ViewSelector } from "../../view/render/viewRenderer.js";
 import { ListItemTemplateContext } from "../../view/render/templateContext.js";
 import { AbstractViewConfig } from "../../view/render/viewConfig.js";
 import { SelectorBuilder } from "../../view/render/selectorBuilder.js";
@@ -145,7 +145,10 @@ class StringRenderer extends AbstractViewRenderer {
     return this
   }
 
-  subviews<T>(data: (get: GetState) => T[], viewGenerator: (item: State<T>, index?: State<number>) => ViewDefinition): this {
+  subviews<T>(
+    data: (get: GetState) => T[],
+    viewGenerator: (stateful: UseData<T>) => ViewDefinition
+  ): this {
     const elementId = this.idSequence.next
 
     const renderer = new StringRenderer(this.elementSupport, this.options, new IdSequence(elementId), true)
@@ -278,7 +281,7 @@ class HTMLMarkupSupport implements ElementSupport {
   createElement(_: string): Element {
     throw new Error("Creating elements not supported during SSR.");
   }
-  
+
   getConfigSupport(): ElementConfigSupport {
     return this.configSupport
   }

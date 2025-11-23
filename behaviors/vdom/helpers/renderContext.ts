@@ -1,10 +1,9 @@
 import { HTMLView, RenderResult, renderToDOM } from "@view/index.js"
 import { Context } from "best-behavior"
-import { Collection, Container, createStore, Store, write } from "@store/index.js"
+import { Collection, Container, createStore, Store, WritableState, write } from "@store/index.js"
 import { createStringRenderer } from "@server/index"
 import { activateView } from "@view/activate"
 import { DOMChangeRecord, structureChangeRecord, textChangeRecord } from "./changeRecords"
-import { WritableState } from "@store/message"
 
 export class RenderApp<T> {
   private renderResult: RenderResult | undefined

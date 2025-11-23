@@ -1,7 +1,7 @@
-import { batch, write, run, StoreMessage, State, use, update } from "spheres/store";
-import { CircleContainer, addCircleRule, adjustRadius, adjustRadiusRule, canRedo, canUndo, circleData, deselectCircle, dialog, redoRule, selectCircle, undoRule } from "./state";
+import { batch, write, run, StoreMessage, use, update, Stateful } from "spheres/store";
+import { Circle, CircleContainer, addCircleRule, adjustRadius, adjustRadiusRule, canRedo, canUndo, circleData, deselectCircle, dialog, redoRule, selectCircle, undoRule } from "./state";
 import { useValue } from "../helpers/helpers";
-import { HTMLBuilder, svg, SVGView } from "../../../src/view";
+import { HTMLBuilder, svg, SVGView, UseData } from "../../../src/view";
 
 export function circles(root: HTMLBuilder) {
   root.main(({ children }) => {
@@ -41,37 +41,43 @@ export function circles(root: HTMLBuilder) {
   })
 }
 
-function circleView(circle: State<CircleContainer>): SVGView {
+function useCircle(useData: UseData<CircleContainer>): <S>(handler: (circle: Circle) => S) => Stateful<S> {
+  return (handler) => useData((get, circleContainer) => handler(get(get(circleContainer))))
+}
+
+function circleView(useData: UseData<CircleContainer>): SVGView {
+  const withCircle = useCircle(useData)
+
   return root => {
     root.circle(el => {
       el.config
-        .fill(get => get(get(circle)).selected ? "#333333" : "transparent")
+        .fill(withCircle((circle) => circle.selected ? "#333333" : "transparent"))
         .stroke("#555555")
         .strokeWidth("3")
-        .cx(get => `${get(get(circle)).center.x}`)
-        .cy(get => `${get(get(circle)).center.y}`)
-        .r(get => `${get(get(circle)).radius}`)
-        .on("mouseover", () => use(get => write(get(circle), selectCircle())))
+        .cx(withCircle(circle => `${circle.center.x}`))
+        .cy(withCircle(circle => `${circle.center.y}`))
+        .r(withCircle(circle => `${circle.radius}`))
+        .on("mouseover", () => use(useData((get, circle) => write(get(circle), selectCircle()))))
         .on("click", (evt) => {
           evt.stopPropagation()
           return batch([
-            use(get => write(dialog, {
+            use(useData((get, circle) => write(dialog, {
               circle: get(circle),
               originalRadius: get(get(circle)).radius,
               showDiameterSlider: false,
-            })),
+            }))),
             run(() => {
               document.querySelector("dialog")?.showModal()
             })
           ])
         })
-        .on("mouseout", () => use(get => {
+        .on("mouseout", () => use(useData((get, circle) => {
           if (get(dialog)?.circle !== get(circle)) {
             return write(get(circle), deselectCircle())
           } else {
             return undefined
           }
-        }))
+        })))
     })
   }
 }
@@ -92,7 +98,7 @@ function optionsView(root: HTMLBuilder) {
       .div(({ config, children }) => {
         config
           .class("w-96 m-8 bg-slate-100 hover:text-sky-600 font-bold text-sky-800")
-          .on("click", () => update(dialog, d => ({ ...d, showDiameterSlider: true })))
+          .on("click", () => update(dialog, d => d && ({ ...d, showDiameterSlider: true })))
         children
           .subviewFrom(select => select.withConditions()
             .when(get => get(dialog)?.showDiameterSlider ?? false, adjustRadiusView)

@@ -144,9 +144,9 @@ function optionView(useData: UseData<DataRecord>): HTMLView {
     root
       .option(({ config, children }) => {
         config
-          .value(useData((get, record) => `${get(record).id}`))
+          .value(useData((record) => `${record.id}`))
         children
-          .textNode(useData((get, record) => `${get(record).lastName}, ${get(record).firstName}`))
+          .textNode(useData((record) => `${record.lastName}, ${record.firstName}`))
       })
   }
 }

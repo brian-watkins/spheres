@@ -5,8 +5,8 @@ import { generateStateManager, State, StateEffect, StateListenerType, StatePubli
 import { ListItemTemplateContext } from "../templateContext.js"
 import { OverlayTokenRegistry } from "../../../store/registry/overlayTokenRegistry.js"
 import { OverlayStateHandler } from "../../../store/state/handler/overlayStateHandler.js"
-import { Value } from "../../../store/state/value.js"
-import { Constant } from "../../../store/state/constant.js"
+import { ConstantReader } from "../../../store/state/handler/constantReader.js"
+import { Publisher } from "../../../store/state/handler/publisher.js"
 
 class VirtualItem extends OverlayTokenRegistry {
   node!: Node
@@ -18,12 +18,12 @@ class VirtualItem extends OverlayTokenRegistry {
   nextData: any | undefined = undefined
   nextUpdate: VirtualItem | undefined = undefined
   private registry: Map<Token, StateReader<any>> = new Map()
-  private indexHandler: StateReader<StatePublisher<number>> | undefined
+  private indexHandler: Publisher<number> | undefined
 
   static newInstance(data: any, index: number, registry: TokenRegistry, context: ListItemTemplateContext<any>): VirtualItem {
     return new VirtualItem(
       data, index, registry,
-      context.itemToken, new Constant(new Value(data)),
+      context.itemToken, new ConstantReader(data),
       context.indexToken,
       context.viewTokens
     )
@@ -33,12 +33,12 @@ class VirtualItem extends OverlayTokenRegistry {
     public key: any,
     public index: number,
     registry: TokenRegistry,
-    private itemToken: State<Value<any>>,
+    private itemToken: State<StateReference<any>>,
     private itemPublisher: StateReader<StatePublisher<any>>,
-    private indexToken: State<StateReference<number>>,
+    private indexToken: State<number>,
     private viewTokens: Set<Token>
-  ) { 
-    super(registry) 
+  ) {
+    super(registry)
   }
 
   setNode(node: Node, firstNode: Node | undefined, lastNode: Node | undefined) {
@@ -74,7 +74,7 @@ class VirtualItem extends OverlayTokenRegistry {
 
     if (token === this.indexToken) {
       if (this.indexHandler === undefined) {
-        this.indexHandler = new Constant(new Value(this.index))
+        this.indexHandler = new Publisher(this.index)
       }
       return this.indexHandler as StateHandler<S>
     }
@@ -109,12 +109,8 @@ class VirtualItem extends OverlayTokenRegistry {
     this.registry.clear()
   }
 
-  updateItemData(data: any) {
-    this.itemPublisher.getValue().publish(data)
-  }
-
   updateIndex(index: number) {
-    this.indexHandler?.getValue().publish(index)
+    this.indexHandler?.publish(index)
   }
 }
 
@@ -196,11 +192,6 @@ export class ListEffect implements StateEffect {
       return this.first!
     }
 
-    if (Object.hasOwn(firstData, "id") && firstData.id === this.first.key.id) {
-      this.updateItemData(this.first, firstData)
-      return this.first
-    }
-
     this.firstUpdate = this.first
     this.firstUpdate.nextData = firstData
     this.lastUpdate = this.firstUpdate
@@ -252,11 +243,6 @@ export class ListEffect implements StateEffect {
       last.next = current.next
       current.next!.prev = last
       return current.next!
-    }
-
-    if (Object.hasOwn(data, "id") && data.id === current.key.id) {
-      this.updateItemData(current, data)
-      return current
     }
 
     if (this.lastUpdate === undefined) {
@@ -432,11 +418,6 @@ export class ListEffect implements StateEffect {
       item.unsubscribeFromExternalState()
       item = item.next
     }
-  }
-
-  private updateItemData(item: VirtualItem, itemData: any): void {
-    item.updateItemData(itemData)
-    item.key = itemData
   }
 
   private updateIndex(index: number, item: VirtualItem): void {

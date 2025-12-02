@@ -42,7 +42,7 @@ export function circles(root: HTMLBuilder) {
 }
 
 function useCircle(useData: UseData<CircleContainer>): <S>(handler: (circle: Circle) => S) => Stateful<S> {
-  return (handler) => useData((get, circleContainer) => handler(get(get(circleContainer))))
+  return (handler) => useData((circleContainer, get) => handler(get(circleContainer)))
 }
 
 function circleView(useData: UseData<CircleContainer>): SVGView {
@@ -57,13 +57,13 @@ function circleView(useData: UseData<CircleContainer>): SVGView {
         .cx(withCircle(circle => `${circle.center.x}`))
         .cy(withCircle(circle => `${circle.center.y}`))
         .r(withCircle(circle => `${circle.radius}`))
-        .on("mouseover", () => use(useData((get, circle) => write(get(circle), selectCircle()))))
+        .on("mouseover", () => use(useData((circle) => write(circle, selectCircle()))))
         .on("click", (evt) => {
           evt.stopPropagation()
           return batch([
-            use(useData((get, circle) => write(dialog, {
-              circle: get(circle),
-              originalRadius: get(get(circle)).radius,
+            use(useData((circle, get) => write(dialog, {
+              circle: circle,
+              originalRadius: get(circle).radius,
               showDiameterSlider: false,
             }))),
             run(() => {
@@ -71,9 +71,9 @@ function circleView(useData: UseData<CircleContainer>): SVGView {
             })
           ])
         })
-        .on("mouseout", () => use(useData((get, circle) => {
-          if (get(dialog)?.circle !== get(circle)) {
-            return write(get(circle), deselectCircle())
+        .on("mouseout", () => use(useData((circle, get) => {
+          if (get(dialog)?.circle !== circle) {
+            return write(circle, deselectCircle())
           } else {
             return undefined
           }

@@ -188,17 +188,17 @@ function listView(state: State<ListState>): HTMLView {
   const items = derived(get => get(state).data.items)
   return root => {
     root.ul(el => {
-      el.children.subviews(get => get(items), (stateful) => root => {
+      el.children.subviews(get => get(items), (useData) => root => {
         root.li(el => {
           el.config.on("click", () => {
-            return use(stateful((get, item, index) => write(pageState, {
+            return use(useData((item, get, index) => write(pageState, {
               type: "detail", detail: {
-                name: get(item),
+                name: item,
                 content: getContent(get(index))
               }
             })))
           })
-          el.children.textNode(stateful((get, item) => get(item)))
+          el.children.textNode(useData(item => item))
         })
       })
     })

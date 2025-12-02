@@ -515,10 +515,10 @@ function multipleSelectFragmentsExample(name: string, renderer: (context: Render
 
           function fragmentView(name: string): HTMLView {
             return root =>
-              root.subviews(get => get(context.state.items), stateful => root => {
+              root.subviews(get => get(context.state.items), useData => root => {
                 root.div(el => {
                   el.config.dataAttribute("item-text")
-                  el.children.textNode(stateful((get, item) => `${name} => ${get(item)}`))
+                  el.children.textNode(useData((item) => `${name} => ${item}`))
                 })
               })
           }
@@ -618,15 +618,15 @@ function nestedSiblingSelectViewExample(name: string, renderer: (context: Render
               el.children
                 .p(el => {
                   el.config
-                    .class(stateful((get, _, index) => `counter-style-${name}-${get(index)}-${get(counters.at(`${name}-${get(index)}`))}`))
-                    .dataAttribute("counter-text", stateful((get, _, index) => `${name}-${get(index)}`))
+                    .class(stateful((_, get, index) => `counter-style-${name}-${get(index)}-${get(counters.at(`${name}-${get(index)}`))}`))
+                    .dataAttribute("counter-text", stateful((_, get, index) => `${name}-${get(index)}`))
                   el.children
-                    .textNode(stateful((get, _, index) => `${name} total: ${get(counters.at(`${name}-${get(index)}`))}`))
+                    .textNode(stateful((_, get, index) => `${name} total: ${get(counters.at(`${name}-${get(index)}`))}`))
                 })
                 .button(el => {
                   el.config
-                    .dataAttribute("counter-button", stateful((get, _, index) => `${name}-${get(index)}`))
-                    .on("click", () => use(stateful((get, _, index) => update(counters.at(`${name}-${get(index)}`), (val) => val + 1))))
+                    .dataAttribute("counter-button", stateful((_, get, index) => `${name}-${get(index)}`))
+                    .on("click", () => use(stateful((_, get, index) => update(counters.at(`${name}-${get(index)}`), (val) => val + 1))))
                   el.children.textNode("Click me!")
                 })
             })
@@ -635,7 +635,7 @@ function nestedSiblingSelectViewExample(name: string, renderer: (context: Render
           function basicView(name: string, stateful: UseData<string>): HTMLView {
             return root =>
               root.h3(el => {
-                el.config.dataAttribute("hidden-view", stateful((get, _, index) => `${name}-${get(index)}`))
+                el.config.dataAttribute("hidden-view", stateful((_, get, index) => `${name}-${get(index)}`))
                 el.children.textNode(`Just wait and see! (${name})`)
               })
           }
@@ -644,13 +644,13 @@ function nestedSiblingSelectViewExample(name: string, renderer: (context: Render
             return (root) => {
               root.div(el => {
                 el.children
-                  .h1(el => el.children.textNode(stateful((get, item) => get(item))))
+                  .h1(el => el.children.textNode(stateful((item) => item)))
                   .subviewFrom(select => select.withConditions()
-                    .when(stateful((get, _, index) => itemToggle(get, context, `first-${get(index)}`)), counterView("first", stateful))
+                    .when(stateful((_, get, index) => itemToggle(get, context, `first-${get(index)}`)), counterView("first", stateful))
                     .default(basicView("first", stateful))
                   )
                   .subviewFrom(select => select.withConditions()
-                    .when(stateful((get, _, index) => itemToggle(get, context, `second-${get(index)}`)), counterView("second", stateful))
+                    .when(stateful((_, get, index) => itemToggle(get, context, `second-${get(index)}`)), counterView("second", stateful))
                     .default(basicView("second", stateful))
                   )
                   .hr()
@@ -852,13 +852,13 @@ function conditionalListWithEvents(name: string, renderer: (context: RenderApp<N
                 el.children
                   .h3(el => {
                     el.config
-                      .dataAttribute("item-count", stateful((get, item) => get(item)))
+                      .dataAttribute("item-count", stateful((item) => item))
                     el.children
-                      .textNode(stateful((get, item) => `You clicked the ${get(item)} ${get(counters.at(get(item)))} times!`))
+                      .textNode(stateful((item, get) => `You clicked the ${item} ${get(counters.at(item))} times!`))
                   })
                   .button(el => {
-                    el.config.on("click", () => use(stateful((get, item) => update(counters.at(get(item)), (val) => val + 1))))
-                    el.children.textNode(stateful((get, item) => `Click the ${get(item)}`))
+                    el.config.on("click", () => use(stateful((item) => update(counters.at(item), (val) => val + 1))))
+                    el.children.textNode(stateful((item) => `Click the ${item}`))
                   })
               })
             }
@@ -912,13 +912,13 @@ function multipleConditionalListsWithEvents(name: string, renderer: (context: Re
                 el.children
                   .h3(el => {
                     el.config
-                      .dataAttribute("item-count", stateful((get, item) => get(item)))
+                      .dataAttribute("item-count", stateful((item) => item))
                     el.children
-                      .textNode(stateful((get, item) => `You clicked the ${get(item)} ${get(counters.at(get(item)))} times!`))
+                      .textNode(stateful((item, get) => `You clicked the ${item} ${get(counters.at(item))} times!`))
                   })
                   .button(el => {
-                    el.config.on("click", () => use(stateful((get, item) => update(counters.at(get(item)), (val) => val + 1))))
-                    el.children.textNode(stateful((get, item) => `Click the ${get(item)}`))
+                    el.config.on("click", () => use(stateful((item) => update(counters.at(item), (val) => val + 1))))
+                    el.children.textNode(stateful((item) => `Click the ${item}`))
                   })
               })
             }
@@ -1033,12 +1033,12 @@ function nestedSelectorExample(name: string, renderer: (context: RenderApp<Neste
           function itemView(stateful: UseData<SelectOptions>): HTMLView {
             return root => {
               root.subviewFrom(select => select.withConditions()
-                .when(stateful((get, item) => `${get(item)}${get(context.state.modifier)}` === "fruit"), singleItemDescription("fruit"))
-                .when(stateful((get, item) => `${get(item)}${get(context.state.modifier)}` === "fruits"), pluralItemDescription("fruits"))
-                .when(stateful((get, item) => `${get(item)}${get(context.state.modifier)}` === "sport"), singleItemDescription("sport"))
-                .when(stateful((get, item) => `${get(item)}${get(context.state.modifier)}` === "sports"), pluralItemDescription("sports"))
-                .when(stateful((get, item) => `${get(item)}${get(context.state.modifier)}` === "book"), singleItemDescription("book"))
-                .when(stateful((get, item) => `${get(item)}${get(context.state.modifier)}` === "books"), pluralItemDescription("books"))
+                .when(stateful((item, get) => `${item}${get(context.state.modifier)}` === "fruit"), singleItemDescription("fruit"))
+                .when(stateful((item, get) => `${item}${get(context.state.modifier)}` === "fruits"), pluralItemDescription("fruits"))
+                .when(stateful((item, get) => `${item}${get(context.state.modifier)}` === "sport"), singleItemDescription("sport"))
+                .when(stateful((item, get) => `${item}${get(context.state.modifier)}` === "sports"), pluralItemDescription("sports"))
+                .when(stateful((item, get) => `${item}${get(context.state.modifier)}` === "book"), singleItemDescription("book"))
+                .when(stateful((item, get) => `${item}${get(context.state.modifier)}` === "books"), pluralItemDescription("books"))
                 .default(root => root.h1(el => el.children.textNode("WHAT??!")))
               )
             }

@@ -51,7 +51,7 @@ export default function (root: HTMLBuilder) {
 function fruitView(useFruit: UseData<Fruit>): HTMLView {
   return root => {
     root.li(el => {
-      el.children.textNode(useFruit((get, item, index) => `${get(item).name} is at index ${get(index)}`))
+      el.children.textNode(useFruit((item, get, index) => `${item.name} is at index ${get(index)}`))
     })
   }
 }

@@ -172,8 +172,8 @@ export default behavior("mount", [
       suppose: [
         fact("zones are mounted", (context) => {
           const data = container({ initialValue: ["apple", "pizza", "hotdog"] })
-          const dataView = (stateful: UseData<string>): HTMLView => root => {
-            root.div(el => el.children.textNode(stateful((get, name) => get(name))))
+          const dataView = (useData: UseData<string>): HTMLView => root => {
+            root.div(el => el.children.textNode(useData((name) => name)))
           }
           context.mountView(root => {
             root.subviews(get => get(data), dataView)

@@ -1,6 +1,6 @@
 import { HTMLView, RenderResult, renderToDOM } from "@view/index.js"
 import { Context } from "best-behavior"
-import { Collection, Container, createStore, Store, WritableState, write } from "@store/index.js"
+import { Collection, createStore, Store, WritableState, write } from "@store/index.js"
 import { createStringRenderer } from "@server/index"
 import { activateView } from "@view/activate"
 import { DOMChangeRecord, structureChangeRecord, textChangeRecord } from "./changeRecords"
@@ -21,7 +21,7 @@ export class RenderApp<T> {
     return this._state!
   }
 
-  writeTo<S, M = S>(token: Container<S, M>, value: M) {
+  writeTo<S, M = S>(token: WritableState<S, M>, value: M) {
     this.store.dispatch(write(token, value))
   }
 

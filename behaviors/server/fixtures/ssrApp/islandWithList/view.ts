@@ -87,13 +87,13 @@ function itemView(useItem: UseData<Item>): HTMLView {
           el.children
             .div(el => {
               el.config.dataAttribute("item-name")
-              el.children.textNode(useItem((get, item) => `${get(item).name}, ${get(item).color}`))
+              el.children.textNode(useItem((item) => `${item.name}, ${item.color}`))
             })
             .button(el => {
               el.config
-                .dataAttribute("delete-item", useItem((get, item) => get(item).name))
-                .on("click", () => use(useItem((get, item) => {
-                  return update(items, (current) => current.filter(i => i.name !== get(item).name))
+                .dataAttribute("delete-item", useItem((item) => item.name))
+                .on("click", () => use(useItem((item) => {
+                  return update(items, (current) => current.filter(i => i.name !== item.name))
                 })))
               el.children.textNode("Delete Item")
             })

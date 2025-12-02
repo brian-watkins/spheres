@@ -49,7 +49,7 @@ export function itemView(stateful: UseData<string>): HTMLView {
   return (root) => {
     root.p(el => {
       el.config.dataAttribute("child")
-      el.children.textNode(stateful((get, item, index) => `${get(item)} (${get(index)})`))
+      el.children.textNode(stateful((item, get, index) => `${item} (${get(index)})`))
     })
   }
 }
@@ -58,7 +58,7 @@ export function otherItemView(stateful: UseData<string>): HTMLView {
   return root => {
     root.h1(el => {
       el.config.dataAttribute("child")
-      el.children.textNode(stateful((get, item, index) => `Other ${get(item)} (${get(index)})`))
+      el.children.textNode(stateful((item, get, index) => `Other ${item} (${get(index)})`))
     })
   }
 }

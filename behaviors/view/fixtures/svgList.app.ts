@@ -50,25 +50,25 @@ function circleView(useCircle: UseData<Circle>): SVGView {
   return root =>
     root.g(el => {
       el.config
-        .dataAttribute("circle-button", useCircle((get, _, index) => `${get(index)}`))
-        .on("click", () => use(useCircle((get, _, index) => write(circleData, putFirst(get(index))))))
+        .dataAttribute("circle-button", useCircle((_, get, index) => `${get(index)}`))
+        .on("click", () => use(useCircle((_, get, index) => write(circleData, putFirst(get(index))))))
       el.children
         .circle(el => {
           el.config
-            .cx(useCircle((get, _, index) => `${get(index) * 150 + 100}`))
+            .cx(useCircle((_, get, index) => `${get(index) * 150 + 100}`))
             .cy("150")
             .r("50")
             .fill("blue")
         })
         .text(el => {
           el.config
-            .x(useCircle((get, _, index) => `${get(index) * 150 + 100}`))
+            .x(useCircle((_, get, index) => `${get(index) * 150 + 100}`))
             .y("158")
             .fontSize("30")
             .textAnchor("middle")
             .fill("white")
           el.children
-            .textNode(useCircle((get, circle) => `${get(circle).label}`))
+            .textNode(useCircle((circle) => `${circle.label}`))
         })
     })
 }

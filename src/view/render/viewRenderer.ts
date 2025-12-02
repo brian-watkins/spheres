@@ -29,7 +29,8 @@ export interface ViewSelector {
 
 export type UseData<T> = <S>(
   generator: (
-    get: GetState, dataReference: StateReference<T>,
+    dataReference: T,
+    get: GetState,
     indexReference: StateReference<number>
   ) => S
 ) => Stateful<S>

@@ -140,7 +140,7 @@ function thingView(useThing: UseData<string>): HTMLView {
   return root => {
     root.div(el => {
       el.children
-        .h1(el => el.children.textNode(useThing((get, thing, index) => `${get(thing)} is at index ${get(index)}`)))
+        .h1(el => el.children.textNode(useThing((thing, get, index) => `${thing} is at index ${get(index)}`)))
         .button(el => {
           el.config
             .on("click", () => batch([]))

@@ -14,8 +14,8 @@ function subscribeOnGet<T>(this: Subscriber, token: StateReference<T>): T {
   return reader.getValue()
 }
 
-export function getStateFunctionWithListener(key: Subscriber): GetState {
-  return subscribeOnGet.bind(key) as GetState
+export function getStateFunctionWithListener(subscriber: Subscriber): GetState {
+  return subscribeOnGet.bind(subscriber) as GetState
 }
 
 export function runQuery<M>(registry: TokenRegistry, query: (get: GetState) => M): M {
@@ -95,7 +95,7 @@ export interface StatePublisher<T> extends StateReader<T> {
   publish(value: T): void
 }
 
-export interface StateWriter<T, M> extends StatePublisher<T> {
+export interface StateWriter<T, M = T> extends StatePublisher<T> {
   write(value: M): void
 }
 
@@ -103,7 +103,7 @@ export interface PublishableState<T> extends StateReference<T> {
   [getStateHandler](registry: TokenRegistry): StatePublisher<T>
 }
 
-export interface WritableState<T, M> extends StateReference<T> {
+export interface WritableState<T, M = T> extends StateReference<T> {
   [getStateHandler](registry: TokenRegistry): StateWriter<T, M>
 }
 

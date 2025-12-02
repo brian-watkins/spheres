@@ -164,7 +164,7 @@ export default behavior("ssr", [
                 el.config
                   .dataAttribute("stateful-text", get => get(context.state.message))
                   .class(get => `text-${get(context.state.message)}`)
-                el.children.textNode(stateful((get, state) => `${get(context.state.message)} ${get(state)}`))
+                el.children.textNode(stateful((state, get) => `${get(context.state.message)} ${state}`))
               })
             }
           }
@@ -233,15 +233,15 @@ export default behavior("ssr", [
         fact("a view with items with inner state is activated", (context) => {
           function itemView(stateful: UseData<string>): HTMLView {
             const counter = container({ initialValue: 0 })
-            const counterName = derived(stateful((get, state, index) => {
-              return `[${get(state).toLowerCase().slice(0, -1)}-${get(index) + 1}]`
+            const counterName = derived(stateful((state, get, index) => {
+              return `[${state.toLowerCase().slice(0, -1)}-${get(index) + 1}]`
             }))
 
             return root => {
               root.div(el => {
                 el.children
                   .h2(el => {
-                    el.children.textNode(stateful((get, state) => get(state)))
+                    el.children.textNode(stateful((state) => state))
                   })
                   .p(el => {
                     el.config.dataAttribute("click-count")
@@ -394,7 +394,7 @@ export default behavior("ssr", [
                 el.children.
                   circle(el => {
                     el.config
-                      .cx(stateful((get, _, index) => `${get(index) * 150 + 150}`))
+                      .cx(stateful((_, get, index) => `${get(index) * 150 + 150}`))
                       .cy("100")
                       .r("80")
                       .fill("green")
@@ -402,14 +402,14 @@ export default behavior("ssr", [
                   })
                   .text(({ config, children }) => {
                     config
-                      .x(stateful((get, _, index) => `${get(index) * 150 + 150}`))
+                      .x(stateful((_, get, index) => `${get(index) * 150 + 150}`))
                       .y("125")
                       .fontSize("60")
                       .fontWeight("bold")
                       .textAnchor("middle")
                       .fill("white")
                     children
-                      .textNode(stateful((get, option) => get(option)))
+                      .textNode(stateful((option) => option))
                   })
               })
           }

@@ -8,13 +8,13 @@ function funTemplate(useItem: UseData<string>): HTMLView {
         el.children
           .h3(el => {
             el.config.dataAttribute("toggleable-view")
-            el.children.textNode(useItem((get, item) => `You are ${get(item)}!`))
+            el.children.textNode(useItem((item) => `You are ${item}!`))
           })
           .button(el => {
             el.config
-              .dataAttribute("delete-button", useItem((get, item) => get(item)))
-              .on("click", () => use(useItem((get, item) => {
-                return write(names, get(names).filter(n => n !== get(item)))
+              .dataAttribute("delete-button", useItem((item) => item))
+              .on("click", () => use(useItem((item, get) => {
+                return write(names, get(names).filter(n => n !== item))
               })))
             el.children.textNode("Delete")
           })

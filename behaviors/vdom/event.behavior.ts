@@ -512,12 +512,12 @@ export default behavior("event handlers", [
                       return root => {
                         root.div(el => {
                           el.config
-                            .dataAttribute("element", stateful((get, label) => `inner-${get(label)}`))
+                            .dataAttribute("element", stateful((label) => `inner-${label}`))
                             .style("background-color: blue; width:100px; height: 100px;")
                             .on("click", () => {
                               return update(context.state.inner, (val) => val += 1)
                             })
-                          el.children.textNode(stateful((get, label) => `click me: ${get(label)}`))
+                          el.children.textNode(stateful((label) => `click me: ${label}`))
                         })
                       }
                     })
@@ -568,13 +568,13 @@ export default behavior("event handlers", [
                       return root => {
                         root.div(el => {
                           el.config
-                            .dataAttribute("element", stateful((get, label) => `inner-${get(label)}`))
+                            .dataAttribute("element", stateful((label) => `inner-${label}`))
                             .style("background-color: blue; width:100px; height: 100px;")
                             .on("click", (evt) => {
                               evt.stopPropagation()
                               return update(context.state.inner, (val) => val += 1)
                             })
-                          el.children.textNode(stateful((get, label) => `click me: ${get(label)}`))
+                          el.children.textNode(stateful((label) => `click me: ${label}`))
                         })
                       }
                     })
@@ -625,13 +625,13 @@ export default behavior("event handlers", [
                       return root => {
                         root.div(el => {
                           el.config
-                            .dataAttribute("element", stateful((get, label) => `inner-${get(label)}`))
+                            .dataAttribute("element", stateful((label) => `inner-${label}`))
                             .style("background-color: blue; width:100px; height: 100px;")
                             .on("click", (evt) => {
                               evt.stopImmediatePropagation()
                               return update(context.state.inner, (val) => val += 1)
                             })
-                          el.children.textNode(stateful((get, label) => `click me: ${get(label)}`))
+                          el.children.textNode(stateful((label) => `click me: ${label}`))
                         })
                       }
                     })
@@ -671,15 +671,15 @@ export default behavior("event handlers", [
                 el.children
                   .button(el => {
                     el.config
-                      .dataAttribute("button-name", stateful((get, name) => get(name)))
-                      .on("click", () => use(stateful((get, name) => {
-                        if (get(name) === "trees") {
-                          return write(context.state.message, get(name))
+                      .dataAttribute("button-name", stateful((name) => name))
+                      .on("click", () => use(stateful((name) => {
+                        if (name === "trees") {
+                          return write(context.state.message, name)
                         } else {
                           return undefined
                         }
                       })))
-                    el.children.textNode(stateful((get, name) => `Click to get ${get(name)}`))
+                    el.children.textNode(stateful((name) => `Click to get ${name}`))
                   })
               })
           }
@@ -788,11 +788,11 @@ function templateInstanceWithNonBubblingEvent(title: string, renderer: (context:
               root.form(el => {
                 el.children.label(el => {
                   el.children
-                    .textNode(stateful((get, option) => get(option)))
+                    .textNode(stateful((option) => option))
                     .input(el => {
                       el.config
-                        .name(stateful((get, option) => get(option).toLowerCase()))
-                        .on("focus", () => use(stateful((get, option) => write(context.state.message, `${get(option)} is focused!`))))
+                        .name(stateful((option) => option.toLowerCase()))
+                        .on("focus", () => use(stateful((option) => write(context.state.message, `${option} is focused!`))))
                     })
                 })
               })

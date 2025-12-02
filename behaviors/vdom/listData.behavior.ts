@@ -5,7 +5,6 @@ import { HTMLView } from "@view/htmlElements";
 import { selectElement, selectElements } from "./helpers/displayElement";
 import { assignedWith, expect, resolvesTo, stringContaining } from "great-expectations";
 import { UseData } from "@view/index";
-import { StateReference } from "@store/tokenRegistry";
 
 interface Item {
   id: string
@@ -35,9 +34,9 @@ export default behavior("list data", [
           })
         }),
         fact("a list of elements is displayed based on the state", (context) => {
-          const selected = container<StateReference<Item> | undefined>({ initialValue: undefined })
+          const selected = container<Item | undefined>({ initialValue: undefined })
 
-          function selectRow(item: StateReference<Item>) {
+          function selectRow(item: Item) {
             return batch([
               write(selected, item)
             ])
@@ -47,15 +46,15 @@ export default behavior("list data", [
             return root => {
               root.li(el => {
                 el.config
-                  .dataAttribute("item", useData((get, item) => get(item).id))
-                  .on("click", () => use(useData((_, item) => selectRow(item))))
-                  .class(useData((get, item) => {
+                  .dataAttribute("item", useData((item) => item.id))
+                  .on("click", () => use(useData((item) => selectRow(item))))
+                  .class(useData((item, get) => {
                     const sel = get(selected)
                     if (sel === undefined) return ""
-                    return get(item).id === get(sel).id ? "selected-item" : ""
+                    return item.id === sel.id ? "selected-item" : ""
                   }))
                 el.children
-                  .textNode(useData((get, item, index) => `${get(item).label} => ${get(index)}`))
+                  .textNode(useData((item, get, index) => `${item.label} => ${get(index)}`))
               })
             }
           }

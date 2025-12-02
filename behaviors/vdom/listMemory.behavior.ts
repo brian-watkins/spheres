@@ -26,7 +26,7 @@ export default behavior("list memory", [
             return (root) => {
               root.div(el => {
                 el.config.dataAttribute("list-item")
-                el.children.textNode(stateful((get, item, index) => `${get(item)} (${get(externalToken) + get(index)})`))
+                el.children.textNode(stateful((item, get, index) => `${item} (${get(externalToken) + get(index)})`))
               })
             }
           }
@@ -168,7 +168,7 @@ export default behavior("list memory", [
         fact("there is a view for the list", (context) => {
           function itemView(stateful: UseData<string>): HTMLView {
             return (root) => {
-              const label = derived(stateful((get, item, index) => `${get(item)} (${get(externalToken) + get(index)})`))
+              const label = derived(stateful((item, get, index) => `${item} (${get(externalToken) + get(index)})`))
 
               root.div(el => {
                 el.config.dataAttribute("list-item")

@@ -21,6 +21,7 @@ export {
   type Stateful,
   type WritableState,
   type PublishableState,
+  type StateReference,
 } from "./tokenRegistry.js"
 export {
   type ContainerInitializer,
@@ -77,3 +78,8 @@ export {
   type Collection,
   collection
 } from "./state/collection.js"
+export {
+  type Value,
+  valueAt,
+  value
+} from "./state/value.js"

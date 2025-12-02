@@ -24,7 +24,7 @@ function personView(usePerson: UseData<Person>): HTMLView {
   return root => {
     root.li(el => {
       el.config.dataAttribute("person")
-      el.children.textNode(usePerson((get, person) => `${get(person).name} - ${get(person).age}`))
+      el.children.textNode(usePerson((person) => `${person.name} - ${person.age}`))
     })
   }
 }

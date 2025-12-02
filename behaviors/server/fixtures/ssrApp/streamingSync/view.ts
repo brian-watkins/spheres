@@ -39,7 +39,7 @@ function thingView(useThing: UseData<Thing>): HTMLView {
     root.li(el => {
       el.children
         .h3(el => {
-          el.children.textNode(useThing((get, thing) => `A ${get(thing).name} that is ${get(thing).color}`))
+          el.children.textNode(useThing((thing) => `A ${thing.name} that is ${thing.color}`))
         })
     })
   }

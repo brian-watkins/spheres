@@ -18,7 +18,7 @@ function itemView(useState: UseData<string>): HTMLView {
       el.children
         .subview(dynamic)
         .div(el => {
-          el.children.textNode(useState((get, state) => get(state)))
+          el.children.textNode(useState((state) => state))
         })
     })
   }

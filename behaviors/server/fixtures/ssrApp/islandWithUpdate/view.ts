@@ -38,7 +38,7 @@ export function view(root: HTMLBuilder) {
 function itemView(useItem: UseData<Item>): HTMLView {
   return (root) => {
     root.li(el => {
-      el.children.textNode(useItem((get, item) => get(item).name))
+      el.children.textNode(useItem((item) => item.name))
     })
   }
 }

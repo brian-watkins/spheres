@@ -1,6 +1,6 @@
 {
   "name": "examples",
-  "version": "1.0.18",
+  "version": "1.0.19",
   "description": "",
   "main": "index.js",
   "type": "module",
@@ -25,6 +25,6 @@
   "license": "MIT",
   "dependencies": {
     "luxon": "^3.4.0",
-    "spheres": "^0.24.0"
+    "spheres": "^0.25.0"
   }
 }

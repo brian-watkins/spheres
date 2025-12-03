@@ -1,5 +1,11 @@
 # spheres
 
+## 0.25.0
+
+### Minor Changes
+
+- 43eed2c: Performance improvements; better memory management; new subviews api
+
 ## 0.24.0
 
 ### Minor Changes

@@ -1,5 +1,11 @@
 # spheres
 
+## 0.25.1
+
+### Patch Changes
+
+- 2d82d17: Select view no longer loses subscriptions
+
 ## 0.25.0
 
 ### Minor Changes

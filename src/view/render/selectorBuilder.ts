@@ -126,7 +126,9 @@ export class SelectorCollection<T> {
   constructor(private selectors: Array<TemplateSelector<T>>) { }
 
   findSelector(get: GetState): TemplateSelector<T> {
-    return this.selectors.find(selector => selector.select(get)) ?? emptySelector
+    return this.selectors.find(selector => {
+      return selector.select(get)
+    }) ?? emptySelector
   }
 }
 
@@ -148,44 +150,60 @@ class CaseViewOverlayTokenRegistry extends OverlayTokenRegistry {
   }
 
   getState<S extends State<unknown>>(token: S): StateHandler<S> {
-    if (this.tokens.includes(token)) {
-      let publisher = this.tokenMap.get(token)
-      if (publisher === undefined) {
-        publisher = generateStateManager(this, token)
-        this.tokenMap.set(token, this.createGuardedStateManager(publisher))
+    let publisher = this.tokenMap.get(token)
+    if (publisher === undefined) {
+      if (this.tokens.includes(token)) {
+        publisher = this.createGuardingStateHandler(generateStateManager(this, token))
+      } else {
+        publisher = this.createGuardingStateHandler(this.parentRegistry.getState(token))
       }
-      return publisher
+      this.tokenMap.set(token, publisher)
     }
 
-    const publisher = this.parentRegistry.getState(token)
-    return this.createGuardedStateManager(publisher)
+    return publisher
   }
 
-  private createGuardedStateManager(subscribable: Subscribable): StateHandler<any> {
-    return guardListenersStatePublisherProxy(
+  private createGuardingStateHandler(subscribable: Subscribable): StateHandler<any> {
+    return guardSubscriberStateHandler(
       subscribable,
-      () => runQuery(this.parentRegistry, this.selector)
+      () => runQuery(this, this.selector)
     )
   }
 }
 
-function guardListenersStatePublisherProxy(subscribable: Subscribable, guard: () => boolean) {
+function guardSubscriberStateHandler(subscribable: Subscribable, guard: () => boolean) {
+  const subscriberCache = new WeakSet<Subscriber>()
+
   return new Proxy(subscribable, {
     get<P extends keyof Subscribable>(target: Subscribable, prop: P, receiver: any) {
       if (prop === "addSubscriber") {
-        return (key: Subscriber) => {
-          const listener = key.listener
-          const runner = listener.run.bind(listener)
-          listener.run = function (get) {
-            if (guard()) {
-              runner(get, key.context)
-            }
+        return (subscriber: Subscriber) => {
+          if (subscriberCache.has(subscriber)) {
+            target.addSubscriber(subscriber)
+          } else {
+            const proxiedSub = guardedSubscriber(guard, subscriber)
+            subscriberCache.add(proxiedSub)
+            target.addSubscriber(proxiedSub)
           }
-          target.addSubscriber(key)
         }
       } else {
         return Reflect.get(target, prop, receiver)
       }
     }
   })
+}
+
+function guardedSubscriber(guard: () => boolean, subscriber: Subscriber): Subscriber {
+  return {
+    ...subscriber,
+    listener: new Proxy(subscriber.listener, {
+      get(target, prop, receiver) {
+        if (prop === "run") {
+          return guard() ? Reflect.get(target, prop, receiver) : () => { }
+        } else {
+          return Reflect.get(target, prop, receiver)
+        }
+      },
+    })
+  }
 }

@@ -244,12 +244,12 @@ export default behavior("conditional zone", [
       ]
     }),
 
-  example(renderContext<Container<string>>())
+  example(renderContext<Container<boolean>>())
     .description("conditional view that defines state")
     .script({
       suppose: [
         fact("there is some state", (context) => {
-          context.setState(container({ initialValue: "hello" }))
+          context.setState(container({ initialValue: true }))
         }),
         fact("there is a conditional view that defines state", (context) => {
           function counterView(root: HTMLBuilder) {
@@ -284,10 +284,16 @@ export default behavior("conditional zone", [
 
           context.mountView(root => {
             root.main(el => {
-              el.children.subviewFrom(selector => selector.withConditions()
-                .when(get => get(context.state).length > 3, counterView)
-                .default(defaultView)
-              )
+              el.children
+                .subviewFrom(selector => selector.withConditions()
+                  .when(get => get(context.state), counterView)
+                  .default(defaultView)
+                )
+                .hr()
+                .button(el => {
+                  el.config.on("click", () => update(context.state, (val) => !val))
+                  el.children.textNode("Click to switch")
+                })
             })
           })
         })
@@ -307,7 +313,7 @@ export default behavior("conditional zone", [
     }).andThen({
       perform: [
         step("update the state so that the default view is shown", (context) => {
-          context.writeTo(context.state, "aa")
+          context.writeTo(context.state, false)
         }),
         step("click the button in the default view", async () => {
           await selectElement("button").click()

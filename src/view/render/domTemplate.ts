@@ -162,7 +162,8 @@ function activateEffect(registry: TokenRegistry, root: Node, effect: EffectTempl
       const endNode = findSwitchEndNode(startNode, effect.elementId)
 
       const selectEffect = new SelectViewEffect(registry, effect.selectors, startNode, endNode)
-      activateSelect(registry, effect.selectors, startNode, getStateFunctionWithListener(createSubscriber(registry, selectEffect)))
+      const selector = activateSelect(registry, effect.selectors, startNode, getStateFunctionWithListener(createSubscriber(registry, selectEffect)))
+      selectEffect.setCurrentSelector(selector)
 
       break
     }

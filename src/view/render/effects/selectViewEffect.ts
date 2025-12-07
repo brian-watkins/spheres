@@ -19,6 +19,10 @@ export class SelectViewEffect implements StateEffect {
     this.registry = new ConditionalViewOverlayRegistry(parentRegistry)
   }
 
+  setCurrentSelector(selector: TemplateSelector<DOMTemplate>) {
+    this.currentSelector = selector
+  }
+
   init(get: GetState): void {
     this.switchView(get)
   }
@@ -67,13 +71,15 @@ export class SelectViewEffect implements StateEffect {
   }
 }
 
-export function activateSelect(registry: TokenRegistry, selectors: SelectorCollection<DOMTemplate>, startNode: Node, get: GetState): void {
+export function activateSelect(registry: TokenRegistry, selectors: SelectorCollection<DOMTemplate>, startNode: Node, get: GetState): TemplateSelector<DOMTemplate> {
   const selector = selectors.findSelector(get)
 
   if (selector.type === "view") {
     const templateContext = selector.templateContext()
     activate(templateContext.template, templateContext.overlayRegistry(registry), startNode.nextSibling!)
   }
+
+  return selector
 }
 
 class ConditionalViewOverlayRegistry extends OverlayTokenRegistry {

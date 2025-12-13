@@ -25,7 +25,7 @@ export class DerivedState<T> extends State<T> {
   }
 
   [createStateHandler](registry: TokenRegistry): StateReader<T> {
-    const reader = new DerivedStateReader(this.derivation)
+    const reader = new DerivedStateReader(registry, this.derivation)
     initListener(registry, reader)
     return reader
   }

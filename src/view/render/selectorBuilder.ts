@@ -145,6 +145,7 @@ function memoize<X>(fun: () => X): () => X {
 
 class CaseViewOverlayTokenRegistry extends OverlayTokenRegistry {
   private tokenMap: Map<State<any>, any> = new Map()
+
   constructor(parentRegistry: TokenRegistry, private selector: (get: GetState) => boolean, private tokens: Array<State<any>>) {
     super(parentRegistry)
   }

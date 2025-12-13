@@ -5,6 +5,11 @@ import { HTMLView } from "@view/htmlElements";
 import { selectElement, selectElements } from "./helpers/displayElement";
 import { expect, resolvesTo } from "great-expectations";
 
+var style = document.createElement('style');
+style.type = 'text/css';
+style.innerHTML = '.selected-item { color: #f00; }';
+document.getElementsByTagName('head')[0].appendChild(style);
+
 export default behavior("view of discriminated union state", [
 
   discriminatedUnionSwitchViewExample("client rendered", (context, view) => context.mountView(view)),
@@ -17,13 +22,20 @@ export default behavior("view of discriminated union state", [
     .description("selecting from union with default case")
     .script({
       suppose: [
+        fact("some list items are set", (context) => {
+          context.writeTo(listDataState, {
+            type: "list-with-items", items: [
+              "apple", "pear", "grapes", "banana"
+            ], selected: ""
+          })
+        }),
         fact("a view that renders the discriminated union state", (context) => {
           context.mountView(root => {
             root.main(el => {
               el.children
                 .subviewFrom(selector => {
                   selector.withUnion(pageState)
-                    .when(page => page.type === "list", listView)
+                    .when(page => page.type === "list", listOrEmptyView)
                     .default(defaultView)
                 })
             })
@@ -54,13 +66,20 @@ export default behavior("view of discriminated union state", [
     .description("select view of select views")
     .script({
       suppose: [
+        fact("some list items are set", (context) => {
+          context.writeTo(listDataState, {
+            type: "list-with-items", items: [
+              "apple", "pear", "grapes", "banana"
+            ], selected: ""
+          })
+        }),
         fact("a view that renders the discriminated union state", (context) => {
           context.mountView(root => {
             root.main(el => {
               el.children
                 .subviewFrom(selector => {
                   selector.withUnion(pageState)
-                    .when(page => page.type === "list", listView)
+                    .when(page => page.type === "list", listOrEmptyView)
                     .when(page => page.type === "detail", detailViewWithContent)
                 })
             })
@@ -87,8 +106,15 @@ export default behavior("view of discriminated union state", [
       ]
     }).andThen({
       perform: [
+        step("items are updated", (context) => {
+          context.writeTo(listDataState, {
+            type: "list-with-items", items: [
+              "a", "b", "c"
+            ], selected: "a"
+          })
+        }),
         step("return to the list view", context => {
-          context.writeTo(pageState, { type: "list", data: { items: ["a", "b", "c"] }, selected: "a" })
+          context.writeTo(pageState, { type: "list", data: listDataState })
         })
       ],
       observe: [
@@ -124,7 +150,7 @@ function discriminatedUnionSwitchViewExample(name: string, renderer: (context: R
               el.children
                 .subviewFrom(selector => {
                   selector.withUnion(pageState)
-                    .when(page => page.type === "list", listView)
+                    .when(page => page.type === "list", listOrEmptyView)
                     .when(page => page.type === "detail", detailView)
                 })
             })
@@ -132,7 +158,22 @@ function discriminatedUnionSwitchViewExample(name: string, renderer: (context: R
         })
       ],
       observe: [
-        effect("the view for initial state is displayed", async () => {
+        effect("the empty list view is displayed", async () => {
+          await expect(selectElement("h1").text(), resolvesTo("EMPTY LIST!"))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("populate the list", (context) => {
+          context.writeTo(listDataState, {
+            type: "list-with-items",
+            items: ["apple", "pear", "grapes", "banana"],
+            selected: "pear"
+          })
+        })
+      ],
+      observe: [
+        effect("the view for the list is displayed", async () => {
           await expect(selectElements("li").texts(), resolvesTo([
             "apple", "pear", "grapes", "banana"
           ]))
@@ -143,19 +184,46 @@ function discriminatedUnionSwitchViewExample(name: string, renderer: (context: R
       ]
     }).andThen({
       perform: [
+        step("update the list items", (context) => {
+          context.writeTo(listDataState, {
+            type: "list-with-items",
+            items: ["truck", "car", "boat"],
+            selected: "truck"
+          })
+        })
+      ],
+      observe: [
+        effect("the view for the list is displayed", async () => {
+          await expect(selectElements("li").texts(), resolvesTo([
+            "truck", "car", "boat"
+          ]))
+        }),
+        effect("the selected item is selected", async () => {
+          await expect(selectElements("li").at(0).property("className"), resolvesTo("selected-item"))
+        })
+      ]
+    }).andThen({
+      perform: [
         step("update the page state with another discriminant", async () => {
           await selectElements("li").at(2).click()
         })
       ],
       observe: [
         effect("the view for the discriminant is displayed", async () => {
-          await expect(selectElement("[data-detail-name]").text(), resolvesTo("grapes has 6 characters"))
+          await expect(selectElement("[data-detail-name]").text(), resolvesTo("boat has 4 characters"))
         })
       ]
     }).andThen({
       perform: [
-        step("return to the first view", (context) => {
-          context.writeTo(pageState, { type: "list", data: { items: ["hat", "coat", "pants"] }, selected: "pants" })
+        step("return to the list view", async () => {
+          await selectElement("[data-detail-name]").click()
+        }),
+        step("update the list", (context) => {
+          context.writeTo(listDataState, {
+            type: "list-with-items",
+            items: ["hat", "coat", "pants"],
+            selected: "coat"
+          })
         })
       ],
       observe: [
@@ -165,13 +233,17 @@ function discriminatedUnionSwitchViewExample(name: string, renderer: (context: R
           ]))
         }),
         effect("the selected item is selected", async () => {
-          await expect(selectElements("li").at(2).property("className"), resolvesTo("selected-item"))
+          await expect(selectElements("li").at(1).property("className"), resolvesTo("selected-item"))
         })
       ]
     }).andThen({
       perform: [
         step("update the data for the current view", (context) => {
-          context.writeTo(pageState, { type: "list", data: { items: ["red", "orange", "blue", "green"] }, selected: "green" })
+          context.writeTo(listDataState, {
+            type: "list-with-items",
+            items: ["red", "orange", "blue", "green"],
+            selected: "green"
+          })
         })
       ],
       observe: [
@@ -187,16 +259,18 @@ function discriminatedUnionSwitchViewExample(name: string, renderer: (context: R
     })
 }
 
-var style = document.createElement('style');
-style.type = 'text/css';
-style.innerHTML = '.selected-item { color: #f00; }';
-document.getElementsByTagName('head')[0].appendChild(style);
-
 function discriminatedUnionReuseViewExample(name: string, renderer: (context: RenderApp<Container<PageState>>, view: HTMLView) => void) {
   return example(renderContext<Container<PageState>>())
     .description(`view based on selector with a single case (${name})`)
     .script({
       suppose: [
+        fact("some list items are set", (context) => {
+          context.writeTo(listDataState, {
+            type: "list-with-items", items: [
+              "apple", "pear", "grapes", "banana"
+            ], selected: "pear"
+          })
+        }),
         fact("a view that renders the discriminated union state", (context) => {
           renderer(context, root => {
             root.main(el => {
@@ -206,9 +280,14 @@ function discriminatedUnionReuseViewExample(name: string, renderer: (context: Re
                     return use(get => {
                       const state = get(pageState)
                       if (state.type === "list") {
-                        const i = state.data.items.findIndex((item) => item === state.selected)
-                        const next = state.data.items[(i + 1) % state.data.items.length]
-                        return write(pageState, { ...state, selected: next })
+                        const listState = get(state.data)
+                        if (listState.type === "list-with-items") {
+                          const i = listState.items.findIndex((item) => item === listState.selected)
+                          const next = listState.items[(i + 1) % listState.items.length]
+                          return write(state.data, { ...listState, selected: next })
+                        } else {
+                          return batch([])
+                        }
                       } else {
                         return batch([])
                       }
@@ -282,21 +361,25 @@ function discriminatedUnionReuseViewExample(name: string, renderer: (context: Re
     })
 }
 
+const listDataState = container<ListData>({
+  initialValue: { type: "empty-list" }
+})
+
 const pageState = container<PageState>({
   name: "page-state-container",
   initialValue: {
     type: "list",
-    data: {
-      items: ["apple", "pear", "grapes", "banana"]
-    },
-    selected: "pear"
+    data: listDataState
   }
 })
 
 function staticList(state: State<ListState>): HTMLView {
   const selectedItem = derived({
     name: "selected-item",
-    query: get => get(state).selected
+    query: get => {
+      const listState = get(get(state).data)
+      return listState.type === "list-with-items" ? listState.selected : undefined
+    }
   })
 
   const items = ["apple", "pear", "grapes", "banana"]
@@ -315,10 +398,24 @@ function staticList(state: State<ListState>): HTMLView {
   }
 }
 
-function listView(state: State<ListState>): HTMLView {
+function listOrEmptyView(state: State<ListState>): HTMLView {
+  const listData = derived(get => get(get(state).data))
+
+  return (root) => {
+    root.subviewFrom(selector => {
+      selector.withUnion(listData)
+        .when(state => state.type === "list-with-items", listView)
+        .when(state => state.type === "empty-list", () => root => {
+          root.h1(el => el.children.textNode("EMPTY LIST!"))
+        })
+    })
+  }
+}
+
+function listView(state: State<ListWithItems>): HTMLView {
   const items = derived({
     name: "list-items",
-    query: get => get(state).data.items
+    query: get => get(state).items
   })
   const selectedItem = derived({
     name: "selected-item",
@@ -338,7 +435,10 @@ function listView(state: State<ListState>): HTMLView {
                 }
               })))
             })
-            .class(useData((item, get) => get(selectedItem) === item ? "selected-item" : ""))
+            .class(useData((item, get) => {
+              const selected = get(selectedItem)
+              return selected === item ? "selected-item" : ""
+            }))
           el.children.textNode(useData(item => item))
         })
       })
@@ -358,7 +458,9 @@ function detailView(state: State<DetailState>): HTMLView {
   const name = derived(get => get(state).detail.name)
   return root => {
     root.h3(el => {
-      el.config.dataAttribute("detail-name")
+      el.config
+        .dataAttribute("detail-name")
+        .on("click", () => write(pageState, { type: "list", data: listDataState }))
       el.children.textNode(get => `${get(name)} has ${get(name).length} characters`)
     })
   }
@@ -416,10 +518,21 @@ function defaultView(state: State<PageState>): HTMLView {
   }
 }
 
+interface ListWithItems {
+  type: "list-with-items"
+  items: Array<string>
+  selected: string
+}
+
+interface EmptyList {
+  type: "empty-list"
+}
+
+type ListData = ListWithItems | EmptyList
+
 interface ListState {
   type: "list"
-  data: { items: Array<string> }
-  selected: string
+  data: Container<ListData>
 }
 
 interface FunContent {

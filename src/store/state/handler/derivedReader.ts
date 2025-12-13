@@ -1,12 +1,18 @@
-import { GetState, StateDerivation, StateListenerType, StateReader } from "../../tokenRegistry.js"
+import { GetState, runQuery, StateDerivation, StateListenerType, StateReader, Subscriber, TokenRegistry } from "../../tokenRegistry.js"
 import { SubscriberSet } from "./subscriberSet.js"
 
 export class DerivedStateReader<T> extends SubscriberSet implements StateReader<T>, StateDerivation {
   readonly type = StateListenerType.Derivation
   private _value!: T
+  public isDirty: boolean = false
 
-  constructor(private derivation: (get: GetState) => T) {
+  constructor(private registry: TokenRegistry, private derivation: (get: GetState) => T) {
     super()
+  }
+
+  notifyListeners(userEffects: Array<Subscriber>): void {
+    this.isDirty = true
+    super.notifyListeners(userEffects)
   }
 
   init(get: GetState): void {
@@ -21,11 +27,15 @@ export class DerivedStateReader<T> extends SubscriberSet implements StateReader<
     }
 
     this._value = derived
+    this.isDirty = false
 
     this.runListeners()
   }
 
   getValue(): T {
+    if (this.isDirty) {
+      return runQuery(this.registry, this.derivation)
+    }
     return this._value
   }
 }

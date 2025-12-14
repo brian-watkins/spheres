@@ -424,6 +424,92 @@ export default behavior("conditional zone", [
       ]
     }),
 
+  example(renderContext<MultiStateConditionsContext>())
+    .description("conditional view with different tokens in different conditions")
+    .script({
+      suppose: [
+        fact("there is some state", (context) => {
+          context.setState({
+            stateA: container({ initialValue: "Goodbye" }),
+            stateB: container({ initialValue: 12 }),
+            stateC: container({ initialValue: "huh" })
+          })
+        }),
+        fact("there is a conditional view where the conditions depend on different state", (context) => {
+          function showView(message: string): HTMLView {
+            return root => {
+              root.h1(el => {
+                el.children.textNode(message)
+              })
+            }
+          }
+
+          context.mountView(root => {
+            root.main(el => {
+              el.children.subviewFrom(selector => {
+                selector.withConditions()
+                  .when(get => get(context.state.stateA) === "Hello", showView("Hello!"))
+                  .when(get => get(context.state.stateB) === 27, showView("NUMBERS"))
+                  .when(get => get(context.state.stateC) === "yo", showView("Yo!!"))
+                  .default(showView("Nothing!"))
+              })
+            })
+          })
+        })
+      ],
+      observe: [
+        effect("it shows the default view", async () => {
+          await expect(selectElement("h1").text(), resolvesTo("Nothing!"))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("update so the second state matches", (context) => {
+          context.writeTo(context.state.stateB, 27)
+        })
+      ],
+      observe: [
+        effect("it shows the second conditional view", async () => {
+          await expect(selectElement("h1").text(), resolvesTo("NUMBERS"))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("update so the first state matches", (context) => {
+          context.writeTo(context.state.stateA, "Hello")
+        })
+      ],
+      observe: [
+        effect("it shows the first conditional view", async () => {
+          await expect(selectElement("h1").text(), resolvesTo("Hello!"))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("update so the third matches", (context) => {
+          context.writeTo(context.state.stateC, "yo")
+          context.writeTo(context.state.stateB, 22)
+          context.writeTo(context.state.stateA, "later")
+        })
+      ],
+      observe: [
+        effect("it shows the first conditional view", async () => {
+          await expect(selectElement("h1").text(), resolvesTo("Yo!!"))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("update so the second state matches", (context) => {
+          context.writeTo(context.state.stateB, 27)
+        })
+      ],
+      observe: [
+        effect("it shows the second conditional view", async () => {
+          await expect(selectElement("h1").text(), resolvesTo("NUMBERS"))
+        })
+      ]
+    }),
+
   nestedSiblingSelectViewExample("client rendered", (context, view) => context.mountView(view)),
   nestedSiblingSelectViewExample("server rendered", (context, view) => context.ssrAndActivate(view)),
 
@@ -447,6 +533,12 @@ export default behavior("conditional zone", [
 interface ConditionalUpdatesContext {
   root: Container<{ name: string }>
   log: Array<string>
+}
+
+interface MultiStateConditionsContext {
+  stateA: Container<string>
+  stateB: Container<number>
+  stateC: Container<string>
 }
 
 function basicSelectEmptyAtFirst(name: string, renderer: (context: RenderApp<Container<boolean>>, view: HTMLView) => void) {

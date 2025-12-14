@@ -63,6 +63,63 @@ export default behavior("view of discriminated union state", [
     }),
 
   example(renderContext<Container<PageState>>())
+    .description("current union case remains the same but other values change")
+    .script({
+      suppose: [
+        fact("a view that renders the discriminated union state", (context) => {
+          context.mountView(root => {
+            root.main(el => {
+              el.children
+                .subviewFrom(selector => {
+                  selector.withUnion(pageState)
+                    .when(page => page.type === "list", listOrEmptyView)
+                    .default(defaultView)
+                })
+            })
+          })
+        })
+      ],
+      observe: [
+        effect("the view for initial state is displayed", async () => {
+          await expect(selectElement("h1").text(), resolvesTo("EMPTY LIST!"))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("add items to the list", (context) => {
+          context.writeTo(listDataState, {
+            type: "list-with-items", items: [
+              "apple", "pear", "grapes", "banana"
+            ], selected: "pear"
+          })
+        })
+      ],
+      observe: [
+        effect("the view for the list items is displayed", async () => {
+          await expect(selectElements("li").texts(), resolvesTo([
+            "apple", "pear", "grapes", "banana"
+          ]))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("update the value on the discriminant", (context) => {
+          context.writeTo(pageState, {
+            type: "list",
+            data: anotherListDataState
+          })
+        })
+      ],
+      observe: [
+        effect("the updated list is displayed", async () => {
+          await expect(selectElements("li").texts(), resolvesTo([
+            "a", "b", "c"
+          ]))
+        })
+      ]
+    }),
+
+  example(renderContext<Container<PageState>>())
     .description("select view of select views")
     .script({
       suppose: [
@@ -363,6 +420,10 @@ function discriminatedUnionReuseViewExample(name: string, renderer: (context: Re
 
 const listDataState = container<ListData>({
   initialValue: { type: "empty-list" }
+})
+
+const anotherListDataState = container<ListData>({
+  initialValue: { type: "list-with-items", items: ["a", "b", "c"], selected: "c" }
 })
 
 const pageState = container<PageState>({

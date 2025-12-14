@@ -182,9 +182,9 @@ function guardSubscriberStateHandler(subscribable: Subscribable, guard: () => bo
           if (subscriberCache.has(subscriber)) {
             target.addSubscriber(subscriber)
           } else {
-            const proxiedSub = guardedSubscriber(guard, subscriber)
-            subscriberCache.add(proxiedSub)
-            target.addSubscriber(proxiedSub)
+            const subscriberWithProxiedListener = guardedSubscriber(guard, subscriber)
+            subscriberCache.add(subscriberWithProxiedListener)
+            target.addSubscriber(subscriberWithProxiedListener)
           }
         }
       } else {
@@ -195,16 +195,15 @@ function guardSubscriberStateHandler(subscribable: Subscribable, guard: () => bo
 }
 
 function guardedSubscriber(guard: () => boolean, subscriber: Subscriber): Subscriber {
-  return {
-    ...subscriber,
-    listener: new Proxy(subscriber.listener, {
-      get(target, prop, receiver) {
-        if (prop === "run") {
-          return guard() ? Reflect.get(target, prop, receiver) : () => { }
-        } else {
-          return Reflect.get(target, prop, receiver)
-        }
-      },
-    })
-  }
+  subscriber.listener = new Proxy(subscriber.listener, {
+    get(target, prop, receiver) {
+      if (prop === "run") {
+        return guard() ? Reflect.get(target, prop, receiver) : () => { }
+      } else {
+        return Reflect.get(target, prop, receiver)
+      }
+    },
+  })
+
+  return subscriber
 }

@@ -16,7 +16,7 @@ export interface HTMLConditionSelector {
 }
 
 export interface HTMLViewSelector {
-    withUnion<T>(state: State<T>): HTMLCaseSelector<T>;
+    withUnion<T>(unionValue: (get: GetState) => T): HTMLCaseSelector<T>;
     withConditions(): HTMLConditionSelector;
 }
 

@@ -952,7 +952,7 @@ function multipleConditionalListsWithEvents(name: string, renderer: (context: Re
                   el.children.textNode("switch lists")
                 })
                 .subviewFrom(selector => {
-                  selector.withUnion(context.state.trigger)
+                  selector.withUnion(get => get(context.state.trigger))
                     .when(thing => thing.type === "one-thing", () => listView)
                     .when(thing => thing.type === "two-thing", () => otherListView)
                 })

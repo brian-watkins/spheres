@@ -23,7 +23,7 @@ export interface ViewConditionSelector {
 }
 
 export interface ViewSelector {
-  withUnion<T>(state: State<T>): ViewCaseSelector<T>
+  withUnion<T>(unionValue: (get: GetState) => T): ViewCaseSelector<T>
   withConditions(): ViewConditionSelector
 }
 

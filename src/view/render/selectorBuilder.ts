@@ -1,4 +1,4 @@
-import { GetState, State } from "../../store/index.js";
+import { derived, GetState, State } from "../../store/index.js";
 import { OverlayTokenRegistry } from "../../store/registry/overlayTokenRegistry.js";
 import { recordTokens } from "../../store/state/stateRecorder.js";
 import { generateStateManager, runQuery, Subscriber, Subscribable, TokenRegistry, StateHandler } from "../../store/tokenRegistry.js";
@@ -38,20 +38,21 @@ export class SelectorBuilder<T> implements ViewSelector {
     return new SelectorCollection(selectors)
   }
 
-  withUnion<T>(state: State<T>): ViewCaseSelector<T> {
+  withUnion<T>(valueQuery: (get: GetState) => T): ViewCaseSelector<T> {
+    const unionValue = derived(valueQuery)
     const self = this
 
     return {
       when(typePredicate, viewGenerator) {
         const index = self.templateSelectors.length
-        const selector = (get: GetState) => typePredicate(get(state))
+        const selector = (get: GetState) => typePredicate(get(unionValue))
         self.templateSelectors.push({
           type: "view",
           select: selector,
           templateContext: memoize(() => {
             let template!: any
             const tokens = recordTokens(() => {
-              template = self.createTemplate(viewGenerator(state as State<any>), index)
+              template = self.createTemplate(viewGenerator(unionValue as State<any>), index)
             })
 
             return {
@@ -70,7 +71,7 @@ export class SelectorBuilder<T> implements ViewSelector {
           select: () => true,
           templateContext: memoize(() => {
             return {
-              template: self.createTemplate(viewGenerator(state), self.templateSelectors.length),
+              template: self.createTemplate(viewGenerator(unionValue), self.templateSelectors.length),
               // Note: No need for an overlay registry here as the default view does not get
               // a particular discrimiant as its state argument -- the guard provided by
               // the registry is not needed

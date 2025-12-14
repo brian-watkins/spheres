@@ -103,7 +103,7 @@ viewSelectorInterface.addMethod({
   name: "withUnion",
   typeParameters: ["T"],
   parameters: [
-    { name: "state", type: "State<T>" }
+    { name: "unionValue", type: "(get: GetState) => T" }
   ],
   returnType: "HTMLCaseSelector<T>"
 })

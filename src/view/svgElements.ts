@@ -16,7 +16,7 @@ export interface SVGConditionSelector {
 }
 
 export interface SVGViewSelector {
-    withUnion<T>(state: State<T>): SVGCaseSelector<T>;
+    withUnion<T>(unionValue: (get: GetState) => T): SVGCaseSelector<T>;
     withConditions(): SVGConditionSelector;
 }
 

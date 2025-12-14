@@ -34,7 +34,7 @@ export default behavior("view of discriminated union state", [
             root.main(el => {
               el.children
                 .subviewFrom(selector => {
-                  selector.withUnion(pageState)
+                  selector.withUnion(get => get(pageState))
                     .when(page => page.type === "list", listOrEmptyView)
                     .default(defaultView)
                 })
@@ -71,7 +71,7 @@ export default behavior("view of discriminated union state", [
             root.main(el => {
               el.children
                 .subviewFrom(selector => {
-                  selector.withUnion(pageState)
+                  selector.withUnion(get => get(pageState))
                     .when(page => page.type === "list", listOrEmptyView)
                     .default(defaultView)
                 })
@@ -135,7 +135,7 @@ export default behavior("view of discriminated union state", [
             root.main(el => {
               el.children
                 .subviewFrom(selector => {
-                  selector.withUnion(pageState)
+                  selector.withUnion(get => get(pageState))
                     .when(page => page.type === "list", listOrEmptyView)
                     .when(page => page.type === "detail", detailViewWithContent)
                 })
@@ -206,7 +206,7 @@ function discriminatedUnionSwitchViewExample(name: string, renderer: (context: R
             root.main(el => {
               el.children
                 .subviewFrom(selector => {
-                  selector.withUnion(pageState)
+                  selector.withUnion(get => get(pageState))
                     .when(page => page.type === "list", listOrEmptyView)
                     .when(page => page.type === "detail", detailView)
                 })
@@ -353,7 +353,7 @@ function discriminatedUnionReuseViewExample(name: string, renderer: (context: Re
                   el.children.textNode("Select Next")
                 })
                 .subviewFrom(selector => {
-                  selector.withUnion(pageState)
+                  selector.withUnion(get => get(pageState))
                     .when(page => page.type === "list", staticList)
                 })
             })
@@ -460,11 +460,11 @@ function staticList(state: State<ListState>): HTMLView {
 }
 
 function listOrEmptyView(state: State<ListState>): HTMLView {
-  const listData = derived(get => get(get(state).data))
+  // const listData = derived(get => get(get(state).data))
 
   return (root) => {
     root.subviewFrom(selector => {
-      selector.withUnion(listData)
+      selector.withUnion(get => get(get(state).data))
         .when(state => state.type === "list-with-items", listView)
         .when(state => state.type === "empty-list", () => root => {
           root.h1(el => el.children.textNode("EMPTY LIST!"))
@@ -544,12 +544,12 @@ function detailViewWithContent(state: State<DetailState>): HTMLView {
 }
 
 function presentContent(state: State<Detail>): HTMLView {
-  const content = derived(get => get(state).content)
+  // const content = derived(get => get(state).content)
 
   return root => {
     root.p(el => {
       el.children.subviewFrom(selector => {
-        selector.withUnion(content)
+        selector.withUnion(get => get(state).content)
           .when(content => content.type === "fun-content", funContentView)
           .when(content => content.type === "awesome-content", awesomeContentView)
       })

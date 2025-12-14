@@ -5,7 +5,7 @@ export const count = container({ initialValue: 0 })
 
 export function counter(root: HTMLBuilder) {
   root.subviewFrom(selector => {
-    selector.withUnion(count.meta)
+    selector.withUnion(get => get(count.meta))
       .when(meta => meta.type === "pending", () => pendingCounter)
       .when(meta => meta.type === "error", () => errorCounter)
       .default(() => root => root.div(el => {

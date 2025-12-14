@@ -1,5 +1,11 @@
 # spheres
 
+## 0.25.2
+
+### Patch Changes
+
+- a680a06: Fix dropped subscriptions with union type view selector
+
 ## 0.25.1
 
 ### Patch Changes

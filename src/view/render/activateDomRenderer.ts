@@ -81,9 +81,9 @@ export class ActivateDomRenderer extends AbstractViewRenderer {
     const selectorBuilder = new SelectorBuilder(createDOMTemplate(this.elementSupport, this.zone, elementId))
     selectorGenerator(selectorBuilder)
 
-    const effect = new SelectViewEffect(this.registry, selectorBuilder.selectors, this.currentNode!, end)
-    const selector = activateSelect(this.registry, selectorBuilder.selectors, this.currentNode!, getStateFunctionWithListener(createSubscriber(this.registry, effect)))
-    effect.setCurrentSelector(selector)
+    const effect = new SelectViewEffect(this.registry, selectorBuilder.collection, this.currentNode!, end)
+    const selection = activateSelect(this.registry, selectorBuilder.collection, this.currentNode!, getStateFunctionWithListener(createSubscriber(this.registry, effect)))
+    effect.setCurrentSelection(selection)
     
     this.currentNode = end.nextSibling
     this.currentLocation = this.currentLocation.nextSibling()

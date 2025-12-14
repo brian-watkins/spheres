@@ -1,26 +1,26 @@
 import { GetState } from "../../../store/index.js";
 import { activate, DOMTemplate, render } from "../domTemplate.js";
 import { State, StateEffect, StateListenerType, StateReader, StateWriter, StateHandler, Token, TokenRegistry } from "../../../store/tokenRegistry.js";
-import { SelectorCollection, TemplateSelector } from "../selectorBuilder.js";
+import { TemplateCollection, TemplateSelection } from "../selectorBuilder.js";
 import { OverlayTokenRegistry } from "../../../store/registry/overlayTokenRegistry.js";
 import { OverlayStateHandler } from "../../../store/state/handler/overlayStateHandler.js";
 
 export class SelectViewEffect implements StateEffect {
   readonly type = StateListenerType.SystemEffect
-  private currentSelector: TemplateSelector<DOMTemplate> | undefined
+  private currentSelection: TemplateSelection<DOMTemplate> | undefined
   private registry: ConditionalViewOverlayRegistry
 
   constructor(
     parentRegistry: TokenRegistry,
-    public selectors: SelectorCollection<DOMTemplate>,
+    public templateCollection: TemplateCollection<DOMTemplate>,
     public startNode: Node,
     public endNode: Node,
   ) {
     this.registry = new ConditionalViewOverlayRegistry(parentRegistry)
   }
 
-  setCurrentSelector(selector: TemplateSelector<DOMTemplate>) {
-    this.currentSelector = selector
+  setCurrentSelection(selection: TemplateSelection<DOMTemplate>) {
+    this.currentSelection = selection
   }
 
   init(get: GetState): void {
@@ -36,25 +36,25 @@ export class SelectViewEffect implements StateEffect {
   }
 
   private switchView(get: GetState): void {
-    const selector = this.selectors.findSelector(get)
+    const selection = this.templateCollection.select(get)
 
-    if (selector === this.currentSelector) {
+    if (selection === this.currentSelection) {
       return
     }
 
-    this.currentSelector = selector
+    this.currentSelection = selection
 
     this.clearView()
     this.registry.reset()
 
     let node: Node
-    switch (selector.type) {
+    switch (selection.type) {
       case "empty": {
         node = document.createTextNode("")
         break
       }
       case "view": {
-        const templateContext = selector.templateContext()
+        const templateContext = selection.templateContext()
         node = render(templateContext.template, templateContext.overlayRegistry(this.registry))
         break
       }
@@ -71,15 +71,15 @@ export class SelectViewEffect implements StateEffect {
   }
 }
 
-export function activateSelect(registry: TokenRegistry, selectors: SelectorCollection<DOMTemplate>, startNode: Node, get: GetState): TemplateSelector<DOMTemplate> {
-  const selector = selectors.findSelector(get)
+export function activateSelect(registry: TokenRegistry, templateCollection: TemplateCollection<DOMTemplate>, startNode: Node, get: GetState): TemplateSelection<DOMTemplate> {
+  const selection = templateCollection.select(get)
 
-  if (selector.type === "view") {
-    const templateContext = selector.templateContext()
+  if (selection.type === "view") {
+    const templateContext = selection.templateContext()
     activate(templateContext.template, templateContext.overlayRegistry(registry), startNode.nextSibling!)
   }
 
-  return selector
+  return selection
 }
 
 class ConditionalViewOverlayRegistry extends OverlayTokenRegistry {

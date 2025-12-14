@@ -4,6 +4,10 @@ import { recordTokens } from "../../store/state/stateRecorder.js";
 import { generateStateManager, runQuery, Subscriber, Subscribable, TokenRegistry, StateHandler } from "../../store/tokenRegistry.js";
 import { ViewDefinition, ViewCaseSelector, ViewSelector, ViewConditionSelector } from "./viewRenderer.js";
 
+export interface TemplateCollection<T> {
+  select(get: GetState): TemplateSelection<T>
+}
+
 export interface TemplateContext<T> {
   template: T
   overlayRegistry: (registry: TokenRegistry) => TokenRegistry
@@ -11,125 +15,161 @@ export interface TemplateContext<T> {
 
 export interface TemplateView<T> {
   type: "view"
-  select: (get: GetState) => boolean
   templateContext: () => TemplateContext<T>
 }
 
 export interface EmptyTemplate {
   type: "empty"
-  select: (get: GetState) => boolean
 }
 
-export type TemplateSelector<T> = EmptyTemplate | TemplateView<T>
+export type TemplateSelection<T> = EmptyTemplate | TemplateView<T>
+
+interface SelectorCollectionBuilder<T> {
+  getCollection(): TemplateCollection<T>
+}
 
 export class SelectorBuilder<T> implements ViewSelector {
-  private templateSelectors: Array<TemplateSelector<T>> = []
-  private defaultSelector: TemplateSelector<T> | undefined = undefined
+  private builder: SelectorCollectionBuilder<T> | undefined
 
   constructor(private createTemplate: (view: ViewDefinition, selectorId: number) => T) { }
 
-  get selectors(): SelectorCollection<T> {
-    const selectors = [...this.templateSelectors]
-
-    if (this.defaultSelector) {
-      selectors.push(this.defaultSelector)
-    }
-
-    return new SelectorCollection(selectors)
+  get collection(): TemplateCollection<T> {
+    return this.builder?.getCollection() ?? new EmptyCollection()
   }
 
   withUnion<T>(valueQuery: (get: GetState) => T): ViewCaseSelector<T> {
     const unionValue = derived(valueQuery)
-    const self = this
 
-    return {
-      when(typePredicate, viewGenerator) {
-        const index = self.templateSelectors.length
-        const selector = (get: GetState) => typePredicate(get(unionValue))
-        self.templateSelectors.push({
-          type: "view",
-          select: selector,
-          templateContext: memoize(() => {
-            let template!: any
-            const tokens = recordTokens(() => {
-              template = self.createTemplate(viewGenerator(unionValue as State<any>), index)
-            })
-
-            return {
-              template,
-              overlayRegistry: (registry) => {
-                return new CaseViewOverlayTokenRegistry(registry, selector, tokens)
-              },
-            }
-          })
-        })
-        return this
-      },
-      default(viewGenerator) {
-        self.defaultSelector = {
-          type: "view",
-          select: () => true,
-          templateContext: memoize(() => {
-            return {
-              template: self.createTemplate(viewGenerator(unionValue), self.templateSelectors.length),
-              // Note: No need for an overlay registry here as the default view does not get
-              // a particular discrimiant as its state argument -- the guard provided by
-              // the registry is not needed
-              overlayRegistry: (registry) => registry
-            }
-          })
-        }
-      }
-    }
+    const builder = new CaseCollectionBuilder(this.createTemplate, unionValue)
+    this.builder = builder
+    return builder
   }
 
   withConditions(): ViewConditionSelector {
-    const self = this
+    const builder = new ConditionCollectionBuilder(this.createTemplate)
+    this.builder = builder
+    return builder
+  }
+}
 
-    return {
-      when(predicate: (get: GetState) => boolean, view: ViewDefinition) {
-        const index = self.templateSelectors.length
-        self.templateSelectors.push({
-          type: "view",
-          select: predicate,
-          templateContext: memoize(() => {
-            return {
-              template: self.createTemplate(view, index),
-              overlayRegistry: (registry) => registry
-            }
-          })
+interface CaseSelector<T, S, X extends S> extends TemplateView<T> {
+  predicate: (val: S) => val is X
+}
+
+class CaseCollectionBuilder<T, S> implements ViewCaseSelector<S>, SelectorCollectionBuilder<T> {
+  private caseSelectors: Array<CaseSelector<T, S, any>> = []
+  private defaultSelector: TemplateSelection<T> | undefined = undefined
+
+  constructor(private createTemplate: (view: ViewDefinition, selectorId: number) => T, private state: State<S>) { }
+
+  when<X extends S>(typePredicate: (val: S) => val is X, viewGenerator: (state: State<X>) => ViewDefinition): ViewCaseSelector<S> {
+    const index = this.caseSelectors.length
+
+    this.caseSelectors.push({
+      type: "view",
+      predicate: typePredicate,
+      templateContext: memoize(() => {
+        let template!: any
+        const tokens = recordTokens(() => {
+          template = this.createTemplate(viewGenerator(this.state as State<any>), index)
         })
 
-        return this
-      },
-      default(view: ViewDefinition): void {
-        self.defaultSelector = {
-          type: "view",
-          select: () => true,
-          templateContext: memoize(() => {
-            return {
-              template: self.createTemplate(view, self.templateSelectors.length),
-              overlayRegistry: (registry) => registry
-            }
-          })
+        return {
+          template,
+          overlayRegistry: (registry) => {
+            return new CaseViewOverlayTokenRegistry(registry, (get) => typePredicate(get(this.state)), tokens)
+          },
         }
-      }
+      })
+    })
+
+    return this
+  }
+
+  default(viewGenerator: (state: State<S>) => ViewDefinition): void {
+    this.defaultSelector = {
+      type: "view",
+      templateContext: memoize(() => {
+        return {
+          template: this.createTemplate(viewGenerator(this.state), this.caseSelectors.length),
+          // Note: No need for an overlay registry here as the default view does not get
+          // a particular discrimiant as its state argument -- the guard provided by
+          // the registry is not needed
+          overlayRegistry: (registry) => registry
+        }
+      })
+    }
+  }
+
+  getCollection(): TemplateCollection<T> {
+    return {
+      select: (get) => {
+        const val = get(this.state)
+        const selector = this.caseSelectors.find(sel => sel.predicate(val))
+        if (selector === undefined) {
+          return this.defaultSelector ?? { type: "empty" }
+        } else {
+          return selector
+        }
+      },
     }
   }
 }
 
-const emptySelector: TemplateSelector<any> = {
-  type: "empty",
-  select: () => true
+interface ConditionSelector<T> extends TemplateView<T> {
+  predicate: (get: GetState) => boolean
 }
 
-export class SelectorCollection<T> {
-  constructor(private selectors: Array<TemplateSelector<T>>) { }
+class ConditionCollectionBuilder<T> implements ViewConditionSelector, SelectorCollectionBuilder<T> {
+  private conditionSelectors: Array<ConditionSelector<T>> = []
+  private defaultSelector: TemplateSelection<T> | undefined = undefined
 
-  findSelector(get: GetState): TemplateSelector<T> {
-    return this.selectors.find(selector => {
-      return selector.select(get)
-    }) ?? emptySelector
+  constructor(private createTemplate: (view: ViewDefinition, selectorId: number) => T) { }
+
+  when(predicate: (get: GetState) => boolean, view: ViewDefinition): this {
+    const index = this.conditionSelectors.length
+    this.conditionSelectors.push({
+      type: "view",
+      predicate,
+      templateContext: memoize(() => {
+        return {
+          template: this.createTemplate(view, index),
+          overlayRegistry: (registry) => registry
+        }
+      })
+    })
+
+    return this
+  }
+
+  default(view: ViewDefinition): void {
+    this.defaultSelector = {
+      type: "view",
+      templateContext: memoize(() => {
+        return {
+          template: this.createTemplate(view, this.conditionSelectors.length),
+          overlayRegistry: (registry) => registry
+        }
+      })
+    }
+  }
+
+  getCollection(): TemplateCollection<T> {
+    return {
+      select: (get) => {
+        const selector = this.conditionSelectors.find(sel => sel.predicate(get))
+        if (selector === undefined) {
+          return this.defaultSelector ?? { type: "empty" }
+        }
+        return selector
+      },
+    }
+  }
+}
+
+class EmptyCollection implements TemplateCollection<any> {
+  select(): TemplateSelection<any> {
+    return { type: "empty" }
   }
 }
 

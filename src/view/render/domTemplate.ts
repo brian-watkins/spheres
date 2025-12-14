@@ -5,7 +5,7 @@ import { activateList, ListEffect } from "./effects/listEffect.js"
 import { activateSelect, SelectViewEffect } from "./effects/selectViewEffect.js"
 import { findListEndNode, findSwitchEndNode, getListElementId } from "./fragmentHelpers.js"
 import { spheresTemplateData, StoreEventHandler } from "./index.js"
-import { SelectorCollection } from "./selectorBuilder.js"
+import { TemplateCollection } from "./selectorBuilder.js"
 import { ListItemTemplateContext } from "./templateContext.js"
 
 export enum EffectTemplateTypes {
@@ -41,7 +41,7 @@ export interface ListEffectTemplate {
 
 export interface SelectEffectTemplate {
   type: EffectTemplateTypes.Select
-  selectors: SelectorCollection<DOMTemplate>
+  collection: TemplateCollection<DOMTemplate>
   elementId: string
   location: EffectLocation
 }
@@ -122,7 +122,7 @@ function initializeEffect(registry: TokenRegistry, root: Node, effect: EffectTem
       const startNode = effect.location.findNode(root)
       const endNode = findSwitchEndNode(startNode, effect.elementId)
 
-      const selectEffect = new SelectViewEffect(registry, effect.selectors, startNode, endNode)
+      const selectEffect = new SelectViewEffect(registry, effect.collection, startNode, endNode)
       initListener(registry, selectEffect)
       break
     }
@@ -161,9 +161,9 @@ function activateEffect(registry: TokenRegistry, root: Node, effect: EffectTempl
       const startNode = effect.location.findNode(root)
       const endNode = findSwitchEndNode(startNode, effect.elementId)
 
-      const selectEffect = new SelectViewEffect(registry, effect.selectors, startNode, endNode)
-      const selector = activateSelect(registry, effect.selectors, startNode, getStateFunctionWithListener(createSubscriber(registry, selectEffect)))
-      selectEffect.setCurrentSelector(selector)
+      const selectEffect = new SelectViewEffect(registry, effect.collection, startNode, endNode)
+      const selection = activateSelect(registry, effect.collection, startNode, getStateFunctionWithListener(createSubscriber(registry, selectEffect)))
+      selectEffect.setCurrentSelection(selection)
 
       break
     }

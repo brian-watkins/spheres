@@ -138,7 +138,7 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
 
     this.effectTemplates.push({
       type: EffectTemplateTypes.Select,
-      selectors: selectorBuilder.selectors,
+      collection: selectorBuilder.collection,
       elementId,
       location: this.location
     })

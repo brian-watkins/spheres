@@ -179,7 +179,7 @@ class StringRenderer extends AbstractViewRenderer {
     const elementId = this.idSequence.next
     const templateSelectorBuilder = new SelectorBuilder(createStringTemplate(this.elementSupport, this.options, elementId))
     selectorGenerator(templateSelectorBuilder)
-    const selectors = templateSelectorBuilder.selectors
+    const templateCollection = templateSelectorBuilder.collection
 
     this.appendToTemplate({
       strings: [
@@ -188,13 +188,13 @@ class StringRenderer extends AbstractViewRenderer {
       ],
       statefuls: [
         (registry) => {
-          const selector = runQuery(registry, (get) => selectors.findSelector(get))
-          switch (selector.type) {
+          const selection = runQuery(registry, (get) => templateCollection.select(get))
+          switch (selection.type) {
             case "empty": {
               return ""
             }
             case "view": {
-              const templateContext = selector.templateContext()
+              const templateContext = selection.templateContext()
               return stringForTemplate(
                 templateContext.overlayRegistry(registry),
                 templateContext.template

@@ -1,5 +1,5 @@
-import { Context } from "best-behavior";
-import { BrowserTestInstrument, useBrowser } from "best-behavior/browser";
+import { Context, use } from "best-behavior";
+import { browserContext, BrowserTestInstrument } from "best-behavior/browser";
 import { TestAppDisplay } from "../../helpers/testDisplay.js";
 
 export interface DisplayBehaviorOptions {
@@ -8,8 +8,8 @@ export interface DisplayBehaviorOptions {
 }
 
 export function browserAppContext(): Context<TestAppController> {
-  return useBrowser({
-    init: (browser) => new TestAppController(browser)
+  return use(browserContext(), {
+    init: (browser) => new TestAppController(browser),
   })
 }
 

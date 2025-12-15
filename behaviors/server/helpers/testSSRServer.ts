@@ -6,11 +6,12 @@ import { Server } from "http"
 import { PluginOption, RunnableDevEnvironment, ViteDevServer, createServer as createViteServer } from "vite"
 import tsConfigPaths from "vite-tsconfig-paths"
 import { Context } from 'esbehavior'
-import { BrowserTestInstrument, useBrowser } from 'best-behavior/browser'
+import { browserContext, BrowserTestInstrument } from 'best-behavior/browser'
 import { useModule } from "best-behavior/transpiler"
 import { SSRParts, StreamingSSRParts } from './ssrApp.js'
 import { TestAppDisplay } from '../../helpers/testDisplay.js'
 import { spheres, SpheresPluginOptions } from '@server/index.js'
+import { use } from 'best-behavior'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -20,7 +21,7 @@ export interface SSRTestAppContext {
 }
 
 export function ssrTestAppContext(configure?: (server: TestSSRServer) => void): Context<SSRTestAppContext> {
-  return useBrowser({
+  return use(browserContext(), {
     init: async (browser) => {
       const server = new TestSSRServer()
       configure?.(server)
@@ -37,7 +38,7 @@ export function ssrTestAppContext(configure?: (server: TestSSRServer) => void): 
         await context.browser.browser.page.close()
         await context.server.close()
       }
-    }
+    }  
   })
 }
 

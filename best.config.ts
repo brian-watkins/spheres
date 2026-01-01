@@ -28,6 +28,13 @@ export default defineConfig({
     entryFilter: (entry) => {
       return entry.url.includes("src") && !entry.url.includes("node_modules")
     },
+    sourcePath(filePath, info) {
+      const startIndex = info.distFile?.indexOf("src/") ?? -1
+      if (startIndex > -1) {
+        return info.distFile!.substring(startIndex)
+      }
+      return filePath
+    },
     clean: true
   }),
   failFast: true,

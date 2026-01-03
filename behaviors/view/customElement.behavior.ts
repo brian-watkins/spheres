@@ -28,6 +28,17 @@ export default behavior("Checkbox Properties", [
           await expect(controller.display.select("[data-message]").text(), resolvesTo("camels"))
         })
       ]
+    }).andThen({
+      perform: [
+        step("Click a custom element that bubbles the event", async (controller) => {
+          await controller.display.select("uncool-element div").click()
+        })
+      ],
+      observe: [
+        effect("the click event is handled outside the custom element", async (controller) => {
+          await expect(controller.display.select("[data-message]").text(), resolvesTo("camels !!!"))
+        })
+      ]
     })
 
 ])

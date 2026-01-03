@@ -1,4 +1,4 @@
-import { container, write } from "@store/index.js";
+import { container, update, write } from "@store/index.js";
 import { HTMLBuilder } from "@view/index.js";
 
 const coolMessage = container({ initialValue: "NOTHING!" })
@@ -18,6 +18,9 @@ export default function (root: HTMLBuilder) {
       .element("cool-element", ({ config }) => {
         config
           .attribute("cool-stuff", "camels")
+      })
+      .element("uncool-element", ({ config }) => {
+        config.on("click", () => update(coolMessage, val => `${val} !!!`))
       })
   })
 }
@@ -53,3 +56,12 @@ class CoolElement extends HTMLElement {
 }
 
 customElements.define("cool-element", CoolElement)
+
+class UncoolElement extends HTMLElement {
+  connectedCallback() {
+    const shadow = this.attachShadow({ mode: "open" });
+    shadow.innerHTML = "<div>Here is some text to click!</div>"
+  }
+}
+
+customElements.define("uncool-element", UncoolElement)

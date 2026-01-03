@@ -36,6 +36,14 @@ export class DOMRoot implements EventZone, RenderResult {
         if (target === this.root || wrappedEvent.propagationStopped) {
           break
         }
+
+        // the composed path may include shadow dom boundaries which
+        // are document fragments and don't have attributes
+        // So we skip unless the node is an element
+        if ((target as Node).nodeType !== 1) {
+          continue
+        }
+
         const element = target as Element
         const elementId = getEventAttribute(element, eventType)
         if (elementId !== null) {

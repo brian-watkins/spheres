@@ -5,9 +5,16 @@ import { WeakMapTokenRegistry } from "./registry/weakMapTokenRegistry.js"
 import { Command, getStateHandler, GetState, initializeCommand, initListener, runQuery, StateEffect, StateListenerType, StateReference, StateWriter, Subscriber, TokenRegistry, PublishableState } from "./tokenRegistry.js"
 import { CommandManager, ManagedCommandController } from "./command/managedCommandController.js"
 
+export interface StoreInitializerActions {
+  get: GetState
+  supply<T>(container: PublishableState<T>, value: T): void
+  pending<T, M>(container: WithMetaState<T, M>, ...value: NoInfer<M> extends never ? [] : [NoInfer<M>]): void
+  error<T, M, E>(container: WithMetaState<T, M, E>, reason: E, ...message: NoInfer<M> extends never ? [] : [NoInfer<M>]): void
+}
+
 export interface StoreOptions {
   id?: string
-  init?: (actions: InitializerActions, store: Store) => Promise<void>
+  init?: (actions: StoreInitializerActions, store: Store) => Promise<void>
 }
 
 export function createStore(options: StoreOptions = {}): Store {
@@ -23,7 +30,7 @@ export interface WriteHookActions<T, M, E> {
 }
 
 export interface ContainerHooks<T, M, E = unknown> {
-  onWrite?(message: M, actions: WriteHookActions<T, M, E>): void
+  onWrite(message: M, actions: WriteHookActions<T, M, E>): void
 }
 
 export interface StoreHooks {
@@ -45,13 +52,6 @@ export function getTokenRegistry(store: Store): TokenRegistry {
   return store[tokenRegistry]
 }
 
-export interface InitializerActions {
-  get: GetState
-  supply<T>(container: PublishableState<T>, value: T): void
-  pending<T, M>(container: WithMetaState<T, M>, ...value: NoInfer<M> extends never ? [] : [NoInfer<M>]): void
-  error<T, M, E>(container: WithMetaState<T, M, E>, reason: E, ...message: NoInfer<M> extends never ? [] : [NoInfer<M>]): void
-}
-
 export class Store {
   private registry: TokenRegistry
   readonly id: string
@@ -66,7 +66,7 @@ export class Store {
     }
   }
 
-  private initialize(initializer: (actions: InitializerActions, store: Store) => Promise<void>): Promise<void> {
+  private initialize(initializer: (actions: StoreInitializerActions, store: Store) => Promise<void>): Promise<void> {
     return initializer(initializerActions(this.registry), this)
   }
 
@@ -133,7 +133,7 @@ function stateWriterWithHooks<T, M, E>(registry: TokenRegistry, container: Conta
   }
 }
 
-function initializerActions(registry: TokenRegistry): InitializerActions {
+function initializerActions(registry: TokenRegistry): StoreInitializerActions {
   return {
     get: (state) => runQuery(registry, get => get(state)),
     supply: <T>(writable: PublishableState<T>, value: T) => {

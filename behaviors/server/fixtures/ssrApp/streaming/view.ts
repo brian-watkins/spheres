@@ -1,5 +1,5 @@
 import { HTMLBuilder, HTMLView, UseData } from "@view/index";
-import { Thing, thingCount, things, thingValue } from "./state";
+import { someWord, Thing, thingCount, things, thingValue } from "./state";
 
 export default function view(root: HTMLBuilder) {
   root.main(el => {
@@ -30,6 +30,10 @@ export default function view(root: HTMLBuilder) {
                 root.textNode(get => `With a total value of ${get(thingValue)} dollars!`)
               })
           })
+      })
+      .h1(el => {
+        el.config.dataAttribute("word")
+        el.children.textNode(get => get(someWord))
       })
   })
 }

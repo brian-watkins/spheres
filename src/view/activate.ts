@@ -1,31 +1,12 @@
-import { Container, Meta, Store } from "../store/index.js"
-import { createStore, getTokenRegistry, InitializerActions } from "../store/store.js"
+import { PublishableState, Store, WithMetaState, WritableState, write } from "../store/index.js"
+import { SerializedState, SerializedStateType, StateManifest } from "../store/serialize.js"
+import { createStore, getTokenRegistry, StoreInitializerActions } from "../store/store.js"
 import { HTMLBuilder, HTMLView } from "./htmlElements.js"
 import { HTMLElementSupport } from "./htmlElementSupport.js"
 import { ActivateDomRenderer } from "./render/activateDomRenderer.js"
 import { cleanRoot, DOMRoot } from "./render/domRoot.js"
 import { EffectLocation } from "./render/effectLocation.js"
 import { RenderResult } from "./render/index.js"
-
-export enum SerializedStateType {
-  Container, Meta
-}
-
-export interface SerializedContainer {
-  k: SerializedStateType.Container
-  t: string
-  v: any
-}
-
-export interface SerializedMeta {
-  k: SerializedStateType.Meta
-  t: string
-  v: Meta<any, any>
-}
-
-export type StateMap = Record<string, Container<any>>
-
-export type SerializedState = SerializedContainer | SerializedMeta
 
 export function activateView(store: Store, element: Element, view: HTMLView): RenderResult {
   const registry = getTokenRegistry(store)
@@ -40,7 +21,7 @@ export function activateView(store: Store, element: Element, view: HTMLView): Re
 
 export interface ActivationOptions {
   storeId?: string
-  stateMap?: StateMap
+  stateManifest?: StateManifest
   view: (activate: (element: Element, view: HTMLView) => void) => void
 }
 
@@ -54,10 +35,10 @@ export function activateZone(options: ActivationOptions): ActivatedZone {
     async init(actions, store) {
       // get the initial state
       const tag = document.querySelector(`script[data-spheres-store="${store.id}"]`)
-      if (tag !== null && options.stateMap !== undefined) {
+      if (tag !== null && options.stateManifest !== undefined) {
         const data: Array<SerializedState> = JSON.parse(tag.textContent!)
         for (const value of data) {
-          deserializeState(options.stateMap!, actions, value)
+          deserializeState(store, options.stateManifest!, actions, value)
         }
       }
 
@@ -69,7 +50,7 @@ export function activateZone(options: ActivationOptions): ActivatedZone {
       // processing any streaming data that has already arrived
       const existingData = document.querySelectorAll(`script[data-spheres-stream="${store.id}"]`)
       existingData.forEach(el => {
-        deserializeState(options.stateMap!, actions, JSON.parse(el.textContent!))
+        deserializeState(store, options.stateManifest!, actions, JSON.parse(el.textContent!))
       })
 
       if (document.readyState !== "loading") {
@@ -85,7 +66,7 @@ export function activateZone(options: ActivationOptions): ActivatedZone {
               if (node.nodeType === Node.ELEMENT_NODE && node.nodeName === 'SCRIPT') {
                 const el = node as Element
                 if (el.getAttribute("data-spheres-stream") === store.id) {
-                  deserializeState(options.stateMap!, actions, JSON.parse(el.textContent!))
+                  deserializeState(store, options.stateManifest!, actions, JSON.parse(el.textContent!))
                 }
               }
             })
@@ -108,24 +89,28 @@ export function activateZone(options: ActivationOptions): ActivatedZone {
   return { store }
 }
 
-function deserializeState(stateMap: Record<string, Container<any>>, actions: InitializerActions, state: SerializedState) {
-  const token = stateMap[state.t]
+
+function deserializeState(store: Store, stateManifest: StateManifest, actions: StoreInitializerActions, state: SerializedState) {
+  const token = stateManifest[state.t]
   if (token === undefined) return
 
   switch (state.k) {
-    case SerializedStateType.Container:
-      actions.supply(token, state.v)
+    case SerializedStateType.Value:
+      actions.supply(token as PublishableState<any>, state.v)
       break
     case SerializedStateType.Meta:
       const meta = state.v
       switch (meta.type) {
         case "pending":
-          actions.pending(token, meta.message)
+          actions.pending(token as WithMetaState<any, any>, meta.message)
           break
         case "error":
-          actions.error(token, meta.reason, meta.message)
+          actions.error(token as WithMetaState<any, any>, meta.reason, meta.message)
           break
       }
+      break
+    case SerializedStateType.Message:
+      store.dispatch(write(token as WritableState<any>, state.v))
       break
   }
 }

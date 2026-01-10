@@ -1,20 +1,19 @@
 import { container } from "../../../store/index.js"
-import { SerializedState, SerializedStateType } from "../../../view/activate.js"
-import { StateMap } from "../../../view/index.js"
+import { serializedValue, serializedMeta, SerializedState, StateManifest } from "../../../store/serialize.js"
 import { addTemplate, emptyTemplate, HTMLTemplate, templateFromString, toStatefulString } from "../template.js"
 import { getExtraResources, getTransformedResource, shouldTransformImport, TransformedResource, ViteContext } from "../viteContext.js"
 
 export interface ActivationOptions {
   viteContext?: ViteContext,
-  stateMap?: StateMap,
+  stateManifest?: StateManifest,
   activationScripts?: Array<string>
 }
 
 export function getActivationTemplate(options: ActivationOptions): HTMLTemplate {
   let template = emptyTemplate()
 
-  if (options.stateMap) {
-    template = addTemplate(template, storeDataTemplate(options.stateMap))
+  if (options.stateManifest) {
+    template = addTemplate(template, storeDataTemplate(options.stateManifest))
   }
   if (options.activationScripts) {
     for (const scriptSrc of options.activationScripts) {
@@ -56,7 +55,7 @@ export function templateForResource(resource: TransformedResource): HTMLTemplate
 
 export const storeIdToken = container({ initialValue: "" })
 
-export function storeDataTemplate(stateMap: StateMap): HTMLTemplate {
+export function storeDataTemplate(stateManifest: StateManifest): HTMLTemplate {
   return {
     strings: [
       `<script type="application/json" data-spheres-store="`,
@@ -68,21 +67,13 @@ export function storeDataTemplate(stateMap: StateMap): HTMLTemplate {
       toStatefulString(get => {
         const values: Array<SerializedState> = []
 
-        for (const key in stateMap) {
-          const token = stateMap[key]
-          values.push({
-            k: SerializedStateType.Container,
-            t: key,
-            v: get(token)
-          })
+        for (const key in stateManifest) {
+          const token = stateManifest[key]
+          values.push(serializedValue(key, get(token)))
 
           const metaValue = get(token.meta)
           if (metaValue.type !== "ok") {
-            values.push({
-              k: SerializedStateType.Meta,
-              t: key,
-              v: metaValue
-            })
+            values.push(serializedMeta(key, metaValue))
           }
         }
 

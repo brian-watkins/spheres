@@ -14,7 +14,7 @@ export default function (): StreamingSSRParts {
   const rootStream = createStreamRenderer(page, {
     zones: [
       zone(counter, {
-        stateMap: { count },
+        stateManifest: { count },
         store: zones[0],
         mountPoint: "[data-zone='one']",
         activationScripts: [
@@ -22,7 +22,7 @@ export default function (): StreamingSSRParts {
         ]
       }),
       zone(counter, {
-        stateMap: { count },
+        stateManifest: { count },
         store: zones[1],
         mountPoint: "[data-zone='two']",
         activationScripts: [
@@ -30,7 +30,7 @@ export default function (): StreamingSSRParts {
         ]
       }),
       zone(counter, {
-        stateMap: { count },
+        stateManifest: { count },
         store: zones[2],
         mountPoint: "[data-zone='three']",
         activationScripts: [

@@ -5,7 +5,7 @@ import { activateZone } from "@view/index.js"
 
 activateZone({
   storeId: "store-a",
-  stateMap: serializedTokens,
+  stateManifest: serializedTokens,
   view(activate) {
     activate(document.querySelector("#fragment-a #counter")!, counter)
     activate(document.querySelector("#fragment-a [data-tally]")!, tally)
@@ -14,7 +14,7 @@ activateZone({
 
 activateZone({
   storeId: "store-b",
-  stateMap: serializedTokens,
+  stateManifest: serializedTokens,
   view(activate) {
     activate(document.querySelector("#fragment-b #counter")!, counter)
     activate(document.querySelector("#fragment-b [data-tally]")!, tally)

@@ -1,5 +1,4 @@
-import { container, derived } from "@store/index";
-import { StateMap } from "@view/index";
+import { container, derived, StateManifest } from "@store/index";
 
 export interface Thing {
   name: string
@@ -12,6 +11,8 @@ export const thingCount = derived(get => get(things).length)
 
 export const thingValue = container({ initialValue: "unknown" })
 
-export const serializedTokens: StateMap = {
-  things, thingValue
+export const someWord = container({ initialValue: "" })
+
+export const serializedTokens: StateManifest = {
+  things, thingValue, someWord
 }

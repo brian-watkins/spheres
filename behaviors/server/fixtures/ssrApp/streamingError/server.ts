@@ -6,7 +6,7 @@ import { serializedTokens, things, thingValue } from "./state"
 import { HTMLBuilder } from "@view/htmlElements"
 
 const streamRenderer = createStreamRenderer(page, {
-  stateMap: serializedTokens,
+  stateManifest: serializedTokens,
   activationScripts: [
     "/behaviors/server/fixtures/ssrApp/streamingError/activate.ts"
   ]

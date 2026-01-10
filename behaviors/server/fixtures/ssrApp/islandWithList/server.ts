@@ -21,7 +21,7 @@ useCommand(store, getSuppliedState, {
 store.dispatch(exec(getSuppliedState, undefined))
 
 const stringRenderer = createStringRenderer(view, {
-  stateMap: serializedTokens,
+  stateManifest: serializedTokens,
   activationScripts: [
     "/behaviors/server/fixtures/ssrApp/islandWithList/activate.ts"
   ]

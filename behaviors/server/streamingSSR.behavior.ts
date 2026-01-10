@@ -25,6 +25,11 @@ export default behavior("ssr with streaming data", [
           await expect(context.browser.display.select("[data-value]").text(), resolvesTo(
             stringContaining("hundreds of")
           ))
+        }),
+        effect("the message sent to a container on the server is also sent to the container on the client", async (context) => {
+          await expect(context.browser.display.select("[data-word]").text(), resolvesTo(
+            "Transformed in hook: Hello from server!"
+          ))
         })
       ]
     }),

@@ -1,4 +1,4 @@
-import { Container, Stateful, Store, write } from "../../store/index.js";
+import { Stateful, StateManifest, Store, write } from "../../store/index.js";
 import { getTokenRegistry } from "../../store/store.js";
 import { GetState, runQuery } from "../../store/tokenRegistry.js";
 import { voidElements } from "../../view/elementData.js";
@@ -23,7 +23,7 @@ import { BasicElementConfigSupport, ElementConfigSupport, ElementSupport } from 
 import { createOverlayRegistry } from "./templateOverlayRegistry.js";
 
 export interface StringRendererOptions {
-  stateMap?: Record<string, Container<any>>
+  stateManifest?: StateManifest
   activationScripts?: Array<string>
   viteContext?: ViteContext
 }
@@ -79,7 +79,7 @@ class StringRenderer extends AbstractViewRenderer {
         return new HtmlElementRenderer()
       case "body":
         this.hasBodyElement = true
-        return new BodyElementRenderer(this.options.viteContext, this.options.stateMap, this.options.activationScripts)
+        return new BodyElementRenderer(this.options.viteContext, this.options.stateManifest, this.options.activationScripts)
       case "script":
         return new ScriptElementRenderer(this.options.viteContext)
       case "link":

@@ -6,7 +6,7 @@ const someContainer = container({ initialValue: "initial" })
 const anotherContainer = container({ initialValue: "https://some-resource.com/resource" })
 
 const renderToString = createStringRenderer(pageView, {
-  stateMap: { someContainer },
+  stateManifest: { someContainer },
   activationScripts: ["/src/index.ts"]
 })
 

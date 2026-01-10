@@ -18,7 +18,7 @@ store.dispatch(write(items, addItem(testItem(3))))
 export default function(): SSRParts {
   return {
     html: createStringRenderer(view, {
-      stateMap: serializedTokens,
+      stateManifest: serializedTokens,
       activationScripts: [
         "/behaviors/server/fixtures/ssrApp/islandWithUpdate/activate.ts"
       ]

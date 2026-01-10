@@ -3,7 +3,7 @@ export {
   type WriteHookActions,
   type ContainerHooks,
   type StoreHooks,
-  type InitializerActions,
+  type StoreInitializerActions,
   type StoreOptions,
   type Store,
   type ReactiveEffect,
@@ -83,3 +83,7 @@ export {
   valueAt,
   value
 } from "./state/value.js"
+export {
+  type StateManifest,
+  type SerializableState
+} from "./serialize.js"

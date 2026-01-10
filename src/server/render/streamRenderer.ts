@@ -1,8 +1,8 @@
 import { State, Store, useEffect } from "../../store/index.js"
+import { SerializableState, serializedValue, serializedMessage, serializedMeta, SerializedState, StateManifest } from "../../store/serialize.js"
 import { Container } from "../../store/state/container.js"
-import { getTokenRegistry } from "../../store/store.js"
-import { TokenRegistry } from "../../store/tokenRegistry.js"
-import { SerializedState, SerializedStateType, StateMap } from "../../view/activate.js"
+import { ContainerHooks, getTokenRegistry, ReactiveEffect, useContainerHooks, WriteHookActions } from "../../store/store.js"
+import { GetState, TokenRegistry } from "../../store/tokenRegistry.js"
 import { HTMLView } from "../../view/index.js"
 import { getActivationTemplate } from "./elementRenderers/activationElements.js"
 import { buildStringRenderer } from "./stringRenderer.js"
@@ -10,7 +10,7 @@ import { stringForTemplate } from "./template.js"
 import { ViteContext } from "./viteContext.js"
 
 export interface StreamRendererOptions {
-  stateMap?: StateMap
+  stateManifest?: StateManifest
   activationScripts?: Array<string>
   zones?: Array<Zone>
   viteContext?: ViteContext
@@ -26,9 +26,9 @@ export function buildStreamRenderer(view: HTMLView, options: StreamRendererOptio
       start(controller) {
         controller.enqueue(initialHTML)
 
-        if (options.stateMap) {
-          for (const key in options.stateMap) {
-            streamUpdates(store, key, options.stateMap![key], controller)
+        if (options.stateManifest) {
+          for (const key in options.stateManifest) {
+            streamUpdates(store, key, options.stateManifest![key], controller)
           }
         }
 
@@ -73,10 +73,10 @@ export class Zone {
     const activationString = stringForTemplate(getTokenRegistry(zoneStore), activationTemplate)
     controller.enqueue(activationString)
 
-    const stateMap = this.options.stateMap
-    if (stateMap) {
-      for (const key in stateMap) {
-        streamUpdates(zoneStore, key, stateMap![key], controller)
+    const stateManifest = this.options.stateManifest
+    if (stateManifest) {
+      for (const key in stateManifest) {
+        streamUpdates(zoneStore, key, stateManifest![key], controller)
       }
     }
 
@@ -85,39 +85,69 @@ export class Zone {
 }
 
 export interface InternalZoneOptions {
-  stateMap?: StateMap
+  stateManifest?: StateManifest
   activationScripts?: Array<string>
   store: State<Store>
   mountPoint: string
   viteContext?: ViteContext
 }
 
-function streamUpdates(store: Store, key: string, token: Container<any>, controller: ReadableStreamDefaultController) {
-  useEffect(store, {
-    init(get) {
-      get(token)
-    },
-    run(get) {
-      controller.enqueue(scriptTag(store.id, {
-        k: SerializedStateType.Container,
-        t: key,
-        v: get(token)
-      }))
-    },
-  })
-  useEffect(store, {
-    init(get) {
-      get(token.meta)
-    },
-    run(get) {
-      const metaValue = get(token.meta)
-      if (metaValue.type !== "ok") {
-        controller.enqueue(scriptTag(store.id, {
-          k: SerializedStateType.Meta,
-          t: key,
-          v: get(token.meta)
-        }))
-      }
-    },
-  })
+function streamUpdates(store: Store, key: string, token: SerializableState, controller: ReadableStreamDefaultController) {
+  const streamer = new StateStreamer(store, controller, key, token)
+  useEffect(store, streamer)
+  if (token instanceof Container) {
+    useContainerHooks(store, token, streamer)
+  }
+
+  useEffect(store, new MetaStateStreamer(store, controller, key, token))
+}
+
+class MetaStateStreamer implements ReactiveEffect {
+  constructor(
+    private store: Store,
+    private controller: ReadableStreamDefaultController,
+    private tokenKey: string,
+    private token: SerializableState
+  ) { }
+
+
+  init(get: GetState): void {
+    get(this.token.meta)
+  }
+
+  run(get: GetState): void {
+    const metaValue = get(this.token.meta)
+    if (metaValue.type !== "ok") {
+      this.controller.enqueue(scriptTag(this.store.id, serializedMeta(this.tokenKey, metaValue)))
+    }
+  }
+
+}
+
+class StateStreamer implements ReactiveEffect, ContainerHooks<any, any> {
+  private isWriting: boolean = false
+
+  constructor(
+    private store: Store,
+    private controller: ReadableStreamDefaultController,
+    private tokenKey: string,
+    private token: SerializableState
+  ) { }
+
+  init(get: GetState): void {
+    get(this.token)
+  }
+
+  run(get: GetState): void {
+    if (this.isWriting) return
+
+    this.controller.enqueue(scriptTag(this.store.id, serializedValue(this.tokenKey, get(this.token))))
+  }
+
+  onWrite(message: any, actions: WriteHookActions<any, any, unknown>): void {
+    this.isWriting = true
+    this.controller.enqueue(scriptTag(this.store.id, serializedMessage(this.tokenKey, message)))
+    actions.ok(message)
+    this.isWriting = false
+  }
 }

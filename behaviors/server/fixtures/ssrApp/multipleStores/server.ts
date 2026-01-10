@@ -21,7 +21,7 @@ const storeB = createStore({
 })
 
 const renderHTMLToString = createStringRenderer(viewGenerator, {
-  stateMap: serializedTokens,
+  stateManifest: serializedTokens,
 })
 
 function page(root: HTMLBuilder) {

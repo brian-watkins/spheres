@@ -4,7 +4,7 @@ import { activateZone } from "@view/index"
 import { write } from "@store/index"
 
 const { store } = activateZone({
-  stateMap: serializedTokens,
+  stateManifest: serializedTokens,
   view(activate) {
     activate(document.body, view)
   },

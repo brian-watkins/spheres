@@ -1,12 +1,18 @@
 import view from "./view"
-import { serializedTokens, thingValue } from "./state"
+import { serializedTokens, someWord, thingValue } from "./state"
 import { activateZone } from "@view/index"
-import { write } from "@store/index"
+import { useContainerHooks, write } from "@store/index"
 
 const { store } = activateZone({
-  stateMap: serializedTokens,
+  stateManifest: serializedTokens,
   view(activate) {
     activate(document.body, view)
+  },
+})
+
+useContainerHooks(store, someWord, {
+  onWrite(message, actions) {
+    actions.ok(`Transformed in hook: ${message}`)
   },
 })
 

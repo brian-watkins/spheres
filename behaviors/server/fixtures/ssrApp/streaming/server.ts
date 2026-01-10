@@ -1,12 +1,12 @@
 import { createStreamRenderer } from "@server/index"
 import view from "./view"
-import { createStore } from "@store/index"
+import { createStore, write } from "@store/index"
 import { StreamingSSRParts } from "server/helpers/ssrApp"
-import { serializedTokens, Thing, things, thingValue } from "./state"
+import { serializedTokens, someWord, Thing, things, thingValue } from "./state"
 import { HTMLBuilder } from "@view/htmlElements"
 
 const streamRenderer = createStreamRenderer(page, {
-  stateMap: serializedTokens,
+  stateManifest: serializedTokens,
   activationScripts: [
     "/behaviors/server/fixtures/ssrApp/streaming/activate.ts"
   ]
@@ -42,7 +42,7 @@ const thingValueServerState = "tens of"
 
 export default function (): StreamingSSRParts {
   const store = createStore({
-    init: async (actions) => {
+    init: async (actions, store) => {
       actions.pending(things, [])
 
       const thingPromise = new Promise<void>(resolve => {
@@ -62,6 +62,8 @@ export default function (): StreamingSSRParts {
       })
 
       await Promise.all([thingPromise, thingValuePromise])
+
+      store.dispatch(write(someWord, "Hello from server!"))
     }
   })
 

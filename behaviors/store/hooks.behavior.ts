@@ -79,8 +79,8 @@ export default behavior("store hooks", [
         }),
         fact("there is an onRegister hook that attaches a write hook", (context) => {
           useHooks(context.store, {
-            onRegister(container) {
-              useContainerHooks(context.store, container, {
+            onRegister(container, store) {
+              useContainerHooks(store, container, {
                 onWrite(message, actions) {
                   context.tokens.logs.push(`[${container.toString()}] => ${JSON.stringify(message)}`)
                   actions.ok(message)

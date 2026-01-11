@@ -34,7 +34,7 @@ export interface ContainerHooks<T, M, E = unknown> {
 }
 
 export interface StoreHooks {
-  onRegister(container: Container<any>): void
+  onRegister(container: Container<any>, store: Store): void
 }
 
 export interface ReactiveEffect {
@@ -105,7 +105,7 @@ export function useCommand<M>(store: Store, command: Command<M>, manager: Comman
 export function useHooks(store: Store, hooks: StoreHooks) {
   getTokenRegistry(store).onRegister((token) => {
     if (token instanceof Container) {
-      hooks.onRegister(token)
+      hooks.onRegister(token, store)
     }
   })
 }

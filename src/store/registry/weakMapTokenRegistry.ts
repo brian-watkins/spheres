@@ -13,8 +13,14 @@ export class WeakMapTokenRegistry implements TokenRegistry {
   registerState(token: State<unknown>): StateReader<unknown> {
     const controller = token[createStateHandler](this)
     this.registry.set(token, controller)
-    this.onRegisterHook?.(token)
-    return controller
+    if (this.onRegisterHook !== undefined) {
+      this.onRegisterHook(token)
+      // The onRegisterHook could itself add hooks which sets a hooked
+      // controller in the registry so to be safe we fetch it again
+      return this.registry.get(token)
+    } else {
+      return controller
+    }
   }
 
   registerCommand(token: Command<any>): CommandController<any> {

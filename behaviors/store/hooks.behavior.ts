@@ -1,6 +1,6 @@
 import { behavior, effect, example, fact, step } from "best-behavior";
 import { testStoreContext } from "./helpers/testStore";
-import { Container, container, State, useHooks } from "@store/index";
+import { Container, container, State, useContainerHooks, useHooks } from "@store/index";
 import { arrayWith, equalTo, expect, is, objectWithProperty } from "great-expectations";
 
 interface OnRegisterContext {
@@ -65,6 +65,55 @@ export default behavior("store hooks", [
           ]))
         })
       ]
+    }),
+
+  example(testStoreContext<LogWritesContext>())
+    .description("add hook to containers on register")
+    .script({
+      suppose: [
+        fact("initialize the context", (context) => {
+          context.setTokens({
+            logs: [],
+            container: container({ name: "test-container", initialValue: "hello" })
+          })
+        }),
+        fact("there is an onRegister hook that attaches a write hook", (context) => {
+          useHooks(context.store, {
+            onRegister(container) {
+              useContainerHooks(context.store, container, {
+                onWrite(message, actions) {
+                  context.tokens.logs.push(`[${container.toString()}] => ${JSON.stringify(message)}`)
+                  actions.ok(message)
+                },
+              })
+            }
+          })
+        }),
+        fact("add another hook to the container", (context) => {
+          useContainerHooks(context.store, context.tokens.container, {
+            onWrite(message, actions) {
+              actions.ok(`Hooked: ${message}`)
+            },
+          })
+        })
+      ],
+      perform: [
+        step("write to a container", (context) => {
+          context.writeTo(context.tokens.container, "One!")
+        })
+      ],
+      observe: [
+        effect("all the hooks are applied", (context) => {
+          expect(context.tokens.logs, is([
+            `[test-container] => "Hooked: One!"`
+          ]))
+        })
+      ]
     })
 
 ])
+
+interface LogWritesContext {
+  logs: Array<string>
+  container: Container<string>
+}

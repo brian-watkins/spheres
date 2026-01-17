@@ -85,9 +85,9 @@ class VirtualItem extends OverlayTokenRegistry {
     if (publisher === undefined) {
       if (this.viewTokens.has(token)) {
         if (token instanceof Container) {
-          let idToken: State<string> | undefined = undefined
+          let idToken: StateReference<string> | undefined = undefined
           if (token.id !== undefined) {
-            idToken = new Constant(undefined, runQuery(this, get => get(token.id!)))
+            idToken = new Constant(runQuery(this, get => get(token.id!)))
           }
           const rootToken = token[clone](idToken)
           publisher = this.parentRegistry.getState(rootToken) as StateWriter<any, any>

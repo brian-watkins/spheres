@@ -1,6 +1,6 @@
 import { MetaState, WithMetaState } from "./meta.js"
 import { didCreateToken } from "./stateRecorder.js"
-import { createStateHandler, getStateHandler, State, StatePublisher, StateWriter, TokenRegistry, WritableState } from "../tokenRegistry.js"
+import { createStateHandler, getStateHandler, State, StatePublisher, StateReference, StateWriter, TokenRegistry, WritableState } from "../tokenRegistry.js"
 import { initialValue, ResettableState } from "../message.js"
 import { MessageWriter, UpdateResult } from "./handler/messageWriter.js"
 import { Writer } from "./handler/writer.js"
@@ -9,7 +9,7 @@ export interface ContainerInitializer<T, M> {
   initialValue: T,
   update?: (message: M, current: T) => UpdateResult<T>
   name?: string
-  id?: State<string>
+  id?: StateReference<string>
 }
 
 export function container<T, M = T, E = any>(initializer: ContainerInitializer<T, M>): Container<T, M, E> {
@@ -32,7 +32,7 @@ export class Container<T, M = T, E = any> extends State<T> implements Resettable
     name: string | undefined,
     private initialValue: T,
     private update: ((message: M, current: T) => UpdateResult<T>) | undefined,
-    readonly id: State<string> | undefined
+    readonly id: StateReference<string> | undefined
   ) {
     super(name)
   }
@@ -51,7 +51,7 @@ export class Container<T, M = T, E = any> extends State<T> implements Resettable
       new Writer(this.initialValue)
   }
 
-  [clone](id: State<string> | undefined): Container<T, M, E> {
+  [clone](id: StateReference<string> | undefined): Container<T, M, E> {
     return new Container(this.name, this.initialValue, this.update, id)
   }
 

@@ -295,7 +295,6 @@ export default behavior("command", [
             task
           })
           context.useCommand(myCommand, async (message, actions) => {
-            console.log("hey", message)
             actions.pending(suppliedCollection.at("fun-stuff"))
             await task.waitForIt()
             actions.supply(suppliedCollection.at("fun-stuff"), `From command: ${message}`)

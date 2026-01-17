@@ -33,8 +33,12 @@ export interface ContainerHooks<T, M, E = unknown> {
   onWrite(message: M, actions: WriteHookActions<T, M, E>): void
 }
 
+export interface RegisterHookActions {
+  get: GetState
+}
+
 export interface StoreHooks {
-  onRegister(container: Container<any>, store: Store): void
+  onRegister(container: Container<any>, actions: RegisterHookActions): void
 }
 
 export interface ReactiveEffect {
@@ -47,9 +51,10 @@ export interface ReactiveEffectHandle {
 }
 
 const tokenRegistry = Symbol("tokenRegistry")
+const setTokenRegistry = Symbol("set-tokenRegistry")
 
 export function getTokenRegistry(store: Store): TokenRegistry {
-  return store[tokenRegistry]
+  return store[tokenRegistry]()
 }
 
 export class Store {
@@ -78,11 +83,11 @@ export class Store {
     }
   }
 
-  get [tokenRegistry](): TokenRegistry {
+  [tokenRegistry](): TokenRegistry {
     return this.registry
   }
 
-  set [tokenRegistry](registry: TokenRegistry) {
+  [setTokenRegistry](registry: TokenRegistry) {
     this.registry = registry
   }
 
@@ -105,7 +110,10 @@ export function useCommand<M>(store: Store, command: Command<M>, manager: Comman
 export function useHooks(store: Store, hooks: StoreHooks) {
   getTokenRegistry(store).onRegister((token) => {
     if (token instanceof Container) {
-      hooks.onRegister(token, store)
+      const registry = getTokenRegistry(store)
+      hooks.onRegister(token, {
+        get: (state) => runQuery(registry, get => get(state))
+      })
     }
   })
 }

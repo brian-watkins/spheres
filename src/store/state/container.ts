@@ -9,17 +9,21 @@ export interface ContainerInitializer<T, M> {
   initialValue: T,
   update?: (message: M, current: T) => UpdateResult<T>
   name?: string
+  id?: State<string>
 }
 
 export function container<T, M = T, E = any>(initializer: ContainerInitializer<T, M>): Container<T, M, E> {
   const token = new Container<T, M, E>(
     initializer.name,
     initializer.initialValue,
-    initializer.update
+    initializer.update,
+    initializer.id
   )
   didCreateToken(token)
   return token
 }
+
+export const clone = Symbol("clone-container")
 
 export class Container<T, M = T, E = any> extends State<T> implements ResettableState<T>, WritableState<T, M>, WithMetaState<T, M, E> {
   private _meta: MetaState<T, M, E> | undefined
@@ -28,6 +32,7 @@ export class Container<T, M = T, E = any> extends State<T> implements Resettable
     name: string | undefined,
     private initialValue: T,
     private update: ((message: M, current: T) => UpdateResult<T>) | undefined,
+    readonly id: State<string> | undefined
   ) {
     super(name)
   }
@@ -44,6 +49,10 @@ export class Container<T, M = T, E = any> extends State<T> implements Resettable
     return this.update ?
       new MessageWriter(registry, this.initialValue, this.update) :
       new Writer(this.initialValue)
+  }
+
+  [clone](id: State<string> | undefined): Container<T, M, E> {
+    return new Container(this.name, this.initialValue, this.update, id)
   }
 
   get meta(): MetaState<T, M, E> {

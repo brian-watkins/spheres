@@ -1,12 +1,14 @@
 import { GetState } from "../../../store/index.js"
 import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementId } from "../fragmentHelpers.js"
 import { activate, DOMTemplate, render, TemplateType } from "../domTemplate.js"
-import { generateStateManager, State, StateEffect, StateListenerType, StatePublisher, StateReader, StateWriter, StateHandler, Token, TokenRegistry, StateReference } from "../../../store/tokenRegistry.js"
+import { generateStateManager, State, StateEffect, StateListenerType, StatePublisher, StateReader, StateWriter, StateHandler, Token, TokenRegistry, StateReference, runQuery } from "../../../store/tokenRegistry.js"
 import { ListItemTemplateContext } from "../templateContext.js"
 import { OverlayTokenRegistry } from "../../../store/registry/overlayTokenRegistry.js"
 import { OverlayStateHandler } from "../../../store/state/handler/overlayStateHandler.js"
 import { ConstantReader } from "../../../store/state/handler/constantReader.js"
 import { Publisher } from "../../../store/state/handler/publisher.js"
+import { Container, clone } from "../../../store/state/container.js"
+import { Constant } from "../../../store/state/constant.js"
 
 class VirtualItem extends OverlayTokenRegistry {
   node!: Node
@@ -81,18 +83,30 @@ class VirtualItem extends OverlayTokenRegistry {
 
     let publisher = this.registry.get(token)
     if (publisher === undefined) {
-      publisher = this.createPublisher(token)
-      this.registry.set(token, publisher)
+      if (this.viewTokens.has(token)) {
+        if (token instanceof Container) {
+          let idToken: State<string> | undefined = undefined
+          if (token.id !== undefined) {
+            idToken = new Constant(undefined, runQuery(this, get => get(token.id!)))
+          }
+          const rootToken = token[clone](idToken)
+          publisher = this.parentRegistry.getState(rootToken) as StateWriter<any, any>
+          this.registry.set(rootToken, publisher)
+          this.registry.set(token, publisher)
+        } else {
+          publisher = generateStateManager(this, token) as StateHandler<S>
+          this.registry.set(token, publisher)
+        }
+      } else {
+        publisher = this.createPublisher(token)
+        this.registry.set(token, publisher)
+      }
     }
 
     return publisher as StateHandler<S>
   }
 
   private createPublisher<S extends State<unknown>>(token: S): StateHandler<S> {
-    if (this.viewTokens.has(token)) {
-      return generateStateManager(this, token) as StateHandler<S>
-    }
-
     const actualPublisher = this.parentRegistry.getState(token) as StateWriter<any, any>
     const overlayPublisher = new OverlayStateHandler(this.parentRegistry, actualPublisher)
     overlayPublisher.init()

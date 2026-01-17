@@ -4,6 +4,7 @@ import { error, Meta, ok, pending, WithMetaState } from "./state/meta.js"
 import { WeakMapTokenRegistry } from "./registry/weakMapTokenRegistry.js"
 import { Command, getStateHandler, GetState, initializeCommand, initListener, runQuery, StateEffect, StateListenerType, StateReference, StateWriter, Subscriber, TokenRegistry, PublishableState } from "./tokenRegistry.js"
 import { CommandManager, ManagedCommandController } from "./command/managedCommandController.js"
+import { RootTokenRegistry } from "./registry/rootTokenRegistry.js"
 
 export interface StoreInitializerActions {
   get: GetState
@@ -53,12 +54,12 @@ export interface ReactiveEffectHandle {
 const tokenRegistry = Symbol("tokenRegistry")
 const setTokenRegistry = Symbol("set-tokenRegistry")
 
-export function getTokenRegistry(store: Store): TokenRegistry {
+export function getTokenRegistry(store: Store): RootTokenRegistry {
   return store[tokenRegistry]()
 }
 
 export class Store {
-  private registry: TokenRegistry
+  private registry: RootTokenRegistry
   readonly id: string
   private initializerPromise: Promise<void> | undefined
 
@@ -83,11 +84,11 @@ export class Store {
     }
   }
 
-  [tokenRegistry](): TokenRegistry {
+  [tokenRegistry](): RootTokenRegistry {
     return this.registry
   }
 
-  [setTokenRegistry](registry: TokenRegistry) {
+  [setTokenRegistry](registry: RootTokenRegistry) {
     this.registry = registry
   }
 
@@ -109,12 +110,10 @@ export function useCommand<M>(store: Store, command: Command<M>, manager: Comman
 
 export function useHooks(store: Store, hooks: StoreHooks) {
   getTokenRegistry(store).onRegister((token) => {
-    if (token instanceof Container) {
-      const registry = getTokenRegistry(store)
-      hooks.onRegister(token, {
-        get: (state) => runQuery(registry, get => get(state))
-      })
-    }
+    const registry = getTokenRegistry(store)
+    hooks.onRegister(token, {
+      get: (state) => runQuery(registry, get => get(state))
+    })
   })
 }
 

@@ -140,7 +140,6 @@ export type Token = State<unknown> | Command<unknown>
 export type StateHandler<S extends State<unknown>> = ReturnType<S[typeof getStateHandler]>
 
 export interface TokenRegistry {
-  onRegister(handler: (token: Token) => void): void
   getState<S extends State<unknown>>(token: S): StateHandler<S>
   setState<T>(state: State<T>, publisher: StateReader<T>): void
   getCommand(token: Command<unknown>): CommandController<unknown>

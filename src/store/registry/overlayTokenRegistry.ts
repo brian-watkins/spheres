@@ -3,8 +3,6 @@ import { Command, CommandController, State, StateReader, StateHandler, TokenRegi
 export class OverlayTokenRegistry implements TokenRegistry {
   constructor(protected parentRegistry: TokenRegistry) { }
 
-  onRegister(): void { }
-
   getState<S extends State<unknown>>(token: S): StateHandler<S> {
     return this.parentRegistry.getState(token)
   }

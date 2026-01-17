@@ -1,19 +1,21 @@
-import { Command, CommandController, createController, createStateHandler, State, StateReader, StateHandler, Token, TokenRegistry } from "../tokenRegistry.js";
+import { Container } from "../state/container.js";
+import { Command, CommandController, createController, createStateHandler, State, StateReader, StateHandler, Token } from "../tokenRegistry.js";
+import { RootTokenRegistry } from "./rootTokenRegistry.js";
 
-export class WeakMapTokenRegistry implements TokenRegistry {
+export class WeakMapTokenRegistry implements RootTokenRegistry {
   protected registry: WeakMap<Token, any> = new WeakMap();
-  private registerHook: ((token: Token) => void) | undefined
+  private registerHook: ((container: Container<any>) => void) | undefined
 
   constructor() { }
 
-  onRegister(handler: (token: Token) => void): void {
+  onRegister(handler: (container: Container<any>) => void): void {
     this.registerHook = handler
   }
 
   registerState(token: State<unknown>): StateReader<unknown> {
     const controller = token[createStateHandler](this)
     this.registry.set(token, controller)
-    if (this.registerHook !== undefined) {
+    if (this.registerHook !== undefined && token instanceof Container) {
       this.registerHook(token)
       return this.registry.get(token)
     } else {

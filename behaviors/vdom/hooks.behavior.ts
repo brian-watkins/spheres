@@ -341,7 +341,11 @@ export default behavior("onRegister hook", [
 
           function fruitView(fruit: State<FruitKind>): HTMLView {
             return root => {
-              const counter = container({ name: "fruit-counter", initialValue: 0 })
+              const counter = container({
+                name: "fruit-counter",
+                initialValue: 0,
+                id: derived(get => get(fruit).name)
+              })
 
               root.div(el => {
                 el.children
@@ -360,7 +364,11 @@ export default behavior("onRegister hook", [
 
           function shapeView(shape: State<ShapeKind>): HTMLView {
             return root => {
-              const counter = container({ name: "shape-counter", initialValue: 0 })
+              const counter = container({
+                name: "shape-counter",
+                initialValue: 0,
+                id: derived(get => `${get(shape).corners}`)
+              })
 
               root.div(el => {
                 el.children
@@ -415,9 +423,9 @@ export default behavior("onRegister hook", [
         effect("the logs are recorded", (context) => {
           expect(context.state.logs, is([
             "Registering [trigger]",
-            "Registering [fruit-counter]",
-            "Writing [fruit-counter] => 1",
-            "Writing [fruit-counter] => 2",
+            "Registering [fruit-counter-apple]",
+            "Writing [fruit-counter-apple] => 1",
+            "Writing [fruit-counter-apple] => 2",
           ]))
         })
       ]
@@ -440,15 +448,15 @@ export default behavior("onRegister hook", [
         effect("the logs are recorded", (context) => {
           expect(context.state.logs, is([
             "Registering [trigger]",
-            "Registering [fruit-counter]",
-            "Writing [fruit-counter] => 1",
-            "Writing [fruit-counter] => 2",
+            "Registering [fruit-counter-apple]",
+            "Writing [fruit-counter-apple] => 1",
+            "Writing [fruit-counter-apple] => 2",
             `Writing [trigger] => {"type":"shape","corners":8}`,
-            "Registering [shape-counter]",
-            "Writing [shape-counter] => 1",
-            "Writing [shape-counter] => 2",
-            "Writing [shape-counter] => 3",
-            "Writing [shape-counter] => 4",
+            "Registering [shape-counter-8]",
+            "Writing [shape-counter-8] => 1",
+            "Writing [shape-counter-8] => 2",
+            "Writing [shape-counter-8] => 3",
+            "Writing [shape-counter-8] => 4",
           ]))
         })
       ]

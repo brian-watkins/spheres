@@ -419,10 +419,12 @@ function discriminatedUnionReuseViewExample(name: string, renderer: (context: Re
 }
 
 const listDataState = container<ListData>({
+  name: "list-data",
   initialValue: { type: "empty-list" }
 })
 
 const anotherListDataState = container<ListData>({
+  name: "another-list-data",
   initialValue: { type: "list-with-items", items: ["a", "b", "c"], selected: "c" }
 })
 
@@ -460,8 +462,6 @@ function staticList(state: State<ListState>): HTMLView {
 }
 
 function listOrEmptyView(state: State<ListState>): HTMLView {
-  // const listData = derived(get => get(get(state).data))
-
   return (root) => {
     root.subviewFrom(selector => {
       selector.withUnion(get => get(get(state).data))

@@ -3,6 +3,7 @@ import { OverlayTokenRegistry } from "../../store/registry/overlayTokenRegistry.
 import { recordTokens } from "../../store/state/stateRecorder.js";
 import { generateStateManager, runQuery, Subscriber, Subscribable, TokenRegistry, StateHandler } from "../../store/tokenRegistry.js";
 import { ViewDefinition, ViewCaseSelector, ViewSelector, ViewConditionSelector } from "./viewRenderer.js";
+import { Container } from "../../store/state/container.js"
 
 export interface TemplateCollection<T> {
   select(get: GetState): TemplateSelection<T>
@@ -194,14 +195,19 @@ class CaseViewOverlayTokenRegistry extends OverlayTokenRegistry {
   getState<S extends State<unknown>>(token: S): StateHandler<S> {
     let publisher = this.tokenMap.get(token)
     if (publisher === undefined) {
-      if (this.tokens.includes(token)) {
-        publisher = this.createGuardingStateHandler(generateStateManager(this, token))
+      if (token instanceof Container) {
+        // containers do not need to be guarded and aren't shared across templates
+        // this allows internal containers to trigger the onRegister hook
+        publisher = this.parentRegistry.getState(token)
       } else {
-        publisher = this.createGuardingStateHandler(this.parentRegistry.getState(token))
+        if (this.tokens.includes(token)) {
+          publisher = this.createGuardingStateHandler(generateStateManager(this, token))
+        } else {
+          publisher = this.createGuardingStateHandler(this.parentRegistry.getState(token))
+        }
       }
       this.tokenMap.set(token, publisher)
     }
-
     return publisher
   }
 

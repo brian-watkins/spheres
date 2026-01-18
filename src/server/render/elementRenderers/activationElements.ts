@@ -53,7 +53,7 @@ export function templateForResource(resource: TransformedResource): HTMLTemplate
   }
 }
 
-export const storeIdToken = container({ initialValue: "" })
+export const storeIdToken = container({ name: "store-id", initialValue: "" })
 
 export function storeDataTemplate(stateManifest: StateManifest): HTMLTemplate {
   return {

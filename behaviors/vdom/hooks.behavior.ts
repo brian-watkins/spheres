@@ -99,6 +99,87 @@ export default behavior("onRegister hook", [
     }),
 
   example(renderContext<HooksContext>())
+    .description("list item view tokens trigger onRegister hook during server render")
+    .script({
+      suppose: [
+        fact("context is initialized", (context) => {
+          context.setState({ logs: [] })
+        }),
+        fact("onRegister hook is used to add a container hook to each container on the server side", (context) => {
+          useHooks(context.serverStore, {
+            onRegister(container, actions) {
+              const containerName = container.id !== undefined ?
+                `${container}-${actions.get(container.id)}` :
+                `${container}`
+              context.state.logs.push(`Registering [${containerName}]`)
+            },
+          })
+        }),
+        fact("a list of elements is displayed", (context) => {
+          const items = container({
+            name: "list-data",
+            initialValue: ["One", "Two", "Three"]
+          })
+
+          function itemView(useItem: UseData<string>): HTMLView {
+            const counter = container({
+              name: "counter",
+              initialValue: 0,
+              id: derived(useItem(item => item.toLowerCase()))
+            })
+
+            return root => {
+              root.div(el => {
+                el.children
+                  .h1(el => {
+                    el.children
+                      .textNode(useItem((item, get) => `${item} - ${get(counter)} clicks`))
+                  })
+                  .button(el => {
+                    el.config.on("click", () => update(counter, val => val + 1))
+                    el.children.textNode("Increment")
+                  })
+                  .hr()
+              })
+            }
+          }
+
+          context.ssrAndActivate(root => {
+            root.main(el => {
+              el.children
+                .subviews(get => get(items), itemView)
+            })
+          })
+        })
+      ],
+      perform: [
+        step("click some buttons", async () => {
+          await selectElements("button").at(1).click()
+          await selectElements("button").at(1).click()
+          await selectElements("button").at(1).click()
+        })
+      ],
+      observe: [
+        effect("the view updates", async () => {
+          await expect(selectElements("h1").texts(), resolvesTo([
+            "One - 0 clicks",
+            "Two - 3 clicks",
+            "Three - 0 clicks",
+          ]))
+        }),
+        effect("the logs are recorded", (context) => {
+          expect(context.state.logs, is([
+            "Registering [store-id]",
+            "Registering [list-data]",
+            "Registering [counter-one]",
+            "Registering [counter-two]",
+            "Registering [counter-three]",
+          ]))
+        })
+      ]
+    }),
+
+  example(renderContext<HooksContext>())
     .description("conditional view tokens trigger onRegister hook")
     .script({
       suppose: [

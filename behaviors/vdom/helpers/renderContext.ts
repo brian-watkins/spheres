@@ -8,6 +8,7 @@ import { DOMChangeRecord, structureChangeRecord, textChangeRecord } from "./chan
 export class RenderApp<T> {
   private renderResult: RenderResult | undefined
   readonly store: Store = createStore()
+  private serverSideStore: Store | undefined = undefined
   private _state: T | undefined
   private observer: MutationObserver | undefined
   public changeRecords: Array<DOMChangeRecord> = []
@@ -19,6 +20,13 @@ export class RenderApp<T> {
 
   get state(): T {
     return this._state!
+  }
+
+  get serverStore(): Store {
+    if (this.serverSideStore === undefined) {
+      this.serverSideStore = createStore()
+    }
+    return this.serverSideStore
   }
 
   writeTo<S, M = S>(token: WritableState<S, M>, value: M) {
@@ -34,7 +42,7 @@ export class RenderApp<T> {
   }
 
   ssrAndActivate(view: HTMLView) {
-    this.ssrHtmlString = createStringRenderer(view)(this.store)
+    this.ssrHtmlString = createStringRenderer(view)(this.serverSideStore ?? this.store)
     document.body.innerHTML = this.ssrHtmlString
     this.renderResult = activateView(this.store, document.body, view)
   }

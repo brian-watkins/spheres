@@ -35,7 +35,8 @@ export interface ContainerHooks<T, M, E = unknown> {
 }
 
 export interface RegisterHookActions {
-  get: GetState
+  get: GetState,
+  supply(value: any): void
 }
 
 export interface StoreHooks {
@@ -112,7 +113,10 @@ export function useHooks(store: Store, hooks: StoreHooks) {
   getTokenRegistry(store).onRegister((token) => {
     const registry = getTokenRegistry(store)
     hooks.onRegister(token, {
-      get: (state) => runQuery(registry, get => get(state))
+      get: (state) => runQuery(registry, get => get(state)),
+      supply: (value) => {
+        token[getStateHandler](registry).publish(value)
+      },
     })
   })
 }

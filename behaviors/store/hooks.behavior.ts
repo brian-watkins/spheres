@@ -3,12 +3,6 @@ import { testStoreContext } from "./helpers/testStore";
 import { Container, container, State, useContainerHooks, useHooks } from "@store/index";
 import { arrayWith, equalTo, expect, is, objectWithProperty } from "great-expectations";
 
-interface OnRegisterContext {
-  stringContainer: Container<string>
-  numberContainer: Container<number>
-  registeredContainers: Array<State<any>>
-}
-
 export default behavior("store hooks", [
 
   example(testStoreContext<OnRegisterContext>())
@@ -67,6 +61,37 @@ export default behavior("store hooks", [
       ]
     }),
 
+  example(testStoreContext<Container<string>>())
+    .description("hooks supplies value to registered container")
+    .script({
+      suppose: [
+        fact("there is a container", (context) => {
+          context.setTokens(container({ initialValue: "hello" }))
+        }),
+        fact("a hook that supplies a value", (context) => {
+          useHooks(context.store, {
+            onRegister(container, actions) {
+              if (container === context.tokens) {
+                actions.supply("supplied text")
+              }
+            },
+          })
+        }),
+      ],
+      perform: [
+        step("register a container", (context) => {
+          context.subscribeTo(context.tokens, "sub-one")
+        })
+      ],
+      observe: [
+        effect("the subscriber gets the value supplied by the container", (context) => {
+          expect(context.valuesForSubscriber("sub-one"), is([
+            "supplied text"
+          ]))
+        })
+      ]
+    }),
+
   example(testStoreContext<LogWritesContext>())
     .description("add hook to containers on register")
     .script({
@@ -112,6 +137,12 @@ export default behavior("store hooks", [
     })
 
 ])
+
+interface OnRegisterContext {
+  stringContainer: Container<string>
+  numberContainer: Container<number>
+  registeredContainers: Array<State<any>>
+}
 
 interface LogWritesContext {
   logs: Array<string>

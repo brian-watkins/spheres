@@ -1,5 +1,17 @@
 # spheres
 
+## 0.26.0
+
+### Minor Changes
+
+- 993f626: Stream messages written to tokens in the state manifest
+- 71d82ec: Internal view tokens trigger onRegister hook; added optional id token to container
+
+### Patch Changes
+
+- 2f7cfe2: Allow onRegister hook to add hooks to containers
+- b4020f0: Wait to deserialize streamed data until the chunk has been fully streamed
+
 ## 0.25.2
 
 ### Patch Changes

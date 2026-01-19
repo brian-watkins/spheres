@@ -1,4 +1,4 @@
-import { StateReader } from "../../tokenRegistry";
+import { StateReader } from "../../tokenRegistry.js";
 
 export class ConstantReader<T> implements StateReader<T> {
   constructor(private value: T) { }

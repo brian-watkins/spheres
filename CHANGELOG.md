@@ -1,5 +1,11 @@
 # spheres
 
+## 0.26.2
+
+### Patch Changes
+
+- 8ffe100: Ensure initial state is processed before streamed state
+
 ## 0.26.1
 
 ### Patch Changes

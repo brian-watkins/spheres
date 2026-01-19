@@ -37,6 +37,8 @@ export interface ContainerHooks<T, M, E = unknown> {
 export interface RegisterHookActions {
   get: GetState,
   supply(value: any): void
+  pending(value?: any): void
+  error(reason: any, value: any): void
 }
 
 export interface StoreHooks {
@@ -117,6 +119,12 @@ export function useHooks(store: Store, hooks: StoreHooks) {
       supply: (value) => {
         token[getStateHandler](registry).publish(value)
       },
+      pending: (value) => {
+        token.meta[getStateHandler](registry).publish(pending(value))
+      },
+      error: (reason, value) => {
+        token.meta[getStateHandler](registry).publish(error(reason, value))
+      }
     })
   })
 }

@@ -2,6 +2,7 @@ import { behavior, effect, example, fact, step } from "best-behavior";
 import { testStoreContext } from "./helpers/testStore";
 import { Container, container, State, useContainerHooks, useHooks } from "@store/index";
 import { arrayWith, equalTo, expect, is, objectWithProperty } from "great-expectations";
+import { errorMessage, pendingMessage } from "./helpers/metaMatchers";
 
 export default behavior("store hooks", [
 
@@ -88,6 +89,84 @@ export default behavior("store hooks", [
           expect(context.valuesForSubscriber("sub-one"), is([
             "supplied text"
           ]))
+        })
+      ]
+    }),
+
+  example(testStoreContext<Container<string>>())
+    .description("hooks updates registered container's pending meta state")
+    .script({
+      suppose: [
+        fact("there is a container", (context) => {
+          context.setTokens(container({ initialValue: "hello" }))
+        }),
+        fact("a hook that updates the pending meta state", (context) => {
+          useHooks(context.store, {
+            onRegister(container, actions) {
+              if (container === context.tokens) {
+                actions.pending("Just wait!")
+              }
+            },
+          })
+        }),
+      ],
+      perform: [
+        step("register a container", (context) => {
+          context.subscribeTo(context.tokens, "sub-one")
+        }),
+        step("subscribe to updates on the meta container", (context) => {
+          context.subscribeTo(context.tokens.meta, "meta-sub")
+        })
+      ],
+      observe: [
+        effect("the subscriber gets the initial value of the container", (context) => {
+          expect(context.valuesForSubscriber("sub-one"), is([
+            "hello"
+          ]))
+        }),
+        effect("the meta subscriber gets the pending message", (context) => {
+          expect(context.valuesForSubscriber("meta-sub"), is(arrayWith([
+            pendingMessage("Just wait!")
+          ])))
+        })
+      ]
+    }),
+
+  example(testStoreContext<Container<string>>())
+    .description("hooks updates registered container's error meta state")
+    .script({
+      suppose: [
+        fact("there is a container", (context) => {
+          context.setTokens(container({ initialValue: "hello" }))
+        }),
+        fact("a hook that updates the error meta state", (context) => {
+          useHooks(context.store, {
+            onRegister(container, actions) {
+              if (container === context.tokens) {
+                actions.error("Something bad happened!", "The value")
+              }
+            },
+          })
+        }),
+      ],
+      perform: [
+        step("register a container", (context) => {
+          context.subscribeTo(context.tokens, "sub-one")
+        }),
+        step("subscribe to updates on the meta container", (context) => {
+          context.subscribeTo(context.tokens.meta, "meta-sub")
+        })
+      ],
+      observe: [
+        effect("the subscriber gets the initial value of the container", (context) => {
+          expect(context.valuesForSubscriber("sub-one"), is([
+            "hello"
+          ]))
+        }),
+        effect("the meta subscriber gets the pending message", (context) => {
+          expect(context.valuesForSubscriber("meta-sub"), is(arrayWith([
+            errorMessage("The value", "Something bad happened!")
+          ])))
         })
       ]
     }),

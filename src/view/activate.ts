@@ -29,12 +29,54 @@ export interface ActivatedZone {
   store: Store
 }
 
+interface StreamingAppWindow extends Window {
+  _spheres_register_streaming_store: (storeId: string, deserializer: (data: SerializedState) => void) => void
+  _spheres_deserialize: (storeId: string, chunkId: string) => void
+}
+
+declare let window: StreamingAppWindow
+
+export function prepareForStreaming() {
+  const spheres_deserializers = new Map<string, (data: SerializedState) => void>()
+  const spheres_deserializer_queue = new Map<string, Array<string>>()
+  
+  window._spheres_register_streaming_store = (storeId: string, deserializer: (data: SerializedState) => void) => {
+    spheres_deserializers.set(storeId, deserializer)
+    const chunks = spheres_deserializer_queue.get(storeId) ?? []
+    for (const chunk of chunks) {
+      window._spheres_deserialize(storeId, chunk)
+    }
+  }
+
+  window._spheres_deserialize = (storeId: string, chunkId: string) => {
+    const dataTag = document.querySelector(`script[data-spheres-store="${storeId}"][data-spheres-stream="${chunkId}"]`)
+    if (dataTag !== null) {
+      const deserializer = spheres_deserializers.get(storeId)
+      if (deserializer !== undefined) {
+        deserializer(JSON.parse(dataTag.textContent))
+      } else {
+        if (spheres_deserializer_queue.has(storeId)) {
+          spheres_deserializer_queue.get(storeId)!.push(chunkId)
+        } else {
+          spheres_deserializer_queue.set(storeId, [chunkId])
+        }
+      }
+    }
+  }
+}
+
 export function activateZone(options: ActivationOptions): ActivatedZone {
   const store = createStore({
     id: options.storeId,
     async init(actions, store) {
+      if (options.stateManifest !== undefined) {
+        window._spheres_register_streaming_store(store.id, (state: SerializedState) => {
+          deserializeState(store, options.stateManifest!, actions, state)
+        })
+      }
+
       // get the initial state
-      const tag = document.querySelector(`script[data-spheres-store="${store.id}"]`)
+      const tag = document.querySelector(`script[data-spheres-store="${store.id}"][data-spheres-stream="init"]`)
       if (tag !== null && options.stateManifest !== undefined) {
         const data: Array<SerializedState> = JSON.parse(tag.textContent!)
         for (const value of data) {
@@ -47,39 +89,14 @@ export function activateZone(options: ActivationOptions): ActivatedZone {
         activateView(store, el, view)
       })
 
-      // processing any streaming data that has already arrived
-      const existingData = document.querySelectorAll(`script[data-spheres-stream="${store.id}"]`)
-      existingData.forEach(el => {
-        deserializeState(store, options.stateManifest!, actions, JSON.parse(el.textContent!))
-      })
-
       if (document.readyState !== "loading") {
         // the response is complete so no streaming to deal with
         return
       }
 
-      // notify on any incoming streaming data
-      const observer = new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => {
-          if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-            mutation.addedNodes.forEach((node) => {
-              if (node.nodeType === Node.ELEMENT_NODE && node.nodeName === 'SCRIPT') {
-                const el = node as Element
-                if (el.getAttribute("data-spheres-stream") === store.id) {
-                  deserializeState(store, options.stateManifest!, actions, JSON.parse(el.textContent!))
-                }
-              }
-            })
-          }
-        })
-      })
-
-      observer.observe(document.body, { childList: true })
-
-      // wait for the response to end and then stop observing
+      // wait for the response to end
       return new Promise(resolve => {
         window.addEventListener("DOMContentLoaded", () => {
-          observer.disconnect()
           resolve()
         })
       })

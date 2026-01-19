@@ -174,7 +174,7 @@ export default behavior("rendering html page from transpiled server renderer", [
         }),
         effect("the script contains the initial state of the store", (context) => {
           expect(context.getRenderedHTML(), is(
-            stringMatching(/<script type="application\/json" data-spheres-store="_spheres_store_data_">/)
+            stringMatching(/<script type="application\/json" data-spheres-stream="init" data-spheres-store="_spheres_store_data_">/)
           ))
         })
       ]

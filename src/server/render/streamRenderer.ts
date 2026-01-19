@@ -27,8 +27,9 @@ export function buildStreamRenderer(view: HTMLView, options: StreamRendererOptio
         controller.enqueue(initialHTML)
 
         if (options.stateManifest) {
+          const stateStream = new SpheresStateStream(controller)
           for (const key in options.stateManifest) {
-            streamUpdates(store, key, options.stateManifest![key], controller)
+            streamUpdates(store, key, options.stateManifest![key], stateStream)
           }
         }
 
@@ -47,10 +48,6 @@ export function buildStreamRenderer(view: HTMLView, options: StreamRendererOptio
       },
     })
   }
-}
-
-function scriptTag(storeId: string, data: SerializedState): string {
-  return `<script type="application/json" data-spheres-stream="${storeId}">${JSON.stringify(data)}</script>`
 }
 
 export class Zone {
@@ -75,8 +72,9 @@ export class Zone {
 
     const stateManifest = this.options.stateManifest
     if (stateManifest) {
+      const stateStream = new SpheresStateStream(controller)
       for (const key in stateManifest) {
-        streamUpdates(zoneStore, key, stateManifest![key], controller)
+        streamUpdates(zoneStore, key, stateManifest![key], stateStream)
       }
     }
 
@@ -92,20 +90,40 @@ export interface InternalZoneOptions {
   viteContext?: ViteContext
 }
 
-function streamUpdates(store: Store, key: string, token: SerializableState, controller: ReadableStreamDefaultController) {
-  const streamer = new StateStreamer(store, controller, key, token)
+function streamUpdates(store: Store, key: string, token: SerializableState, stream: SpheresStateStream) {
+  const streamer = new StateStreamer(store, stream, key, token)
   useEffect(store, streamer)
   if (token instanceof Container) {
     useContainerHooks(store, token, streamer)
   }
 
-  useEffect(store, new MetaStateStreamer(store, controller, key, token))
+  useEffect(store, new MetaStateStreamer(store, stream, key, token))
+}
+
+class SpheresStateStream {
+  private chunkCount: number = 0
+
+  constructor(private controller: ReadableStreamDefaultController) { }
+
+  enqueueState(store: Store, state: SerializedState) {
+    const chunkId = `${this.chunkCount++}`
+    this.controller.enqueue(this.scriptTag(store.id, chunkId, state))
+    this.controller.enqueue(this.markerTag(store.id, chunkId))
+  }
+
+  private scriptTag(storeId: string, chunkId: string, data: SerializedState): string {
+    return `<script type="application/json" data-spheres-store="${storeId}" data-spheres-stream="${chunkId}">${JSON.stringify(data)}</script>`
+  }
+
+  private markerTag(storeId: string, chunkId: string): string {
+    return `<script>window._spheres_deserialize("${storeId}", "${chunkId}");</script>`
+  }
 }
 
 class MetaStateStreamer implements ReactiveEffect {
   constructor(
     private store: Store,
-    private controller: ReadableStreamDefaultController,
+    private stream: SpheresStateStream,
     private tokenKey: string,
     private token: SerializableState
   ) { }
@@ -118,7 +136,7 @@ class MetaStateStreamer implements ReactiveEffect {
   run(get: GetState): void {
     const metaValue = get(this.token.meta)
     if (metaValue.type !== "ok") {
-      this.controller.enqueue(scriptTag(this.store.id, serializedMeta(this.tokenKey, metaValue)))
+      this.stream.enqueueState(this.store, serializedMeta(this.tokenKey, metaValue))
     }
   }
 
@@ -129,7 +147,7 @@ class StateStreamer implements ReactiveEffect, ContainerHooks<any, any> {
 
   constructor(
     private store: Store,
-    private controller: ReadableStreamDefaultController,
+    private stream: SpheresStateStream,
     private tokenKey: string,
     private token: SerializableState
   ) { }
@@ -141,12 +159,12 @@ class StateStreamer implements ReactiveEffect, ContainerHooks<any, any> {
   run(get: GetState): void {
     if (this.isWriting) return
 
-    this.controller.enqueue(scriptTag(this.store.id, serializedValue(this.tokenKey, get(this.token))))
+    this.stream.enqueueState(this.store, serializedValue(this.tokenKey, get(this.token)))
   }
 
   onWrite(message: any, actions: WriteHookActions<any, any, unknown>): void {
     this.isWriting = true
-    this.controller.enqueue(scriptTag(this.store.id, serializedMessage(this.tokenKey, message)))
+    this.stream.enqueueState(this.store, serializedMessage(this.tokenKey, message))
     actions.ok(message)
     this.isWriting = false
   }

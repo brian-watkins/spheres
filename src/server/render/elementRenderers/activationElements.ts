@@ -1,5 +1,6 @@
 import { container } from "../../../store/index.js"
 import { serializedValue, serializedMeta, SerializedState, StateManifest } from "../../../store/serialize.js"
+import { prepareForStreaming } from "../../../view/activate.js"
 import { addTemplate, emptyTemplate, HTMLTemplate, templateFromString, toStatefulString } from "../template.js"
 import { getExtraResources, getTransformedResource, shouldTransformImport, TransformedResource, ViteContext } from "../viteContext.js"
 
@@ -13,6 +14,7 @@ export function getActivationTemplate(options: ActivationOptions): HTMLTemplate 
   let template = emptyTemplate()
 
   if (options.stateManifest) {
+    template = addTemplate(template, templateFromString(`<script>${prepareForStreaming.toString()}; prepareForStreaming();</script>`))
     template = addTemplate(template, storeDataTemplate(options.stateManifest))
   }
   if (options.activationScripts) {
@@ -58,7 +60,7 @@ export const storeIdToken = container({ name: "store-id", initialValue: "" })
 export function storeDataTemplate(stateManifest: StateManifest): HTMLTemplate {
   return {
     strings: [
-      `<script type="application/json" data-spheres-store="`,
+      `<script type="application/json" data-spheres-stream="init" data-spheres-store="`,
       `">`,
       `</script>`
     ],

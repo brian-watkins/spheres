@@ -1,5 +1,11 @@
 # spheres
 
+## 0.26.3
+
+### Patch Changes
+
+- d56cffe: Streaming works with bundled code
+
 ## 0.26.2
 
 ### Patch Changes

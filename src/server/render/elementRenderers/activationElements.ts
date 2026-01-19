@@ -14,7 +14,7 @@ export function getActivationTemplate(options: ActivationOptions): HTMLTemplate 
   let template = emptyTemplate()
 
   if (options.stateManifest) {
-    template = addTemplate(template, templateFromString(`<script>${prepareForStreaming.toString()}; prepareForStreaming();</script>`))
+    template = addTemplate(template, templateFromString(`<script>(${prepareForStreaming.toString()})();</script>`))
     template = addTemplate(template, storeDataTemplate(options.stateManifest))
   }
   if (options.activationScripts) {

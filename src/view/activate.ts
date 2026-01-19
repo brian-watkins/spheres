@@ -39,7 +39,7 @@ declare let window: StreamingAppWindow
 export function prepareForStreaming() {
   const spheres_deserializers = new Map<string, (data: SerializedState) => void>()
   const spheres_deserializer_queue = new Map<string, Array<string>>()
-  
+
   window._spheres_register_streaming_store = (storeId: string, deserializer: (data: SerializedState) => void) => {
     spheres_deserializers.set(storeId, deserializer)
     const chunks = spheres_deserializer_queue.get(storeId) ?? []
@@ -69,12 +69,6 @@ export function activateZone(options: ActivationOptions): ActivatedZone {
   const store = createStore({
     id: options.storeId,
     async init(actions, store) {
-      if (options.stateManifest !== undefined) {
-        window._spheres_register_streaming_store(store.id, (state: SerializedState) => {
-          deserializeState(store, options.stateManifest!, actions, state)
-        })
-      }
-
       // get the initial state
       const tag = document.querySelector(`script[data-spheres-store="${store.id}"][data-spheres-stream="init"]`)
       if (tag !== null && options.stateManifest !== undefined) {
@@ -88,6 +82,13 @@ export function activateZone(options: ActivationOptions): ActivatedZone {
       options.view((el, view) => {
         activateView(store, el, view)
       })
+
+      // Begin to deserialize streamed data, if necessary
+      if (options.stateManifest !== undefined) {
+        window._spheres_register_streaming_store(store.id, (state: SerializedState) => {
+          deserializeState(store, options.stateManifest!, actions, state)
+        })
+      }
 
       if (document.readyState !== "loading") {
         // the response is complete so no streaming to deal with

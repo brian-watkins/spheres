@@ -1,5 +1,11 @@
 # spheres
 
+## 0.26.4
+
+### Patch Changes
+
+- beba653: Improvements for streaming multiple zones
+
 ## 0.26.3
 
 ### Patch Changes

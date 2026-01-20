@@ -17,7 +17,7 @@ export interface StreamRendererOptions {
 }
 
 export function buildStreamRenderer(view: HTMLView, options: StreamRendererOptions): (store: Store) => ReadableStream {
-  const htmlRenderer = buildStringRenderer(view, options)
+  const htmlRenderer = buildStringRenderer(view, { ...options, isStreaming: true })
 
   return (store) => {
     const initialHTML = htmlRenderer(store)

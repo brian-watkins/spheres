@@ -84,7 +84,7 @@ export function activateZone(options: ActivationOptions): ActivatedZone {
       })
 
       // Begin to deserialize streamed data, if necessary
-      if (options.stateManifest !== undefined) {
+      if (options.stateManifest !== undefined && window._spheres_register_streaming_store) {
         window._spheres_register_streaming_store(store.id, (state: SerializedState) => {
           deserializeState(store, options.stateManifest!, actions, state)
         })

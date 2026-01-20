@@ -1,6 +1,6 @@
 import { behavior, effect, example, fact, step } from "best-behavior"
 import { testableViteBuildContext } from "./helpers/testableViteBuildContext"
-import { expect, is, satisfying, stringContaining, stringMatching } from "great-expectations"
+import { expect, is, resolvesTo, satisfying, stringContaining, stringMatching } from "great-expectations"
 import { testableStringRendererContext } from "./helpers/testableStringRendererContext"
 import { useModule } from "best-behavior/transpiler"
 import { ssrTestAppContext } from "./helpers/testSSRServer"
@@ -186,9 +186,12 @@ export default behavior("rendering html page from transpiled server renderer", [
       suppose: [
         fact("the renderer is built with the spheres vite plugin", async (context) => {
           await context
-            .setBase("/fun")
+            .setBase("/app")
             .buildWithPlugin("./behaviors/server/fixtures/ssrApp/streamingZones", {
               server: {
+                build: {
+                  minify: "esbuild"
+                },
                 entries: {
                   server: "./behaviors/server/fixtures/ssrApp/streamingZones/server.ts"
                 }
@@ -196,25 +199,17 @@ export default behavior("rendering html page from transpiled server renderer", [
               client: {
                 entries: {
                   activateOne: "./behaviors/server/fixtures/ssrApp/streamingZones/activateOne.ts",
-                  activateTwo: "./behaviors/server/fixtures/ssrApp/streamingZones/activateTwo.ts"
+                  activateTwo: "./behaviors/server/fixtures/ssrApp/streamingZones/activateTwo.ts",
+                  activateThree: "./behaviors/server/fixtures/ssrApp/streamingZones/activateThree.ts"
                 }
               }
             })
         }),
       ],
       perform: [
-        step("render the html", async (context) => {
-          await context.render(async () => {
-            const serverModule = await useModule("./behaviors/server/fixtures/ssrApp/streamingZones/dist/server.js")
-            const { stream } = serverModule.default()
-
-            let html = ""
-            for await (const chunk of stream) {
-              html += chunk
-            }
-
-            return html
-          })
+        step("load the html", async (context) => {
+          await context.start("./behaviors/server/fixtures/ssrApp/streamingZones/dist")
+          await context.load("http://localhost:9899/index.html")
         })
       ],
       observe: [
@@ -224,12 +219,37 @@ export default behavior("rendering html page from transpiled server renderer", [
         effect("the script import references the transpiled js", async (context) => {
           expect(context.getRenderedHTML(), is(
             satisfying([
-              stringMatching(/<script type="module" async src="\/fun\/assets\/activateOne-.+\.js"><\/script>/),
-              stringMatching(/<script type="module" async src="\/fun\/assets\/activateTwo-.+\.js"><\/script>/),
-              stringMatching(/<link rel="modulepreload" href="\/fun\/assets\/counter-.+\.js">/),
+              stringMatching(/<script type="module" async="" src="\/app\/assets\/activateOne-.+\.js"><\/script>/),
+              stringMatching(/<script type="module" async="" src="\/app\/assets\/activateTwo-.+\.js"><\/script>/),
+              stringMatching(/<link rel="modulepreload" href="\/app\/assets\/counter-.+\.js">/),
             ])
           ))
         }),
+        effect("it renders the page with streamed data", async (context) => {
+          await expect(context.display.select(`[data-zone="one"] h3`).text(), resolvesTo(
+            "The count is 17"
+          ))
+          await expect(context.display.select(`[data-zone="two"] h3`).text(), resolvesTo(
+            "The count is 21"
+          ))
+          await expect(context.display.select(`[data-zone="three"] h3`).text(), resolvesTo(
+            stringContaining("Oops")
+          ))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("click the button the second zone", async (context) => {
+          await context.display.select(`[data-zone="two"] button`).click()
+          await context.display.select(`[data-zone="two"] button`).click()
+        })
+      ],
+      observe: [
+        effect("the count updates for the zone", async (context) => {
+          await expect(context.display.select(`[data-zone="two"] h3`).text(), resolvesTo(
+            "The count is 23"
+          ))
+        })
       ]
     }),
 

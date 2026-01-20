@@ -26,6 +26,7 @@ export interface StringRendererOptions {
   stateManifest?: StateManifest
   activationScripts?: Array<string>
   viteContext?: ViteContext
+  isStreaming?: boolean
 }
 
 export function buildStringRenderer(view: HTMLView, options: StringRendererOptions): (store: Store) => string {
@@ -74,7 +75,7 @@ class StringRenderer extends AbstractViewRenderer {
   private getElementRenderer(tag: string): ElementRenderer {
     switch (tag) {
       case "head":
-        return new HeadElementRenderer(this.options.viteContext)
+        return new HeadElementRenderer(this.options.viteContext, this.options.isStreaming ?? false)
       case "html":
         return new HtmlElementRenderer()
       case "body":

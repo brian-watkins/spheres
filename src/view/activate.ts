@@ -29,7 +29,7 @@ export interface ActivatedZone {
   store: Store
 }
 
-interface StreamingAppWindow extends Window {
+export interface StreamingAppWindow extends Window {
   _spheres_register_streaming_store: (storeId: string, deserializer: (data: SerializedState) => void) => void
   _spheres_deserialize: (storeId: string, chunkId: string) => void
 }

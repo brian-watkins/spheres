@@ -1,9 +1,10 @@
 import { HTMLView, RenderResult, renderToDOM } from "@view/index.js"
 import { Context } from "best-behavior"
-import { Collection, createStore, Store, WritableState, write } from "@store/index.js"
+import { Collection, createStore, StateManifest, Store, WritableState, write } from "@store/index.js"
 import { createStringRenderer } from "@server/index"
-import { activateView } from "@view/activate"
+import { activateView, activateZone, prepareForStreaming, StreamingAppWindow } from "@view/activate"
 import { DOMChangeRecord, structureChangeRecord, textChangeRecord } from "./changeRecords"
+import { SerializedState } from "@store/serialize"
 
 export class RenderApp<T> {
   private renderResult: RenderResult | undefined
@@ -42,9 +43,36 @@ export class RenderApp<T> {
   }
 
   ssrAndActivate(view: HTMLView) {
+    this.loadServerSideRenderedHtml(view)
+    this.renderResult = activateView(this.store, document.body, view)
+  }
+
+  loadServerSideRenderedHtml(view: HTMLView) {
     this.ssrHtmlString = createStringRenderer(view)(this.serverSideStore ?? this.store)
     document.body.innerHTML = this.ssrHtmlString
-    this.renderResult = activateView(this.store, document.body, view)
+  }
+
+  initStream() {
+    prepareForStreaming()
+  }
+
+  streamState(chunkId: string, state: SerializedState) {
+    const script = document.createElement("script")
+    script.setAttribute("data-spheres-store", this.store.id)
+    script.setAttribute("data-spheres-stream", chunkId)
+    script.setAttribute("type", "application/json")
+    script.appendChild(document.createTextNode(JSON.stringify(state)))
+    document.body.appendChild(script)
+    window._spheres_deserialize(this.store.id, chunkId)
+  }
+
+  activateSSRZone(view: HTMLView, stateManifest: StateManifest) {
+    activateZone({
+      stateManifest,
+      view(activate) {
+        activate(document.body, view)
+      }
+    })
   }
 
   observe(selector: string) {
@@ -94,7 +122,7 @@ export function renderContext<T = undefined>(): Context<RenderApp<T>> {
   }
 }
 
-interface TestAppWindow extends Window {
+interface TestAppWindow extends StreamingAppWindow {
   _testApp: RenderApp<any> | undefined
 }
 

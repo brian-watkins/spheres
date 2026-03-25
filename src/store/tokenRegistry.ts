@@ -91,12 +91,17 @@ export interface StateReader<T> extends Subscribable {
   getValue(): T
 }
 
+export interface StateBatch {
+  add(subscribable: Subscribable): void
+  publish(): void
+}
+
 export interface StatePublisher<T> extends StateReader<T> {
-  publish(value: T): void
+  publish(value: T, batch?: StateBatch): void
 }
 
 export interface StateWriter<T, M = T> extends StatePublisher<T> {
-  write(value: M): void
+  write(value: M, batch?: StateBatch): void
 }
 
 export interface PublishableState<T> extends StateReference<T> {

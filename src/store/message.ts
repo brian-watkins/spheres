@@ -1,4 +1,5 @@
-import { Command, getStateHandler, GetState, runQuery, State, StatePublisher, TokenRegistry, WritableState } from "./tokenRegistry.js"
+import { BatchPublisher } from "./state/handler/batchPublisher.js"
+import { Command, getStateHandler, GetState, runQuery, State, StatePublisher, TokenRegistry, WritableState, StateBatch } from "./tokenRegistry.js"
 
 export const initialValue = Symbol("initialValue")
 
@@ -96,39 +97,51 @@ export function reset<T>(container: ResettableState<T>): ResetMessage<T> {
   }
 }
 
-export function dispatchMessage(registry: TokenRegistry, message: StoreMessage<any>) {
+export function dispatchMessage(registry: TokenRegistry, message: StoreMessage<any>, batch?: StateBatch) {
   switch (message.type) {
     case "write": {
-      message.token[getStateHandler](registry).write(message.value)
+      message.token[getStateHandler](registry).write(message.value, batch)
       break
     }
     case "update": {
       const writer = message.token[getStateHandler](registry)
-      writer.write(message.generator(writer.getValue()))
-      break
-    }
-    case "exec": {
-      registry.getCommand(message.command).run(message.message)
+      writer.write(message.generator(writer.getValue()), batch)
       break
     }
     case "reset": {
-      registry.getState(message.container).publish(message.container[initialValue])
+      registry.getState(message.container).publish(message.container[initialValue], batch)
       break
     }
     case "use": {
       const statefulMessage = runQuery(registry, message.rule) ?? { type: "batch", messages: [] }
-      dispatchMessage(registry, statefulMessage)
+      dispatchMessage(registry, statefulMessage, batch)
+      break
+    }
+    case "exec": {
+      if (batch !== undefined) batch.publish()
+      registry.getCommand(message.command).run(message.message)
       break
     }
     case "run": {
+      if (batch !== undefined) batch.publish()
       message.effect()
       break
     }
     case "batch": {
-      for (let i = 0; i < message.messages.length; i++) {
-        dispatchMessage(registry, message.messages[i])
+      if (batch !== undefined) {
+        dispatchBatch(registry, batch, message.messages)
+        break
       }
+      const batchPublisher = new BatchPublisher()
+      dispatchBatch(registry, batchPublisher, message.messages)
+      batchPublisher.publish()
       break
     }
+  }
+}
+
+function dispatchBatch(registry: TokenRegistry, batch: StateBatch, messages: Array<StoreMessage>): void {
+  for (let i = 0; i < messages.length; i++) {
+    dispatchMessage(registry, messages[i], batch)
   }
 }

@@ -1,5 +1,5 @@
 import { dispatchMessage, StoreMessage } from "../../message.js"
-import { StateWriter, TokenRegistry } from "../../tokenRegistry.js"
+import { StateBatch, StateWriter, TokenRegistry } from "../../tokenRegistry.js"
 import { Publisher } from "./publisher.js"
 
 export interface UpdateResult<T> {
@@ -12,11 +12,11 @@ export class MessageWriter<T, M> extends Publisher<T> implements StateWriter<T, 
     super(initialValue)
   }
 
-  write(message: M): void {
+  write(message: M, batch?: StateBatch): void {
     const result = this.update(message, this.getValue())
-    this.publish(result.value)
+    this.publish(result.value, batch)
     if (result.message !== undefined) {
-      dispatchMessage(this.registry, result.message)
+      dispatchMessage(this.registry, result.message, batch)
     }
   }
 }

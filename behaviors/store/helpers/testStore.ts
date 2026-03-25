@@ -1,7 +1,7 @@
-import { Container, State, Store, write, StoreMessage, batch, GetState, reset, Command, CommandActions, ContainerHooks, ReactiveEffect, createStore, useContainerHooks, useEffect, useCommand, InitializerActions, Collection } from "@store/index.js"
-import { WritableState } from "@store/message"
-import { StateReference } from "@store/tokenRegistry"
+import { Container, State, Store, write, StoreMessage, batch, GetState, reset, Command, CommandActions, ContainerHooks, ReactiveEffect, createStore, useContainerHooks, useEffect, useCommand, Collection, StateReference, WritableState, StoreInitializerActions } from "@store/index.js"
+import { initListener, StateEffect, StateListenerType } from "@store/tokenRegistry"
 import { Context } from "best-behavior"
+import { getTokenRegistry } from "@store/store"
 
 export function testStoreContext<T>(): Context<TestStore<T>> {
   return {
@@ -9,7 +9,11 @@ export function testStoreContext<T>(): Context<TestStore<T>> {
   }
 }
 
-export class StoreValuesEffect implements ReactiveEffect {
+interface ValuesStore {
+  values: Array<any>
+}
+
+export class StoreValuesEffect implements ReactiveEffect, ValuesStore {
   values: Array<any> = []
 
   constructor(private definition: (get: GetState) => any) { }
@@ -19,16 +23,32 @@ export class StoreValuesEffect implements ReactiveEffect {
   }
 }
 
+export class SystemStoreValuesEffect implements StateEffect, ValuesStore {
+  readonly type = StateListenerType.SystemEffect
+  values: Array<any> = []
+
+  constructor(private definition: (get: GetState) => any) { }
+
+  init(get: GetState): void {
+    this.run(get)
+  }
+
+  run(get: GetState): void {
+    this.values.push(this.definition(get))
+  }
+}
+
+
 export class TestStore<T> {
   store: Store
   private _tokens: T | undefined
-  private values: Map<string, StoreValuesEffect> = new Map()
+  private values: Map<string, ValuesStore> = new Map()
 
   constructor() {
     this.store = createStore()
   }
 
-  initialize(initializer: (actions: InitializerActions) => Promise<void>): Promise<void> {
+  initialize(initializer: (actions: StoreInitializerActions) => Promise<void>): Promise<void> {
     this.store = createStore({
       init: initializer
     })
@@ -52,6 +72,12 @@ export class TestStore<T> {
     const query = new StoreValuesEffect((get) => get(token))
     this.values.set(name, query)
     useEffect(this.store, query)
+  }
+
+  subscribeSystemEffectTo<S>(token: StateReference<S>, name: string) {
+    const query = new SystemStoreValuesEffect((get) => get(token))
+    this.values.set(name, query)
+    initListener(getTokenRegistry(this.store), query)
   }
 
   useCommand<M>(command: Command<M>, handler: (message: M, actions: CommandActions) => void) {

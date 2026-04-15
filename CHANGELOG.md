@@ -1,5 +1,11 @@
 # spheres
 
+## 0.26.5
+
+### Patch Changes
+
+- 368e0eb: Batched state changes are applied in one pass
+
 ## 0.26.4
 
 ### Patch Changes

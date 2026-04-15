@@ -1,5 +1,5 @@
-import { runListener, StateBatch, Subscriber } from "../../tokenRegistry";
-import { Publisher } from "./publisher";
+import { runListener, StateBatch, Subscriber } from "../../tokenRegistry.js";
+import { Publisher } from "./publisher.js";
 
 export class BatchPublisher implements StateBatch {
   private publishers: Set<Publisher<any>> = new Set()

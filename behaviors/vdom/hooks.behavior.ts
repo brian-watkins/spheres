@@ -1,7 +1,7 @@
 import { behavior, effect, example, fact, step } from "best-behavior";
 import { renderContext } from "./helpers/renderContext";
-import { container, derived, State, update, useContainerHooks, useHooks, write } from "@store/index";
-import { HTMLBuilder, HTMLView, UseData } from "@view/index";
+import { container, derived, update, useContainerHooks, useHooks, write } from "@store/index";
+import { HTMLBuilder, HTMLView, UseCase, UseData } from "@view/index";
 import { selectElement, selectElements } from "./helpers/displayElement";
 import { expect, is, resolvesTo } from "great-expectations";
 
@@ -339,18 +339,18 @@ export default behavior("onRegister hook", [
             initialValue: { type: "fruit", name: "apple" }
           })
 
-          function fruitView(fruit: State<FruitKind>): HTMLView {
+          function fruitView(useFruit: UseCase<FruitKind>): HTMLView {
             return root => {
               const counter = container({
                 name: "fruit-counter",
                 initialValue: 0,
-                id: derived(get => get(fruit).name)
+                id: derived(useFruit(fruit => fruit.name))
               })
 
               root.div(el => {
                 el.children
                   .h1(el => {
-                    el.children.textNode(get => `${get(fruit).name} clicks: ${get(counter)}`)
+                    el.children.textNode(useFruit((fruit, get) => `${fruit.name} clicks: ${get(counter)}`))
                   })
                   .button(el => {
                     el.config
@@ -362,18 +362,18 @@ export default behavior("onRegister hook", [
             }
           }
 
-          function shapeView(shape: State<ShapeKind>): HTMLView {
+          function shapeView(useShape: UseCase<ShapeKind>): HTMLView {
             return root => {
               const counter = container({
                 name: "shape-counter",
                 initialValue: 0,
-                id: derived(get => `${get(shape).corners}`)
+                id: derived(useShape(shape => `${shape.corners}`))
               })
 
               root.div(el => {
                 el.children
                   .h1(el => {
-                    el.children.textNode(get => `Shape with ${get(shape).corners} corners clicks: ${get(counter)}`)
+                    el.children.textNode(useShape((shape, get) => `Shape with ${shape.corners} corners clicks: ${get(counter)}`))
                   })
                   .button(el => {
                     el.config
@@ -459,6 +459,17 @@ export default behavior("onRegister hook", [
             "Writing [shape-counter-8] => 4",
           ]))
         })
+      ]
+    }).andThen({
+      perform: [
+        step("trigger the fruit view to appear again", async () => {
+          await selectElement("button[data-fruit-trigger]").click()
+        }),
+      ],
+      observe: [
+        effect("the fruit counter maintains its state", async () => {
+          await expect(selectElement("h1").text(), resolvesTo("apple clicks: 2"))
+        }),
       ]
     })
 

@@ -4,6 +4,7 @@ import { batch, container, Container, derived, State, use, write } from "@store/
 import { HTMLView } from "@view/htmlElements";
 import { selectElement, selectElements } from "./helpers/displayElement";
 import { expect, resolvesTo } from "great-expectations";
+import { UseCase } from "@view/index";
 
 var style = document.createElement('style');
 style.type = 'text/css';
@@ -436,13 +437,13 @@ const pageState = container<PageState>({
   }
 })
 
-function staticList(state: State<ListState>): HTMLView {
+function staticList(useCase: UseCase<ListState>): HTMLView {
   const selectedItem = derived({
     name: "selected-item",
-    query: get => {
-      const listState = get(get(state).data)
-      return listState.type === "list-with-items" ? listState.selected : undefined
-    }
+    query: useCase((lState, get) => {
+      const list = get(lState.data)
+      return list.type === "list-with-items" ? list.selected : undefined
+    })
   })
 
   const items = ["apple", "pear", "grapes", "banana"]
@@ -461,10 +462,12 @@ function staticList(state: State<ListState>): HTMLView {
   }
 }
 
-function listOrEmptyView(state: State<ListState>): HTMLView {
+function listOrEmptyView(useCase: UseCase<ListState>): HTMLView {
   return (root) => {
     root.subviewFrom(selector => {
-      selector.withUnion(get => get(get(state).data))
+      selector.withUnion(useCase((listState, get) => {
+        return get(listState.data)
+      }))
         .when(state => state.type === "list-with-items", listView)
         .when(state => state.type === "empty-list", () => root => {
           root.h1(el => el.children.textNode("EMPTY LIST!"))
@@ -473,14 +476,14 @@ function listOrEmptyView(state: State<ListState>): HTMLView {
   }
 }
 
-function listView(state: State<ListWithItems>): HTMLView {
+function listView(useCase: UseCase<ListWithItems>): HTMLView {
   const items = derived({
     name: "list-items",
-    query: get => get(state).items
+    query: useCase(state => state.items)
   })
   const selectedItem = derived({
     name: "selected-item",
-    query: get => get(state).selected
+    query: useCase(state => state.selected)
   })
 
   return root => {
@@ -515,8 +518,8 @@ function getContent(id: number): DetailContent {
   }
 }
 
-function detailView(state: State<DetailState>): HTMLView {
-  const name = derived(get => get(state).detail.name)
+function detailView(useCase: UseCase<DetailState>): HTMLView {
+  const name = derived(useCase(state => state.detail.name))
   return root => {
     root.h3(el => {
       el.config
@@ -527,8 +530,8 @@ function detailView(state: State<DetailState>): HTMLView {
   }
 }
 
-function detailViewWithContent(state: State<DetailState>): HTMLView {
-  const detail = derived(get => get(state).detail)
+function detailViewWithContent(useCase: UseCase<DetailState>): HTMLView {
+  const detail = derived(useCase(state => state.detail))
   const name = derived(get => get(detail).name)
 
   return root => {
@@ -544,8 +547,6 @@ function detailViewWithContent(state: State<DetailState>): HTMLView {
 }
 
 function presentContent(state: State<Detail>): HTMLView {
-  // const content = derived(get => get(state).content)
-
   return root => {
     root.p(el => {
       el.children.subviewFrom(selector => {
@@ -557,24 +558,24 @@ function presentContent(state: State<Detail>): HTMLView {
   }
 }
 
-function funContentView(state: State<FunContent>): HTMLView {
+function funContentView(useCase: UseCase<FunContent>): HTMLView {
   return root => {
-    root.textNode(get => `You find this clothing fun: ${get(state).clothing}`)
+    root.textNode(useCase(content => `You find this clothing fun: ${content.clothing}`))
   }
 }
 
-function awesomeContentView(state: State<AwesomeContent>): HTMLView {
+function awesomeContentView(useCase: UseCase<AwesomeContent>): HTMLView {
   return root => {
-    root.textNode(get => `You find this music awesome: ${get(state).music}`)
+    root.textNode(useCase(content => `You find this music awesome: ${content.music}`))
   }
 }
 
-function defaultView(state: State<PageState>): HTMLView {
+function defaultView(useCase: UseCase<PageState>): HTMLView {
   return root => {
     root.div(el => {
       el.config.dataAttribute("default")
       el.children
-        .textNode(get => `No view for ${get(state).type}`)
+        .textNode(useCase(page => `No view for ${page.type}`))
     })
   }
 }

@@ -1,4 +1,4 @@
-import { GetState, State, Stateful } from "../../store/index.js"
+import { GetState, Stateful } from "../../store/index.js"
 import { StateReference } from "../../store/tokenRegistry.js"
 import { ElementSupport } from "../elementSupport.js"
 import { SpecialElementAttributes } from "../specialAttributes.js"
@@ -12,9 +12,16 @@ export type ViewDefinition = (root: any) => void
 
 export type ElementDefinition = (el: ConfigurableElement<any, any>) => void
 
+export type UseCase<T> = <S>(
+  generator: (
+    dataReference: T,
+    get: GetState
+  ) => S
+) => Stateful<S>
+
 export interface ViewCaseSelector<T> {
-  when<X extends T>(typePredicate: (val: T) => val is X, generator: (state: State<X>) => ViewDefinition): ViewCaseSelector<T>
-  default(generator: (state: State<T>) => ViewDefinition): void
+  when<X extends T>(typePredicate: (val: T) => val is X, generator: (useCase: UseCase<X>) => ViewDefinition): ViewCaseSelector<T>
+  default(generator: (useCase: UseCase<T>) => ViewDefinition): void
 }
 
 export interface ViewConditionSelector {

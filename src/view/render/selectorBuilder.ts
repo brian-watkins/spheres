@@ -1,8 +1,8 @@
-import { derived, GetState, State } from "../../store/index.js";
+import { GetState, State } from "../../store/index.js";
 import { OverlayTokenRegistry } from "../../store/registry/overlayTokenRegistry.js";
 import { recordTokens } from "../../store/state/stateRecorder.js";
 import { generateStateManager, runQuery, Subscriber, Subscribable, TokenRegistry, StateHandler } from "../../store/tokenRegistry.js";
-import { ViewDefinition, ViewCaseSelector, ViewSelector, ViewConditionSelector } from "./viewRenderer.js";
+import { ViewDefinition, ViewCaseSelector, ViewSelector, ViewConditionSelector, UseCase } from "./viewRenderer.js";
 import { Container } from "../../store/state/container.js"
 
 export interface TemplateCollection<T> {
@@ -39,9 +39,7 @@ export class SelectorBuilder<T> implements ViewSelector {
   }
 
   withUnion<T>(valueQuery: (get: GetState) => T): ViewCaseSelector<T> {
-    const unionValue = derived(valueQuery)
-
-    const builder = new CaseCollectionBuilder(this.createTemplate, unionValue)
+    const builder = new CaseCollectionBuilder(this.createTemplate, valueQuery)
     this.builder = builder
     return builder
   }
@@ -61,9 +59,9 @@ class CaseCollectionBuilder<T, S> implements ViewCaseSelector<S>, SelectorCollec
   private caseSelectors: Array<CaseSelector<T, S, any>> = []
   private defaultSelector: TemplateSelection<T> | undefined = undefined
 
-  constructor(private createTemplate: (view: ViewDefinition, selectorId: number) => T, private state: State<S>) { }
+  constructor(private createTemplate: (view: ViewDefinition, selectorId: number) => T, private valueQuery: (get: GetState) => S) { }
 
-  when<X extends S>(typePredicate: (val: S) => val is X, viewGenerator: (state: State<X>) => ViewDefinition): ViewCaseSelector<S> {
+  when<X extends S>(typePredicate: (val: S) => val is X, viewGenerator: (useCase: UseCase<X>) => ViewDefinition): ViewCaseSelector<S> {
     const index = this.caseSelectors.length
 
     this.caseSelectors.push({
@@ -72,13 +70,16 @@ class CaseCollectionBuilder<T, S> implements ViewCaseSelector<S>, SelectorCollec
       templateContext: memoize(() => {
         let template!: any
         const tokens = recordTokens(() => {
-          template = this.createTemplate(viewGenerator(this.state as State<any>), index)
+          const view = viewGenerator((generator) => (get) => {
+            return generator(this.valueQuery(get) as X, get)
+          })
+          template = this.createTemplate(view, index)
         })
 
         return {
           template,
           overlayRegistry: (registry) => {
-            return new CaseViewOverlayTokenRegistry(registry, (get) => typePredicate(get(this.state)), tokens)
+            return new CaseViewOverlayTokenRegistry(registry, (get) => typePredicate(this.valueQuery(get)), tokens)
           },
         }
       })
@@ -87,12 +88,16 @@ class CaseCollectionBuilder<T, S> implements ViewCaseSelector<S>, SelectorCollec
     return this
   }
 
-  default(viewGenerator: (state: State<S>) => ViewDefinition): void {
+  default(viewGenerator: (useCase: UseCase<S>) => ViewDefinition): void {
     this.defaultSelector = {
       type: "view",
       templateContext: memoize(() => {
+        const view = viewGenerator((generator) => (get) => {
+          return generator(this.valueQuery(get), get)
+        })
+
         return {
-          template: this.createTemplate(viewGenerator(this.state), this.caseSelectors.length),
+          template: this.createTemplate(view, this.caseSelectors.length),
           // Note: No need for an overlay registry here as the default view does not get
           // a particular discrimiant as its state argument -- the guard provided by
           // the registry is not needed
@@ -105,7 +110,7 @@ class CaseCollectionBuilder<T, S> implements ViewCaseSelector<S>, SelectorCollec
   getCollection(): TemplateCollection<T> {
     return {
       select: (get) => {
-        const val = get(this.state)
+        const val = this.valueQuery(get)
         const selector = this.caseSelectors.find(sel => sel.predicate(val))
         if (selector === undefined) {
           return this.defaultSelector ?? { type: "empty" }
@@ -195,16 +200,16 @@ class CaseViewOverlayTokenRegistry extends OverlayTokenRegistry {
   getState<S extends State<unknown>>(token: S): StateHandler<S> {
     let publisher = this.tokenMap.get(token)
     if (publisher === undefined) {
-      if (token instanceof Container) {
-        // containers do not need to be guarded and aren't shared across templates
-        // this allows internal containers to trigger the onRegister hook
-        publisher = this.parentRegistry.getState(token)
-      } else {
-        if (this.tokens.includes(token)) {
-          publisher = this.createGuardingStateHandler(generateStateManager(this, token))
+      if (this.tokens.includes(token)) {
+        if (token instanceof Container) {
+          // containers do not need to be guarded and aren't shared across templates
+          // this allows internal containers to trigger the onRegister hook
+          publisher = this.parentRegistry.getState(token)
         } else {
-          publisher = this.createGuardingStateHandler(this.parentRegistry.getState(token))
+          publisher = this.createGuardingStateHandler(generateStateManager(this, token))
         }
+      } else {
+        publisher = this.createGuardingStateHandler(this.parentRegistry.getState(token))
       }
       this.tokenMap.set(token, publisher)
     }

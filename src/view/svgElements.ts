@@ -1,13 +1,13 @@
-import { ConfigurableElement, UseData } from "./render/viewRenderer.js";
-import { GetState, State, Stateful } from "../store/index.js";
+import { ConfigurableElement, UseCase, UseData } from "./render/viewRenderer.js";
+import { GetState, Stateful } from "../store/index.js";
 import { SpecialElementAttributes } from "./specialAttributes.js";
 import { ElementSupport } from "./elementSupport.js";
 
 export type SVGView = (root: SVGBuilder) => void;
 
 export interface SVGCaseSelector<T> {
-    when<X extends T>(typePredicate: (val: T) => val is X, generator: (state: State<X>) => SVGView): SVGCaseSelector<T>;
-    default(generator: (state: State<T>) => SVGView): void;
+    when<X extends T>(typePredicate: (val: T) => val is X, generator: (useCase: UseCase<X>) => SVGView): SVGCaseSelector<T>;
+    default(generator: (useCase: UseCase<T>) => SVGView): void;
 }
 
 export interface SVGConditionSelector {

@@ -15,6 +15,7 @@ htmlElementsFile.addImportDeclarations([
   {
     namedImports: [
       "ConfigurableElement",
+      "UseCase",
       "UseData"
     ],
     moduleSpecifier: "./render/viewRenderer.js"
@@ -22,7 +23,6 @@ htmlElementsFile.addImportDeclarations([
   {
     namedImports: [
       "GetState",
-      "State",
       "Stateful"
     ],
     moduleSpecifier: "../store/index.js"
@@ -58,7 +58,7 @@ caseSelectorInterface.addMethod({
   typeParameters: ["X extends T"],
   parameters: [
     { name: "typePredicate", type: "(val: T) => val is X" },
-    { name: "generator", type: "(state: State<X>) => HTMLView" }
+    { name: "generator", type: "(useCase: UseCase<X>) => HTMLView" }
   ],
   returnType: "HTMLCaseSelector<T>"
 })
@@ -66,7 +66,7 @@ caseSelectorInterface.addMethod({
 caseSelectorInterface.addMethod({
   name: "default",
   parameters: [
-    { name: "generator", "type": "(state: State<T>) => HTMLView" }
+    { name: "generator", "type": "(useCase: UseCase<T>) => HTMLView" }
   ],
   returnType: "void"
 })

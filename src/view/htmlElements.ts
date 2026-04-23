@@ -1,13 +1,13 @@
-import { ConfigurableElement, UseData } from "./render/viewRenderer.js";
-import { GetState, State, Stateful } from "../store/index.js";
+import { ConfigurableElement, UseCase, UseData } from "./render/viewRenderer.js";
+import { GetState, Stateful } from "../store/index.js";
 import { SpecialElementAttributes } from "./specialAttributes.js";
 import { ElementSupport } from "./elementSupport.js";
 
 export type HTMLView = (root: HTMLBuilder) => void;
 
 export interface HTMLCaseSelector<T> {
-    when<X extends T>(typePredicate: (val: T) => val is X, generator: (state: State<X>) => HTMLView): HTMLCaseSelector<T>;
-    default(generator: (state: State<T>) => HTMLView): void;
+    when<X extends T>(typePredicate: (val: T) => val is X, generator: (useCase: UseCase<X>) => HTMLView): HTMLCaseSelector<T>;
+    default(generator: (useCase: UseCase<T>) => HTMLView): void;
 }
 
 export interface HTMLConditionSelector {

@@ -49,7 +49,12 @@ export class WeakMapTokenRegistry implements RootTokenRegistry {
     this.registry.set(token, controller)
   }
 
-  setState<T>(state: State<T>, publisher: StateReader<T>): void {
-    this.registry.set(state, publisher)
+  setState<T>(token: State<T>, publisher: StateReader<T>): void {
+    if (this.registerHook !== undefined && token instanceof Container && !this.registry.has(token)) {
+      this.registry.set(token, publisher)
+      this.registerHook(token)
+    } else {
+      this.registry.set(token, publisher)
+    }
   }
 }

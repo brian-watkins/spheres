@@ -8,6 +8,10 @@ export type GetState = <S>(state: StateReference<S>) => S
 
 export type Stateful<T> = (get: GetState) => T
 
+export function isStateful<T>(value: T | Stateful<T>): value is Stateful<T> {
+  return typeof value === "function"
+}
+
 function subscribeOnGet<T>(this: Subscriber, token: StateReference<T>): T {
   const reader = token[getStateHandler](this.registry)
   reader.addSubscriber(this)

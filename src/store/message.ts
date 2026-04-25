@@ -1,10 +1,10 @@
 import { BatchPublisher } from "./state/handler/batchPublisher.js"
 import { Command, getStateHandler, GetState, runQuery, State, StatePublisher, TokenRegistry, WritableState, StateBatch } from "./tokenRegistry.js"
 
-export const initialValue = Symbol("initialValue")
+export const getInitialValue = Symbol("initialValue")
 
 export interface ResettableState<T> extends State<T> {
-  [initialValue]: T
+  [getInitialValue](registry: TokenRegistry): T
   [getStateHandler](registry: TokenRegistry): StatePublisher<T>
 }
 
@@ -109,7 +109,8 @@ export function dispatchMessage(registry: TokenRegistry, message: StoreMessage<a
       break
     }
     case "reset": {
-      registry.getState(message.container).publish(message.container[initialValue], batch)
+      const value = message.container[getInitialValue](registry)
+      registry.getState(message.container).publish(value, batch)
       break
     }
     case "use": {

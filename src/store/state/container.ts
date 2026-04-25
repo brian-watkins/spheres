@@ -1,15 +1,14 @@
 import { MetaState, WithMetaState } from "./meta.js"
 import { didCreateToken } from "./stateRecorder.js"
-import { createStateHandler, getStateHandler, State, StatePublisher, StateReference, StateWriter, TokenRegistry, WritableState } from "../tokenRegistry.js"
-import { initialValue, ResettableState } from "../message.js"
+import { createStateHandler, getStateHandler, isStateful, runQuery, State, Stateful, StatePublisher, StateWriter, TokenRegistry, WritableState } from "../tokenRegistry.js"
+import { getInitialValue, ResettableState } from "../message.js"
 import { MessageWriter, UpdateResult } from "./handler/messageWriter.js"
 import { Writer } from "./handler/writer.js"
 
 export interface ContainerInitializer<T, M> {
-  initialValue: T,
+  initialValue: T | Stateful<T>,
   update?: (message: M, current: T) => UpdateResult<T>
   name?: string
-  id?: StateReference<string>
 }
 
 export function container<T, M = T, E = any>(initializer: ContainerInitializer<T, M>): Container<T, M, E> {
@@ -17,7 +16,6 @@ export function container<T, M = T, E = any>(initializer: ContainerInitializer<T
     initializer.name,
     initializer.initialValue,
     initializer.update,
-    initializer.id
   )
   didCreateToken(token)
   return token
@@ -30,15 +28,16 @@ export class Container<T, M = T, E = any> extends State<T> implements Resettable
 
   constructor(
     name: string | undefined,
-    private initialValue: T,
+    private initialValue: T | Stateful<T>,
     private update: ((message: M, current: T) => UpdateResult<T>) | undefined,
-    readonly id: StateReference<string> | undefined
   ) {
     super(name)
   }
 
-  get [initialValue](): T {
-    return this.initialValue
+  [getInitialValue](registry: TokenRegistry): T {
+    return isStateful(this.initialValue) ?
+      runQuery(registry, this.initialValue) :
+      this.initialValue
   }
 
   [getStateHandler](registry: TokenRegistry): StateWriter<T, M> {
@@ -46,13 +45,15 @@ export class Container<T, M = T, E = any> extends State<T> implements Resettable
   }
 
   [createStateHandler](registry: TokenRegistry): StatePublisher<T> {
+    const value = this[getInitialValue](registry)
+
     return this.update ?
-      new MessageWriter(registry, this.initialValue, this.update) :
-      new Writer(this.initialValue)
+      new MessageWriter(registry, value, this.update) :
+      new Writer(value)
   }
 
-  [clone](id: StateReference<string> | undefined): Container<T, M, E> {
-    return new Container(this.name, this.initialValue, this.update, id)
+  [clone](): Container<T, M, E> {
+    return new Container(this.name, this.initialValue, this.update)
   }
 
   get meta(): MetaState<T, M, E> {

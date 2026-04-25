@@ -1,5 +1,5 @@
 import { GetState, Stateful } from "../../store/index.js"
-import { StateReference } from "../../store/tokenRegistry.js"
+import { StateReference } from "../../store/index.js"
 import { ElementSupport } from "../elementSupport.js"
 import { SpecialElementAttributes } from "../specialAttributes.js"
 
@@ -51,10 +51,6 @@ export interface ViewRenderer {
     viewGenerator: (useData: UseData<T>) => ViewDefinition
   ): this
   subviewFrom(selectorGenerator: (selector: ViewSelector) => void): this
-}
-
-export function isStateful<T>(value: T | Stateful<T>): value is Stateful<T> {
-  return typeof value === "function"
 }
 
 abstract class BaseViewRenderer implements ViewRenderer {

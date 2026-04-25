@@ -1,7 +1,7 @@
 import { DOMEventType, EventsToDelegate, StoreEventHandler, EventZone } from "./index.js";
 import { Stateful, GetState } from "../../store/index.js";
 import { dispatchMessage } from "../../store/message.js";
-import { getStateFunctionWithListener, initListener, createSubscriber, TokenRegistry } from "../../store/tokenRegistry.js";
+import { getStateFunctionWithListener, initListener, createSubscriber, TokenRegistry, isStateful } from "../../store/tokenRegistry.js";
 import { UpdateAttributeEffect } from "./effects/attributeEffect.js";
 import { UpdatePropertyEffect } from "./effects/propertyEffect.js";
 import { activateSelect, SelectViewEffect } from "./effects/selectViewEffect.js";
@@ -10,7 +10,7 @@ import { getEventAttribute } from "./eventHelpers.js";
 import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementId, listEndIndicator } from "./fragmentHelpers.js";
 import { createDOMTemplate, DomTemplateRenderer } from "./templateRenderer.js";
 import { AbstractViewConfig } from "./viewConfig.js";
-import { AbstractViewRenderer, ElementDefinition, isStateful, UseData, ViewDefinition, ViewSelector } from "./viewRenderer.js";
+import { AbstractViewRenderer, ElementDefinition, UseData, ViewDefinition, ViewSelector } from "./viewRenderer.js";
 import { IdSequence } from "./idSequence.js";
 import { EffectLocation } from "./effectLocation.js";
 import { ListItemTemplateContext } from "./templateContext.js";

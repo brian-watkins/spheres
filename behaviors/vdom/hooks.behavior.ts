@@ -1,6 +1,6 @@
 import { behavior, effect, example, fact, step } from "best-behavior";
 import { renderContext } from "./helpers/renderContext";
-import { container, derived, update, useContainerHooks, useHooks, write } from "@store/index";
+import { container, update, useContainerHooks, useHooks, write } from "@store/index";
 import { HTMLBuilder, HTMLView, UseCase, UseData } from "@view/index";
 import { selectElement, selectElements } from "./helpers/displayElement";
 import { expect, is, resolvesTo } from "great-expectations";
@@ -17,13 +17,14 @@ export default behavior("onRegister hook", [
         fact("onRegister hook is used to add a container hook to each container", (context) => {
           useHooks(context.store, {
             onRegister(container, actions) {
-              const containerName = container.id !== undefined ?
-                `${container}-${actions.get(container.id)}` :
+              const containerValue = actions.get(container)
+              const containerName = containerValue.id !== undefined ?
+                `${container}-${containerValue.id}` :
                 `${container}`
               context.state.logs.push(`Registering [${containerName}]`)
               useContainerHooks(context.store, container, {
                 onWrite(message, actions) {
-                  context.state.logs.push(`Writing [${containerName}] => ${JSON.stringify(message)}`)
+                  context.state.logs.push(`Writing [${containerName}] => ${message.count}`)
                   actions.ok(message)
                 },
               })
@@ -39,8 +40,9 @@ export default behavior("onRegister hook", [
           function itemView(useItem: UseData<string>): HTMLView {
             const counter = container({
               name: "counter",
-              initialValue: 0,
-              id: derived(useItem(item => item.toLowerCase()))
+              initialValue: useItem(item => {
+                return { id: item.toLowerCase(), count: 0 }
+              })
             })
 
             return root => {
@@ -50,10 +52,14 @@ export default behavior("onRegister hook", [
                     el.children
                       .textNode(useItem(item => item))
                       .textNode(" - ")
-                      .textNode(get => `${get(counter)} clicks`)
+                      .textNode(get => `${get(counter).count} clicks`)
                   })
                   .button(el => {
-                    el.config.on("click", () => update(counter, val => val + 1))
+                    el.config.on("click", () => {
+                      return update(counter, val => {
+                        return { ...val, count: val.count + 1 }
+                      })
+                    })
                     el.children.textNode("Increment")
                   })
                   .hr()
@@ -108,8 +114,9 @@ export default behavior("onRegister hook", [
         fact("onRegister hook is used to add a container hook to each container on the server side", (context) => {
           useHooks(context.serverStore, {
             onRegister(container, actions) {
-              const containerName = container.id !== undefined ?
-                `${container}-${actions.get(container.id)}` :
+              const containerValue = actions.get(container)
+              const containerName = containerValue.id !== undefined ?
+                `${container}-${containerValue.id}` :
                 `${container}`
               context.state.logs.push(`Registering [${containerName}]`)
             },
@@ -124,8 +131,9 @@ export default behavior("onRegister hook", [
           function itemView(useItem: UseData<string>): HTMLView {
             const counter = container({
               name: "counter",
-              initialValue: 0,
-              id: derived(useItem(item => item.toLowerCase()))
+              initialValue: useItem(item => {
+                return { id: item.toLowerCase(), count: 0 }
+              })
             })
 
             return root => {
@@ -133,10 +141,14 @@ export default behavior("onRegister hook", [
                 el.children
                   .h1(el => {
                     el.children
-                      .textNode(useItem((item, get) => `${item} - ${get(counter)} clicks`))
+                      .textNode(useItem((item, get) => `${item} - ${get(counter).count} clicks`))
                   })
                   .button(el => {
-                    el.config.on("click", () => update(counter, val => val + 1))
+                    el.config.on("click", () => {
+                      return update(counter, val => {
+                        return { ...val, count: val.count + 1 }
+                      })
+                    })
                     el.children.textNode("Increment")
                   })
                   .hr()
@@ -189,8 +201,9 @@ export default behavior("onRegister hook", [
         fact("onRegister hook is used to add a container hook to each container", (context) => {
           useHooks(context.store, {
             onRegister(container, actions) {
-              const containerName = container.id !== undefined ?
-                `${container}-${actions.get(container.id)}` :
+              const containerValue = actions.get(container)
+              const containerName = containerValue.id !== undefined ?
+                `${container}-${containerValue.id}` :
                 `${container}`
               context.state.logs.push(`Registering [${containerName}]`)
               useContainerHooks(context.store, container, {
@@ -320,13 +333,19 @@ export default behavior("onRegister hook", [
         fact("onRegister hook is used to add a container hook to each container", (context) => {
           useHooks(context.store, {
             onRegister(container, actions) {
-              const containerName = container.id !== undefined ?
-                `${container}-${actions.get(container.id)}` :
+              const containerValue = actions.get(container)
+              const containerName = containerValue.id !== undefined ?
+                `${container}-${containerValue.id}` :
                 `${container}`
               context.state.logs.push(`Registering [${containerName}]`)
               useContainerHooks(context.store, container, {
                 onWrite(message, actions) {
-                  context.state.logs.push(`Writing [${containerName}] => ${JSON.stringify(message)}`)
+                  if (message.count !== undefined) {
+                    context.state.logs.push(`Writing [${containerName}] => ${message.count}`)
+                  } else {
+                    context.state.logs.push(`Writing [${containerName}] => ${JSON.stringify(message)}`)
+                  }
+
                   actions.ok(message)
                 },
               })
@@ -343,19 +362,24 @@ export default behavior("onRegister hook", [
             return root => {
               const counter = container({
                 name: "fruit-counter",
-                initialValue: 0,
-                id: derived(useFruit(fruit => fruit.name))
+                initialValue: useFruit(fruit => {
+                  return { id: fruit.name, count: 0 }
+                }),
               })
 
               root.div(el => {
                 el.children
                   .h1(el => {
-                    el.children.textNode(useFruit((fruit, get) => `${fruit.name} clicks: ${get(counter)}`))
+                    el.children.textNode(useFruit((fruit, get) => `${fruit.name} clicks: ${get(counter).count}`))
                   })
                   .button(el => {
                     el.config
                       .dataAttribute("fruit-counter")
-                      .on("click", () => update(counter, val => val + 1))
+                      .on("click", () => {
+                        return update(counter, val => {
+                          return { ...val, count: val.count + 1 }
+                        })
+                      })
                     el.children.textNode("Click!")
                   })
               })
@@ -366,19 +390,24 @@ export default behavior("onRegister hook", [
             return root => {
               const counter = container({
                 name: "shape-counter",
-                initialValue: 0,
-                id: derived(useShape(shape => `${shape.corners}`))
+                initialValue: useShape(shape => {
+                  return { id: `${shape.corners}`, count: 0 }
+                }),
               })
 
               root.div(el => {
                 el.children
                   .h1(el => {
-                    el.children.textNode(useShape((shape, get) => `Shape with ${shape.corners} corners clicks: ${get(counter)}`))
+                    el.children.textNode(useShape((shape, get) => `Shape with ${shape.corners} corners clicks: ${get(counter).count}`))
                   })
                   .button(el => {
                     el.config
                       .dataAttribute("shape-counter")
-                      .on("click", () => update(counter, val => val + 1))
+                      .on("click", () => {
+                        return update(counter, val => {
+                          return { ...val, count: val.count + 1 }
+                        })
+                      })
                     el.children.textNode("Click!")
                   })
               })

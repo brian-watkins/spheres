@@ -3,3 +3,4 @@ dist
 tsconfig.tsbuildinfo
 coverage-reports
 .zed
+.vscode

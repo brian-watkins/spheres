@@ -1,4 +1,4 @@
-import { ConfigurableElement, UseCase, UseData } from "./render/viewRenderer.js";
+import { ConfigurableElement, UseCase, UseItem } from "./render/viewRenderer.js";
 import { GetState, Stateful } from "../store/index.js";
 import { SpecialElementAttributes } from "./specialAttributes.js";
 import { ElementSupport } from "./elementSupport.js";
@@ -25,7 +25,7 @@ export interface SpecialSVGElements {
     textNode(value: string | Stateful<string | undefined>): this;
     subview(value: SVGView): this;
     subviewFrom(selectorGenerator: (selector: SVGViewSelector) => void): this;
-    subviews<T>(data: (get: GetState) => Array<T>, viewGenerator: (useData: UseData<T>) => SVGView): this;
+    subviews<T>(data: (get: GetState) => Array<T>, viewGenerator: (useItem: UseItem<T>) => SVGView): this;
 }
 
 export interface SVGBuilder extends SpecialSVGElements {

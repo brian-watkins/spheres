@@ -6,7 +6,7 @@ import { createFragment, listEndIndicator, listStartIndicator, switchEndIndicato
 import { IdSequence } from "./idSequence.js";
 import { ListItemTemplateContext } from "./templateContext.js";
 import { AbstractViewConfig } from "./viewConfig.js";
-import { AbstractViewRenderer, ElementDefinition, UseData, ViewDefinition, ViewSelector } from "./viewRenderer.js";
+import { AbstractViewRenderer, ElementDefinition, UseItem, ViewDefinition, ViewSelector } from "./viewRenderer.js";
 import { DOMTemplate, EffectTemplate, EffectTemplateTypes, TemplateType } from "./domTemplate.js";
 import { SelectorBuilder } from "./selectorBuilder.js";
 import { ElementConfigSupport, ElementSupport } from "../elementSupport.js";
@@ -92,7 +92,7 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
 
   subviews<T>(
     data: (get: GetState) => Array<T>,
-    viewGenerator: (useData: UseData<T>) => ViewDefinition
+    viewGenerator: (useItem: UseItem<T>) => ViewDefinition
   ): this {
     this.templateType = TemplateType.List
 

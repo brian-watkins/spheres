@@ -16,7 +16,7 @@ htmlElementsFile.addImportDeclarations([
     namedImports: [
       "ConfigurableElement",
       "UseCase",
-      "UseData"
+      "UseItem"
     ],
     moduleSpecifier: "./render/viewRenderer.js"
   },
@@ -159,7 +159,7 @@ specialHtmlElementsInterface.addMethod({
   ],
   parameters: [
     { name: "data", type: "(get: GetState) => Array<T>" },
-    { name: "viewGenerator", type: "(useData: UseData<T>) => HTMLView" }
+    { name: "viewGenerator", type: "(useItem: UseItem<T>) => HTMLView" }
   ],
   returnType: "this"
 })

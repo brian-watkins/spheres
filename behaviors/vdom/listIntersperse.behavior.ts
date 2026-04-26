@@ -4,7 +4,7 @@ import { expect, is, resolvesTo } from "great-expectations";
 import { selectElement, selectElements } from "./helpers/displayElement";
 import { ListExamplesState, childElementText, containerWithList, itemView, otherItemView, updateState } from "./helpers/listHelpers";
 import { RenderApp, renderContext } from "./helpers/renderContext";
-import { HTMLView, UseData } from "@view/index";
+import { HTMLView, UseItem } from "@view/index";
 
 export default behavior("lists interspersed among other children", [
 
@@ -222,10 +222,10 @@ function nestedListsExample(name: string, renderer: (context: RenderApp<NestedLi
                   return (root) => {
                     root.div(el => {
                       el.children
-                        .h3(el => el.children.textNode(stateful((item) => item)))
+                        .h3(el => el.children.textNode(stateful((item) => item.data)))
                         .ul(el => {
                           el.config
-                            .dataAttribute("sub-list", stateful((_, get, index) => `${get(index)}`))
+                            .dataAttribute("sub-list", stateful(({index}) => `${index}`))
                           el.children
                             .subviews(get => get(context.state.secondaryList), liView(message, stateful))
                             .subviews(get => get(context.state.secondaryList), anotherLiView(stateful))
@@ -316,10 +316,10 @@ function nestedListSelectorExample(name: string, renderer: (context: RenderApp<N
           context.writeToCollection(context.state.nestedData, "sub-three", ["cat", "column", "cataract"])
         }),
         fact("there is a view with nested list and nested selector", (context) => {
-          function simpleView(stateful: UseData<string>): (subStateful: UseData<string>) => HTMLView {
+          function simpleView(stateful: UseItem<string>): (subStateful: UseItem<string>) => HTMLView {
             return (subStateful) => root => {
               root.li(el => el.children.textNode(subStateful((subItem, subGet) => {
-                return stateful((item) => `${item} => ${subItem}`)(subGet)
+                return stateful((item) => `${item.data} => ${subItem.data}`)(subGet)
               })))
             }
           }
@@ -328,12 +328,12 @@ function nestedListSelectorExample(name: string, renderer: (context: RenderApp<N
               return (root) => {
                 root.div(el => {
                   el.children
-                    .h3(el => el.children.textNode(stateful((item) => item)))
+                    .h3(el => el.children.textNode(stateful((item) => item.data)))
                     .ul(el => {
                       el.config
-                        .dataAttribute("sub-list", stateful((_, get, index) => `${get(index)}`))
+                        .dataAttribute("sub-list", stateful(({index}) => `${index}`))
                       el.children
-                        .subviews(stateful((item, get) => nestedListData(get, context, `sub-${item}`)), simpleView(stateful))
+                        .subviews(stateful((item, get) => nestedListData(get, context, `sub-${item.data}`)), simpleView(stateful))
                     })
                 })
               }
@@ -544,12 +544,12 @@ function listOfListWithDerivedStateExample(name: string, renderer: (context: Ren
         fact("there is a list where each item is a list that defined derived state", (context) => {
           renderer(context, (root) => {
             root.subviews(get => get(context.state.mainList), (stateful) => {
-              const modifiedItem = derived({ query: stateful((item, get) => `${get(item).length}`) })
+              const modifiedItem = derived({ query: stateful((item, get) => `${get(item.data).length}`) })
               return (root) => {
                 root.subviews(get => [`${get(modifiedItem)}-sub-a`, `${get(modifiedItem)}-sub-b`], (subStateful) => (root) => {
                   root.div(el => {
                     el.config.dataAttribute("sub-list")
-                    el.children.textNode(subStateful((subItem) => `${subItem}!!`))
+                    el.children.textNode(subStateful((subItem) => `${subItem.data}!!`))
                   })
                 })
               }
@@ -611,27 +611,27 @@ interface NestedListExamplesState {
   secondaryList: Container<Array<string>>
 }
 
-function divView(stateful: UseData<string>): (subStateful: UseData<string>) => HTMLView {
+function divView(stateful: UseItem<string>): (subStateful: UseItem<string>) => HTMLView {
   return (subStateful) => (root) => {
     root.div(el => {
-      el.config.dataAttribute("sub-list", stateful((_, get, index) => `${get(index)}`))
+      el.config.dataAttribute("sub-list", stateful(({index}) => `${index}`))
       el.children.textNode(subStateful((subItem, getSub) => {
-        return stateful((item) => `${item} => ${subItem}`)(getSub)
+        return stateful((item) => `${item.data} => ${subItem.data}`)(getSub)
       }))
     })
   }
 }
 
-function liView(message: Container<string>, stateful: UseData<string>): (subStateful: UseData<string>) => HTMLView {
+function liView(message: Container<string>, stateful: UseItem<string>): (subStateful: UseItem<string>) => HTMLView {
   return (subStateful) => (root) => {
     root.li(el => {
       el.children
         .p(el => el.children.textNode(subStateful((subItem, get) => {
-          return stateful((item) => `${item} => ${subItem}`)(get)
+          return stateful((item) => `${item.data} => ${subItem.data}`)(get)
         })))
         .button(el => {
           el.config.on("click", () => use(subStateful((subItem, get) => {
-            return stateful((item) => write(message, `Clicked: ${item}, ${subItem}`))(get)
+            return stateful((item) => write(message, `Clicked: ${item.data}, ${subItem.data}`))(get)
           })))
           el.children.textNode("Click!")
         })
@@ -639,12 +639,12 @@ function liView(message: Container<string>, stateful: UseData<string>): (subStat
   }
 }
 
-function anotherLiView(stateful: UseData<string>): (subStateful: UseData<string>) => HTMLView {
+function anotherLiView(stateful: UseItem<string>): (subStateful: UseItem<string>) => HTMLView {
   return (subStateful) => (root) => {
     root.li(el => {
       el.children.p(el => {
         el.children.textNode(subStateful((subItem, get) => {
-          return stateful((item) => `Also ${item} => ${subItem}`)(get)
+          return stateful((item) => `Also ${item.data} => ${subItem.data}`)(get)
         }))
       })
     })

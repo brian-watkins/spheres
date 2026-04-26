@@ -1,5 +1,5 @@
 import { container, use, write } from "@store/index.js";
-import { HTMLBuilder, svg, SVGView, UseData } from "@view/index.js";
+import { HTMLBuilder, svg, SVGView, UseItem } from "@view/index.js";
 
 interface Circle {
   label: string
@@ -46,29 +46,29 @@ export default function (root: HTMLBuilder) {
   })
 }
 
-function circleView(useCircle: UseData<Circle>): SVGView {
+function circleView(useCircle: UseItem<Circle>): SVGView {
   return root =>
     root.g(el => {
       el.config
-        .dataAttribute("circle-button", useCircle((_, get, index) => `${get(index)}`))
-        .on("click", () => use(useCircle((_, get, index) => write(circleData, putFirst(get(index))))))
+        .dataAttribute("circle-button", useCircle((item) => `${item.index}`))
+        .on("click", () => use(useCircle((item) => write(circleData, putFirst(item.index)))))
       el.children
         .circle(el => {
           el.config
-            .cx(useCircle((_, get, index) => `${get(index) * 150 + 100}`))
+            .cx(useCircle((item) => `${item.index * 150 + 100}`))
             .cy("150")
             .r("50")
             .fill("blue")
         })
         .text(el => {
           el.config
-            .x(useCircle((_, get, index) => `${get(index) * 150 + 100}`))
+            .x(useCircle((item) => `${item.index * 150 + 100}`))
             .y("158")
             .fontSize("30")
             .textAnchor("middle")
             .fill("white")
           el.children
-            .textNode(useCircle((circle) => `${circle.label}`))
+            .textNode(useCircle((circle) => `${circle.data.label}`))
         })
     })
 }

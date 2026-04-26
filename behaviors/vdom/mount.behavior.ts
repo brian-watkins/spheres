@@ -3,7 +3,7 @@ import { equalTo, expect, is, resolvesTo } from "great-expectations"
 import { selectElement, selectElementWithText, selectElements } from "./helpers/displayElement.js"
 import { renderContext } from "./helpers/renderContext.js"
 import { container } from "@store/index.js"
-import { HTMLView, UseData } from "@view/index"
+import { HTMLView, UseItem } from "@view/index"
 
 export default behavior("mount", [
 
@@ -172,8 +172,8 @@ export default behavior("mount", [
       suppose: [
         fact("zones are mounted", (context) => {
           const data = container({ initialValue: ["apple", "pizza", "hotdog"] })
-          const dataView = (useData: UseData<string>): HTMLView => root => {
-            root.div(el => el.children.textNode(useData((name) => name)))
+          const dataView = (useData: UseItem<string>): HTMLView => root => {
+            root.div(el => el.children.textNode(useData((name) => name.data)))
           }
           context.mountView(root => {
             root.subviews(get => get(data), dataView)

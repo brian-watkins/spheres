@@ -1,5 +1,5 @@
 import { container } from "spheres/store";
-import { HTMLBuilder, HTMLView, UseData } from "spheres/view";
+import { HTMLBuilder, HTMLView, UseItem } from "spheres/view";
 import "./moreStyles.css"
 
 const items = container({ initialValue: ["one", "two", "three"] })
@@ -12,13 +12,13 @@ export function superList(root: HTMLBuilder) {
 
 const { dynamic } = await import("./dynamicView")
 
-function itemView(useState: UseData<string>): HTMLView {
+function itemView(useState: UseItem<string>): HTMLView {
   return (root) => {
     root.li(el => {
       el.children
         .subview(dynamic)
         .div(el => {
-          el.children.textNode(useState((state) => state))
+          el.children.textNode(useState((state) => state.data))
         })
     })
   }

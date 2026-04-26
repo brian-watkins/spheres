@@ -15,7 +15,7 @@ svgElementsFile.addImportDeclarations([
     namedImports: [
       "ConfigurableElement",
       "UseCase",
-      "UseData"
+      "UseItem"
     ],
     moduleSpecifier: "./render/viewRenderer.js"
   },
@@ -157,7 +157,7 @@ specialSVGElementsInterface.addMethod({
   ],
   parameters: [
     { name: "data", type: "(get: GetState) => Array<T>" },
-    { name: "viewGenerator", type: "(useData: UseData<T>) => SVGView" }
+    { name: "viewGenerator", type: "(useItem: UseItem<T>) => SVGView" }
   ],
   returnType: "this"
 })

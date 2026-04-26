@@ -1,4 +1,4 @@
-import { ConfigurableElement, UseCase, UseData } from "./render/viewRenderer.js";
+import { ConfigurableElement, UseCase, UseItem } from "./render/viewRenderer.js";
 import { GetState, Stateful } from "../store/index.js";
 import { SpecialElementAttributes } from "./specialAttributes.js";
 import { ElementSupport } from "./elementSupport.js";
@@ -25,7 +25,7 @@ export interface SpecialHTMLElements {
     textNode(value: string | Stateful<string | undefined>): this;
     subview(value: HTMLView): this;
     subviewFrom(selectorGenerator: (selector: HTMLViewSelector) => void): this;
-    subviews<T>(data: (get: GetState) => Array<T>, viewGenerator: (useData: UseData<T>) => HTMLView): this;
+    subviews<T>(data: (get: GetState) => Array<T>, viewGenerator: (useItem: UseItem<T>) => HTMLView): this;
 }
 
 export interface GlobalHTMLAttributes {

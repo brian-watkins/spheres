@@ -1,5 +1,5 @@
 import { container, Container, derived, update } from "@store/index.js";
-import { HTMLView, UseData, svg, SVGBuilder, SVGView } from "@view/index";
+import { HTMLView, UseItem, svg, SVGBuilder, SVGView } from "@view/index";
 import { behavior, effect, example, fact, step } from "best-behavior";
 import { expect, resolvesTo, is, stringContaining } from "great-expectations";
 import { selectElement, selectElements } from "./helpers/displayElement";
@@ -158,13 +158,13 @@ export default behavior("ssr", [
           })
         }),
         fact("there is a ssr list with stateful text", (context) => {
-          function itemView(stateful: UseData<string>): HTMLView {
+          function itemView(stateful: UseItem<string>): HTMLView {
             return root => {
               root.p(el => {
                 el.config
                   .dataAttribute("stateful-text", get => get(context.state.message))
                   .class(get => `text-${get(context.state.message)}`)
-                el.children.textNode(stateful((state, get) => `${get(context.state.message)} ${state}`))
+                el.children.textNode(stateful((state, get) => `${get(context.state.message)} ${state.data}`))
               })
             }
           }
@@ -231,17 +231,17 @@ export default behavior("ssr", [
           })
         }),
         fact("a view with items with inner state is activated", (context) => {
-          function itemView(stateful: UseData<string>): HTMLView {
+          function itemView(stateful: UseItem<string>): HTMLView {
             const counter = container({ initialValue: 0 })
-            const counterName = derived(stateful((state, get, index) => {
-              return `[${state.toLowerCase().slice(0, -1)}-${get(index) + 1}]`
+            const counterName = derived(stateful((item) => {
+              return `[${item.data.toLowerCase().slice(0, -1)}-${item.index + 1}]`
             }))
 
             return root => {
               root.div(el => {
                 el.children
                   .h2(el => {
-                    el.children.textNode(stateful((state) => state))
+                    el.children.textNode(stateful((state) => state.data))
                   })
                   .p(el => {
                     el.config.dataAttribute("click-count")
@@ -388,13 +388,13 @@ export default behavior("ssr", [
           })
         }),
         fact("a view with svg list is activated", (context) => {
-          function circle(stateful: UseData<string>): SVGView {
+          function circle(stateful: UseItem<string>): SVGView {
             return root =>
               root.g(el => {
                 el.children.
                   circle(el => {
                     el.config
-                      .cx(stateful((_, get, index) => `${get(index) * 150 + 150}`))
+                      .cx(stateful(({index}) => `${index * 150 + 150}`))
                       .cy("100")
                       .r("80")
                       .fill("green")
@@ -402,14 +402,14 @@ export default behavior("ssr", [
                   })
                   .text(({ config, children }) => {
                     config
-                      .x(stateful((_, get, index) => `${get(index) * 150 + 150}`))
+                      .x(stateful(({index}) => `${index * 150 + 150}`))
                       .y("125")
                       .fontSize("60")
                       .fontWeight("bold")
                       .textAnchor("middle")
                       .fill("white")
                     children
-                      .textNode(stateful((option) => option))
+                      .textNode(stateful((option) => option.data))
                   })
               })
           }

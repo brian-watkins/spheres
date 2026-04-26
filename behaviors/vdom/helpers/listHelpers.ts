@@ -3,7 +3,7 @@ import { RenderApp } from "./renderContext"
 import { selectElements } from "./displayElement"
 import { expect, is } from "great-expectations"
 import { container, Container } from "@store/index.js"
-import { HTMLView, UseData } from "@view/index"
+import { HTMLView, UseItem } from "@view/index"
 
 export interface ListExamplesState {
   listContainer: Container<Array<string>>
@@ -45,20 +45,20 @@ export function ssrAndActivateBasedOnState(data: Array<string>): Array<Presuppos
   ]
 }
 
-export function itemView(stateful: UseData<string>): HTMLView {
+export function itemView(stateful: UseItem<string>): HTMLView {
   return (root) => {
     root.p(el => {
       el.config.dataAttribute("child")
-      el.children.textNode(stateful((item, get, index) => `${item} (${get(index)})`))
+      el.children.textNode(stateful((item) => `${item.data} (${item.index})`))
     })
   }
 }
 
-export function otherItemView(stateful: UseData<string>): HTMLView {
+export function otherItemView(stateful: UseItem<string>): HTMLView {
   return root => {
     root.h1(el => {
       el.config.dataAttribute("child")
-      el.children.textNode(stateful((item, get, index) => `Other ${item} (${get(index)})`))
+      el.children.textNode(stateful((item) => `Other ${item.data} (${item.index})`))
     })
   }
 }

@@ -10,7 +10,7 @@ import { getEventAttribute } from "./eventHelpers.js";
 import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementId, listEndIndicator } from "./fragmentHelpers.js";
 import { createDOMTemplate, DomTemplateRenderer } from "./templateRenderer.js";
 import { AbstractViewConfig } from "./viewConfig.js";
-import { AbstractViewRenderer, ElementDefinition, UseData, ViewDefinition, ViewSelector } from "./viewRenderer.js";
+import { AbstractViewRenderer, ElementDefinition, UseItem, ViewDefinition, ViewSelector } from "./viewRenderer.js";
 import { IdSequence } from "./idSequence.js";
 import { EffectLocation } from "./effectLocation.js";
 import { ListItemTemplateContext } from "./templateContext.js";
@@ -56,7 +56,7 @@ export class ActivateDomRenderer extends AbstractViewRenderer {
     return this
   }
 
-  subviews<T>(query: (get: GetState) => T[], viewGenerator: (useData: UseData<T>) => ViewDefinition): this {
+  subviews<T>(query: (get: GetState) => T[], viewGenerator: (useItem: UseItem<T>) => ViewDefinition): this {
     const elementId = getListElementId(this.currentNode!)
     let end = findListEndNode(this.currentNode!, elementId)
 

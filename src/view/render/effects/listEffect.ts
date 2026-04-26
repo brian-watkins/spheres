@@ -1,13 +1,14 @@
 import { GetState } from "../../../store/index.js"
 import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementId } from "../fragmentHelpers.js"
 import { activate, DOMTemplate, render, TemplateType } from "../domTemplate.js"
-import { generateStateManager, State, StateEffect, StateListenerType, StatePublisher, StateReader, StateWriter, StateHandler, Token, TokenRegistry, StateReference } from "../../../store/tokenRegistry.js"
+import { generateStateManager, State, StateEffect, StateListenerType, StateReader, StateWriter, StateHandler, Token, TokenRegistry } from "../../../store/tokenRegistry.js"
 import { ListItemTemplateContext } from "../templateContext.js"
 import { OverlayTokenRegistry } from "../../../store/registry/overlayTokenRegistry.js"
 import { OverlayStateHandler } from "../../../store/state/handler/overlayStateHandler.js"
-import { ConstantReader } from "../../../store/state/handler/constantReader.js"
 import { Publisher } from "../../../store/state/handler/publisher.js"
 import { Container, clone } from "../../../store/state/container.js"
+import { ListItemReader } from "./listItemReader.js"
+import { ListItem } from "../viewRenderer.js"
 
 class VirtualItem extends OverlayTokenRegistry {
   node!: Node
@@ -24,8 +25,8 @@ class VirtualItem extends OverlayTokenRegistry {
   static newInstance(data: any, index: number, registry: TokenRegistry, context: ListItemTemplateContext<any>): VirtualItem {
     return new VirtualItem(
       data, index, registry,
-      context.itemToken, new ConstantReader(data),
-      context.indexToken,
+      context.listItemDataToken,
+      new ListItemReader(data, index),
       context.viewTokens
     )
   }
@@ -34,9 +35,8 @@ class VirtualItem extends OverlayTokenRegistry {
     public key: any,
     public index: number,
     registry: TokenRegistry,
-    private itemToken: State<StateReference<any>>,
-    private itemPublisher: StateReader<StatePublisher<any>>,
-    private indexToken: State<number>,
+    private listItemDataToken: State<ListItem<any>>,
+    private listItemDataReader: ListItemReader<any>,
     private viewTokens: Set<Token>
   ) {
     super(registry)
@@ -53,9 +53,8 @@ class VirtualItem extends OverlayTokenRegistry {
       this.key,
       this.index,
       this.parentRegistry,
-      this.itemToken,
-      this.itemPublisher,
-      this.indexToken,
+      this.listItemDataToken,
+      this.listItemDataReader,
       this.viewTokens,
     )
 
@@ -69,15 +68,8 @@ class VirtualItem extends OverlayTokenRegistry {
   }
 
   getState<S extends State<unknown>>(token: S): StateHandler<S> {
-    if (token === this.itemToken) {
-      return this.itemPublisher as StateHandler<S>
-    }
-
-    if (token === this.indexToken) {
-      if (this.indexHandler === undefined) {
-        this.indexHandler = new Publisher(this.index)
-      }
-      return this.indexHandler as StateHandler<S>
+    if (token === this.listItemDataToken) {
+      return this.listItemDataReader as StateHandler<S>
     }
 
     let publisher = this.registry.get(token)
@@ -119,7 +111,7 @@ class VirtualItem extends OverlayTokenRegistry {
   }
 
   updateIndex(index: number) {
-    this.indexHandler?.publish(index)
+    this.listItemDataReader.indexPublisher?.publish(index)
   }
 }
 

@@ -1,5 +1,5 @@
 import { container, write } from "@store/index.js";
-import { HTMLBuilder, HTMLView, UseData } from "@view/index.js";
+import { HTMLBuilder, HTMLView, UseItem } from "@view/index.js";
 
 interface Fruit {
   name: string
@@ -48,10 +48,10 @@ export default function (root: HTMLBuilder) {
   })
 }
 
-function fruitView(useFruit: UseData<Fruit>): HTMLView {
+function fruitView(useFruit: UseItem<Fruit>): HTMLView {
   return root => {
     root.li(el => {
-      el.children.textNode(useFruit((item, get, index) => `${item.name} is at index ${get(index)}`))
+      el.children.textNode(useFruit((item) => `${item.data.name} is at index ${item.index}`))
     })
   }
 }

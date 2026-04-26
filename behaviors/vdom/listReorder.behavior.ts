@@ -221,8 +221,8 @@ export default behavior("reorder list", [
               el.children.subviews(get => get(context.state.items), (stateful) => root => {
                 root.subviews(() => ["a", "b"], (subStateful) => root => {
                   root.div(el => {
-                    el.children.textNode(subStateful((subItem, get, subIndex) => {
-                      return stateful((item, _, index) => `${item} at ${get(index)} => ${subItem} at ${get(subIndex)}`)(get)
+                    el.children.textNode(subStateful((subItem, get) => {
+                      return stateful((item) => `${item.data} at ${item.index} => ${subItem.data} at ${subItem.index}`)(get)
                     }))
                   })
                 })

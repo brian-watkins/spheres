@@ -1,15 +1,14 @@
 import { OverlayTokenRegistry } from "../../store/registry/overlayTokenRegistry.js"
 import { clone, Container } from "../../store/state/container.js"
-import { ConstantReader } from "../../store/state/handler/constantReader.js"
-import { Publisher } from "../../store/state/handler/publisher.js"
-import { generateStateManager, State, StatePublisher, StateReader, StateHandler, Token, TokenRegistry } from "../../store/tokenRegistry.js"
+import { generateStateManager, State, StateReader, StateHandler, Token, TokenRegistry } from "../../store/tokenRegistry.js"
+import { ListItemReader } from "../../view/render/effects/listItemReader.js"
 import { ListItemTemplateContext } from "../../view/render/templateContext.js"
 
 export function createOverlayRegistry(context: ListItemTemplateContext<any>, rootRegistry: TokenRegistry, itemData: any, index: number): ListItemOverlayTokenRegistry {
   return new ListItemOverlayTokenRegistry(
     rootRegistry,
-    context.itemToken, new ConstantReader(itemData),
-    context.indexToken, new Publisher(index),
+    context.listItemDataToken,
+    new ListItemReader(itemData, index),
     context.viewTokens
   )
 }
@@ -19,22 +18,16 @@ export class ListItemOverlayTokenRegistry extends OverlayTokenRegistry {
 
   constructor(
     rootRegistry: TokenRegistry,
-    private item: State<unknown>,
-    private itemPublisher: StateReader<StatePublisher<unknown>>,
-    private indexToken: State<number>,
-    private indexPublisher: StatePublisher<number>,
+    private listItemDataToken: State<unknown>,
+    private listItemDataReader: ListItemReader<any>,
     private viewTokens: Set<Token>
   ) {
     super(rootRegistry)
   }
 
   getState<S extends State<unknown>>(token: S): StateHandler<S> {
-    if (token === this.item) {
-      return this.itemPublisher as StateHandler<S>
-    }
-
-    if (token === this.indexToken) {
-      return this.indexPublisher as StateHandler<S>
+    if (token === this.listItemDataToken) {
+      return this.listItemDataReader as StateHandler<S>
     }
 
     if (this.viewTokens.has(token)) {

@@ -1,5 +1,4 @@
 import { GetState, Stateful } from "../../store/index.js"
-import { StateReference } from "../../store/index.js"
 import { ElementSupport } from "../elementSupport.js"
 import { SpecialElementAttributes } from "../specialAttributes.js"
 
@@ -34,11 +33,15 @@ export interface ViewSelector {
   withConditions(): ViewConditionSelector
 }
 
-export type UseData<T> = <S>(
+export interface ListItem<T> {
+  data: T
+  index: number
+}
+
+export type UseItem<T> = <S>(
   generator: (
-    dataReference: T,
-    get: GetState,
-    indexReference: StateReference<number>
+    item: ListItem<T>,
+    get: GetState
   ) => S
 ) => Stateful<S>
 
@@ -48,7 +51,7 @@ export interface ViewRenderer {
   subview(view: ViewDefinition): this
   subviews<T>(
     data: (get: GetState) => Array<T>,
-    viewGenerator: (useData: UseData<T>) => ViewDefinition
+    viewGenerator: (useItem: UseItem<T>) => ViewDefinition
   ): this
   subviewFrom(selectorGenerator: (selector: ViewSelector) => void): this
 }
@@ -57,7 +60,7 @@ abstract class BaseViewRenderer implements ViewRenderer {
   abstract textNode(value: string | Stateful<string>): this
   abstract element(tag: string, builder?: ElementDefinition, support?: ElementSupport): this
   abstract subviewFrom(selectorGenerator: (selector: ViewSelector) => void): this
-  abstract subviews<T>(data: (get: GetState) => Array<T>, viewGenerator: (useData: UseData<T>) => ViewDefinition): this
+  abstract subviews<T>(data: (get: GetState) => Array<T>, viewGenerator: (useItem: UseItem<T>) => ViewDefinition): this
 
   subview(view: ViewDefinition): this {
     view(this)

@@ -5,14 +5,14 @@ import { container, derived } from "@store/index";
 import { HTMLView } from "@view/htmlElements";
 import { expect, is } from "great-expectations";
 import { requestGC } from "./helpers/memoryHelpers";
-import { UseData } from "@view/index";
+import { UseItem } from "@view/index";
 
 
 const externalToken = container({ initialValue: 0 })
 
 export default behavior("list memory", [
 
-  example(renderContext<ListExamplesState>())
+  (m) => m.pick() && example(renderContext<ListExamplesState>())
     .description("external token is referenced in list item effect")
     .script({
       suppose: [
@@ -22,11 +22,11 @@ export default behavior("list memory", [
           })
         }),
         fact("there is a view for the list", (context) => {
-          function itemView(stateful: UseData<string>): HTMLView {
+          function itemView(stateful: UseItem<string>): HTMLView {
             return (root) => {
               root.div(el => {
                 el.config.dataAttribute("list-item")
-                el.children.textNode(stateful((item, get, index) => `${item} (${get(externalToken) + get(index)})`))
+                el.children.textNode(stateful((item, get) => `${item.data} (${get(externalToken) + item.index})`))
               })
             }
           }
@@ -166,9 +166,9 @@ export default behavior("list memory", [
           })
         }),
         fact("there is a view for the list", (context) => {
-          function itemView(stateful: UseData<string>): HTMLView {
+          function itemView(stateful: UseItem<string>): HTMLView {
             return (root) => {
-              const label = derived(stateful((item, get, index) => `${item} (${get(externalToken) + get(index)})`))
+              const label = derived(stateful((item, get) => `${item.data} (${get(externalToken) + item.index})`))
 
               root.div(el => {
                 el.config.dataAttribute("list-item")

@@ -4,7 +4,7 @@ import { batch, Container, container, update, use, write } from "@store/index";
 import { HTMLView } from "@view/htmlElements";
 import { selectElement, selectElements } from "./helpers/displayElement";
 import { assignedWith, expect, resolvesTo, stringContaining } from "great-expectations";
-import { UseData } from "@view/index";
+import { UseItem } from "@view/index";
 
 interface Item {
   id: string
@@ -22,7 +22,7 @@ document.getElementsByTagName('head')[0].appendChild(style);
 
 export default behavior("list data", [
 
-  example(renderContext<ListState>())
+  (m) => m.pick() && example(renderContext<ListState>())
     .description("operating on data in a list")
     .script({
       suppose: [
@@ -42,19 +42,21 @@ export default behavior("list data", [
             ])
           }
 
-          function itemView(useData: UseData<Item>): HTMLView {
+          function itemView(useData: UseItem<Item>): HTMLView {
             return root => {
               root.li(el => {
                 el.config
-                  .dataAttribute("item", useData((item) => item.id))
-                  .on("click", () => use(useData((item) => selectRow(item))))
-                  .class(useData((item, get) => {
+                  .dataAttribute("item", useData(({data}) => data.id))
+                  .on("click", () => use(useData(({data}) => selectRow(data))))
+                  // .class(useData((item, get) => {
+                  .class(useData(({ data }, get) => {
                     const sel = get(selected)
                     if (sel === undefined) return ""
-                    return item.id === sel.id ? "selected-item" : ""
+                    return data.id === sel.id ? "selected-item" : ""
                   }))
                 el.children
-                  .textNode(useData((item, get, index) => `${item.label} => ${get(index)}`))
+                  // .textNode(useData((item, get, index) => `${item.label} => ${get(index)}`))
+                  .textNode(useData(({data, index}) => `${data.label} => ${index}`))
               })
             }
           }

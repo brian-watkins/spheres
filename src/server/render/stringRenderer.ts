@@ -7,7 +7,7 @@ import { EventsToDelegate, StoreEventHandler } from "../../view/render/index.js"
 import { listEndIndicator, listStartIndicator, switchEndIndicator, switchStartIndicator } from "../../view/render/fragmentHelpers.js";
 import { IdSequence } from "../../view/render/idSequence.js";
 import { ViteContext } from "./viteContext.js";
-import { AbstractViewRenderer, ElementDefinition, UseData, ViewDefinition, ViewSelector } from "../../view/render/viewRenderer.js";
+import { AbstractViewRenderer, ElementDefinition, UseItem, ViewDefinition, ViewSelector } from "../../view/render/viewRenderer.js";
 import { ListItemTemplateContext } from "../../view/render/templateContext.js";
 import { AbstractViewConfig } from "../../view/render/viewConfig.js";
 import { SelectorBuilder } from "../../view/render/selectorBuilder.js";
@@ -148,7 +148,7 @@ class StringRenderer extends AbstractViewRenderer {
 
   subviews<T>(
     data: (get: GetState) => T[],
-    viewGenerator: (stateful: UseData<T>) => ViewDefinition
+    viewGenerator: (useItem: UseItem<T>) => ViewDefinition
   ): this {
     const elementId = this.idSequence.next
 

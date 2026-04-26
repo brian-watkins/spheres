@@ -1,5 +1,5 @@
 import { batch, container } from "@store/index"
-import { HTMLBuilder, HTMLView, UseData, svg } from "@view/index"
+import { HTMLBuilder, HTMLView, UseItem, svg } from "@view/index"
 
 interface StaticViewProps {
   name: string
@@ -136,11 +136,11 @@ export function appWithZones(root: HTMLBuilder) {
   })
 }
 
-function thingView(useThing: UseData<string>): HTMLView {
+function thingView(useThing: UseItem<string>): HTMLView {
   return root => {
     root.div(el => {
       el.children
-        .h1(el => el.children.textNode(useThing((thing, get, index) => `${thing} is at index ${get(index)}`)))
+        .h1(el => el.children.textNode(useThing((thing) => `${thing.data} is at index ${thing.index}`)))
         .button(el => {
           el.config
             .on("click", () => batch([]))

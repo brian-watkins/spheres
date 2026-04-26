@@ -1,7 +1,7 @@
 import { behavior, effect, example, fact, step } from "best-behavior";
 import { renderContext } from "./helpers/renderContext";
 import { container, update, useContainerHooks, useHooks, write } from "@store/index";
-import { HTMLBuilder, HTMLView, UseCase, UseData } from "@view/index";
+import { HTMLBuilder, HTMLView, UseCase, UseItem } from "@view/index";
 import { selectElement, selectElements } from "./helpers/displayElement";
 import { expect, is, resolvesTo } from "great-expectations";
 
@@ -37,11 +37,11 @@ export default behavior("onRegister hook", [
             initialValue: ["One", "Two", "Three"]
           })
 
-          function itemView(useItem: UseData<string>): HTMLView {
+          function itemView(useItem: UseItem<string>): HTMLView {
             const counter = container({
               name: "counter",
               initialValue: useItem(item => {
-                return { id: item.toLowerCase(), count: 0 }
+                return { id: item.data.toLowerCase(), count: 0 }
               })
             })
 
@@ -50,7 +50,7 @@ export default behavior("onRegister hook", [
                 el.children
                   .h1(el => {
                     el.children
-                      .textNode(useItem(item => item))
+                      .textNode(useItem(item => item.data))
                       .textNode(" - ")
                       .textNode(get => `${get(counter).count} clicks`)
                   })
@@ -128,11 +128,11 @@ export default behavior("onRegister hook", [
             initialValue: ["One", "Two", "Three"]
           })
 
-          function itemView(useItem: UseData<string>): HTMLView {
+          function itemView(useItem: UseItem<string>): HTMLView {
             const counter = container({
               name: "counter",
               initialValue: useItem(item => {
-                return { id: item.toLowerCase(), count: 0 }
+                return { id: item.data.toLowerCase(), count: 0 }
               })
             })
 
@@ -141,7 +141,7 @@ export default behavior("onRegister hook", [
                 el.children
                   .h1(el => {
                     el.children
-                      .textNode(useItem((item, get) => `${item} - ${get(counter).count} clicks`))
+                      .textNode(useItem((item, get) => `${item.data} - ${get(counter).count} clicks`))
                   })
                   .button(el => {
                     el.config.on("click", () => {

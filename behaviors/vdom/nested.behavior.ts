@@ -3,7 +3,7 @@ import { renderContext } from "./helpers/renderContext";
 import { HTMLBuilder, HTMLView } from "@view/htmlElements";
 import { update, use, write } from "@store/message";
 import { Container, container, derived, useContainerHooks, useHooks } from "@store/index";
-import { UseCase, UseData } from "@view/index";
+import { UseCase, UseItem } from "@view/index";
 import { selectElements, selectElementWithText } from "./helpers/displayElement";
 import { expect, is, resolvesTo } from "great-expectations";
 
@@ -195,17 +195,17 @@ const coolIndex = derived({
   }
 })
 
-function listItemView(useItem: UseData<string>): HTMLView {
+function listItemView(useItem: UseItem<string>): HTMLView {
   const isCool = derived({
     name: "isCool",
     query: useItem((item, get) => {
-      return get(coolIndex) === item.length
+      return get(coolIndex) === item.data.length
     })
   })
 
   const counter = container({
     name: "item-counter",
-    initialValue: useItem((_, get, index) => ({ count: 0, id: get(index) }))
+    initialValue: useItem((item) => ({ count: 0, id: item.index }))
   })
 
   return (root) => {
@@ -215,11 +215,11 @@ function listItemView(useItem: UseData<string>): HTMLView {
           el.config
             .dataAttribute("cool-text")
             .on("click", () => {
-              return use(useItem(item => write(viewState, { type: "detail-view", item })))
+              return use(useItem(item => write(viewState, { type: "detail-view", item: item.data })))
             })
           el.children
             .span(el => {
-              el.children.textNode(useItem(item => item))
+              el.children.textNode(useItem(item => item.data))
             })
             .span(el => {
               el.children.textNode(get => get(isCool) ? " [COOL]" : " []")

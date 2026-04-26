@@ -492,18 +492,18 @@ function listView(useCase: UseCase<ListWithItems>): HTMLView {
         root.li(el => {
           el.config
             .on("click", () => {
-              return use(useData((item, get, index) => write(pageState, {
+              return use(useData((item) => write(pageState, {
                 type: "detail", detail: {
-                  name: item,
-                  content: getContent(get(index))
+                  name: item.data,
+                  content: getContent(item.index)
                 }
               })))
             })
             .class(useData((item, get) => {
               const selected = get(selectedItem)
-              return selected === item ? "selected-item" : ""
+              return selected === item.data ? "selected-item" : ""
             }))
-          el.children.textNode(useData(item => item))
+          el.children.textNode(useData(item => item.data))
         })
       })
     })

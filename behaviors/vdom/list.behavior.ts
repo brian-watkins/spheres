@@ -1,5 +1,5 @@
 import { Collection, collection, container, Container, derived, reset, Stateful, update, use, Value, value, valueAt, write } from "@store/index.js";
-import { HTMLView, UseData } from "@view/index";
+import { HTMLView, UseItem } from "@view/index";
 import { behavior, effect, example, fact, step } from "best-behavior";
 import { arrayContaining, equalTo, expect, is, objectWithProperty, resolvesTo } from "great-expectations";
 import { selectElement, selectElements } from "./helpers/displayElement";
@@ -43,11 +43,11 @@ export default behavior("list effects", [
           })
         }),
         fact("a list of elements is displayed based on the state", (context) => {
-          function itemView(stateful: UseData<string>): HTMLView {
+          function itemView(stateful: UseItem<string>): HTMLView {
             return root => {
               root.p(el => {
                 el.config.dataAttribute("item")
-                el.children.textNode(stateful((item) => item))
+                el.children.textNode(stateful((item) => item.data))
               })
             }
           }
@@ -78,7 +78,7 @@ export default behavior("list effects", [
           context.mountView((root) => {
             root.div(el => {
               el.children.subviews(get => get(context.state.items), (stateful) => {
-                return root => root.textNode(stateful(item => item))
+                return root => root.textNode(stateful(item => item.data))
               })
             })
           })
@@ -168,9 +168,10 @@ export default behavior("list effects", [
                     el.config
                       .disabled(false)
                       .inert(true)
-                      .selected(stateful((item) => item))
+                      .selected(stateful((item) => item.data))
                     el.children
-                      .textNode(stateful((_, get, index) => `Item ${get(index) + 1}`))
+                      // .textNode(stateful((_, get, index) => `Item ${get(index) + 1}`))
+                      .textNode(stateful(item => `Item ${item.index + 1}`))
                   })
                 })
               })
@@ -203,11 +204,11 @@ export default behavior("list effects", [
           })
         }),
         fact("a list is displayed", (context) => {
-          function itemView(stateful: UseData<string>): HTMLView {
+          function itemView(stateful: UseItem<string>): HTMLView {
             return root => {
               root.div(el => {
                 el.config
-                  .aria("label", stateful((item) => item))
+                  .aria("label", stateful((item) => item.data))
                   .aria("disabled", "false")
                 el.children.textNode(stateful((item) => `Hello: ${item}`))
               })
@@ -248,18 +249,18 @@ export default behavior("list effects", [
           })
         }),
         fact("a list is displayed with the data", (context) => {
-          function itemView(stateful: UseData<Value<ListItem>>): HTMLView {
+          function itemView(stateful: UseItem<Value<ListItem>>): HTMLView {
             return root => {
               root.li(el => {
-                el.children.textNode(stateful((item, get) => get(item).name))
+                el.children.textNode(stateful((item, get) => get(item.data).name))
               })
             }
           }
 
-          function labelView(stateful: UseData<string>): HTMLView {
+          function labelView(stateful: UseItem<string>): HTMLView {
             return root => {
               root.li(el => {
-                el.children.textNode(stateful((item) => item))
+                el.children.textNode(stateful((item) => item.data))
               })
             }
           }
@@ -348,14 +349,14 @@ export default behavior("list effects", [
           })
         }),
         fact("a list is displayed", (context) => {
-          function itemView(stateful: UseData<string>): HTMLView {
+          function itemView(stateful: UseItem<string>): HTMLView {
             return root => {
               root.section(el => {
                 el.children
                   .h3(el => el.config.innerHTML("<b>Fun Stuff!</b>"))
                   .div(el => {
                     el.config
-                      .innerHTML(stateful((item) => `<p>${item}</p>`))
+                      .innerHTML(stateful((item) => `<p>${item.data}</p>`))
                   })
               })
             }
@@ -447,8 +448,8 @@ export default behavior("list effects", [
             }
           }
 
-          function itemView(stateful: UseData<string>): HTMLView {
-            const item = stateful((item) => item)
+          function itemView(stateful: UseItem<string>): HTMLView {
+            const item = stateful((item) => item.data)
 
             return root => {
               root.li(li => {
@@ -496,8 +497,8 @@ export default behavior("list effects", [
           })
         }),
         fact("there is a list view that uses derived state based on the list item", (context) => {
-          function itemView(stateful: UseData<Container<string>>): HTMLView {
-            const length = derived(stateful((item, get) => get(item).length))
+          function itemView(stateful: UseItem<Container<string>>): HTMLView {
+            const length = derived(stateful((item, get) => get(item.data).length))
 
             return root => {
               root.h1(el => {
@@ -595,8 +596,8 @@ export default behavior("list effects", [
           })
         }),
         fact("there is a list view that uses derived state based on the list item", (context) => {
-          function itemView(stateful: UseData<Container<string>>): HTMLView {
-            const length = derived(stateful((item, get) => get(item).length))
+          function itemView(stateful: UseItem<Container<string>>): HTMLView {
+            const length = derived(stateful((item, get) => get(item.data).length))
 
             return root => {
               root.h1(el => {
@@ -693,8 +694,8 @@ export default behavior("list effects", [
           })
         }),
         fact("there is a list view that uses derived state based on the list item", (context) => {
-          function itemView(stateful: UseData<Container<string>>): HTMLView {
-            const length = derived(stateful((item, get) => get(item).length))
+          function itemView(stateful: UseItem<Container<string>>): HTMLView {
+            const length = derived(stateful((item, get) => get(item.data).length))
 
             return root => {
               root.h1(el => {
@@ -792,14 +793,14 @@ export default behavior("list effects", [
           })
         }),
         fact("there is a list view that uses derived state based on the list item", (context) => {
-          function itemView(stateful: UseData<Container<string>>): HTMLView {
-            const length = derived({ name: "derived-fun", query: stateful((item, get) => get(item).length) })
+          function itemView(stateful: UseItem<Container<string>>): HTMLView {
+            const length = derived({ name: "derived-fun", query: stateful((item, get) => get(item.data).length) })
             const innerContainer = container({ name: "fun-stuff", initialValue: 0 })
 
             return root => {
               root.div(el => {
                 el.config
-                  .dataAttribute("el", stateful((_, get, index) => `${get(index)}`))
+                  .dataAttribute("el", stateful((item) => `${item.index}`))
                 el.children
                   .div(el => {
                     el.config.dataAttribute("revealed-value")
@@ -858,15 +859,15 @@ export default behavior("list effects", [
         fact("there is a view with a counter and list where items have increment and reset buttons", (context) => {
           const externalDerivation = derived(get => `[${get(context.state.dependency!)}]`)
 
-          function itemView(stateful: UseData<string>): HTMLView {
-            const item = stateful((item) => item)
+          function itemView(stateful: UseItem<string>): HTMLView {
+            // const item = stateful((item) => item.data)
             return root => {
               root.li(el => {
                 el.config.dataAttribute("item")
                 el.children
                   .div(el => {
                     el.config.dataAttribute("title")
-                    el.children.textNode(get => `${item(get)} (${get(context.state.dependency!)}) ${get(externalDerivation)}`)
+                    el.children.textNode(stateful((item, get) => `${item.data} (${get(context.state.dependency!)}) ${get(externalDerivation)}`))
                   })
                   .button(el => {
                     el.config
@@ -994,14 +995,14 @@ function listOfSwitchExample(name: string, renderer: (context: RenderApp<ListCon
           })
         }),
         fact("there is a view with a list where items are conditional views", (context) => {
-          function itemView(stateful: UseData<string>): HTMLView {
+          function itemView(stateful: UseItem<string>): HTMLView {
             return root => {
               root.subviewFrom(select => select.withConditions()
-                .when(stateful((item, get) => get(context.state.toggle.at(item))), root => {
+                .when(stateful((item, get) => get(context.state.toggle.at(item.data))), root => {
                   root.div(el => {
                     el.children
                       .h4(el => {
-                        el.children.textNode(stateful((item, get, index) => `${item} (${get(index)})`))
+                        el.children.textNode(stateful((item) => `${item.data} (${item.index})`))
                       })
                   })
                 })
@@ -1053,9 +1054,9 @@ function listOfSwitchWithDerivedStateExample(name: string, renderer: (context: R
           })
         }),
         fact("there is a view with a list where items define derived state used in a conditional view", (context) => {
-          function itemView(stateful: UseData<string>): HTMLView {
+          function itemView(stateful: UseItem<string>): HTMLView {
             const reverseItemToggle = derived({
-              query: stateful((_, get, index) => !get(context.state.toggle.at(`${get(index)}`)))
+              query: stateful(({index}, get) => !get(context.state.toggle.at(`${index}`)))
             })
 
             return root => {
@@ -1064,7 +1065,7 @@ function listOfSwitchWithDerivedStateExample(name: string, renderer: (context: R
                   root.div(el => {
                     el.children
                       .h4(el => {
-                        el.children.textNode(stateful((item, get, index) => `${item} (${get(index)})`))
+                        el.children.textNode(stateful((item) => `${item.data} (${item.index})`))
                       })
                   })
                 })
@@ -1105,9 +1106,9 @@ function listOfSwitchWithDerivedStateExample(name: string, renderer: (context: R
     })
 }
 
-function liView(stateful: UseData<string>): HTMLView {
+function liView(stateful: UseItem<string>): HTMLView {
   return (root) => {
-    const item = stateful((item) => item)
+    const item = stateful((item) => item.data)
     root.li(el => {
       el.children
         .textNode("Item ")
@@ -1116,11 +1117,11 @@ function liView(stateful: UseData<string>): HTMLView {
   }
 }
 
-function liStyledView(stateful: UseData<string>): HTMLView {
+function liStyledView(stateful: UseItem<string>): HTMLView {
   return (root) => {
     root.li(el => {
       el.config
-        .class(stateful(item => `style-${item}`))
+        .class(stateful(item => `style-${item.data}`))
 
       el.children.span(el => {
         el.config.class("special-text")

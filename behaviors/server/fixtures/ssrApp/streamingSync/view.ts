@@ -1,4 +1,4 @@
-import { HTMLBuilder, HTMLView, UseData } from "@view/index";
+import { HTMLBuilder, HTMLView, UseItem } from "@view/index";
 import { Thing, thingCount, things, thingValue } from "./state";
 
 export default function view(root: HTMLBuilder) {
@@ -34,12 +34,12 @@ export default function view(root: HTMLBuilder) {
   })
 }
 
-function thingView(useThing: UseData<Thing>): HTMLView {
+function thingView(useThing: UseItem<Thing>): HTMLView {
   return root => {
     root.li(el => {
       el.children
         .h3(el => {
-          el.children.textNode(useThing((thing) => `A ${thing.name} that is ${thing.color}`))
+          el.children.textNode(useThing((thing) => `A ${thing.data.name} that is ${thing.data.color}`))
         })
     })
   }

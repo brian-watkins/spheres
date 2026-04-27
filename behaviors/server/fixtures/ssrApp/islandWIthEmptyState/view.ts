@@ -1,6 +1,6 @@
 import { container, write } from "@store/index";
 import { HTMLBuilder } from "@view/htmlElements";
-import { useValue } from "view/fixtures/helpers";
+import { useValue } from "../../../../view/fixtures/helpers";
 
 const text = container({ initialValue: "" })
 

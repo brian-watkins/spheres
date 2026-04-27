@@ -6,8 +6,8 @@ import express from "express"
 import { useModule } from "best-behavior/transpiler";
 import { Server } from "http"
 import { browserContext, BrowserTestInstrument } from "best-behavior/browser";
-import { TestAppDisplay } from "helpers/testDisplay";
 import { Readable } from 'stream';
+import { TestAppDisplay } from "../../helpers/testDisplay";
 
 export const testableViteBuildContext: Context<TestViteBuildContext> = use(browserContext(), {
   init: (browser) => new TestViteBuildContext(browser),

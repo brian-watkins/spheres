@@ -3,7 +3,7 @@
   "compilerOptions": {
     "noEmit": true,
     "rootDir": "./",
-    "baseUrl": "./",
+    "noUncheckedSideEffectImports": false,
     "paths": {
       "@server/*": [
         "../src/server/*"

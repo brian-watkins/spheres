@@ -12,7 +12,7 @@ const externalToken = container({ initialValue: 0 })
 
 export default behavior("list memory", [
 
-  (m) => m.pick() && example(renderContext<ListExamplesState>())
+  example(renderContext<ListExamplesState>())
     .description("external token is referenced in list item effect")
     .script({
       suppose: [

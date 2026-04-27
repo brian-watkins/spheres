@@ -22,7 +22,7 @@ document.getElementsByTagName('head')[0].appendChild(style);
 
 export default behavior("list data", [
 
-  (m) => m.pick() && example(renderContext<ListState>())
+  example(renderContext<ListState>())
     .description("operating on data in a list")
     .script({
       suppose: [

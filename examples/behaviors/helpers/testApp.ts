@@ -1,11 +1,11 @@
-import { Context } from "best-behavior";
+import { Context, use } from "best-behavior";
 import { Locator, Page } from "playwright";
-import { BrowserTestInstrument, useBrowser } from "best-behavior/browser"
+import { browserContext, BrowserTestInstrument } from "best-behavior/browser"
 
-export const testAppContext: Context<TestApp> = useBrowser({
-  init: async (localBrowser) => {
+export const testAppContext: Context<TestApp> = use(browserContext(), {
+  init(localBrowser) {
     return new TestApp(localBrowser)
-  },
+  }
 })
 
 export class TestApp {

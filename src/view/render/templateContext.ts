@@ -1,12 +1,12 @@
 import { State } from "../../store/index.js";
 import { recordTokens } from "../../store/state/stateRecorder.js";
-import { getStateHandler, StateReader, Token, TokenRegistry } from "../../store/tokenRegistry.js";
+import { getStateHandler, StateReader, StateToken, TokenRegistry } from "../../store/tokenRegistry.js";
 import { ListItem, UseItem, ViewDefinition, ViewRenderer } from "./viewRenderer.js";
 import { Container } from "../../store/state/container.js"
 
 export class ListItemTemplateContext<T> {
   readonly listItemDataToken: State<ListItem<T>> = stateReference()
-  readonly viewTokens = new Set<Token>()
+  readonly viewTokens = new Set<StateToken<unknown>>()
 
   constructor(viewRenderer: ViewRenderer, generator: (stateful: UseItem<T>) => ViewDefinition) {
     const tokens = recordTokens(() => {
@@ -27,7 +27,7 @@ export class ListItemTemplateContext<T> {
 function stateReference<T>(): State<T> {
   return {
     [getStateHandler](registry: TokenRegistry): StateReader<T> {
-      return registry.getState(this)
+      return registry.getState(this as StateToken<T>)
     }
-  } as State<T>
+  }
 }

@@ -1,6 +1,6 @@
 import { GetState } from "../../../store/index.js";
 import { activate, DOMTemplate, render } from "../domTemplate.js";
-import { State, StateEffect, StateListenerType, StateReader, StateWriter, StateHandler, Token, TokenRegistry } from "../../../store/tokenRegistry.js";
+import { StateEffect, StateListenerType, StateReader, StateWriter, StateHandler, TokenRegistry, StateToken } from "../../../store/tokenRegistry.js";
 import { TemplateCollection, TemplateSelection } from "../selectorBuilder.js";
 import { OverlayTokenRegistry } from "../../../store/registry/overlayTokenRegistry.js";
 import { OverlayStateHandler } from "../../../store/state/handler/overlayStateHandler.js";
@@ -83,9 +83,9 @@ export function activateSelect(registry: TokenRegistry, templateCollection: Temp
 }
 
 class ConditionalViewOverlayRegistry extends OverlayTokenRegistry {
-  private registry: Map<Token, StateReader<any>> = new Map()
+  private registry: Map<StateToken<unknown>, StateReader<unknown>> = new Map()
 
-  getState<S extends State<unknown>>(token: S): StateHandler<S> {
+  getState<S extends StateToken<unknown>>(token: S): StateHandler<S> {
     let publisher = this.registry.get(token)
     if (publisher === undefined) {
       publisher = this.createPublisher(token)
@@ -95,7 +95,7 @@ class ConditionalViewOverlayRegistry extends OverlayTokenRegistry {
     return publisher as StateHandler<S>
   }
 
-  private createPublisher<S extends State<unknown>>(token: S): StateHandler<S> {
+  private createPublisher<S extends StateToken<unknown>>(token: S): StateHandler<S> {
     const actualPublisher = this.parentRegistry.getState(token) as StateWriter<any, any>
     const overlayPublisher = new OverlayStateHandler(this.parentRegistry, actualPublisher)
     overlayPublisher.init()

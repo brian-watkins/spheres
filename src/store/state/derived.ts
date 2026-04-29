@@ -1,5 +1,5 @@
 import { didCreateToken } from "./stateRecorder.js";
-import { GetState, State, StateReader, TokenRegistry, createStateHandler, getStateHandler, initListener } from "../tokenRegistry.js";
+import { GetState, StateReader, StateToken, TokenRegistry, createStateHandler, getStateHandler, initListener } from "../tokenRegistry.js";
 import { DerivedStateReader } from "./handler/derivedReader.js";
 
 export interface DerivedStateInitializer<T> {
@@ -15,10 +15,8 @@ export function derived<T>(initializer: DerivedStateInitializer<T> | ((get: GetS
   return token
 }
 
-export class DerivedState<T> extends State<T> {
-  constructor(name: string | undefined, private derivation: (get: GetState) => T) {
-    super(name)
-  }
+export class DerivedState<T> implements StateToken<T> {
+  constructor(readonly name: string | undefined, private derivation: (get: GetState) => T) { }
 
   [getStateHandler](registry: TokenRegistry): StateReader<T> {
     return registry.getState(this)
@@ -28,5 +26,9 @@ export class DerivedState<T> extends State<T> {
     const reader = new DerivedStateReader(registry, this.derivation)
     initListener(registry, reader)
     return reader
+  }
+
+  toString() {
+    return this.name ?? "DerivedState"
   }
 }

@@ -1,10 +1,10 @@
-import { StateReference } from "../tokenRegistry.js"
+import { State } from "../tokenRegistry.js"
 
-export interface Collection<Key, S extends StateReference<any>> {
+export interface Collection<Key, S extends State<any>> {
   at(index: Key): S
 }
 
-export function collection<Key, S extends StateReference<any>>(generator: (id: Key) => S): Collection<Key, S> {
+export function collection<Key, S extends State<any>>(generator: (id: Key) => S): Collection<Key, S> {
   const registry = new Map<Key, S>()
 
   return {

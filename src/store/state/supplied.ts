@@ -1,4 +1,4 @@
-import { createStateHandler, getStateHandler, PublishableState, State, StatePublisher, TokenRegistry } from "../tokenRegistry.js"
+import { createStateHandler, getStateHandler, PublishableState, StatePublisher, TokenRegistry } from "../tokenRegistry.js"
 import { MetaState, WithMetaState } from "./meta.js"
 import { Publisher } from "./handler/publisher.js"
 
@@ -11,12 +11,10 @@ export function supplied<T, E = any>(initializer: SuppliedStateInitializer<T>): 
   return new SuppliedState(initializer.name, initializer.initialValue)
 }
 
-export class SuppliedState<T, E = any> extends State<T> implements PublishableState<T>, WithMetaState<T, never, E> {
+export class SuppliedState<T, E = any> implements PublishableState<T>, WithMetaState<T, never, E> {
   private _meta: MetaState<T, never, E> | undefined
 
-  constructor(name: string | undefined, private initialValue: T) {
-    super(name)
-  }
+  constructor(readonly name: string | undefined, private initialValue: T) { }
 
   [createStateHandler](): StatePublisher<T> {
     return new Publisher(this.initialValue)
@@ -31,5 +29,9 @@ export class SuppliedState<T, E = any> extends State<T> implements PublishableSt
       this._meta = new MetaState(this)
     }
     return this._meta
+  }
+
+  toString() {
+    return this.name ?? "SuppliedState"
   }
 }

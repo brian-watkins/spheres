@@ -2,7 +2,7 @@ import { Container } from "./state/container.js"
 import { dispatchMessage, StoreMessage } from "./message.js"
 import { error, Meta, ok, pending, WithMetaState } from "./state/meta.js"
 import { WeakMapTokenRegistry } from "./registry/weakMapTokenRegistry.js"
-import { Command, getStateHandler, GetState, initializeCommand, initListener, runQuery, StateEffect, StateListenerType, StateReference, StateWriter, Subscriber, TokenRegistry, PublishableState } from "./tokenRegistry.js"
+import { Command, getStateHandler, GetState, initializeCommand, initListener, runQuery, StateEffect, StateListenerType, State, StateWriter, Subscriber, TokenRegistry, PublishableState } from "./tokenRegistry.js"
 import { CommandManager, ManagedCommandController } from "./command/managedCommandController.js"
 import { RootTokenRegistry } from "./registry/rootTokenRegistry.js"
 
@@ -194,7 +194,7 @@ function containerWriteActions<T, M, E>(registry: TokenRegistry, container: Cont
 
 export class EffectListener implements StateEffect, ReactiveEffectHandle {
   readonly type = StateListenerType.UserEffect
-  private dependencies = new Set<StateReference<any>>()
+  private dependencies = new Set<State<any>>()
   private subscriber: Subscriber
 
   constructor(private registry: TokenRegistry, private effect: ReactiveEffect) {

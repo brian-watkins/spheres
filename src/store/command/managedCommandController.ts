@@ -1,5 +1,5 @@
 import { error, Meta, pending, WithMetaState } from "../state/meta.js"
-import { CommandController, getStateHandler, PublishableState, State, TokenRegistry } from "../tokenRegistry.js"
+import { CommandController, getStateHandler, PublishableState, TokenRegistry, State } from "../tokenRegistry.js"
 
 export interface CommandActions {
   get<T>(state: State<T>): T
@@ -18,7 +18,7 @@ export class ManagedCommandController<T> implements CommandController<T> {
   run(message: T) {
     this.manager.exec(message, {
       get: (state) => {
-        return this.registry.getState(state).getValue()
+        return state[getStateHandler](this.registry).getValue()
       },
       supply: (token, value) => {
         token[getStateHandler](this.registry).publish(value)

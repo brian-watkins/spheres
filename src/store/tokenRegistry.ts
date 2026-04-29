@@ -1,10 +1,15 @@
 export const getStateHandler = Symbol("getStateHandler")
 
-export interface StateReference<Value> {
+export interface State<Value> {
   [getStateHandler](registry: TokenRegistry): StateReader<Value>
 }
 
-export type GetState = <S>(state: StateReference<S>) => S
+export interface StateToken<Value> extends State<Value> {
+  readonly name: string | undefined
+  [createStateHandler](registry: TokenRegistry): StateReader<Value>
+}
+
+export type GetState = <S>(state: State<S>) => S
 
 export type Stateful<T> = (get: GetState) => T
 
@@ -12,7 +17,7 @@ export function isStateful<T>(value: T | Stateful<T>): value is Stateful<T> {
   return typeof value === "function"
 }
 
-function subscribeOnGet<T>(this: Subscriber, token: StateReference<T>): T {
+function subscribeOnGet<T>(this: Subscriber, token: State<T>): T {
   const reader = token[getStateHandler](this.registry)
   reader.addSubscriber(this)
   return reader.getValue()
@@ -26,24 +31,12 @@ export function runQuery<M>(registry: TokenRegistry, query: (get: GetState) => M
   return query((token) => token[getStateHandler](registry).getValue())
 }
 
-export function generateStateManager<S>(registry: TokenRegistry, token: State<S>): StateReader<S> {
+export function generateStateManager<S>(registry: TokenRegistry, token: StateToken<S>): StateReader<S> {
   return token[createStateHandler](registry)
 }
 
 export const createController = Symbol("createController")
 export const createStateHandler = Symbol("createStateHandler")
-
-export abstract class State<T> implements StateReference<T> {
-  constructor(readonly name: string | undefined) { }
-
-  abstract [createStateHandler](registry: TokenRegistry): StateReader<T>
-
-  abstract [getStateHandler](registry: TokenRegistry): StateReader<T>
-
-  toString() {
-    return this.name ?? "State"
-  }
-}
 
 export type StateListenerVersion = number
 
@@ -108,11 +101,11 @@ export interface StateWriter<T, M = T> extends StatePublisher<T> {
   write(value: M, batch?: StateBatch): void
 }
 
-export interface PublishableState<T> extends StateReference<T> {
+export interface PublishableState<T> extends State<T> {
   [getStateHandler](registry: TokenRegistry): StatePublisher<T>
 }
 
-export interface WritableState<T, M = T> extends StateReference<T> {
+export interface WritableState<T, M = T> extends State<T> {
   [getStateHandler](registry: TokenRegistry): StateWriter<T, M>
 }
 
@@ -144,13 +137,11 @@ export abstract class Command<M> {
   }
 }
 
-export type Token = State<unknown> | Command<unknown>
-
 export type StateHandler<S extends State<unknown>> = ReturnType<S[typeof getStateHandler]>
 
 export interface TokenRegistry {
-  getState<S extends State<unknown>>(token: S): StateHandler<S>
-  setState<T>(state: State<T>, publisher: StateReader<T>): void
+  getState<S extends StateToken<unknown>>(token: S): StateHandler<S>
+  setState<T>(state: StateToken<T>, publisher: StateReader<T>): void
   getCommand(token: Command<unknown>): CommandController<unknown>
   setCommand(token: Command<unknown>, controller: CommandController<unknown>): void
 }

@@ -1,6 +1,8 @@
 import { Container } from "../state/container.js";
-import { Command, CommandController, createController, createStateHandler, State, StateReader, StateHandler, Token } from "../tokenRegistry.js";
+import { Command, CommandController, createController, createStateHandler, StateReader, StateHandler, StateToken } from "../tokenRegistry.js";
 import { RootTokenRegistry } from "./rootTokenRegistry.js";
+
+type Token = StateToken<unknown> | Command<unknown>
 
 export class WeakMapTokenRegistry implements RootTokenRegistry {
   protected registry: WeakMap<Token, any> = new WeakMap();
@@ -12,7 +14,7 @@ export class WeakMapTokenRegistry implements RootTokenRegistry {
     this.registerHook = handler
   }
 
-  registerState(token: State<unknown>): StateReader<unknown> {
+  registerState(token: StateToken<unknown>): StateReader<unknown> {
     const controller = token[createStateHandler](this)
     this.registry.set(token, controller)
     if (this.registerHook !== undefined && token instanceof Container) {
@@ -29,7 +31,7 @@ export class WeakMapTokenRegistry implements RootTokenRegistry {
     return controller
   }
 
-  getState<S extends State<unknown>>(token: S): StateHandler<S> {
+  getState<S extends StateToken<unknown>>(token: S): StateHandler<S> {
     let publisher = this.registry.get(token)
     if (publisher === undefined) {
       publisher = this.registerState(token)
@@ -49,7 +51,7 @@ export class WeakMapTokenRegistry implements RootTokenRegistry {
     this.registry.set(token, controller)
   }
 
-  setState<T>(token: State<T>, publisher: StateReader<T>): void {
+  setState<T>(token: StateToken<T>, publisher: StateReader<T>): void {
     if (this.registerHook !== undefined && token instanceof Container && !this.registry.has(token)) {
       this.registry.set(token, publisher)
       this.registerHook(token)

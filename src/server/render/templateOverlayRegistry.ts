@@ -1,6 +1,6 @@
 import { OverlayTokenRegistry } from "../../store/registry/overlayTokenRegistry.js"
 import { clone, Container } from "../../store/state/container.js"
-import { generateStateManager, State, StateReader, StateHandler, Token, TokenRegistry } from "../../store/tokenRegistry.js"
+import { generateStateManager, StateReader, StateHandler, TokenRegistry, StateToken, State } from "../../store/tokenRegistry.js"
 import { ListItemReader } from "../../view/render/effects/listItemReader.js"
 import { ListItemTemplateContext } from "../../view/render/templateContext.js"
 
@@ -14,18 +14,18 @@ export function createOverlayRegistry(context: ListItemTemplateContext<any>, roo
 }
 
 export class ListItemOverlayTokenRegistry extends OverlayTokenRegistry {
-  private registry: Map<Token, StateReader<unknown>> = new Map()
+  private registry: Map<StateToken<unknown>, StateReader<unknown>> = new Map()
 
   constructor(
     rootRegistry: TokenRegistry,
     private listItemDataToken: State<unknown>,
     private listItemDataReader: ListItemReader<any>,
-    private viewTokens: Set<Token>
+    private viewTokens: Set<StateToken<unknown>>
   ) {
     super(rootRegistry)
   }
 
-  getState<S extends State<unknown>>(token: S): StateHandler<S> {
+  getState<S extends StateToken<unknown>>(token: S): StateHandler<S> {
     if (token === this.listItemDataToken) {
       return this.listItemDataReader as StateHandler<S>
     }

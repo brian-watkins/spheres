@@ -16,12 +16,11 @@ export {
 } from "./store.js"
 export {
   type Command,
-  type State,
   type GetState,
   type Stateful,
   type WritableState,
   type PublishableState,
-  type StateReference,
+  type State,
 } from "./tokenRegistry.js"
 export {
   type ContainerInitializer,

@@ -43,7 +43,7 @@ export default behavior("debug name", [
       ],
       observe: [
         effect("the default token name is printed", (context) => {
-          expect(context.tokens.stringState.toString(), is("State"))
+          expect(context.tokens.stringState.toString(), is("Container"))
         })
       ]
     }),
@@ -78,7 +78,7 @@ export default behavior("debug name", [
       ],
       observe: [
         effect("the state token's name is printed", (context) => {
-          expect(context.tokens.stringState.toString(), is("State"))
+          expect(context.tokens.stringState.toString(), is("DerivedState"))
         })
       ]
     }),

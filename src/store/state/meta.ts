@@ -1,4 +1,4 @@
-import { createStateHandler, GetState, State, StateListenerType, StatePublisher, createSubscriber, TokenRegistry, StateEffect, getStateHandler, StateReference, PublishableState } from "../tokenRegistry.js"
+import { createStateHandler, GetState, StateListenerType, StatePublisher, createSubscriber, TokenRegistry, StateEffect, getStateHandler, PublishableState, StateToken } from "../tokenRegistry.js"
 import { Publisher } from "./handler/publisher.js"
 
 export interface PendingMessage<M> {
@@ -39,13 +39,15 @@ export function error<M, E>(reason: E, message: M): ErrorMessage<M, E> {
   }
 }
 
-export interface WithMetaState<T, M, E = any> extends StateReference<T> {
+export interface WithMetaState<T, M, E = any> extends StateToken<T> {
   meta: MetaState<T, M, E>
 }
 
-export class MetaState<T, M, E = unknown> extends State<Meta<M, E>> implements PublishableState<Meta<M, E>> {
-  constructor(private token: State<T>) {
-    super(`meta[${token}]`)
+export class MetaState<T, M, E = unknown> implements PublishableState<Meta<M, E>> {
+  readonly name: string
+
+  constructor(private token: StateToken<T>) {
+    this.name = `meta[${token}]`
   }
 
   [getStateHandler](registry: TokenRegistry): StatePublisher<Meta<M, E>> {
@@ -61,12 +63,16 @@ export class MetaState<T, M, E = unknown> extends State<Meta<M, E>> implements P
 
     return writer
   }
+
+  toString() {
+    return this.name
+  }
 }
 
 class MetaStateListener<M, E> implements StateEffect {
   readonly type = StateListenerType.SystemEffect
 
-  constructor(private token: State<any>, private publisher: StatePublisher<Meta<M, E>>) { }
+  constructor(private token: StateToken<any>, private publisher: StatePublisher<Meta<M, E>>) { }
 
   init(get: GetState): void {
     this.run(get)

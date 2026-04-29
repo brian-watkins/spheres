@@ -1,13 +1,13 @@
-import { Command, CommandController, State, StateReader, StateHandler, TokenRegistry } from "../tokenRegistry.js"
+import { Command, CommandController, StateReader, StateHandler, TokenRegistry, StateToken } from "../tokenRegistry.js"
 
 export class OverlayTokenRegistry implements TokenRegistry {
   constructor(protected parentRegistry: TokenRegistry) { }
 
-  getState<S extends State<unknown>>(token: S): StateHandler<S> {
+  getState<S extends StateToken<unknown>>(token: S): StateHandler<S> {
     return this.parentRegistry.getState(token)
   }
 
-  setState<T>(state: State<T>, publisher: StateReader<T>): void {
+  setState<T>(state: StateToken<T>, publisher: StateReader<T>): void {
     return this.parentRegistry.setState(state, publisher)
   }
 

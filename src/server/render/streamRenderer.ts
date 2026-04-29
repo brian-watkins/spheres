@@ -1,8 +1,8 @@
-import { State, Store, useEffect } from "../../store/index.js"
+import { Store, useEffect } from "../../store/index.js"
 import { SerializableState, serializedValue, serializedMessage, serializedMeta, SerializedState, StateManifest } from "../../store/serialize.js"
 import { Container } from "../../store/state/container.js"
 import { ContainerHooks, getTokenRegistry, ReactiveEffect, useContainerHooks, WriteHookActions } from "../../store/store.js"
-import { GetState, TokenRegistry } from "../../store/tokenRegistry.js"
+import { GetState, getStateHandler, State, TokenRegistry } from "../../store/tokenRegistry.js"
 import { HTMLView } from "../../view/index.js"
 import { getActivationTemplate } from "./elementRenderers/activationElements.js"
 import { buildStringRenderer } from "./stringRenderer.js"
@@ -59,7 +59,7 @@ export class Zone {
   }
 
   useStream(registry: TokenRegistry, controller: ReadableStreamDefaultController): Promise<void> {
-    const zoneStore: Store = registry.getState(this.options.store).getValue()
+    const zoneStore: Store = this.options.store[getStateHandler](registry).getValue()
     const initialHtml = this.buildHTMLString(zoneStore)
 
     const mountScript = `<script>document.querySelector("${this.options.mountPoint}").innerHTML = '${initialHtml}';</script>`

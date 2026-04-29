@@ -1,7 +1,7 @@
 import { GetState, State } from "../../store/index.js";
 import { OverlayTokenRegistry } from "../../store/registry/overlayTokenRegistry.js";
 import { recordTokens } from "../../store/state/stateRecorder.js";
-import { generateStateManager, runQuery, Subscriber, Subscribable, TokenRegistry, StateHandler } from "../../store/tokenRegistry.js";
+import { generateStateManager, runQuery, Subscriber, Subscribable, TokenRegistry, StateHandler, StateToken } from "../../store/tokenRegistry.js";
 import { ViewDefinition, ViewCaseSelector, ViewSelector, ViewConditionSelector, UseCase } from "./viewRenderer.js";
 import { Container } from "../../store/state/container.js"
 
@@ -197,7 +197,7 @@ class CaseViewOverlayTokenRegistry extends OverlayTokenRegistry {
     super(parentRegistry)
   }
 
-  getState<S extends State<unknown>>(token: S): StateHandler<S> {
+  getState<S extends StateToken<unknown>>(token: S): StateHandler<S> {
     let publisher = this.tokenMap.get(token)
     if (publisher === undefined) {
       if (this.tokens.includes(token)) {

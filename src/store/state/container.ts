@@ -1,6 +1,6 @@
 import { MetaState, WithMetaState } from "./meta.js"
 import { didCreateToken } from "./stateRecorder.js"
-import { createStateHandler, getStateHandler, isStateful, runQuery, State, Stateful, StatePublisher, StateWriter, TokenRegistry, WritableState } from "../tokenRegistry.js"
+import { createStateHandler, getStateHandler, isStateful, runQuery, Stateful, StatePublisher, StateWriter, TokenRegistry, WritableState } from "../tokenRegistry.js"
 import { getInitialValue, ResettableState } from "../message.js"
 import { MessageWriter, UpdateResult } from "./handler/messageWriter.js"
 import { Writer } from "./handler/writer.js"
@@ -23,16 +23,14 @@ export function container<T, M = T, E = any>(initializer: ContainerInitializer<T
 
 export const clone = Symbol("clone-container")
 
-export class Container<T, M = T, E = any> extends State<T> implements ResettableState<T>, WritableState<T, M>, WithMetaState<T, M, E> {
+export class Container<T, M = T, E = any> implements ResettableState<T>, WritableState<T, M>, WithMetaState<T, M, E> {
   private _meta: MetaState<T, M, E> | undefined
 
   constructor(
-    name: string | undefined,
+    readonly name: string | undefined,
     private initialValue: T | Stateful<T>,
     private update: ((message: M, current: T) => UpdateResult<T>) | undefined,
-  ) {
-    super(name)
-  }
+  ) { }
 
   [getInitialValue](registry: TokenRegistry): T {
     return isStateful(this.initialValue) ?
@@ -61,5 +59,9 @@ export class Container<T, M = T, E = any> extends State<T> implements Resettable
       this._meta = new MetaState(this)
     }
     return this._meta
+  }
+
+  toString() {
+    return this.name ?? "Container"
   }
 }

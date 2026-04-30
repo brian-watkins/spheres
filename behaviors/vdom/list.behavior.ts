@@ -1,4 +1,4 @@
-import { Collection, collection, container, Container, derived, reset, Stateful, update, use, Value, value, valueAt, write } from "@store/index.js";
+import { Collection, collection, container, Container, derived, reset, Stateful, update, use, Value, valueAt, write } from "@store/index.js";
 import { HTMLView, UseItem } from "@view/index";
 import { behavior, effect, example, fact, step } from "best-behavior";
 import { arrayContaining, equalTo, expect, is, objectWithProperty, resolvesTo } from "great-expectations";
@@ -238,13 +238,13 @@ export default behavior("list effects", [
       suppose: [
         fact("there is state wrapped in values", (context) => {
           context.setState({
-            items: container({
+            items: container(value => ({
               initialValue: [
                 value({ id: "1", name: "Awesome" }),
                 value({ id: "2", name: "Fun" }),
                 value({ id: "3", name: "Cool" }),
               ]
-            }),
+            })),
             labels: container({ initialValue: ["one", "two", "three"] })
           })
         }),

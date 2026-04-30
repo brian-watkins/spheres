@@ -25,14 +25,15 @@ export {
 export {
   type ContainerInitializer,
   type Container,
+  type ValueGenerator,
   container
 } from "./state/container.js"
 export {
   type UpdateResult,
 } from "./state/handler/messageWriter.js"
 export {
-  command,
   type CommandInitializer,
+  command,
   exec
 } from "./command.js"
 export {
@@ -80,7 +81,6 @@ export {
 export {
   type Value,
   valueAt,
-  value
 } from "./state/value.js"
 export {
   type StateManifest,

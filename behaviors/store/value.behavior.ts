@@ -1,12 +1,13 @@
 import { behavior, effect, example, fact, step } from "best-behavior";
 import { testStoreContext } from "./helpers/testStore.js";
-import { container, Container, value, Value, valueAt } from "@store/index.js";
+import { container, Container, Value, valueAt } from "@store/index.js";
 import { arrayWith, equalTo, expect, is, objectWithProperty } from "great-expectations";
 
 
 interface ValueContext {
   id: string
   name: Value<string>
+  age: Value<number>
 }
 
 export default behavior("value", [
@@ -15,19 +16,23 @@ export default behavior("value", [
     .description("value in a container")
     .script({
       suppose: [
-        fact("there is a container with a value", (context) => {
-          context.setTokens(container({
+        fact("there is a container with values", (context) => {
+          context.setTokens(container(value => ({
             initialValue: {
               id: "my-id",
-              name: value("Cool Dude")
+              name: value("Cool Dude"),
+              age: value(38)
             }
-          }))
+          })))
         }),
         fact("there is a subscriber to the container", (context) => {
           context.subscribeTo(context.tokens, "sub-1")
         }),
         fact("there is a subscriber to the value", (context) => {
-          context.subscribeTo(valueAt(context.tokens, $ => $.name), "value-sub")
+          context.subscribeTo(valueAt(context.tokens, $ => $.name), "name-sub")
+        }),
+        fact("there is a subscriber to the other value", (context) => {
+          context.subscribeTo(valueAt(context.tokens, $ => $.age), "age-sub")
         })
       ],
       observe: [
@@ -37,8 +42,13 @@ export default behavior("value", [
           ])))
         }),
         effect("the value subscriber gets the initial value", (context) => {
-          expect(context.valuesForSubscriber("value-sub"), is([
+          expect(context.valuesForSubscriber("name-sub"), is([
             "Cool Dude"
+          ]))
+        }),
+        effect("the age subscriber gets the initial value", (context) => {
+          expect(context.valuesForSubscriber("age-sub"), is([
+            38
           ]))
         })
       ]
@@ -55,9 +65,14 @@ export default behavior("value", [
           ])))
         }),
         effect("the value subscriber gets the update", (context) => {
-          expect(context.valuesForSubscriber("value-sub"), is([
+          expect(context.valuesForSubscriber("name-sub"), is([
             "Cool Dude",
             "Awesome Person"
+          ]))
+        }),
+        effect("the age subscriber does not update", (context) => {
+          expect(context.valuesForSubscriber("age-sub"), is([
+            38
           ]))
         })
       ]

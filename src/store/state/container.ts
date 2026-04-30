@@ -4,6 +4,7 @@ import { createStateHandler, getStateHandler, isStateful, runQuery, Stateful, St
 import { getInitialValue, ResettableState } from "../message.js"
 import { MessageWriter, UpdateResult } from "./handler/messageWriter.js"
 import { Writer } from "./handler/writer.js"
+import { value, Value } from "./value.js"
 
 export interface ContainerInitializer<T, M> {
   initialValue: T | Stateful<T>,
@@ -11,11 +12,19 @@ export interface ContainerInitializer<T, M> {
   name?: string
 }
 
-export function container<T, M = T, E = any>(initializer: ContainerInitializer<T, M>): Container<T, M, E> {
+export type ValueGenerator = <S>(value: S) => Value<S>
+
+export function container<T, M = T, E = any>(
+  initializer: ContainerInitializer<T, M> | ((value: ValueGenerator) => ContainerInitializer<T, M>)
+): Container<T, M, E> {
+  const config = typeof initializer === "function" ?
+    initializer(value) :
+    initializer
+
   const token = new Container<T, M, E>(
-    initializer.name,
-    initializer.initialValue,
-    initializer.update,
+    config.name,
+    config.initialValue,
+    config.update,
   )
   didCreateToken(token)
   return token

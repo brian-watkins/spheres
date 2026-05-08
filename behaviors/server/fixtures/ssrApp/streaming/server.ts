@@ -1,9 +1,9 @@
 import { createStreamRenderer } from "@server/index"
 import view from "./view"
 import { createStore, write } from "@store/index"
-import { StreamingSSRParts } from "server/helpers/ssrApp"
 import { serializedTokens, someWord, Thing, things, thingValue } from "./state"
 import { HTMLBuilder } from "@view/htmlElements"
+import { StreamingSSRParts } from "../../../helpers/ssrApp"
 
 const streamRenderer = createStreamRenderer(page, {
   stateManifest: serializedTokens,

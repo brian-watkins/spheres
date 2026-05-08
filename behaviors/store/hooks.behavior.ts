@@ -1,8 +1,9 @@
 import { behavior, effect, example, fact, step } from "best-behavior";
 import { testStoreContext } from "./helpers/testStore";
-import { Container, container, State, useContainerHooks, useHooks } from "@store/index";
+import { Container, container, useContainerHooks, useHooks } from "@store/index";
 import { arrayWith, equalTo, expect, is, objectWithProperty } from "great-expectations";
 import { errorMessage, pendingMessage } from "./helpers/metaMatchers";
+import { StateToken } from "@store/tokenRegistry";
 
 export default behavior("store hooks", [
 
@@ -220,7 +221,7 @@ export default behavior("store hooks", [
 interface OnRegisterContext {
   stringContainer: Container<string>
   numberContainer: Container<number>
-  registeredContainers: Array<State<any>>
+  registeredContainers: Array<StateToken<any>>
 }
 
 interface LogWritesContext {

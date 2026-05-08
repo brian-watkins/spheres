@@ -1,4 +1,4 @@
-import { Container, State, Store, write, StoreMessage, batch, GetState, reset, Command, CommandActions, ContainerHooks, ReactiveEffect, createStore, useContainerHooks, useEffect, useCommand, Collection, StateReference, WritableState, StoreInitializerActions } from "@store/index.js"
+import { Container, State, Store, write, StoreMessage, batch, GetState, reset, Command, CommandActions, ContainerHooks, ReactiveEffect, createStore, useContainerHooks, useEffect, useCommand, Collection, WritableState, StoreInitializerActions } from "@store/index.js"
 import { initListener, StateEffect, StateListenerType } from "@store/tokenRegistry"
 import { Context } from "best-behavior"
 import { getTokenRegistry } from "@store/store"
@@ -68,13 +68,13 @@ export class TestStore<T> {
     useEffect(this.store, query)
   }
 
-  subscribeTo<S>(token: StateReference<S>, name: string) {
+  subscribeTo<S>(token: State<S>, name: string) {
     const query = new StoreValuesEffect((get) => get(token))
     this.values.set(name, query)
     useEffect(this.store, query)
   }
 
-  subscribeSystemEffectTo<S>(token: StateReference<S>, name: string) {
+  subscribeSystemEffectTo<S>(token: State<S>, name: string) {
     const query = new SystemStoreValuesEffect((get) => get(token))
     this.values.set(name, query)
     initListener(getTokenRegistry(this.store), query)

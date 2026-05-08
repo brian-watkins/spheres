@@ -1,7 +1,7 @@
 import { createStringRenderer } from "@server/index"
 import { createStore } from "@store/store"
-import { SSRParts } from "server/helpers/ssrApp"
 import { view } from "./view"
+import { SSRParts } from "../../../helpers/ssrApp"
 
 const store = createStore()
 

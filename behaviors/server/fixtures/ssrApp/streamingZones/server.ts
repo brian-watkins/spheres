@@ -1,8 +1,8 @@
 import { createStreamRenderer, zone } from "spheres/server"
 import { createStore, supplied, Store, SuppliedState } from "spheres/store";
-import { StreamingSSRParts } from "server/helpers/ssrApp";
 import { count, counter } from "./counter";
 import { page } from "./page";
+import { StreamingSSRParts } from "../../../helpers/ssrApp";
 
 export default function (): StreamingSSRParts {
   const zones: Array<SuppliedState<Store>> = [

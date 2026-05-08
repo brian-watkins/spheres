@@ -23,6 +23,7 @@ export class DerivedStateReader<T> extends SubscriberSet implements StateReader<
     const derived = this.derivation(get)
 
     if (Object.is(derived, this._value)) {
+      this.runDirtyListeners()
       return
     }
 

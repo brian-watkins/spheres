@@ -101,6 +101,26 @@ export class SubscriberSet implements Subscribable {
 
     while (node !== undefined) {
       if (node.subscriber.parent !== this) {
+        node.subscriber.dirty = true
+        node = node.next
+        continue
+      }
+
+      if (node.subscriber.listener.type === StateListenerType.UserEffect) {
+        node.subscriber.parent = true
+        node = node.next
+        continue
+      }
+
+      runListener(node.subscriber)
+      node = node.next
+    }
+  }
+
+  runDirtyListeners(): void {
+    let node = this.head
+    while (node !== undefined) {
+      if (node.subscriber.parent != this || node.subscriber.dirty === false) {
         node = node.next
         continue
       }

@@ -69,6 +69,7 @@ export function runListener(key: Subscriber) {
   key.version = key.version + 1
   key.listener.run(getStateFunctionWithListener(key), key.context)
   key.parent = undefined
+  key.dirty = false
 }
 
 export interface Subscriber {
@@ -76,6 +77,7 @@ export interface Subscriber {
   listener: StateListener
   version: StateListenerVersion
   parent: any
+  dirty: boolean
   context: any
 }
 
@@ -115,6 +117,7 @@ export function createSubscriber(registry: TokenRegistry, listener: StateListene
     listener,
     version: 0,
     parent: undefined,
+    dirty: false,
     context
   }
 }

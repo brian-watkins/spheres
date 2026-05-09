@@ -24,7 +24,7 @@ export class StoreValuesEffect implements ReactiveEffect, ValuesStore {
 }
 
 export class SystemStoreValuesEffect implements StateEffect, ValuesStore {
-  readonly type = StateListenerType.SystemEffect
+  readonly type = StateListenerType.ElementEffect
   values: Array<any> = []
 
   constructor(private definition: (get: GetState) => any) { }

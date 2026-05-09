@@ -6,7 +6,7 @@ import { OverlayTokenRegistry } from "../../../store/registry/overlayTokenRegist
 import { OverlayStateHandler } from "../../../store/state/handler/overlayStateHandler.js";
 
 export class SelectViewEffect implements StateEffect {
-  readonly type = StateListenerType.SystemEffect
+  readonly type = StateListenerType.ViewEffect
   private currentSelection: TemplateSelection<DOMTemplate> | undefined
   private registry: ConditionalViewOverlayRegistry
 

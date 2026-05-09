@@ -22,22 +22,13 @@ export class SubscriberSet implements Subscribable {
       this.tail = this.head
       return
     }
-    if (subscriber.listener.type === StateListenerType.Derivation) {
-      const first = {
-        subscriber,
-        version: subscriber.version,
-        next: this.head
-      }
-      this.head = first
-    } else {
-      const next = {
-        subscriber,
-        version: subscriber.version,
-        next: undefined
-      }
-      this.tail!.next = next
-      this.tail = next
+    const next = {
+      subscriber,
+      version: subscriber.version,
+      next: undefined
     }
+    this.tail!.next = next
+    this.tail = next
   }
 
   removeSubscriber(subscriber: Subscriber) {
@@ -80,8 +71,11 @@ export class SubscriberSet implements Subscribable {
         case StateListenerType.Derivation:
           listener.notifyListeners(effects)
           break
-        case StateListenerType.SystemEffect:
-          effects.addSystemEffect(node.subscriber)
+        case StateListenerType.ViewEffect:
+          effects.addViewEffect(node.subscriber)
+          break
+        case StateListenerType.ElementEffect:
+          effects.addElementEffect(node.subscriber)
           break
         case StateListenerType.UserEffect:
           effects.addUserEffect(node.subscriber)
@@ -109,16 +103,12 @@ export class SubscriberSet implements Subscribable {
         continue
       }
 
-      if (
-        node.subscriber.listener.type === StateListenerType.UserEffect ||
-        node.subscriber.listener.type === StateListenerType.SystemEffect
-      ) {
+      if (node.subscriber.listener.type === StateListenerType.Derivation) {
+        runListener(node.subscriber)
+      } else {
         node.subscriber.parent = true
-        node = node.next
-        continue
       }
 
-      runListener(node.subscriber)
       node = node.next
     }
   }
@@ -131,16 +121,12 @@ export class SubscriberSet implements Subscribable {
         continue
       }
 
-      if (
-        node.subscriber.listener.type === StateListenerType.UserEffect ||
-        node.subscriber.listener.type === StateListenerType.SystemEffect
-      ) {
+      if (node.subscriber.listener.type === StateListenerType.Derivation) {
+        runListener(node.subscriber)
+      } else {
         node.subscriber.parent = true
-        node = node.next
-        continue
       }
 
-      runListener(node.subscriber)
       node = node.next
     }
   }

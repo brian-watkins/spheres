@@ -1,7 +1,7 @@
 import { Collection, collection, container, Container, derived, GetState, update, use } from "@store/index.js";
 import { HTMLBuilder, HTMLView, UseItem } from "@view/index";
 import { behavior, effect, example, fact, step } from "best-behavior";
-import { arrayContaining, equalTo, expect, is, resolvesTo } from "great-expectations";
+import { expect, is, resolvesTo } from "great-expectations";
 import { selectElement, selectElements, selectElementWithText } from "./helpers/displayElement";
 import { RenderApp, renderContext } from "./helpers/renderContext";
 
@@ -346,7 +346,7 @@ export default behavior("conditional zone", [
 
           function showName(root: HTMLBuilder) {
             root.div(el => el.children.textNode(get => {
-              context.state.log.push("Running text effect")
+              context.state.log.push(`Running text effect for ${get(nameState)}`)
               return `The name is: ${get(nameState)}`
             }))
           }
@@ -380,7 +380,9 @@ export default behavior("conditional zone", [
           await expect(selectElement("div").text(), resolvesTo("The name is: Anne"))
         }),
         effect("the text effect renders once", (context) => {
-          expect(context.state.log, is(arrayContaining(equalTo("Running text effect"), { times: 1 })))
+          expect(context.state.log, is([
+            "Running text effect for Anne"
+          ]))
         })
       ]
     }).andThen({
@@ -394,7 +396,10 @@ export default behavior("conditional zone", [
           await expect(selectElement("div").text(), resolvesTo("The name is: Frank"))
         }),
         effect("the text effect renders once more", (context) => {
-          expect(context.state.log, is(arrayContaining(equalTo("Running text effect"), { times: 2 })))
+          expect(context.state.log, is([
+            "Running text effect for Anne",
+            "Running text effect for Frank"
+          ]))
         })
       ]
     }).andThen({
@@ -411,15 +416,11 @@ export default behavior("conditional zone", [
           await expect(selectElement("div").text(), resolvesTo("The name is: Charles"))
         }),
         effect("the text effect renders again", (context) => {
-          // note that maybe it would be nice if the text effect only ran three times but
-          // what happens is that since derived state is prioritized, it
-          // runs and then its children -- ie the text node updates
-          // *then* the select view runs and removes the text node from the view (when Bob is written
-          // to the root state). Then the effect runs again when Charles is written because it
-          // actually re-renders the template and initializes a new text effect. The old effect also
-          // actually runs again but it doesn't call the generator because it's detached from the dom
-          // and it will get removed as a listener on the next update.
-          expect(context.state.log, is(arrayContaining(equalTo("Running text effect"), { times: 4 })))
+          expect(context.state.log, is([
+            "Running text effect for Anne",
+            "Running text effect for Frank",
+            "Running text effect for Charles"
+          ]))
         })
       ]
     }),

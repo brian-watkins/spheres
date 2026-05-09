@@ -117,7 +117,7 @@ class VirtualItem extends OverlayTokenRegistry {
 
 
 export class ListEffect implements StateEffect {
-  readonly type = StateListenerType.SystemEffect
+  readonly type = StateListenerType.ViewEffect
   private parentNode!: Node
   private first: VirtualItem | undefined
   private itemCache: Map<any, VirtualItem> = new Map()

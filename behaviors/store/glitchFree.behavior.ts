@@ -168,8 +168,8 @@ export default behavior("glitch-free effects", [
             "Running second effect",
             "Running derived state",
             "Running derived state",
-            "Running second effect",
             "Running first effect",
+            "Running second effect",
           ]))
         }),
         effect("the second effect is updated with the latest derived value", (context) => {

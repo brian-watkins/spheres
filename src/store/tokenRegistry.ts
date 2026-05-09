@@ -41,11 +41,12 @@ export const createStateHandler = Symbol("createStateHandler")
 export type StateListenerVersion = number
 
 export enum StateListenerType {
-  Derivation, SystemEffect, UserEffect
+  Derivation, ViewEffect, ElementEffect, UserEffect
 }
 
 export interface EffectList extends Iterable<Subscriber> {
-  addSystemEffect(subscriber: Subscriber): void
+  addViewEffect(subscriber: Subscriber): void
+  addElementEffect(subscriber: Subscriber): void
   addUserEffect(subscriber: Subscriber): void
 }
 
@@ -57,7 +58,7 @@ export interface StateDerivation {
 }
 
 export interface StateEffect {
-  readonly type: StateListenerType.SystemEffect | StateListenerType.UserEffect
+  readonly type: StateListenerType.ViewEffect | StateListenerType.ElementEffect | StateListenerType.UserEffect
   init(get: GetState, context?: any): void
   run(get: GetState, context?: any): void
 }

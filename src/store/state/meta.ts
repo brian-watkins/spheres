@@ -1,4 +1,4 @@
-import { createStateHandler, GetState, StateListenerType, StatePublisher, createSubscriber, TokenRegistry, StateEffect, getStateHandler, PublishableState, StateToken } from "../tokenRegistry.js"
+import { createStateHandler, GetState, StateListenerType, StatePublisher, createSubscriber, TokenRegistry, getStateHandler, PublishableState, StateToken, StateDerivation } from "../tokenRegistry.js"
 import { Publisher } from "./handler/publisher.js"
 
 export interface PendingMessage<M> {
@@ -69,10 +69,12 @@ export class MetaState<T, M, E = unknown> implements PublishableState<Meta<M, E>
   }
 }
 
-class MetaStateListener<M, E> implements StateEffect {
-  readonly type = StateListenerType.SystemEffect
+class MetaStateListener<M, E> implements StateDerivation {
+  readonly type = StateListenerType.Derivation
 
   constructor(private token: StateToken<any>, private publisher: StatePublisher<Meta<M, E>>) { }
+  
+  notifyListeners(): void { }
 
   init(get: GetState): void {
     this.run(get)

@@ -1,11 +1,16 @@
 import { EffectList, Subscriber } from "../../tokenRegistry.js";
 
 export class NativeEffectList implements EffectList {
-  private systemEffects: Array<Subscriber> = []
+  private viewEffects: Array<Subscriber> = []
+  private elementEffects: Array<Subscriber> = []
   private userEffects: Array<Subscriber> = []
 
-  addSystemEffect(subscriber: Subscriber) {
-    this.systemEffects.push(subscriber)
+  addViewEffect(subscriber: Subscriber): void {
+    this.viewEffects.push(subscriber)
+  }
+
+  addElementEffect(subscriber: Subscriber) {
+    this.elementEffects.push(subscriber)
   }
 
   addUserEffect(subscriber: Subscriber) {
@@ -13,7 +18,8 @@ export class NativeEffectList implements EffectList {
   }
 
   *[Symbol.iterator]() {
-    yield* this.systemEffects;
-    yield* this.userEffects;
+    yield* this.viewEffects
+    yield* this.elementEffects
+    yield* this.userEffects
   }
 }

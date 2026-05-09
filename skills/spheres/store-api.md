@@ -44,12 +44,26 @@ interface ContainerInitializer<T, M> {
   initialValue: T
   update?: (message: M, current: T) => UpdateResult<T>
 }
-function container<T, M = T, E = any>(init: ContainerInitializer<T, M>): Container<T, M, E>
+type ValueGenerator = <S>(value: S) => Value<S>
+function container<T, M = T, E = any>(
+  init: ContainerInitializer<T, M> | ((value: ValueGenerator) => ContainerInitializer<T, M>)
+): Container<T, M, E>
 ```
 
 Program input. Value changes via messages dispatched to the store. Without `update`, messages *are* the new values (type `M` = type `T`). With `update`, you define how incoming messages of type `M` transform the current value.
 
+The initializer can also be a function that receives a `value` generator and returns a `ContainerInitializer`. Use this form to wrap individual fields of the container's state in `Value<S>` so they can be addressed and written to independently via `valueAt`.
+
 `container.meta` accesses the container's `Meta` token.
+
+### Value
+
+```ts
+function value<T>(initial: T): Value<T>
+function valueAt<T, S>(state: State<T>, locator: (val: T) => Value<S>): WritableState<S>
+```
+
+A `Value<T>` is a writable cell embedded inside a container's state. Combined with `valueAt`, it lets you target a single field of a composite container value as if it were its own writable token — useful for forms, lists of records, and other cases where parts of a container update independently.
 
 ### supplied
 

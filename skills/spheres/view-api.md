@@ -12,7 +12,7 @@ type Stateful<T> = (get: GetState) => T | undefined
 
 An element's configuration function receives a `ConfigurableElement` with two properties:
 - `config` — attribute and event setters for this element.
-- `children` — a builder for child nodes. Chain element calls and `textNode`/`subview`/`subviews`/`subviewOf`.
+- `children` — a builder for child nodes. Chain element calls and `textNode`/`subview`/`subviews`/`subviewFrom`.
 
 ## Element functions
 
@@ -79,18 +79,18 @@ root.main(el => {
 ```ts
 subviews<T>(
   items: (get: GetState) => Array<T>,
-  view: (use: UseData<T>) => HTMLView
+  view: (use: UseItem<T>) => HTMLView
 ): this
 ```
 
-Render a list that updates when the array changes. `UseData<T>` gives the view function reactive access to the item, a `get`, and an index token:
+Render a list that updates when the array changes. `UseItem<T>` gives the view function reactive access to a `ListItem<T>` (`{ data: T, index: number }`) and a `get`:
 
 ```ts
-function itemView(useItem: UseData<Item>): HTMLView {
+function itemView(useItem: UseItem<Item>): HTMLView {
   return (root) => {
     root.li(el => {
-      el.children.textNode(useItem((item, get, index) =>
-        `${item.name} at ${get(index)}`
+      el.children.textNode(useItem((item, get) =>
+        `${item.data.name} at ${item.index}`
       ))
     })
   }
@@ -103,14 +103,48 @@ root.ul(el => {
 
 Spheres tracks list items internally and updates only the ones that actually changed.
 
-### subviewOf — reactive switch
+### subviewFrom — reactive switch
 
-Pick one view to render based on state. `when` takes a stateful predicate and a view; the first predicate to return `true` wins. `default` provides a fallback.
+Pick one view to render based on state. The selector exposes two cases:
+
+- `withUnion<T>(unionValue)` — for discriminated unions. Each `when` takes a **type predicate** that narrows `T` to a subtype `X`, and a view generator `(useCase: UseCase<X>) => ViewDefinition`. `UseCase<T>` is like `UseItem<T>` but exposes the value directly (not wrapped in a `ListItem`): `useCase((value, get) => ...)`. The first predicate to match wins; `default` provides a fallback.
+- `withConditions()` — for plain boolean checks. Each `when` takes a stateful predicate `(get) => boolean` and a `ViewDefinition`. The first predicate to return `true` wins; `default` provides a fallback.
+
+Union example — a `Result` is either `Loading`, `Loaded`, or `Failed`:
+
+```ts
+type Result =
+  | { kind: "loading" }
+  | { kind: "loaded", data: string }
+  | { kind: "failed", error: string }
+
+const isLoading = (r: Result): r is { kind: "loading" } => r.kind === "loading"
+const isLoaded = (r: Result): r is { kind: "loaded", data: string } => r.kind === "loaded"
+
+root.div(el => {
+  el.children.subviewFrom(selector => {
+    selector
+      .withUnion(get => get(result))
+      .when(isLoading, () => (root) => {
+        root.p(el => el.children.textNode("Loading…"))
+      })
+      .when(isLoaded, useCase => (root) => {
+        root.p(el => el.children.textNode(useCase((r, get) => r.data)))
+      })
+      .default(useCase => (root) => {
+        root.p(el => el.children.textNode(useCase((r, get) => `Error: ${(r as any).error}`)))
+      })
+  })
+})
+```
+
+Conditions example:
 
 ```ts
 root.div(el => {
-  el.children.subviewOf(selector => {
+  el.children.subviewFrom(selector => {
     selector
+      .withConditions()
       .when(get => get(route) === "home", homeView)
       .when(get => get(route) === "account", accountView)
       .when(get => get(route) === "messages", messagesView)
@@ -240,5 +274,5 @@ root.input(el => {
 - `textNode`, attributes, and view selectors accept `Stateful` functions; use them freely for fine-grained updates.
 - Declare tokens at module scope (or setup code), not inside view functions.
 - Don't read tokens outside a reactive context — `get` is only available where spheres passes it in.
-- `subviews` and `subviewOf` update structure reactively; use them instead of conditional imperative logic.
+- `subviews` and `subviewFrom` update structure reactively; use them instead of conditional imperative logic.
 - `innerHTML` and `children` are mutually exclusive.

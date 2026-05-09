@@ -16,7 +16,7 @@
   },
   "files": [
     "dist/",
-    "types/"
+    "skills/"
   ],
   "scripts": {
     "generate:htmlElements": "tsx ./codegen/generateHtmlElements.ts",

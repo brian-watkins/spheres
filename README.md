@@ -6,6 +6,8 @@ Write browser-based web applications. Spheres features:
 
 Check out the [documentation](https://github.com/brian-watkins/spheres/wiki).
 
+Or use the spheres [skill](./skills/spheres/SKILL.md) with your favorite agent.
+
 Here's a simple counter app:
 
 ```

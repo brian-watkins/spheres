@@ -1,5 +1,17 @@
 # spheres
 
+## 0.27.0
+
+### Minor Changes
+
+- b79201d: Value generator is provided to container initializer so that values are only used within containers
+- 54ec021: UseCase provides data for union case selector templates
+
+### Patch Changes
+
+- c16c948: Make vite a peer dependency
+- 6f36f50: Fix dropped effects when parent dependency does not update but others do
+
 ## 0.26.6
 
 ### Patch Changes

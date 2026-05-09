@@ -1,4 +1,4 @@
-import { Subscribable, runListener, StateListenerType, StateListenerVersion, Subscriber } from "../../tokenRegistry.js"
+import { Subscribable, runListener, StateListenerType, StateListenerVersion, Subscriber, EffectList } from "../../tokenRegistry.js"
 
 interface SubscriberNode {
   subscriber: Subscriber
@@ -66,7 +66,7 @@ export class SubscriberSet implements Subscribable {
     }
   }
 
-  notifyListeners(userEffects: Array<Subscriber>): void {
+  notifyListeners(effects: EffectList): void {
     let previous: SubscriberNode | undefined = undefined
     let node = this.head
     while (node !== undefined) {
@@ -78,10 +78,13 @@ export class SubscriberSet implements Subscribable {
       const listener = node.subscriber.listener
       switch (listener.type) {
         case StateListenerType.Derivation:
-          listener.notifyListeners(userEffects)
+          listener.notifyListeners(effects)
+          break
+        case StateListenerType.SystemEffect:
+          effects.addSystemEffect(node.subscriber)
           break
         case StateListenerType.UserEffect:
-          userEffects.push(node.subscriber)
+          effects.addUserEffect(node.subscriber)
           break
       }
       node.subscriber.parent = this
@@ -106,7 +109,10 @@ export class SubscriberSet implements Subscribable {
         continue
       }
 
-      if (node.subscriber.listener.type === StateListenerType.UserEffect) {
+      if (
+        node.subscriber.listener.type === StateListenerType.UserEffect ||
+        node.subscriber.listener.type === StateListenerType.SystemEffect
+      ) {
         node.subscriber.parent = true
         node = node.next
         continue
@@ -125,7 +131,10 @@ export class SubscriberSet implements Subscribable {
         continue
       }
 
-      if (node.subscriber.listener.type === StateListenerType.UserEffect) {
+      if (
+        node.subscriber.listener.type === StateListenerType.UserEffect ||
+        node.subscriber.listener.type === StateListenerType.SystemEffect
+      ) {
         node.subscriber.parent = true
         node = node.next
         continue
@@ -136,8 +145,8 @@ export class SubscriberSet implements Subscribable {
     }
   }
 
-  runUserEffects(subscribers: Array<Subscriber>) {
-    for (const subscriber of subscribers) {
+  runEffects(effects: EffectList) {
+    for (const subscriber of effects) {
       if (subscriber.parent === true) {
         runListener(subscriber)
       }

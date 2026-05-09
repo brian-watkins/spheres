@@ -44,9 +44,14 @@ export enum StateListenerType {
   Derivation, SystemEffect, UserEffect
 }
 
+export interface EffectList extends Iterable<Subscriber> {
+  addSystemEffect(subscriber: Subscriber): void
+  addUserEffect(subscriber: Subscriber): void
+}
+
 export interface StateDerivation {
   readonly type: StateListenerType.Derivation
-  notifyListeners: (userEffects: Array<Subscriber>) => void
+  notifyListeners: (effects: EffectList) => void
   init(get: GetState, context?: any): void
   run(get: GetState, context?: any): void
 }

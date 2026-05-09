@@ -1,4 +1,5 @@
-import { StateBatch, StatePublisher, Subscriber } from "../../tokenRegistry.js"
+import { StateBatch, StatePublisher } from "../../tokenRegistry.js"
+import { NativeEffectList } from "./nativeEffectList.js"
 import { SubscriberSet } from "./subscriberSet.js"
 
 export class Publisher<T> extends SubscriberSet implements StatePublisher<T> {
@@ -16,12 +17,12 @@ export class Publisher<T> extends SubscriberSet implements StatePublisher<T> {
       return
     }
 
-    const userEffects: Array<Subscriber> = []
-    this.notifyListeners(userEffects)
+    const effects = new NativeEffectList()
+    this.notifyListeners(effects)
 
     this.runListeners()
 
-    this.runUserEffects(userEffects)
+    this.runEffects(effects)
   }
 
   getValue(): T {

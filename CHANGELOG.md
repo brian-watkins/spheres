@@ -1,5 +1,11 @@
 # spheres
 
+## 0.27.1
+
+### Patch Changes
+
+- 39a68de: Publish skill with package and add link in README
+
 ## 0.27.0
 
 ### Minor Changes

@@ -85,20 +85,13 @@ class VirtualItem extends OverlayTokenRegistry {
           this.registry.set(token, publisher)
         }
       } else {
-        publisher = this.createPublisher(token)
+        const actualPublisher = this.parentRegistry.getState(token) as StateWriter<any, any>
+        publisher = new OverlayStateHandler(this.parentRegistry, actualPublisher)
         this.registry.set(token, publisher)
       }
     }
 
     return publisher as StateHandler<S>
-  }
-
-  private createPublisher<S extends StateToken<unknown>>(token: S): StateHandler<S> {
-    const actualPublisher = this.parentRegistry.getState(token) as StateWriter<any, any>
-    const overlayPublisher = new OverlayStateHandler(this.parentRegistry, actualPublisher)
-    overlayPublisher.init()
-
-    return overlayPublisher as StateHandler<S>
   }
 
   unsubscribeFromExternalState() {

@@ -15,6 +15,22 @@ interface ListState {
   items: Container<Array<Item>>
 }
 
+interface RemoveMessage {
+  type: "remove",
+  index: number
+}
+
+interface SetMessage {
+  type: "set",
+  value: Array<Item>
+}
+
+type ListMessage = RemoveMessage | SetMessage
+
+interface ListMessageState {
+  items: Container<Array<Item>, ListMessage>
+}
+
 var style = document.createElement('style');
 style.type = 'text/css';
 style.innerHTML = '.selected-item { color: #f00; }';
@@ -46,17 +62,15 @@ export default behavior("list data", [
             return root => {
               root.li(el => {
                 el.config
-                  .dataAttribute("item", useData(({data}) => data.id))
-                  .on("click", () => use(useData(({data}) => selectRow(data))))
-                  // .class(useData((item, get) => {
+                  .dataAttribute("item", useData(({ data }) => data.id))
+                  .on("click", () => use(useData(({ data }) => selectRow(data))))
                   .class(useData(({ data }, get) => {
                     const sel = get(selected)
                     if (sel === undefined) return ""
                     return data.id === sel.id ? "selected-item" : ""
                   }))
                 el.children
-                  // .textNode(useData((item, get, index) => `${item.label} => ${get(index)}`))
-                  .textNode(useData(({data, index}) => `${data.label} => ${index}`))
+                  .textNode(useData(({ data, index }) => `${data.label} => ${index}`))
               })
             }
           }
@@ -183,6 +197,76 @@ export default behavior("list data", [
           await expect(selectElement("[data-item='1']").property("className"),
             resolvesTo(assignedWith(stringContaining("selected-item"))))
           await expect(selectElement("[data-item='5']").property("className"), resolvesTo(""))
+        })
+      ]
+    }),
+
+  example(renderContext<ListMessageState>())
+    .description("deleting data in a list by index, when the index is not subscribed to")
+    .script({
+      suppose: [
+        fact("there is list state", (context) => {
+          context.setState({
+            items: container({
+              initialValue: buildItems(5),
+              update(message, current) {
+                if (message.type === "remove") {
+                  return { value: current.toSpliced(message.index, 1) }
+                } else {
+                  return { value: current }
+                }
+              },
+            })
+          })
+        }),
+        fact("a list of elements is displayed based on the state", (context) => {
+          function itemView(useData: UseItem<Item>): HTMLView {
+            return root => {
+              root.li(el => {
+                el.config
+                  .dataAttribute("item", useData(({ data }) => data.id))
+                  .on("click", () => use(useData(row => {
+                    return write(context.state.items, { type: "remove", index: row.index })
+                  })))
+                el.children
+                  .textNode(useData(({ data }) => `${data.label}`))
+              })
+            }
+          }
+
+          context.mountView(root => {
+            root.div(el => {
+              el.children
+                .ul(el => {
+                  el.children.subviews((get) => get(context.state.items), itemView)
+                })
+            })
+          })
+        })
+      ],
+      observe: [
+        effect("the items are displayed", async () => {
+          await expect(selectElements("[data-item]").count(), resolvesTo(5))
+          await expect(selectElement("[data-item='0']").text(), resolvesTo("label-0"))
+          await expect(selectElement("[data-item='1']").text(), resolvesTo("label-1"))
+          await expect(selectElement("[data-item='2']").text(), resolvesTo("label-2"))
+          await expect(selectElement("[data-item='3']").text(), resolvesTo("label-3"))
+          await expect(selectElement("[data-item='4']").text(), resolvesTo("label-4"))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("delete some elements", async () => {
+          await selectElement("[data-item='1']").click()
+          await selectElement("[data-item='3']").click()
+        })
+      ],
+      observe: [
+        effect("the elements are removed", async () => {
+          await expect(selectElements("[data-item]").count(), resolvesTo(3))
+          await expect(selectElement("[data-item='0']").text(), resolvesTo("label-0"))
+          await expect(selectElement("[data-item='2']").text(), resolvesTo("label-2"))
+          await expect(selectElement("[data-item='4']").text(), resolvesTo("label-4"))
         })
       ]
     })

@@ -27,4 +27,9 @@ export class ListItemReader<T> implements ListItem<T>, StateReader<ListItem<T>> 
   }
 
   removeSubscriber(): void { }
+
+  updateIndex(index: number) {
+    this._index = index
+    this.indexPublisher?.publish(index)
+  }
 }

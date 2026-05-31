@@ -111,7 +111,8 @@ class VirtualItem extends OverlayTokenRegistry {
   }
 
   updateIndex(index: number) {
-    this.listItemDataReader.indexPublisher?.publish(index)
+    this.index = index
+    this.listItemDataReader.updateIndex(index)
   }
 }
 
@@ -187,7 +188,7 @@ export class ListEffect implements StateEffect {
       this.first = this.first.next
       this.first!.prev = undefined
       if (this.first !== undefined) {
-        this.updateIndex(0, this.first)
+        this.first.updateIndex(0)
       }
 
       return this.first!
@@ -206,7 +207,7 @@ export class ListEffect implements StateEffect {
     for (let i = 1; i < data.length; i++) {
       last = this.updateItem(i, last, data[i])
       if (last.index !== i) {
-        this.updateIndex(i, last)
+        last.updateIndex(i)
       }
     }
 
@@ -308,7 +309,7 @@ export class ListEffect implements StateEffect {
           cached.isDetached = true
         }
         if (itemToMove.index !== item.index) {
-          this.updateIndex(item.index, itemToMove)
+          itemToMove.updateIndex(item.index)
         }
       } else {
         if (item.isDetached) {
@@ -419,11 +420,6 @@ export class ListEffect implements StateEffect {
       item.unsubscribeFromExternalState()
       item = item.next
     }
-  }
-
-  private updateIndex(index: number, item: VirtualItem): void {
-    item.updateIndex(index)
-    item.index = index
   }
 
   private createItem(index: number, data: any): VirtualItem {

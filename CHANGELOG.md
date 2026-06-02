@@ -1,5 +1,11 @@
 # spheres
 
+## 0.27.2
+
+### Patch Changes
+
+- c908c2b: Fixed bugs with list item reactive state handling
+
 ## 0.27.1
 
 ### Patch Changes

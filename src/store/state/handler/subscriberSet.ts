@@ -1,133 +1,75 @@
 import { Subscribable, runListener, StateListenerType, StateListenerVersion, Subscriber, EffectList } from "../../tokenRegistry.js"
 
-interface SubscriberNode {
-  subscriber: Subscriber
-  version: StateListenerVersion
-  next: SubscriberNode | undefined
-}
-
 export class SubscriberSet implements Subscribable {
-  private head: SubscriberNode | undefined
-  private tail: SubscriberNode | undefined
+  private subscribers: Map<Subscriber, StateListenerVersion> = new Map()
 
   constructor() { }
 
   addSubscriber(subscriber: Subscriber): void {
-    if (this.head === undefined) {
-      this.head = {
-        subscriber: subscriber,
-        version: subscriber.version,
-        next: undefined
-      }
-      this.tail = this.head
-      return
-    }
-    const next = {
-      subscriber,
-      version: subscriber.version,
-      next: undefined
-    }
-    this.tail!.next = next
-    this.tail = next
+    this.subscribers.set(subscriber, subscriber.version)
   }
 
   removeSubscriber(subscriber: Subscriber) {
-    let node = this.head
-    let previous = undefined
-    while (node !== undefined) {
-      if (node.subscriber === subscriber) {
-        this.removeFromList(previous, node)
-      }
-      previous = node
-      node = node.next
-    }
-  }
-
-  private removeFromList(previous: SubscriberNode | undefined, node: SubscriberNode) {
-    if (previous === undefined) {
-      this.head = node.next
-      if (this.tail === node) {
-        this.tail = this.head
-      }
-    } else {
-      previous.next = node.next
-      if (this.tail === node) {
-        this.tail = previous
-      }
-    }
+    this.subscribers.delete(subscriber)
   }
 
   notifyListeners(effects: EffectList): void {
-    let previous: SubscriberNode | undefined = undefined
-    let node = this.head
-    while (node !== undefined) {
-      if (node.subscriber.version !== node.version) {
-        this.removeFromList(previous, node)
-        node = node.next
+    for (const [subscriber, version] of this.subscribers) {
+      if (subscriber.version !== version) {
+        this.removeSubscriber(subscriber)
         continue
       }
-      const listener = node.subscriber.listener
+      const listener = subscriber.listener
       switch (listener.type) {
         case StateListenerType.Derivation:
           listener.notifyListeners(effects)
           break
         case StateListenerType.ViewEffect:
-          effects.addViewEffect(node.subscriber)
+          effects.addViewEffect(subscriber)
           break
         case StateListenerType.ElementEffect:
-          effects.addElementEffect(node.subscriber)
+          effects.addElementEffect(subscriber)
           break
         case StateListenerType.UserEffect:
-          effects.addUserEffect(node.subscriber)
+          effects.addUserEffect(subscriber)
           break
       }
-      node.subscriber.parent = this
-
-      previous = node
-      node = node.next
+      subscriber.parent = this
     }
   }
 
   runListeners(): void {
-    let node = this.head
+    const subs = this.subscribers.keys()
 
     // Start a new list -- any listeners added while running the current listeners
     // will be added to the new list
-    this.head = undefined
-    this.tail = undefined
+    this.subscribers = new Map()
 
-    while (node !== undefined) {
-      if (node.subscriber.parent !== this) {
-        node.subscriber.dirty = true
-        node = node.next
+    for (const subscriber of subs) {
+      if (subscriber.parent !== this) {
+        subscriber.dirty = true
         continue
       }
 
-      if (node.subscriber.listener.type === StateListenerType.Derivation) {
-        runListener(node.subscriber)
+      if (subscriber.listener.type === StateListenerType.Derivation) {
+        runListener(subscriber)
       } else {
-        node.subscriber.parent = true
+        subscriber.parent = true
       }
-
-      node = node.next
     }
   }
 
   runDirtyListeners(): void {
-    let node = this.head
-    while (node !== undefined) {
-      if (node.subscriber.parent != this || node.subscriber.dirty === false) {
-        node = node.next
+    for (const subscriber of this.subscribers.keys()) {
+      if (subscriber.parent != this || subscriber.dirty === false) {
         continue
       }
 
-      if (node.subscriber.listener.type === StateListenerType.Derivation) {
-        runListener(node.subscriber)
+      if (subscriber.listener.type === StateListenerType.Derivation) {
+        runListener(subscriber)
       } else {
-        node.subscriber.parent = true
+        subscriber.parent = true
       }
-
-      node = node.next
     }
   }
 

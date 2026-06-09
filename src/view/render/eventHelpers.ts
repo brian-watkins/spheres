@@ -40,7 +40,11 @@ export function wrapEvent(event: Event): WrappedEvent {
           target.stopImmediatePropagation()
         }
       }
-      return Reflect.get(target, property)
+      const value = Reflect.get(target, property)
+      if (typeof value === "function") {
+        return value.bind(target)
+      }
+      return value
     },
   }) as WrappedEvent
 }

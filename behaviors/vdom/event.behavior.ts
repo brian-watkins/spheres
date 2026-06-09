@@ -380,6 +380,46 @@ export default behavior("event handlers", [
       ]
     }),
 
+  example(renderContext<Container<boolean>>())
+    .description("when preventDefault is called the default action is prevented")
+    .script({
+      suppose: [
+        fact("there is state that tracks whether the handler ran", (context) => {
+          context.setState(container({ initialValue: false }))
+        }),
+        fact("there is a checkbox whose click handler calls preventDefault", (context) => {
+          context.mountView(root => {
+            root.div(el => {
+              el.children
+                .p(el => el.children.textNode(get => `Handler ran: ${get(context.state)}`))
+                .input(el => {
+                  el.config
+                    .type("checkbox")
+                    .dataAttribute("checkbox")
+                    .on("click", (evt) => {
+                      evt.preventDefault()
+                      return write(context.state, true)
+                    })
+                })
+            })
+          })
+        })
+      ],
+      perform: [
+        step("the checkbox is clicked", async () => {
+          await selectElement("[data-checkbox]").click()
+        })
+      ],
+      observe: [
+        effect("the click handler ran", async () => {
+          await expect(selectElement("p").text(), resolvesTo("Handler ran: true"))
+        }),
+        effect("the default action was prevented so the checkbox is not checked", async () => {
+          await expect(selectElement("[data-checkbox]").property("checked"), resolvesTo<unknown>(false))
+        })
+      ]
+    }),
+
   example(renderContext<NestedEventsContext>())
     .description("when call stopPropagation the event no longer propagates")
     .script({

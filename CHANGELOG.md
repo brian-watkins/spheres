@@ -1,5 +1,11 @@
 # spheres
 
+## 0.27.3
+
+### Patch Changes
+
+- 67407d7: Support native methods on events in event handlers
+
 ## 0.27.2
 
 ### Patch Changes

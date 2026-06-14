@@ -32,7 +32,8 @@ export class DOMRoot implements EventZone, RenderResult {
       const wrappedEvent = wrapEvent(evt)
 
       const eventTargets = evt.composedPath()
-      for (const target of eventTargets) {
+      for (let i = 0; i < eventTargets.length; i++) {
+        const target = eventTargets[i]
         if (target === this.root || wrappedEvent.propagationStopped) {
           break
         }
@@ -54,12 +55,19 @@ export class DOMRoot implements EventZone, RenderResult {
             case DOMEventType.Element:
               dispatchMessage(this.registry, domEvent.handler(wrappedEvent))
               break
-            case DOMEventType.Template:
-              const root = element.closest(`[data-spheres-template]`)!
-              //@ts-ignore
-              const registry = root[spheresTemplateData]
-              dispatchMessage(registry, domEvent.handler(wrappedEvent))
+            case DOMEventType.Template: {
+              let registry: TokenRegistry | undefined
+              for (let j = i; j < eventTargets.length; j++) {
+                // @ts-ignore
+                const data = eventTargets[j][spheresTemplateData]
+                if (data !== undefined) {
+                  registry = data
+                  break
+                }
+              }
+              dispatchMessage(registry!, domEvent.handler(wrappedEvent))
               break
+            }
           }
         }
       }

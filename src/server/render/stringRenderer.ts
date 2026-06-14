@@ -50,7 +50,7 @@ class StringRenderer extends AbstractViewRenderer {
 
   template: HTMLTemplate = emptyTemplate()
 
-  constructor(private elementSupport: ElementSupport, private options: StringRendererOptions, private idSequence: IdSequence, private isTemplate: boolean = false) {
+  constructor(private elementSupport: ElementSupport, private options: StringRendererOptions, private idSequence: IdSequence) {
     super()
   }
 
@@ -101,10 +101,6 @@ class StringRenderer extends AbstractViewRenderer {
     const config = new StringConfig(configSupport, elementId)
     const children = new StringRenderer(rendererDelegate, this.options, this.idSequence)
 
-    if (this.isTemplate) {
-      config.attribute("data-spheres-template", "")
-    }
-
     builder?.({
       config,
       children: children
@@ -152,7 +148,7 @@ class StringRenderer extends AbstractViewRenderer {
   ): this {
     const elementId = this.idSequence.next
 
-    const renderer = new StringRenderer(this.elementSupport, this.options, new IdSequence(elementId), true)
+    const renderer = new StringRenderer(this.elementSupport, this.options, new IdSequence(elementId))
     const templateContext = new ListItemTemplateContext(renderer, viewGenerator)
 
     this.appendToTemplate({
@@ -213,7 +209,7 @@ class StringRenderer extends AbstractViewRenderer {
 
 function createStringTemplate(elementSupport: ElementSupport, options: StringRendererOptions, elementId: string): (view: ViewDefinition, selectorId: number) => HTMLTemplate {
   return (view, selectorId) => {
-    const renderer = new StringRenderer(elementSupport, options, new IdSequence(`${elementId}.${selectorId}`), true)
+    const renderer = new StringRenderer(elementSupport, options, new IdSequence(`${elementId}.${selectorId}`))
     view(renderer as unknown as HTMLBuilder)
     return renderer.template
   }

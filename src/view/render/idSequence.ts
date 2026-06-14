@@ -1,10 +1,13 @@
 export class IdSequence {
   private val: number = 0
+  private prefix: string
 
-  constructor(private prefix: string = "0") { }
+  constructor(prefix?: string) {
+    this.prefix = prefix === undefined ? "" : `${prefix}.`
+  }
 
   get next(): string {
     this.val = this.val + 1
-    return `${this.prefix}.${this.val.toString(36)}`
+    return `${this.prefix}${this.val.toString(36)}`
   }
 }

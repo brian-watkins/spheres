@@ -24,7 +24,7 @@ export default behavior("Render view to HTML string", [
   }),
   renderTest("render view with nested stateful views", (renderer) => {
     const actual = renderer.renderView(appWithNestedState)
-    expect(actual, is(equalTo(`<div><!--switch-start-0.2--><h2 data-spheres-template>Cool Person!</h2><!--switch-end-0.2--></div>`)))
+    expect(actual, is(equalTo(`<div><!--switch-start-2--><h2>Cool Person!</h2><!--switch-end-2--></div>`)))
   }),
   renderTest("render view with deeply nested stateful views", (renderer) => {
     const actual = renderer.renderView(appWithDeeplyNestedState)
@@ -61,15 +61,15 @@ export default behavior("Render view to HTML string", [
   }),
   renderTest("render view with list with events", (renderer) => {
     const actual = renderer.renderView(appWithZones)
-    expect(actual, is(equalTo(`<div><!--list-start-0.2--><div data-spheres-template><h1>snake is at index 0</h1><button data-spheres-click="0.2.3">Click me!</button></div><div data-spheres-template><h1>eagle is at index 1</h1><button data-spheres-click="0.2.3">Click me!</button></div><!--list-end-0.2--></div>`)))
+    expect(actual, is(equalTo(`<div><!--list-start-2--><div><h1>snake is at index 0</h1><button data-spheres-click="2.3">Click me!</button></div><div><h1>eagle is at index 1</h1><button data-spheres-click="2.3">Click me!</button></div><!--list-end-2--></div>`)))
   }),
   renderTest("render view with non-bubbling events and bubbling events", (renderer) => {
     const actual = renderer.renderView(appWithEvents)
-    expect(actual, is(equalTo(`<div><div><div data-spheres-click="0.3">Element with events!</div></div></div>`)))
+    expect(actual, is(equalTo(`<div><div><div data-spheres-click="3">Element with events!</div></div></div>`)))
   }),
   renderTest("render view with conditional view", (renderer) => {
     const actual = renderer.renderView(appWithViewSelector)
-    expect(actual, is(equalTo(`<div><!--switch-start-0.2--><h3 data-spheres-template>Fun!</h3><!--switch-end-0.2--></div>`)))
+    expect(actual, is(equalTo(`<div><!--switch-start-2--><h3>Fun!</h3><!--switch-end-2--></div>`)))
   }),
   renderTest("render void elements without closing tags", (renderer) => {
     const imageName = container({ initialValue: "/assets/myImg" })

@@ -72,10 +72,6 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
 
     const config = new DomTemplateConfig(renderSupport.getConfigSupport(tag), this.zone, elementId, element, this.location, this.eventType)
 
-    if (this.templateElement !== undefined) {
-      config.attribute("data-spheres-template", "")
-    }
-
     const children = new DomTemplateRenderer(renderSupport, this.zone, this.idSequence, this.location, element, this.eventType)
 
     builder?.({

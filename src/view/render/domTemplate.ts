@@ -3,7 +3,7 @@ import { GetState, getStateFunctionWithListener, initListener, StateListener, cr
 import { EffectLocation } from "./effectLocation.js"
 import { activateList, ListEffect } from "./effects/listEffect.js"
 import { activateSelect, SelectViewEffect } from "./effects/selectViewEffect.js"
-import { findListEndNode, findSwitchEndNode, getListElementId } from "./fragmentHelpers.js"
+import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementId } from "./fragmentHelpers.js"
 import { spheresTemplateData, StoreEventHandler } from "./index.js"
 import { TemplateCollection } from "./selectorBuilder.js"
 import { ListItemTemplateContext } from "./templateContext.js"
@@ -75,19 +75,20 @@ export interface DOMTemplate {
 export function render(template: DOMTemplate, registry: TokenRegistry): Node {
   const fragment = template.element.content.cloneNode(true)
 
-  initialize(template, registry, fragment.firstChild!)
+  initialize(template, registry, fragment)
 
   return template.isFragment ? fragment : fragment.firstChild!
 }
 
-export function initialize(template: DOMTemplate, registry: TokenRegistry, root: Node) {
+function initialize(template: DOMTemplate, registry: TokenRegistry, root: Node) {
+  attachRegistryData(registry, root.firstChild!)
+
+  initializeEffects(template, registry, root.firstChild!)
+}
+
+export function initializeEffects(template: DOMTemplate, registry: TokenRegistry, root: Node) {
   for (const effect of template.effects) {
     initializeEffect(registry, root, effect)
-  }
-
-  if (!template.isFragment) {
-    // @ts-ignore
-    root[spheresTemplateData] = registry
   }
 }
 
@@ -96,9 +97,30 @@ export function activate(template: DOMTemplate, registry: TokenRegistry, root: N
     activateEffect(registry, root, effect)
   }
 
-  if (!template.isFragment) {
-    // @ts-ignore
-    root[spheresTemplateData] = registry
+  attachRegistryData(registry, root)
+}
+
+function attachRegistryData(registry: TokenRegistry, first: Node | null) {
+  let node: Node | null = first
+  while (node !== null) {
+    switch (node.nodeType) {
+      case Node.COMMENT_NODE: {
+        const indicator = node.nodeValue!
+        if (indicator.startsWith("list-start-")) {
+          node = findListEndNode(node, getListElementId(node))
+        } else if (indicator.startsWith("switch-start-")) {
+          node = findSwitchEndNode(node, getSwitchElementId(node))
+        }
+        break
+      }
+      case Node.ELEMENT_NODE: {
+        // @ts-ignore
+        node[spheresTemplateData] = registry
+        break
+      }
+    }
+
+    node = node.nextSibling
   }
 }
 

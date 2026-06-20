@@ -3,7 +3,7 @@ import { getTokenRegistry } from "../store/store.js"
 import { HTMLBuilder, HTMLView } from "./htmlElements.js"
 import { HTMLElementSupport } from "./htmlElementSupport.js"
 import { clearRoot, DOMRoot } from "./render/domRoot.js"
-import { initialize } from "./render/domTemplate.js"
+import { initializeEffects } from "./render/domTemplate.js"
 import { EffectLocation } from "./render/effectLocation.js"
 import { IdSequence } from "./render/idSequence.js"
 import { DOMEventType, RenderResult } from "./render/index.js"
@@ -28,7 +28,7 @@ export function renderToDOM(store: Store, element: Element, view: HTMLView): Ren
   clearRoot(root)
   const renderer = new DomTemplateRenderer(new HTMLElementSupport(), root, new IdSequence(), new EffectLocation(root => root), element, DOMEventType.Element)
   view(renderer as unknown as HTMLBuilder)
-  initialize(renderer.template, registry, element)
+  initializeEffects(renderer.template, registry, element)
 
   return root
 }

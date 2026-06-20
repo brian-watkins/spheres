@@ -1,9 +1,10 @@
 import { behavior, effect, example, fact, step } from "best-behavior"
 import { renderContext } from "./helpers/renderContext.js";
-import { selectElements } from "./helpers/displayElement.js";
+import { selectElement, selectElements } from "./helpers/displayElement.js";
 import { equalTo, expect, is, resolvesTo } from "great-expectations";
 import { ListExamplesState, childElementText, renderAppBasedOnState, ssrAndActivateBasedOnState, updateState } from "./helpers/listHelpers.js";
-import { Container, container } from "@store/index.js";
+import { Container, container, update } from "@store/index.js";
+import { HTMLView, UseItem } from "@view/index";
 
 export default behavior("reorder list", [
 
@@ -266,6 +267,233 @@ export default behavior("reorder list", [
             "two at 3 => b at 1",
             "one at 4 => a at 0",
             "one at 4 => b at 1",
+          ]))
+        })
+      ]
+    }),
+
+  example(renderContext<FragmentContext>())
+    .description("reorder list where each item has its own counter")
+    .script({
+      suppose: [
+        fact("there is state", (context) => {
+          context.setState({
+            items: container({ initialValue: ["one", "two", "three"] })
+          })
+        }),
+        fact("there is a list where each item view defines its own counter", (context) => {
+          function itemView(stateful: UseItem<string>): HTMLView {
+            const counter = container({ initialValue: 0 })
+
+            return root => {
+              root.div(el => {
+                el.config.dataAttribute("item", stateful(item => item.data))
+                el.children
+                  .p(el => {
+                    el.config.dataAttribute("count")
+                    el.children.textNode(stateful((item, get) => `${item.data}: ${get(counter)}`))
+                  })
+                  .button(el => {
+                    el.config
+                      .dataAttribute("increment")
+                      .on("click", () => update(counter, val => val + 1))
+                    el.children.textNode("Increment")
+                  })
+              })
+            }
+          }
+
+          context.mountView(root => {
+            root.main(el => {
+              el.children.subviews(get => get(context.state.items), itemView)
+            })
+          })
+        })
+      ],
+      observe: [
+        effect("each item's counter starts at zero", async () => {
+          await expect(selectElements("[data-count]").texts(), resolvesTo([
+            "one: 0",
+            "two: 0",
+            "three: 0"
+          ]))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the counters are incremented for various items", async () => {
+          await selectElements("[data-increment]").at(0).click()
+          await selectElements("[data-increment]").at(0).click()
+          await selectElements("[data-increment]").at(1).click()
+          await selectElements("[data-increment]").at(2).click()
+          await selectElements("[data-increment]").at(2).click()
+          await selectElements("[data-increment]").at(2).click()
+        })
+      ],
+      observe: [
+        effect("each item maintains its own distinct count", async () => {
+          await expect(selectElements("[data-count]").texts(), resolvesTo([
+            "one: 2",
+            "two: 1",
+            "three: 3"
+          ]))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the list is reordered", (context) => {
+          context.writeTo(context.state.items, ["three", "one", "two"])
+        })
+      ],
+      observe: [
+        effect("each item's count moves with the item", async () => {
+          await expect(selectElements("[data-count]").texts(), resolvesTo([
+            "three: 3",
+            "one: 2",
+            "two: 1"
+          ]))
+        })
+      ]
+    }),
+
+  example(renderContext<FragmentContext>())
+    .description("reorder list where each item is a fragment with its own counter")
+    .script({
+      suppose: [
+        fact("there is state", (context) => {
+          context.setState({
+            items: container({ initialValue: ["one", "two", "three", "four"] })
+          })
+        }),
+        fact("there is a list where each item view is a fragment that defines its own counter", (context) => {
+          function itemView(stateful: UseItem<string>): HTMLView {
+            const counter = container({ initialValue: 0 })
+
+            return root => {
+              root
+                .h3(el => {
+                  el.config.dataAttribute("title", stateful(item => item.data))
+                  el.children.textNode(stateful(item => item.data))
+                })
+                .p(el => {
+                  el.config.dataAttribute("count")
+                  el.children.textNode(stateful((item, get) => `${item.data}: ${get(counter)}`))
+                })
+                .button(el => {
+                  el.config
+                    .dataAttribute("increment", stateful(item => item.data))
+                    .on("click", () => update(counter, val => val + 1))
+                  el.children.textNode("Increment")
+                })
+            }
+          }
+
+          context.mountView(root => {
+            root.main(el => {
+              el.children.subviews(get => get(context.state.items), itemView)
+            })
+          })
+        })
+      ],
+      observe: [
+        effect("each item's counter starts at zero", async () => {
+          await expect(selectElements("[data-count]").texts(), resolvesTo([
+            "one: 0", "two: 0", "three: 0", "four: 0"
+          ]))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the counters are incremented to distinct values", async () => {
+          await selectElement("[data-increment='one']").click()
+          await selectElement("[data-increment='two']").click()
+          await selectElement("[data-increment='two']").click()
+          for (let i = 0; i < 3; i++) await selectElement("[data-increment='three']").click()
+          for (let i = 0; i < 4; i++) await selectElement("[data-increment='four']").click()
+        })
+      ],
+      observe: [
+        effect("each fragment maintains its own distinct count", async () => {
+          await expect(selectElements("[data-count]").texts(), resolvesTo([
+            "one: 1", "two: 2", "three: 3", "four: 4"
+          ]))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("an item is moved toward the front", (context) => {
+          context.writeTo(context.state.items, ["three", "one", "two", "four"])
+        })
+      ],
+      observe: [
+        effect("the fragments reorder and counts move with each item", async () => {
+          await expect(selectElements("[data-title]").texts(), resolvesTo([
+            "three", "one", "two", "four"
+          ]))
+          await expect(selectElements("[data-count]").texts(), resolvesTo([
+            "three: 3", "one: 1", "two: 2", "four: 4"
+          ]))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("a moved fragment's counter is incremented after the reorder", async () => {
+          await selectElement("[data-increment='one']").click()
+          await selectElement("[data-increment='one']").click()
+        })
+      ],
+      observe: [
+        effect("the moved fragment's events still target its own counter", async () => {
+          await expect(selectElements("[data-count]").texts(), resolvesTo([
+            "three: 3", "one: 3", "two: 2", "four: 4"
+          ]))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the list is fully reversed", (context) => {
+          context.writeTo(context.state.items, ["four", "two", "one", "three"])
+        })
+      ],
+      observe: [
+        effect("every fragment's count follows it through the reversal", async () => {
+          await expect(selectElements("[data-title]").texts(), resolvesTo([
+            "four", "two", "one", "three"
+          ]))
+          await expect(selectElements("[data-count]").texts(), resolvesTo([
+            "four: 4", "two: 2", "one: 3", "three: 3"
+          ]))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the list is restored to its original order", (context) => {
+          context.writeTo(context.state.items, ["one", "two", "three", "four"])
+        })
+      ],
+      observe: [
+        effect("every fragment's count is preserved in the original order", async () => {
+          await expect(selectElements("[data-title]").texts(), resolvesTo([
+            "one", "two", "three", "four"
+          ]))
+          await expect(selectElements("[data-count]").texts(), resolvesTo([
+            "one: 3", "two: 2", "three: 3", "four: 4"
+          ]))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("a new item is inserted before a stateful item", (context) => {
+          context.writeTo(context.state.items, ["one", "two", "five", "three", "four"])
+        })
+      ],
+      observe: [
+        effect("the new item starts fresh while the others keep their counts", async () => {
+          await expect(selectElements("[data-title]").texts(), resolvesTo([
+            "one", "two", "five", "three", "four"
+          ]))
+          await expect(selectElements("[data-count]").texts(), resolvesTo([
+            "one: 3", "two: 2", "five: 0", "three: 3", "four: 4"
           ]))
         })
       ]

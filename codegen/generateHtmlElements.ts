@@ -198,7 +198,7 @@ for (const tag of htmlTags) {
 
   const methodSignature = viewBuilderInterface.addMethod({
     name: tag,
-    returnType: "void"
+    returnType: "HTMLBuilder"
   })
 
   methodSignature.addParameter({

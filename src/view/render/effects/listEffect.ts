@@ -5,7 +5,6 @@ import { generateStateManager, StateEffect, StateListenerType, StateReader, Stat
 import { ListItemTemplateContext } from "../templateContext.js"
 import { OverlayTokenRegistry } from "../../../store/registry/overlayTokenRegistry.js"
 import { OverlayStateHandler } from "../../../store/state/handler/overlayStateHandler.js"
-import { Publisher } from "../../../store/state/handler/publisher.js"
 import { Container, clone } from "../../../store/state/container.js"
 import { ListItemReader } from "./listItemReader.js"
 import { ListItem } from "../viewRenderer.js"
@@ -18,9 +17,8 @@ class VirtualItem extends OverlayTokenRegistry {
   prev: VirtualItem | undefined = undefined
   next: VirtualItem | undefined = undefined
   nextData: any | undefined = undefined
-  nextUpdate: VirtualItem | undefined = undefined
+  itemToAppend: VirtualItem | undefined = undefined
   private registry: Map<StateToken<unknown>, StateReader<unknown>> = new Map()
-  private indexHandler: Publisher<number> | undefined
 
   static newInstance(data: any, index: number, registry: TokenRegistry, context: ListItemTemplateContext<any>): VirtualItem {
     return new VirtualItem(
@@ -59,7 +57,6 @@ class VirtualItem extends OverlayTokenRegistry {
     )
 
     clone.setNode(this.node, this.firstNode, this.lastNode)
-    clone.indexHandler = this.indexHandler
     clone.isDetached = this.isDetached
     clone.prev = this.prev
     clone.next = this.next
@@ -115,8 +112,7 @@ export class ListEffect implements StateEffect {
   private parentNode!: Node
   private first: VirtualItem | undefined
   private itemCache: Map<any, VirtualItem> = new Map()
-  private firstUpdate: VirtualItem | undefined
-  private lastUpdate: VirtualItem | undefined
+  private updates: Array<VirtualItem> = []
 
   constructor(
     private registry: TokenRegistry,
@@ -159,8 +155,7 @@ export class ListEffect implements StateEffect {
     this.updateRest(this.first, data)
 
     this.itemCache.clear()
-    this.firstUpdate = undefined
-    this.lastUpdate = undefined
+    this.updates.length = 0
   }
 
   private updateFirst(firstData: any): VirtualItem {
@@ -187,9 +182,8 @@ export class ListEffect implements StateEffect {
       return this.first!
     }
 
-    this.firstUpdate = this.first
-    this.firstUpdate.nextData = firstData
-    this.lastUpdate = this.firstUpdate
+    this.first.nextData = firstData
+    this.updates.push(this.first)
     this.itemCache.set(this.first.key, this.first)
 
     return this.first
@@ -209,19 +203,29 @@ export class ListEffect implements StateEffect {
       last.next = undefined
     }
 
-    if (this.itemCache.size === data.length) {
-      this.replaceAll(data)
-    } else {
-      this.updateChangedItems()
-    }
+    this.updateChangedItems()
   }
 
   private updateItem(index: number, last: VirtualItem, data: any): VirtualItem {
     const current = last.next
 
     if (current === undefined) {
-      const next = this.createItem(index, data)
-      this.appendNode(next)
+      const cached = this.itemCache.get(data)
+      let next: VirtualItem
+      if (cached !== undefined && cached.isDetached) {
+        next = cached.clone()
+        next.next = undefined
+        this.appendNode(next)
+      } else if (cached !== undefined) {
+        next = VirtualItem.newInstance(data, index, this.registry, this.templateContext)
+        next.itemToAppend = cached
+        next.nextData = data
+        this.updates.push(next)
+      } else {
+        next = this.createItem(index, data)
+        this.appendNode(next)
+      }
+
       last.next = next
       next.prev = last
       return next
@@ -240,41 +244,28 @@ export class ListEffect implements StateEffect {
       return current.next!
     }
 
-    if (this.lastUpdate === undefined) {
-      this.firstUpdate = current
-      this.firstUpdate.nextData = data
-      this.lastUpdate = this.firstUpdate
-    } else {
-      this.lastUpdate.nextUpdate = current
-      current.nextData = data
-      this.lastUpdate = current
-    }
+    current.nextData = data
+    this.updates.push(current)
     this.itemCache.set(current.key, current)
 
     return current
   }
 
-  private replaceAll(data: Array<any>) {
-    this.removeAllAfter(this.first!)
-
-    this.first = this.createItem(0, data[0])
-    this.appendNode(this.first)
-
-    let last: VirtualItem | undefined = this.first
-    for (let i = 1; i < data.length; i++) {
-      const next = this.createItem(i, data[i])
-      this.appendNode(next)
-      last.next = next
-      next.prev = last
-      last = next
-    }
-  }
-
   private updateChangedItems() {
-    let nextUpdate = this.firstUpdate
-    while (nextUpdate !== undefined) {
-      const data = nextUpdate.nextData
-      const item = nextUpdate
+    for (const item of this.updates) {
+      const data = item.nextData
+
+      if (item.itemToAppend !== undefined) {
+        const itemToMove = item.itemToAppend.clone()
+        this.insertNode(item, itemToMove)
+        this.replaceListItem(item, itemToMove)
+        itemToMove.isDetached = false
+        if (itemToMove.index !== item.index) {
+          itemToMove.updateIndex(item.index)
+        }
+
+        continue
+      }
 
       const cached = this.itemCache.get(data)
 
@@ -295,9 +286,6 @@ export class ListEffect implements StateEffect {
         } else {
           this.replaceNode(item, itemToMove)
           this.replaceListItem(item, itemToMove)
-          if (this.domTemplate.isFragment) {
-            this.itemCache.delete(item.key)
-          }
           item.isDetached = true
           cached.isDetached = true
         }
@@ -316,15 +304,10 @@ export class ListEffect implements StateEffect {
           this.replaceNode(item, next)
           this.replaceListItem(item, next)
           item.unsubscribeFromExternalState()
-          if (next.prev === undefined) {
-            this.first = next
-          }
         }
       }
 
-      nextUpdate = nextUpdate.nextUpdate
       item.nextData = undefined
-      item.nextUpdate = undefined
     }
   }
 
@@ -337,35 +320,35 @@ export class ListEffect implements StateEffect {
     // so this should be ok to assume item.prev is not undefined
     const last = item.prev!
     if (this.domTemplate.isFragment) {
-      if (next.node.childNodes.length > 0) {
-        this.parentNode.insertBefore(next.node, last.node.nextSibling)
-      } else {
-        const range = new Range()
-        range.setStartBefore(next.firstNode!)
-        range.setEndAfter(next.lastNode!)
-        const frag = range.extractContents()
-        this.parentNode.insertBefore(frag, last.node.nextSibling)
-      }
+      this.parentNode.insertBefore(this.fragmentFor(next), last.lastNode!.nextSibling)
     } else {
       this.parentNode.insertBefore(next.node, last.node.nextSibling)
     }
   }
 
+  private fragmentFor(item: VirtualItem): Node {
+    if (item.node.hasChildNodes()) {
+      // in this case the DocumentFragment has not been inserted
+      // into the dom so it still has children
+      return item.node
+    } else {
+      // in this case we extract the fragment elements from the DOM
+      // and return them in a new DocumentFragment
+      return this.detachFragment(item)
+    }
+  }
+
+  private detachFragment(item: VirtualItem): DocumentFragment {
+    const range = new Range()
+    range.setStartBefore(item.firstNode!)
+    range.setEndAfter(item.lastNode!)
+    return range.extractContents()
+  }
+
   private replaceNode(current: VirtualItem, next: VirtualItem): void {
     if (this.domTemplate.isFragment) {
-      const range = new Range()
-      range.setStartBefore(current.firstNode!)
-      range.setEndAfter(current.lastNode!)
-      range.deleteContents()
-      if (next.node.childNodes.length > 0) {
-        this.parentNode.insertBefore(next.node, current.next?.firstNode ?? this.listEnd)
-      } else {
-        const range = new Range()
-        range.setStartBefore(next.firstNode!)
-        range.setEndAfter(next.lastNode!)
-        const frag = range.extractContents()
-        this.parentNode.insertBefore(frag, current.next?.firstNode ?? this.listEnd)
-      }
+      this.parentNode.insertBefore(this.fragmentFor(next), current.firstNode!)
+      current.node = this.detachFragment(current)
     } else {
       this.parentNode.replaceChild(next.node, current.node)
     }
@@ -374,6 +357,8 @@ export class ListEffect implements StateEffect {
   private replaceListItem(current: VirtualItem, replacement: VirtualItem) {
     if (current.prev) {
       current.prev.next = replacement
+    } else {
+      this.first = replacement
     }
     replacement.prev = current.prev
     if (current.next) {
@@ -384,10 +369,7 @@ export class ListEffect implements StateEffect {
 
   private removeNode(item: VirtualItem): void {
     if (this.domTemplate.isFragment) {
-      const range = new Range()
-      range.setStartBefore(item.firstNode!)
-      range.setEndAfter(item.lastNode!)
-      range.deleteContents()
+      item.node = this.detachFragment(item)
     } else {
       this.parentNode.removeChild(item.node)
     }

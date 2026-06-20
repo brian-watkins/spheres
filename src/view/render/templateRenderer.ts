@@ -36,14 +36,24 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
       type: this.templateType,
       element: this.templateElement!,
       effects: this.effectTemplates,
-      isFragment: this.templateType === TemplateType.List || this.templateType === TemplateType.Select
+      isFragment: this.templateType === TemplateType.List ||
+        this.templateType === TemplateType.Select ||
+        this.root.childNodes.length > 1
+    }
+  }
+
+  private advanceLocation(): EffectLocation {
+    if (this.root.nodeType === 1) {
+      return this.root.hasChildNodes() ? this.location.nextSibling() : this.location.firstChild()
+    } else if (this.root.nodeType === 11) {
+      return this.root.hasChildNodes() ? this.location.nextSibling() : this.location
+    } else {
+      return this.location
     }
   }
 
   textNode(value: string | Stateful<string>): this {
-    if (this.root.nodeType === 1) {
-      this.location = this.root.hasChildNodes() ? this.location.nextSibling() : this.location.firstChild()
-    }
+    this.location = this.advanceLocation()
 
     if (isStateful(value)) {
       this.root.appendChild(document.createTextNode(""))
@@ -66,9 +76,7 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
 
     const elementId = this.idSequence.next
 
-    if (this.root.nodeType === 1) {
-      this.location = this.root.hasChildNodes() ? this.location.nextSibling() : this.location.firstChild()
-    }
+    this.location = this.advanceLocation()
 
     const config = new DomTemplateConfig(renderSupport.getConfigSupport(tag), this.zone, elementId, element, this.location, this.eventType)
 
@@ -98,9 +106,7 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
     const renderer = new DomTemplateRenderer(this.elementSupport, this.zone, new IdSequence(elementId), new EffectLocation(root => root))
     const templateContext = new ListItemTemplateContext(renderer, viewGenerator)
 
-    if (this.root.nodeType === 1) {
-      this.location = this.root.hasChildNodes() ? this.location.nextSibling() : this.location.firstChild()
-    }
+    this.location = this.advanceLocation()
 
     this.root.appendChild(fragment)
 
@@ -124,9 +130,7 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
     const elementId = this.idSequence.next
     const fragment = createFragment(switchStartIndicator(elementId), switchEndIndicator(elementId))
 
-    if (this.root.nodeType === 1) {
-      this.location = this.root.hasChildNodes() ? this.location.nextSibling() : this.location.firstChild()
-    }
+    this.location = this.advanceLocation()
 
     this.root.appendChild(fragment)
 

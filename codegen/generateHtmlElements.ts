@@ -1,4 +1,4 @@
-import { MethodSignatureStructure, OptionalKind, ParameterDeclarationStructure, Project, VariableDeclarationKind } from "ts-morph"
+import { MethodSignatureStructure, OptionalKind, ParameterDeclarationStructure, Project } from "ts-morph"
 import { htmlElementAttributes } from "html-element-attributes"
 import htmlTags, { voidHtmlTags } from "html-tags"
 import { booleanAttributes } from "./booleanAttributes"
@@ -122,7 +122,7 @@ specialHtmlElementsInterface.addMethod({
   name: "element",
   parameters: [
     { name: "tag", type: "string" },
-    { name: "builder", type: "(element: ConfigurableElement<SpecialElementAttributes & GlobalHTMLAttributes, HTMLElements>) => void", hasQuestionToken: true },
+    { name: "builder", type: "(element: ConfigurableElement<SpecialElementAttributes & GlobalHTMLAttributes, HTMLBuilder>) => void", hasQuestionToken: true },
     { name: "support", type: "ElementSupport", hasQuestionToken: true }
   ],
   returnType: "this"
@@ -210,35 +210,6 @@ for (const tag of htmlTags) {
 }
 
 
-// ViewElements interface
-
-const viewElementsInterface = htmlElementsFile.addInterface({
-  name: "HTMLElements",
-  extends: [
-    "SpecialHTMLElements"
-  ],
-  isExported: true
-})
-
-for (const tag of htmlTags) {
-  if (tag === "svg") {
-    continue
-  }
-
-  const methodSignature = viewElementsInterface.addMethod({
-    name: tag,
-    returnType: "this"
-  })
-
-  methodSignature.addParameter({
-    name: "builder?",
-    type: (writer) => {
-      writer.write(`(element: ConfigurableElement<${attributesName(tag)}, ${elementChildren(tag)}>) => void`)
-    }
-  })
-}
-
-
 // Attribute Interfaces
 
 for (const tag of htmlTags) {
@@ -288,5 +259,5 @@ function attributesName(tag: string): string {
 }
 
 function elementChildren(tag: string): string {
-  return (voidHtmlTags as Array<string>).includes(tag) ? "never" : "HTMLElements"
+  return (voidHtmlTags as Array<string>).includes(tag) ? "never" : "HTMLBuilder"
 }

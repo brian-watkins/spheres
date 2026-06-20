@@ -9,7 +9,7 @@ import { IdSequence } from "./render/idSequence.js"
 import { DOMEventType, RenderResult } from "./render/index.js"
 import { DomTemplateRenderer } from "./render/templateRenderer.js"
 import { ConfigurableElement } from "./render/viewRenderer.js"
-import { SVGElementAttributes, SVGElements } from "./svgElements.js"
+import { SVGBuilder, SVGElementAttributes } from "./svgElements.js"
 import { SVGElementSupport } from "./svgElementSupport.js"
 
 export * from "./htmlElements.js"
@@ -33,7 +33,7 @@ export function renderToDOM(store: Store, element: Element, view: HTMLView): Ren
   return root
 }
 
-export function svg(builder?: (el: ConfigurableElement<SVGElementAttributes, SVGElements>) => void): HTMLView {
+export function svg(builder?: (el: ConfigurableElement<SVGElementAttributes, SVGBuilder>) => void): HTMLView {
   return root => {
     root.element("svg", builder as (el: ConfigurableElement<any, any>) => void, new SVGElementSupport())
   }

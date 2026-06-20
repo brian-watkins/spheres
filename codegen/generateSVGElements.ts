@@ -120,7 +120,7 @@ specialSVGElementsInterface.addMethod({
   name: "element",
   parameters: [
     { name: "tag", type: "string" },
-    { name: "builder", type: "(element: ConfigurableElement<SpecialElementAttributes & GlobalSVGAttributes, SVGElements>) => void", hasQuestionToken: true },
+    { name: "builder", type: "(element: ConfigurableElement<SpecialElementAttributes & GlobalSVGAttributes, SVGBuilder>) => void", hasQuestionToken: true },
     { name: "support", type: "ElementSupport", hasQuestionToken: true }
   ],
   returnType: "this"
@@ -178,41 +178,13 @@ for (const tag of svgTagNames) {
 
   const methodSignature = viewBuilderInterface.addMethod({
     name: toCamel(tag),
-    returnType: "void"
+    returnType: "SVGBuilder"
   })
 
   methodSignature.addParameter({
     name: "builder?",
     type: (writer) => {
-      writer.write(`(element: ConfigurableElement<${attributesName(tag)}, SVGElements>) => void`)
-    }
-  })
-}
-
-
-// SVG Elements
-
-const svgElementsInterface = svgElementsFile.addInterface({
-  name: "SVGElements",
-  extends: [
-    "SpecialSVGElements"
-  ],
-  isExported: true
-})
-
-
-for (const tag of svgTagNames) {
-  if (isExcluded(tag)) continue
-
-  const methodSignature = svgElementsInterface.addMethod({
-    name: toCamel(tag),
-    returnType: "this"
-  })
-
-  methodSignature.addParameter({
-    name: "builder?",
-    type: (writer) => {
-      writer.write(`(element: ConfigurableElement<${attributesName(tag)}, SVGElements>) => void`)
+      writer.write(`(element: ConfigurableElement<${attributesName(tag)}, SVGBuilder>) => void`)
     }
   })
 }

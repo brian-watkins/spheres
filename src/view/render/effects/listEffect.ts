@@ -9,6 +9,16 @@ import { Container, clone } from "../../../store/state/container.js"
 import { ListItemReader } from "./listItemReader.js"
 import { ListItem } from "../viewRenderer.js"
 
+// External token handlers for an item form an intrusive singly-linked list so
+// the item only needs to store the list head, not a Map.
+class ExternalStateHandler extends OverlayStateHandler {
+  next: ExternalStateHandler | undefined = undefined
+
+  constructor(registry: TokenRegistry, parent: StateWriter<any, any>, readonly token: StateToken<unknown>) {
+    super(registry, parent)
+  }
+}
+
 class VirtualItem extends OverlayTokenRegistry {
   node!: Node
   firstNode: Node | undefined = undefined
@@ -18,7 +28,8 @@ class VirtualItem extends OverlayTokenRegistry {
   next: VirtualItem | undefined = undefined
   nextData: any | undefined = undefined
   itemToAppend: VirtualItem | undefined = undefined
-  private registry: Map<StateToken<unknown>, StateReader<unknown>> = new Map()
+  private registry: Map<StateToken<unknown>, StateReader<unknown>> | undefined = undefined
+  private externalStateHead: ExternalStateHandler | undefined = undefined
 
   static newInstance(data: any, index: number, registry: TokenRegistry, context: ListItemTemplateContext<any>): VirtualItem {
     return new VirtualItem(
@@ -40,6 +51,13 @@ class VirtualItem extends OverlayTokenRegistry {
     super(registry)
   }
 
+  getRegistry(): Map<StateToken<unknown>, StateReader<unknown>> {
+    if (this.registry === undefined) {
+      this.registry = new Map()
+    }
+    return this.registry
+  }
+
   setNode(node: Node, firstNode: Node | undefined, lastNode: Node | undefined) {
     this.node = node
     this.firstNode = firstNode
@@ -53,7 +71,7 @@ class VirtualItem extends OverlayTokenRegistry {
       this.parentRegistry,
       this.listItemDataToken,
       this.listItemDataReader,
-      this.viewTokens,
+      this.viewTokens
     )
 
     clone.setNode(this.node, this.firstNode, this.lastNode)
@@ -69,35 +87,42 @@ class VirtualItem extends OverlayTokenRegistry {
       return this.listItemDataReader as StateHandler<S>
     }
 
-    let publisher = this.registry.get(token)
-    if (publisher === undefined) {
-      if (this.viewTokens.has(token)) {
+    if (this.viewTokens.has(token)) {
+      const registry = this.getRegistry()
+      let publisher = registry.get(token)
+      if (publisher === undefined) {
         if (token instanceof Container) {
           const rootToken = token[clone]()
-          publisher = generateStateManager(this, token)
-          this.parentRegistry.setState(rootToken, publisher)
-          this.registry.set(token, this.parentRegistry.getState(rootToken))
+          const manager = generateStateManager(this, token)
+          this.parentRegistry.setState(rootToken, manager)
+          publisher = this.parentRegistry.getState(rootToken)
+          registry.set(token, publisher)
         } else {
-          publisher = generateStateManager(this, token) as StateHandler<S>
-          this.registry.set(token, publisher)
+          publisher = generateStateManager(this, token) as StateReader<unknown>
+          registry.set(token, publisher)
         }
-      } else {
-        const actualPublisher = this.parentRegistry.getState(token) as StateWriter<any, any>
-        publisher = new OverlayStateHandler(this.parentRegistry, actualPublisher)
-        this.registry.set(token, publisher)
+      }
+      return publisher as StateHandler<S>
+    }
+
+    for (let handler = this.externalStateHead; handler !== undefined; handler = handler.next) {
+      if (handler.token === token) {
+        return handler as StateHandler<S>
       }
     }
 
-    return publisher as StateHandler<S>
+    const actualPublisher = this.parentRegistry.getState(token) as StateWriter<any, any>
+    const overlayHandler = new ExternalStateHandler(this.parentRegistry, actualPublisher, token)
+    overlayHandler.next = this.externalStateHead
+    this.externalStateHead = overlayHandler
+
+    return overlayHandler as StateHandler<S>
   }
 
   unsubscribeFromExternalState() {
-    this.registry.forEach(publisher => {
-      if (publisher instanceof OverlayStateHandler) {
-        publisher.detach()
-      }
-    })
-    this.registry.clear()
+    for (let handler = this.externalStateHead; handler !== undefined; handler = handler.next) {
+      handler.detach()
+    }
   }
 
   updateIndex(index: number) {

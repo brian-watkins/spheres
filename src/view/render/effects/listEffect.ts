@@ -9,8 +9,6 @@ import { Container, clone } from "../../../store/state/container.js"
 import { ListItemReader } from "./listItemReader.js"
 import { ListItem } from "../viewRenderer.js"
 
-// External token handlers for an item form an intrusive singly-linked list so
-// the item only needs to store the list head, not a Map.
 class ExternalStateHandler extends OverlayStateHandler {
   next: ExternalStateHandler | undefined = undefined
 
@@ -19,21 +17,13 @@ class ExternalStateHandler extends OverlayStateHandler {
   }
 }
 
-class VirtualItem extends OverlayTokenRegistry {
-  node!: Node
-  firstNode: Node | undefined = undefined
-  lastNode: Node | undefined = undefined
-  isDetached: boolean = false
-  prev: VirtualItem | undefined = undefined
-  next: VirtualItem | undefined = undefined
-  nextData: any | undefined = undefined
-  itemToAppend: VirtualItem | undefined = undefined
+class ItemState extends OverlayTokenRegistry {
   private registry: Map<StateToken<unknown>, StateReader<unknown>> | undefined = undefined
   private externalStateHead: ExternalStateHandler | undefined = undefined
 
-  static newInstance(data: any, index: number, registry: TokenRegistry, context: ListItemTemplateContext<any>): VirtualItem {
-    return new VirtualItem(
-      data, index, registry,
+  static newInstance(data: any, index: number, registry: TokenRegistry, context: ListItemTemplateContext<any>): ItemState {
+    return new ItemState(
+      registry,
       context.listItemDataToken,
       new ListItemReader(data, index),
       context.viewTokens
@@ -41,8 +31,6 @@ class VirtualItem extends OverlayTokenRegistry {
   }
 
   private constructor(
-    public key: any,
-    public index: number,
     registry: TokenRegistry,
     private listItemDataToken: State<ListItem<any>>,
     private listItemDataReader: ListItemReader<any>,
@@ -56,30 +44,6 @@ class VirtualItem extends OverlayTokenRegistry {
       this.registry = new Map()
     }
     return this.registry
-  }
-
-  setNode(node: Node, firstNode: Node | undefined, lastNode: Node | undefined) {
-    this.node = node
-    this.firstNode = firstNode
-    this.lastNode = lastNode
-  }
-
-  clone(): VirtualItem {
-    const clone = new VirtualItem(
-      this.key,
-      this.index,
-      this.parentRegistry,
-      this.listItemDataToken,
-      this.listItemDataReader,
-      this.viewTokens
-    )
-
-    clone.setNode(this.node, this.firstNode, this.lastNode)
-    clone.isDetached = this.isDetached
-    clone.prev = this.prev
-    clone.next = this.next
-
-    return clone
   }
 
   getState<S extends StateToken<unknown>>(token: S): StateHandler<S> {
@@ -126,8 +90,32 @@ class VirtualItem extends OverlayTokenRegistry {
   }
 
   updateIndex(index: number) {
-    this.index = index
     this.listItemDataReader.updateIndex(index)
+  }
+}
+
+class VirtualItem {
+  prev: VirtualItem | undefined = undefined
+  next: VirtualItem | undefined = undefined
+  isDetached: boolean = false
+  nextData: any | undefined = undefined
+  itemToAppend: VirtualItem | undefined = undefined
+
+  constructor(public state: ItemState, public key: any, public index: number, public node: Node, public firstNode: Node | undefined, public lastNode: Node | undefined) { }
+
+  cloneSlot(): VirtualItem {
+    const slot = new VirtualItem(this.state, this.key, this.index, this.node, this.firstNode, this.lastNode)
+    slot.isDetached = this.isDetached
+    return slot
+  }
+
+  updateIndex(index: number) {
+    this.index = index
+    this.state.updateIndex(index)
+  }
+
+  unsubscribeFromExternalState() {
+    this.state.unsubscribeFromExternalState()
   }
 }
 
@@ -238,11 +226,11 @@ export class ListEffect implements StateEffect {
       const cached = this.itemCache.get(data)
       let next: VirtualItem
       if (cached !== undefined && cached.isDetached) {
-        next = cached.clone()
-        next.next = undefined
+        next = cached.cloneSlot()
         this.appendNode(next)
       } else if (cached !== undefined) {
-        next = VirtualItem.newInstance(data, index, this.registry, this.templateContext)
+        next = cached.cloneSlot()
+        next.index = index
         next.itemToAppend = cached
         next.nextData = data
         this.updates.push(next)
@@ -281,7 +269,7 @@ export class ListEffect implements StateEffect {
       const data = item.nextData
 
       if (item.itemToAppend !== undefined) {
-        const itemToMove = item.itemToAppend.clone()
+        const itemToMove = item.itemToAppend
         this.insertNode(item, itemToMove)
         this.replaceListItem(item, itemToMove)
         itemToMove.isDetached = false
@@ -295,7 +283,7 @@ export class ListEffect implements StateEffect {
       const cached = this.itemCache.get(data)
 
       if (cached !== undefined) {
-        const itemToMove = cached.clone()
+        const itemToMove = cached.cloneSlot()
         if (itemToMove.isDetached) {
           if (item.isDetached) {
             this.insertNode(item, itemToMove)
@@ -423,16 +411,18 @@ export class ListEffect implements StateEffect {
   }
 
   private createItem(index: number, data: any): VirtualItem {
-    const item = VirtualItem.newInstance(data, index, this.registry, this.templateContext)
+    const state = ItemState.newInstance(data, index, this.registry, this.templateContext)
 
-    const node = render(this.domTemplate, item)
-    item.setNode(
+    const node = render(this.domTemplate, state)
+
+    return new VirtualItem(
+      state,
+      data,
+      index,
       node,
       this.domTemplate.isFragment ? node.firstChild! : undefined,
       this.domTemplate.isFragment ? node.lastChild! : undefined
     )
-
-    return item
   }
 }
 
@@ -457,23 +447,20 @@ export function activateList(registry: TokenRegistry, context: ListItemTemplateC
 }
 
 function activateItem(registry: TokenRegistry, context: ListItemTemplateContext<any>, template: DOMTemplate, index: number, node: Node, data: any): [VirtualItem, Node] {
-  const virtualItem = VirtualItem.newInstance(data, index, registry, context)
-  activate(template, virtualItem, node)
+  const state = ItemState.newInstance(data, index, registry, context)
+  activate(template, state, node)
 
   switch (template.type) {
     case TemplateType.List: {
-      virtualItem.firstNode = node
-      virtualItem.lastNode = findListEndNode(node, getListElementId(node))
-      return [virtualItem, virtualItem.lastNode!.nextSibling!]
+      const item = new VirtualItem(state, data, index, document.createDocumentFragment(), node, findListEndNode(node, getListElementId(node)))
+      return [item, item.lastNode!.nextSibling!]
     }
     case TemplateType.Select: {
-      virtualItem.firstNode = node
-      virtualItem.lastNode = findSwitchEndNode(node, getSwitchElementId(node))
-      return [virtualItem, virtualItem.lastNode!.nextSibling!]
+      const item = new VirtualItem(state, data, index, document.createDocumentFragment(), node, findSwitchEndNode(node, getSwitchElementId(node)))
+      return [item, item.lastNode!.nextSibling!]
     }
     default: {
-      virtualItem.node = node
-      return [virtualItem, node.nextSibling!]
+      return [new VirtualItem(state, data, index, node, undefined, undefined), node.nextSibling!]
     }
   }
 }

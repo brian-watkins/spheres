@@ -295,7 +295,7 @@ class ListPatch {
 
 export class ListEffect implements StateEffect {
   readonly type = StateListenerType.ViewEffect
-  private parentNode!: Node
+  private parentNode!: Element
   private first: VirtualItem | undefined
   private last: VirtualItem | undefined
 
@@ -326,6 +326,8 @@ export class ListEffect implements StateEffect {
   }
 
   private patch(data: Array<any>) {
+    this.parentNode = this.listStart.parentNode! as Element
+
     if (data.length === 0) {
       if (this.first !== undefined) {
         this.removeAllAfter(this.first)
@@ -334,8 +336,6 @@ export class ListEffect implements StateEffect {
       }
       return
     }
-
-    this.parentNode = this.listStart.parentNode!
 
     if (this.first === undefined) {
       this.appendNewItems(data, 0)
@@ -353,7 +353,7 @@ export class ListEffect implements StateEffect {
     const itemsToRemove = patch.scanForItemsToRemove(data)
 
     if (patch.replacingAllItems) {
-      this.removeAllAfter(this.first!)
+      this.removeAllAfter(this.first)
       this.first = undefined
       this.last = undefined
       this.appendNewItems(data, 0)
@@ -598,18 +598,21 @@ export class ListEffect implements StateEffect {
   }
 
   private removeAllAfter(start: VirtualItem) {
-    if (start === undefined) return
-
-    const range = new Range()
-    range.setEndBefore(this.listEnd)
-
-    if (this.domTemplate.isFragment) {
-      range.setStartBefore(start.firstNode!)
+    if (start.prev === undefined && this.listStart.previousSibling === null && this.listEnd.nextSibling === null) {
+      // just replace everything if the list itself has no siblings under this parent
+      this.parentNode.replaceChildren(this.listStart, this.listEnd)
     } else {
-      range.setStartBefore(start.node)
-    }
+      const range = new Range()
+      range.setEndBefore(this.listEnd)
 
-    range.deleteContents()
+      if (this.domTemplate.isFragment) {
+        range.setStartBefore(start.firstNode!)
+      } else {
+        range.setStartBefore(start.node)
+      }
+
+      range.deleteContents()
+    }
 
     let item: VirtualItem | undefined = start
     while (item !== undefined) {

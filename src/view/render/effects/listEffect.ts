@@ -94,20 +94,16 @@ class ItemState extends OverlayTokenRegistry {
   }
 }
 
+enum PatchResult {
+  Survive, Delete, Replace
+}
+
 class VirtualItem {
   prev: VirtualItem | undefined = undefined
   next: VirtualItem | undefined = undefined
-  isDetached: boolean = false
-  nextData: any | undefined = undefined
-  itemToAppend: VirtualItem | undefined = undefined
+  patchResult: PatchResult = PatchResult.Survive
 
   constructor(public state: ItemState, public key: any, public index: number, public node: Node, public firstNode: Node | undefined, public lastNode: Node | undefined) { }
-
-  cloneSlot(): VirtualItem {
-    const slot = new VirtualItem(this.state, this.key, this.index, this.node, this.firstNode, this.lastNode)
-    slot.isDetached = this.isDetached
-    return slot
-  }
 
   updateIndex(index: number) {
     this.index = index
@@ -119,13 +115,189 @@ class VirtualItem {
   }
 }
 
+enum ListUpdateType {
+  Insert, Delete, Change
+}
+
+interface ListInsert {
+  type: ListUpdateType.Insert
+  data: any
+  before: VirtualItem
+  index: number
+}
+
+interface ListChangeItem {
+  type: ListUpdateType.Change
+  item: VirtualItem
+  data: any
+  index: number
+}
+
+interface ListDelete {
+  type: ListUpdateType.Delete
+  item: VirtualItem
+}
+
+type ListUpdate = ListInsert | ListDelete | ListChangeItem
+
+class ListPatch {
+  readonly updates: Array<ListUpdate> = []
+  index: number = 0
+  someItemRemainsInPlace: boolean = false
+  someItemMoves: boolean = false
+
+  private itemCache: Map<any, VirtualItem> = new Map()
+
+  addUpdate(update: ListUpdate) {
+    this.updates.push(update)
+  }
+
+  getItem(key: any): VirtualItem | undefined {
+    return this.itemCache.get(key)
+  }
+
+  setItem(item: VirtualItem) {
+    this.itemCache.set(item.key, item)
+  }
+
+  get replacingAllItems(): boolean {
+    return !this.someItemRemainsInPlace && !this.someItemMoves
+  }
+
+  get onlyAppendingItems(): boolean {
+    return this.updates.length === 0
+  }
+
+  scan(first: VirtualItem | undefined, data: Array<any>) {
+    let item: VirtualItem | undefined = first
+    let index = 0
+    let someItemRemainsInPlace = false
+    while (item !== undefined) {
+      if (index >= data.length) {
+        // ran out of new data so delete; cache because may have moved earlier
+        this.setItem(item)
+        this.addUpdate({
+          type: ListUpdateType.Delete,
+          item
+        })
+        item.patchResult = PatchResult.Delete
+        item = item.next
+        continue
+      }
+
+      if (item.key === data[index]) {
+        // there is a match so update index if necessary and go to the next
+        someItemRemainsInPlace = true
+        if (item.index !== index) {
+          item.updateIndex(index)
+        }
+
+        item = item.next
+        index = index + 1
+        continue
+      }
+
+      if (item.key === data[index + 1]) {
+        // insert an item and then go to next data so we get back on track
+        this.addUpdate({
+          type: ListUpdateType.Insert,
+          data: data[index],
+          before: item,
+          index
+        })
+
+        index = index + 1
+        continue
+      }
+
+      if (data[index] === item.next?.key) {
+        // delete an item so cache and skip to next item
+        // but keep data the same so we get back on track
+        item.patchResult = PatchResult.Delete
+        this.setItem(item)
+        this.addUpdate({
+          type: ListUpdateType.Delete,
+          item
+        })
+
+        if (item.next !== undefined) {
+          // Cache next in case anything needs to be inserted
+          // before this item that is deleted
+          this.setItem(item.next)
+        }
+
+        item = item.next
+        continue
+      }
+
+      // by default, change the item in this slot
+      // and cache the current in case it is moved
+      this.addUpdate({
+        type: ListUpdateType.Change,
+        item,
+        data: data[index],
+        index
+      })
+
+      this.setItem(item)
+      item.patchResult = PatchResult.Replace
+
+      if (item.next !== undefined && item.next.key === data[index + 1]) {
+        this.setItem(item.next)
+      }
+
+      item = item.next
+      index = index + 1
+    }
+
+    this.index = index
+    this.someItemRemainsInPlace = someItemRemainsInPlace
+  }
+
+  scanForItemsToRemove(data: Array<any>): Array<VirtualItem> {
+    for (let x = this.index; x < data.length; x++) {
+      const item = this.getItem(data[x])
+      if (item !== undefined) {
+        this.someItemMoves = true
+        item.patchResult = PatchResult.Survive
+      }
+    }
+
+    const itemsToRemove: Array<VirtualItem> = []
+    for (const update of this.updates) {
+      switch (update.type) {
+        case ListUpdateType.Change: {
+          const item = this.getItem(update.data)
+          if (item !== undefined) {
+            this.someItemMoves = true
+            item.patchResult = PatchResult.Survive
+          }
+          break
+        }
+        case ListUpdateType.Insert: {
+          const item = this.getItem(update.data)
+          if (item !== undefined) {
+            this.someItemMoves = true
+            item.patchResult = PatchResult.Survive
+          }
+          break
+        }
+        case ListUpdateType.Delete: {
+          itemsToRemove.push(update.item)
+          break
+        }
+      }
+    }
+
+    return itemsToRemove
+  }
+}
 
 export class ListEffect implements StateEffect {
   readonly type = StateListenerType.ViewEffect
   private parentNode!: Node
   private first: VirtualItem | undefined
-  private itemCache: Map<any, VirtualItem> = new Map()
-  private updates: Array<VirtualItem> = []
+  private last: VirtualItem | undefined
 
   constructor(
     private registry: TokenRegistry,
@@ -136,8 +308,9 @@ export class ListEffect implements StateEffect {
     private listEnd: Node,
   ) { }
 
-  setVirtualList(first: VirtualItem | undefined) {
+  setVirtualList(first: VirtualItem | undefined, last: VirtualItem | undefined) {
     this.first = first
+    this.last = last
   }
 
   init(get: GetState) {
@@ -157,185 +330,219 @@ export class ListEffect implements StateEffect {
       if (this.first !== undefined) {
         this.removeAllAfter(this.first)
         this.first = undefined
+        this.last = undefined
       }
       return
     }
 
     this.parentNode = this.listStart.parentNode!
 
-    this.first = this.updateFirst(data[0])
-
-    this.updateRest(this.first, data)
-
-    this.itemCache.clear()
-    this.updates.length = 0
-  }
-
-  private updateFirst(firstData: any): VirtualItem {
     if (this.first === undefined) {
-      const item = this.createItem(0, firstData)
-      this.appendNode(item)
-      return item
+      this.appendNewItems(data, 0)
+      return
     }
 
-    if (this.first.key === firstData) {
-      return this.first
+    const patch = new ListPatch()
+    patch.scan(this.first, data)
+
+    if (patch.onlyAppendingItems) {
+      this.appendNewItems(data, patch.index)
+      return
     }
 
-    if (this.first.next?.key === firstData) {
-      this.itemCache.set(this.first.key, this.first)
-      this.removeNode(this.first)
-      this.first.isDetached = true
-      this.first = this.first.next
-      this.first!.prev = undefined
-      if (this.first !== undefined) {
-        this.first.updateIndex(0)
-      }
+    const itemsToRemove = patch.scanForItemsToRemove(data)
 
-      return this.first!
+    if (patch.replacingAllItems) {
+      this.removeAllAfter(this.first!)
+      this.first = undefined
+      this.last = undefined
+      this.appendNewItems(data, 0)
+      return
     }
 
-    this.first.nextData = firstData
-    this.updates.push(this.first)
-    this.itemCache.set(this.first.key, this.first)
+    this.processDeletes(itemsToRemove)
 
-    return this.first
+    this.processAppends(data, patch)
+
+    this.processUpdates(data, patch)
   }
 
-  private updateRest(first: VirtualItem, data: Array<any>) {
-    let last = first
-    for (let i = 1; i < data.length; i++) {
-      last = this.updateItem(i, last, data[i])
-      if (last.index !== i) {
-        last.updateIndex(i)
-      }
+  private appendNewItems(data: Array<any>, start: number) {
+    for (let x = start; x < data.length; x++) {
+      const virtualItem = this.createItem(x, data[x])
+      this.appendNode(virtualItem)
+      this.appendItem(virtualItem)
     }
-
-    if (last?.next !== undefined) {
-      this.removeAllAfter(last.next)
-      last.next = undefined
-    }
-
-    this.updateChangedItems()
   }
 
-  private updateItem(index: number, last: VirtualItem, data: any): VirtualItem {
-    const current = last.next
-
-    if (current === undefined) {
-      const cached = this.itemCache.get(data)
-      let next: VirtualItem
-      if (cached !== undefined && cached.isDetached) {
-        next = cached.cloneSlot()
-        this.appendNode(next)
-      } else if (cached !== undefined) {
-        next = cached.cloneSlot()
-        next.index = index
-        next.itemToAppend = cached
-        next.nextData = data
-        this.updates.push(next)
-      } else {
-        next = this.createItem(index, data)
-        this.appendNode(next)
+  private processDeletes(itemsToRemove: Array<VirtualItem>): void {
+    for (const item of itemsToRemove) {
+      if (item.patchResult === PatchResult.Delete) {
+        this.removeNode(item)
+        this.deleteItem(item)
       }
-
-      last.next = next
-      next.prev = last
-      return next
     }
-
-    if (data === current.key) {
-      return current
-    }
-
-    if (data === current.next?.key) {
-      this.itemCache.set(current.key, current)
-      this.removeNode(current)
-      current.isDetached = true
-      last.next = current.next
-      current.next!.prev = last
-      return current.next!
-    }
-
-    current.nextData = data
-    this.updates.push(current)
-    this.itemCache.set(current.key, current)
-
-    return current
   }
 
-  private updateChangedItems() {
-    for (const item of this.updates) {
-      const data = item.nextData
+  private processAppends(data: Array<any>, state: ListPatch) {
+    for (let x = state.index; x < data.length; x++) {
+      this.placeUpdatedItem(state, data[x], x, undefined)
+    }
+  }
 
-      if (item.itemToAppend !== undefined) {
-        const itemToMove = item.itemToAppend
-        this.insertNode(item, itemToMove)
-        this.replaceListItem(item, itemToMove)
-        itemToMove.isDetached = false
-        if (itemToMove.index !== item.index) {
-          itemToMove.updateIndex(item.index)
+  private processUpdates(data: Array<any>, state: ListPatch) {
+    const updates = state.updates
+    for (let i = updates.length - 1; i > -1; i--) {
+      const update = updates[i]
+      switch (update.type) {
+        case ListUpdateType.Insert: {
+          this.placeUpdatedItem(state, update.data, update.index, update.before)
+          break
         }
-
-        continue
-      }
-
-      const cached = this.itemCache.get(data)
-
-      if (cached !== undefined) {
-        const itemToMove = cached.cloneSlot()
-        if (itemToMove.isDetached) {
-          if (item.isDetached) {
-            this.insertNode(item, itemToMove)
-            this.replaceListItem(item, itemToMove)
-            item.isDetached = false
+        case ListUpdateType.Change: {
+          const cached = state.getItem(update.data)
+          if (cached === undefined && update.item.patchResult === PatchResult.Replace) {
+            const virtualItem = this.createItem(update.index, update.data)
+            state.setItem(virtualItem)
+            this.replaceNode(update.item, virtualItem)
+            this.replaceItem(update.item, virtualItem)
           } else {
-            this.replaceNode(item, itemToMove)
-            this.replaceListItem(item, itemToMove)
-            item.isDetached = true
+            this.placeUpdatedItem(state, update.data, update.index, state.getItem(data[update.index + 1]))
+            if (update.item.patchResult === PatchResult.Replace) {
+              this.removeNode(update.item)
+              this.deleteItem(update.item)
+            }
           }
-
-          itemToMove.isDetached = false
-        } else {
-          this.replaceNode(item, itemToMove)
-          this.replaceListItem(item, itemToMove)
-          item.isDetached = true
-          cached.isDetached = true
-        }
-        if (itemToMove.index !== item.index) {
-          itemToMove.updateIndex(item.index)
-        }
-      } else {
-        if (item.isDetached) {
-          const next = this.createItem(item.index, data)
-          this.insertNode(item, next)
-          this.replaceListItem(item, next)
-          item.unsubscribeFromExternalState()
-          item.isDetached = false
-        } else {
-          const next = this.createItem(item.index, data)
-          this.replaceNode(item, next)
-          this.replaceListItem(item, next)
-          item.unsubscribeFromExternalState()
+          break
         }
       }
+    }
+  }
 
-      item.nextData = undefined
+  private placeUpdatedItem(state: ListPatch, data: any, index: number, before: VirtualItem | undefined) {
+    const cached = state.getItem(data)
+    if (cached === undefined) {
+      const item = this.createItem(index, data)
+      state.setItem(item)
+      this.placeNewItem(item, before)
+    } else {
+      this.moveCachedItem(cached, before)
+      cached.updateIndex(index)
+    }
+  }
+
+  private placeNewItem(item: VirtualItem, before: VirtualItem | undefined) {
+    if (before !== undefined) {
+      this.insertNodeBefore(before, item)
+      this.insertItemBefore(before, item)
+    } else {
+      this.appendNode(item)
+      this.appendItem(item)
+    }
+  }
+
+  private moveCachedItem(item: VirtualItem, before: VirtualItem | undefined) {
+    if (before !== undefined) {
+      this.moveNodeBefore(before, item)
+      this.deleteItem(item)
+      this.insertItemBefore(before, item)
+    } else {
+      this.moveNodeToEnd(item)
+      this.deleteItem(item)
+      this.appendItem(item)
     }
   }
 
   private appendNode(item: VirtualItem): void {
-    this.parentNode.insertBefore(item.node, this.listEnd)
+    if (this.domTemplate.isFragment) {
+      this.parentNode.insertBefore(this.fragmentFor(item), this.listEnd)
+    } else {
+      this.parentNode.insertBefore(item.node, this.listEnd)
+    }
   }
 
-  private insertNode(item: VirtualItem, next: VirtualItem): void {
-    // Seems like this cannot happen where item is the first in the list
-    // so this should be ok to assume item.prev is not undefined
-    const last = item.prev!
+  private insertNodeBefore(before: VirtualItem, item: VirtualItem): void {
     if (this.domTemplate.isFragment) {
-      this.parentNode.insertBefore(this.fragmentFor(next), last.lastNode!.nextSibling)
+      this.parentNode.insertBefore(this.fragmentFor(item), before.firstNode!)
     } else {
-      this.parentNode.insertBefore(next.node, last.node.nextSibling)
+      this.parentNode.insertBefore(item.node, before.node)
+    }
+  }
+
+  private replaceItem(current: VirtualItem, next: VirtualItem) {
+    next.prev = current.prev
+    next.next = current.next
+    if (current.prev) {
+      current.prev.next = next
+    } else {
+      this.first = next
+    }
+    if (current.next) {
+      current.next.prev = next
+    } else {
+      this.last = next
+    }
+  }
+
+  private appendItem(item: VirtualItem) {
+    item.next = undefined
+    if (this.last === undefined) {
+      item.prev = undefined
+      this.first = item
+      this.last = item
+    } else {
+      this.last.next = item
+      item.prev = this.last
+      this.last = item
+    }
+  }
+
+  private insertItemBefore(before: VirtualItem, item: VirtualItem) {
+    if (before.prev) {
+      before.prev.next = item
+      item.prev = before.prev
+    } else {
+      this.first = item
+      item.prev = undefined
+    }
+    before.prev = item
+    item.next = before
+  }
+
+  private moveNodeBefore(before: VirtualItem, item: VirtualItem): void {
+    if (this.domTemplate.isFragment) {
+      if (item.lastNode!.nextSibling === before.firstNode) {
+        return
+      }
+      this.parentNode.insertBefore(this.fragmentFor(item), before.firstNode!)
+    } else {
+      if (item.node.nextSibling === before.node) {
+        return
+      }
+      this.moveNode(item.node, before.node)
+    }
+  }
+
+  private moveNodeToEnd(item: VirtualItem) {
+    if (this.domTemplate.isFragment) {
+      if (item.lastNode!.nextSibling === this.listEnd) {
+        return
+      }
+      this.appendNode(item)
+    } else {
+      if (item.node.nextSibling === this.listEnd) {
+        return
+      }
+      this.moveNode(item.node, this.listEnd)
+    }
+  }
+
+  private moveNode(node: Node, beforeNode: Node): void {
+    const parentElement = this.parentNode as Element
+    if (parentElement.moveBefore !== undefined) {
+      parentElement.moveBefore(node, beforeNode)
+    } else {
+      this.parentNode.insertBefore(node, beforeNode)
     }
   }
 
@@ -365,19 +572,7 @@ export class ListEffect implements StateEffect {
     } else {
       this.parentNode.replaceChild(next.node, current.node)
     }
-  }
-
-  private replaceListItem(current: VirtualItem, replacement: VirtualItem) {
-    if (current.prev) {
-      current.prev.next = replacement
-    } else {
-      this.first = replacement
-    }
-    replacement.prev = current.prev
-    if (current.next) {
-      current.next.prev = replacement
-    }
-    replacement.next = current.next
+    current.unsubscribeFromExternalState()
   }
 
   private removeNode(item: VirtualItem): void {
@@ -387,6 +582,19 @@ export class ListEffect implements StateEffect {
       this.parentNode.removeChild(item.node)
     }
     item.unsubscribeFromExternalState()
+  }
+
+  private deleteItem(item: VirtualItem): void {
+    if (item.next) {
+      item.next.prev = item.prev
+    } else {
+      this.last = item.prev
+    }
+    if (item.prev) {
+      item.prev.next = item.next
+    } else {
+      this.first = item.next
+    }
   }
 
   private removeAllAfter(start: VirtualItem) {
@@ -426,7 +634,7 @@ export class ListEffect implements StateEffect {
   }
 }
 
-export function activateList(registry: TokenRegistry, context: ListItemTemplateContext<any>, template: DOMTemplate, startNode: Node, endNode: Node, data: Array<any>) {
+export function activateList(registry: TokenRegistry, context: ListItemTemplateContext<any>, template: DOMTemplate, startNode: Node, endNode: Node, data: Array<any>): [VirtualItem | undefined, VirtualItem | undefined] {
   let index = 0
   let existingNode: Node = startNode.nextSibling!
   let firstItem: VirtualItem | undefined
@@ -443,7 +651,7 @@ export function activateList(registry: TokenRegistry, context: ListItemTemplateC
     index++
     existingNode = nextNode
   }
-  return firstItem
+  return [firstItem, lastItem]
 }
 
 function activateItem(registry: TokenRegistry, context: ListItemTemplateContext<any>, template: DOMTemplate, index: number, node: Node, data: any): [VirtualItem, Node] {

@@ -66,7 +66,7 @@ export class ActivateDomRenderer extends AbstractViewRenderer {
     const effect = new ListEffect(this.registry, renderer.template, query, templateContext, this.currentNode!, end)
     const data = query(getStateFunctionWithListener(createSubscriber(this.registry, effect)))
     const virtualList = activateList(this.registry, templateContext, renderer.template, this.currentNode!, end, data)
-    effect.setVirtualList(virtualList)
+    effect.setVirtualList(...virtualList)
 
     this.currentNode = end.nextSibling
     this.currentLocation = this.currentLocation.nextCommentSiblingMatching(listEndIndicator(elementId)).nextSibling()

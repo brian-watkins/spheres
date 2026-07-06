@@ -171,5 +171,128 @@ export default behavior("insert items into list", [
       ]
     }),
 
+  example(renderContext<ListExamplesState>())
+    .description("a new item replaces the first while a later item moves up")
+    .script({
+      suppose: renderAppBasedOnState(["one", "two", "three"]),
+      perform: [
+        updateState("the first item is replaced and the last item moves up", [
+          "new",
+          "three",
+        ])
+      ],
+      observe: [
+        childElementText("the new item leads and the surviving item follows", [
+          "new (0)",
+          "three (1)",
+        ])
+      ]
+    }),
+
+  example(renderContext<ListExamplesState>())
+    .description("a new item is appended after the leading items are reordered")
+    .script({
+      suppose: renderAppBasedOnState(["one", "two", "three", "four"]),
+      perform: [
+        updateState("the first two swap, the third is dropped, and a new item is appended", [
+          "two",
+          "one",
+          "four",
+          "new",
+        ])
+      ],
+      observe: [
+        childElementText("the new item ends up last", [
+          "two (0)",
+          "one (1)",
+          "four (2)",
+          "new (3)",
+        ])
+      ]
+    }),
+
+  example(renderContext<ListExamplesState>())
+    .description("a new item replaces the head while two later items are kept in order")
+    .script({
+      suppose: renderAppBasedOnState(["one", "two", "three", "four"]),
+      perform: [
+        updateState("the first two are replaced by a new head and the last two are kept", [
+          "new",
+          "three",
+          "four",
+        ])
+      ],
+      observe: [
+        childElementText("the kept items stay in their original relative order", [
+          "new (0)",
+          "three (1)",
+          "four (2)",
+        ])
+      ]
+    }),
+
+  example(renderContext<ListExamplesState>())
+    .description("a new head is added while the rest of the list is reordered around it")
+    .script({
+      suppose: renderAppBasedOnState(["one", "two", "three", "four", "five"]),
+      perform: [
+        updateState("a new head is added and the survivors are reordered", [
+          "new",
+          "three",
+          "four",
+          "two",
+          "five",
+          "one",
+        ])
+      ],
+      observe: [
+        childElementText("every surviving item keeps its intended position", [
+          "new (0)",
+          "three (1)",
+          "four (2)",
+          "two (3)",
+          "five (4)",
+          "one (5)",
+        ])
+      ]
+    }),
+
+  example(renderContext<ListExamplesState>())
+    .description("multiple new items are inserted before the only existing item")
+    .script({
+      suppose: renderAppBasedOnState(["one"]),
+      perform: [
+        updateState("two new items are inserted at the front", [
+          "two",
+          "three",
+          "one",
+        ])
+      ],
+      observe: [
+        childElementText("the existing item moves to the end after the new items", [
+          "two (0)",
+          "three (1)",
+          "one (2)",
+        ])
+      ]
+    }),
+
+  example(renderContext<ListExamplesState>())
+    .description("a new tail is added while the rest of the list is truncated")
+    .script({
+      suppose: renderAppBasedOnState(["one", "two", "three", "four"]),
+      perform: [
+        updateState("a new head is added and the survivors are reordered", [
+          "three",
+          "new",
+        ])
+      ],
+      observe: [
+        childElementText("every surviving item keeps its intended position", [
+          "three (0)",
+          "new (1)",
+        ])
+      ]
+    }),
 
 ])

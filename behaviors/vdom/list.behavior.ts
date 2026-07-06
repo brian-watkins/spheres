@@ -1,9 +1,10 @@
 import { Collection, collection, container, Container, derived, reset, Stateful, update, use, Value, valueAt, write } from "@store/index.js";
 import { HTMLView, UseItem } from "@view/index";
 import { behavior, effect, example, fact, step } from "best-behavior";
-import { arrayContaining, equalTo, expect, is, objectWithProperty, resolvesTo } from "great-expectations";
+import { arrayContaining, equalTo, expect, is, objectWithProperty, resolvesTo, satisfying } from "great-expectations";
 import { selectElement, selectElements } from "./helpers/displayElement";
 import { RenderApp, renderContext } from "./helpers/renderContext";
+import { nodeAddedRecord, nodeReplacedRecord } from "./helpers/changeRecords";
 
 interface ListContext {
   items: Container<Array<string>>
@@ -170,7 +171,6 @@ export default behavior("list effects", [
                       .inert(true)
                       .selected(stateful((item) => item.data))
                     el.children
-                      // .textNode(stateful((_, get, index) => `Item ${get(index) + 1}`))
                       .textNode(stateful(item => `Item ${item.index + 1}`))
                   })
                 })
@@ -321,20 +321,21 @@ export default behavior("list effects", [
       perform: [
         step("update the data", (context) => {
           context.writeTo(context.state.labels, [
-            "one", "six", "three"
+            "one", "six", "seven", "three"
           ])
         })
       ],
       observe: [
         effect("the values are updated", async () => {
           await expect(selectElements("UL[data-list-type='labels'] LI").texts(), resolvesTo([
-            "one", "six", "three"
+            "one", "six", "seven", "three"
           ]))
         }),
-        effect("the row is replaced", (context) => {
-          expect(context.changeRecords, is(arrayContaining(
-            objectWithProperty("type", equalTo("structure")), { times: 1 }
-          )))
+        effect("one row is added and one row is replaced", (context) => {
+          expect(context.changeRecords, is(satisfying([
+            arrayContaining(equalTo(nodeAddedRecord()), { times: 1 }),
+            arrayContaining(equalTo(nodeReplacedRecord()), { times: 1 })
+          ])))
         })
       ]
     }),
@@ -1056,7 +1057,7 @@ function listOfSwitchWithDerivedStateExample(name: string, renderer: (context: R
         fact("there is a view with a list where items define derived state used in a conditional view", (context) => {
           function itemView(stateful: UseItem<string>): HTMLView {
             const reverseItemToggle = derived({
-              query: stateful(({index}, get) => !get(context.state.toggle.at(`${index}`)))
+              query: stateful(({ index }, get) => !get(context.state.toggle.at(`${index}`)))
             })
 
             return root => {

@@ -22,4 +22,16 @@ export function structureChangeRecord(details: { removedNodes: number, addedNode
   }
 }
 
+export function nodeAddedRecord() {
+  return structureChangeRecord({ addedNodes: 1, removedNodes: 0 })
+}
+
+export function nodeRemovedRecord() {
+  return structureChangeRecord({ addedNodes: 0, removedNodes: 1 })
+}
+
+export function nodeReplacedRecord() {
+  return structureChangeRecord({ addedNodes: 1, removedNodes: 1 })
+}
+
 export type DOMChangeRecord = DOMTextChangeRecord | DOMStructureChangeRecord

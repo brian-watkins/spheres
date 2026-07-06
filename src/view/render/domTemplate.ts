@@ -175,7 +175,7 @@ function activateEffect(registry: TokenRegistry, root: Node, effect: EffectTempl
       const listEffect = new ListEffect(registry, effect.domTemplate, effect.query, effect.context, listStartIndicatorNode, end)
       const data = effect.query(getStateFunctionWithListener(createSubscriber(registry, listEffect)))
       const virtualList = activateList(registry, effect.context, effect.domTemplate, listStartIndicatorNode, end, data)
-      listEffect.setVirtualList(virtualList)
+      listEffect.setVirtualList(...virtualList)
 
       break
     }

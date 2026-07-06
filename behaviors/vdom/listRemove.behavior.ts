@@ -24,6 +24,20 @@ export default behavior("removing items from list", [
           await expectChild(1, { atIndex: 0 })
         })
       ]
+    }).andThen({
+      perform: [
+        updateState("add an item to the end after items were removed from the end", [
+          "child-1",
+          "child-4"
+        ])
+      ],
+      observe: [
+        effect("the new item is appended after the remaining item", async () => {
+          await expectTotalChildren(2)
+          await expectChild(1, { atIndex: 0 })
+          await expectChild(4, { atIndex: 1 })
+        })
+      ]
     }),
 
   example(renderContext<ListExamplesState>())

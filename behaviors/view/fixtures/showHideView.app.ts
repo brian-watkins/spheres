@@ -17,7 +17,7 @@ export default function (root: HTMLBuilder) {
           .textNode("Click to toggle the view!")
       })
       .hr()
-      .subviewFrom(select => select.withConditions()
+      .subviewMatching(select => select.withConditions()
         .when(get => get(showFun), funView)
         .default(happyView)
       )

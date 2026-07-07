@@ -1,5 +1,5 @@
 import { GetState } from "../../../store/index.js"
-import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementId } from "../fragmentHelpers.js"
+import { findListEndNode, findMatchEndNode, getListElementId, getMatchElementId } from "../fragmentHelpers.js"
 import { activate, DOMTemplate, render, TemplateType } from "../domTemplate.js"
 import { StateEffect, StateListenerType, TokenRegistry } from "../../../store/tokenRegistry.js"
 import { ListItemTemplateContext } from "../templateContext.js"
@@ -380,8 +380,8 @@ function activateItem(registry: TokenRegistry, context: ListItemTemplateContext<
       const item = new VirtualItem(state, data, index, document.createDocumentFragment(), node, findListEndNode(node, getListElementId(node)))
       return [item, item.lastNode!.nextSibling!]
     }
-    case TemplateType.Select: {
-      const item = new VirtualItem(state, data, index, document.createDocumentFragment(), node, findSwitchEndNode(node, getSwitchElementId(node)))
+    case TemplateType.Match: {
+      const item = new VirtualItem(state, data, index, document.createDocumentFragment(), node, findMatchEndNode(node, getMatchElementId(node)))
       return [item, item.lastNode!.nextSibling!]
     }
     default: {

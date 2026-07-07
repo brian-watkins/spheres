@@ -2,14 +2,14 @@ import { dispatchMessage } from "../../store/message.js"
 import { GetState, getStateFunctionWithListener, initListener, StateListener, createSubscriber, TokenRegistry } from "../../store/tokenRegistry.js"
 import { EffectLocation } from "./effectLocation.js"
 import { activateList, ListEffect } from "./effects/listEffect.js"
-import { activateSelect, SelectViewEffect } from "./effects/selectViewEffect.js"
-import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementId } from "./fragmentHelpers.js"
+import { activateMatch, MatchViewEffect } from "./effects/matchViewEffect.js"
+import { findListEndNode, findMatchEndNode, getListElementId, getMatchElementId, LIST_START, MATCH_START } from "./fragmentHelpers.js"
 import { spheresTemplateData, StoreEventHandler } from "./index.js"
-import { TemplateCollection } from "./selectorBuilder.js"
+import { TemplateCollection } from "./viewMatcherBuilder.js"
 import { ListItemTemplateContext } from "./templateContext.js"
 
 export enum EffectTemplateTypes {
-  Text, Attribute, Property, List, Select, Event
+  Text, Attribute, Property, List, Match, Event
 }
 
 export interface TextEffectTemplate {
@@ -39,8 +39,8 @@ export interface ListEffectTemplate {
   location: EffectLocation
 }
 
-export interface SelectEffectTemplate {
-  type: EffectTemplateTypes.Select
+export interface MatchEffectTemplate {
+  type: EffectTemplateTypes.Match
   collection: TemplateCollection<DOMTemplate>
   elementId: string
   location: EffectLocation
@@ -58,11 +58,11 @@ export type EffectTemplate
   | AttributeEffectTemplate
   | PropertyEffectTemplate
   | ListEffectTemplate
-  | SelectEffectTemplate
+  | MatchEffectTemplate
   | EventEffectTemplate
 
 export enum TemplateType {
-  List, Select, Other
+  List, Match, Other
 }
 
 export interface DOMTemplate {
@@ -106,10 +106,10 @@ function attachRegistryData(registry: TokenRegistry, first: Node | null) {
     switch (node.nodeType) {
       case Node.COMMENT_NODE: {
         const indicator = node.nodeValue!
-        if (indicator.startsWith("list-start-")) {
+        if (indicator.startsWith(LIST_START)) {
           node = findListEndNode(node, getListElementId(node))
-        } else if (indicator.startsWith("switch-start-")) {
-          node = findSwitchEndNode(node, getSwitchElementId(node))
+        } else if (indicator.startsWith(MATCH_START)) {
+          node = findMatchEndNode(node, getMatchElementId(node))
         }
         break
       }
@@ -140,11 +140,11 @@ function initializeEffect(registry: TokenRegistry, root: Node, effect: EffectTem
       initListener(registry, listEffect)
       break
     }
-    case EffectTemplateTypes.Select: {
+    case EffectTemplateTypes.Match: {
       const startNode = effect.location.findNode(root)
-      const endNode = findSwitchEndNode(startNode, effect.elementId)
+      const endNode = findMatchEndNode(startNode, effect.elementId)
 
-      const selectEffect = new SelectViewEffect(registry, effect.collection, startNode, endNode)
+      const selectEffect = new MatchViewEffect(registry, effect.collection, startNode, endNode)
       initListener(registry, selectEffect)
       break
     }
@@ -179,13 +179,13 @@ function activateEffect(registry: TokenRegistry, root: Node, effect: EffectTempl
 
       break
     }
-    case EffectTemplateTypes.Select: {
+    case EffectTemplateTypes.Match: {
       const startNode = effect.location.findNode(root)
-      const endNode = findSwitchEndNode(startNode, effect.elementId)
+      const endNode = findMatchEndNode(startNode, effect.elementId)
 
-      const selectEffect = new SelectViewEffect(registry, effect.collection, startNode, endNode)
-      const selection = activateSelect(registry, effect.collection, startNode, getStateFunctionWithListener(createSubscriber(registry, selectEffect)))
-      selectEffect.setCurrentSelection(selection)
+      const selectEffect = new MatchViewEffect(registry, effect.collection, startNode, endNode)
+      const selection = activateMatch(registry, effect.collection, startNode, getStateFunctionWithListener(createSubscriber(registry, selectEffect)))
+      selectEffect.setCurrentMatch(selection)
 
       break
     }

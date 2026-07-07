@@ -241,7 +241,7 @@ function listItemView(useItem: UseItem<string>): HTMLView {
 
 function strangeView(root: HTMLBuilder) {
   root.main(el => {
-    el.children.subviewFrom(selector => {
+    el.children.subviewMatching(selector => {
       selector.withUnion(get => get(viewState))
         .when(val => val.type === "detail-view", detailView)
         .when(val => val.type === "list-view", listView)

@@ -2,13 +2,13 @@ import { DOMEvent, DOMEventType, EventsToDelegate, StoreEventHandler, EventZone 
 import { Stateful, GetState } from "../../store/index.js";
 import { EffectLocation } from "./effectLocation.js";
 import { setEventAttribute } from "./eventHelpers.js";
-import { createFragment, listEndIndicator, listStartIndicator, switchEndIndicator, switchStartIndicator } from "./fragmentHelpers.js";
+import { createFragment, listEndIndicator, listStartIndicator, matchEndIndicator, matchStartIndicator } from "./fragmentHelpers.js";
 import { IdSequence } from "./idSequence.js";
 import { ListItemTemplateContext } from "./templateContext.js";
 import { AbstractViewConfig } from "./viewConfig.js";
-import { AbstractViewRenderer, ElementDefinition, UseItem, ViewDefinition, ViewSelector } from "./viewRenderer.js";
+import { AbstractViewRenderer, ElementDefinition, UseItem, ViewDefinition, ViewMatcher } from "./viewRenderer.js";
 import { DOMTemplate, EffectTemplate, EffectTemplateTypes, TemplateType } from "./domTemplate.js";
-import { SelectorBuilder } from "./selectorBuilder.js";
+import { MatcherBuilder } from "./viewMatcherBuilder.js";
 import { ElementConfigSupport, ElementSupport } from "../elementSupport.js";
 import { UpdateTextEffect } from "./effects/textEffect.js";
 import { UpdateAttributeEffect } from "./effects/attributeEffect.js";
@@ -37,7 +37,7 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
       element: this.templateElement!,
       effects: this.effectTemplates,
       isFragment: this.templateType === TemplateType.List ||
-        this.templateType === TemplateType.Select ||
+        this.templateType === TemplateType.Match ||
         this.root.childNodes.length > 1
     }
   }
@@ -124,27 +124,27 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
     return this
   }
 
-  subviewFrom(selectorGenerator: (selector: ViewSelector) => void): this {
-    this.templateType = TemplateType.Select
+  subviewMatching(matcherGenerator: (matcher: ViewMatcher) => void): this {
+    this.templateType = TemplateType.Match
 
     const elementId = this.idSequence.next
-    const fragment = createFragment(switchStartIndicator(elementId), switchEndIndicator(elementId))
+    const fragment = createFragment(matchStartIndicator(elementId), matchEndIndicator(elementId))
 
     this.location = this.advanceLocation()
 
     this.root.appendChild(fragment)
 
-    const selectorBuilder = new SelectorBuilder(createDOMTemplate(this.elementSupport, this.zone, elementId))
-    selectorGenerator(selectorBuilder)
+    const matcherBuilder = new MatcherBuilder(createDOMTemplate(this.elementSupport, this.zone, elementId))
+    matcherGenerator(matcherBuilder)
 
     this.effectTemplates.push({
-      type: EffectTemplateTypes.Select,
-      collection: selectorBuilder.collection,
+      type: EffectTemplateTypes.Match,
+      collection: matcherBuilder.collection,
       elementId,
       location: this.location
     })
 
-    this.location = this.location.nextCommentSiblingMatching(switchEndIndicator(elementId))
+    this.location = this.location.nextCommentSiblingMatching(matchEndIndicator(elementId))
 
     return this
   }

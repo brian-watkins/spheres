@@ -7,7 +7,7 @@ export default function view(root: HTMLBuilder) {
       .h1(el => {
         el.config.dataAttribute("title")
         el.children
-          .subviewFrom(selector => {
+          .subviewMatching(selector => {
             selector.withConditions()
               .when(get => get(things.meta).type === "pending", (root) => {
                 root.textNode("Loading things ...")
@@ -24,7 +24,7 @@ export default function view(root: HTMLBuilder) {
       .h1(el => {
         el.config.dataAttribute("value")
         el.children
-          .subviewFrom(selector => {
+          .subviewMatching(selector => {
             selector.withConditions()
               .when(get => get(thingValue.meta).type === "pending", (root) => {
                 root.textNode("Loading value ...")

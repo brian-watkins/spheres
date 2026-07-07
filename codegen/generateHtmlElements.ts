@@ -47,23 +47,23 @@ htmlElementsFile.addTypeAlias({
   type: "(root: HTMLBuilder) => void"
 })
 
-const caseSelectorInterface = htmlElementsFile.addInterface({
-  name: "HTMLCaseSelector",
+const caseMatcherInterface = htmlElementsFile.addInterface({
+  name: "HTMLCaseMatcher",
   typeParameters: ["T"],
   isExported: true
 })
 
-caseSelectorInterface.addMethod({
+caseMatcherInterface.addMethod({
   name: "when",
   typeParameters: ["X extends T"],
   parameters: [
     { name: "typePredicate", type: "(val: T) => val is X" },
     { name: "generator", type: "(useCase: UseCase<X>) => HTMLView" }
   ],
-  returnType: "HTMLCaseSelector<T>"
+  returnType: "HTMLCaseMatcher<T>"
 })
 
-caseSelectorInterface.addMethod({
+caseMatcherInterface.addMethod({
   name: "default",
   parameters: [
     { name: "generator", "type": "(useCase: UseCase<T>) => HTMLView" }
@@ -71,21 +71,21 @@ caseSelectorInterface.addMethod({
   returnType: "void"
 })
 
-const conditionSelectorInterface = htmlElementsFile.addInterface({
-  name: "HTMLConditionSelector",
+const conditionMatcherInterface = htmlElementsFile.addInterface({
+  name: "HTMLConditionMatcher",
   isExported: true
 })
 
-conditionSelectorInterface.addMethod({
+conditionMatcherInterface.addMethod({
   name: "when",
   parameters: [
     { name: "predicate", type: "(get: GetState) => boolean" },
     { name: "view", type: "HTMLView" }
   ],
-  returnType: "HTMLConditionSelector"
+  returnType: "HTMLConditionMatcher"
 })
 
-conditionSelectorInterface.addMethod({
+conditionMatcherInterface.addMethod({
   name: "default",
   parameters: [
     { name: "view", type: "HTMLView" }
@@ -94,23 +94,23 @@ conditionSelectorInterface.addMethod({
 })
 
 
-const viewSelectorInterface = htmlElementsFile.addInterface({
-  name: "HTMLViewSelector",
+const viewMatcherInterface = htmlElementsFile.addInterface({
+  name: "HTMLViewMatcher",
   isExported: true
 })
 
-viewSelectorInterface.addMethod({
+viewMatcherInterface.addMethod({
   name: "withUnion",
   typeParameters: ["T"],
   parameters: [
     { name: "unionValue", type: "(get: GetState) => T" }
   ],
-  returnType: "HTMLCaseSelector<T>"
+  returnType: "HTMLCaseMatcher<T>"
 })
 
-viewSelectorInterface.addMethod({
+viewMatcherInterface.addMethod({
   name: "withConditions",
-  returnType: "HTMLConditionSelector"
+  returnType: "HTMLConditionMatcher"
 })
 
 const specialHtmlElementsInterface = htmlElementsFile.addInterface({
@@ -145,9 +145,9 @@ specialHtmlElementsInterface.addMethod({
 })
 
 specialHtmlElementsInterface.addMethod({
-  name: "subviewFrom",
+  name: "subviewMatching",
   parameters: [
-    { name: "selectorGenerator", type: "(selector: HTMLViewSelector) => void" }
+    { name: "matcherGenerator", type: "(matcher: HTMLViewMatcher) => void" }
   ],
   returnType: "this"
 })

@@ -5,26 +5,26 @@ import { ElementSupport } from "./elementSupport.js";
 
 export type SVGView = (root: SVGBuilder) => void;
 
-export interface SVGCaseSelector<T> {
-    when<X extends T>(typePredicate: (val: T) => val is X, generator: (useCase: UseCase<X>) => SVGView): SVGCaseSelector<T>;
+export interface SVGCaseMatcher<T> {
+    when<X extends T>(typePredicate: (val: T) => val is X, generator: (useCase: UseCase<X>) => SVGView): SVGCaseMatcher<T>;
     default(generator: (useCase: UseCase<T>) => SVGView): void;
 }
 
-export interface SVGConditionSelector {
-    when(predicate: (get: GetState) => boolean, view: SVGView): SVGConditionSelector;
+export interface SVGConditionMatcher {
+    when(predicate: (get: GetState) => boolean, view: SVGView): SVGConditionMatcher;
     default(view: SVGView): void;
 }
 
-export interface SVGViewSelector {
-    withUnion<T>(unionValue: (get: GetState) => T): SVGCaseSelector<T>;
-    withConditions(): SVGConditionSelector;
+export interface SVGViewMatcher {
+    withUnion<T>(unionValue: (get: GetState) => T): SVGCaseMatcher<T>;
+    withConditions(): SVGConditionMatcher;
 }
 
 export interface SpecialSVGElements {
     element(tag: string, builder?: (element: ConfigurableElement<SpecialElementAttributes & GlobalSVGAttributes, SVGBuilder>) => void, support?: ElementSupport): this;
     textNode(value: string | Stateful<string | undefined>): this;
     subview(value: SVGView): this;
-    subviewFrom(selectorGenerator: (selector: SVGViewSelector) => void): this;
+    subviewMatching(matcherGenerator: (matcher: SVGViewMatcher) => void): this;
     subviews<T>(data: (get: GetState) => Array<T>, viewGenerator: (useItem: UseItem<T>) => SVGView): this;
 }
 

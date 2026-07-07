@@ -5,26 +5,26 @@ import { ElementSupport } from "./elementSupport.js";
 
 export type HTMLView = (root: HTMLBuilder) => void;
 
-export interface HTMLCaseSelector<T> {
-    when<X extends T>(typePredicate: (val: T) => val is X, generator: (useCase: UseCase<X>) => HTMLView): HTMLCaseSelector<T>;
+export interface HTMLCaseMatcher<T> {
+    when<X extends T>(typePredicate: (val: T) => val is X, generator: (useCase: UseCase<X>) => HTMLView): HTMLCaseMatcher<T>;
     default(generator: (useCase: UseCase<T>) => HTMLView): void;
 }
 
-export interface HTMLConditionSelector {
-    when(predicate: (get: GetState) => boolean, view: HTMLView): HTMLConditionSelector;
+export interface HTMLConditionMatcher {
+    when(predicate: (get: GetState) => boolean, view: HTMLView): HTMLConditionMatcher;
     default(view: HTMLView): void;
 }
 
-export interface HTMLViewSelector {
-    withUnion<T>(unionValue: (get: GetState) => T): HTMLCaseSelector<T>;
-    withConditions(): HTMLConditionSelector;
+export interface HTMLViewMatcher {
+    withUnion<T>(unionValue: (get: GetState) => T): HTMLCaseMatcher<T>;
+    withConditions(): HTMLConditionMatcher;
 }
 
 export interface SpecialHTMLElements {
     element(tag: string, builder?: (element: ConfigurableElement<SpecialElementAttributes & GlobalHTMLAttributes, HTMLBuilder>) => void, support?: ElementSupport): this;
     textNode(value: string | Stateful<string | undefined>): this;
     subview(value: HTMLView): this;
-    subviewFrom(selectorGenerator: (selector: HTMLViewSelector) => void): this;
+    subviewMatching(matcherGenerator: (matcher: HTMLViewMatcher) => void): this;
     subviews<T>(data: (get: GetState) => Array<T>, viewGenerator: (useItem: UseItem<T>) => HTMLView): this;
 }
 

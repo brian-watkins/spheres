@@ -28,7 +28,7 @@ export default behavior("conditional view memory", [
           context.mountView(root => {
             root.div(el => {
               el.children
-                .subviewFrom(select => select.withConditions()
+                .subviewMatching(select => select.withConditions()
                   .when(get => get(context.state) % 2 === 0, evenView)
                   .default(root => {
                     root.p(el => {

@@ -18,19 +18,19 @@ export type UseCase<T> = <S>(
   ) => S
 ) => Stateful<S>
 
-export interface ViewCaseSelector<T> {
-  when<X extends T>(typePredicate: (val: T) => val is X, generator: (useCase: UseCase<X>) => ViewDefinition): ViewCaseSelector<T>
+export interface ViewCaseMatcher<T> {
+  when<X extends T>(typePredicate: (val: T) => val is X, generator: (useCase: UseCase<X>) => ViewDefinition): ViewCaseMatcher<T>
   default(generator: (useCase: UseCase<T>) => ViewDefinition): void
 }
 
-export interface ViewConditionSelector {
+export interface ViewConditionMatcher {
   when(predicate: (get: GetState) => boolean, view: ViewDefinition): this
   default(view: ViewDefinition): void;
 }
 
-export interface ViewSelector {
-  withUnion<T>(unionValue: (get: GetState) => T): ViewCaseSelector<T>
-  withConditions(): ViewConditionSelector
+export interface ViewMatcher {
+  withUnion<T>(unionValue: (get: GetState) => T): ViewCaseMatcher<T>
+  withConditions(): ViewConditionMatcher
 }
 
 export interface ListItem<T> {
@@ -53,13 +53,13 @@ export interface ViewRenderer {
     data: (get: GetState) => Array<T>,
     viewGenerator: (useItem: UseItem<T>) => ViewDefinition
   ): this
-  subviewFrom(selectorGenerator: (selector: ViewSelector) => void): this
+  subviewMatching(matcherGenerator: (matcher: ViewMatcher) => void): this
 }
 
 abstract class BaseViewRenderer implements ViewRenderer {
   abstract textNode(value: string | Stateful<string>): this
   abstract element(tag: string, builder?: ElementDefinition, support?: ElementSupport): this
-  abstract subviewFrom(selectorGenerator: (selector: ViewSelector) => void): this
+  abstract subviewMatching(matcherGenerator: (matcher: ViewMatcher) => void): this
   abstract subviews<T>(data: (get: GetState) => Array<T>, viewGenerator: (useItem: UseItem<T>) => ViewDefinition): this
 
   subview(view: ViewDefinition): this {

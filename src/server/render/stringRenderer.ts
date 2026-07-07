@@ -4,13 +4,13 @@ import { GetState, isStateful, runQuery } from "../../store/tokenRegistry.js";
 import { voidElements } from "../../view/elementData.js";
 import { HTMLBuilder, HTMLView } from "../../view/index.js";
 import { EventsToDelegate, StoreEventHandler } from "../../view/render/index.js";
-import { listEndIndicator, listStartIndicator, switchEndIndicator, switchStartIndicator } from "../../view/render/fragmentHelpers.js";
+import { listEndIndicator, listStartIndicator, matchEndIndicator, matchStartIndicator } from "../../view/render/fragmentHelpers.js";
 import { IdSequence } from "../../view/render/idSequence.js";
 import { ViteContext } from "./viteContext.js";
-import { AbstractViewRenderer, ElementDefinition, UseItem, ViewDefinition, ViewSelector } from "../../view/render/viewRenderer.js";
+import { AbstractViewRenderer, ElementDefinition, UseItem, ViewDefinition, ViewMatcher } from "../../view/render/viewRenderer.js";
 import { ListItemTemplateContext } from "../../view/render/templateContext.js";
 import { AbstractViewConfig } from "../../view/render/viewConfig.js";
-import { SelectorBuilder } from "../../view/render/selectorBuilder.js";
+import { MatcherBuilder } from "../../view/render/viewMatcherBuilder.js";
 import { addTemplate, emptyTemplate, HTMLTemplate, stringForTemplate, templateFromStateful, templateFromString, toStatefulString } from "./template.js";
 import { HeadElementRenderer } from "./elementRenderers/headElementRenderer.js";
 import { HtmlElementRenderer } from "./elementRenderers/htmlElementRenderer.js";
@@ -172,20 +172,20 @@ class StringRenderer extends AbstractViewRenderer {
     return this
   }
 
-  subviewFrom(selectorGenerator: (selector: ViewSelector) => void): this {
+  subviewMatching(matcherGenerator: (matcher: ViewMatcher) => void): this {
     const elementId = this.idSequence.next
-    const templateSelectorBuilder = new SelectorBuilder(createStringTemplate(this.elementSupport, this.options, elementId))
-    selectorGenerator(templateSelectorBuilder)
-    const templateCollection = templateSelectorBuilder.collection
+    const templateMatcherBuilder = new MatcherBuilder(createStringTemplate(this.elementSupport, this.options, elementId))
+    matcherGenerator(templateMatcherBuilder)
+    const templateCollection = templateMatcherBuilder.collection
 
     this.appendToTemplate({
       strings: [
-        `<!--${switchStartIndicator(elementId)}-->`,
-        `<!--${switchEndIndicator(elementId)}-->`
+        `<!--${matchStartIndicator(elementId)}-->`,
+        `<!--${matchEndIndicator(elementId)}-->`
       ],
       statefuls: [
         (registry) => {
-          const selection = runQuery(registry, (get) => templateCollection.select(get))
+          const selection = runQuery(registry, (get) => templateCollection.match(get))
           switch (selection.type) {
             case "empty": {
               return ""

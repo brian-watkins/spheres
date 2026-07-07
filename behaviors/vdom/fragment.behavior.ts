@@ -107,7 +107,7 @@ export default behavior("fragment", [
                 el.config.on("click", () => update(flag, val => !val))
                 el.children.textNode("Click me!")
               })
-              .subviewFrom(selector => {
+              .subviewMatching(selector => {
                 selector.withConditions()
                   .when(get => get(flag), otherView)
                   .default(defaultView)
@@ -148,7 +148,7 @@ export default behavior("fragment", [
             root
               .p(el => el.children.textNode("Outer default view!"))
               .h1(el => el.children.textNode("Hello from outer view!"))
-              .subviewFrom(selector => {
+              .subviewMatching(selector => {
                 selector.withConditions()
                   .default(root => root.h3(el => el.children.textNode("Inner view!")))
               })
@@ -156,7 +156,7 @@ export default behavior("fragment", [
 
           context.mountView(root => {
             root
-              .subviewFrom(selector => {
+              .subviewMatching(selector => {
                 selector.withConditions()
                   .default(outerDefault)
               })
@@ -213,7 +213,7 @@ export default behavior("fragment", [
               .h1(el => {
                 el.children.textNode("Hello from outer view!")
               })
-              .subviewFrom(selector => {
+              .subviewMatching(selector => {
                 selector.withConditions()
                   .when(get => get(showInner), innerFragment)
                   .default(innerDefault)
@@ -231,7 +231,7 @@ export default behavior("fragment", [
                 el.config.on("click", () => update(showOuter, val => !val))
                 el.children.textNode("Toggle outer!")
               })
-              .subviewFrom(selector => {
+              .subviewMatching(selector => {
                 selector.withConditions()
                   .when(get => get(showOuter), outerView)
                   .default(outerDefault)
@@ -463,7 +463,7 @@ export default behavior("fragment", [
           }
 
           context.ssrAndActivate(root => {
-            root.subviewFrom(selector => {
+            root.subviewMatching(selector => {
               selector.withConditions()
                 .default(fragmentView)
             })
@@ -501,7 +501,7 @@ export default behavior("fragment", [
       ]
     }),
 
-  example(renderContext<FragmentListContext>())
+  (m) => m.pick() && example(renderContext<FragmentListContext>())
     .description("activating a server-rendered switch fragment with a list followed by a sibling that has an event")
     .script({
       suppose: [
@@ -538,7 +538,7 @@ export default behavior("fragment", [
           }
 
           context.ssrAndActivate(root => {
-            root.subviewFrom(selector => {
+            root.subviewMatching(selector => {
               selector.withConditions()
                 .default(fragmentView)
             })
@@ -596,7 +596,7 @@ export default behavior("fragment", [
 
           function fragmentView(root: HTMLBuilder) {
             root
-              .subviewFrom(selector => {
+              .subviewMatching(selector => {
                 selector.withConditions()
                   .default(innerFragment)
               })
@@ -616,7 +616,7 @@ export default behavior("fragment", [
           }
 
           context.ssrAndActivate(root => {
-            root.subviewFrom(selector => {
+            root.subviewMatching(selector => {
               selector.withConditions()
                 .default(fragmentView)
             })

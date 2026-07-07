@@ -81,7 +81,7 @@ export default function (root: HTMLBuilder) {
         el.config
           .width("300")
           .height("200")
-        el.children.subviewFrom(select => select.withConditions()
+        el.children.subviewMatching(select => select.withConditions()
           .when(get => get(currentShape) === "square", squareView)
           .when(get => get(currentShape) === "circle", circleView)
           .when(get => get(currentShape) === "rectangle", rectangleView)

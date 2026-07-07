@@ -27,7 +27,7 @@ export default behavior("conditional zone", [
           context.mountView(root => {
             root.div(el => {
               el.children
-                .subviewFrom(select => select.withConditions()
+                .subviewMatching(select => select.withConditions()
                   .when(get => get(context.state) % 2 === 0, evenView)
                 )
             })
@@ -84,7 +84,7 @@ export default behavior("conditional zone", [
           context.mountView(root => {
             root.div(el => {
               el.children
-                .subviewFrom(select => select.withConditions()
+                .subviewMatching(select => select.withConditions()
                   .when(get => get(context.state) % 2 === 0, evenView)
                   .when(() => true, defaultView)
                 )
@@ -131,7 +131,7 @@ export default behavior("conditional zone", [
           context.mountView(root => {
             root.div(el => {
               el.children
-                .subviewFrom(select => select.withConditions()
+                .subviewMatching(select => select.withConditions()
                   .when(get => get(context.state) % 2 === 0, evenView)
                   .default(defaultView)
                 )
@@ -164,7 +164,7 @@ export default behavior("conditional zone", [
         fact("there is a view with data attributes", (context) => {
           context.mountView(root => {
             root.main(el => {
-              el.children.subviewFrom(selector => {
+              el.children.subviewMatching(selector => {
                 selector.withConditions().default(root => {
                   root.div(el => {
                     el.config
@@ -214,8 +214,8 @@ export default behavior("conditional zone", [
           context.mountView(root => {
             root.main(el => {
               el.children
-                .subviewFrom(select => select.withConditions().when(get => get(context.state), counterView(aCounter)))
-                .subviewFrom(select => select.withConditions().when(get => get(context.state), counterView(bCounter)))
+                .subviewMatching(select => select.withConditions().when(get => get(context.state), counterView(aCounter)))
+                .subviewMatching(select => select.withConditions().when(get => get(context.state), counterView(bCounter)))
             })
           })
         })
@@ -285,7 +285,7 @@ export default behavior("conditional zone", [
           context.mountView(root => {
             root.main(el => {
               el.children
-                .subviewFrom(selector => selector.withConditions()
+                .subviewMatching(selector => selector.withConditions()
                   .when(get => get(context.state), counterView)
                   .default(defaultView)
                 )
@@ -355,7 +355,7 @@ export default behavior("conditional zone", [
           }
           context.mountView(root => {
             root.main(el => {
-              el.children.subviewFrom(selector => {
+              el.children.subviewMatching(selector => {
                 selector.withConditions()
                   .when(get => get(context.state.root).name !== "Bob", showName)
                   .default(noName)
@@ -447,7 +447,7 @@ export default behavior("conditional zone", [
 
           context.mountView(root => {
             root.main(el => {
-              el.children.subviewFrom(selector => {
+              el.children.subviewMatching(selector => {
                 selector.withConditions()
                   .when(get => get(context.state.stateA) === "Hello", showView("Hello!"))
                   .when(get => get(context.state.stateB) === 27, showView("NUMBERS"))
@@ -560,7 +560,7 @@ function basicSelectEmptyAtFirst(name: string, renderer: (context: RenderApp<Con
           renderer(context, root => {
             root.div(el => {
               el.children
-                .subviewFrom(select => select.withConditions().when(get => get(context.state), conditionalView))
+                .subviewMatching(select => select.withConditions().when(get => get(context.state), conditionalView))
             })
           })
         })
@@ -624,11 +624,11 @@ function multipleSelectFragmentsExample(name: string, renderer: (context: Render
 
           renderer(context, root => {
             root.main(el => {
-              el.children.subviewFrom(select => select.withConditions().default(root => {
+              el.children.subviewMatching(select => select.withConditions().default(root => {
                 root.div(el => {
                   el.children
-                    .subviewFrom(select => select.withConditions().when(get => get(toggle), fragmentView("A")))
-                    .subviewFrom(select => select.withConditions().when(get => get(toggle), fragmentView("B")))
+                    .subviewMatching(select => select.withConditions().when(get => get(toggle), fragmentView("A")))
+                    .subviewMatching(select => select.withConditions().when(get => get(toggle), fragmentView("B")))
                     .hr()
                     .h3(el => {
                       el.children.textNode(get => `Views are visible: ${get(toggle)}`)
@@ -744,11 +744,11 @@ function nestedSiblingSelectViewExample(name: string, renderer: (context: Render
               root.div(el => {
                 el.children
                   .h1(el => el.children.textNode(stateful((item) => item.data)))
-                  .subviewFrom(select => select.withConditions()
+                  .subviewMatching(select => select.withConditions()
                     .when(stateful(({index}, get) => itemToggle(get, context, `first-${index}`)), counterView("first", stateful))
                     .default(basicView("first", stateful))
                   )
-                  .subviewFrom(select => select.withConditions()
+                  .subviewMatching(select => select.withConditions()
                     .when(stateful(({index}, get) => itemToggle(get, context, `second-${index}`)), counterView("second", stateful))
                     .default(basicView("second", stateful))
                   )
@@ -866,11 +866,11 @@ function siblingSelectViewExample(name: string, renderer: (context: RenderApp<To
             root.div(el => {
               el.children
                 .h1(el => el.children.textNode("Hello!"))
-                .subviewFrom(select => select.withConditions()
+                .subviewMatching(select => select.withConditions()
                   .when(get => itemToggle(get, context, "first"), counterView("first"))
                   .default(basicView("first"))
                 )
-                .subviewFrom(select => select.withConditions()
+                .subviewMatching(select => select.withConditions()
                   .when(get => itemToggle(get, context, "second"), counterView("second"))
                   .default(basicView("second"))
                 )
@@ -968,7 +968,7 @@ function conditionalListWithEvents(name: string, renderer: (context: RenderApp<N
           }
 
           renderer(context, (root) => {
-            root.subviewFrom(selector => {
+            root.subviewMatching(selector => {
               selector.withConditions().default(listView)
             })
           })
@@ -1044,7 +1044,7 @@ function multipleConditionalListsWithEvents(name: string, renderer: (context: Re
                   }))
                   el.children.textNode("switch lists")
                 })
-                .subviewFrom(selector => {
+                .subviewMatching(selector => {
                   selector.withUnion(get => get(context.state.trigger))
                     .when(thing => thing.type === "one-thing", () => listView)
                     .when(thing => thing.type === "two-thing", () => otherListView)
@@ -1131,7 +1131,7 @@ function nestedSelectorExample(name: string, renderer: (context: RenderApp<Neste
 
           function itemView(stateful: UseItem<SelectOptions>): HTMLView {
             return root => {
-              root.subviewFrom(select => select.withConditions()
+              root.subviewMatching(select => select.withConditions()
                 .when(stateful((item, get) => `${item.data}${get(context.state.modifier)}` === "fruit"), singleItemDescription("fruit"))
                 .when(stateful((item, get) => `${item.data}${get(context.state.modifier)}` === "fruits"), pluralItemDescription("fruits"))
                 .when(stateful((item, get) => `${item.data}${get(context.state.modifier)}` === "sport"), singleItemDescription("sport"))

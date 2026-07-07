@@ -46,23 +46,23 @@ svgElementsFile.addTypeAlias({
   type: "(root: SVGBuilder) => void"
 })
 
-const caseSelectorInterface = svgElementsFile.addInterface({
-  name: "SVGCaseSelector",
+const caseMatcherInterface = svgElementsFile.addInterface({
+  name: "SVGCaseMatcher",
   typeParameters: [ "T" ],
   isExported: true
 })
 
-caseSelectorInterface.addMethod({
+caseMatcherInterface.addMethod({
   name: "when",
   typeParameters: [ "X extends T" ],
   parameters: [
     { name: "typePredicate", type: "(val: T) => val is X" },
     { name: "generator", type: "(useCase: UseCase<X>) => SVGView" }
   ],
-  returnType: "SVGCaseSelector<T>"
+  returnType: "SVGCaseMatcher<T>"
 })
 
-caseSelectorInterface.addMethod({
+caseMatcherInterface.addMethod({
   name: "default",
   parameters: [
     { name: "generator", "type": "(useCase: UseCase<T>) => SVGView" }
@@ -70,21 +70,21 @@ caseSelectorInterface.addMethod({
   returnType: "void"
 })
 
-const predicateSelectorInterface = svgElementsFile.addInterface({
-  name: "SVGConditionSelector",
+const conditionMatcherInterface = svgElementsFile.addInterface({
+  name: "SVGConditionMatcher",
   isExported: true
 })
 
-predicateSelectorInterface.addMethod({
+conditionMatcherInterface.addMethod({
   name: "when",
   parameters: [
     { name: "predicate", type: "(get: GetState) => boolean" },
     { name: "view", type: "SVGView" }
   ],
-  returnType: "SVGConditionSelector"
+  returnType: "SVGConditionMatcher"
 })
 
-predicateSelectorInterface.addMethod({
+conditionMatcherInterface.addMethod({
   name: "default",
   parameters: [
     { name: "view", type: "SVGView" }
@@ -92,23 +92,23 @@ predicateSelectorInterface.addMethod({
   returnType: "void"
 })
 
-const viewSelectorInterface = svgElementsFile.addInterface({
-  name: "SVGViewSelector",
+const viewMatcherInterface = svgElementsFile.addInterface({
+  name: "SVGViewMatcher",
   isExported: true
 })
 
-viewSelectorInterface.addMethod({
+viewMatcherInterface.addMethod({
   name: "withUnion",
   typeParameters: [ "T" ],
   parameters: [
     { name: "unionValue", type: "(get: GetState) => T" }
   ],
-  returnType: "SVGCaseSelector<T>"
+  returnType: "SVGCaseMatcher<T>"
 })
 
-viewSelectorInterface.addMethod({
+viewMatcherInterface.addMethod({
   name: "withConditions",
-  returnType: "SVGConditionSelector"
+  returnType: "SVGConditionMatcher"
 })
 
 const specialSVGElementsInterface = svgElementsFile.addInterface({
@@ -143,9 +143,9 @@ specialSVGElementsInterface.addMethod({
 })
 
 specialSVGElementsInterface.addMethod({
-  name: "subviewFrom",
+  name: "subviewMatching",
   parameters: [
-    { name: "selectorGenerator", type: "(selector: SVGViewSelector) => void" }
+    { name: "matcherGenerator", type: "(matcher: SVGViewMatcher) => void" }
   ],
   returnType: "this"
 })

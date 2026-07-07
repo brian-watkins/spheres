@@ -998,7 +998,7 @@ function listOfSwitchExample(name: string, renderer: (context: RenderApp<ListCon
         fact("there is a view with a list where items are conditional views", (context) => {
           function itemView(stateful: UseItem<string>): HTMLView {
             return root => {
-              root.subviewFrom(select => select.withConditions()
+              root.subviewMatching(select => select.withConditions()
                 .when(stateful((item, get) => get(context.state.toggle.at(item.data))), root => {
                   root.div(el => {
                     el.children
@@ -1061,7 +1061,7 @@ function listOfSwitchWithDerivedStateExample(name: string, renderer: (context: R
             })
 
             return root => {
-              root.subviewFrom(select => select.withConditions()
+              root.subviewMatching(select => select.withConditions()
                 .when(get => !get(reverseItemToggle), root => {
                   root.div(el => {
                     el.children

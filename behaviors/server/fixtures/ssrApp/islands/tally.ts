@@ -21,7 +21,7 @@ function oddCounterDisplay(root: HTMLBuilder) {
 }
 
 export default function(root: HTMLBuilder) {
-  root.subviewFrom(select => select.withConditions()
+  root.subviewMatching(select => select.withConditions()
     .when(get => get(clickCount) % 2 === 0, evenCounterDisplay)
     .default(oddCounterDisplay)
   )

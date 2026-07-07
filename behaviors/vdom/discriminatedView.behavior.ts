@@ -34,7 +34,7 @@ export default behavior("view of discriminated union state", [
           context.mountView(root => {
             root.main(el => {
               el.children
-                .subviewFrom(selector => {
+                .subviewMatching(selector => {
                   selector.withUnion(get => get(pageState))
                     .when(page => page.type === "list", listOrEmptyView)
                     .default(defaultView)
@@ -71,7 +71,7 @@ export default behavior("view of discriminated union state", [
           context.mountView(root => {
             root.main(el => {
               el.children
-                .subviewFrom(selector => {
+                .subviewMatching(selector => {
                   selector.withUnion(get => get(pageState))
                     .when(page => page.type === "list", listOrEmptyView)
                     .default(defaultView)
@@ -135,7 +135,7 @@ export default behavior("view of discriminated union state", [
           context.mountView(root => {
             root.main(el => {
               el.children
-                .subviewFrom(selector => {
+                .subviewMatching(selector => {
                   selector.withUnion(get => get(pageState))
                     .when(page => page.type === "list", listOrEmptyView)
                     .when(page => page.type === "detail", detailViewWithContent)
@@ -206,7 +206,7 @@ function discriminatedUnionSwitchViewExample(name: string, renderer: (context: R
           renderer(context, root => {
             root.main(el => {
               el.children
-                .subviewFrom(selector => {
+                .subviewMatching(selector => {
                   selector.withUnion(get => get(pageState))
                     .when(page => page.type === "list", listOrEmptyView)
                     .when(page => page.type === "detail", detailView)
@@ -353,7 +353,7 @@ function discriminatedUnionReuseViewExample(name: string, renderer: (context: Re
                   })
                   el.children.textNode("Select Next")
                 })
-                .subviewFrom(selector => {
+                .subviewMatching(selector => {
                   selector.withUnion(get => get(pageState))
                     .when(page => page.type === "list", staticList)
                 })
@@ -464,7 +464,7 @@ function staticList(useCase: UseCase<ListState>): HTMLView {
 
 function listOrEmptyView(useCase: UseCase<ListState>): HTMLView {
   return (root) => {
-    root.subviewFrom(selector => {
+    root.subviewMatching(selector => {
       selector.withUnion(useCase((listState, get) => {
         return get(listState.data)
       }))
@@ -549,7 +549,7 @@ function detailViewWithContent(useCase: UseCase<DetailState>): HTMLView {
 function presentContent(state: State<Detail>): HTMLView {
   return root => {
     root.p(el => {
-      el.children.subviewFrom(selector => {
+      el.children.subviewMatching(selector => {
         selector.withUnion(get => get(state).content)
           .when(content => content.type === "fun-content", funContentView)
           .when(content => content.type === "awesome-content", awesomeContentView)

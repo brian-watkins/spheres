@@ -103,9 +103,9 @@ root.ul(el => {
 
 Spheres tracks list items internally and updates only the ones that actually changed.
 
-### subviewFrom — reactive switch
+### subviewMatching — reactive switch
 
-Pick one view to render based on state. The selector exposes two cases:
+Pick one view to render based on state. The matcher exposes two cases:
 
 - `withUnion<T>(unionValue)` — for discriminated unions. Each `when` takes a **type predicate** that narrows `T` to a subtype `X`, and a view generator `(useCase: UseCase<X>) => ViewDefinition`. `UseCase<T>` is like `UseItem<T>` but exposes the value directly (not wrapped in a `ListItem`): `useCase((value, get) => ...)`. The first predicate to match wins; `default` provides a fallback.
 - `withConditions()` — for plain boolean checks. Each `when` takes a stateful predicate `(get) => boolean` and a `ViewDefinition`. The first predicate to return `true` wins; `default` provides a fallback.
@@ -122,8 +122,8 @@ const isLoading = (r: Result): r is { kind: "loading" } => r.kind === "loading"
 const isLoaded = (r: Result): r is { kind: "loaded", data: string } => r.kind === "loaded"
 
 root.div(el => {
-  el.children.subviewFrom(selector => {
-    selector
+  el.children.subviewMatching(matcher => {
+    matcher
       .withUnion(get => get(result))
       .when(isLoading, () => (root) => {
         root.p(el => el.children.textNode("Loading…"))
@@ -142,8 +142,8 @@ Conditions example:
 
 ```ts
 root.div(el => {
-  el.children.subviewFrom(selector => {
-    selector
+  el.children.subviewMatching(matcher => {
+    matcher
       .withConditions()
       .when(get => get(route) === "home", homeView)
       .when(get => get(route) === "account", accountView)

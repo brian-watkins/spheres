@@ -24,7 +24,7 @@ export default behavior("Render view to HTML string", [
   }),
   renderTest("render view with nested stateful views", (renderer) => {
     const actual = renderer.renderView(appWithNestedState)
-    expect(actual, is(equalTo(`<div><!--switch-start-2--><h2>Cool Person!</h2><!--switch-end-2--></div>`)))
+    expect(actual, is(equalTo(`<div><!--match-start-2--><h2>Cool Person!</h2><!--match-end-2--></div>`)))
   }),
   renderTest("render view with deeply nested stateful views", (renderer) => {
     const actual = renderer.renderView(appWithDeeplyNestedState)
@@ -69,7 +69,7 @@ export default behavior("Render view to HTML string", [
   }),
   renderTest("render view with conditional view", (renderer) => {
     const actual = renderer.renderView(appWithViewSelector)
-    expect(actual, is(equalTo(`<div><!--switch-start-2--><h3>Fun!</h3><!--switch-end-2--></div>`)))
+    expect(actual, is(equalTo(`<div><!--match-start-2--><h3>Fun!</h3><!--match-end-2--></div>`)))
   }),
   renderTest("render void elements without closing tags", (renderer) => {
     const imageName = container({ initialValue: "/assets/myImg" })

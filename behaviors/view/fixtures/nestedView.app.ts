@@ -20,7 +20,7 @@ function nameView(root: HTMLBuilder) {
         el.config.dataAttribute("name")
         el.children.textNode(get => `My name is: ${get(nameState)}`)
       })
-      .subviewFrom(select => select.withConditions()
+      .subviewMatching(select => select.withConditions()
         .when(get => get(nameState) !== "AGELESS PERSON", ageView)
       )
   })

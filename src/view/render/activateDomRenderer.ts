@@ -4,18 +4,18 @@ import { dispatchMessage } from "../../store/message.js";
 import { getStateFunctionWithListener, initListener, createSubscriber, TokenRegistry, isStateful } from "../../store/tokenRegistry.js";
 import { UpdateAttributeEffect } from "./effects/attributeEffect.js";
 import { UpdatePropertyEffect } from "./effects/propertyEffect.js";
-import { activateSelect, SelectViewEffect } from "./effects/selectViewEffect.js";
+import { activateMatch, MatchViewEffect } from "./effects/matchViewEffect.js";
 import { UpdateTextEffect } from "./effects/textEffect.js";
 import { getEventAttribute } from "./eventHelpers.js";
-import { findListEndNode, findSwitchEndNode, getListElementId, getSwitchElementId, listEndIndicator } from "./fragmentHelpers.js";
+import { findListEndNode, findMatchEndNode, getListElementId, getMatchElementId, listEndIndicator } from "./fragmentHelpers.js";
 import { createDOMTemplate, DomTemplateRenderer } from "./templateRenderer.js";
 import { AbstractViewConfig } from "./viewConfig.js";
-import { AbstractViewRenderer, ElementDefinition, UseItem, ViewDefinition, ViewSelector } from "./viewRenderer.js";
+import { AbstractViewRenderer, ElementDefinition, UseItem, ViewDefinition, ViewMatcher } from "./viewRenderer.js";
 import { IdSequence } from "./idSequence.js";
 import { EffectLocation } from "./effectLocation.js";
 import { ListItemTemplateContext } from "./templateContext.js";
 import { activateList, ListEffect } from "./effects/listEffect.js";
-import { SelectorBuilder } from "./selectorBuilder.js";
+import { MatcherBuilder } from "./viewMatcherBuilder.js";
 import { ElementConfigSupport, ElementSupport } from "../elementSupport.js";
 import { DOMRoot } from "./domRoot.js";
 
@@ -74,16 +74,16 @@ export class ActivateDomRenderer extends AbstractViewRenderer {
     return this
   }
 
-  subviewFrom(selectorGenerator: (selector: ViewSelector) => void): this {
-    const elementId = getSwitchElementId(this.currentNode!)
-    let end = findSwitchEndNode(this.currentNode!, elementId)
+  subviewMatching(matcherGenerator: (matcher: ViewMatcher) => void): this {
+    const elementId = getMatchElementId(this.currentNode!)
+    let end = findMatchEndNode(this.currentNode!, elementId)
 
-    const selectorBuilder = new SelectorBuilder(createDOMTemplate(this.elementSupport, this.zone, elementId))
-    selectorGenerator(selectorBuilder)
+    const matcherBuilder = new MatcherBuilder(createDOMTemplate(this.elementSupport, this.zone, elementId))
+    matcherGenerator(matcherBuilder)
 
-    const effect = new SelectViewEffect(this.registry, selectorBuilder.collection, this.currentNode!, end)
-    const selection = activateSelect(this.registry, selectorBuilder.collection, this.currentNode!, getStateFunctionWithListener(createSubscriber(this.registry, effect)))
-    effect.setCurrentSelection(selection)
+    const effect = new MatchViewEffect(this.registry, matcherBuilder.collection, this.currentNode!, end)
+    const selection = activateMatch(this.registry, matcherBuilder.collection, this.currentNode!, getStateFunctionWithListener(createSubscriber(this.registry, effect)))
+    effect.setCurrentMatch(selection)
     
     this.currentNode = end.nextSibling
     this.currentLocation = this.currentLocation.nextSibling()

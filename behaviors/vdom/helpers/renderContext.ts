@@ -49,6 +49,7 @@ export class RenderApp<T> {
 
   loadServerSideRenderedHtml(view: HTMLView) {
     this.ssrHtmlString = createStringRenderer(view)(this.serverSideStore ?? this.store)
+    console.log("ssr html", this.ssrHtmlString)
     document.body.innerHTML = this.ssrHtmlString
   }
 

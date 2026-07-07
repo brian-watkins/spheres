@@ -6,29 +6,33 @@ export function createFragment(start: string, end: string) {
   return fragment
 }
 
-export function switchStartIndicator(id: string): string {
-  return `switch-start-${id}`
+export const MATCH_START = "match-start-"
+
+export function matchStartIndicator(id: string): string {
+  return `${MATCH_START}${id}`
 }
 
-export function switchEndIndicator(id: string): string {
-  return `switch-end-${id}`
+export function matchEndIndicator(id: string): string {
+  return `match-end-${id}`
 }
 
-export function getSwitchElementId(element: Node): string {
-  return element.nodeValue!.substring(13)
+export function getMatchElementId(element: Node): string {
+  return element.nodeValue!.substring(MATCH_START.length)
 }
 
-export function findSwitchEndNode(start: Node, id: string): Node {
+export function findMatchEndNode(start: Node, id: string): Node {
   let end = start.nextSibling!
-  while (end.nodeValue !== `switch-end-${id}`) {
+  while (end.nodeValue !== `match-end-${id}`) {
     end = end.nextSibling!
   }
 
   return end
 }
 
+export const LIST_START = "list-start-"
+
 export function listStartIndicator(id: string): string {
-  return `list-start-${id}`
+  return `${LIST_START}${id}`
 }
 
 export function listEndIndicator(id: string): string {
@@ -36,7 +40,7 @@ export function listEndIndicator(id: string): string {
 }
 
 export function getListElementId(element: Node): string {
-  return element.nodeValue!.substring(11)
+  return element.nodeValue!.substring(LIST_START.length)
 }
 
 export function findListEndNode(start: Node, id: string): Node {

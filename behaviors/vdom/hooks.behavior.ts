@@ -255,7 +255,7 @@ export default behavior("onRegister hook", [
           context.mountView(root => {
             root.main(el => {
               el.children
-                .subviewFrom(selector => {
+                .subviewMatching(selector => {
                   selector.withConditions()
                     .when(get => get(trigger), mainView)
                     .when(get => !get(trigger), initialView)
@@ -417,7 +417,7 @@ export default behavior("onRegister hook", [
           context.mountView(root => {
             root.main(el => {
               el.children
-                .subviewFrom(selector => {
+                .subviewMatching(selector => {
                   selector.withUnion(get => get(trigger))
                     .when(kind => kind.type === "fruit", fruitView)
                     .when(kind => kind.type === "shape", shapeView)

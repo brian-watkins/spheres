@@ -1,5 +1,15 @@
 # spheres
 
+## 0.28.0
+
+### Minor Changes
+
+- c19d889: Support for fragments on view roots
+
+### Patch Changes
+
+- 876f502: Improved list patching algorithm
+
 ## 0.27.3
 
 ### Patch Changes

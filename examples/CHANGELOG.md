@@ -1,5 +1,13 @@
 # examples
 
+## 1.0.22
+
+### Patch Changes
+
+- Updated dependencies [876f502]
+- Updated dependencies [c19d889]
+  - spheres@0.28.0
+
 ## 1.0.21
 
 ### Patch Changes

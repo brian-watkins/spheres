@@ -12,7 +12,9 @@ type Stateful<T> = (get: GetState) => T | undefined
 
 An element's configuration function receives a `ConfigurableElement` with two properties:
 - `config` — attribute and event setters for this element.
-- `children` — a builder for child nodes. Chain element calls and `textNode`/`subview`/`subviews`/`subviewFrom`.
+- `children` — a builder for child nodes. Chain element calls and `textNode`/`subview`/`subviews`/`subviewMatching`.
+
+A view function isn't limited to a single root element — chain multiple calls directly on `root` to render a **fragment**: several sibling nodes with no wrapping element. See [Fragments](#fragments) below.
 
 ## Element functions
 
@@ -153,6 +155,40 @@ root.div(el => {
 })
 ```
 
+## Fragments
+
+A view function doesn't have to build a single root element. Chain multiple calls directly on `root` and each one appends another sibling node — no wrapping `div` required:
+
+```ts
+const view: HTMLView = (root) => {
+  root
+    .p(el => el.children.textNode("This is the first paragraph."))
+    .p(el => el.children.textNode("This is the second paragraph."))
+}
+```
+
+Anything chainable on `children` is chainable on `root` this way, including `textNode`, `subview`, `subviews`, and `subviewMatching`:
+
+```ts
+const view: HTMLView = (root) => {
+  root
+    .h1(el => el.children.textNode("This is a fragment!"))
+    .p(el => el.children.textNode(get => `Clicks: ${get(counter)}`))
+    .button(el => {
+      el.config.on("click", () => update(counter, val => val + 1))
+      el.children.textNode("Click me!")
+    })
+}
+```
+
+Fragments compose naturally with the rest of the API:
+- `subview(fragmentView)` splices the fragment's nodes in as ordinary siblings among whatever else the enclosing view renders — there's no wrapper element introduced.
+- A `subviewMatching` branch (or `default`) can resolve to a fragment view; the whole set of nodes is swapped in when the match changes.
+- A `subviews` item view can be a fragment; Spheres tracks each item's full node range so reordering, inserting, and removing still work per item.
+- `renderToDOM` mounts directly into the container `element` you pass it, so a top-level fragment view just appends its nodes as children of that container — there's no extra wrapper node.
+
+Because a fragment has no single root element, there's nowhere to hang shared `config` (attributes/events) — configure each top-level node independently.
+
 ## Stateful attributes
 
 Every attribute function accepts a literal or a `Stateful<T>`. Only the specific attribute is updated when the read tokens change — no parent re-render.
@@ -274,5 +310,6 @@ root.input(el => {
 - `textNode`, attributes, and view selectors accept `Stateful` functions; use them freely for fine-grained updates.
 - Declare tokens at module scope (or setup code), not inside view functions.
 - Don't read tokens outside a reactive context — `get` is only available where spheres passes it in.
-- `subviews` and `subviewFrom` update structure reactively; use them instead of conditional imperative logic.
+- `subviews` and `subviewMatching` update structure reactively; use them instead of conditional imperative logic.
 - `innerHTML` and `children` are mutually exclusive.
+- A view can render a fragment (multiple sibling nodes chained on `root`) instead of a single root element; there's no shared `config` across a fragment's top-level nodes.

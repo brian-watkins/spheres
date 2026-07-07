@@ -9,6 +9,7 @@ import { UseItem } from "@view/index";
 
 
 const externalToken = container({ initialValue: 0 })
+const nestedListToken = container({ initialValue: ["a", "b", "c"] })
 
 export default behavior("list memory", [
 
@@ -150,6 +151,79 @@ export default behavior("list memory", [
           expect(document.querySelectorAll("div[data-list-item]").length, is(0))
         }),
         effect("the dom elements are garbage collected", async () => {
+          await requestGC()
+          expect(window.__element_ref.deref(), is(undefined))
+        })
+      ]
+    }),
+
+  example(renderContext<ListExamplesState>())
+    .description("nested list items use local container state")
+    .script({
+      suppose: [
+        fact("there is a list", (context) => {
+          context.setState({
+            listContainer: container({ initialValue: ["group"] })
+          })
+        }),
+        fact("there is a view with a nested list whose items have local state", (context) => {
+          function nestedItemView(stateful: UseItem<string>): HTMLView {
+            return (root) => {
+              const localState = container({ initialValue: 0 })
+
+              root.div(el => {
+                el.config.dataAttribute("nested-item")
+                el.children.textNode(stateful((item, get) => `${item.data} (${get(localState)})`))
+              })
+            }
+          }
+
+          function groupView(stateful: UseItem<string>): HTMLView {
+            return (root) => {
+              root.section(el => {
+                el.config.dataAttribute("group", stateful(item => item.data))
+                el.children.subviews(get => get(nestedListToken), nestedItemView)
+              })
+            }
+          }
+
+          context.mountView((root) => {
+            root.main(el => {
+              el.children.subviews(get => get(context.state.listContainer), groupView)
+            })
+          })
+        })
+      ],
+      observe: [
+        effect("the nested list is rendered", () => {
+          const elements: Array<HTMLElement> = Array.from(document.querySelectorAll("div[data-nested-item]"))
+          expect(elements.map(el => el.innerText), is([
+            "a (0)",
+            "b (0)",
+            "c (0)",
+          ]))
+        }),
+      ]
+    })
+    .andThen({
+      perform: [
+        step("create a reference for the second nested element", () => {
+          const el = document.querySelectorAll("div[data-nested-item]")
+          window.__element_ref = new WeakRef(el.item(1))
+        }),
+        step("remove the second nested item", (context) => {
+          context.writeTo(nestedListToken, ["a", "c"])
+        })
+      ],
+      observe: [
+        effect("the nested list view updates", () => {
+          const elements: Array<HTMLElement> = Array.from(document.querySelectorAll("div[data-nested-item]"))
+          expect(elements.map(el => el.innerText), is([
+            "a (0)",
+            "c (0)",
+          ]))
+        }),
+        effect("the removed nested dom element is garbage collected", async () => {
           await requestGC()
           expect(window.__element_ref.deref(), is(undefined))
         })

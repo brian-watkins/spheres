@@ -1,6 +1,6 @@
-import { Value } from "../../../store/state/value.js";
-import { GetState, StateReader } from "../../../store/tokenRegistry.js";
-import { ListItem } from "../viewRenderer.js";
+import { Value } from "../../../../store/state/value.js";
+import { GetState, StateReader } from "../../../../store/tokenRegistry.js";
+import { ListItem } from "../../viewRenderer.js";
 
 export class ListItemReader<T> implements ListItem<T>, StateReader<ListItem<T>> {
   indexPublisher: Value<number> | undefined

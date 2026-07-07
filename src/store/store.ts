@@ -2,9 +2,10 @@ import { Container } from "./state/container.js"
 import { dispatchMessage, StoreMessage } from "./message.js"
 import { error, Meta, ok, pending, WithMetaState } from "./state/meta.js"
 import { WeakMapTokenRegistry } from "./registry/weakMapTokenRegistry.js"
-import { Command, getStateHandler, GetState, initializeCommand, initListener, runQuery, StateEffect, StateListenerType, State, StateWriter, Subscriber, TokenRegistry, PublishableState } from "./tokenRegistry.js"
+import { Command, getStateHandler, GetState, initializeCommand, initListener, runQuery, StateEffect, StateListenerType, State, Subscriber, TokenRegistry, PublishableState } from "./tokenRegistry.js"
 import { CommandManager, ManagedCommandController } from "./command/managedCommandController.js"
 import { RootTokenRegistry } from "./registry/rootTokenRegistry.js"
+import { Writable, WritableTarget } from "./state/handler/writable.js"
 
 export interface StoreInitializerActions {
   get: GetState
@@ -131,24 +132,11 @@ export function useHooks(store: Store, hooks: StoreHooks) {
 
 export function useContainerHooks<T, M, E>(store: Store, container: Container<T, M, E>, hooks: ContainerHooks<NoInfer<T>, NoInfer<M>, NoInfer<E>>) {
   const registry = getTokenRegistry(store)
-  const writerWithHooks = stateWriterWithHooks(registry, container, registry.getState(container), hooks)
-  registry.setState(container, writerWithHooks)
-}
-
-function stateWriterWithHooks<T, M, E>(registry: TokenRegistry, container: Container<T, M, E>, writer: StateWriter<T, M>, hooks: ContainerHooks<T, M, E>): StateWriter<T, M> {
+  const writable = registry.getState(container) as Writable<T, M>
   if (hooks.onWrite) {
-    return new Proxy(writer, {
-      get: (target, prop, receiver) => {
-        if (prop === "write") {
-          return (message: any) => {
-            hooks.onWrite!(message, containerWriteActions(registry, container, target))
-          }
-        }
-        return Reflect.get(target, prop, receiver)
-      }
+    writable.onWrite((target) => (message) => {
+      hooks.onWrite(message, containerWriteActions(registry, container, target))
     })
-  } else {
-    return writer
   }
 }
 
@@ -175,11 +163,11 @@ function initializerActions(registry: TokenRegistry): StoreInitializerActions {
   }
 }
 
-function containerWriteActions<T, M, E>(registry: TokenRegistry, container: Container<T, M>, writer: StateWriter<T, M>): WriteHookActions<T, M, E> {
+function containerWriteActions<T, M, E>(registry: TokenRegistry, container: Container<T, M>, writable: WritableTarget<T, M>): WriteHookActions<T, M, E> {
   return {
     get: (state) => runQuery(registry, get => get(state)),
     ok: (message) => {
-      writer.write(message)
+      writable.write(message)
       registry.getState(container.meta).publish(ok())
     },
     pending: (message) => {
@@ -188,7 +176,7 @@ function containerWriteActions<T, M, E>(registry: TokenRegistry, container: Cont
     error: (reason, message) => {
       registry.getState(container.meta).publish(error(reason, message))
     },
-    current: writer.getValue()
+    current: writable.getValue()
   }
 }
 

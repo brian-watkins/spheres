@@ -19,10 +19,8 @@ export class WeakMapTokenRegistry implements RootTokenRegistry {
     this.registry.set(token, controller)
     if (this.registerHook !== undefined && token instanceof Container) {
       this.registerHook(token)
-      return this.registry.get(token)
-    } else {
-      return controller
     }
+    return controller
   }
 
   registerCommand(token: Command<any>): CommandController<any> {
@@ -52,11 +50,10 @@ export class WeakMapTokenRegistry implements RootTokenRegistry {
   }
 
   setState<T>(token: StateToken<T>, publisher: StateReader<T>): void {
-    if (this.registerHook !== undefined && token instanceof Container && !this.registry.has(token)) {
-      this.registry.set(token, publisher)
-      this.registerHook(token)
-    } else {
-      this.registry.set(token, publisher)
+    const shouldNotify = this.registerHook !== undefined && token instanceof Container && !this.registry.has(token)
+    this.registry.set(token, publisher)
+    if (shouldNotify) {
+      this.registerHook!(token)
     }
   }
 }

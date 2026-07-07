@@ -1,7 +1,7 @@
 import { OverlayTokenRegistry } from "../../store/registry/overlayTokenRegistry.js"
 import { clone, Container } from "../../store/state/container.js"
 import { generateStateManager, StateReader, StateHandler, TokenRegistry, StateToken, State } from "../../store/tokenRegistry.js"
-import { ListItemReader } from "../../view/render/effects/listItemReader.js"
+import { ListItemReader } from "../../view/render/effects/list/itemReader.js"
 import { ListItemTemplateContext } from "../../view/render/templateContext.js"
 
 export function createOverlayRegistry(context: ListItemTemplateContext<any>, rootRegistry: TokenRegistry, itemData: any, index: number): ListItemOverlayTokenRegistry {
@@ -33,15 +33,13 @@ export class ListItemOverlayTokenRegistry extends OverlayTokenRegistry {
     if (this.viewTokens.has(token)) {
       let publisher = this.registry.get(token)
       if (publisher === undefined) {
+        publisher = generateStateManager(this, token)
         if (token instanceof Container) {
+          // Allow the onRegister store hook to fire for this container (if defined)
           const rootToken = token[clone]()
-          publisher = generateStateManager(this, token)
           this.parentRegistry.setState(rootToken, publisher)
-          this.registry.set(token, publisher)
-        } else {
-          publisher = generateStateManager(this, token)
-          this.registry.set(token, publisher)
         }
+        this.registry.set(token, publisher)
       }
       return publisher as StateHandler<S>
     }

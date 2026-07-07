@@ -1,8 +1,8 @@
-import { StateBatch, StateWriter } from "../../tokenRegistry.js"
-import { Publisher } from "./publisher.js"
+import { StateBatch } from "../../tokenRegistry.js"
+import { Writable } from "./writable.js"
 
-export class Writer<T> extends Publisher<T> implements StateWriter<T, T> {
-  write(value: T, batch?: StateBatch) {
+export class Writer<T> extends Writable<T, T> {
+  protected apply(value: T, batch?: StateBatch) {
     this.publish(value, batch)
   }
 }

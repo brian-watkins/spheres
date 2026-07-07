@@ -3,7 +3,7 @@ import { recordTokens } from "../../store/state/stateRecorder.js";
 import { getStateHandler, StateReader, StateToken, TokenRegistry } from "../../store/tokenRegistry.js";
 import { ListItem, UseItem, ViewDefinition, ViewRenderer } from "./viewRenderer.js";
 import { Container } from "../../store/state/container.js"
-import { ListItemReader } from "./effects/listItemReader.js";
+import { ListItemReader } from "./effects/list/itemReader.js";
 
 export class ListItemTemplateContext<T> {
   readonly listItemDataToken: State<ListItem<T>> = stateReference()

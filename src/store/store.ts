@@ -107,7 +107,7 @@ export function useEffect(store: Store, effect: ReactiveEffect): ReactiveEffectH
 
 export function useCommand<M>(store: Store, command: Command<M>, manager: CommandManager<NoInfer<M>>) {
   const registry = getTokenRegistry(store)
-  const controller = new ManagedCommandController(registry, manager)
+  const controller = new ManagedCommandController(manager)
   registry.setCommand(command, controller)
   command[initializeCommand](registry)
 }

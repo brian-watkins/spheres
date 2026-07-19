@@ -119,7 +119,7 @@ export function dispatchMessage(registry: TokenRegistry, message: StoreMessage<a
     }
     case "exec": {
       if (batch !== undefined) batch.publish()
-      registry.getCommand(message.command).run(message.message)
+      registry.getCommand(message.command).run(registry, message.message)
       break
     }
     case "run": {

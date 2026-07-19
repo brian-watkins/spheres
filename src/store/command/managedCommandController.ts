@@ -13,28 +13,28 @@ export interface CommandManager<M> {
 }
 
 export class ManagedCommandController<T> implements CommandController<T> {
-  constructor(private registry: TokenRegistry, private manager: CommandManager<T>) { }
+  constructor(private manager: CommandManager<T>) { }
 
-  run(message: T) {
+  run(registry: TokenRegistry, message: T) {
     this.manager.exec(message, {
       get: (state) => {
-        return state[getStateHandler](this.registry).getValue()
+        return state[getStateHandler](registry).getValue()
       },
       supply: (token, value) => {
-        token[getStateHandler](this.registry).publish(value)
+        token[getStateHandler](registry).publish(value)
       },
       pending: <T, M, E>(token: WithMetaState<T, M>, ...message: NoInfer<M> extends never ? [] : [NoInfer<M>]) => {
         if (message.length === 0) {
-          token.meta[getStateHandler](this.registry).publish(pending(undefined) as Meta<never, E>)
+          token.meta[getStateHandler](registry).publish(pending(undefined) as Meta<never, E>)
         } else {
-          token.meta[getStateHandler](this.registry).publish(pending(message[0]))
+          token.meta[getStateHandler](registry).publish(pending(message[0]))
         }
       },
       error: <T, M, E>(token: WithMetaState<T, M, E>, reason: NoInfer<E>, ...message: NoInfer<M> extends never ? [] : [NoInfer<M>]) => {
         if (message.length === 0) {
-          token.meta[getStateHandler](this.registry).publish(error(reason, undefined) as Meta<never, E>)
+          token.meta[getStateHandler](registry).publish(error(reason, undefined) as Meta<never, E>)
         } else {
-          token.meta[getStateHandler](this.registry).publish(error(reason, message[0]))
+          token.meta[getStateHandler](registry).publish(error(reason, message[0]))
         }
       }
     })

@@ -129,7 +129,7 @@ export function createSubscriber(registry: TokenRegistry, listener: StateListene
 }
 
 export interface CommandController<T> {
-  run(message: T): void
+  run(registry: TokenRegistry, message: T): void
 }
 
 export const initializeCommand = Symbol("initializeCommand")

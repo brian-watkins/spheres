@@ -180,7 +180,7 @@ function containerWriteActions<T, M, E>(registry: TokenRegistry, container: Cont
   }
 }
 
-export class EffectListener implements StateEffect, ReactiveEffectHandle {
+class EffectListener implements StateEffect, ReactiveEffectHandle {
   readonly type = StateListenerType.UserEffect
   private dependencies = new Set<State<any>>()
   private subscriber: Subscriber

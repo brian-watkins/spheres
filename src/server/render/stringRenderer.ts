@@ -236,6 +236,13 @@ class StringConfig extends AbstractViewConfig {
     return this
   }
 
+  elementIdentifier(): this {
+    // there is no element to identify when rendering to a string
+    // if there is an identifier when rendering on the server side
+    // then it must get activated on the client side in order to be used
+    return this
+  }
+
   attribute(name: string, value: string | Stateful<string>): this {
     if (isStateful(value)) {
       this.appendToTemplate(templateFromStateful(toStatefulString(get => {

@@ -1,7 +1,9 @@
 import { Stateful, StoreMessage } from "../store/index.js";
+import { ElementIdentifier } from "./element.js";
 import { AriaAttribute } from "./elementData.js";
 
-export interface SpecialElementAttributes {
+export interface SpecialElementAttributes<El extends Element = Element> {
+  elementIdentifier(id: ElementIdentifier<El>): this
   attribute(name: string, value: string | Stateful<string | undefined>): this
   dataAttribute(name: string, value?: string | Stateful<string | undefined>): this
   innerHTML(html: string | Stateful<string | undefined>): this

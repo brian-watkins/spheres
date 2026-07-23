@@ -1,5 +1,6 @@
 import { Store } from "../store/index.js"
 import { getTokenRegistry } from "../store/store.js"
+import { domAction, DomActionController } from "./element.js"
 import { HTMLBuilder, HTMLView } from "./htmlElements.js"
 import { HTMLElementSupport } from "./htmlElementSupport.js"
 import { clearRoot, DOMRoot } from "./render/domRoot.js"
@@ -15,6 +16,12 @@ import { SVGElementSupport } from "./svgElementSupport.js"
 export * from "./htmlElements.js"
 export * from "./svgElements.js"
 export * from "./specialAttributes.js"
+export {
+  elementIdentifier,
+  domAction,
+  domEffect,
+} from "./element.js"
+export type { DomAction, DomEffect, ElementIdentifier, GetElement } from "./element.js"
 export type { ElementSupport, ElementConfigSupport, ElementConfig } from "./elementSupport.js"
 export type { ConfigurableElement, UseItem, ListItem, UseCase } from "./render/viewRenderer.js"
 export type { RenderResult } from "./render/index.js"
@@ -24,6 +31,7 @@ export { activateZone } from "./activate.js"
 
 export function renderToDOM(store: Store, element: Element, view: HTMLView): RenderResult {
   const registry = getTokenRegistry(store)
+  registry.setCommand(domAction, new DomActionController())
   const root = new DOMRoot(registry, element)
   clearRoot(root)
   const renderer = new DomTemplateRenderer(new HTMLElementSupport(), root, new IdSequence(), new EffectLocation(root => root), element, DOMEventType.Element)

@@ -1,7 +1,10 @@
-import { batch, write, run, StoreMessage, use, update, Stateful } from "spheres/store";
+import { batch, write, use, update, Stateful } from "spheres/store";
 import { Circle, CircleContainer, addCircleRule, adjustRadius, adjustRadiusRule, canRedo, canUndo, circleData, deselectCircle, dialog, redoRule, selectCircle, undoRule } from "./state";
 import { useValue } from "../helpers/helpers";
-import { HTMLBuilder, svg, SVGView, UseItem } from "../../../src/view";
+import { elementIdentifier, HTMLBuilder, svg, SVGView, UseItem } from "spheres/view";
+import { dialogView, openDialog } from "./dialog";
+
+const dialogId = elementIdentifier<HTMLDialogElement>()
 
 export function circles(root: HTMLBuilder) {
   root.main(({ children }) => {
@@ -37,7 +40,17 @@ export function circles(root: HTMLBuilder) {
         children
           .subviews(get => get(circleData), circleView)
       }))
-      .subview(optionsView)
+      .subview(dialogView({
+        identifier: dialogId,
+        onClose: () => {
+          return batch([
+            use(adjustRadiusRule),
+            use(get => write(get(dialog)!.circle, deselectCircle())),
+            write(dialog, undefined)
+          ])
+        },
+        content: optionsView
+      }))
   })
 }
 
@@ -66,9 +79,7 @@ function circleView(useItem: UseItem<CircleContainer>): SVGView {
               originalRadius: get(circle.data).radius,
               showDiameterSlider: false,
             }))),
-            run(() => {
-              document.querySelector("dialog")?.showModal()
-            })
+            openDialog(dialogId)
           ])
         })
         .on("mouseout", () => use(useItem((circle, get) => {
@@ -82,53 +93,31 @@ function circleView(useItem: UseItem<CircleContainer>): SVGView {
   }
 }
 
-
 function optionsView(root: HTMLBuilder) {
-  root.dialog(({ config, children }) => {
+  root.div(({ config, children }) => {
     config
-      .class("backdrop:bg-gray-500/50 bg-slate-100 shadow-lg rounded")
-      .on("click", closeDialog)
-      .on("close", () => {
-        return batch([
-          use(adjustRadiusRule),
-          use(get => write(get(dialog)!.circle, deselectCircle()))
-        ])
-      })
+      .class("w-xl p-8 mt-16 mx-auto shadow-lg rounded border-2 border-sky-600 bg-slate-100 hover:text-sky-800 font-bold text-sky-600")
+      .on("click", () => update(dialog, d => d && ({ ...d, showDiameterSlider: true })))
     children
-      .div(({ config, children }) => {
-        config
-          .class("w-96 m-8 bg-slate-100 hover:text-sky-600 font-bold text-sky-800")
-          .on("click", () => update(dialog, d => d && ({ ...d, showDiameterSlider: true })))
-        children
-          .subviewMatching(matcher => matcher.withConditions()
-            .when(get => get(dialog)?.showDiameterSlider ?? false, adjustRadiusView)
-            .default(adjustmentMessage)
-          )
-      })
+      .subviewMatching(matcher => matcher.withConditions()
+        .when(get => get(dialog)?.showDiameterSlider ?? false, adjustRadiusView)
+        .default(adjustmentMessage)
+      )
   })
 }
 
-function closeDialog(evt: Event): StoreMessage {
-  const target = evt.target as HTMLElement
-  return target.tagName === "DIALOG" ?
-    run(() => (target as HTMLDialogElement).close()) :
-    batch([])
-}
-
 function adjustRadiusView(root: HTMLBuilder) {
-  root.div(({ config, children }) => {
-    config
-      .class("w-96")
+  root.div(({ children }) => {
     children
       .div(({ config, children }) => {
         config
-          .class("text-sky-800 mb-4")
+          .class("text-sky-600 mb-4")
         children
           .subview(adjustmentMessage)
       })
       .input(({ config }) => {
         config
-          .class("w-full")
+          .class("w-full accent-sky-600")
           .name("radius")
           .type("range")
           .max("75")

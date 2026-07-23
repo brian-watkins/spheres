@@ -4,6 +4,7 @@ import { SpecialElementAttributes } from "./specialAttributes.js";
 import { ElementSupport } from "./elementSupport.js";
 
 export type HTMLView = (root: HTMLBuilder) => void;
+export type TagElement<T extends string> = T extends keyof HTMLElementTagNameMap ? HTMLElementTagNameMap[T] : HTMLElement;
 
 export interface HTMLCaseMatcher<T> {
     when<X extends T>(typePredicate: (val: T) => val is X, generator: (useCase: UseCase<X>) => HTMLView): HTMLCaseMatcher<T>;
@@ -183,7 +184,7 @@ export interface HTMLBuilder extends SpecialHTMLElements {
     wbr(builder?: (element: ConfigurableElement<WbrElementAttributes, never>) => void): HTMLBuilder;
 }
 
-export interface AElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface AElementAttributes extends SpecialElementAttributes<TagElement<"a">>, GlobalHTMLAttributes {
     charset(value: string | Stateful<string | undefined>): AElementAttributes;
     coords(value: string | Stateful<string | undefined>): AElementAttributes;
     download(value: string | Stateful<string | undefined>): AElementAttributes;
@@ -199,13 +200,13 @@ export interface AElementAttributes extends SpecialElementAttributes, GlobalHTML
     type(value: string | Stateful<string | undefined>): AElementAttributes;
 }
 
-export interface AbbrElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface AbbrElementAttributes extends SpecialElementAttributes<TagElement<"abbr">>, GlobalHTMLAttributes {
 }
 
-export interface AddressElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface AddressElementAttributes extends SpecialElementAttributes<TagElement<"address">>, GlobalHTMLAttributes {
 }
 
-export interface AreaElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface AreaElementAttributes extends SpecialElementAttributes<TagElement<"area">>, GlobalHTMLAttributes {
     alt(value: string | Stateful<string | undefined>): AreaElementAttributes;
     coords(value: string | Stateful<string | undefined>): AreaElementAttributes;
     download(value: string | Stateful<string | undefined>): AreaElementAttributes;
@@ -220,13 +221,13 @@ export interface AreaElementAttributes extends SpecialElementAttributes, GlobalH
     type(value: string | Stateful<string | undefined>): AreaElementAttributes;
 }
 
-export interface ArticleElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface ArticleElementAttributes extends SpecialElementAttributes<TagElement<"article">>, GlobalHTMLAttributes {
 }
 
-export interface AsideElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface AsideElementAttributes extends SpecialElementAttributes<TagElement<"aside">>, GlobalHTMLAttributes {
 }
 
-export interface AudioElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface AudioElementAttributes extends SpecialElementAttributes<TagElement<"audio">>, GlobalHTMLAttributes {
     autoplay(value: boolean | Stateful<boolean | undefined>): AudioElementAttributes;
     controls(value: boolean | Stateful<boolean | undefined>): AudioElementAttributes;
     crossorigin(value: string | Stateful<string | undefined>): AudioElementAttributes;
@@ -236,25 +237,25 @@ export interface AudioElementAttributes extends SpecialElementAttributes, Global
     src(value: string | Stateful<string | undefined>): AudioElementAttributes;
 }
 
-export interface BElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface BElementAttributes extends SpecialElementAttributes<TagElement<"b">>, GlobalHTMLAttributes {
 }
 
-export interface BaseElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface BaseElementAttributes extends SpecialElementAttributes<TagElement<"base">>, GlobalHTMLAttributes {
     href(value: string | Stateful<string | undefined>): BaseElementAttributes;
     target(value: string | Stateful<string | undefined>): BaseElementAttributes;
 }
 
-export interface BdiElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface BdiElementAttributes extends SpecialElementAttributes<TagElement<"bdi">>, GlobalHTMLAttributes {
 }
 
-export interface BdoElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface BdoElementAttributes extends SpecialElementAttributes<TagElement<"bdo">>, GlobalHTMLAttributes {
 }
 
-export interface BlockquoteElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface BlockquoteElementAttributes extends SpecialElementAttributes<TagElement<"blockquote">>, GlobalHTMLAttributes {
     cite(value: string | Stateful<string | undefined>): BlockquoteElementAttributes;
 }
 
-export interface BodyElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface BodyElementAttributes extends SpecialElementAttributes<TagElement<"body">>, GlobalHTMLAttributes {
     alink(value: string | Stateful<string | undefined>): BodyElementAttributes;
     background(value: string | Stateful<string | undefined>): BodyElementAttributes;
     bgcolor(value: string | Stateful<string | undefined>): BodyElementAttributes;
@@ -263,11 +264,11 @@ export interface BodyElementAttributes extends SpecialElementAttributes, GlobalH
     vlink(value: string | Stateful<string | undefined>): BodyElementAttributes;
 }
 
-export interface BrElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface BrElementAttributes extends SpecialElementAttributes<TagElement<"br">>, GlobalHTMLAttributes {
     clear(value: string | Stateful<string | undefined>): BrElementAttributes;
 }
 
-export interface ButtonElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface ButtonElementAttributes extends SpecialElementAttributes<TagElement<"button">>, GlobalHTMLAttributes {
     command(value: string | Stateful<string | undefined>): ButtonElementAttributes;
     commandfor(value: string | Stateful<string | undefined>): ButtonElementAttributes;
     disabled(value: boolean | Stateful<boolean | undefined>): ButtonElementAttributes;
@@ -284,22 +285,22 @@ export interface ButtonElementAttributes extends SpecialElementAttributes, Globa
     value(value: string | Stateful<string | undefined>): ButtonElementAttributes;
 }
 
-export interface CanvasElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface CanvasElementAttributes extends SpecialElementAttributes<TagElement<"canvas">>, GlobalHTMLAttributes {
     height(value: string | Stateful<string | undefined>): CanvasElementAttributes;
     width(value: string | Stateful<string | undefined>): CanvasElementAttributes;
 }
 
-export interface CaptionElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface CaptionElementAttributes extends SpecialElementAttributes<TagElement<"caption">>, GlobalHTMLAttributes {
     align(value: string | Stateful<string | undefined>): CaptionElementAttributes;
 }
 
-export interface CiteElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface CiteElementAttributes extends SpecialElementAttributes<TagElement<"cite">>, GlobalHTMLAttributes {
 }
 
-export interface CodeElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface CodeElementAttributes extends SpecialElementAttributes<TagElement<"code">>, GlobalHTMLAttributes {
 }
 
-export interface ColElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface ColElementAttributes extends SpecialElementAttributes<TagElement<"col">>, GlobalHTMLAttributes {
     align(value: string | Stateful<string | undefined>): ColElementAttributes;
     char(value: string | Stateful<string | undefined>): ColElementAttributes;
     charoff(value: string | Stateful<string | undefined>): ColElementAttributes;
@@ -308,7 +309,7 @@ export interface ColElementAttributes extends SpecialElementAttributes, GlobalHT
     width(value: string | Stateful<string | undefined>): ColElementAttributes;
 }
 
-export interface ColgroupElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface ColgroupElementAttributes extends SpecialElementAttributes<TagElement<"colgroup">>, GlobalHTMLAttributes {
     align(value: string | Stateful<string | undefined>): ColgroupElementAttributes;
     char(value: string | Stateful<string | undefined>): ColgroupElementAttributes;
     charoff(value: string | Stateful<string | undefined>): ColgroupElementAttributes;
@@ -317,71 +318,71 @@ export interface ColgroupElementAttributes extends SpecialElementAttributes, Glo
     width(value: string | Stateful<string | undefined>): ColgroupElementAttributes;
 }
 
-export interface DataElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface DataElementAttributes extends SpecialElementAttributes<TagElement<"data">>, GlobalHTMLAttributes {
     value(value: string | Stateful<string | undefined>): DataElementAttributes;
 }
 
-export interface DatalistElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface DatalistElementAttributes extends SpecialElementAttributes<TagElement<"datalist">>, GlobalHTMLAttributes {
 }
 
-export interface DdElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface DdElementAttributes extends SpecialElementAttributes<TagElement<"dd">>, GlobalHTMLAttributes {
 }
 
-export interface DelElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface DelElementAttributes extends SpecialElementAttributes<TagElement<"del">>, GlobalHTMLAttributes {
     cite(value: string | Stateful<string | undefined>): DelElementAttributes;
     datetime(value: string | Stateful<string | undefined>): DelElementAttributes;
 }
 
-export interface DetailsElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface DetailsElementAttributes extends SpecialElementAttributes<TagElement<"details">>, GlobalHTMLAttributes {
     name(value: string | Stateful<string | undefined>): DetailsElementAttributes;
     open(value: boolean | Stateful<boolean | undefined>): DetailsElementAttributes;
 }
 
-export interface DfnElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface DfnElementAttributes extends SpecialElementAttributes<TagElement<"dfn">>, GlobalHTMLAttributes {
 }
 
-export interface DialogElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface DialogElementAttributes extends SpecialElementAttributes<TagElement<"dialog">>, GlobalHTMLAttributes {
     closedby(value: string | Stateful<string | undefined>): DialogElementAttributes;
     open(value: boolean | Stateful<boolean | undefined>): DialogElementAttributes;
 }
 
-export interface DivElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface DivElementAttributes extends SpecialElementAttributes<TagElement<"div">>, GlobalHTMLAttributes {
     align(value: string | Stateful<string | undefined>): DivElementAttributes;
 }
 
-export interface DlElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface DlElementAttributes extends SpecialElementAttributes<TagElement<"dl">>, GlobalHTMLAttributes {
     compact(value: string | Stateful<string | undefined>): DlElementAttributes;
 }
 
-export interface DtElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface DtElementAttributes extends SpecialElementAttributes<TagElement<"dt">>, GlobalHTMLAttributes {
 }
 
-export interface EmElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface EmElementAttributes extends SpecialElementAttributes<TagElement<"em">>, GlobalHTMLAttributes {
 }
 
-export interface EmbedElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface EmbedElementAttributes extends SpecialElementAttributes<TagElement<"embed">>, GlobalHTMLAttributes {
     height(value: string | Stateful<string | undefined>): EmbedElementAttributes;
     src(value: string | Stateful<string | undefined>): EmbedElementAttributes;
     type(value: string | Stateful<string | undefined>): EmbedElementAttributes;
     width(value: string | Stateful<string | undefined>): EmbedElementAttributes;
 }
 
-export interface FieldsetElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface FieldsetElementAttributes extends SpecialElementAttributes<TagElement<"fieldset">>, GlobalHTMLAttributes {
     disabled(value: boolean | Stateful<boolean | undefined>): FieldsetElementAttributes;
     form(value: string | Stateful<string | undefined>): FieldsetElementAttributes;
     name(value: string | Stateful<string | undefined>): FieldsetElementAttributes;
 }
 
-export interface FigcaptionElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface FigcaptionElementAttributes extends SpecialElementAttributes<TagElement<"figcaption">>, GlobalHTMLAttributes {
 }
 
-export interface FigureElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface FigureElementAttributes extends SpecialElementAttributes<TagElement<"figure">>, GlobalHTMLAttributes {
 }
 
-export interface FooterElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface FooterElementAttributes extends SpecialElementAttributes<TagElement<"footer">>, GlobalHTMLAttributes {
 }
 
-export interface FormElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface FormElementAttributes extends SpecialElementAttributes<TagElement<"form">>, GlobalHTMLAttributes {
     accept(value: string | Stateful<string | undefined>): FormElementAttributes;
     acceptCharset(value: string | Stateful<string | undefined>): FormElementAttributes;
     action(value: string | Stateful<string | undefined>): FormElementAttributes;
@@ -393,56 +394,56 @@ export interface FormElementAttributes extends SpecialElementAttributes, GlobalH
     target(value: string | Stateful<string | undefined>): FormElementAttributes;
 }
 
-export interface H1ElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface H1ElementAttributes extends SpecialElementAttributes<TagElement<"h1">>, GlobalHTMLAttributes {
     align(value: string | Stateful<string | undefined>): H1ElementAttributes;
 }
 
-export interface H2ElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface H2ElementAttributes extends SpecialElementAttributes<TagElement<"h2">>, GlobalHTMLAttributes {
     align(value: string | Stateful<string | undefined>): H2ElementAttributes;
 }
 
-export interface H3ElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface H3ElementAttributes extends SpecialElementAttributes<TagElement<"h3">>, GlobalHTMLAttributes {
     align(value: string | Stateful<string | undefined>): H3ElementAttributes;
 }
 
-export interface H4ElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface H4ElementAttributes extends SpecialElementAttributes<TagElement<"h4">>, GlobalHTMLAttributes {
     align(value: string | Stateful<string | undefined>): H4ElementAttributes;
 }
 
-export interface H5ElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface H5ElementAttributes extends SpecialElementAttributes<TagElement<"h5">>, GlobalHTMLAttributes {
     align(value: string | Stateful<string | undefined>): H5ElementAttributes;
 }
 
-export interface H6ElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface H6ElementAttributes extends SpecialElementAttributes<TagElement<"h6">>, GlobalHTMLAttributes {
     align(value: string | Stateful<string | undefined>): H6ElementAttributes;
 }
 
-export interface HeadElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface HeadElementAttributes extends SpecialElementAttributes<TagElement<"head">>, GlobalHTMLAttributes {
     profile(value: string | Stateful<string | undefined>): HeadElementAttributes;
 }
 
-export interface HeaderElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface HeaderElementAttributes extends SpecialElementAttributes<TagElement<"header">>, GlobalHTMLAttributes {
 }
 
-export interface HgroupElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface HgroupElementAttributes extends SpecialElementAttributes<TagElement<"hgroup">>, GlobalHTMLAttributes {
 }
 
-export interface HrElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface HrElementAttributes extends SpecialElementAttributes<TagElement<"hr">>, GlobalHTMLAttributes {
     align(value: string | Stateful<string | undefined>): HrElementAttributes;
     noshade(value: string | Stateful<string | undefined>): HrElementAttributes;
     size(value: string | Stateful<string | undefined>): HrElementAttributes;
     width(value: string | Stateful<string | undefined>): HrElementAttributes;
 }
 
-export interface HtmlElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface HtmlElementAttributes extends SpecialElementAttributes<TagElement<"html">>, GlobalHTMLAttributes {
     manifest(value: string | Stateful<string | undefined>): HtmlElementAttributes;
     version(value: string | Stateful<string | undefined>): HtmlElementAttributes;
 }
 
-export interface IElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface IElementAttributes extends SpecialElementAttributes<TagElement<"i">>, GlobalHTMLAttributes {
 }
 
-export interface IframeElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface IframeElementAttributes extends SpecialElementAttributes<TagElement<"iframe">>, GlobalHTMLAttributes {
     align(value: string | Stateful<string | undefined>): IframeElementAttributes;
     allow(value: string | Stateful<string | undefined>): IframeElementAttributes;
     allowfullscreen(value: boolean | Stateful<boolean | undefined>): IframeElementAttributes;
@@ -463,7 +464,7 @@ export interface IframeElementAttributes extends SpecialElementAttributes, Globa
     width(value: string | Stateful<string | undefined>): IframeElementAttributes;
 }
 
-export interface ImgElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface ImgElementAttributes extends SpecialElementAttributes<TagElement<"img">>, GlobalHTMLAttributes {
     align(value: string | Stateful<string | undefined>): ImgElementAttributes;
     alt(value: string | Stateful<string | undefined>): ImgElementAttributes;
     border(value: string | Stateful<string | undefined>): ImgElementAttributes;
@@ -485,7 +486,7 @@ export interface ImgElementAttributes extends SpecialElementAttributes, GlobalHT
     width(value: string | Stateful<string | undefined>): ImgElementAttributes;
 }
 
-export interface InputElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface InputElementAttributes extends SpecialElementAttributes<TagElement<"input">>, GlobalHTMLAttributes {
     accept(value: string | Stateful<string | undefined>): InputElementAttributes;
     align(value: string | Stateful<string | undefined>): InputElementAttributes;
     alpha(value: string | Stateful<string | undefined>): InputElementAttributes;
@@ -525,29 +526,29 @@ export interface InputElementAttributes extends SpecialElementAttributes, Global
     width(value: string | Stateful<string | undefined>): InputElementAttributes;
 }
 
-export interface InsElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface InsElementAttributes extends SpecialElementAttributes<TagElement<"ins">>, GlobalHTMLAttributes {
     cite(value: string | Stateful<string | undefined>): InsElementAttributes;
     datetime(value: string | Stateful<string | undefined>): InsElementAttributes;
 }
 
-export interface KbdElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface KbdElementAttributes extends SpecialElementAttributes<TagElement<"kbd">>, GlobalHTMLAttributes {
 }
 
-export interface LabelElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface LabelElementAttributes extends SpecialElementAttributes<TagElement<"label">>, GlobalHTMLAttributes {
     for(value: string | Stateful<string | undefined>): LabelElementAttributes;
     form(value: string | Stateful<string | undefined>): LabelElementAttributes;
 }
 
-export interface LegendElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface LegendElementAttributes extends SpecialElementAttributes<TagElement<"legend">>, GlobalHTMLAttributes {
     align(value: string | Stateful<string | undefined>): LegendElementAttributes;
 }
 
-export interface LiElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface LiElementAttributes extends SpecialElementAttributes<TagElement<"li">>, GlobalHTMLAttributes {
     type(value: string | Stateful<string | undefined>): LiElementAttributes;
     value(value: string | Stateful<string | undefined>): LiElementAttributes;
 }
 
-export interface LinkElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface LinkElementAttributes extends SpecialElementAttributes<TagElement<"link">>, GlobalHTMLAttributes {
     as(value: string | Stateful<string | undefined>): LinkElementAttributes;
     blocking(value: string | Stateful<string | undefined>): LinkElementAttributes;
     charset(value: string | Stateful<string | undefined>): LinkElementAttributes;
@@ -569,27 +570,27 @@ export interface LinkElementAttributes extends SpecialElementAttributes, GlobalH
     type(value: string | Stateful<string | undefined>): LinkElementAttributes;
 }
 
-export interface MainElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface MainElementAttributes extends SpecialElementAttributes<TagElement<"main">>, GlobalHTMLAttributes {
 }
 
-export interface MapElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface MapElementAttributes extends SpecialElementAttributes<TagElement<"map">>, GlobalHTMLAttributes {
     name(value: string | Stateful<string | undefined>): MapElementAttributes;
 }
 
-export interface MarkElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface MarkElementAttributes extends SpecialElementAttributes<TagElement<"mark">>, GlobalHTMLAttributes {
 }
 
-export interface MathElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface MathElementAttributes extends SpecialElementAttributes<TagElement<"math">>, GlobalHTMLAttributes {
 }
 
-export interface MenuElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface MenuElementAttributes extends SpecialElementAttributes<TagElement<"menu">>, GlobalHTMLAttributes {
     compact(value: string | Stateful<string | undefined>): MenuElementAttributes;
 }
 
-export interface MenuitemElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface MenuitemElementAttributes extends SpecialElementAttributes<TagElement<"menuitem">>, GlobalHTMLAttributes {
 }
 
-export interface MetaElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface MetaElementAttributes extends SpecialElementAttributes<TagElement<"meta">>, GlobalHTMLAttributes {
     charset(value: string | Stateful<string | undefined>): MetaElementAttributes;
     content(value: string | Stateful<string | undefined>): MetaElementAttributes;
     httpEquiv(value: string | Stateful<string | undefined>): MetaElementAttributes;
@@ -598,7 +599,7 @@ export interface MetaElementAttributes extends SpecialElementAttributes, GlobalH
     scheme(value: string | Stateful<string | undefined>): MetaElementAttributes;
 }
 
-export interface MeterElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface MeterElementAttributes extends SpecialElementAttributes<TagElement<"meter">>, GlobalHTMLAttributes {
     high(value: string | Stateful<string | undefined>): MeterElementAttributes;
     low(value: string | Stateful<string | undefined>): MeterElementAttributes;
     max(value: string | Stateful<string | undefined>): MeterElementAttributes;
@@ -607,13 +608,13 @@ export interface MeterElementAttributes extends SpecialElementAttributes, Global
     value(value: string | Stateful<string | undefined>): MeterElementAttributes;
 }
 
-export interface NavElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface NavElementAttributes extends SpecialElementAttributes<TagElement<"nav">>, GlobalHTMLAttributes {
 }
 
-export interface NoscriptElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface NoscriptElementAttributes extends SpecialElementAttributes<TagElement<"noscript">>, GlobalHTMLAttributes {
 }
 
-export interface ObjectElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface ObjectElementAttributes extends SpecialElementAttributes<TagElement<"object">>, GlobalHTMLAttributes {
     align(value: string | Stateful<string | undefined>): ObjectElementAttributes;
     archive(value: string | Stateful<string | undefined>): ObjectElementAttributes;
     border(value: string | Stateful<string | undefined>): ObjectElementAttributes;
@@ -634,80 +635,80 @@ export interface ObjectElementAttributes extends SpecialElementAttributes, Globa
     width(value: string | Stateful<string | undefined>): ObjectElementAttributes;
 }
 
-export interface OlElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface OlElementAttributes extends SpecialElementAttributes<TagElement<"ol">>, GlobalHTMLAttributes {
     compact(value: string | Stateful<string | undefined>): OlElementAttributes;
     reversed(value: boolean | Stateful<boolean | undefined>): OlElementAttributes;
     start(value: string | Stateful<string | undefined>): OlElementAttributes;
     type(value: string | Stateful<string | undefined>): OlElementAttributes;
 }
 
-export interface OptgroupElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface OptgroupElementAttributes extends SpecialElementAttributes<TagElement<"optgroup">>, GlobalHTMLAttributes {
     disabled(value: boolean | Stateful<boolean | undefined>): OptgroupElementAttributes;
     label(value: string | Stateful<string | undefined>): OptgroupElementAttributes;
 }
 
-export interface OptionElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface OptionElementAttributes extends SpecialElementAttributes<TagElement<"option">>, GlobalHTMLAttributes {
     disabled(value: boolean | Stateful<boolean | undefined>): OptionElementAttributes;
     label(value: string | Stateful<string | undefined>): OptionElementAttributes;
     selected(value: boolean | Stateful<boolean | undefined>): OptionElementAttributes;
     value(value: string | Stateful<string | undefined>): OptionElementAttributes;
 }
 
-export interface OutputElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface OutputElementAttributes extends SpecialElementAttributes<TagElement<"output">>, GlobalHTMLAttributes {
     for(value: string | Stateful<string | undefined>): OutputElementAttributes;
     form(value: string | Stateful<string | undefined>): OutputElementAttributes;
     name(value: string | Stateful<string | undefined>): OutputElementAttributes;
 }
 
-export interface PElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface PElementAttributes extends SpecialElementAttributes<TagElement<"p">>, GlobalHTMLAttributes {
     align(value: string | Stateful<string | undefined>): PElementAttributes;
 }
 
-export interface ParamElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface ParamElementAttributes extends SpecialElementAttributes<TagElement<"param">>, GlobalHTMLAttributes {
     name(value: string | Stateful<string | undefined>): ParamElementAttributes;
     type(value: string | Stateful<string | undefined>): ParamElementAttributes;
     value(value: string | Stateful<string | undefined>): ParamElementAttributes;
     valuetype(value: string | Stateful<string | undefined>): ParamElementAttributes;
 }
 
-export interface PictureElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface PictureElementAttributes extends SpecialElementAttributes<TagElement<"picture">>, GlobalHTMLAttributes {
 }
 
-export interface PreElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface PreElementAttributes extends SpecialElementAttributes<TagElement<"pre">>, GlobalHTMLAttributes {
     width(value: string | Stateful<string | undefined>): PreElementAttributes;
 }
 
-export interface ProgressElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface ProgressElementAttributes extends SpecialElementAttributes<TagElement<"progress">>, GlobalHTMLAttributes {
     max(value: string | Stateful<string | undefined>): ProgressElementAttributes;
     value(value: string | Stateful<string | undefined>): ProgressElementAttributes;
 }
 
-export interface QElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface QElementAttributes extends SpecialElementAttributes<TagElement<"q">>, GlobalHTMLAttributes {
     cite(value: string | Stateful<string | undefined>): QElementAttributes;
 }
 
-export interface RbElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface RbElementAttributes extends SpecialElementAttributes<TagElement<"rb">>, GlobalHTMLAttributes {
 }
 
-export interface RpElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface RpElementAttributes extends SpecialElementAttributes<TagElement<"rp">>, GlobalHTMLAttributes {
 }
 
-export interface RtElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface RtElementAttributes extends SpecialElementAttributes<TagElement<"rt">>, GlobalHTMLAttributes {
 }
 
-export interface RtcElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface RtcElementAttributes extends SpecialElementAttributes<TagElement<"rtc">>, GlobalHTMLAttributes {
 }
 
-export interface RubyElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface RubyElementAttributes extends SpecialElementAttributes<TagElement<"ruby">>, GlobalHTMLAttributes {
 }
 
-export interface SElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface SElementAttributes extends SpecialElementAttributes<TagElement<"s">>, GlobalHTMLAttributes {
 }
 
-export interface SampElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface SampElementAttributes extends SpecialElementAttributes<TagElement<"samp">>, GlobalHTMLAttributes {
 }
 
-export interface ScriptElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface ScriptElementAttributes extends SpecialElementAttributes<TagElement<"script">>, GlobalHTMLAttributes {
     async(value: boolean | Stateful<boolean | undefined>): ScriptElementAttributes;
     blocking(value: string | Stateful<string | undefined>): ScriptElementAttributes;
     charset(value: string | Stateful<string | undefined>): ScriptElementAttributes;
@@ -722,13 +723,13 @@ export interface ScriptElementAttributes extends SpecialElementAttributes, Globa
     type(value: string | Stateful<string | undefined>): ScriptElementAttributes;
 }
 
-export interface SearchElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface SearchElementAttributes extends SpecialElementAttributes<TagElement<"search">>, GlobalHTMLAttributes {
 }
 
-export interface SectionElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface SectionElementAttributes extends SpecialElementAttributes<TagElement<"section">>, GlobalHTMLAttributes {
 }
 
-export interface SelectElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface SelectElementAttributes extends SpecialElementAttributes<TagElement<"select">>, GlobalHTMLAttributes {
     autocomplete(value: string | Stateful<string | undefined>): SelectElementAttributes;
     disabled(value: boolean | Stateful<boolean | undefined>): SelectElementAttributes;
     form(value: string | Stateful<string | undefined>): SelectElementAttributes;
@@ -738,14 +739,14 @@ export interface SelectElementAttributes extends SpecialElementAttributes, Globa
     size(value: string | Stateful<string | undefined>): SelectElementAttributes;
 }
 
-export interface SlotElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface SlotElementAttributes extends SpecialElementAttributes<TagElement<"slot">>, GlobalHTMLAttributes {
     name(value: string | Stateful<string | undefined>): SlotElementAttributes;
 }
 
-export interface SmallElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface SmallElementAttributes extends SpecialElementAttributes<TagElement<"small">>, GlobalHTMLAttributes {
 }
 
-export interface SourceElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface SourceElementAttributes extends SpecialElementAttributes<TagElement<"source">>, GlobalHTMLAttributes {
     height(value: string | Stateful<string | undefined>): SourceElementAttributes;
     media(value: string | Stateful<string | undefined>): SourceElementAttributes;
     sizes(value: string | Stateful<string | undefined>): SourceElementAttributes;
@@ -755,28 +756,28 @@ export interface SourceElementAttributes extends SpecialElementAttributes, Globa
     width(value: string | Stateful<string | undefined>): SourceElementAttributes;
 }
 
-export interface SpanElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface SpanElementAttributes extends SpecialElementAttributes<TagElement<"span">>, GlobalHTMLAttributes {
 }
 
-export interface StrongElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface StrongElementAttributes extends SpecialElementAttributes<TagElement<"strong">>, GlobalHTMLAttributes {
 }
 
-export interface StyleElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface StyleElementAttributes extends SpecialElementAttributes<TagElement<"style">>, GlobalHTMLAttributes {
     blocking(value: string | Stateful<string | undefined>): StyleElementAttributes;
     media(value: string | Stateful<string | undefined>): StyleElementAttributes;
     type(value: string | Stateful<string | undefined>): StyleElementAttributes;
 }
 
-export interface SubElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface SubElementAttributes extends SpecialElementAttributes<TagElement<"sub">>, GlobalHTMLAttributes {
 }
 
-export interface SummaryElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface SummaryElementAttributes extends SpecialElementAttributes<TagElement<"summary">>, GlobalHTMLAttributes {
 }
 
-export interface SupElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface SupElementAttributes extends SpecialElementAttributes<TagElement<"sup">>, GlobalHTMLAttributes {
 }
 
-export interface TableElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface TableElementAttributes extends SpecialElementAttributes<TagElement<"table">>, GlobalHTMLAttributes {
     align(value: string | Stateful<string | undefined>): TableElementAttributes;
     bgcolor(value: string | Stateful<string | undefined>): TableElementAttributes;
     border(value: string | Stateful<string | undefined>): TableElementAttributes;
@@ -788,14 +789,14 @@ export interface TableElementAttributes extends SpecialElementAttributes, Global
     width(value: string | Stateful<string | undefined>): TableElementAttributes;
 }
 
-export interface TbodyElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface TbodyElementAttributes extends SpecialElementAttributes<TagElement<"tbody">>, GlobalHTMLAttributes {
     align(value: string | Stateful<string | undefined>): TbodyElementAttributes;
     char(value: string | Stateful<string | undefined>): TbodyElementAttributes;
     charoff(value: string | Stateful<string | undefined>): TbodyElementAttributes;
     valign(value: string | Stateful<string | undefined>): TbodyElementAttributes;
 }
 
-export interface TdElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface TdElementAttributes extends SpecialElementAttributes<TagElement<"td">>, GlobalHTMLAttributes {
     abbr(value: string | Stateful<string | undefined>): TdElementAttributes;
     align(value: string | Stateful<string | undefined>): TdElementAttributes;
     axis(value: string | Stateful<string | undefined>): TdElementAttributes;
@@ -812,7 +813,7 @@ export interface TdElementAttributes extends SpecialElementAttributes, GlobalHTM
     width(value: string | Stateful<string | undefined>): TdElementAttributes;
 }
 
-export interface TemplateElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface TemplateElementAttributes extends SpecialElementAttributes<TagElement<"template">>, GlobalHTMLAttributes {
     shadowrootclonable(value: string | Stateful<string | undefined>): TemplateElementAttributes;
     shadowrootcustomelementregistry(value: string | Stateful<string | undefined>): TemplateElementAttributes;
     shadowrootdelegatesfocus(value: string | Stateful<string | undefined>): TemplateElementAttributes;
@@ -820,7 +821,7 @@ export interface TemplateElementAttributes extends SpecialElementAttributes, Glo
     shadowrootserializable(value: string | Stateful<string | undefined>): TemplateElementAttributes;
 }
 
-export interface TextareaElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface TextareaElementAttributes extends SpecialElementAttributes<TagElement<"textarea">>, GlobalHTMLAttributes {
     autocomplete(value: string | Stateful<string | undefined>): TextareaElementAttributes;
     cols(value: string | Stateful<string | undefined>): TextareaElementAttributes;
     dirname(value: string | Stateful<string | undefined>): TextareaElementAttributes;
@@ -836,14 +837,14 @@ export interface TextareaElementAttributes extends SpecialElementAttributes, Glo
     wrap(value: string | Stateful<string | undefined>): TextareaElementAttributes;
 }
 
-export interface TfootElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface TfootElementAttributes extends SpecialElementAttributes<TagElement<"tfoot">>, GlobalHTMLAttributes {
     align(value: string | Stateful<string | undefined>): TfootElementAttributes;
     char(value: string | Stateful<string | undefined>): TfootElementAttributes;
     charoff(value: string | Stateful<string | undefined>): TfootElementAttributes;
     valign(value: string | Stateful<string | undefined>): TfootElementAttributes;
 }
 
-export interface ThElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface ThElementAttributes extends SpecialElementAttributes<TagElement<"th">>, GlobalHTMLAttributes {
     abbr(value: string | Stateful<string | undefined>): ThElementAttributes;
     align(value: string | Stateful<string | undefined>): ThElementAttributes;
     axis(value: string | Stateful<string | undefined>): ThElementAttributes;
@@ -860,21 +861,21 @@ export interface ThElementAttributes extends SpecialElementAttributes, GlobalHTM
     width(value: string | Stateful<string | undefined>): ThElementAttributes;
 }
 
-export interface TheadElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface TheadElementAttributes extends SpecialElementAttributes<TagElement<"thead">>, GlobalHTMLAttributes {
     align(value: string | Stateful<string | undefined>): TheadElementAttributes;
     char(value: string | Stateful<string | undefined>): TheadElementAttributes;
     charoff(value: string | Stateful<string | undefined>): TheadElementAttributes;
     valign(value: string | Stateful<string | undefined>): TheadElementAttributes;
 }
 
-export interface TimeElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface TimeElementAttributes extends SpecialElementAttributes<TagElement<"time">>, GlobalHTMLAttributes {
     datetime(value: string | Stateful<string | undefined>): TimeElementAttributes;
 }
 
-export interface TitleElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface TitleElementAttributes extends SpecialElementAttributes<TagElement<"title">>, GlobalHTMLAttributes {
 }
 
-export interface TrElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface TrElementAttributes extends SpecialElementAttributes<TagElement<"tr">>, GlobalHTMLAttributes {
     align(value: string | Stateful<string | undefined>): TrElementAttributes;
     bgcolor(value: string | Stateful<string | undefined>): TrElementAttributes;
     char(value: string | Stateful<string | undefined>): TrElementAttributes;
@@ -882,7 +883,7 @@ export interface TrElementAttributes extends SpecialElementAttributes, GlobalHTM
     valign(value: string | Stateful<string | undefined>): TrElementAttributes;
 }
 
-export interface TrackElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface TrackElementAttributes extends SpecialElementAttributes<TagElement<"track">>, GlobalHTMLAttributes {
     default(value: boolean | Stateful<boolean | undefined>): TrackElementAttributes;
     kind(value: string | Stateful<string | undefined>): TrackElementAttributes;
     label(value: string | Stateful<string | undefined>): TrackElementAttributes;
@@ -890,18 +891,18 @@ export interface TrackElementAttributes extends SpecialElementAttributes, Global
     srclang(value: string | Stateful<string | undefined>): TrackElementAttributes;
 }
 
-export interface UElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface UElementAttributes extends SpecialElementAttributes<TagElement<"u">>, GlobalHTMLAttributes {
 }
 
-export interface UlElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface UlElementAttributes extends SpecialElementAttributes<TagElement<"ul">>, GlobalHTMLAttributes {
     compact(value: string | Stateful<string | undefined>): UlElementAttributes;
     type(value: string | Stateful<string | undefined>): UlElementAttributes;
 }
 
-export interface VarElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface VarElementAttributes extends SpecialElementAttributes<TagElement<"var">>, GlobalHTMLAttributes {
 }
 
-export interface VideoElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface VideoElementAttributes extends SpecialElementAttributes<TagElement<"video">>, GlobalHTMLAttributes {
     autoplay(value: boolean | Stateful<boolean | undefined>): VideoElementAttributes;
     controls(value: boolean | Stateful<boolean | undefined>): VideoElementAttributes;
     crossorigin(value: string | Stateful<string | undefined>): VideoElementAttributes;
@@ -915,5 +916,5 @@ export interface VideoElementAttributes extends SpecialElementAttributes, Global
     width(value: string | Stateful<string | undefined>): VideoElementAttributes;
 }
 
-export interface WbrElementAttributes extends SpecialElementAttributes, GlobalHTMLAttributes {
+export interface WbrElementAttributes extends SpecialElementAttributes<TagElement<"wbr">>, GlobalHTMLAttributes {
 }

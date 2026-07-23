@@ -14,6 +14,7 @@ import { UpdateTextEffect } from "./effects/textEffect.js";
 import { UpdateAttributeEffect } from "./effects/attributeEffect.js";
 import { UpdatePropertyEffect } from "./effects/propertyEffect.js";
 import { isStateful } from "../../store/tokenRegistry.js";
+import { ElementIdentifier } from "../element.js";
 
 export class DomTemplateRenderer extends AbstractViewRenderer {
   public effectTemplates: Array<EffectTemplate> = []
@@ -155,6 +156,16 @@ class DomTemplateConfig extends AbstractViewConfig {
 
   constructor(support: ElementConfigSupport, private zone: EventZone, private elementId: string, private element: Element, private location: EffectLocation, private eventType: DOMEvent["type"]) {
     super(support)
+  }
+
+  elementIdentifier(id: ElementIdentifier<any>): this {
+    this.effectTemplates.push({
+      type: EffectTemplateTypes.Element,
+      identifier: id,
+      location: this.location
+    })
+
+    return this
   }
 
   attribute(name: string, value: string | Stateful<string>): this {

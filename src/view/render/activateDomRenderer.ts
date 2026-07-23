@@ -17,6 +17,7 @@ import { ListItemTemplateContext } from "./templateContext.js";
 import { activateList, ListEffect } from "./effects/listEffect.js";
 import { MatcherBuilder } from "./viewMatcherBuilder.js";
 import { ElementConfigSupport, ElementSupport } from "../elementSupport.js";
+import { ElementIdentifier, storeElement } from "../element.js";
 import { DOMRoot } from "./domRoot.js";
 
 export class ActivateDomRenderer extends AbstractViewRenderer {
@@ -95,6 +96,11 @@ export class ActivateDomRenderer extends AbstractViewRenderer {
 class ActivateDomConfig extends AbstractViewConfig {
   constructor(configSupport: ElementConfigSupport, private zone: EventZone, private registry: TokenRegistry, private root: Node, private element: Element, private location: EffectLocation) {
     super(configSupport)
+  }
+
+  elementIdentifier(id: ElementIdentifier<any>): this {
+    storeElement(this.registry, id, this.element)
+    return this
   }
 
   attribute(name: string, value: string | Stateful<string>): this {

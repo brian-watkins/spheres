@@ -105,4 +105,16 @@ export class DisplayElement {
       index: this.index
     })
   }
+
+  isFocused(): Promise<boolean> {
+    return usePage((page, opt) => {
+      return page
+        .locator(opt.selector)
+        .nth(opt.index)
+        .evaluate(el => document.activeElement === el, { timeout: 200 })
+    }, {
+      selector: this.selector,
+      index: this.index
+    })
+  }
 }

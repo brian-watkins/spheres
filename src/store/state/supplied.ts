@@ -1,6 +1,7 @@
 import { createStateHandler, getStateHandler, PublishableState, StatePublisher, TokenRegistry } from "../tokenRegistry.js"
 import { MetaState, WithMetaState } from "./meta.js"
 import { Publisher } from "./handler/publisher.js"
+import { didCreateToken } from "./stateRecorder.js"
 
 export interface SuppliedStateInitializer<T> {
   name?: string
@@ -8,7 +9,9 @@ export interface SuppliedStateInitializer<T> {
 }
 
 export function supplied<T, E = any>(initializer: SuppliedStateInitializer<T>): SuppliedState<T, E> {
-  return new SuppliedState(initializer.name, initializer.initialValue)
+  const token = new SuppliedState(initializer.name, initializer.initialValue)
+  didCreateToken(token)
+  return token
 }
 
 export class SuppliedState<T, E = any> implements PublishableState<T>, WithMetaState<T, never, E> {

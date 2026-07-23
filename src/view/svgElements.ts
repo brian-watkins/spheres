@@ -4,6 +4,7 @@ import { SpecialElementAttributes } from "./specialAttributes.js";
 import { ElementSupport } from "./elementSupport.js";
 
 export type SVGView = (root: SVGBuilder) => void;
+export type SvgTagElement<T extends string> = T extends keyof SVGElementTagNameMap ? SVGElementTagNameMap[T] : SVGElement;
 
 export interface SVGCaseMatcher<T> {
     when<X extends T>(typePredicate: (val: T) => val is X, generator: (useCase: UseCase<X>) => SVGView): SVGCaseMatcher<T>;
@@ -133,7 +134,7 @@ export interface GlobalSVGAttributes {
     typeof(value: string | Stateful<string | undefined>): this;
 }
 
-export interface ASVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface ASVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"a">>, GlobalSVGAttributes {
     alignmentBaseline(value: string | Stateful<string | undefined>): ASVGElementAttributes;
     baselineShift(value: string | Stateful<string | undefined>): ASVGElementAttributes;
     clip(value: string | Stateful<string | undefined>): ASVGElementAttributes;
@@ -221,7 +222,7 @@ export interface ASVGElementAttributes extends SpecialElementAttributes, GlobalS
     writingMode(value: string | Stateful<string | undefined>): ASVGElementAttributes;
 }
 
-export interface AltGlyphSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface AltGlyphSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"altGlyph">>, GlobalSVGAttributes {
     alignmentBaseline(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
     baselineShift(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
     clip(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
@@ -294,13 +295,13 @@ export interface AltGlyphSVGElementAttributes extends SpecialElementAttributes, 
     y(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
 }
 
-export interface AltGlyphDefSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface AltGlyphDefSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"altGlyphDef">>, GlobalSVGAttributes {
 }
 
-export interface AltGlyphItemSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface AltGlyphItemSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"altGlyphItem">>, GlobalSVGAttributes {
 }
 
-export interface AnimateSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface AnimateSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"animate">>, GlobalSVGAttributes {
     accumulate(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
     additive(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
     alignmentBaseline(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
@@ -388,7 +389,7 @@ export interface AnimateSVGElementAttributes extends SpecialElementAttributes, G
     writingMode(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
 }
 
-export interface AnimateColorSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface AnimateColorSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"animateColor">>, GlobalSVGAttributes {
     accumulate(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
     additive(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
     alignmentBaseline(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
@@ -475,7 +476,7 @@ export interface AnimateColorSVGElementAttributes extends SpecialElementAttribut
     writingMode(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
 }
 
-export interface AnimateMotionSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface AnimateMotionSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"animateMotion">>, GlobalSVGAttributes {
     accumulate(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes;
     additive(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes;
     begin(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes;
@@ -507,7 +508,7 @@ export interface AnimateMotionSVGElementAttributes extends SpecialElementAttribu
     values(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes;
 }
 
-export interface AnimateTransformSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface AnimateTransformSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"animateTransform">>, GlobalSVGAttributes {
     accumulate(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes;
     additive(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes;
     attributeName(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes;
@@ -538,7 +539,7 @@ export interface AnimateTransformSVGElementAttributes extends SpecialElementAttr
     values(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes;
 }
 
-export interface AnimationSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface AnimationSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"animation">>, GlobalSVGAttributes {
     begin(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes;
     dur(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes;
     end(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes;
@@ -578,7 +579,7 @@ export interface AnimationSVGElementAttributes extends SpecialElementAttributes,
     y(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes;
 }
 
-export interface AudioSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface AudioSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"audio">>, GlobalSVGAttributes {
     begin(value: string | Stateful<string | undefined>): AudioSVGElementAttributes;
     dur(value: string | Stateful<string | undefined>): AudioSVGElementAttributes;
     end(value: string | Stateful<string | undefined>): AudioSVGElementAttributes;
@@ -600,13 +601,13 @@ export interface AudioSVGElementAttributes extends SpecialElementAttributes, Glo
     type(value: string | Stateful<string | undefined>): AudioSVGElementAttributes;
 }
 
-export interface CanvasSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface CanvasSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"canvas">>, GlobalSVGAttributes {
     preserveAspectRatio(value: string | Stateful<string | undefined>): CanvasSVGElementAttributes;
     requiredExtensions(value: string | Stateful<string | undefined>): CanvasSVGElementAttributes;
     systemLanguage(value: string | Stateful<string | undefined>): CanvasSVGElementAttributes;
 }
 
-export interface CircleSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface CircleSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"circle">>, GlobalSVGAttributes {
     alignmentBaseline(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
     baselineShift(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
     clip(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
@@ -691,7 +692,7 @@ export interface CircleSVGElementAttributes extends SpecialElementAttributes, Gl
     writingMode(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
 }
 
-export interface ClipPathSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface ClipPathSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"clipPath">>, GlobalSVGAttributes {
     alignmentBaseline(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
     baselineShift(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
     clip(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
@@ -759,7 +760,7 @@ export interface ClipPathSVGElementAttributes extends SpecialElementAttributes, 
     writingMode(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
 }
 
-export interface CursorSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface CursorSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"cursor">>, GlobalSVGAttributes {
     externalResourcesRequired(value: string | Stateful<string | undefined>): CursorSVGElementAttributes;
     requiredExtensions(value: string | Stateful<string | undefined>): CursorSVGElementAttributes;
     requiredFeatures(value: string | Stateful<string | undefined>): CursorSVGElementAttributes;
@@ -768,7 +769,7 @@ export interface CursorSVGElementAttributes extends SpecialElementAttributes, Gl
     y(value: string | Stateful<string | undefined>): CursorSVGElementAttributes;
 }
 
-export interface DefsSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface DefsSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"defs">>, GlobalSVGAttributes {
     alignmentBaseline(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
     baselineShift(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
     clip(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
@@ -835,7 +836,7 @@ export interface DefsSVGElementAttributes extends SpecialElementAttributes, Glob
     writingMode(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
 }
 
-export interface DescSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface DescSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"desc">>, GlobalSVGAttributes {
     requiredExtensions(value: string | Stateful<string | undefined>): DescSVGElementAttributes;
     requiredFeatures(value: string | Stateful<string | undefined>): DescSVGElementAttributes;
     requiredFonts(value: string | Stateful<string | undefined>): DescSVGElementAttributes;
@@ -843,7 +844,7 @@ export interface DescSVGElementAttributes extends SpecialElementAttributes, Glob
     systemLanguage(value: string | Stateful<string | undefined>): DescSVGElementAttributes;
 }
 
-export interface DiscardSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface DiscardSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"discard">>, GlobalSVGAttributes {
     begin(value: string | Stateful<string | undefined>): DiscardSVGElementAttributes;
     href(value: string | Stateful<string | undefined>): DiscardSVGElementAttributes;
     requiredExtensions(value: string | Stateful<string | undefined>): DiscardSVGElementAttributes;
@@ -853,7 +854,7 @@ export interface DiscardSVGElementAttributes extends SpecialElementAttributes, G
     systemLanguage(value: string | Stateful<string | undefined>): DiscardSVGElementAttributes;
 }
 
-export interface EllipseSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface EllipseSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"ellipse">>, GlobalSVGAttributes {
     alignmentBaseline(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
     baselineShift(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
     clip(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
@@ -939,7 +940,7 @@ export interface EllipseSVGElementAttributes extends SpecialElementAttributes, G
     writingMode(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
 }
 
-export interface FeBlendSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface FeBlendSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"feBlend">>, GlobalSVGAttributes {
     alignmentBaseline(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
     baselineShift(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
     clip(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
@@ -1009,7 +1010,7 @@ export interface FeBlendSVGElementAttributes extends SpecialElementAttributes, G
     y(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
 }
 
-export interface FeColorMatrixSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface FeColorMatrixSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"feColorMatrix">>, GlobalSVGAttributes {
     alignmentBaseline(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
     baselineShift(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
     clip(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
@@ -1079,7 +1080,7 @@ export interface FeColorMatrixSVGElementAttributes extends SpecialElementAttribu
     y(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
 }
 
-export interface FeComponentTransferSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface FeComponentTransferSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"feComponentTransfer">>, GlobalSVGAttributes {
     alignmentBaseline(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
     baselineShift(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
     clip(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
@@ -1147,7 +1148,7 @@ export interface FeComponentTransferSVGElementAttributes extends SpecialElementA
     y(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
 }
 
-export interface FeCompositeSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface FeCompositeSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"feComposite">>, GlobalSVGAttributes {
     alignmentBaseline(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
     baselineShift(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
     clip(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
@@ -1221,7 +1222,7 @@ export interface FeCompositeSVGElementAttributes extends SpecialElementAttribute
     y(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
 }
 
-export interface FeConvolveMatrixSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface FeConvolveMatrixSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"feConvolveMatrix">>, GlobalSVGAttributes {
     alignmentBaseline(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
     baselineShift(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
     bias(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
@@ -1298,7 +1299,7 @@ export interface FeConvolveMatrixSVGElementAttributes extends SpecialElementAttr
     y(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
 }
 
-export interface FeDiffuseLightingSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface FeDiffuseLightingSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"feDiffuseLighting">>, GlobalSVGAttributes {
     alignmentBaseline(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
     baselineShift(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
     clip(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
@@ -1369,7 +1370,7 @@ export interface FeDiffuseLightingSVGElementAttributes extends SpecialElementAtt
     y(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
 }
 
-export interface FeDisplacementMapSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface FeDisplacementMapSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"feDisplacementMap">>, GlobalSVGAttributes {
     alignmentBaseline(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
     baselineShift(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
     clip(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
@@ -1441,12 +1442,12 @@ export interface FeDisplacementMapSVGElementAttributes extends SpecialElementAtt
     yChannelSelector(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
 }
 
-export interface FeDistantLightSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface FeDistantLightSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"feDistantLight">>, GlobalSVGAttributes {
     azimuth(value: string | Stateful<string | undefined>): FeDistantLightSVGElementAttributes;
     elevation(value: string | Stateful<string | undefined>): FeDistantLightSVGElementAttributes;
 }
 
-export interface FeDropShadowSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface FeDropShadowSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"feDropShadow">>, GlobalSVGAttributes {
     dx(value: string | Stateful<string | undefined>): FeDropShadowSVGElementAttributes;
     dy(value: string | Stateful<string | undefined>): FeDropShadowSVGElementAttributes;
     height(value: string | Stateful<string | undefined>): FeDropShadowSVGElementAttributes;
@@ -1458,7 +1459,7 @@ export interface FeDropShadowSVGElementAttributes extends SpecialElementAttribut
     y(value: string | Stateful<string | undefined>): FeDropShadowSVGElementAttributes;
 }
 
-export interface FeFloodSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface FeFloodSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"feFlood">>, GlobalSVGAttributes {
     alignmentBaseline(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
     baselineShift(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
     clip(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
@@ -1525,7 +1526,7 @@ export interface FeFloodSVGElementAttributes extends SpecialElementAttributes, G
     y(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
 }
 
-export interface FeFuncASVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface FeFuncASVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"feFuncA">>, GlobalSVGAttributes {
     amplitude(value: string | Stateful<string | undefined>): FeFuncASVGElementAttributes;
     exponent(value: string | Stateful<string | undefined>): FeFuncASVGElementAttributes;
     intercept(value: string | Stateful<string | undefined>): FeFuncASVGElementAttributes;
@@ -1535,7 +1536,7 @@ export interface FeFuncASVGElementAttributes extends SpecialElementAttributes, G
     type(value: string | Stateful<string | undefined>): FeFuncASVGElementAttributes;
 }
 
-export interface FeFuncBSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface FeFuncBSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"feFuncB">>, GlobalSVGAttributes {
     amplitude(value: string | Stateful<string | undefined>): FeFuncBSVGElementAttributes;
     exponent(value: string | Stateful<string | undefined>): FeFuncBSVGElementAttributes;
     intercept(value: string | Stateful<string | undefined>): FeFuncBSVGElementAttributes;
@@ -1545,7 +1546,7 @@ export interface FeFuncBSVGElementAttributes extends SpecialElementAttributes, G
     type(value: string | Stateful<string | undefined>): FeFuncBSVGElementAttributes;
 }
 
-export interface FeFuncGSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface FeFuncGSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"feFuncG">>, GlobalSVGAttributes {
     amplitude(value: string | Stateful<string | undefined>): FeFuncGSVGElementAttributes;
     exponent(value: string | Stateful<string | undefined>): FeFuncGSVGElementAttributes;
     intercept(value: string | Stateful<string | undefined>): FeFuncGSVGElementAttributes;
@@ -1555,7 +1556,7 @@ export interface FeFuncGSVGElementAttributes extends SpecialElementAttributes, G
     type(value: string | Stateful<string | undefined>): FeFuncGSVGElementAttributes;
 }
 
-export interface FeFuncRSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface FeFuncRSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"feFuncR">>, GlobalSVGAttributes {
     amplitude(value: string | Stateful<string | undefined>): FeFuncRSVGElementAttributes;
     exponent(value: string | Stateful<string | undefined>): FeFuncRSVGElementAttributes;
     intercept(value: string | Stateful<string | undefined>): FeFuncRSVGElementAttributes;
@@ -1565,7 +1566,7 @@ export interface FeFuncRSVGElementAttributes extends SpecialElementAttributes, G
     type(value: string | Stateful<string | undefined>): FeFuncRSVGElementAttributes;
 }
 
-export interface FeGaussianBlurSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface FeGaussianBlurSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"feGaussianBlur">>, GlobalSVGAttributes {
     alignmentBaseline(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
     baselineShift(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
     clip(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
@@ -1635,7 +1636,7 @@ export interface FeGaussianBlurSVGElementAttributes extends SpecialElementAttrib
     y(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
 }
 
-export interface FeImageSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface FeImageSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"feImage">>, GlobalSVGAttributes {
     alignmentBaseline(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
     baselineShift(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
     clip(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
@@ -1706,7 +1707,7 @@ export interface FeImageSVGElementAttributes extends SpecialElementAttributes, G
     y(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
 }
 
-export interface FeMergeSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface FeMergeSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"feMerge">>, GlobalSVGAttributes {
     alignmentBaseline(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
     baselineShift(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
     clip(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
@@ -1773,11 +1774,11 @@ export interface FeMergeSVGElementAttributes extends SpecialElementAttributes, G
     y(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
 }
 
-export interface FeMergeNodeSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface FeMergeNodeSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"feMergeNode">>, GlobalSVGAttributes {
     in(value: string | Stateful<string | undefined>): FeMergeNodeSVGElementAttributes;
 }
 
-export interface FeMorphologySVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface FeMorphologySVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"feMorphology">>, GlobalSVGAttributes {
     alignmentBaseline(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
     baselineShift(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
     clip(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
@@ -1847,7 +1848,7 @@ export interface FeMorphologySVGElementAttributes extends SpecialElementAttribut
     y(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
 }
 
-export interface FeOffsetSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface FeOffsetSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"feOffset">>, GlobalSVGAttributes {
     alignmentBaseline(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
     baselineShift(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
     clip(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
@@ -1917,13 +1918,13 @@ export interface FeOffsetSVGElementAttributes extends SpecialElementAttributes, 
     y(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
 }
 
-export interface FePointLightSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface FePointLightSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"fePointLight">>, GlobalSVGAttributes {
     x(value: string | Stateful<string | undefined>): FePointLightSVGElementAttributes;
     y(value: string | Stateful<string | undefined>): FePointLightSVGElementAttributes;
     z(value: string | Stateful<string | undefined>): FePointLightSVGElementAttributes;
 }
 
-export interface FeSpecularLightingSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface FeSpecularLightingSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"feSpecularLighting">>, GlobalSVGAttributes {
     alignmentBaseline(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
     baselineShift(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
     clip(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
@@ -1995,7 +1996,7 @@ export interface FeSpecularLightingSVGElementAttributes extends SpecialElementAt
     y(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
 }
 
-export interface FeSpotLightSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface FeSpotLightSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"feSpotLight">>, GlobalSVGAttributes {
     limitingConeAngle(value: string | Stateful<string | undefined>): FeSpotLightSVGElementAttributes;
     pointsAtX(value: string | Stateful<string | undefined>): FeSpotLightSVGElementAttributes;
     pointsAtY(value: string | Stateful<string | undefined>): FeSpotLightSVGElementAttributes;
@@ -2006,7 +2007,7 @@ export interface FeSpotLightSVGElementAttributes extends SpecialElementAttribute
     z(value: string | Stateful<string | undefined>): FeSpotLightSVGElementAttributes;
 }
 
-export interface FeTileSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface FeTileSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"feTile">>, GlobalSVGAttributes {
     alignmentBaseline(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
     baselineShift(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
     clip(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
@@ -2074,7 +2075,7 @@ export interface FeTileSVGElementAttributes extends SpecialElementAttributes, Gl
     y(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
 }
 
-export interface FeTurbulenceSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface FeTurbulenceSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"feTurbulence">>, GlobalSVGAttributes {
     alignmentBaseline(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
     baseFrequency(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
     baselineShift(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
@@ -2146,7 +2147,7 @@ export interface FeTurbulenceSVGElementAttributes extends SpecialElementAttribut
     y(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
 }
 
-export interface FilterSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface FilterSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"filter">>, GlobalSVGAttributes {
     alignmentBaseline(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
     baselineShift(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
     clip(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
@@ -2216,7 +2217,7 @@ export interface FilterSVGElementAttributes extends SpecialElementAttributes, Gl
     y(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
 }
 
-export interface ForeignObjectSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface ForeignObjectSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"foreignObject">>, GlobalSVGAttributes {
     alignmentBaseline(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
     baselineShift(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
     clip(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
@@ -2301,7 +2302,7 @@ export interface ForeignObjectSVGElementAttributes extends SpecialElementAttribu
     y(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
 }
 
-export interface GSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface GSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"g">>, GlobalSVGAttributes {
     alignmentBaseline(value: string | Stateful<string | undefined>): GSVGElementAttributes;
     baselineShift(value: string | Stateful<string | undefined>): GSVGElementAttributes;
     clip(value: string | Stateful<string | undefined>): GSVGElementAttributes;
@@ -2382,7 +2383,7 @@ export interface GSVGElementAttributes extends SpecialElementAttributes, GlobalS
     writingMode(value: string | Stateful<string | undefined>): GSVGElementAttributes;
 }
 
-export interface GlyphSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface GlyphSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"glyph">>, GlobalSVGAttributes {
     alignmentBaseline(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
     arabicForm(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
     baselineShift(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
@@ -2453,7 +2454,7 @@ export interface GlyphSVGElementAttributes extends SpecialElementAttributes, Glo
     writingMode(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
 }
 
-export interface GlyphRefSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface GlyphRefSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"glyphRef">>, GlobalSVGAttributes {
     alignmentBaseline(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
     baselineShift(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
     clip(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
@@ -2521,12 +2522,12 @@ export interface GlyphRefSVGElementAttributes extends SpecialElementAttributes, 
     y(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
 }
 
-export interface HandlerSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface HandlerSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"handler">>, GlobalSVGAttributes {
     externalResourcesRequired(value: string | Stateful<string | undefined>): HandlerSVGElementAttributes;
     type(value: string | Stateful<string | undefined>): HandlerSVGElementAttributes;
 }
 
-export interface HkernSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface HkernSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"hkern">>, GlobalSVGAttributes {
     g1(value: string | Stateful<string | undefined>): HkernSVGElementAttributes;
     g2(value: string | Stateful<string | undefined>): HkernSVGElementAttributes;
     k(value: string | Stateful<string | undefined>): HkernSVGElementAttributes;
@@ -2534,12 +2535,12 @@ export interface HkernSVGElementAttributes extends SpecialElementAttributes, Glo
     u2(value: string | Stateful<string | undefined>): HkernSVGElementAttributes;
 }
 
-export interface IframeSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface IframeSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"iframe">>, GlobalSVGAttributes {
     requiredExtensions(value: string | Stateful<string | undefined>): IframeSVGElementAttributes;
     systemLanguage(value: string | Stateful<string | undefined>): IframeSVGElementAttributes;
 }
 
-export interface ImageSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface ImageSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"image">>, GlobalSVGAttributes {
     alignmentBaseline(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
     baselineShift(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
     clip(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
@@ -2628,7 +2629,7 @@ export interface ImageSVGElementAttributes extends SpecialElementAttributes, Glo
     y(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
 }
 
-export interface LineSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface LineSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"line">>, GlobalSVGAttributes {
     alignmentBaseline(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
     baselineShift(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
     clip(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
@@ -2714,7 +2715,7 @@ export interface LineSVGElementAttributes extends SpecialElementAttributes, Glob
     y2(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
 }
 
-export interface LinearGradientSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface LinearGradientSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"linearGradient">>, GlobalSVGAttributes {
     alignmentBaseline(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
     baselineShift(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
     clip(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
@@ -2785,7 +2786,7 @@ export interface LinearGradientSVGElementAttributes extends SpecialElementAttrib
     y2(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
 }
 
-export interface ListenerSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface ListenerSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"listener">>, GlobalSVGAttributes {
     defaultAction(value: string | Stateful<string | undefined>): ListenerSVGElementAttributes;
     event(value: string | Stateful<string | undefined>): ListenerSVGElementAttributes;
     handler(value: string | Stateful<string | undefined>): ListenerSVGElementAttributes;
@@ -2795,7 +2796,7 @@ export interface ListenerSVGElementAttributes extends SpecialElementAttributes, 
     target(value: string | Stateful<string | undefined>): ListenerSVGElementAttributes;
 }
 
-export interface MarkerSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface MarkerSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"marker">>, GlobalSVGAttributes {
     alignmentBaseline(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
     baselineShift(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
     clip(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
@@ -2866,7 +2867,7 @@ export interface MarkerSVGElementAttributes extends SpecialElementAttributes, Gl
     writingMode(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
 }
 
-export interface MaskSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface MaskSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"mask">>, GlobalSVGAttributes {
     alignmentBaseline(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
     baselineShift(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
     clip(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
@@ -2938,7 +2939,7 @@ export interface MaskSVGElementAttributes extends SpecialElementAttributes, Glob
     y(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
 }
 
-export interface MetadataSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface MetadataSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"metadata">>, GlobalSVGAttributes {
     requiredExtensions(value: string | Stateful<string | undefined>): MetadataSVGElementAttributes;
     requiredFeatures(value: string | Stateful<string | undefined>): MetadataSVGElementAttributes;
     requiredFonts(value: string | Stateful<string | undefined>): MetadataSVGElementAttributes;
@@ -2946,12 +2947,12 @@ export interface MetadataSVGElementAttributes extends SpecialElementAttributes, 
     systemLanguage(value: string | Stateful<string | undefined>): MetadataSVGElementAttributes;
 }
 
-export interface MpathSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface MpathSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"mpath">>, GlobalSVGAttributes {
     externalResourcesRequired(value: string | Stateful<string | undefined>): MpathSVGElementAttributes;
     href(value: string | Stateful<string | undefined>): MpathSVGElementAttributes;
 }
 
-export interface PathSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface PathSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"path">>, GlobalSVGAttributes {
     alignmentBaseline(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
     baselineShift(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
     clip(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
@@ -3034,7 +3035,7 @@ export interface PathSVGElementAttributes extends SpecialElementAttributes, Glob
     writingMode(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
 }
 
-export interface PatternSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface PatternSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"pattern">>, GlobalSVGAttributes {
     alignmentBaseline(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
     baselineShift(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
     clip(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
@@ -3110,7 +3111,7 @@ export interface PatternSVGElementAttributes extends SpecialElementAttributes, G
     y(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
 }
 
-export interface PolygonSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface PolygonSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"polygon">>, GlobalSVGAttributes {
     alignmentBaseline(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
     baselineShift(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
     clip(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
@@ -3193,7 +3194,7 @@ export interface PolygonSVGElementAttributes extends SpecialElementAttributes, G
     writingMode(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
 }
 
-export interface PolylineSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface PolylineSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"polyline">>, GlobalSVGAttributes {
     alignmentBaseline(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
     baselineShift(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
     clip(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
@@ -3276,7 +3277,7 @@ export interface PolylineSVGElementAttributes extends SpecialElementAttributes, 
     writingMode(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
 }
 
-export interface PrefetchSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface PrefetchSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"prefetch">>, GlobalSVGAttributes {
     bandwidth(value: string | Stateful<string | undefined>): PrefetchSVGElementAttributes;
     mediaCharacterEncoding(value: string | Stateful<string | undefined>): PrefetchSVGElementAttributes;
     mediaContentEncodings(value: string | Stateful<string | undefined>): PrefetchSVGElementAttributes;
@@ -3284,7 +3285,7 @@ export interface PrefetchSVGElementAttributes extends SpecialElementAttributes, 
     mediaTime(value: string | Stateful<string | undefined>): PrefetchSVGElementAttributes;
 }
 
-export interface RadialGradientSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface RadialGradientSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"radialGradient">>, GlobalSVGAttributes {
     alignmentBaseline(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
     baselineShift(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
     clip(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
@@ -3357,7 +3358,7 @@ export interface RadialGradientSVGElementAttributes extends SpecialElementAttrib
     writingMode(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
 }
 
-export interface RectSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface RectSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"rect">>, GlobalSVGAttributes {
     alignmentBaseline(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
     baselineShift(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
     clip(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
@@ -3445,14 +3446,14 @@ export interface RectSVGElementAttributes extends SpecialElementAttributes, Glob
     y(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
 }
 
-export interface ScriptSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface ScriptSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"script">>, GlobalSVGAttributes {
     crossorigin(value: string | Stateful<string | undefined>): ScriptSVGElementAttributes;
     externalResourcesRequired(value: string | Stateful<string | undefined>): ScriptSVGElementAttributes;
     href(value: string | Stateful<string | undefined>): ScriptSVGElementAttributes;
     type(value: string | Stateful<string | undefined>): ScriptSVGElementAttributes;
 }
 
-export interface SetSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface SetSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"set">>, GlobalSVGAttributes {
     attributeName(value: string | Stateful<string | undefined>): SetSVGElementAttributes;
     attributeType(value: string | Stateful<string | undefined>): SetSVGElementAttributes;
     begin(value: string | Stateful<string | undefined>): SetSVGElementAttributes;
@@ -3474,10 +3475,10 @@ export interface SetSVGElementAttributes extends SpecialElementAttributes, Globa
     to(value: string | Stateful<string | undefined>): SetSVGElementAttributes;
 }
 
-export interface SolidColorSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface SolidColorSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"solidColor">>, GlobalSVGAttributes {
 }
 
-export interface StopSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface StopSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"stop">>, GlobalSVGAttributes {
     alignmentBaseline(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
     baselineShift(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
     clip(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
@@ -3540,13 +3541,13 @@ export interface StopSVGElementAttributes extends SpecialElementAttributes, Glob
     writingMode(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
 }
 
-export interface StyleSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface StyleSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"style">>, GlobalSVGAttributes {
     media(value: string | Stateful<string | undefined>): StyleSVGElementAttributes;
     title(value: string | Stateful<string | undefined>): StyleSVGElementAttributes;
     type(value: string | Stateful<string | undefined>): StyleSVGElementAttributes;
 }
 
-export interface SVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface SVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"svg">>, GlobalSVGAttributes {
     alignmentBaseline(value: string | Stateful<string | undefined>): SVGElementAttributes;
     baseProfile(value: string | Stateful<string | undefined>): SVGElementAttributes;
     baselineShift(value: string | Stateful<string | undefined>): SVGElementAttributes;
@@ -3643,7 +3644,7 @@ export interface SVGElementAttributes extends SpecialElementAttributes, GlobalSV
     zoomAndPan(value: string | Stateful<string | undefined>): SVGElementAttributes;
 }
 
-export interface SwitchSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface SwitchSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"switch">>, GlobalSVGAttributes {
     alignmentBaseline(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
     baselineShift(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
     clip(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
@@ -3724,7 +3725,7 @@ export interface SwitchSVGElementAttributes extends SpecialElementAttributes, Gl
     writingMode(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
 }
 
-export interface SymbolSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface SymbolSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"symbol">>, GlobalSVGAttributes {
     alignmentBaseline(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
     baselineShift(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
     clip(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
@@ -3795,7 +3796,7 @@ export interface SymbolSVGElementAttributes extends SpecialElementAttributes, Gl
     y(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
 }
 
-export interface TbreakSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface TbreakSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"tbreak">>, GlobalSVGAttributes {
     requiredExtensions(value: string | Stateful<string | undefined>): TbreakSVGElementAttributes;
     requiredFeatures(value: string | Stateful<string | undefined>): TbreakSVGElementAttributes;
     requiredFonts(value: string | Stateful<string | undefined>): TbreakSVGElementAttributes;
@@ -3803,7 +3804,7 @@ export interface TbreakSVGElementAttributes extends SpecialElementAttributes, Gl
     systemLanguage(value: string | Stateful<string | undefined>): TbreakSVGElementAttributes;
 }
 
-export interface TextSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface TextSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"text">>, GlobalSVGAttributes {
     alignmentBaseline(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
     baselineShift(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
     clip(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
@@ -3892,7 +3893,7 @@ export interface TextSVGElementAttributes extends SpecialElementAttributes, Glob
     y(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
 }
 
-export interface TextAreaSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface TextAreaSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"textArea">>, GlobalSVGAttributes {
     editable(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes;
     focusHighlight(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes;
     focusable(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes;
@@ -3918,7 +3919,7 @@ export interface TextAreaSVGElementAttributes extends SpecialElementAttributes, 
     y(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes;
 }
 
-export interface TextPathSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface TextPathSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"textPath">>, GlobalSVGAttributes {
     alignmentBaseline(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
     baselineShift(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
     clip(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
@@ -3992,7 +3993,7 @@ export interface TextPathSVGElementAttributes extends SpecialElementAttributes, 
     writingMode(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
 }
 
-export interface TitleSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface TitleSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"title">>, GlobalSVGAttributes {
     requiredExtensions(value: string | Stateful<string | undefined>): TitleSVGElementAttributes;
     requiredFeatures(value: string | Stateful<string | undefined>): TitleSVGElementAttributes;
     requiredFonts(value: string | Stateful<string | undefined>): TitleSVGElementAttributes;
@@ -4000,7 +4001,7 @@ export interface TitleSVGElementAttributes extends SpecialElementAttributes, Glo
     systemLanguage(value: string | Stateful<string | undefined>): TitleSVGElementAttributes;
 }
 
-export interface TrefSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface TrefSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"tref">>, GlobalSVGAttributes {
     alignmentBaseline(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
     baselineShift(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
     clip(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
@@ -4073,7 +4074,7 @@ export interface TrefSVGElementAttributes extends SpecialElementAttributes, Glob
     y(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
 }
 
-export interface TspanSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface TspanSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"tspan">>, GlobalSVGAttributes {
     alignmentBaseline(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
     baselineShift(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
     clip(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
@@ -4160,12 +4161,12 @@ export interface TspanSVGElementAttributes extends SpecialElementAttributes, Glo
     y(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
 }
 
-export interface UnknownSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface UnknownSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"unknown">>, GlobalSVGAttributes {
     requiredExtensions(value: string | Stateful<string | undefined>): UnknownSVGElementAttributes;
     systemLanguage(value: string | Stateful<string | undefined>): UnknownSVGElementAttributes;
 }
 
-export interface UseSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface UseSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"use">>, GlobalSVGAttributes {
     alignmentBaseline(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
     baselineShift(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
     clip(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
@@ -4251,7 +4252,7 @@ export interface UseSVGElementAttributes extends SpecialElementAttributes, Globa
     y(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
 }
 
-export interface VideoSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface VideoSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"video">>, GlobalSVGAttributes {
     begin(value: string | Stateful<string | undefined>): VideoSVGElementAttributes;
     dur(value: string | Stateful<string | undefined>): VideoSVGElementAttributes;
     end(value: string | Stateful<string | undefined>): VideoSVGElementAttributes;
@@ -4294,7 +4295,7 @@ export interface VideoSVGElementAttributes extends SpecialElementAttributes, Glo
     y(value: string | Stateful<string | undefined>): VideoSVGElementAttributes;
 }
 
-export interface ViewSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface ViewSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"view">>, GlobalSVGAttributes {
     externalResourcesRequired(value: string | Stateful<string | undefined>): ViewSVGElementAttributes;
     preserveAspectRatio(value: string | Stateful<string | undefined>): ViewSVGElementAttributes;
     viewBox(value: string | Stateful<string | undefined>): ViewSVGElementAttributes;
@@ -4302,7 +4303,7 @@ export interface ViewSVGElementAttributes extends SpecialElementAttributes, Glob
     zoomAndPan(value: string | Stateful<string | undefined>): ViewSVGElementAttributes;
 }
 
-export interface VkernSVGElementAttributes extends SpecialElementAttributes, GlobalSVGAttributes {
+export interface VkernSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"vkern">>, GlobalSVGAttributes {
     g1(value: string | Stateful<string | undefined>): VkernSVGElementAttributes;
     g2(value: string | Stateful<string | undefined>): VkernSVGElementAttributes;
     k(value: string | Stateful<string | undefined>): VkernSVGElementAttributes;

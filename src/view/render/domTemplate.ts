@@ -7,9 +7,10 @@ import { findListEndNode, findMatchEndNode, getListElementId, getMatchElementId,
 import { spheresTemplateData, StoreEventHandler } from "./index.js"
 import { TemplateCollection } from "./viewMatcherBuilder.js"
 import { ListItemTemplateContext } from "./templateContext.js"
+import { ElementIdentifier, storeElement } from "../element.js"
 
 export enum EffectTemplateTypes {
-  Text, Attribute, Property, List, Match, Event
+  Text, Attribute, Property, List, Match, Event, Element
 }
 
 export interface TextEffectTemplate {
@@ -53,6 +54,12 @@ export interface EventEffectTemplate {
   location: EffectLocation
 }
 
+export interface ElementEffectTemplate {
+  type: EffectTemplateTypes.Element
+  identifier: ElementIdentifier<any>
+  location: EffectLocation
+}
+
 export type EffectTemplate
   = TextEffectTemplate
   | AttributeEffectTemplate
@@ -60,6 +67,7 @@ export type EffectTemplate
   | ListEffectTemplate
   | MatchEffectTemplate
   | EventEffectTemplate
+  | ElementEffectTemplate
 
 export enum TemplateType {
   List, Match, Other
@@ -156,6 +164,11 @@ function initializeEffect(registry: TokenRegistry, root: Node, effect: EffectTem
       })
       break
     }
+    case EffectTemplateTypes.Element: {
+      const element = effect.location.findNode(root) as Element
+      storeElement(registry, effect.identifier, element)
+      break
+    }
   }
 }
 
@@ -195,6 +208,11 @@ function activateEffect(registry: TokenRegistry, root: Node, effect: EffectTempl
         const message = effect.handler(evt)
         dispatchMessage(registry, message)
       })
+      break
+    }
+    case EffectTemplateTypes.Element: {
+      const element = effect.location.findNode(root) as Element
+      storeElement(registry, effect.identifier, element)
       break
     }
   }

@@ -46,6 +46,13 @@ svgElementsFile.addTypeAlias({
   type: "(root: SVGBuilder) => void"
 })
 
+svgElementsFile.addTypeAlias({
+  name: "SvgTagElement",
+  isExported: true,
+  typeParameters: ["T extends string"],
+  type: "T extends keyof SVGElementTagNameMap ? SVGElementTagNameMap[T] : SVGElement"
+})
+
 const caseMatcherInterface = svgElementsFile.addInterface({
   name: "SVGCaseMatcher",
   typeParameters: [ "T" ],
@@ -214,7 +221,7 @@ for (const tag of svgTagNames) {
     name: attributesName(tag),
     methods: elementAttributes.map(buildAttributeProperty(`${attributesName(tag)}`)),
     extends: [
-      "SpecialElementAttributes",
+      `SpecialElementAttributes<SvgTagElement<"${tag}">>`,
       "GlobalSVGAttributes"
     ],
     isExported: true

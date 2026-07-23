@@ -47,6 +47,13 @@ htmlElementsFile.addTypeAlias({
   type: "(root: HTMLBuilder) => void"
 })
 
+htmlElementsFile.addTypeAlias({
+  name: "TagElement",
+  isExported: true,
+  typeParameters: ["T extends string"],
+  type: "T extends keyof HTMLElementTagNameMap ? HTMLElementTagNameMap[T] : HTMLElement"
+})
+
 const caseMatcherInterface = htmlElementsFile.addInterface({
   name: "HTMLCaseMatcher",
   typeParameters: ["T"],
@@ -223,7 +230,7 @@ for (const tag of htmlTags) {
     name: attributesName(tag),
     methods: elementAttributes.map(buildAttributeProperty(`${attributesName(tag)}`)),
     extends: [
-      "SpecialElementAttributes",
+      `SpecialElementAttributes<TagElement<"${tag}">>`,
       "GlobalHTMLAttributes"
     ],
     isExported: true

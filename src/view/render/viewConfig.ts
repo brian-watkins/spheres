@@ -1,8 +1,10 @@
 import { StoreEventHandler } from "./index.js"
 import { Stateful } from "../../store/index.js"
 import { ElementConfigSupport } from "../elementSupport.js"
+import { ElementIdentifier } from "../element.js"
 
 export interface ViewConfig {
+  elementIdentifier(id: ElementIdentifier): this
   attribute(name: string, value: string | Stateful<string>): this
   property<T extends string | boolean>(name: string, value: T | Stateful<T>): this
   on<E extends keyof HTMLElementEventMap | string>(event: E, handler: StoreEventHandler<any>): this
@@ -11,6 +13,7 @@ export interface ViewConfig {
 abstract class BaseViewConfig implements ViewConfig {
   constructor(protected configSupport: ElementConfigSupport) { }
 
+  abstract elementIdentifier(id: ElementIdentifier): this
   abstract attribute(name: string, value: string | Stateful<string>): this
   abstract property<T extends string | boolean>(name: string, value: T | Stateful<T>): this
   abstract on<E extends keyof HTMLElementEventMap | string>(event: E, handler: StoreEventHandler<any>): this

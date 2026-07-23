@@ -1,6 +1,7 @@
 import { PublishableState, Store, WithMetaState, WritableState, write } from "../store/index.js"
 import { SerializedState, SerializedStateType, StateManifest } from "../store/serialize.js"
 import { createStore, getTokenRegistry, StoreInitializerActions } from "../store/store.js"
+import { domAction, DomActionController } from "./element.js"
 import { HTMLBuilder, HTMLView } from "./htmlElements.js"
 import { HTMLElementSupport } from "./htmlElementSupport.js"
 import { ActivateDomRenderer } from "./render/activateDomRenderer.js"
@@ -10,6 +11,7 @@ import { RenderResult } from "./render/index.js"
 
 export function activateView(store: Store, element: Element, view: HTMLView): RenderResult {
   const registry = getTokenRegistry(store)
+  registry.setCommand(domAction, new DomActionController())
 
   const root = new DOMRoot(registry, element)
   cleanRoot(root)

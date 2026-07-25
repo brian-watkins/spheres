@@ -527,7 +527,10 @@ export default behavior("conditional zone", [
   conditionalListWithEvents("server rendered", (context, view) => context.ssrAndActivate(view)),
 
   multipleConditionalListsWithEvents("client rendered", (context, view) => context.mountView(view)),
-  multipleConditionalListsWithEvents("server rendered", (context, view) => context.ssrAndActivate(view))
+  multipleConditionalListsWithEvents("server rendered", (context, view) => context.ssrAndActivate(view)),
+
+  elementAfterSelectViewExample("client rendered", (context, view) => context.mountView(view)),
+  elementAfterSelectViewExample("server rendered", (context, view) => context.ssrAndActivate(view))
 
 ])
 
@@ -927,6 +930,51 @@ function siblingSelectViewExample(name: string, renderer: (context: RenderApp<To
             resolvesTo("first total: 2"))
           await expect(selectElement("[data-counter-text='second']").text(),
             resolvesTo("second total: 5"))
+        })
+      ]
+    })
+}
+
+function elementAfterSelectViewExample(name: string, renderer: (context: RenderApp<Container<string>>, view: HTMLView) => void) {
+  return example(renderContext<Container<string>>())
+    .description(`an element that follows a select view (${name})`)
+    .script({
+      suppose: [
+        fact("there is state for a message", (context) => {
+          context.setState(container({ initialValue: "Hello!" }))
+        }),
+        fact("there is an element after a select view", (context) => {
+          function conditionalView(root: HTMLBuilder) {
+            root.p(el => el.children.textNode("I am conditional!"))
+          }
+
+          renderer(context, root => {
+            root.div(el => {
+              el.children
+                .subviewMatching(select => select.withConditions()
+                  .default(conditionalView)
+                )
+                .h3(el => {
+                  el.children.textNode(get => get(context.state))
+                })
+            })
+          })
+        })
+      ],
+      observe: [
+        effect("the element displays the message", async () => {
+          await expect(selectElement("h3").text(), resolvesTo("Hello!"))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the message is updated", (context) => {
+          context.writeTo(context.state, "Goodbye!")
+        })
+      ],
+      observe: [
+        effect("the element displays the updated message", async () => {
+          await expect(selectElement("h3").text(), resolvesTo("Goodbye!"))
         })
       ]
     })

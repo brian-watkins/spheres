@@ -7,7 +7,7 @@ import { UpdatePropertyEffect } from "./effects/propertyEffect.js";
 import { activateMatch, MatchViewEffect } from "./effects/matchViewEffect.js";
 import { UpdateTextEffect } from "./effects/textEffect.js";
 import { getEventAttribute } from "./eventHelpers.js";
-import { findListEndNode, findMatchEndNode, getListElementId, getMatchElementId, listEndIndicator } from "./fragmentHelpers.js";
+import { findListEndNode, findMatchEndNode, getListElementId, getMatchElementId, listEndIndicator, matchEndIndicator } from "./fragmentHelpers.js";
 import { createDOMTemplate, DomTemplateRenderer } from "./templateRenderer.js";
 import { AbstractViewConfig } from "./viewConfig.js";
 import { AbstractViewRenderer, ElementDefinition, UseItem, ViewDefinition, ViewMatcher } from "./viewRenderer.js";
@@ -87,7 +87,7 @@ export class ActivateDomRenderer extends AbstractViewRenderer {
     effect.setCurrentMatch(selection)
     
     this.currentNode = end.nextSibling
-    this.currentLocation = this.currentLocation.nextSibling()
+    this.currentLocation = this.currentLocation.nextCommentSiblingMatching(matchEndIndicator(elementId)).nextSibling()
 
     return this
   }

@@ -24,6 +24,7 @@
   "author": "Brian Watkins",
   "license": "MIT",
   "dependencies": {
+    "@floating-ui/dom": "^1.8.0",
     "luxon": "^3.4.0",
     "spheres": "^0.29.0"
   }

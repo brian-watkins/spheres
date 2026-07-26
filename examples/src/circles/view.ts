@@ -1,10 +1,10 @@
-import { batch, write, use, update, Stateful } from "spheres/store";
-import { Circle, CircleContainer, addCircleRule, adjustRadius, adjustRadiusRule, canRedo, canUndo, circleData, deselectCircle, dialog, redoRule, selectCircle, undoRule } from "./state";
+import { batch, write, use, update, Stateful, exec } from "spheres/store";
+import { Circle, CircleContainer, addCircleRule, adjustRadius, canRedo, canUndo, circleData, closeDialogRule, deselectCircle, dialog, redoRule, selectCircle, undoRule } from "./state";
 import { useValue } from "../helpers/helpers";
 import { elementIdentifier, HTMLBuilder, svg, SVGView, UseItem } from "spheres/view";
-import { dialogView, openDialog } from "./dialog";
+import { showPopover } from "./popover";
 
-const dialogId = elementIdentifier<HTMLDialogElement>()
+const canvasId = elementIdentifier()
 
 export function circles(root: HTMLBuilder) {
   root.main(({ children }) => {
@@ -32,6 +32,7 @@ export function circles(root: HTMLBuilder) {
       })
       .subview(svg(({ config, children }) => {
         config
+          .elementIdentifier(canvasId)
           .dataAttribute("canvas")
           .width("100%")
           .height("400")
@@ -40,17 +41,7 @@ export function circles(root: HTMLBuilder) {
         children
           .subviews(get => get(circleData), circleView)
       }))
-      .subview(dialogView({
-        identifier: dialogId,
-        onClose: () => {
-          return batch([
-            use(adjustRadiusRule),
-            use(get => write(get(dialog)!.circle, deselectCircle())),
-            write(dialog, undefined)
-          ])
-        },
-        content: optionsView
-      }))
+      .subview(optionsView)
   })
 }
 
@@ -61,9 +52,12 @@ function useCircle(useData: UseItem<CircleContainer>): <S>(handler: (circle: Cir
 function circleView(useItem: UseItem<CircleContainer>): SVGView {
   const withCircle = useCircle(useItem)
 
+  const circleId = elementIdentifier()
+
   return root => {
     root.circle(el => {
       el.config
+        .elementIdentifier(circleId)
         .fill(withCircle((circle) => circle.selected ? "#333333" : "transparent"))
         .stroke("#555555")
         .strokeWidth("3")
@@ -79,7 +73,12 @@ function circleView(useItem: UseItem<CircleContainer>): SVGView {
               originalRadius: get(circle.data).radius,
               showDiameterSlider: false,
             }))),
-            openDialog(dialogId)
+            exec(showPopover, {
+              reference: circleId,
+              popover: optionsViewId,
+              arrow: arrowIdentifier,
+              boundary: canvasId
+            })
           ])
         })
         .on("mouseout", () => use(useItem((circle, get) => {
@@ -93,16 +92,29 @@ function circleView(useItem: UseItem<CircleContainer>): SVGView {
   }
 }
 
+const optionsViewId = elementIdentifier<HTMLElement>()
+const arrowIdentifier = elementIdentifier<HTMLElement>()
+
 function optionsView(root: HTMLBuilder) {
   root.div(({ config, children }) => {
     config
-      .class("w-xl p-8 mt-16 mx-auto shadow-lg rounded border-2 border-sky-600 bg-slate-100 hover:text-sky-800 font-bold text-sky-600")
+      .elementIdentifier(optionsViewId)
+      .dataAttribute("circle-options")
+      .popover("auto")
+      .class("fixed inset-auto m-0 overflow-visible p-8 shadow-lg bg-slate-100 hover:text-sky-800 font-bold text-sky-600 rounded")
       .on("click", () => update(dialog, d => d && ({ ...d, showDiameterSlider: true })))
+      .on("toggle", (evt) => {
+        return (evt as ToggleEvent).newState === "closed" ? use(closeDialogRule) : batch([])
+      })
     children
       .subviewMatching(matcher => matcher.withConditions()
         .when(get => get(dialog)?.showDiameterSlider ?? false, adjustRadiusView)
         .default(adjustmentMessage)
       )
+      .div(el => {
+        el.config.elementIdentifier(arrowIdentifier)
+          .class("absolute rounded size-4 rotate-45 bg-slate-100")
+      })
   })
 }
 

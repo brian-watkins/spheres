@@ -92,22 +92,22 @@ export default behavior("undo", [
           await context.display.createCircleAt(420, 280)
         }),
         step("adjust the diameter of a circle", async (context) => {
-          await context.display.openDialogForCircleCenteredAt(420, 280)
+          await context.display.openOptionsForCircleCenteredAt(420, 280)
           await context.display.openRadiusInputForCircleCenteredAt(420, 280)
           await context.display.radiusInput.setValue("40")
         }),
-        step("close the dialog", async (context) => {
-          await context.display.closeDialog()
+        step("close the options", async (context) => {
+          await context.display.closeCircleOptions()
         }),
         step("adjust the diameter of the circle several times", async (context) => {
-          await context.display.openDialogForCircleCenteredAt(420, 280)
+          await context.display.openOptionsForCircleCenteredAt(420, 280)
           await context.display.openRadiusInputForCircleCenteredAt(420, 280)
           await context.display.radiusInput.setValue("10")
           await context.display.radiusInput.setValue("12")
           await context.display.radiusInput.setValue("15")
         }),
-        step("close the dialog", async (context) => {
-          await context.display.closeDialog()
+        step("close the options", async (context) => {
+          await context.display.closeCircleOptions()
         }),
         step("click to undo", async (context) => {
           await context.display.undoButton.click()
@@ -176,7 +176,7 @@ export default behavior("undo", [
     }),
 
   example(testCirclesApp)
-    .description("closing diameter dialog without changing diameter")
+    .description("closing cicrle options without changing diameter")
     .script({
       suppose: [
         fact("the app is running", async (context) => {
@@ -186,18 +186,18 @@ export default behavior("undo", [
         })
       ],
       perform: [
-        step("open the dialog", async (context) => {
-          await context.display.openDialogForCircleCenteredAt(120, 110)
+        step("open the options", async (context) => {
+          await context.display.openOptionsForCircleCenteredAt(120, 110)
         }),
-        step("close the dialog", async (context) => {
-          await context.display.closeDialog()
+        step("close the options", async (context) => {
+          await context.display.closeCircleOptions()
         }),
         step("open the radius indicator", async (context) => {
-          await context.display.openDialogForCircleCenteredAt(120, 110)
+          await context.display.openOptionsForCircleCenteredAt(120, 110)
           await context.display.openRadiusInputForCircleCenteredAt(120, 110)
         }),
-        step("close the dialog", async (context) => {
-          await context.display.closeDialog()
+        step("close the options", async (context) => {
+          await context.display.closeCircleOptions()
         }),
         step("press undo", async (context) => {
           await context.display.undoButton.click()

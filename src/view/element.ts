@@ -1,5 +1,5 @@
-import { command, supplied, SuppliedState } from "../store/index.js";
-import { CommandController, TokenRegistry } from "../store/tokenRegistry.js";
+import { command, CommandActions, CommandManager, supplied, SuppliedState } from "../store/index.js";
+import { TokenRegistry } from "../store/tokenRegistry.js";
 
 declare const elementType: unique symbol
 const elementToken = Symbol("elementToken")
@@ -39,17 +39,33 @@ export type DomAction = DomEffect
 
 export const domAction = command<DomAction>()
 
-export class DomActionController implements CommandController<DomAction> {
-  run(registry: TokenRegistry, message: DomAction): void {
-    message.effect((elementId) => {
-      const nodeController = registry.getState(elementId[elementToken])
+export class DomActionManager implements DomCommandManager<DomAction> {
+  exec(message: DomAction, actions: DomCommandActions): void {
+    message.effect((elementId) => actions.getElement(elementId))
+  }
+}
 
-      const element = nodeController.getValue()
-      if (element === undefined) {
-        throw new Error("Attempt to resolve an unknown element identifier! Use the elementIdentifier method when configuring a view element to associate the identifier with an element.")
-      }
+export interface DomCommandActions extends CommandActions {
+  getElement: GetElement
+}
 
-      return element
-    })
+export interface DomCommandManager<M> {
+  exec(message: M, actions: DomCommandActions): void
+}
+
+export function withDomActions<M>(manager: DomCommandManager<M>): CommandManager<M> {
+  return {
+    exec(message, actions) {
+      manager.exec(message, {
+        ...actions,
+        getElement(identifier) {
+          const element = actions.get(identifier[elementToken])
+          if (element === undefined) {
+            throw new Error("Attempt to resolve an unknown element identifier! Use the elementIdentifier method when configuring a view element to associate the identifier with an element.")
+          }
+          return element
+        }
+      })
+    }
   }
 }

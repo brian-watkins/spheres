@@ -1,5 +1,10 @@
-import { renderToDOM } from "spheres/view";
+import { renderToDOM, withDomActions } from "spheres/view";
 import { circles } from "./view";
-import { createStore } from "spheres/store";
+import { createStore, useCommand } from "spheres/store";
+import { PopoverController, showPopover } from "./popover";
 
-renderToDOM(createStore(), document.getElementById("app")!, circles)
+const store = createStore()
+
+useCommand(store, showPopover, withDomActions(new PopoverController()))
+
+renderToDOM(store, document.getElementById("app")!, circles)

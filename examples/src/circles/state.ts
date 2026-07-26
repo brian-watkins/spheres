@@ -91,7 +91,13 @@ function addActionMessage(get: GetState, message: Action): StoreMessage {
   ])
 }
 
+const dialogIsOpen = derived(get => get(dialog) !== undefined)
+
 export const addCircleRule = (center: Coordinate) => (get: GetState) => {
+  if (get(dialogIsOpen)) {
+    return batch([])
+  }
+  
   const currentCircles = get(circleData)
 
   const addCircleAction = {
@@ -130,6 +136,20 @@ export const adjustRadiusRule = (get: GetState) => {
   }
 
   return addActionMessage(get, adjustRadiusAction)
+}
+
+export const closeDialogRule = (get: GetState) => {
+  const dialogData = get(dialog)
+
+  if (dialogData === undefined) {
+    return batch([])
+  }
+
+  return batch([
+    adjustRadiusRule(get),
+    write(dialogData.circle, deselectCircle()),
+    write(dialog, undefined)
+  ])
 }
 
 export const undoRule = (get: GetState) => {

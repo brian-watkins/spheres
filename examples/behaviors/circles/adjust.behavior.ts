@@ -6,7 +6,7 @@ import { testCircle } from "./helpers/fakeCircle.js";
 export default behavior("Adjust Radius", [
 
   example(testCirclesApp)
-    .description("opening and closing the dialog")
+    .description("opening and closing the options popover")
     .script({
       suppose: [
         fact("the app is rendered", async (context) => {
@@ -17,13 +17,13 @@ export default behavior("Adjust Radius", [
         })
       ],
       perform: [
-        step("the dialog is opened", async (context) => {
-          await context.display.openDialogForCircleCenteredAt(50, 50)
+        step("the popover is opened", async (context) => {
+          await context.display.openOptionsForCircleCenteredAt(50, 50)
         })
       ],
       observe: [
-        effect("the dialog is visible", async (context) => {
-          await expect(context.display.selectElement("dialog").isVisible(), resolvesTo(true))
+        effect("the popover is visible", async (context) => {
+          await expect(context.display.selectElement("[popover]").isVisible(), resolvesTo(true))
         }),
         effect("the circle to be adjusted is highlighted", async (context) => {
           await expect(context.display.circleCenteredAt(50, 50).isHighlighted, resolvesTo(true))
@@ -34,7 +34,7 @@ export default behavior("Adjust Radius", [
       ]
     }).andThen({
       perform: [
-        step("click outside the dialog", async (context) => {
+        step("click outside the popover", async (context) => {
           await context.display.selectElement("body").click({ x: 2, y: 2 })
         }),
         step("wait until the selected circle is no longer highlighted", async (context) => {
@@ -42,8 +42,8 @@ export default behavior("Adjust Radius", [
         })
       ],
       observe: [
-        effect("the dialog is closed", async (context) => {
-          await expect(context.display.selectElement("dialog").isVisible(), resolvesTo(false))
+        effect("the popover is closed", async (context) => {
+          await expect(context.display.selectElement("[popover]").isVisible(), resolvesTo(false))
         }),
         effect("the circle to be adjusted is no longer highlighted", async (context) => {
           await expect(context.display.circleCenteredAt(50, 50).isHighlighted, resolvesTo(false))
@@ -70,8 +70,8 @@ export default behavior("Adjust Radius", [
       ]
     }).andThen({
       perform: [
-        step("open the dialog for the circle", async (context) => {
-          await context.display.openDialogForCircleCenteredAt(320, 200)
+        step("open the options for the circle", async (context) => {
+          await context.display.openOptionsForCircleCenteredAt(320, 200)
         }),
         step("open the diameter input", async (context) => {
           await context.display.openRadiusInputForCircleCenteredAt(320, 200)
@@ -90,11 +90,11 @@ export default behavior("Adjust Radius", [
       ]
     }).andThen({
       perform: [
-        step("close the dialog", async (context) => {
-          await context.display.closeDialog()
+        step("close the options", async (context) => {
+          await context.display.closeCircleOptions()
         }),
-        step("click to open the dialog for the other circle", async (context) => {
-          await context.display.openDialogForCircleCenteredAt(100, 120)
+        step("click to open the options for the other circle", async (context) => {
+          await context.display.openOptionsForCircleCenteredAt(100, 120)
         }),
         step("Reveal diameter input", async (context) => {
           await context.display.openRadiusInputForCircleCenteredAt(100, 120)

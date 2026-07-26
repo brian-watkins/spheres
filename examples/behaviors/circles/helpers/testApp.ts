@@ -46,7 +46,7 @@ export class TestCirclesDisplay extends TestDisplay {
     return this.selectElementWithText("Redo")
   }
 
-  async openDialogForCircleCenteredAt(x: number, y: number): Promise<void> {
+  async openOptionsForCircleCenteredAt(x: number, y: number): Promise<void> {
     await this.circleCenteredAt(x, y).click()
   }
 
@@ -58,9 +58,9 @@ export class TestCirclesDisplay extends TestDisplay {
     return this.selectElement("input[name='radius']")
   }
 
-  async closeDialog(): Promise<void> {
+  async closeCircleOptions(): Promise<void> {
     await this.page.keyboard.press("Escape")
-    await this.selectElement("dialog").waitForHidden()
+    await this.selectElement("[data-circle-options]").waitForHidden()
   }
 
   circleCenteredAt(x: number, y: number): CircleDisplayElement {
@@ -101,9 +101,9 @@ class CircleDisplayElement extends DisplayElement {
   }
 
   async adjustRadiusTo(radius: number): Promise<void> {
-    await this.display.openDialogForCircleCenteredAt(this.x, this.y)
+    await this.display.openOptionsForCircleCenteredAt(this.x, this.y)
     await this.display.openRadiusInputForCircleCenteredAt(this.x, this.y)
     await this.display.radiusInput.setValue(radius.toString())
-    await this.display.closeDialog()
+    await this.display.closeCircleOptions()
   }
 }

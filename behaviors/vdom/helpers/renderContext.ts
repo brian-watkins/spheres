@@ -1,6 +1,6 @@
-import { HTMLView, RenderResult, renderToDOM } from "@view/index.js"
+import { DomCommandActions, HTMLView, RenderResult, renderToDOM, withDomActions } from "@view/index.js"
 import { Context } from "best-behavior"
-import { Collection, createStore, StateManifest, Store, WritableState, write } from "@store/index.js"
+import { Collection, Command, createStore, StateManifest, Store, useCommand, WritableState, write } from "@store/index.js"
 import { createStringRenderer } from "@server/index"
 import { activateView, activateZone, prepareForStreaming, StreamingAppWindow } from "@view/activate"
 import { DOMChangeRecord, structureChangeRecord, textChangeRecord } from "./changeRecords"
@@ -36,6 +36,10 @@ export class RenderApp<T> {
 
   writeToCollection<K, M, S extends WritableState<unknown, M>>(collection: Collection<K, S>, key: K, value: M) {
     this.store.dispatch(write(collection.at(key), value))
+  }
+
+  useDomCommand<M>(command: Command<M>, handler: (message: M, actions: DomCommandActions) => void) {
+    useCommand(this.store, command, withDomActions({ exec: handler }))
   }
 
   mountView(view: HTMLView) {

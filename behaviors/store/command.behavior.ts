@@ -1,4 +1,4 @@
-import { Collection, Command, Container, SuppliedState, collection, command, container, exec, supplied } from "@store/index";
+import { Collection, Command, Container, SuppliedState, collection, command, container, error, exec, meta, pending, supplied } from "@store/index";
 import { behavior, effect, example, fact, step } from "best-behavior";
 import { arrayWith, expect, is, objectWithProperty, stringContaining, throws } from "great-expectations";
 import { errorMessage, okMessage, pendingMessage } from "./helpers/metaMatchers";
@@ -127,18 +127,18 @@ export default behavior("command", [
             responseContainer: supplied<string, boolean>({ initialValue: "initial value" }),
             task
           })
-          context.useCommand(funCommand, async (message, { supply, pending, error }) => {
-            pending(message.container)
+          context.useCommand(funCommand, async (message, { supply }) => {
+            supply(meta(message.container), pending())
             const result = await task.waitForIt()
             if (result === "show-error") {
-              error(message.container, false)
+              supply(meta(message.container), error(false))
             } else {
               supply(message.container, `Hello from the command! (${result})`)
             }
           })
         }),
         fact("there is a subscriber to the meta-container", (context) => {
-          context.subscribeTo(context.tokens.responseContainer.meta, "meta-sub-1")
+          context.subscribeTo(meta(context.tokens.responseContainer), "meta-sub-1")
         }),
         fact("there is a subscriber to the supplied state", (context) => {
           context.subscribeTo(context.tokens.responseContainer, "sub-1")
@@ -295,7 +295,7 @@ export default behavior("command", [
             task
           })
           context.useCommand(myCommand, async (message, actions) => {
-            actions.pending(suppliedCollection.at("fun-stuff"))
+            actions.supply(meta(suppliedCollection.at("fun-stuff")), pending())
             await task.waitForIt()
             actions.supply(suppliedCollection.at("fun-stuff"), `From command: ${message}`)
           })
@@ -304,7 +304,7 @@ export default behavior("command", [
           context.subscribeTo(context.tokens.collection.at("fun-stuff"), "supplied-sub")
         }),
         fact("there is a subscriber to the meta state", (context) => {
-          context.subscribeTo(context.tokens.collection.at("fun-stuff").meta, "meta-supplied-sub")
+          context.subscribeTo(meta(context.tokens.collection.at("fun-stuff")), "meta-supplied-sub")
         })
       ],
       perform: [

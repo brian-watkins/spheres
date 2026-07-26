@@ -1,7 +1,7 @@
 import { behavior, ConfigurableExample, effect, example, fact, step } from "best-behavior";
 import { arrayWith, equalTo, expect, is } from "great-expectations";
 import { okMessage, pendingMessage } from "./helpers/metaMatchers.js";
-import { container, Container, Meta, derived, DerivedState } from "@store/index.js";
+import { container, Container, Meta, derived, DerivedState, meta } from "@store/index.js";
 import { testStoreContext } from "./helpers/testStore.js";
 
 interface MetaContext {
@@ -19,7 +19,7 @@ const basicMetaBehavior: ConfigurableExample =
           })
         }),
         fact("there is a subscriber to the meta container", (context) => {
-          context.subscribeTo(context.tokens.container.meta, "meta-sub")
+          context.subscribeTo(meta(context.tokens.container), "meta-sub")
         })
       ],
       observe: [
@@ -29,7 +29,7 @@ const basicMetaBehavior: ConfigurableExample =
           ])))
         }),
         effect("the name of the container is included in the stringified meta token", (context) => {
-          expect(context.tokens.container.meta.toString(), is("meta[fun-container]"))
+          expect(meta(context.tokens.container).toString(), is("meta[fun-container]"))
         })
       ]
     })
@@ -62,7 +62,7 @@ const metaContainerWithReducer: ConfigurableExample =
           context.subscribeTo(context.tokens.reducerContainer, "sub-one")
         }),
         fact("there is a subscriber to a meta reducer container", (context) => {
-          context.subscribeTo(context.tokens.reducerContainer.meta, "meta-reducer-sub")
+          context.subscribeTo(meta(context.tokens.reducerContainer), "meta-reducer-sub")
         })
       ],
       observe: [
@@ -113,7 +113,7 @@ const metaErrorBehavior: ConfigurableExample =
             container: container({ initialValue: "hello" }),
             derived: derived({
               query: get => {
-                const metaValue = get<Meta<string, number>>(context.tokens.container.meta)
+                const metaValue = get<Meta<string, number>>(meta(context.tokens.container))
                 switch (metaValue.type) {
                   case "ok":
                   case "pending":

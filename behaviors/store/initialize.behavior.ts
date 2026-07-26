@@ -1,4 +1,4 @@
-import { container, supplied, write } from "@store/index.js";
+import { container, error, meta, pending, supplied, write } from "@store/index.js";
 import { behavior, effect, example, step } from "best-behavior";
 import { arrayWith, expect, is } from "great-expectations";
 import { errorMessage, okMessage, pendingMessage } from "./helpers/metaMatchers";
@@ -87,14 +87,14 @@ export default behavior("initialize state", [
       perform: [
         step("initialize meta container values", async (context) => {
           await context.initialize(async (actions) => {
-            actions.pending(testContainer, { action: "Loading!" })
+            actions.supply(meta(testContainer), pending({ action: "Loading!" }))
           })
         }),
         step("subscribe to updates on the container", (context) => {
           context.subscribeTo(testContainer, "sub-1")
         }),
         step("subscribe to updates on the meta container", (context) => {
-          context.subscribeTo(testContainer.meta, "sub-meta")
+          context.subscribeTo(meta(testContainer), "sub-meta")
         }),
       ],
       observe: [
@@ -117,14 +117,14 @@ export default behavior("initialize state", [
       perform: [
         step("initialize meta container values", async (context) => {
           await context.initialize(async (actions) => {
-            actions.error(testContainer, "No reason!", { action: "Loading!" })
+            actions.supply(meta(testContainer), error("No reason!", { action: "Loading!" }))
           })
         }),
         step("subscribe to updates on the container", (context) => {
           context.subscribeTo(testContainer, "sub-1")
         }),
         step("subscribe to updates on the meta container", (context) => {
-          context.subscribeTo(testContainer.meta, "sub-meta")
+          context.subscribeTo(meta(testContainer), "sub-meta")
         }),
       ],
       observe: [
@@ -147,14 +147,14 @@ export default behavior("initialize state", [
       perform: [
         step("initialize readonly container pending state", async (context) => {
           await context.initialize(async (actions) => {
-            actions.pending(readonlyContainer)
+            actions.supply(meta(readonlyContainer), pending())
           })
         }),
         step("there is a subscriber to the container", (context) => {
           context.subscribeTo(readonlyContainer, "sub-1")
         }),
         step("there is a subscriber to the associated meta container", (context) => {
-          context.subscribeTo(readonlyContainer.meta, "sub-meta")
+          context.subscribeTo(meta(readonlyContainer), "sub-meta")
         })
       ],
       observe: [
@@ -178,7 +178,7 @@ export default behavior("initialize state", [
         step("initialize with several values", async (context) => {
           context.setTokens(new TestTask())
           context.initialize(async (actions) => {
-            actions.pending(readonlyContainer)
+            actions.supply(meta(readonlyContainer), pending())
 
             const data = await context.tokens.waitForIt()
             actions.supply(readonlyContainer, data)
@@ -188,7 +188,7 @@ export default behavior("initialize state", [
           context.subscribeTo(readonlyContainer, "sub-1")
         }),
         step("subscribe to the meta-container", context => {
-          context.subscribeTo(readonlyContainer.meta, "sub-meta")
+          context.subscribeTo(meta(readonlyContainer), "sub-meta")
         })
       ],
       observe: [

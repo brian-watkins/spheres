@@ -1,5 +1,5 @@
 import { createStringRenderer } from "spheres/server"
-import { container, createStore } from "spheres/store";
+import { container, createStore, meta, pending } from "spheres/store";
 import { HTMLBuilder } from "spheres/view";
 
 const someContainer = container({ initialValue: "initial" })
@@ -13,7 +13,7 @@ const renderToString = createStringRenderer(pageView, {
 export function render(): string {
   return renderToString(createStore({
     async init(actions) {
-      actions.pending(someContainer, "")
+      actions.supply(meta(someContainer), pending(""))
     },
   }))
 }

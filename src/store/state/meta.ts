@@ -1,5 +1,7 @@
-import { createStateHandler, GetState, StateListenerType, StatePublisher, createSubscriber, TokenRegistry, getStateHandler, PublishableState, StateToken, StateDerivation } from "../tokenRegistry.js"
+import { createStateHandler, GetState, StateListenerType, StatePublisher, createSubscriber, TokenRegistry, getStateHandler, PublishableState, StateToken, StateDerivation, State } from "../tokenRegistry.js"
+import { Container } from "./container.js"
 import { Publisher } from "./handler/publisher.js"
+import { SuppliedState } from "./supplied.js"
 
 export interface PendingMessage<M> {
   type: "pending"
@@ -24,14 +26,18 @@ export function ok(): OkMessage {
   return okMessage
 }
 
-export function pending<M>(message: M): PendingMessage<M> {
+export function pending(): PendingMessage<undefined>
+export function pending<M>(message: M): PendingMessage<M>
+export function pending<M>(message?: M): PendingMessage<M | undefined> {
   return {
     type: "pending",
     message
   }
 }
 
-export function error<M, E>(reason: E, message: M): ErrorMessage<M, E> {
+export function error<M, E>(reason: E): ErrorMessage<undefined, E>
+export function error<M, E>(reason: E, message: M): ErrorMessage<M, E>
+export function error<M, E>(reason: E, message?: M): ErrorMessage<M | undefined, E> {
   return {
     type: "error",
     message,
@@ -39,8 +45,18 @@ export function error<M, E>(reason: E, message: M): ErrorMessage<M, E> {
   }
 }
 
-export interface WithMetaState<T, M, E = any> extends StateToken<T> {
-  meta: MetaState<T, M, E>
+const metaTokenRegistry = new WeakMap<State<any>, MetaState<any, any, any>>()
+
+export function meta<T, M, E>(state: Container<T, M, E>): MetaState<T, M, E>
+export function meta<T, E>(state: SuppliedState<T, E>): MetaState<T, undefined, E>
+export function meta<T, M, E>(state: Container<T, M, E> | SuppliedState<T, E>): MetaState<T, M, E>
+export function meta<T, M, E>(state: Container<T, M, E> | SuppliedState<T, E>): MetaState<T, M, E> {
+  let metaToken = metaTokenRegistry.get(state)
+  if (metaToken === undefined) {
+    metaToken = new MetaState(state)
+    metaTokenRegistry.set(state, metaToken)
+  }
+  return metaToken
 }
 
 export class MetaState<T, M, E = unknown> implements PublishableState<Meta<M, E>> {

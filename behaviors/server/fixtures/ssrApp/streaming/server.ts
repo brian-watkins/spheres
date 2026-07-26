@@ -1,6 +1,6 @@
 import { createStreamRenderer } from "@server/index"
 import view from "./view"
-import { createStore, write } from "@store/index"
+import { createStore, meta, pending, write } from "@store/index"
 import { serializedTokens, someWord, Thing, things, thingValue } from "./state"
 import { HTMLBuilder } from "@view/htmlElements"
 import { StreamingSSRParts } from "../../../helpers/ssrApp"
@@ -43,7 +43,7 @@ const thingValueServerState = "tens of"
 export default function (): StreamingSSRParts {
   const store = createStore({
     init: async (actions, store) => {
-      actions.pending(things, [])
+      actions.supply(meta(things), pending([]))
 
       const thingPromise = new Promise<void>(resolve => {
         setTimeout(() => {
@@ -52,7 +52,7 @@ export default function (): StreamingSSRParts {
         }, 200)
       })
 
-      actions.pending(thingValue, "")
+      actions.supply(meta(thingValue), pending(""))
 
       const thingValuePromise = new Promise<void>(resolve => {
         setTimeout(() => {

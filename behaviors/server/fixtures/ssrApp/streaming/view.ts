@@ -1,5 +1,6 @@
 import { HTMLBuilder, HTMLView, UseItem } from "@view/index";
 import { someWord, Thing, thingCount, things, thingValue } from "./state";
+import { meta } from "@store/index";
 
 export default function view(root: HTMLBuilder) {
   root.main(el => {
@@ -9,7 +10,7 @@ export default function view(root: HTMLBuilder) {
         el.children
           .subviewMatching(selector => {
             selector.withConditions()
-              .when(get => get(things.meta).type === "pending", (root) => {
+              .when(get => get(meta(things)).type === "pending", (root) => {
                 root.textNode("Loading things ...")
               })
               .default(root => root.textNode(get => `Behold, the ${get(thingCount)} things!`))
@@ -23,7 +24,7 @@ export default function view(root: HTMLBuilder) {
         el.children
           .subviewMatching(selector => {
             selector.withConditions()
-              .when(get => get(thingValue.meta).type === "pending", (root) => {
+              .when(get => get(meta(thingValue)).type === "pending", (root) => {
                 root.textNode("Loading value ...")
               })
               .default(root => {

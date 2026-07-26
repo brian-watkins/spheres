@@ -1,4 +1,4 @@
-import { Container, DerivedState, container, derived } from "@store/index.js";
+import { Container, DerivedState, container, derived, meta } from "@store/index.js";
 import { behavior, effect, example, fact } from "best-behavior";
 import { expect, is } from "great-expectations";
 import { testStoreContext } from "./helpers/testStore.js";
@@ -97,7 +97,7 @@ export default behavior("debug name", [
       ],
       observe: [
         effect("the meta state token's name is printed", (context) => {
-          expect(context.tokens.stringState.meta.toString(), is("meta[super-state]"))
+          expect(meta(context.tokens.stringState).toString(), is("meta[super-state]"))
         })
       ]
     })

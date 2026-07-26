@@ -67,7 +67,8 @@ export {
  type OkMessage,
  type ErrorMessage,
  type Meta,
- type MetaState
+ type MetaState,
+ meta
 } from "./state/meta.js"
 export {
   type SuppliedState,

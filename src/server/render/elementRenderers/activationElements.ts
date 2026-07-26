@@ -1,4 +1,4 @@
-import { container } from "../../../store/index.js"
+import { container, meta } from "../../../store/index.js"
 import { serializedValue, serializedMeta, SerializedState, StateManifest } from "../../../store/serialize.js"
 import { addTemplate, emptyTemplate, HTMLTemplate, templateFromString, toStatefulString } from "../template.js"
 import { getExtraResources, getTransformedResource, shouldTransformImport, TransformedResource, ViteContext } from "../viteContext.js"
@@ -71,7 +71,7 @@ export function storeDataTemplate(stateManifest: StateManifest): HTMLTemplate {
           const token = stateManifest[key]
           values.push(serializedValue(key, get(token)))
 
-          const metaValue = get(token.meta)
+          const metaValue = get(meta(token))
           if (metaValue.type !== "ok") {
             values.push(serializedMeta(key, metaValue))
           }

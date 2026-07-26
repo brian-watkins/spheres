@@ -1,6 +1,6 @@
 import { Container } from "./state/container.js"
 import { dispatchMessage, StoreMessage } from "./message.js"
-import { error, Meta, ok, pending, WithMetaState } from "./state/meta.js"
+import { error, meta, ok, pending } from "./state/meta.js"
 import { WeakMapTokenRegistry } from "./registry/weakMapTokenRegistry.js"
 import { Command, getStateHandler, GetState, initializeCommand, initListener, runQuery, StateEffect, StateListenerType, State, Subscriber, TokenRegistry, PublishableState } from "./tokenRegistry.js"
 import { CommandManager, ManagedCommandController } from "./command/managedCommandController.js"
@@ -10,8 +10,6 @@ import { Writable, WritableTarget } from "./state/handler/writable.js"
 export interface StoreInitializerActions {
   get: GetState
   supply<T>(container: PublishableState<T>, value: T): void
-  pending<T, M>(container: WithMetaState<T, M>, ...value: NoInfer<M> extends never ? [] : [NoInfer<M>]): void
-  error<T, M, E>(container: WithMetaState<T, M, E>, reason: E, ...message: NoInfer<M> extends never ? [] : [NoInfer<M>]): void
 }
 
 export interface StoreOptions {
@@ -121,10 +119,10 @@ export function useHooks(store: Store, hooks: StoreHooks) {
         token[getStateHandler](registry).publish(value)
       },
       pending: (value) => {
-        token.meta[getStateHandler](registry).publish(pending(value))
+        meta(token)[getStateHandler](registry).publish(pending(value))
       },
       error: (reason, value) => {
-        token.meta[getStateHandler](registry).publish(error(reason, value))
+        meta(token)[getStateHandler](registry).publish(error(reason, value))
       }
     })
   })
@@ -145,20 +143,6 @@ function initializerActions(registry: TokenRegistry): StoreInitializerActions {
     get: (state) => runQuery(registry, get => get(state)),
     supply: <T>(writable: PublishableState<T>, value: T) => {
       writable[getStateHandler](registry).publish(value)
-    },
-    pending: <T, M, E>(writable: WithMetaState<T, M>, ...message: NoInfer<M> extends never ? [] : [NoInfer<M>]) => {
-      if (message.length === 0) {
-        writable.meta[getStateHandler](registry).publish(pending(undefined) as Meta<never, E>)
-      } else {
-        writable.meta[getStateHandler](registry).publish(pending(message[0]))
-      }
-    },
-    error: <T, M, E>(writable: WithMetaState<T, M, E>, reason: E, ...message: NoInfer<M> extends never ? [] : [NoInfer<M>]) => {
-      if (message.length === 0) {
-        writable.meta[getStateHandler](registry).publish(error(reason, undefined) as Meta<never, E>)
-      } else {
-        writable.meta[getStateHandler](registry).publish(error(reason, message[0]))
-      }
     }
   }
 }
@@ -168,13 +152,13 @@ function containerWriteActions<T, M, E>(registry: TokenRegistry, container: Cont
     get: (state) => runQuery(registry, get => get(state)),
     ok: (message) => {
       writable.write(message)
-      registry.getState(container.meta).publish(ok())
+      registry.getState(meta(container)).publish(ok())
     },
     pending: (message) => {
-      registry.getState(container.meta).publish(pending(message))
+      registry.getState(meta(container)).publish(pending(message))
     },
     error: (reason, message) => {
-      registry.getState(container.meta).publish(error(reason, message))
+      registry.getState(meta(container)).publish(error(reason, message))
     },
     current: writable.getValue()
   }

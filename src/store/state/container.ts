@@ -1,4 +1,3 @@
-import { MetaState, WithMetaState } from "./meta.js"
 import { didCreateToken } from "./stateRecorder.js"
 import { createStateHandler, getStateHandler, isStateful, runQuery, Stateful, StatePublisher, StateWriter, TokenRegistry, WritableState } from "../tokenRegistry.js"
 import { getInitialValue, ResettableState } from "../message.js"
@@ -32,9 +31,7 @@ export function container<T, M = T, E = any>(
 
 export const clone = Symbol("clone-container")
 
-export class Container<T, M = T, E = any> implements ResettableState<T>, WritableState<T, M>, WithMetaState<T, M, E> {
-  private _meta: MetaState<T, M, E> | undefined
-
+export class Container<T, M = T, E = any> implements ResettableState<T>, WritableState<T, M> {
   constructor(
     readonly name: string | undefined,
     private initialValue: T | Stateful<T>,
@@ -61,13 +58,6 @@ export class Container<T, M = T, E = any> implements ResettableState<T>, Writabl
 
   [clone](): Container<T, M, E> {
     return new Container(this.name, this.initialValue, this.update)
-  }
-
-  get meta(): MetaState<T, M, E> {
-    if (this._meta === undefined) {
-      this._meta = new MetaState(this)
-    }
-    return this._meta
   }
 
   toString() {

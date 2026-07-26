@@ -1,4 +1,4 @@
-import { collection, container, Container, update } from "@store/index.js";
+import { collection, container, Container, meta, update } from "@store/index.js";
 import { behavior, effect, example, fact, step } from "best-behavior";
 import { arrayWith, expect, is } from "great-expectations";
 import { testStoreContext } from "./helpers/testStore";
@@ -153,13 +153,10 @@ export default behavior("container collection", [
           }))
           context.setTokens({
             collection: containerCollection,
-            // one: containerCollection.at("container-1"),
-            // two: containerCollection.at("container-1"),
-            // three: containerCollection.at("container-1"),
           })
         }),
         fact("there is a subscriber to the meta container for the container with the same id", (context) => {
-          context.subscribeTo(context.tokens.collection.at("container-1").meta, "meta-sub-1")
+          context.subscribeTo(meta(context.tokens.collection.at("container-1")), "meta-sub-1")
         }),
         fact("there are container hooks defined for the container", (context) => {
           context.useContainerHooks(context.tokens.collection.at("container-1"), {

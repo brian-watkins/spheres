@@ -1,5 +1,4 @@
 import { createStateHandler, getStateHandler, PublishableState, StatePublisher, TokenRegistry } from "../tokenRegistry.js"
-import { MetaState, WithMetaState } from "./meta.js"
 import { Publisher } from "./handler/publisher.js"
 import { didCreateToken } from "./stateRecorder.js"
 
@@ -14,8 +13,10 @@ export function supplied<T, E = any>(initializer: SuppliedStateInitializer<T>): 
   return token
 }
 
-export class SuppliedState<T, E = any> implements PublishableState<T>, WithMetaState<T, never, E> {
-  private _meta: MetaState<T, never, E> | undefined
+declare const errorType: unique symbol
+
+export class SuppliedState<T, E = any> implements PublishableState<T> {
+  declare readonly [errorType]?: E
 
   constructor(readonly name: string | undefined, private initialValue: T) { }
 
@@ -25,13 +26,6 @@ export class SuppliedState<T, E = any> implements PublishableState<T>, WithMetaS
 
   [getStateHandler](registry: TokenRegistry): StatePublisher<T> {
     return registry.getState(this)
-  }
-
-  get meta(): MetaState<T, never, E> {
-    if (this._meta === undefined) {
-      this._meta = new MetaState(this)
-    }
-    return this._meta
   }
 
   toString() {

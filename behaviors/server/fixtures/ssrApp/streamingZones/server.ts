@@ -1,5 +1,5 @@
 import { createStreamRenderer, zone } from "spheres/server"
-import { createStore, supplied, Store, SuppliedState } from "spheres/store";
+import { createStore, supplied, Store, SuppliedState, pending, meta, error } from "spheres/store";
 import { count, counter } from "./counter";
 import { page } from "./page";
 import { StreamingSSRParts } from "../../../helpers/ssrApp";
@@ -46,7 +46,7 @@ export default function (): StreamingSSRParts {
       actions.supply(zones[0], createStore({
         id: "store-one",
         async init(actions) {
-          actions.pending(count, 0)
+          actions.supply(meta(count), pending(0))
 
           return new Promise(resolve => {
             setTimeout(() => {
@@ -60,7 +60,7 @@ export default function (): StreamingSSRParts {
       actions.supply(zones[1], createStore({
         id: "store-two",
         async init(actions) {
-          actions.pending(count, 0)
+          actions.supply(meta(count), pending(0))
 
           return new Promise(resolve => {
             setTimeout(() => {
@@ -74,11 +74,11 @@ export default function (): StreamingSSRParts {
       actions.supply(zones[2], createStore({
         id: "store-three",
         async init(actions) {
-          actions.pending(count, 0)
+          actions.supply(meta(count), pending(0))
 
           return new Promise(resolve => {
             setTimeout(() => {
-              actions.error(count, "failed", 0)
+              actions.supply(meta(count), error("failed", 0))
               resolve()
             }, 180)
           })

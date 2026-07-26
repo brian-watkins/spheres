@@ -1,6 +1,6 @@
 import { behavior, effect, example, fact, step } from "best-behavior";
 import { testStoreContext } from "./helpers/testStore";
-import { Container, container, useContainerHooks, useHooks } from "@store/index";
+import { Container, container, meta, useContainerHooks, useHooks } from "@store/index";
 import { arrayWith, equalTo, expect, is, objectWithProperty } from "great-expectations";
 import { errorMessage, pendingMessage } from "./helpers/metaMatchers";
 import { StateToken } from "@store/tokenRegistry";
@@ -116,7 +116,7 @@ export default behavior("store hooks", [
           context.subscribeTo(context.tokens, "sub-one")
         }),
         step("subscribe to updates on the meta container", (context) => {
-          context.subscribeTo(context.tokens.meta, "meta-sub")
+          context.subscribeTo(meta(context.tokens), "meta-sub")
         })
       ],
       observe: [
@@ -155,7 +155,7 @@ export default behavior("store hooks", [
           context.subscribeTo(context.tokens, "sub-one")
         }),
         step("subscribe to updates on the meta container", (context) => {
-          context.subscribeTo(context.tokens.meta, "meta-sub")
+          context.subscribeTo(meta(context.tokens), "meta-sub")
         })
       ],
       observe: [

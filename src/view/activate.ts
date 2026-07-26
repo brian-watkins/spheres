@@ -1,4 +1,4 @@
-import { PublishableState, Store, WithMetaState, WritableState, write } from "../store/index.js"
+import { PublishableState, Store, WritableState, write, meta } from "../store/index.js"
 import { SerializedState, SerializedStateType, StateManifest } from "../store/serialize.js"
 import { createStore, getTokenRegistry, StoreInitializerActions, useCommand } from "../store/store.js"
 import { domAction, DomActionManager, withDomActions } from "./element.js"
@@ -118,14 +118,9 @@ function deserializeState(store: Store, stateManifest: StateManifest, actions: S
       actions.supply(token as PublishableState<any>, state.v)
       break
     case SerializedStateType.Meta:
-      const meta = state.v
-      switch (meta.type) {
-        case "pending":
-          actions.pending(token as WithMetaState<any, any>, meta.message)
-          break
-        case "error":
-          actions.error(token as WithMetaState<any, any>, meta.reason, meta.message)
-          break
+      const metaState = state.v
+      if (metaState.type !== "ok") {
+        actions.supply(meta(token), metaState)
       }
       break
     case SerializedStateType.Message:

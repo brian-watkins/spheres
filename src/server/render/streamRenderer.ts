@@ -1,4 +1,4 @@
-import { Store, useEffect } from "../../store/index.js"
+import { meta, Store, useEffect } from "../../store/index.js"
 import { SerializableState, serializedValue, serializedMessage, serializedMeta, SerializedState, StateManifest } from "../../store/serialize.js"
 import { Container } from "../../store/state/container.js"
 import { ContainerHooks, getTokenRegistry, ReactiveEffect, useContainerHooks, WriteHookActions } from "../../store/store.js"
@@ -130,11 +130,11 @@ class MetaStateStreamer implements ReactiveEffect {
 
 
   init(get: GetState): void {
-    get(this.token.meta)
+    get(meta(this.token))
   }
 
   run(get: GetState): void {
-    const metaValue = get(this.token.meta)
+    const metaValue = get(meta(this.token))
     if (metaValue.type !== "ok") {
       this.stream.enqueueState(this.store, serializedMeta(this.tokenKey, metaValue))
     }

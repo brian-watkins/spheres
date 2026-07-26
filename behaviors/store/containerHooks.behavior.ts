@@ -1,4 +1,4 @@
-import { Container, ContainerHooks, container } from "@store/index.js";
+import { Container, ContainerHooks, container, meta } from "@store/index.js";
 import { ConfigurableExample, behavior, effect, example, fact, step } from "best-behavior";
 import { arrayWith, expect, is } from "great-expectations";
 import { errorMessage, okMessage, pendingMessage } from "./helpers/metaMatchers";
@@ -35,7 +35,7 @@ const basicContainerHooks: ConfigurableExample =
           context.subscribeTo(context.tokens.container, "sub-1")
         }),
         fact("there is a subscriber to the meta container", (context) => {
-          context.subscribeTo(context.tokens.container.meta, "meta-sub-1")
+          context.subscribeTo(meta(context.tokens.container), "meta-sub-1")
         })
       ],
       observe: [
@@ -117,7 +117,7 @@ const okUpdateWithNoPublishExample: ConfigurableExample =
           context.subscribeTo(context.tokens.container, "sub-1")
         }),
         fact("there is a subscriber to the meta container", (context) => {
-          context.subscribeTo(context.tokens.container.meta, "meta-sub-1")
+          context.subscribeTo(meta(context.tokens.container), "meta-sub-1")
         })
       ],
       observe: [
@@ -198,7 +198,7 @@ const errorInWriteHook: ConfigurableExample =
           context.subscribeTo(context.tokens.container, "sub-1")
         }),
         fact("there is a subscriber to the meta container", (context) => {
-          context.subscribeTo(context.tokens.container.meta, "meta-sub")
+          context.subscribeTo(meta(context.tokens.container), "meta-sub")
         })
       ],
       perform: [

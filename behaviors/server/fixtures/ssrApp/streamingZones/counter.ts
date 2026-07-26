@@ -1,11 +1,11 @@
-import { container, update } from "spheres/store";
+import { container, meta, update } from "spheres/store";
 import { HTMLBuilder } from "spheres/view";
 
 export const count = container({ initialValue: 0 })
 
 export function counter(root: HTMLBuilder) {
   root.subviewMatching(selector => {
-    selector.withUnion(get => get(count.meta))
+    selector.withUnion(get => get(meta(count)))
       .when(meta => meta.type === "pending", () => pendingCounter)
       .when(meta => meta.type === "error", () => errorCounter)
       .default(() => root => root.div(el => {

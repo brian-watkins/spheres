@@ -1,4 +1,4 @@
-import { Collection, Command, Container, SuppliedState, collection, command, container, error, exec, meta, pending, supplied } from "@store/index";
+import { Collection, Command, Container, SuppliedState, collection, command, container, error, exec, meta, pending, supplied, update } from "@store/index";
 import { behavior, effect, example, fact, step } from "best-behavior";
 import { arrayWith, expect, is, objectWithProperty, stringContaining, throws } from "great-expectations";
 import { errorMessage, okMessage, pendingMessage } from "./helpers/metaMatchers";
@@ -29,6 +29,11 @@ interface TestCommandStateContext {
 interface TestCommandGetStateContext {
   command: Command<{ container: SuppliedState<number> }>,
   state: SuppliedState<number>
+}
+
+interface TestCommandDispatchContext {
+  command: Command<{ tally: Container<number> }>,
+  tally: Container<number>
 }
 
 export default behavior("command", [
@@ -213,6 +218,44 @@ export default behavior("command", [
       ],
       observe: [
         effect("the subscriber gets the updates", (context) => {
+          expect(context.valuesForSubscriber("sub-1"), is([
+            0,
+            1,
+            2,
+            3
+          ]))
+        })
+      ]
+    }),
+
+  example(testStoreContext<TestCommandDispatchContext>())
+    .description("dispatch a message when processing a command")
+    .script({
+      suppose: [
+        fact("there is a command that dispatches an update message for state in its message", (context) => {
+          const tally = container({ initialValue: 0 })
+          const incrementCommand = command<{ tally: Container<number> }>()
+          context.setTokens({
+            command: incrementCommand,
+            tally
+          })
+          context.useCommand(incrementCommand, (message, { dispatch }) => {
+            dispatch(update(message.tally, (current) => current + 1))
+          })
+        }),
+        fact("there is a subscriber to the state", (context) => {
+          context.subscribeTo(context.tokens.tally, "sub-1")
+        })
+      ],
+      perform: [
+        step("execute the command multiple times", (context) => {
+          context.store.dispatch(exec(context.tokens.command, { tally: context.tokens.tally }))
+          context.store.dispatch(exec(context.tokens.command, { tally: context.tokens.tally }))
+          context.store.dispatch(exec(context.tokens.command, { tally: context.tokens.tally }))
+        })
+      ],
+      observe: [
+        effect("the subscriber gets the value dispatched by the command", (context) => {
           expect(context.valuesForSubscriber("sub-1"), is([
             0,
             1,

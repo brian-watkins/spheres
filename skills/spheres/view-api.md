@@ -200,6 +200,11 @@ el.config.class(get => get(isError) ? "error" : "ok")
 ### Special `config` functions
 
 ```ts
+config.elementIdentifier(id: ElementIdentifier<El>)
+```
+Associate this element with an identifier so a command manager can resolve the actual DOM element later. See [Working with DOM elements](#working-with-dom-elements).
+
+```ts
 config.attribute(name: string, value: string | Stateful<string>)
 ```
 Arbitrary attribute by name.
@@ -253,11 +258,89 @@ Mount a view into a DOM element. `element` is replaced by the rendered view. Ret
 
 A single application may have multiple stores and multiple `renderToDOM` calls — each view dispatches to the store it was mounted with.
 
+## Working with DOM elements
+
+Views never hand you a DOM node, and there are no refs. When app logic genuinely needs a real element — focus, `showPopover`, measuring geometry, handing a node to a third-party library like floating-ui — you *identify* the element in the view and *resolve* the identifier inside a command manager.
+
+```ts
+function elementIdentifier<T extends Element = Element>(): ElementIdentifier<T>
+
+type GetElement = <T extends Element>(id: ElementIdentifier<T>) => T
+
+interface DomCommandActions extends CommandActions {
+  getElement: GetElement
+}
+interface DomCommandManager<M> {
+  exec(message: M, actions: DomCommandActions): void
+}
+
+function withDomActions<M>(manager: DomCommandManager<M>): CommandManager<M>
+```
+
+Three steps:
+
+1. Create an identifier with `elementIdentifier<T>()`. The type parameter is what `getElement` returns, so use the specific element type (`HTMLInputElement`, `SVGCircleElement`, …).
+2. Attach it in the view with `config.elementIdentifier(id)`.
+3. Write a `DomCommandManager` and register it with `useCommand(store, someCommand, withDomActions(manager))`. `withDomActions` decorates a normal `CommandManager`, adding `getElement` to the usual `CommandActions` (`get`, `supply`, `dispatch`).
+
+```ts
+import { elementIdentifier, withDomActions, DomCommandActions } from "spheres/view"
+import { command, exec, useCommand } from "spheres/store"
+
+const focusField = command<{ field: ElementIdentifier<HTMLInputElement> }>()
+
+useCommand(store, focusField, withDomActions({
+  exec(message, actions: DomCommandActions) {
+    actions.getElement(message.field).focus()
+  }
+}))
+
+const nameField = elementIdentifier<HTMLInputElement>()
+
+function form(root: HTMLBuilder) {
+  root.form(el => {
+    el.children
+      .input(el => {
+        el.config.elementIdentifier(nameField).type("text")
+      })
+      .button(el => {
+        el.config.on("click", () => exec(focusField, { field: nameField }))
+        el.children.textNode("Focus the name field")
+      })
+  })
+}
+```
+
+Notes:
+
+- Identifiers are values, so pass them around freely — put them in a command message (as above) to make one manager work over many elements.
+- An identifier declared **inside a `subviews` item view is scoped to that item**, exactly like a token declared there (see [View-local state](#view-local-state)). Every rendered item gets its own identifier binding, so `getElement` inside a command dispatched from an item resolves that item's element.
+- Resolving an identifier that was never attached to a rendered element **throws**. Guard by only dispatching from views where the element exists.
+- `getElement` is only available inside a manager wrapped with `withDomActions` — there's no way to reach a DOM node from a view function, `Stateful` callback, or event handler.
+- Server rendering ignores `elementIdentifier` (there's no DOM). The identifier is bound when the markup is activated on the client with `activateZone` — see `ssr.md`.
+
 ## Patterns
 
 ### Share state across views
 
 Declare tokens at module scope and import them wherever needed. Tokens are just handles — the same token used in two different views backed by the same store will reflect the same value.
+
+### View-local state
+
+It's also fine to declare a token *inside* a view function. A view function is evaluated once — when the view is rendered — not on every update, so the token is created once:
+
+```ts
+function counter(root: HTMLBuilder) {
+  const count = container({ initialValue: 0 })
+
+  root.button(el => {
+    el.config.on("click", () => update(count, c => c + 1))
+    el.children.textNode(get => `Clicks: ${get(count)}`)
+  })
+}
+```
+
+What to avoid is creating tokens in code that *re-runs* — a `Stateful` callback, an event handler, or a container's `update` function — since that produces a new, unrelated token every time.
 
 ### Parameterizing views
 
@@ -308,8 +391,9 @@ root.input(el => {
 
 - Handlers **return** messages — they don't dispatch.
 - `textNode`, attributes, and view selectors accept `Stateful` functions; use them freely for fine-grained updates.
-- Declare tokens at module scope (or setup code), not inside view functions.
+- Declare tokens at module scope, in setup code, or inside a view function (which runs once) — never inside a `Stateful` callback or event handler, which re-run.
 - Don't read tokens outside a reactive context — `get` is only available where spheres passes it in.
 - `subviews` and `subviewMatching` update structure reactively; use them instead of conditional imperative logic.
 - `innerHTML` and `children` are mutually exclusive.
+- There are no refs — to touch a real DOM node, use `elementIdentifier` plus a command manager wrapped in `withDomActions`.
 - A view can render a fragment (multiple sibling nodes chained on `root`) instead of a single root element; there's no shared `config` across a fragment's top-level nodes.

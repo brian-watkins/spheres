@@ -1,6 +1,6 @@
 ---
 name: spheres
-description: Build browser-based web applications with spheres — a TypeScript framework with fine-grained reactive views and token-based state management. TRIGGER when code imports `spheres`, `spheres/store`, `spheres/view`, or `spheres/server`; when a user asks to build, modify, or debug a spheres application; or when discussing `HTMLBuilder`/`SVGBuilder`, `container`/`derived`/`supplied`, `renderToDOM`, `createStore`, `useEffect`, `useCommand`, `useContainerHooks`, `createStringRenderer`, `createStreamRenderer`, or `activateZone`.
+description: Build browser-based web applications with spheres — a TypeScript framework with fine-grained reactive views and token-based state management. TRIGGER when code imports `spheres`, `spheres/store`, `spheres/view`, or `spheres/server`; when a user asks to build, modify, or debug a spheres application; or when discussing `HTMLBuilder`/`SVGBuilder`, `container`/`derived`/`supplied`, `renderToDOM`, `createStore`, `useEffect`, `useCommand`, `useContainerHooks`, `elementIdentifier`/`withDomActions`, `createStringRenderer`, `createStreamRenderer`, or `activateZone`.
 ---
 
 # Spheres
@@ -17,7 +17,7 @@ Full documentation wiki at `/Users/bwatkins/workspace/spheres.wiki/` (`Home.md`,
 Spheres is **not** React. Internalize these differences before writing code:
 
 - **No components, no props, no hooks.** Views are plain functions that take a builder (`HTMLBuilder` or `SVGBuilder`) and mutate it.
-- **State lives in tokens, not in views.** A `container`, `derived`, or `supplied` token is just a handle — it holds nothing until registered with a `Store`. Tokens are typically declared at module scope and shared.
+- **State lives in tokens, not in views.** A `container`, `derived`, or `supplied` token is just a handle — it holds nothing until registered with a `Store`. Tokens are typically declared at module scope and shared, but a view function may declare its own — view functions are evaluated once, so nothing is recreated per update.
 - **Reactivity is fine-grained and automatic.** Anywhere you pass `(get) => ...` (a `Stateful<T>`), spheres tracks which tokens you read and re-runs *just that binding* when they change. There's no virtual DOM diff, no re-rendering of parent views.
 - **Event handlers return messages; they don't dispatch.** An `on("click", ...)` handler must *return* a `StoreMessage` (from `write`, `update`, `reset`, `run`, `batch`, or `use`). Spheres dispatches it to the store automatically. Calling `store.dispatch` inside a handler is almost always wrong.
 - **Storage is a separate concern.** Persistence, fetching, and async I/O happen through `ContainerHooks`, `Commands`, or `useEffect` — not inside views or update functions. Application logic stays pure.
@@ -59,6 +59,7 @@ renderToDOM(createStore(), document.getElementById("app")!, counter)
 - **Custom messages.** If a container has an `update` function, `write` sends messages of its input type `M` and the update function returns `{ value, message? }`. The optional returned `message` chains another dispatch.
 - **Effects vs derived:** use `derived` for values you want to read reactively; use `useEffect` for side effects (logging, persistence, calling into external APIs).
 - **Commands** model messages from app logic *to* the storage system. Register with `useCommand(store, command, manager)`; dispatch with `exec(command, message)`.
+- **Real DOM elements.** There are no refs. Tag an element in the view with `config.elementIdentifier(id)` (from `elementIdentifier()`), then resolve it with `actions.getElement(id)` inside a command manager registered as `withDomActions(manager)`. See `view-api.md`.
 
 ## Common mistakes to avoid
 
@@ -67,7 +68,7 @@ renderToDOM(createStore(), document.getElementById("app")!, counter)
 - Reaching for React-style patterns: hooks, refs, lifecycle, `useState`, component props.
 - Reading tokens outside a reactive context (`get` is only available inside a `Stateful` function, a `derived` query, a `useEffect.run`, a `CommandManager.exec`, or a store `init`).
 - Forgetting that a token's value doesn't exist until it's registered with a store.
-- Creating containers inside view functions — declare them at module scope or in setup code so they aren't recreated per render.
+- Creating tokens inside code that re-runs — a `Stateful` callback, an event handler, or a container's `update` function. (Declaring a token inside a *view function* is fine: view functions are evaluated once.)
 - Using `innerHTML` alongside children (children are ignored when `innerHTML` is set).
 
 ## Reference files

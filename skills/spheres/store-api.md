@@ -54,7 +54,7 @@ Program input. Value changes via messages dispatched to the store. Without `upda
 
 The initializer can also be a function that receives a `value` generator and returns a `ContainerInitializer`. Use this form to wrap individual fields of the container's state in `Value<S>` so they can be addressed and written to independently via `valueAt`.
 
-`container.meta` accesses the container's `Meta` token.
+`meta(container)` accesses the container's `Meta` token.
 
 ### Value
 
@@ -77,7 +77,7 @@ function supplied<T, M = any, E = any>(init: SuppliedStateInitializer<T>): Suppl
 
 Read-only values provided by the storage system. The `initialValue` is used until the storage system supplies another. Set `M`/`E` generics to type the meta state.
 
-`supplied.meta` accesses the supplied state's `Meta` token.
+`meta(supplied)` accesses the supplied state's `Meta` token.
 
 ### Meta state
 
@@ -88,7 +88,7 @@ interface ErrorMessage<M, E> { type: "error"; message: M; reason: E }
 type Meta<M, E> = OkMessage | PendingMessage<M> | ErrorMessage<M, E>
 ```
 
-Program authors don't create Meta tokens directly — they access them via `container.meta` / `supplied.meta` and read them in queries, effects, or views. Meta reflects the storage-system status of the underlying token.
+Program authors don't create Meta tokens directly — they access them via `meta(container)` / `meta(supplied)` and read them in queries, effects, or views. Meta reflects the storage-system status of the underlying token.
 
 ## Store
 
@@ -96,8 +96,6 @@ Program authors don't create Meta tokens directly — they access them via `cont
 interface StoreInitializerActions {
   get: GetState
   supply<T>(container: PublishableState<T>, value: T): void
-  pending<T, M>(container: WithMetaState<T, M>, ...value: [M?]): void
-  error<T, M, E>(container: WithMetaState<T, M, E>, reason: E, ...message: [M?]): void
 }
 interface StoreOptions {
   id?: string
@@ -111,7 +109,7 @@ function createStore(options?: StoreOptions): Store
 ```
 
 - `id` — identifies the store; needed when serializing multiple stores.
-- `init` — async initialization. `supply`, `pending`, `error` set values and meta state before the app runs. Await `store.initialized` to know when init has completed.
+- `init` — async initialization. `supply` set values -- including meta state -- before the app runs. Await `store.initialized` to know when init has completed.
 
 ## Store messages
 
@@ -213,8 +211,7 @@ function command<M>(init?: CommandInitializer<M>): Command<M>
 interface CommandActions {
   get<T, M>(state: State<T, M>): T
   supply<T, M, E>(state: SuppliedState<T, M, E>, value: T): void
-  pending<T, M, E>(state: SuppliedState<T, M, E>, message: M): void
-  error<T, M, E>(state: SuppliedState<T, M, E>, reason: E, message: M): void
+  dispatch(message: StoreMessage): void
 }
 interface CommandManager<M> {
   exec(message: M, actions: CommandActions): void
@@ -224,7 +221,7 @@ function useCommand<M>(store: Store, command: Command<M>, handler: CommandManage
 
 Commands are messages from app logic to the storage system. Invoke with `exec(command, message)` via dispatch. If `trigger` is provided, the command fires automatically whenever the reactive query produces a new message.
 
-The handler can read tokens, set values and meta on `SuppliedState`, and dispatch further store messages (capture a reference to the store at registration time).
+The handler can read tokens, set values -- including meta -- on `SuppliedState`, and dispatch store messages.
 
 ### useEffect
 
@@ -268,7 +265,7 @@ useEffect(store, {
 | Mutable app input | `container` |
 | Read-only value derived from others | `derived` |
 | External data loaded into the store | `supplied` + `init` or `command` |
-| Track pending/error status of async ops | `container.meta` / `supplied.meta` |
+| Track pending/error status of async ops | `meta(container)` / `meta(supplied)` |
 | Persist a container on every write | `useContainerHooks` with `onWrite` |
 | Trigger external calls from state changes | `command` with `trigger`, or `useEffect` |
 | Side effect (log, persist, notify) reactive to state | `useEffect` |

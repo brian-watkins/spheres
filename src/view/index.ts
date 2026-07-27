@@ -1,6 +1,5 @@
 import { Store } from "../store/index.js"
-import { getTokenRegistry, useCommand } from "../store/store.js"
-import { domAction, DomActionManager, withDomActions } from "./element.js"
+import { getTokenRegistry } from "../store/store.js"
 import { HTMLBuilder, HTMLView } from "./htmlElements.js"
 import { HTMLElementSupport } from "./htmlElementSupport.js"
 import { clearRoot, DOMRoot } from "./render/domRoot.js"
@@ -18,13 +17,9 @@ export * from "./svgElements.js"
 export * from "./specialAttributes.js"
 export {
   elementIdentifier,
-  domAction,
-  domEffect,
   withDomActions
 } from "./element.js"
 export type {
-  DomAction,
-  DomEffect,
   ElementIdentifier,
   GetElement,
   DomCommandActions,
@@ -38,7 +33,6 @@ export { activateZone } from "./activate.js"
 
 
 export function renderToDOM(store: Store, element: Element, view: HTMLView): RenderResult {
-  useCommand(store, domAction, withDomActions(new DomActionManager()))
   const registry = getTokenRegistry(store)
   const root = new DOMRoot(registry, element)
   clearRoot(root)

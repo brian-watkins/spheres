@@ -1,4 +1,4 @@
-import { command, CommandActions, CommandManager, supplied, SuppliedState } from "../store/index.js";
+import { CommandActions, CommandManager, supplied, SuppliedState } from "../store/index.js";
 import { TokenRegistry } from "../store/tokenRegistry.js";
 
 declare const elementType: unique symbol
@@ -20,30 +20,7 @@ export function storeElement(registry: TokenRegistry, identifier: ElementIdentif
   publisher.publish(element)
 }
 
-declare const domEffectBrand: unique symbol
-
 export type GetElement = <T extends Element>(id: ElementIdentifier<T>) => T
-
-export interface DomEffect {
-  readonly [domEffectBrand]: true
-  effect: (getElement: GetElement) => void
-}
-
-export function domEffect(
-  effect: (getElement: GetElement) => void
-): DomEffect {
-  return { effect } as DomEffect
-}
-
-export type DomAction = DomEffect
-
-export const domAction = command<DomAction>()
-
-export class DomActionManager implements DomCommandManager<DomAction> {
-  exec(message: DomAction, actions: DomCommandActions): void {
-    message.effect((elementId) => actions.getElement(elementId))
-  }
-}
 
 export interface DomCommandActions extends CommandActions {
   getElement: GetElement

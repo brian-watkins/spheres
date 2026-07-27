@@ -2,8 +2,8 @@ import { behavior, effect, example, fact, step } from "best-behavior";
 import { RenderApp, renderContext } from "./helpers/renderContext";
 import { selectElement } from "./helpers/displayElement";
 import { expect, objectWithProperty, resolvesTo, stringContaining, throws } from "great-expectations";
-import { container, Container, exec } from "@store/index";
-import { domAction, domEffect, elementIdentifier, ElementIdentifier, UseItem } from "@view/index";
+import { command, container, Container, exec } from "@store/index";
+import { elementIdentifier, ElementIdentifier, GetElement, UseItem } from "@view/index";
 import { HTMLView } from "@view/htmlElements";
 
 interface ElementContext {
@@ -14,6 +14,8 @@ interface ListElementContext {
   items: Container<Array<string>>
 }
 
+const domEffect = command<(get: GetElement) => void>()
+
 export default behavior("element", [
 
   example(renderContext<ElementContext>())
@@ -23,6 +25,11 @@ export default behavior("element", [
         fact("there is an identifier", (app) => {
           app.setState({
             identifier: elementIdentifier()
+          })
+        }),
+        fact("there is a dom command manager", (app) => {
+          app.useDomCommand(domEffect, (message, actions) => {
+            message(actions.getElement)
           })
         }),
         fact("there is a view with no identified element", (app) => {
@@ -38,8 +45,8 @@ export default behavior("element", [
         effect("an error is thrown when the identifier is resolved", (app) => {
           expect(() => {
             app.store.dispatch(exec(
-              domAction,
-              domEffect((getEl) => getEl(app.state.identifier).focus())
+              domEffect,
+              (getEl) => getEl(app.state.identifier).focus()
             ))
           }, throws(objectWithProperty("message", stringContaining("unknown element identifier"))))
         })
@@ -64,6 +71,11 @@ function listElementCommandExample(name: string, render: (context: RenderApp<Lis
             items: container({ initialValue: ["item-1", "item-2", "item-3"] })
           })
         }),
+        fact("there is a dom command manager", (app) => {
+          app.useDomCommand(domEffect, (message, actions) => {
+            message(actions.getElement)
+          })
+        }),
         fact("there is a list view with an input field and a focus button for each item", (app) => {
           function itemView(stateful: UseItem<string>): HTMLView {
             const inputIdentifier = elementIdentifier<HTMLInputElement>()
@@ -80,8 +92,8 @@ function listElementCommandExample(name: string, render: (context: RenderApp<Lis
                   .button(el => {
                     el.config.dataAttribute("focus-button", stateful(item => item.data))
                     el.config.on("click", () => exec(
-                      domAction,
-                      domEffect((getEl) => getEl(inputIdentifier).focus())
+                      domEffect,
+                      (getEl) => getEl(inputIdentifier).focus()
                     ))
                     el.children.textNode("Focus")
                   })
@@ -132,6 +144,11 @@ function elementCommandExample(name: string, render: (context: RenderApp<Element
             identifier: elementIdentifier()
           })
         }),
+        fact("there is a dom command manager", (app) => {
+          app.useDomCommand(domEffect, (message, actions) => {
+            message(actions.getElement)
+          })
+        }),
         fact("there is a view with an identified input field", (app) => {
           render(app, (root) => {
             root.main(el => {
@@ -162,8 +179,8 @@ function elementCommandExample(name: string, render: (context: RenderApp<Element
       perform: [
         step("dispatch a dom command to focus the field", async (app) => {
           app.store.dispatch(exec(
-            domAction,
-            domEffect((getEl) => getEl(app.state.identifier).focus())
+            domEffect,
+            (getEl) => getEl(app.state.identifier).focus()
           ))
         })
       ],

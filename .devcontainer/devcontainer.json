@@ -1,0 +1,11 @@
+{
+  "name": "node-24",
+  "image": "mcr.microsoft.com/devcontainers/base:bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/node:2": {
+      "version": "24.15.0"
+    }
+  },
+  "postCreateCommand": "npm install",
+  "remoteUser": "node"
+}

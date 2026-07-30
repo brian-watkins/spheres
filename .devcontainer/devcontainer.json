@@ -6,6 +6,5 @@
       "version": "24.15.0"
     }
   },
-  "postCreateCommand": "npm install",
-  "remoteUser": "node"
+  "postCreateCommand": "npm install"
 }

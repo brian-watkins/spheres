@@ -4,7 +4,7 @@ import { serializedTokens } from "./state"
 
 activateZone({
   stateManifest: serializedTokens,
-  view: (activate) => {
+  setupView: (activate) => {
     activate(document.querySelector("#item-form")!, itemInput)
     activate(document.querySelector("OL")!, itemList)
     activate(document.querySelector("[data-title]")!, titleText)

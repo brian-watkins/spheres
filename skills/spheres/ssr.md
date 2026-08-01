@@ -105,12 +105,13 @@ For advanced cases with multiple stores, pass `zones` to `createStreamRenderer`.
 interface ActivationOptions {
   storeId?: string
   stateManifest?: StateManifest
-  view: (activate: (element: Element, view: HTMLView) => void) => void
+  configureStore?: (store: Store) => void
+  setupView: (activate: (element: Element, view: HTMLView) => void) => void
 }
 interface ActivatedZone {
   store: Store
 }
-function activateZone(options: ActivationOptions): ActivatedZone
+function activateZone(options: ActivationOptions): Promise<ActivatedZone>
 ```
 
 Call `activateZone` in your activation script to hydrate interactive regions on the client. You don't have to activate the whole page — activate only the parts that respond to user activity. The rest stays static server-rendered HTML.
@@ -121,20 +122,18 @@ import { activateZone } from "spheres/view"
 import { appView } from "./appView"
 import { userContainer, postsSupplied } from "./state"
 
-const { store } = activateZone({
+// the promise resolves when the server finishes streaming
+const { store } = await activateZone({
   stateManifest: { user: userContainer, posts: postsSupplied },
-  view: (activate) => {
+  setupView: (activate) => {
     activate(document.getElementById("app")!, appView)
   }
 })
-
-// streaming: initialized resolves when the server finishes streaming
-await store.initialized
 ```
 
 - The `stateManifest` must match the server's so tokens round-trip correctly.
-- The `view` callback receives an `activate` function; call it with `(element, view)` for each region to hydrate.
-- `store.initialized` resolves once streaming completes (or immediately for string-rendered pages).
+- The `setupView` callback receives an `activate` function; call it with `(element, view)` for each region to hydrate.
+- `activateZone` returns a Promise that resolves once streaming completes (or immediately for string-rendered pages).
 
 ## Vite plugin
 

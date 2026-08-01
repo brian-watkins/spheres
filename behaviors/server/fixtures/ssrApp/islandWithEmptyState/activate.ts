@@ -2,7 +2,7 @@ import { view } from "./view"
 import { activateZone } from "@view/index"
 
 activateZone({
-  view(activate) {
+  setupView(activate) {
     activate(document.body, view)
   }
 })

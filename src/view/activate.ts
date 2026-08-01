@@ -21,7 +21,8 @@ export function activateView(store: Store, element: Element, view: HTMLView): Re
 export interface ActivationOptions {
   storeId?: string
   stateManifest?: StateManifest
-  view: (activate: (element: Element, view: HTMLView) => void) => void
+  configureStore?: (store: Store) => void
+  setupView: (activate: (element: Element, view: HTMLView) => void) => void
 }
 
 export interface ActivatedZone {
@@ -64,10 +65,13 @@ export function prepareForStreaming() {
   }
 }
 
-export function activateZone(options: ActivationOptions): ActivatedZone {
+export function activateZone(options: ActivationOptions): Promise<ActivatedZone> {
   const store = createStore({
     id: options.storeId,
     async init(actions, store) {
+      // configure the store
+      options.configureStore?.(store)
+
       // get the initial state
       const tag = document.querySelector(`script[data-spheres-store="${store.id}"][data-spheres-stream="init"]`)
       if (tag !== null && options.stateManifest !== undefined) {
@@ -78,7 +82,7 @@ export function activateZone(options: ActivationOptions): ActivatedZone {
       }
 
       // activate the views
-      options.view((el, view) => {
+      options.setupView((el, view) => {
         activateView(store, el, view)
       })
 
@@ -103,7 +107,7 @@ export function activateZone(options: ActivationOptions): ActivatedZone {
     }
   })
 
-  return { store }
+  return store.initialized.then(() => ({store}))
 }
 
 

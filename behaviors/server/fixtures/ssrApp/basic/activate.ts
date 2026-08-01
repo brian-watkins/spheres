@@ -3,7 +3,7 @@ import counter from "../islands/counter.js"
 import tally from "../islands/tally.js"
 
 activateZone({
-  view(activate) {
+  setupView(activate) {
     activate(document.getElementById("counter")!, counter)
     const tallyElements = document.querySelectorAll("[data-tally]")
     for (const element of tallyElements) {

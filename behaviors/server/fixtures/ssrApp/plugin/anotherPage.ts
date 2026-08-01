@@ -4,7 +4,7 @@ import { activateZone } from "@view/index";
 
 export function activate() {
   activateZone({
-    view(activate) {
+    setupView(activate) {
       activate(document.body, anotherView)
     },
   })

@@ -3,13 +3,11 @@ import { serializedTokens, thingValue } from "./state"
 import { activateZone } from "@view/index"
 import { write } from "@store/index"
 
-const { store } = activateZone({
+const { store } = await activateZone({
   stateManifest: serializedTokens,
-  view(activate) {
+  setupView(activate) {
     activate(document.body, view)
   },
 })
-
-await store.initialized
 
 store.dispatch(write(thingValue, "hundreds of"))

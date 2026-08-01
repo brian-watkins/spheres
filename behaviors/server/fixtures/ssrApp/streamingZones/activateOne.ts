@@ -4,7 +4,7 @@ import { count, counter } from "./counter";
 activateZone({
   storeId: "store-one",
   stateManifest: { count },
-  view(activate) {
+  setupView(activate) {
     activate(document.querySelector(`[data-zone="one"]`)!, counter)
   },
 })

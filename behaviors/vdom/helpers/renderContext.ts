@@ -73,7 +73,7 @@ export class RenderApp<T> {
   activateSSRZone(view: HTMLView, stateManifest: StateManifest) {
     activateZone({
       stateManifest,
-      view(activate) {
+      setupView(activate) {
         activate(document.body, view)
       }
     })

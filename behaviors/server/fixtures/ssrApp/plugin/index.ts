@@ -5,7 +5,7 @@ const { someView } = await import("./someView")
 
 export function activate() {
   activateZone({
-    view(activate) {
+    setupView(activate) {
       activate(document.body, (root) => {
         root.main(el => {
           el.children

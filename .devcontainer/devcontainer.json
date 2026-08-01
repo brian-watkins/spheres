@@ -6,5 +6,11 @@
       "version": "24.15.0"
     }
   },
-  "postCreateCommand": "npm install"
+  "portsAttributes": {
+    "5173": {
+      "label": "vite",
+      "onAutoForward": "ignore"
+    }
+  },
+  "postCreateCommand": ".devcontainer/setup.sh"
 }

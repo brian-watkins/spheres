@@ -12,5 +12,12 @@
       "onAutoForward": "ignore"
     }
   },
-  "postCreateCommand": ".devcontainer/setup.sh"
+  "postCreateCommand": ".devcontainer/setup.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "k--kato.intellij-idea-keybindings"
+      ]
+    }
+  }
 }

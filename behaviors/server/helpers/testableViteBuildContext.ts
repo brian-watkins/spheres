@@ -1,7 +1,6 @@
 import { spheres, SpheresPluginOptions } from "@server/index";
 import { Context, use } from "best-behavior";
 import { createBuilder } from "vite";
-import tsconfigPaths from "vite-tsconfig-paths";
 import express from "express"
 import { useModule } from "best-behavior/transpiler";
 import { Server } from "http"
@@ -35,9 +34,11 @@ class TestViteBuildContext {
       root: root,
       base: this.base,
       plugins: [
-        tsconfigPaths(),
         spheres(pluginOptions)
       ],
+      resolve: {
+        tsconfigPaths: true
+      },
       logLevel: "warn"
     })
 

@@ -4,7 +4,6 @@ import { fileURLToPath } from 'url'
 import express, { Response } from "express"
 import { Server } from "http"
 import { PluginOption, RunnableDevEnvironment, ViteDevServer, createServer as createViteServer } from "vite"
-import tsConfigPaths from "vite-tsconfig-paths"
 import { browserContext, BrowserTestInstrument } from 'best-behavior/browser'
 import { useModule } from "best-behavior/transpiler"
 import { SSRParts, StreamingSSRParts } from './ssrApp.js'
@@ -87,9 +86,7 @@ export class TestSSRServer {
   }
 
   private getVitePlugins(): Array<PluginOption> {
-    const plugins: Array<PluginOption> = [
-      tsConfigPaths()
-    ]
+    const plugins: Array<PluginOption> = []
 
     if (this.spheresPluginOptions !== undefined) {
       plugins.push(spheres(this.spheresPluginOptions))
@@ -121,6 +118,9 @@ export class TestSSRServer {
         hmr: false
       },
       plugins: this.getVitePlugins(),
+      resolve: {
+        tsconfigPaths: true
+      },
       appType: "custom"
     })
 

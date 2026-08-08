@@ -35,7 +35,7 @@ export function pending<M>(message?: M): PendingMessage<M | undefined> {
   }
 }
 
-export function error<M, E>(reason: E): ErrorMessage<undefined, E>
+export function error<E>(reason: E): ErrorMessage<undefined, E>
 export function error<M, E>(reason: E, message: M): ErrorMessage<M, E>
 export function error<M, E>(reason: E, message?: M): ErrorMessage<M | undefined, E> {
   return {

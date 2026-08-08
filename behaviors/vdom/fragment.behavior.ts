@@ -501,7 +501,7 @@ export default behavior("fragment", [
       ]
     }),
 
-  (m) => m.pick() && example(renderContext<FragmentListContext>())
+  example(renderContext<FragmentListContext>())
     .description("activating a server-rendered switch fragment with a list followed by a sibling that has an event")
     .script({
       suppose: [

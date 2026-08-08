@@ -5,6 +5,7 @@ import { createStringRenderer } from "@server/index"
 import { activateView, activateZone, prepareForStreaming, StreamingAppWindow } from "@view/activate"
 import { DOMChangeRecord, structureChangeRecord, textChangeRecord } from "./changeRecords"
 import { SerializedState } from "@store/serialize"
+import { usePage } from "best-behavior/page"
 
 export class RenderApp<T> {
   private renderResult: RenderResult | undefined
@@ -109,6 +110,8 @@ export class RenderApp<T> {
   }
 
   destroy() {
+    // unmount clears everything underneath the mount point (document.body)
+    // and removes any event listeners attached to the mount point
     this.renderResult?.unmount()
     this.observer?.disconnect()
   }
@@ -116,8 +119,10 @@ export class RenderApp<T> {
 
 export function renderContext<T = undefined>(): Context<RenderApp<T>> {
   return {
-    init: () => {
+    init: async () => {
       window._testApp?.destroy()
+      // reset the mouse position in case it moved in the previous example
+      await usePage(page => page.mouse.move(0, 0))
       return new RenderApp()
     },
     teardown: async (testApp) => {

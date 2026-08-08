@@ -56,42 +56,42 @@ export default behavior("rendering html page from transpiled server renderer", [
         }),
         effect("the script tag for other transpiled js is included", async (context) => {
           expect(context.getRenderedHTML(), is(
-            stringMatching(/<link rel="modulepreload" href="\/assets\/activate-.+\.js">/)
+            stringMatching(/<link rel="modulepreload" href="\/assets\/view-[^"]+\.js">/)
           ))
         }),
         effect("the stylesheet import references the transpiled css", async (context) => {
           expect(context.getRenderedHTML(), is(
-            stringMatching(/<link rel="stylesheet" href="\/assets\/styles-.+\.css">/)
+            stringMatching(/<link rel="stylesheet" href="\/assets\/styles-[^"]+\.css">/)
           ))
         }),
         effect("the link to styles referenced in the js is included", async (context) => {
           expect(context.getRenderedHTML(), is(
-            stringMatching(/<link rel="stylesheet" href="\/assets\/client-.+\.css">/)
+            stringMatching(/<link rel="stylesheet" href="\/assets\/client-[^"]+\.css">/)
           ))
         }),
         effect("the script tag with a GetState function for src points to the compiled js", async (context) => {
           expect(context.getRenderedHTML(), is(
-            stringMatching(/<script type="module" src="\/assets\/tracing-.+\.js"><\/script>/)
+            stringMatching(/<script type="module" src="\/assets\/tracing-[^"]+\.js"><\/script>/)
           ))
         }),
         effect("the link tag with a GetState href function points to the compiled css", async (context) => {
           expect(context.getRenderedHTML(), is(
-            stringMatching(/<link rel="stylesheet" href="\/assets\/tracingStyles-.+\.css">/)
+            stringMatching(/<link rel="stylesheet" href="\/assets\/tracingStyles-[^"]+\.css">/)
           ))
         }),
         effect("link for css imported by an extra script is included", async (context) => {
           expect(context.getRenderedHTML(), is(
-            stringMatching(/<link rel="stylesheet" href="\/assets\/activate-.+\.css">/)
+            stringMatching(/<link rel="stylesheet" href="\/assets\/view-[^"]+\.css">/)
           ))
         }),
         effect("link for dynamic script import is included", async (context) => {
           expect(context.getRenderedHTML(), is(
-            stringMatching(/<link rel="modulepreload" href="\/assets\/someView-.+\.js">/)
+            stringMatching(/<link rel="modulepreload" href="\/assets\/someView-[^"]+\.js">/)
           ))
         }),
         effect("link for dynamic script import from extra script is included", async (context) => {
           expect(context.getRenderedHTML(), is(
-            stringMatching(/<link rel="modulepreload" href="\/assets\/dynamicView-.+\.js">/)
+            stringMatching(/<link rel="modulepreload" href="\/assets\/dynamicView-[^"]+\.js">/)
           ))
         })
       ]
@@ -118,7 +118,7 @@ export default behavior("rendering html page from transpiled server renderer", [
         }),
         effect("the rendered view does not transform the script imports", (context) => {
           expect(context.server.renderedHTML, is(
-            stringMatching(/<script type="module" async src="\/src\/index.ts"><\/script><\/body>/))
+            stringMatching(/<script type="module" async src="\/src\/index\.ts"><\/script><\/body>/))
           )
         })
       ]
@@ -159,12 +159,12 @@ export default behavior("rendering html page from transpiled server renderer", [
         }),
         effect("the script import references the transpiled js", (context) => {
           expect(context.getRenderedHTML(), is(
-            stringMatching(/<script type="module" async src="\/awesome\/assets\/activate-.+\.js"><\/script>/)
+            stringMatching(/<script type="module" async src="\/awesome\/assets\/activate-[^"]+\.js"><\/script>/)
           ))
         }),
         effect("the non-transformed script is included", (context) => {
           expect(context.getRenderedHTML(), is(
-            stringMatching(/<script type="module" src="https:\/\/my-other-server\/js\/someScript.js"><\/script>/)
+            stringMatching(/<script type="module" src="https:\/\/my-other-server\/js\/someScript\.js"><\/script>/)
           ))
         }),
         effect("a non-transformed stateful script is included", (context) => {
@@ -219,9 +219,9 @@ export default behavior("rendering html page from transpiled server renderer", [
         effect("the script import references the transpiled js", async (context) => {
           expect(context.getRenderedHTML(), is(
             satisfying([
-              stringMatching(/<script type="module" async="" src="\/app\/assets\/activateOne-.+\.js"><\/script>/),
-              stringMatching(/<script type="module" async="" src="\/app\/assets\/activateTwo-.+\.js"><\/script>/),
-              stringMatching(/<link rel="modulepreload" href="\/app\/assets\/counter-.+\.js">/),
+              stringMatching(/<script type="module" async="" src="\/app\/assets\/activateOne-[^"]+\.js"><\/script>/),
+              stringMatching(/<script type="module" async="" src="\/app\/assets\/activateTwo-[^"]+\.js"><\/script>/),
+              stringMatching(/<link rel="modulepreload" href="\/app\/assets\/counter-[^"]+\.js">/),
             ])
           ))
         }),
@@ -308,7 +308,7 @@ export default behavior("rendering html page from transpiled server renderer", [
       observe: [
         effect("the link tag for the extra script referenced by an extra script is included in the html", (context) => {
           expect(context.getHTML(), is(
-            stringMatching(/<link rel="modulepreload" href="\/assets\/pageHeader-.+\.js">/)
+            stringMatching(/<link rel="modulepreload" href="\/assets\/pageHeader-[^"]+\.js">/)
           ))
           expect(context.getHTML(), is(
             stringMatching(/<link rel="modulepreload" href="\/assets\/another-\w+\.js">/)
@@ -379,7 +379,7 @@ export default behavior("rendering html page from transpiled server renderer", [
       observe: [
         effect("the link tag for the extra script referenced by an extra script is included in the html", (context) => {
           expect(context.getHTML(), is(
-            stringMatching(/<link rel="modulepreload" href="\/assets\/pageHeader-.+\.js">/)
+            stringMatching(/<link rel="modulepreload" href="\/assets\/pageHeader-[^"]+\.js">/)
           ))
           expect(context.getHTML(), is(
             stringMatching(/<link rel="modulepreload" href="\/assets\/another-\w+\.js">/)
@@ -444,7 +444,7 @@ export default behavior("rendering html page from transpiled server renderer", [
       observe: [
         effect("the script tag imports the transpiled script", (context) => {
           expect(context.getHTML(), is(
-            stringMatching(/<script type="module" src="\/assets\/dashboard-CsRjAryI.js"><\/script>/)
+            stringMatching(/<script type="module" src="\/assets\/dashboard-CsRjAryI\.js"><\/script>/)
           ))
         })
       ]

@@ -34,8 +34,8 @@ class LinkConfigSupport implements ElementConfigSupport {
         const transformedResource = getTransformedResource(this.viteContext, "stylesheet", value)
         config.attribute(name, transformedResource.src)
       }
+    } else {
+      config.attribute(name, args[0])
     }
-
-    config.attribute(name, args[0])
   }
 }

@@ -1,5 +1,14 @@
 # spheres
 
+## 0.30.0
+
+### Minor Changes
+
+- 70ed140: Command managers can dispatch store messages via `dispatch` on `CommandActions`.
+- 70ed140: Access meta state via the `meta(token)` function instead of a `.meta` property on containers and supplied state. `pending`/`error` methods on command and store initializer actions have been removed in favor of supplying values directly to `meta(token)`.
+- 70ed140: Introduce `ElementIdentifier` for referencing DOM elements from a command manager. Custom command managers can now resolve elements via `withDomActions`/`DomCommandManager`/`GetElement`.
+- 70ed140: `activateZone` accepts a `configureStore` option and returns a promise that resolves once the store has initialized, to avoid race conditions during streaming. The `view` option has been renamed to `setupView`.
+
 ## 0.29.0
 
 ### Minor Changes

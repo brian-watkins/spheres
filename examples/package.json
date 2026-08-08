@@ -1,6 +1,6 @@
 {
   "name": "examples",
-  "version": "1.0.23",
+  "version": "1.0.24",
   "description": "",
   "main": "index.js",
   "type": "module",
@@ -26,6 +26,6 @@
   "dependencies": {
     "@floating-ui/dom": "^1.8.0",
     "luxon": "^3.4.0",
-    "spheres": "^0.29.0"
+    "spheres": "^0.30.0"
   }
 }

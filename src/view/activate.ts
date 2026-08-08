@@ -4,14 +4,14 @@ import { createStore, getTokenRegistry, StoreInitializerActions } from "../store
 import { HTMLBuilder, HTMLView } from "./htmlElements.js"
 import { HTMLElementSupport } from "./htmlElementSupport.js"
 import { ActivateDomRenderer } from "./render/activateDomRenderer.js"
-import { cleanRoot, DOMRoot } from "./render/domRoot.js"
+import { DOMRoot } from "./render/domRoot.js"
 import { EffectLocation } from "./render/effectLocation.js"
 import { RenderResult } from "./render/index.js"
 
 export function activateView(store: Store, element: Element, view: HTMLView): RenderResult {
   const registry = getTokenRegistry(store)
   const root = new DOMRoot(registry, element)
-  cleanRoot(root)
+  root.clean()
   const renderer = new ActivateDomRenderer(new HTMLElementSupport(), root, registry, element.firstChild!, new EffectLocation(root => root).firstChild())
   view(renderer as unknown as HTMLBuilder)
 

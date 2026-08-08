@@ -2,7 +2,7 @@ import { Store } from "../store/index.js"
 import { getTokenRegistry } from "../store/store.js"
 import { HTMLBuilder, HTMLView } from "./htmlElements.js"
 import { HTMLElementSupport } from "./htmlElementSupport.js"
-import { clearRoot, DOMRoot } from "./render/domRoot.js"
+import { DOMRoot } from "./render/domRoot.js"
 import { initializeEffects } from "./render/domTemplate.js"
 import { EffectLocation } from "./render/effectLocation.js"
 import { IdSequence } from "./render/idSequence.js"
@@ -35,7 +35,7 @@ export { activateZone } from "./activate.js"
 export function renderToDOM(store: Store, element: Element, view: HTMLView): RenderResult {
   const registry = getTokenRegistry(store)
   const root = new DOMRoot(registry, element)
-  clearRoot(root)
+  root.clear()
   const renderer = new DomTemplateRenderer(new HTMLElementSupport(), root, new IdSequence(), new EffectLocation(root => root), element, DOMEventType.Element)
   view(renderer as unknown as HTMLBuilder)
   initializeEffects(renderer.template, registry, element)

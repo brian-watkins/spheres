@@ -74,25 +74,23 @@ export class DOMRoot implements EventZone, RenderResult {
     }
   }
 
+  clear() {
+    this.root.replaceChildren()
+  }
+
+  clean() {
+    for (let i = 0; i < this.root.childNodes.length; i++) {
+      const node = this.root.childNodes[i]
+      if (node.nodeType === 3 && node.nodeValue?.trim() === "") {
+        this.root.removeChild(node)
+      } else {
+        break
+      }
+    }
+  }
+
   unmount() {
     this.eventController.abort()
-    clearRoot(this)
-  }
-}
-
-export function clearRoot(domRoot: DOMRoot) {
-  while (domRoot.root.hasChildNodes()) {
-    domRoot.root.removeChild(domRoot.root.lastChild!)
-  }
-}
-
-export function cleanRoot(domRoot: DOMRoot) {
-  for (let i = 0; i < domRoot.root.childNodes.length; i++) {
-    const node = domRoot.root.childNodes[i]
-    if (node.nodeType === 3 && node.nodeValue?.trim() === "") {
-      domRoot.root.removeChild(node)
-    } else {
-      break
-    }
+    this.clear()
   }
 }

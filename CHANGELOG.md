@@ -1,5 +1,11 @@
 # spheres
 
+## 0.30.1
+
+### Patch Changes
+
+- 04a2399: Upgrade dependencies and allow Vite 8 as peer dependency
+
 ## 0.30.0
 
 ### Minor Changes

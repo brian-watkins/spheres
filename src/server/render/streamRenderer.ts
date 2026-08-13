@@ -11,8 +11,8 @@ import { ViteContext } from "./viteContext.js"
 
 export interface StreamRendererOptions {
   stateManifest?: StateManifest
-  activationScripts?: Array<string>
-  zones?: Array<Zone>
+  activationScripts?: ReadonlyArray<string>
+  zones?: ReadonlyArray<Zone>
   viteContext?: ViteContext
 }
 
@@ -84,7 +84,7 @@ export class Zone {
 
 export interface InternalZoneOptions {
   stateManifest?: StateManifest
-  activationScripts?: Array<string>
+  activationScripts?: ReadonlyArray<string>
   store: State<Store>
   mountPoint: string
   viteContext?: ViteContext

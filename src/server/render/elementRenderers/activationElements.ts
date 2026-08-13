@@ -6,7 +6,7 @@ import { getExtraResources, getTransformedResource, shouldTransformImport, Trans
 export interface ActivationOptions {
   viteContext?: ViteContext,
   stateManifest?: StateManifest,
-  activationScripts?: Array<string>
+  activationScripts?: ReadonlyArray<string>
 }
 
 export function getActivationTemplate(options: ActivationOptions): HTMLTemplate {

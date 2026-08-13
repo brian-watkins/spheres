@@ -24,7 +24,7 @@ import { createOverlayRegistry } from "./templateOverlayRegistry.js";
 
 export interface StringRendererOptions {
   stateManifest?: StateManifest
-  activationScripts?: Array<string>
+  activationScripts?: ReadonlyArray<string>
   viteContext?: ViteContext
   isStreaming?: boolean
 }
@@ -143,7 +143,7 @@ class StringRenderer extends AbstractViewRenderer {
   }
 
   subviews<T>(
-    data: (get: GetState) => T[],
+    data: (get: GetState) => ReadonlyArray<T>,
     viewGenerator: (useItem: UseItem<T>) => ViewDefinition
   ): this {
     const elementId = this.idSequence.next

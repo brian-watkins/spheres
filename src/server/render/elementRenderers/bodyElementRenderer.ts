@@ -8,7 +8,7 @@ export class BodyElementRenderer extends BaseElementRenderer {
   constructor(
     private viteContext: ViteContext | undefined,
     private stateManifest?: StateManifest,
-    private activationScripts?: Array<string>
+    private activationScripts?: ReadonlyArray<string>
   ) {
     super()
   }

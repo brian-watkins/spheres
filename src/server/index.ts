@@ -11,7 +11,7 @@ export type HTMLStreamRenderer = (store: Store) => ReadableStream
 
 export interface RendererOptions {
   stateManifest?: StateManifest
-  activationScripts?: Array<string>
+  activationScripts?: ReadonlyArray<string>
 }
 
 export function createStringRenderer(view: HTMLView, options?: RendererOptions): HTMLStringRenderer
@@ -21,8 +21,8 @@ export function createStringRenderer(view: HTMLView, options: StringRendererOpti
 
 export interface StreamOptions {
   stateManifest?: StateManifest
-  activationScripts?: Array<string>
-  zones?: Array<Zone>
+  activationScripts?: ReadonlyArray<string>
+  zones?: ReadonlyArray<Zone>
 }
 
 export function createStreamRenderer(view: HTMLView, options?: StreamOptions): HTMLStreamRenderer
@@ -32,7 +32,7 @@ export function createStreamRenderer(view: HTMLView, options: StreamRendererOpti
 
 export interface ZoneOptions {
   stateManifest?: StateManifest
-  activationScripts?: Array<string>
+  activationScripts?: ReadonlyArray<string>
   store: State<Store>
   mountPoint: string
 }

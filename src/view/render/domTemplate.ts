@@ -34,7 +34,7 @@ export interface PropertyEffectTemplate {
 export interface ListEffectTemplate {
   type: EffectTemplateTypes.List
   domTemplate: DOMTemplate
-  query: (get: GetState) => Array<any>
+  query: (get: GetState) => ReadonlyArray<any>
   context: ListItemTemplateContext<any>
   elementId: string
   location: EffectLocation

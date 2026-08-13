@@ -165,7 +165,7 @@ specialHtmlElementsInterface.addMethod({
     { name: "T" }
   ],
   parameters: [
-    { name: "data", type: "(get: GetState) => Array<T>" },
+    { name: "data", type: "(get: GetState) => ReadonlyArray<T>" },
     { name: "viewGenerator", type: "(useItem: UseItem<T>) => HTMLView" }
   ],
   returnType: "this"

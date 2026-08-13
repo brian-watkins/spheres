@@ -57,7 +57,7 @@ export class ActivateDomRenderer extends AbstractViewRenderer {
     return this
   }
 
-  subviews<T>(query: (get: GetState) => T[], viewGenerator: (useItem: UseItem<T>) => ViewDefinition): this {
+  subviews<T>(query: (get: GetState) => ReadonlyArray<T>, viewGenerator: (useItem: UseItem<T>) => ViewDefinition): this {
     const elementId = getListElementId(this.currentNode!)
     let end = findListEndNode(this.currentNode!, elementId)
 

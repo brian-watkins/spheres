@@ -57,7 +57,7 @@ export class ListPatch {
     return this.updates.length === 0
   }
 
-  scan(first: VirtualItem | undefined, data: Array<any>) {
+  scan(first: VirtualItem | undefined, data: ReadonlyArray<any>) {
     let item: VirtualItem | undefined = first
     let index = 0
     let someItemRemainsInPlace = false
@@ -143,7 +143,7 @@ export class ListPatch {
     this.someItemRemainsInPlace = someItemRemainsInPlace
   }
 
-  scanForItemsToRemove(data: Array<any>): Array<VirtualItem> {
+  scanForItemsToRemove(data: ReadonlyArray<any>): Array<VirtualItem> {
     for (let x = this.index; x < data.length; x++) {
       const item = this.getItem(data[x])
       if (item !== undefined) {

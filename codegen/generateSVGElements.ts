@@ -1,6 +1,6 @@
 import { svgTagNames } from "svg-tag-names"
 import { svgElementAttributes } from 'svg-element-attributes'
-import { MethodSignatureStructure, OptionalKind, ParameterDeclarationStructure, Project, VariableDeclarationKind } from "ts-morph"
+import { MethodSignatureStructure, OptionalKind, ParameterDeclarationStructure, Project } from "ts-morph"
 import { toCamel } from "./helpers"
 
 const project = new Project({
@@ -163,7 +163,7 @@ specialSVGElementsInterface.addMethod({
     { name: "T" }
   ],
   parameters: [
-    { name: "data", type: "(get: GetState) => Array<T>" },
+    { name: "data", type: "(get: GetState) => ReadonlyArray<T>" },
     { name: "viewGenerator", type: "(useItem: UseItem<T>) => SVGView" }
   ],
   returnType: "this"

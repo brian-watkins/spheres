@@ -96,7 +96,7 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
   }
 
   subviews<T>(
-    data: (get: GetState) => Array<T>,
+    data: (get: GetState) => ReadonlyArray<T>,
     viewGenerator: (useItem: UseItem<T>) => ViewDefinition
   ): this {
     this.templateType = TemplateType.List

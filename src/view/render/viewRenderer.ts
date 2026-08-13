@@ -50,7 +50,7 @@ export interface ViewRenderer {
   element(tag: string, builder?: ElementDefinition, support?: ElementSupport): this
   subview(view: ViewDefinition): this
   subviews<T>(
-    data: (get: GetState) => Array<T>,
+    data: (get: GetState) => ReadonlyArray<T>,
     viewGenerator: (useItem: UseItem<T>) => ViewDefinition
   ): this
   subviewMatching(matcherGenerator: (matcher: ViewMatcher) => void): this
@@ -60,7 +60,7 @@ abstract class BaseViewRenderer implements ViewRenderer {
   abstract textNode(value: string | Stateful<string>): this
   abstract element(tag: string, builder?: ElementDefinition, support?: ElementSupport): this
   abstract subviewMatching(matcherGenerator: (matcher: ViewMatcher) => void): this
-  abstract subviews<T>(data: (get: GetState) => Array<T>, viewGenerator: (useItem: UseItem<T>) => ViewDefinition): this
+  abstract subviews<T>(data: (get: GetState) => ReadonlyArray<T>, viewGenerator: (useItem: UseItem<T>) => ViewDefinition): this
 
   subview(view: ViewDefinition): this {
     view(this)

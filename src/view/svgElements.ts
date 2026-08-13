@@ -26,7 +26,7 @@ export interface SpecialSVGElements {
     textNode(value: string | Stateful<string | undefined>): this;
     subview(value: SVGView): this;
     subviewMatching(matcherGenerator: (matcher: SVGViewMatcher) => void): this;
-    subviews<T>(data: (get: GetState) => Array<T>, viewGenerator: (useItem: UseItem<T>) => SVGView): this;
+    subviews<T>(data: (get: GetState) => ReadonlyArray<T>, viewGenerator: (useItem: UseItem<T>) => SVGView): this;
 }
 
 export interface SVGBuilder extends SpecialSVGElements {

@@ -26,7 +26,7 @@ export interface SpecialHTMLElements {
     textNode(value: string | Stateful<string | undefined>): this;
     subview(value: HTMLView): this;
     subviewMatching(matcherGenerator: (matcher: HTMLViewMatcher) => void): this;
-    subviews<T>(data: (get: GetState) => Array<T>, viewGenerator: (useItem: UseItem<T>) => HTMLView): this;
+    subviews<T>(data: (get: GetState) => ReadonlyArray<T>, viewGenerator: (useItem: UseItem<T>) => HTMLView): this;
 }
 
 export interface GlobalHTMLAttributes {

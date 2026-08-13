@@ -16,7 +16,7 @@ export class ListEffect implements StateEffect {
   constructor(
     private registry: TokenRegistry,
     private domTemplate: DOMTemplate,
-    private query: (get: GetState) => Array<any>,
+    private query: (get: GetState) => ReadonlyArray<any>,
     private templateContext: ListItemTemplateContext<any>,
     private listStart: Node,
     private listEnd: Node,
@@ -39,7 +39,7 @@ export class ListEffect implements StateEffect {
     this.patch(this.query(get))
   }
 
-  private patch(data: Array<any>) {
+  private patch(data: ReadonlyArray<any>) {
     this.parentNode = this.listStart.parentNode! as Element
 
     if (data.length === 0) {
@@ -81,7 +81,7 @@ export class ListEffect implements StateEffect {
     this.processUpdates(data, patch)
   }
 
-  private appendNewItems(data: Array<any>, start: number) {
+  private appendNewItems(data: ReadonlyArray<any>, start: number) {
     for (let x = start; x < data.length; x++) {
       const virtualItem = this.createItem(x, data[x])
       this.appendNode(virtualItem)
@@ -98,13 +98,13 @@ export class ListEffect implements StateEffect {
     }
   }
 
-  private processAppends(data: Array<any>, state: ListPatch) {
+  private processAppends(data: ReadonlyArray<any>, state: ListPatch) {
     for (let x = state.index; x < data.length; x++) {
       this.placeUpdatedItem(state, data[x], x, undefined)
     }
   }
 
-  private processUpdates(data: Array<any>, state: ListPatch) {
+  private processUpdates(data: ReadonlyArray<any>, state: ListPatch) {
     const updates = state.updates
     for (let i = updates.length - 1; i > -1; i--) {
       const update = updates[i]
@@ -351,7 +351,7 @@ export class ListEffect implements StateEffect {
   }
 }
 
-export function activateList(registry: TokenRegistry, context: ListItemTemplateContext<any>, template: DOMTemplate, startNode: Node, endNode: Node, data: Array<any>): [VirtualItem | undefined, VirtualItem | undefined] {
+export function activateList(registry: TokenRegistry, context: ListItemTemplateContext<any>, template: DOMTemplate, startNode: Node, endNode: Node, data: ReadonlyArray<any>): [VirtualItem | undefined, VirtualItem | undefined] {
   let index = 0
   let existingNode: Node = startNode.nextSibling!
   let firstItem: VirtualItem | undefined

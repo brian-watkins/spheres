@@ -19,7 +19,7 @@ type StateManifest = Record<string, SerializableState>
 
 interface RendererOptions {
   stateManifest?: StateManifest
-  activationScripts?: Array<string>
+  activationScripts?: ReadonlyArray<string>
 }
 
 type HtmlStringRenderer = (store: Store) => string
@@ -55,7 +55,7 @@ app.get("/", async (req, res) => {
 ```ts
 interface ZoneOptions {
   stateManifest?: StateManifest
-  activationScripts?: Array<string>
+  activationScripts?: ReadonlyArray<string>
   store: State<Store>
   mountPoint: string
 }
@@ -63,8 +63,8 @@ function zone(view: HTMLView, options: ZoneOptions): Zone
 
 interface StreamOptions {
   stateManifest?: StateManifest
-  activationScripts?: Array<string>
-  zones?: Array<Zone>
+  activationScripts?: ReadonlyArray<string>
+  zones?: ReadonlyArray<Zone>
 }
 
 type HTMLStreamRenderer = (store: Store) => ReadableStream

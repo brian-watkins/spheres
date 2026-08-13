@@ -150,7 +150,7 @@ Run an arbitrary function. Most useful inside a `batch` to sequence a side effec
 ### batch
 
 ```ts
-batch(messages: Array<StoreMessage<any>>): BatchMessage
+batch(messages: ReadonlyArray<StoreMessage<any>>): BatchMessage
 ```
 
 Apply many messages as one update. Effects depending on multiple changed values fire only once.

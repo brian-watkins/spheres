@@ -80,7 +80,7 @@ root.main(el => {
 
 ```ts
 subviews<T>(
-  items: (get: GetState) => Array<T>,
+  items: (get: GetState) => ReadonlyArray<T>,
   view: (use: UseItem<T>) => HTMLView
 ): this
 ```
@@ -104,6 +104,8 @@ root.ul(el => {
 ```
 
 Spheres tracks list items internally and updates only the ones that actually changed.
+
+**Item values must be unique within the list.** Spheres keys its diff on the item value itself, so two equal values collide and the list will not render correctly. For primitive data (a list of numbers or strings) that can repeat, map it to objects — object items are keyed by reference, so duplicates of equal shape are fine.
 
 ### subviewMatching — reactive switch
 

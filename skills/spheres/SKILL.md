@@ -49,7 +49,7 @@ renderToDOM(createStore(), document.getElementById("app")!, counter)
 ## Core idioms
 
 - **Reactive bindings.** Any attribute, text node, or subview selector accepts either a literal or a `(get) => T | undefined`. Prefer the stateful form whenever the value depends on a token — spheres will only update that specific binding.
-- **Composition:** `subview(view)` inlines another view function. `subviews(get => get(items), itemView)` renders keyed lists (spheres diffs by identity, only updating changed items). `subviewOf(selector => selector.when(...).when(...).default(...))` picks one view based on state.
+- **Composition:** `subview(view)` inlines another view function. `subviews(get => get(items), itemView)` renders keyed lists (spheres diffs by identity, only updating changed items) — **item values must be unique**, since the value itself keys the diff. `subviewMatching(matcher => matcher.withUnion(...).when(...).default(...))` picks one view based on state; use `matcher.withConditions()` to select on boolean predicates instead.
 - **Updating containers:**
   - `write(container, value)` — set a new value directly.
   - `update(container, current => next)` — derive next value from current.
@@ -76,7 +76,7 @@ renderToDOM(createStore(), document.getElementById("app")!, counter)
 Load the relevant reference file when working in depth on that area. These mirror the wiki but are structured for quick lookup:
 
 - `store-api.md` — full `spheres/store` API: state tokens, store, messages, hooks, commands, effects.
-- `view-api.md` — full `spheres/view` API: builders, element functions, subview/subviews/subviewOf, stateful attributes, events.
+- `view-api.md` — full `spheres/view` API: builders, element functions, subview/subviews/subviewMatching, stateful attributes, events.
 - `ssr.md` — server-side rendering, streaming, `activateZone`, state manifests, the vite plugin.
 
 ## Project setup

@@ -47,7 +47,7 @@ export interface RunMessage {
 
 export interface BatchMessage {
   type: "batch"
-  messages: Array<StoreMessage<any>>
+  messages: ReadonlyArray<StoreMessage<any>>
 }
 
 export type StoreMessage<T = any, M = T> = WriteMessage<T, M> | UpdateMessage<T, M> | ResetMessage<T> | UseMessage | BatchMessage | RunMessage | ExecMessage<M>
@@ -66,7 +66,7 @@ export function run(effect: () => void): RunMessage {
   }
 }
 
-export function batch(messages: Array<StoreMessage<any>>): BatchMessage {
+export function batch(messages: ReadonlyArray<StoreMessage<any>>): BatchMessage {
   return {
     type: "batch",
     messages
@@ -140,7 +140,7 @@ export function dispatchMessage(registry: TokenRegistry, message: StoreMessage<a
   }
 }
 
-function dispatchBatch(registry: TokenRegistry, batch: StateBatch, messages: Array<StoreMessage>): void {
+function dispatchBatch(registry: TokenRegistry, batch: StateBatch, messages: ReadonlyArray<StoreMessage>): void {
   for (let i = 0; i < messages.length; i++) {
     dispatchMessage(registry, messages[i], batch)
   }

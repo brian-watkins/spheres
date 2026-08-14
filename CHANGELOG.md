@@ -1,5 +1,11 @@
 # spheres
 
+## 0.30.2
+
+### Patch Changes
+
+- c63aa82: Support for ReadonlyArray state in html and svg list views (subviews)
+
 ## 0.30.1
 
 ### Patch Changes

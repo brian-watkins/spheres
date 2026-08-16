@@ -11,6 +11,7 @@ export interface TemplateCollection<T> {
 
 export interface TemplateContext<T> {
   template: T
+  tokens: Set<StateToken<any>>
   overlayRegistry: (registry: TokenRegistry) => TokenRegistry
 }
 
@@ -78,6 +79,7 @@ class CaseCollectionBuilder<T, S> implements ViewCaseMatcher<S>, MatcherCollecti
 
         return {
           template,
+          tokens,
           overlayRegistry: (registry) => {
             return new CaseViewOverlayTokenRegistry(registry, (get) => typePredicate(this.valueQuery(get)), tokens)
           },
@@ -92,12 +94,17 @@ class CaseCollectionBuilder<T, S> implements ViewCaseMatcher<S>, MatcherCollecti
     this.defaultMatcher = {
       type: "view",
       templateContext: memoize(() => {
-        const view = viewGenerator((generator) => (get) => {
-          return generator(this.valueQuery(get), get)
+        let template!: any
+        const tokens = recordTokens(() => {
+          const view = viewGenerator((generator) => (get) => {
+            return generator(this.valueQuery(get), get)
+          })
+          template = this.createTemplate(view, this.caseMatchers.length)
         })
 
         return {
-          template: this.createTemplate(view, this.caseMatchers.length),
+          template,
+          tokens,
           // Note: No need for an overlay registry here as the default view does not get
           // a particular discrimiant as its state argument -- the guard provided by
           // the registry is not needed
@@ -137,12 +144,7 @@ class ConditionCollectionBuilder<T> implements ViewConditionMatcher, MatcherColl
     this.conditionMatchers.push({
       type: "view",
       predicate,
-      templateContext: memoize(() => {
-        return {
-          template: this.createTemplate(view, index),
-          overlayRegistry: (registry) => registry
-        }
-      })
+      templateContext: memoize(() => this.buildTemplate(view, index))
     })
 
     return this
@@ -151,12 +153,22 @@ class ConditionCollectionBuilder<T> implements ViewConditionMatcher, MatcherColl
   default(view: ViewDefinition): void {
     this.defaultMatcher = {
       type: "view",
-      templateContext: memoize(() => {
-        return {
-          template: this.createTemplate(view, this.conditionMatchers.length),
-          overlayRegistry: (registry) => registry
-        }
-      })
+      templateContext: memoize(() =>
+        this.buildTemplate(view, this.conditionMatchers.length)
+      )
+    }
+  }
+
+  private buildTemplate(view: ViewDefinition, index: number): TemplateContext<T> {
+    let template!: any
+    const tokens = recordTokens(() => {
+      template = this.createTemplate(view, index)
+    })
+
+    return {
+      template,
+      tokens,
+      overlayRegistry: (registry) => registry
     }
   }
 
@@ -193,14 +205,14 @@ function memoize<X>(fun: () => X): () => X {
 class CaseViewOverlayTokenRegistry extends OverlayTokenRegistry {
   private tokenMap: Map<State<any>, any> = new Map()
 
-  constructor(parentRegistry: TokenRegistry, private matcher: (get: GetState) => boolean, private tokens: Array<State<any>>) {
+  constructor(parentRegistry: TokenRegistry, private matcher: (get: GetState) => boolean, private tokens: Set<State<any>>) {
     super(parentRegistry)
   }
 
   getState<S extends StateToken<unknown>>(token: S): StateHandler<S> {
     let publisher = this.tokenMap.get(token)
     if (publisher === undefined) {
-      if (this.tokens.includes(token)) {
+      if (this.tokens.has(token)) {
         if (token instanceof Container) {
           // containers do not need to be guarded and aren't shared across templates
           // this allows internal containers to trigger the onRegister hook

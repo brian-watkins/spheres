@@ -511,6 +511,9 @@ export default behavior("conditional zone", [
       ]
     }),
 
+  matchedViewWithLocalStateExample("client rendered", (context, view) => context.mountView(view)),
+  matchedViewWithLocalStateExample("server rendered", (context, view) => context.ssrAndActivate(view)),
+
   nestedSiblingSelectViewExample("client rendered", (context, view) => context.mountView(view)),
   nestedSiblingSelectViewExample("server rendered", (context, view) => context.ssrAndActivate(view)),
 
@@ -593,6 +596,107 @@ function basicSelectEmptyAtFirst(name: string, renderer: (context: RenderApp<Con
       observe: [
         effect("the view is no longer visible", async () => {
           await expect(selectElement("p").exists(), resolvesTo(false))
+        })
+      ]
+    })
+}
+
+function matchedViewWithLocalStateExample(name: string, renderer: (context: RenderApp<Container<string>>, view: HTMLView) => void) {
+  return example(renderContext<Container<string>>())
+    .description(`matched view that defines state is switched away and back (${name})`)
+    .script({
+      suppose: [
+        fact("there is state that determines the matched view", (context) => {
+          context.setState(container({ initialValue: "counter" }))
+        }),
+        fact("there is a matched view that defines state", (context) => {
+          function counterView(): HTMLView {
+            return root => {
+              const count = container({ initialValue: 0 })
+
+              root.div(el => {
+                el.children
+                  .h1(el => {
+                    el.config.dataAttribute("count")
+                    el.children.textNode(get => `The count is: ${get(count)}`)
+                  })
+                  .button(el => {
+                    el.config
+                      .dataAttribute("increment")
+                      .on("click", () => update(count, (val) => val + 2))
+                    el.children.textNode("Increment count!")
+                  })
+              })
+            }
+          }
+
+          function otherView(): HTMLView {
+            return root => {
+              root.h2(el => {
+                el.config.dataAttribute("other")
+                el.children.textNode("Something else entirely")
+              })
+            }
+          }
+
+          renderer(context, root => {
+            root.main(el => {
+              el.children
+                .subviewMatching(selector => {
+                  selector.withUnion(get => get(context.state))
+                    .when((val): val is string => val === "counter", counterView)
+                    .when((val): val is string => val === "other", otherView)
+                })
+            })
+          })
+        })
+      ],
+      perform: [
+        step("increment the count", async () => {
+          await selectElement("[data-increment]").click()
+          await selectElement("[data-increment]").click()
+          await selectElement("[data-increment]").click()
+        })
+      ],
+      observe: [
+        effect("the counter tally is correct", async () => {
+          await expect(selectElement("[data-count]").text(), resolvesTo("The count is: 6"))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("switch to the other view", (context) => {
+          context.writeTo(context.state, "other")
+        })
+      ],
+      observe: [
+        effect("the other view is displayed", async () => {
+          await expect(selectElement("[data-other]").text(), resolvesTo("Something else entirely"))
+        }),
+        effect("the counter view is no longer displayed", async () => {
+          await expect(selectElement("[data-count]").exists(), resolvesTo(false))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("switch back to the counter view", (context) => {
+          context.writeTo(context.state, "counter")
+        })
+      ],
+      observe: [
+        effect("the counter view remembers its state", async () => {
+          await expect(selectElement("[data-count]").text(), resolvesTo("The count is: 6"))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("increment the count again", async () => {
+          await selectElement("[data-increment]").click()
+        })
+      ],
+      observe: [
+        effect("the counter tally continues from where it left off", async () => {
+          await expect(selectElement("[data-count]").text(), resolvesTo("The count is: 8"))
         })
       ]
     })

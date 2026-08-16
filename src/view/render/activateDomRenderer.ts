@@ -4,7 +4,7 @@ import { dispatchMessage } from "../../store/message.js";
 import { getStateFunctionWithListener, initListener, createSubscriber, TokenRegistry, isStateful } from "../../store/tokenRegistry.js";
 import { UpdateAttributeEffect } from "./effects/attributeEffect.js";
 import { UpdatePropertyEffect } from "./effects/propertyEffect.js";
-import { activateMatch, MatchViewEffect } from "./effects/matchViewEffect.js";
+import { MatchViewEffect } from "./effects/matchViewEffect.js";
 import { UpdateTextEffect } from "./effects/textEffect.js";
 import { getEventAttribute } from "./eventHelpers.js";
 import { findListEndNode, findMatchEndNode, getListElementId, getMatchElementId, listEndIndicator, matchEndIndicator } from "./fragmentHelpers.js";
@@ -83,8 +83,7 @@ export class ActivateDomRenderer extends AbstractViewRenderer {
     matcherGenerator(matcherBuilder)
 
     const effect = new MatchViewEffect(this.registry, matcherBuilder.collection, this.currentNode!, end)
-    const selection = activateMatch(this.registry, matcherBuilder.collection, this.currentNode!, getStateFunctionWithListener(createSubscriber(this.registry, effect)))
-    effect.setCurrentMatch(selection)
+    effect.activateMatch(matcherBuilder.collection, this.currentNode!, getStateFunctionWithListener(createSubscriber(this.registry, effect)))
     
     this.currentNode = end.nextSibling
     this.currentLocation = this.currentLocation.nextCommentSiblingMatching(matchEndIndicator(elementId)).nextSibling()

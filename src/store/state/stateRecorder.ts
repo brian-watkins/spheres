@@ -1,13 +1,13 @@
 import { StateToken } from "../tokenRegistry.js"
 
 class StateRecorder {
-  private _tokens: Array<StateToken<any>> = []
+  private _tokens: Set<StateToken<any>> = new Set()
 
   recordToken(token: StateToken<any>) {
-    this._tokens.push(token)
+    this._tokens.add(token)
   }
 
-  get tokens(): Array<StateToken<any>> {
+  get tokens(): Set<StateToken<any>> {
     return this._tokens
   }
 }
@@ -21,7 +21,7 @@ export function didCreateToken(token: StateToken<any>) {
   }
 }
 
-export function recordTokens(activity: () => void): Array<StateToken<any>> {
+export function recordTokens(activity: () => void): Set<StateToken<any>> {
   const recorder = new StateRecorder()
   recorderStack.unshift(recorder)
   activity()

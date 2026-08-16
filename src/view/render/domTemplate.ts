@@ -2,7 +2,7 @@ import { dispatchMessage } from "../../store/message.js"
 import { GetState, getStateFunctionWithListener, initListener, StateListener, createSubscriber, TokenRegistry } from "../../store/tokenRegistry.js"
 import { EffectLocation } from "./effectLocation.js"
 import { activateList, ListEffect } from "./effects/listEffect.js"
-import { activateMatch, MatchViewEffect } from "./effects/matchViewEffect.js"
+import { MatchViewEffect } from "./effects/matchViewEffect.js"
 import { findListEndNode, findMatchEndNode, getListElementId, getMatchElementId, LIST_START, MATCH_START } from "./fragmentHelpers.js"
 import { spheresTemplateData, StoreEventHandler } from "./index.js"
 import { TemplateCollection } from "./viewMatcherBuilder.js"
@@ -197,8 +197,7 @@ function activateEffect(registry: TokenRegistry, root: Node, effect: EffectTempl
       const endNode = findMatchEndNode(startNode, effect.elementId)
 
       const selectEffect = new MatchViewEffect(registry, effect.collection, startNode, endNode)
-      const selection = activateMatch(registry, effect.collection, startNode, getStateFunctionWithListener(createSubscriber(registry, selectEffect)))
-      selectEffect.setCurrentMatch(selection)
+      selectEffect.activateMatch(effect.collection, startNode, getStateFunctionWithListener(createSubscriber(registry, selectEffect)))
 
       break
     }

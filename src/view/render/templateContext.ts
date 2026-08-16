@@ -7,10 +7,10 @@ import { ListItemReader } from "./effects/list/itemReader.js";
 
 export class ListItemTemplateContext<T> {
   readonly listItemDataToken: State<ListItem<T>> = stateReference()
-  readonly viewTokens = new Set<StateToken<unknown>>()
+  readonly viewTokens: Set<StateToken<any>> 
 
   constructor(viewRenderer: ViewRenderer, generator: (stateful: UseItem<T>) => ViewDefinition) {
-    const tokens = recordTokens(() => {
+    this.viewTokens = recordTokens(() => {
       generator((useItem) => (get) => {
         const itemReader = get(this.listItemDataToken) as ListItemReader<T>
         itemReader.getState = get
@@ -20,8 +20,7 @@ export class ListItemTemplateContext<T> {
       })(viewRenderer)
     })
 
-    for (const token of tokens) {
-      this.viewTokens.add(token)
+    for (const token of this.viewTokens.values()) {
       if (token instanceof Container) {
         this.viewTokens.add(meta(token))
       }

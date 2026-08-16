@@ -1,6 +1,7 @@
 import { GetState } from "../../../store/index.js";
 import { activate, DOMTemplate, render } from "../domTemplate.js";
-import { StateEffect, StateListenerType, StateReader, StateWriter, StateHandler, TokenRegistry, StateToken } from "../../../store/tokenRegistry.js";
+import { generateStateManager, StateEffect, StateListenerType, StateReader, StateWriter, StateHandler, TokenRegistry, StateToken } from "../../../store/tokenRegistry.js";
+import { clone, Container } from "../../../store/state/container.js";
 import { TemplateCollection, TemplateMatch } from "../viewMatcherBuilder.js";
 import { OverlayTokenRegistry } from "../../../store/registry/overlayTokenRegistry.js";
 import { OverlayStateHandler } from "../../../store/state/handler/overlayStateHandler.js";
@@ -17,10 +18,6 @@ export class MatchViewEffect implements StateEffect {
     public endNode: Node,
   ) {
     this.registry = new ConditionalViewOverlayRegistry(parentRegistry)
-  }
-
-  setCurrentMatch(match: TemplateMatch<DOMTemplate>) {
-    this.currentMatch = match
   }
 
   init(get: GetState): void {
@@ -55,6 +52,7 @@ export class MatchViewEffect implements StateEffect {
       }
       case "view": {
         const templateContext = match.templateContext()
+        this.registry.setViewTokens(templateContext.tokens)
         node = render(templateContext.template, templateContext.overlayRegistry(this.registry))
         break
       }
@@ -69,26 +67,41 @@ export class MatchViewEffect implements StateEffect {
     range.setEndBefore(this.endNode!)
     range.deleteContents()
   }
-}
 
-export function activateMatch(registry: TokenRegistry, templateCollection: TemplateCollection<DOMTemplate>, startNode: Node, get: GetState): TemplateMatch<DOMTemplate> {
-  const match = templateCollection.match(get)
+  activateMatch(templateCollection: TemplateCollection<DOMTemplate>, startNode: Node, get: GetState) {
+    const match = templateCollection.match(get)
 
-  if (match.type === "view") {
-    const templateContext = match.templateContext()
-    activate(templateContext.template, templateContext.overlayRegistry(registry), startNode.nextSibling!)
+    this.currentMatch = match
+
+    if (match.type === "view") {
+      const templateContext = match.templateContext()
+      this.registry.setViewTokens(templateContext.tokens)
+      activate(templateContext.template, templateContext.overlayRegistry(this.registry), startNode.nextSibling!)
+    }
   }
-
-  return match
 }
 
 class ConditionalViewOverlayRegistry extends OverlayTokenRegistry {
   private registry: Map<StateToken<unknown>, StateReader<unknown>> = new Map()
+  private viewTokens: Set<StateToken<any>> = new Set()
+
+  setViewTokens(tokens: Set<StateToken<any>>) {
+    this.viewTokens = tokens
+  }
 
   getState<S extends StateToken<unknown>>(token: S): StateHandler<S> {
     let publisher = this.registry.get(token)
     if (publisher === undefined) {
-      publisher = this.createPublisher(token)
+      if (this.viewTokens.has(token)) {
+        publisher = generateStateManager(this, token)
+        if (token instanceof Container) {
+          const rootToken = token[clone]()
+          this.parentRegistry.setState(rootToken, publisher)
+        }
+      } else {
+        publisher = this.createPublisher(token)
+      }
+
       this.registry.set(token, publisher)
     }
 
@@ -104,11 +117,11 @@ class ConditionalViewOverlayRegistry extends OverlayTokenRegistry {
   }
 
   reset() {
-    this.registry.forEach(publisher => {
+    this.registry.forEach((publisher, key) => {
       if (publisher instanceof OverlayStateHandler) {
         publisher.detach()
+        this.registry.delete(key)
       }
     })
-    this.registry.clear()
   }
 }

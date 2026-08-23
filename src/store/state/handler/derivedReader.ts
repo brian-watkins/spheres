@@ -1,11 +1,12 @@
 import { GetState, StateDerivation, StateListenerType, StateReader } from "../../tokenRegistry.js"
+import { Reconciler } from "../reconciler.js"
 import { SubscriberSet } from "./subscriberSet.js"
 
 export class DerivedStateReader<T> extends SubscriberSet implements StateReader<T>, StateDerivation {
   readonly type = StateListenerType.Derivation
   private _value!: T
 
-  constructor(private derivation: (get: GetState) => T) {
+  constructor(private derivation: (get: GetState) => T, private reconciler?: Reconciler<T>) {
     super()
   }
 
@@ -16,12 +17,14 @@ export class DerivedStateReader<T> extends SubscriberSet implements StateReader<
   run(get: GetState): void {
     const derived = this.derivation(get)
 
-    if (Object.is(derived, this._value)) {
+    const reconciled = this.reconciler !== undefined ? this.reconciler(this._value, derived) : derived
+
+    if (Object.is(reconciled, this._value)) {
       this.runDirtyListeners()
       return
     }
 
-    this._value = derived
+    this._value = reconciled
 
     this.runListeners()
   }

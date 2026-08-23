@@ -4,10 +4,12 @@ import { getInitialValue, ResettableState } from "../message.js"
 import { MessageWriter, UpdateResult } from "./handler/messageWriter.js"
 import { Writer } from "./handler/writer.js"
 import { value, Value } from "./value.js"
+import { Reconciler } from "./reconciler.js"
 
 export interface ContainerInitializer<T, M> {
   initialValue: T | Stateful<T>,
   update?: (message: M, current: T) => UpdateResult<T>
+  reconciler?: Reconciler<T>
   name?: string
 }
 
@@ -24,6 +26,7 @@ export function container<T, M = T, E = any>(
     config.name,
     config.initialValue,
     config.update,
+    config.reconciler
   )
   didCreateToken(token)
   return token
@@ -36,6 +39,7 @@ export class Container<T, M = T, E = any> implements ResettableState<T>, Writabl
     readonly name: string | undefined,
     private initialValue: T | Stateful<T>,
     private update: ((message: M, current: T) => UpdateResult<T>) | undefined,
+    private reconciler: Reconciler<T> | undefined
   ) { }
 
   [getInitialValue](registry: TokenRegistry): T {
@@ -52,12 +56,12 @@ export class Container<T, M = T, E = any> implements ResettableState<T>, Writabl
     const value = this[getInitialValue](registry)
 
     return this.update ?
-      new MessageWriter(registry, value, this.update) :
-      new Writer(value)
+      new MessageWriter(registry, value, this.update, this.reconciler) :
+      new Writer(value, this.reconciler)
   }
 
   [clone](): Container<T, M, E> {
-    return new Container(this.name, this.initialValue, this.update)
+    return new Container(this.name, this.initialValue, this.update, this.reconciler)
   }
 
   toString() {

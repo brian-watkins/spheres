@@ -1,5 +1,6 @@
 import { dispatchMessage, StoreMessage } from "../../message.js"
 import { StateBatch, TokenRegistry } from "../../tokenRegistry.js"
+import { Reconciler } from "../reconciler.js"
 import { Writable } from "./writable.js"
 
 export interface UpdateResult<T> {
@@ -8,8 +9,13 @@ export interface UpdateResult<T> {
 }
 
 export class MessageWriter<T, M> extends Writable<T, M> {
-  constructor(private registry: TokenRegistry, initialValue: T, private update: ((message: M, current: T) => UpdateResult<T>)) {
-    super(initialValue)
+  constructor(
+    private registry: TokenRegistry,
+    initialValue: T,
+    private update: ((message: M, current: T) => UpdateResult<T>),
+    reconciler?: Reconciler<T>
+  ) {
+    super(initialValue, reconciler)
   }
 
   protected apply(message: M, batch?: StateBatch): void {

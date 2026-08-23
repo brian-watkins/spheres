@@ -1,0 +1,1 @@
+export type Reconciler<T> = (current: T, next: T) => T

@@ -11,6 +11,7 @@
   "type": "module",
   "exports": {
     "./store": "./dist/store/index.js",
+    "./store/reconciler": "./dist/store/state/reconciler.js",
     "./view": "./dist/view/index.js",
     "./server": "./dist/server/index.js"
   },

@@ -26,6 +26,7 @@ All token initializers accept an optional `name` for debug output (`token.toStri
 interface DerivedStateInitializer<T> {
   name?: string
   query: (get: GetState) => T
+  reconciler?: Reconciler<T>
 }
 function derived<T>(init: DerivedStateInitializer<T> | ((get: GetState) => T)): DerivedState<T>
 ```
@@ -41,8 +42,9 @@ interface UpdateResult<T> {
 }
 interface ContainerInitializer<T, M> {
   name?: string
-  initialValue: T
+  initialValue: T | Stateful<T>
   update?: (message: M, current: T) => UpdateResult<T>
+  reconciler?: Reconciler<T>
 }
 type ValueGenerator = <S>(value: S) => Value<S>
 function container<T, M = T, E = any>(
@@ -71,6 +73,7 @@ A `Value<T>` is a writable cell embedded inside a container's state. Combined wi
 interface SuppliedStateInitializer<T> {
   name?: string
   initialValue: T
+  reconciler?: Reconciler<T>
 }
 function supplied<T, M = any, E = any>(init: SuppliedStateInitializer<T>): SuppliedState<T, M, E>
 ```
@@ -89,6 +92,27 @@ type Meta<M, E> = OkMessage | PendingMessage<M> | ErrorMessage<M, E>
 ```
 
 Program authors don't create Meta tokens directly — they access them via `meta(container)` / `meta(supplied)` and read them in queries, effects, or views. Meta reflects the storage-system status of the underlying token.
+
+## Reconcilers
+
+`container`, `derived`, and `supplied` all accept an optional `reconciler`, which decides how much of a token's old value to keep when a new one arrives:
+
+```ts
+type Reconciler<T> = (current: T, next: T) => T
+```
+
+Returning `current` means "nothing changed" and the token does not publish at all. Returning anything else publishes that value. Combinators live in a separate entry point:
+
+```ts
+import { reconcileArray } from "spheres/store/reconciler"
+
+const visibleItems = derived({
+  query: (get) => get(allItems).filter(item => !get(hidden).has(item.id)),
+  reconciler: reconcileArray({ key: item => item.id })
+})
+```
+
+Use one to stop a `derived` list from publishing when a `filter` or `map` rebuilt an equivalent value, and to carry old element objects forward so `subviews` only rebuilds rows that genuinely changed. See `reconcilers.md`.
 
 ## Store
 
@@ -270,3 +294,5 @@ useEffect(store, {
 | Trigger external calls from state changes | `command` with `trigger`, or `useEffect` |
 | Side effect (log, persist, notify) reactive to state | `useEffect` |
 | Dispatch many messages as one update | `batch` |
+| Stop a rebuilt-but-equivalent `derived` value from publishing | `reconciler` (see `reconcilers.md`) |
+| Keep `subviews` from rebuilding rows that did not change | `reconcileArray({ key })` |

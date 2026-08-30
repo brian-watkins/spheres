@@ -1,6 +1,6 @@
 ---
 name: spheres
-description: Build browser-based web applications with spheres — a TypeScript framework with fine-grained reactive views and token-based state management. TRIGGER when code imports `spheres`, `spheres/store`, `spheres/view`, or `spheres/server`; when a user asks to build, modify, or debug a spheres application; or when discussing `HTMLBuilder`/`SVGBuilder`, `container`/`derived`/`supplied`, `renderToDOM`, `createStore`, `useEffect`, `useCommand`, `useContainerHooks`, `elementIdentifier`/`withDomActions`, `createStringRenderer`, `createStreamRenderer`, or `activateZone`.
+description: Build browser-based web applications with spheres — a TypeScript framework with fine-grained reactive views and token-based state management. TRIGGER when code imports `spheres`, `spheres/store`, `spheres/store/reconciler`, `spheres/view`, or `spheres/server`; when a user asks to build, modify, or debug a spheres application; or when discussing `HTMLBuilder`/`SVGBuilder`, `container`/`derived`/`supplied`, `renderToDOM`, `createStore`, `useEffect`, `useCommand`, `useContainerHooks`, `elementIdentifier`/`withDomActions`, `createStringRenderer`, `createStreamRenderer`, `activateZone`, or `reconcileArray`/`reconcileObject`.
 ---
 
 # Spheres
@@ -77,6 +77,7 @@ Load the relevant reference file when working in depth on that area. These mirro
 
 - `store-api.md` — full `spheres/store` API: state tokens, store, messages, hooks, commands, effects.
 - `view-api.md` — full `spheres/view` API: builders, element functions, subview/subviews/subviewMatching, stateful attributes, events.
+- `reconcilers.md` — `spheres/store/reconciler`: keeping old values and element identity across updates.
 - `ssr.md` — server-side rendering, streaming, `activateZone`, state manifests, the vite plugin.
 
 ## Project setup

@@ -143,8 +143,6 @@ class MetaStateStreamer implements ReactiveEffect {
 }
 
 class StateStreamer implements ReactiveEffect, ContainerHooks<any, any> {
-  private isWriting: boolean = false
-
   constructor(
     private store: Store,
     private stream: SpheresStateStream,
@@ -157,15 +155,10 @@ class StateStreamer implements ReactiveEffect, ContainerHooks<any, any> {
   }
 
   run(get: GetState): void {
-    if (this.isWriting) return
-
     this.stream.enqueueState(this.store, serializedValue(this.tokenKey, get(this.token)))
   }
 
-  onWrite(message: any, actions: WriteHookActions<any, any, unknown>): void {
-    this.isWriting = true
+  onWrite(message: any, _: WriteHookActions<any, any, unknown>): void {
     this.stream.enqueueState(this.store, serializedMessage(this.tokenKey, message))
-    actions.ok(message)
-    this.isWriting = false
   }
 }

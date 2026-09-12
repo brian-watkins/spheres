@@ -22,7 +22,7 @@ export class OverlayStateHandler extends SubscriberSet implements StateWriter<an
   init(): void { }
 
   run(): void {
-    this.runListeners()
+    this.runSubscribers()
     this.parent.addSubscriber(this.subscriber)
     this.isSubscribed = true
   }

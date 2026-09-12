@@ -1,4 +1,4 @@
-import { Subscribable, runListener, StateListenerType, StateListenerVersion, Subscriber, EffectList } from "../../tokenRegistry.js"
+import { Subscribable, StateListenerVersion, Subscriber, EffectList } from "../../tokenRegistry.js"
 
 export class SubscriberSet implements Subscribable {
   private subscribers: Map<Subscriber, StateListenerVersion> = new Map()
@@ -6,39 +6,24 @@ export class SubscriberSet implements Subscribable {
   constructor() { }
 
   addSubscriber(subscriber: Subscriber): void {
-    this.subscribers.set(subscriber, subscriber.version)
+    this.subscribers.set(subscriber, subscriber.getVersion())
   }
 
   removeSubscriber(subscriber: Subscriber) {
     this.subscribers.delete(subscriber)
   }
 
-  notifyListeners(effects: EffectList): void {
+  prepareSubscribers(effects: EffectList): void {
     for (const [subscriber, version] of this.subscribers) {
-      if (subscriber.version !== version) {
+      if (subscriber.getVersion() !== version) {
         this.removeSubscriber(subscriber)
         continue
       }
-      const listener = subscriber.listener
-      switch (listener.type) {
-        case StateListenerType.Derivation:
-          listener.notifyListeners(effects)
-          break
-        case StateListenerType.ViewEffect:
-          effects.addViewEffect(subscriber)
-          break
-        case StateListenerType.ElementEffect:
-          effects.addElementEffect(subscriber)
-          break
-        case StateListenerType.UserEffect:
-          effects.addUserEffect(subscriber)
-          break
-      }
-      subscriber.parent = this
+      subscriber.prepareForUpdate(this, effects)
     }
   }
 
-  runListeners(): void {
+  runSubscribers(): void {
     const subs = this.subscribers.keys()
 
     // Start a new list -- any listeners added while running the current listeners
@@ -46,38 +31,19 @@ export class SubscriberSet implements Subscribable {
     this.subscribers = new Map()
 
     for (const subscriber of subs) {
-      if (subscriber.parent !== this) {
-        subscriber.dirty = true
-        continue
-      }
-
-      if (subscriber.listener.type === StateListenerType.Derivation) {
-        runListener(subscriber)
-      } else {
-        subscriber.parent = true
-      }
+      subscriber.dependencyUpdated(this)
     }
   }
 
-  runDirtyListeners(): void {
+  notifyStable(): void {
     for (const subscriber of this.subscribers.keys()) {
-      if (subscriber.parent != this || subscriber.dirty === false) {
-        continue
-      }
-
-      if (subscriber.listener.type === StateListenerType.Derivation) {
-        runListener(subscriber)
-      } else {
-        subscriber.parent = true
-      }
+      subscriber.dependencyStable(this)
     }
   }
 
   runEffects(effects: EffectList) {
     for (const subscriber of effects) {
-      if (subscriber.parent === true) {
-        runListener(subscriber)
-      }
+      subscriber.run()
     }
   }
 }

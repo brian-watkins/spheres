@@ -1,7 +1,7 @@
 import { DOMEventType, EventsToDelegate, StoreEventHandler, EventZone } from "./index.js";
 import { Stateful, GetState } from "../../store/index.js";
 import { dispatchMessage } from "../../store/message.js";
-import { getStateFunctionWithListener, initListener, createSubscriber, TokenRegistry, isStateful } from "../../store/tokenRegistry.js";
+import { initListener, createSubscriber, TokenRegistry, isStateful } from "../../store/tokenRegistry.js";
 import { UpdateAttributeEffect } from "./effects/attributeEffect.js";
 import { UpdatePropertyEffect } from "./effects/propertyEffect.js";
 import { MatchViewEffect } from "./effects/matchViewEffect.js";
@@ -65,7 +65,8 @@ export class ActivateDomRenderer extends AbstractViewRenderer {
     const templateContext = new ListItemTemplateContext(renderer, viewGenerator)
 
     const effect = new ListEffect(this.registry, renderer.template, query, templateContext, this.currentNode!, end)
-    const data = query(getStateFunctionWithListener(createSubscriber(this.registry, effect)))
+    const subscriber = createSubscriber(this.registry, effect)
+    const data = query(subscriber.generateGetState())
     const virtualList = activateList(this.registry, templateContext, renderer.template, this.currentNode!, end, data)
     effect.setVirtualList(...virtualList)
 
@@ -83,8 +84,9 @@ export class ActivateDomRenderer extends AbstractViewRenderer {
     matcherGenerator(matcherBuilder)
 
     const effect = new MatchViewEffect(this.registry, matcherBuilder.collection, this.currentNode!, end)
-    effect.activateMatch(matcherBuilder.collection, this.currentNode!, getStateFunctionWithListener(createSubscriber(this.registry, effect)))
-    
+    const subscriber = createSubscriber(this.registry, effect)
+    effect.activateMatch(matcherBuilder.collection, this.currentNode!, subscriber.generateGetState())
+
     this.currentNode = end.nextSibling
     this.currentLocation = this.currentLocation.nextCommentSiblingMatching(matchEndIndicator(elementId)).nextSibling()
 

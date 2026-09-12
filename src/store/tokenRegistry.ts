@@ -17,16 +17,6 @@ export function isStateful<T>(value: T | Stateful<T>): value is Stateful<T> {
   return typeof value === "function"
 }
 
-function subscribeOnGet<T>(this: Subscriber, token: State<T>): T {
-  const reader = token[getStateHandler](this.registry)
-  reader.addSubscriber(this)
-  return reader.getValue()
-}
-
-export function getStateFunctionWithListener(subscriber: Subscriber): GetState {
-  return subscribeOnGet.bind(subscriber) as GetState
-}
-
 export function runQuery<M>(registry: TokenRegistry, query: (get: GetState) => M): M {
   return query((token) => token[getStateHandler](registry).getValue())
 }
@@ -52,7 +42,8 @@ export interface EffectList extends Iterable<Subscriber> {
 
 export interface StateDerivation {
   readonly type: StateListenerType.Derivation
-  notifyListeners: (effects: EffectList) => void
+  prepareSubscribers: (effects: EffectList) => void
+  notifyStable(): void
   init(get: GetState, context?: any): void
   run(get: GetState, context?: any): void
 }
@@ -67,24 +58,94 @@ export type StateListener = StateEffect | StateDerivation
 
 export function initListener(registry: TokenRegistry, listener: StateListener, context?: any): Subscriber {
   const subscriber = createSubscriber(registry, listener, context)
-  listener.init(getStateFunctionWithListener(subscriber), context)
+  listener.init(subscriber.generateGetState(), context)
   return subscriber
 }
 
-export function runListener(key: Subscriber) {
-  key.version = key.version + 1
-  key.listener.run(getStateFunctionWithListener(key), key.context)
-  key.parent = undefined
-  key.dirty = false
-}
+export class Subscriber {
+  private version: StateListenerVersion = 0;
+  private parent: Subscribable | undefined = undefined;
+  private dirty: boolean = false;
 
-export interface Subscriber {
-  registry: TokenRegistry
-  listener: StateListener
-  version: StateListenerVersion
-  parent: any
-  dirty: boolean
-  context: any
+  constructor(
+    readonly registry: TokenRegistry,
+    public listener: StateListener,
+    private context?: any
+  ) {}
+
+  private subscribeOnGet<T>(token: State<T>): T {
+    const reader = token[getStateHandler](this.registry)
+    reader.addSubscriber(this)
+    return reader.getValue()
+  }
+
+  generateGetState(): GetState {
+    return this.subscribeOnGet.bind(this)
+  }
+
+  getVersion(): StateListenerVersion {
+    return this.version;
+  }
+
+  prepareForUpdate(dependency: Subscribable, effects: EffectList): void {
+    this.parent = dependency
+    switch (this.listener.type) {
+      case StateListenerType.Derivation:
+        this.listener.prepareSubscribers(effects)
+        break
+      case StateListenerType.ViewEffect:
+        effects.addViewEffect(this)
+        break
+      case StateListenerType.ElementEffect:
+        effects.addElementEffect(this)
+        break
+      case StateListenerType.UserEffect:
+        effects.addUserEffect(this)
+        break
+    }
+  }
+
+  dependencyUpdated(dependency: Subscribable): void {
+    if (this.parent !== dependency) {
+      this.dirty = true;
+      return;
+    }
+
+    if (this.listener.type === StateListenerType.Derivation) {
+      this.runListener();
+    } else {
+      this.parent = undefined;
+      this.dirty = true;
+    }
+  }
+
+  dependencyStable(dependency: Subscribable): void {
+    if (this.parent !== dependency) {
+      return;
+    }
+
+    if (this.listener.type === StateListenerType.Derivation) {
+      if (this.dirty) {
+        this.runListener();
+      } else {
+        this.parent = undefined;
+        this.listener.notifyStable();
+      }
+    }
+  }
+
+  run(): void {
+    if (this.dirty) {
+      this.runListener();
+    }
+  }
+
+  private runListener() {
+    this.version = this.version + 1;
+    this.listener.run(this.generateGetState(), this.context)
+    this.parent = undefined;
+    this.dirty = false;
+  }
 }
 
 export interface Subscribable {
@@ -118,14 +179,7 @@ export interface WritableState<T, M = T> extends State<T> {
 }
 
 export function createSubscriber(registry: TokenRegistry, listener: StateListener, context?: any): Subscriber {
-  return {
-    registry,
-    listener,
-    version: 0,
-    parent: undefined,
-    dirty: false,
-    context
-  }
+  return new Subscriber(registry, listener, context)
 }
 
 export interface CommandController<T> {

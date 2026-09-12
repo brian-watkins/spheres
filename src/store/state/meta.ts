@@ -89,8 +89,10 @@ class MetaStateListener<M, E> implements StateDerivation {
   readonly type = StateListenerType.Derivation
 
   constructor(private token: StateToken<any>, private publisher: StatePublisher<Meta<M, E>>) { }
-  
-  notifyListeners(): void { }
+
+  prepareSubscribers(): void { }
+
+  notifyStable(): void { }
 
   init(get: GetState): void {
     this.run(get)

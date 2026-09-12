@@ -17,16 +17,18 @@ export class DerivedStateReader<T> extends SubscriberSet implements StateReader<
   run(get: GetState): void {
     const derived = this.derivation(get)
 
-    const reconciled = this.reconciler !== undefined ? this.reconciler(this._value, derived) : derived
+    const reconciled = this.reconciler !== undefined ?
+      this.reconciler(this._value, derived) :
+      derived
 
     if (Object.is(reconciled, this._value)) {
-      this.runDirtyListeners()
+      this.notifyStable()
       return
     }
 
     this._value = reconciled
 
-    this.runListeners()
+    this.runSubscribers()
   }
 
   getValue(): T {

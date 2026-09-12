@@ -179,9 +179,141 @@ export default behavior("glitch-free effects", [
           ]))
         })
       ]
+    }),
+
+  example(testStoreContext<GlitchUnchangedBranchContext>())
+    .description("an effect that depends on a changed derivation and an unchanged derivation reached through another derivation")
+    .script({
+      suppose: [
+        fact("there is derived state where one branch does not change and is observed through another derivation", (context) => {
+          const root = container({ initialValue: { items: [1] } })
+          const count = derived({
+            query: (get) => get(root).items.length
+          })
+          const hasItems = derived({
+            query: (get) => get(root).items.length > 0
+          })
+          const hasItemsAlias = derived({
+            query: (get) => get(hasItems)
+          })
+          context.setTokens({
+            rootContainer: root
+          })
+          context.registerEffect("sub", (get) => {
+            return `count: ${get(count)}, hasItems: ${get(hasItemsAlias)}`
+          })
+        })
+      ],
+      perform: [
+        step("the root container is updated so that only the count changes", (context) => {
+          context.writeTo(context.tokens.rootContainer, { items: [1, 2] })
+        }),
+        step("the root container is updated again so that only the count changes", (context) => {
+          context.writeTo(context.tokens.rootContainer, { items: [1, 2, 3] })
+        })
+      ],
+      observe: [
+        effect("the effect is called on the initial value and once for each update", (context) => {
+          expect(context.valuesForSubscriber("sub"), is([
+            "count: 1, hasItems: true",
+            "count: 2, hasItems: true",
+            "count: 3, hasItems: true"
+          ]))
+        })
+      ]
+    }),
+
+  example(testStoreContext<GlitchUnchangedDerivationContext>())
+    .description("a derivation that is not reference-stable depends only on an unchanged derivation")
+    .script({
+      suppose: [
+        fact("there is a derivation that builds a new array from a derivation that does not change", (context) => {
+          const derivationLog: Array<string> = []
+          const root = container({ initialValue: { items: [1] } })
+          const hasItems = derived({
+            query: (get) => get(root).items.length > 0
+          })
+          const labels = derived({
+            query: (get) => {
+              derivationLog.push("labels")
+              return get(hasItems) ? ["has items"] : []
+            }
+          })
+          context.setTokens({
+            rootContainer: root,
+            derivationLog
+          })
+          context.registerEffect("sub", (get) => get(labels).join(", "))
+        })
+      ],
+      perform: [
+        step("the root container is updated in a way that does not change the derivation", (context) => {
+          context.writeTo(context.tokens.rootContainer, { items: [1, 2] })
+        }),
+        step("the root container is updated again", (context) => {
+          context.writeTo(context.tokens.rootContainer, { items: [1, 2, 3] })
+        })
+      ],
+      observe: [
+        effect("the derivation runs only for the initial value", (context) => {
+          expect(context.tokens.derivationLog, is([
+            "labels"
+          ]))
+        }),
+        effect("the effect is called only on the initial value", (context) => {
+          expect(context.valuesForSubscriber("sub"), is([
+            "has items"
+          ]))
+        })
+      ]
+    }),
+
+  example(testStoreContext<GlitchUnchangedBranchContext>())
+    .description("a derivation that depends only on an unchanged derivation still updates when that derivation changes later")
+    .script({
+      suppose: [
+        fact("there is a derivation that depends on a derivation that does not change at first", (context) => {
+          const root = container({ initialValue: { items: [1] } })
+          const hasManyItems = derived({
+            query: (get) => get(root).items.length > 2
+          })
+          const label = derived({
+            query: (get) => get(hasManyItems) ? "many" : "few"
+          })
+          context.setTokens({
+            rootContainer: root
+          })
+          context.registerEffect("sub", (get) => get(label))
+        })
+      ],
+      perform: [
+        step("the root container is updated in a way that does not change the derivation", (context) => {
+          context.writeTo(context.tokens.rootContainer, { items: [1, 2] })
+        }),
+        step("the root container is updated in a way that does change the derivation", (context) => {
+          context.writeTo(context.tokens.rootContainer, { items: [1, 2, 3] })
+        })
+      ],
+      observe: [
+        effect("the effect receives the updated value", (context) => {
+          expect(context.valuesForSubscriber("sub"), is([
+            "few",
+            "many"
+          ]))
+        })
+      ]
     })
 
 ])
+
+interface GlitchUnchangedBranchContext {
+  rootContainer: Container<{ items: Array<number> }>
+}
+
+interface GlitchUnchangedDerivationContext {
+  rootContainer: Container<{ items: Array<number> }>
+  derivationLog: Array<string>
+}
 
 interface GlitchCommandContext {
   rootContainer: Container<string>

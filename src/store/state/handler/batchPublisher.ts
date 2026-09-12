@@ -1,4 +1,4 @@
-import { runListener, StateBatch } from "../../tokenRegistry.js";
+import { StateBatch } from "../../tokenRegistry.js";
 import { NativeEffectList } from "./nativeEffectList.js";
 import { Publisher } from "./publisher.js";
 
@@ -12,15 +12,13 @@ export class BatchPublisher implements StateBatch {
   publish(): void {
     const effects = new NativeEffectList()
     for (const publisher of this.publishers) {
-      publisher.notifyListeners(effects)
+      publisher.prepareSubscribers(effects)
     }
     for (const publisher of this.publishers) {
-      publisher.runListeners()
+      publisher.runSubscribers()
     }
     for (const subscriber of effects) {
-      if (subscriber.parent === true) {
-        runListener(subscriber)
-      }
+      subscriber.run()
     }
     this.publishers.clear()
   }

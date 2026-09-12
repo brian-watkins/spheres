@@ -21,9 +21,9 @@ export class Publisher<T> extends SubscriberSet implements StatePublisher<T> {
     }
 
     const effects = new NativeEffectList()
-    this.notifyListeners(effects)
+    this.prepareSubscribers(effects)
 
-    this.runListeners()
+    this.runSubscribers()
 
     this.runEffects(effects)
   }

@@ -1,5 +1,5 @@
 import { dispatchMessage } from "../../store/message.js"
-import { GetState, getStateFunctionWithListener, initListener, StateListener, createSubscriber, TokenRegistry } from "../../store/tokenRegistry.js"
+import { GetState, initListener, StateListener, createSubscriber, TokenRegistry } from "../../store/tokenRegistry.js"
 import { EffectLocation } from "./effectLocation.js"
 import { activateList, ListEffect } from "./effects/listEffect.js"
 import { MatchViewEffect } from "./effects/matchViewEffect.js"
@@ -186,7 +186,8 @@ function activateEffect(registry: TokenRegistry, root: Node, effect: EffectTempl
       let end = findListEndNode(listStartIndicatorNode, elementId)
 
       const listEffect = new ListEffect(registry, effect.domTemplate, effect.query, effect.context, listStartIndicatorNode, end)
-      const data = effect.query(getStateFunctionWithListener(createSubscriber(registry, listEffect)))
+      const subscriber = createSubscriber(registry, listEffect)
+      const data = effect.query(subscriber.generateGetState())
       const virtualList = activateList(registry, effect.context, effect.domTemplate, listStartIndicatorNode, end, data)
       listEffect.setVirtualList(...virtualList)
 
@@ -197,7 +198,8 @@ function activateEffect(registry: TokenRegistry, root: Node, effect: EffectTempl
       const endNode = findMatchEndNode(startNode, effect.elementId)
 
       const selectEffect = new MatchViewEffect(registry, effect.collection, startNode, endNode)
-      selectEffect.activateMatch(effect.collection, startNode, getStateFunctionWithListener(createSubscriber(registry, selectEffect)))
+      const subscriber = createSubscriber(registry, selectEffect)
+      selectEffect.activateMatch(effect.collection, startNode, subscriber.generateGetState())
 
       break
     }

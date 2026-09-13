@@ -1,9 +1,10 @@
 import { GetState, State } from "../../store/index.js";
 import { OverlayTokenRegistry } from "../../store/registry/overlayTokenRegistry.js";
 import { recordTokens } from "../../store/state/stateRecorder.js";
-import { generateStateManager, runQuery, Subscriber, Subscribable, TokenRegistry, StateHandler, StateToken } from "../../store/tokenRegistry.js";
+import { generateStateManager, Subscribable, TokenRegistry, StateHandler, StateToken, StateWriter } from "../../store/tokenRegistry.js";
 import { ViewDefinition, ViewCaseMatcher, ViewMatcher, ViewConditionMatcher, UseCase } from "./viewRenderer.js";
 import { Container } from "../../store/state/container.js"
+import { GuardingStateHandler } from "../../store/state/handler/guardingStateHandler.js";
 
 export interface TemplateCollection<T> {
   match(get: GetState): TemplateMatch<T>
@@ -229,45 +230,10 @@ class CaseViewOverlayTokenRegistry extends OverlayTokenRegistry {
   }
 
   private createGuardingStateHandler(subscribable: Subscribable): StateHandler<any> {
-    return guardSubscriberStateHandler(
-      subscribable,
-      () => runQuery(this, this.matcher)
+    return new GuardingStateHandler(
+      this.parentRegistry,
+      subscribable as unknown as StateWriter<any>,
+      this.matcher
     )
   }
-}
-
-function guardSubscriberStateHandler(subscribable: Subscribable, guard: () => boolean) {
-  const subscriberCache = new WeakSet<Subscriber>()
-
-  return new Proxy(subscribable, {
-    get<P extends keyof Subscribable>(target: Subscribable, prop: P, receiver: any) {
-      if (prop === "addSubscriber") {
-        return (subscriber: Subscriber) => {
-          if (subscriberCache.has(subscriber)) {
-            target.addSubscriber(subscriber)
-          } else {
-            const subscriberWithProxiedListener = guardedSubscriber(guard, subscriber)
-            subscriberCache.add(subscriberWithProxiedListener)
-            target.addSubscriber(subscriberWithProxiedListener)
-          }
-        }
-      } else {
-        return Reflect.get(target, prop, receiver)
-      }
-    }
-  })
-}
-
-function guardedSubscriber(guard: () => boolean, subscriber: Subscriber): Subscriber {
-  subscriber.listener = new Proxy(subscriber.listener, {
-    get(target, prop, receiver) {
-      if (prop === "run") {
-        return guard() ? Reflect.get(target, prop, receiver) : () => { }
-      } else {
-        return Reflect.get(target, prop, receiver)
-      }
-    },
-  })
-
-  return subscriber
 }

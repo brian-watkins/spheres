@@ -69,7 +69,7 @@ export class Subscriber {
 
   constructor(
     readonly registry: TokenRegistry,
-    public listener: StateListener,
+    private listener: StateListener,
     private context?: any
   ) {}
 

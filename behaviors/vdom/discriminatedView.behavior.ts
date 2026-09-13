@@ -121,6 +121,88 @@ export default behavior("view of discriminated union state", [
     }),
 
   example(renderContext<Container<PageState>>())
+    .description("union query reads multiple derived tokens that are updated in a batch")
+    .script({
+      suppose: [
+        fact("a view that renders a union computed from two derived tokens", (context) => {
+          context.mountView(root => {
+            root.main(el => {
+              el.children
+                .subviewMatching(selector => {
+                  selector.withUnion((get): ValueComparison => {
+                    const first = get(firstDerived)
+                    const second = get(secondDerived)
+                    return first === second ? { type: "same", value: first } : { type: "different" }
+                  })
+                    .when(comparison => comparison.type === "same", () => root => {
+                      // This effect reads only the first derived token, so it is
+                      // notified while the second derived token is still stale.
+                      root.h1(el => el.children.textNode(get => get(firstDerived)))
+                    })
+                    .when(comparison => comparison.type === "different", () => root => {
+                      root.h1(el => el.children.textNode("DIFFERENT"))
+                    })
+                })
+            })
+          })
+        })
+      ],
+      observe: [
+        effect("the view for the initial matching case is displayed", async () => {
+          await expect(selectElement("h1").text(), resolvesTo("x"))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("both tokens are updated in a batch such that the case still matches", (context) => {
+          context.store.dispatch(batch([
+            write(firstValue, "y"),
+            write(secondValue, "y")
+          ]))
+        })
+      ],
+      observe: [
+        effect("the view is updated with the new value", async () => {
+          await expect(selectElement("h1").text(), resolvesTo("y"))
+        })
+      ]
+    }),
+
+  example(renderContext<Container<PageState>>())
+    .description("derived state within a case view depends on outer state that changes and outer state that is stable")
+    .script({
+      suppose: [
+        fact("a view with a case that derives state from outer state", (context) => {
+          context.mountView(root => {
+            root.main(el => {
+              el.children
+                .subviewMatching(selector => {
+                  selector.withUnion(get => get(pageState))
+                    .when(page => page.type === "list", counterDescriptionView)
+                })
+            })
+          })
+        })
+      ],
+      observe: [
+        effect("the initial description is displayed", async () => {
+          await expect(selectElement("h1").text(), resolvesTo("1 is positive"))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the counter is updated such that its sign is unchanged", (context) => {
+          context.writeTo(counterValue, 2)
+        })
+      ],
+      observe: [
+        effect("the description is updated", async () => {
+          await expect(selectElement("h1").text(), resolvesTo("2 is positive"))
+        })
+      ]
+    }),
+
+  example(renderContext<Container<PageState>>())
     .description("select view of select views")
     .script({
       suppose: [
@@ -429,6 +511,36 @@ const anotherListDataState = container<ListData>({
   initialValue: { type: "list-with-items", items: ["a", "b", "c"], selected: "c" }
 })
 
+const firstValue = container({
+  name: "first-value",
+  initialValue: "x"
+})
+
+const secondValue = container({
+  name: "second-value",
+  initialValue: "x"
+})
+
+const firstDerived = derived({
+  name: "first-derived",
+  query: get => get(firstValue)
+})
+
+const secondDerived = derived({
+  name: "second-derived",
+  query: get => get(secondValue)
+})
+
+const counterValue = container({
+  name: "counter-value",
+  initialValue: 1
+})
+
+const counterSign = derived({
+  name: "counter-sign",
+  query: get => get(counterValue) > 0 ? "positive" : "not positive"
+})
+
 const pageState = container<PageState>({
   name: "page-state-container",
   initialValue: {
@@ -459,6 +571,19 @@ function staticList(useCase: UseCase<ListState>): HTMLView {
           })
       }
     })
+  }
+}
+
+function counterDescriptionView(): HTMLView {
+  const count = derived(get => `${get(counterValue)}`)
+  const sign = derived(get => get(counterSign))
+  // When the counter is updated, the sign is stable but the count changes. The
+  // description is notified by the sign last, so the sign's stable notification
+  // must wait until the count has been updated for the description to run.
+  const description = derived(get => `${get(count)} is ${get(sign)}`)
+
+  return root => {
+    root.h1(el => el.children.textNode(get => get(description)))
   }
 }
 
@@ -620,3 +745,14 @@ interface DetailState {
 }
 
 type PageState = ListState | DetailState
+
+interface SameValues {
+  type: "same"
+  value: string
+}
+
+interface DifferentValues {
+  type: "different"
+}
+
+type ValueComparison = SameValues | DifferentValues

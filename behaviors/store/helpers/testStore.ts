@@ -13,7 +13,7 @@ interface ValuesStore {
   values: Array<any>
 }
 
-export class StoreValuesEffect implements ReactiveEffect, ValuesStore {
+export class StoreValuesUserEffect implements ReactiveEffect, ValuesStore {
   values: Array<any> = []
 
   constructor(private definition: (get: GetState) => any) { }
@@ -23,7 +23,7 @@ export class StoreValuesEffect implements ReactiveEffect, ValuesStore {
   }
 }
 
-export class SystemStoreValuesEffect implements StateEffect, ValuesStore {
+export class StoreValuesElementEffect implements StateEffect, ValuesStore {
   readonly type = StateListenerType.ElementEffect
   values: Array<any> = []
 
@@ -57,27 +57,27 @@ export class TestStore<T> {
   }
 
   registerEffect(name: string, definition: (get: GetState) => any) {
-    const effect = new StoreValuesEffect(definition)
+    const effect = new StoreValuesUserEffect(definition)
     this.values.set(name, effect)
     useEffect(this.store, effect)
   }
 
+  registerSystemEffect(name: string, definition: (get: GetState) => any) {
+    const effect = new StoreValuesElementEffect(definition)
+    this.values.set(name, effect)
+    initListener(getTokenRegistry(this.store), effect)
+  }
+
   subscribeToCollection<K, S extends State<any>>(token: Collection<K, S>, id: K, name: string) {
-    const query = new StoreValuesEffect((get) => get(token.at(id)))
-    this.values.set(name, query)
-    useEffect(this.store, query)
+    this.registerEffect(name, get => get(token.at(id)))
   }
 
   subscribeTo<S>(token: State<S>, name: string) {
-    const query = new StoreValuesEffect((get) => get(token))
-    this.values.set(name, query)
-    useEffect(this.store, query)
+    this.registerEffect(name, get => get(token))
   }
 
   subscribeSystemEffectTo<S>(token: State<S>, name: string) {
-    const query = new SystemStoreValuesEffect((get) => get(token))
-    this.values.set(name, query)
-    initListener(getTokenRegistry(this.store), query)
+    this.registerSystemEffect(name, get => get(token))
   }
 
   useCommand<M>(command: Command<M>, handler: (message: M, actions: CommandActions) => void) {

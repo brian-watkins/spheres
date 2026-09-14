@@ -4,7 +4,7 @@ import { NativeEffectList } from "./nativeEffectList.js"
 import { SubscriberSet } from "./subscriberSet.js"
 
 export class Publisher<T> extends SubscriberSet implements StatePublisher<T> {
-  constructor(private value: T, private reconciler?: Reconciler<T>) {
+  constructor(protected value: T, private reconciler?: Reconciler<T>) {
     super()
   }
 

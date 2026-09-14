@@ -1,4 +1,4 @@
-import { createStateHandler, GetState, StateListenerType, StatePublisher, createSubscriber, TokenRegistry, getStateHandler, PublishableState, StateToken, StateDerivation, State } from "../tokenRegistry.js"
+import { createStateHandler, GetState, StateListenerType, StatePublisher, TokenRegistry, getStateHandler, PublishableState, StateToken, StateDerivation, State, initListener } from "../tokenRegistry.js"
 import { Container } from "./container.js"
 import { Publisher } from "./handler/publisher.js"
 import { SuppliedState } from "./supplied.js"
@@ -71,13 +71,9 @@ export class MetaState<T, M, E = unknown> implements PublishableState<Meta<M, E>
   }
 
   [createStateHandler](registry: TokenRegistry, serializedState?: Meta<M, E>): StatePublisher<Meta<M, E>> {
-    const publisher = registry.getState(this.token)
-
-    const writer = new Publisher<Meta<M, E>>(serializedState ?? ok())
-
-    publisher.addSubscriber(createSubscriber(registry, new MetaStateListener(this.token, writer)))
-
-    return writer
+    const reader = new MetaStateReader<M, E>(this.token, serializedState ?? ok())
+    initListener(registry, reader)
+    return reader
   }
 
   toString() {
@@ -85,23 +81,32 @@ export class MetaState<T, M, E = unknown> implements PublishableState<Meta<M, E>
   }
 }
 
-class MetaStateListener<M, E> implements StateDerivation {
+class MetaStateReader<M, E> extends Publisher<Meta<M, E>> implements StateDerivation {
   readonly type = StateListenerType.Derivation
 
-  constructor(private token: StateToken<any>, private publisher: StatePublisher<Meta<M, E>>) { }
-
-  prepareSubscribers(): void { }
-
-  notifyStable(): void { }
-
-  init(get: GetState): void {
-    this.run(get)
+  constructor(private token: StateToken<any>, initialValue: Meta<M, E>) {
+    super(initialValue)
   }
 
+  init(get: GetState): void {
+    // Subscribe to state updates on the token
+    get(this.token)
+  }
+
+  // This effect fires when the token updates with a new value, and so
+  // at that point we set the Meta token state to Ok. Hooks can still
+  // write a different value (pending/error) to Meta state directly.
   run(get: GetState): void {
-    // to resubscribe to state updates on this token
+    // Resubscribe to state updates on this token
     get(this.token)
 
-    this.publisher.publish(ok())
+    if (this.value === ok()) {
+      this.notifyStable()
+      return
+    }
+
+    this.value = ok()
+
+    this.runSubscribers()
   }
 }

@@ -2,7 +2,7 @@ import { behavior, ConfigurableExample, effect, example, fact, step } from "best
 import { arrayWith, equalTo, expect, is } from "great-expectations";
 import { okMessage, pendingMessage } from "./helpers/metaMatchers.js";
 import { container, Container, Meta, derived, DerivedState, meta } from "@store/index.js";
-import { testStoreContext } from "./helpers/testStore.js";
+import { testStoreContext, TestStore } from "./helpers/testStore.js";
 
 interface MetaContext {
   container: Container<number>
@@ -149,8 +149,100 @@ const metaErrorBehavior: ConfigurableExample =
       ]
     })
 
+
+interface MetaPublishCycleContext {
+  container: Container<string>
+  log: Array<string>
+}
+
+function containerWithPendingThenOk(context: TestStore<MetaPublishCycleContext>) {
+  context.setTokens({
+    container: container({ initialValue: "initial" }),
+    log: []
+  })
+  context.useContainerHooks(context.tokens.container, {
+    onWrite(message, actions) {
+      if (message === "load") {
+        actions.pending(message)
+      } else {
+        actions.ok(message)
+      }
+    }
+  })
+}
+
+const metaGlitchBehavior: ConfigurableExample =
+  example(testStoreContext<MetaPublishCycleContext>())
+    .description("effect that depends on meta state and state derived from the container")
+    .script({
+      suppose: [
+        fact("there is a container whose hooks set pending and then ok", containerWithPendingThenOk),
+        fact("there is an effect that subscribes to the meta state before derived state", (context) => {
+          const label = derived(get => `Derived ${get(context.tokens.container)}`)
+          context.registerEffect("sub", (get) => `${get(meta(context.tokens.container)).type}: ${get(label)}`)
+        })
+      ],
+      perform: [
+        step("a pending message is written", (context) => {
+          context.writeTo(context.tokens.container, "load")
+        }),
+        step("an ok message is written", (context) => {
+          context.writeTo(context.tokens.container, "loaded")
+        })
+      ],
+      observe: [
+        effect("the effect never observes inconsistent state", (context) => {
+          expect(context.valuesForSubscriber("sub"), is(equalTo([
+            "ok: Derived initial",
+            "pending: Derived initial",
+            "ok: Derived loaded"
+          ])))
+        })
+      ]
+    })
+
+const metaEffectOrderBehavior: ConfigurableExample =
+  example(testStoreContext<MetaPublishCycleContext>())
+    .description("user effect on meta state and element effect on the container")
+    .script({
+      suppose: [
+        fact("there is a container whose hooks set pending and then ok", containerWithPendingThenOk),
+        fact("there is an element effect on the container", (context) => {
+          context.registerSystemEffect("element", (get) => {
+            context.tokens.log.push(`element: ${get(context.tokens.container)}`)
+          })
+        }),
+        fact("there is a user effect on the meta state", (context) => {
+          context.registerEffect("user", (get) => {
+            context.tokens.log.push(`user: ${get(meta(context.tokens.container)).type}`)
+          })
+        })
+      ],
+      perform: [
+        step("a pending message is written", (context) => {
+          context.writeTo(context.tokens.container, "load")
+        }),
+        step("an ok message is written", (context) => {
+          context.writeTo(context.tokens.container, "loaded")
+        })
+      ],
+      observe: [
+        effect("element effects run before user effects", (context) => {
+          expect(context.tokens.log, is(equalTo([
+            "element: initial",
+            "user: ok",
+            "user: pending",
+            "element: loaded",
+            "user: ok"
+          ])))
+        })
+      ]
+    })
+
 export default behavior("meta container", [
   basicMetaBehavior,
   metaContainerWithReducer,
-  metaErrorBehavior
+  metaErrorBehavior,
+  metaGlitchBehavior,
+  metaEffectOrderBehavior
 ])

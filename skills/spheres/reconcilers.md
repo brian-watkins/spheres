@@ -15,7 +15,10 @@ Attach one to any `container`, `derived`, or `supplied` token:
 ```ts
 const visibleItems = derived({
   query: (get) => get(allItems).filter(item => !get(hidden).has(item.id)),
-  reconciler: reconcileArray({ key: item => item.id })
+  reconciler: reconcileArray({
+    key: item => item.id,
+    itemReconciler: reconcileObject<Item>()
+  })
 })
 ```
 
@@ -24,7 +27,7 @@ const visibleItems = derived({
 The value returned from the reconciler is compared to the current value of
 the state token with `Object.is`:
 
-- **Return `current`** → the token does not publish. No listener runs, nobinding updates, no DOM is touched.
+- **Return `current`** → the token does not publish. No listener runs, no binding updates, no DOM is touched.
 - **Return anything else** → that becomes the token's value and listeners run.
 
 So a reconciler is not a formatter or a validator — it never invents values. It only chooses between things it was handed, and the *reference identity* of what it returns is the entire signal.
@@ -49,12 +52,35 @@ interface ReconcileArrayOptions<T> {
 function reconcileArray<T>(options?: ReconcileArrayOptions<T>): Reconciler<Array<T>>
 ```
 
-`key` decides how an element of the new array finds its counterpart in the old one: **by identity** if given, **by position** if not. The four combinations:
+`reconcileArray` builds a result array, then checks whether that result is the same as the current array.
+
+**1. Building the result: `key` chooses each element's counterpart.** Every element of the next array is paired with an element of the current array, and the `itemReconciler` decides what goes into the result. An `itemReconciler` that finds the two elements equivalent returns the current element, so the old reference goes into the result. Otherwise the result gets a new object. How the pair is chosen depends on `key`:
+
+- **Without `key`**, the counterpart is the current element *at the same index*. Once anything shifts, that is usually a different item, so the pair doesn't match and the new object is kept.
+- **With `key`**, the counterpart is the current element *with the same key*, wherever it sits. A moved item is still paired with its old self, so its old reference can carry into the new array.
+
+Elements with no counterpart are new and pass through untouched. Elements sharing a key are matched one for one in order, so a duplicated key never hands the same element out twice.
+
+**2. Deciding whether the array changed: checked by position.** The result is compared with the current array index by index, by reference. So "equivalent" is decided in step 1 by the `itemReconciler`, and step 2 only checks whether each equivalent element ended up at the same index. If every element of the result is the same reference as the current element at that index, the reconciler returns `current` and the token does not publish. Because of that position check, a reorder, insert, or removal **always** publishes, with or without `key`.
+
+Example: the list is refetched and `X` is inserted at the front. `A'`, `B'`, `C'` are new objects equal to `A`, `B`, `C`.
+
+```
+current: [A, B, C]
+next:    [X, A', B', C']
+
+{ itemReconciler }        → [X, A', B', C']  pairs (A, X), (B, A'), (C, B') — nothing matches, every row rebuilt
+{ key, itemReconciler }   → [X, A, B, C]     pairs (A, A'), (B, B'), (C, C') — only X is new
+```
+
+Both return a new array, so both publish. Only the keyed version lets `subviews` move three rows and create one, instead of rebuilding all four.
+
+The four combinations:
 
 | Options | Counterpart found by | On a match |
 |---|---|---|
 | `{}` | — | keeps the whole array when nothing moved |
-| `{ key }` | key lookup | keep the current element |
+| `{ key }` | key lookup | keep the current element, **ignoring any changes to its content** |
 | `{ key, itemReconciler }` | key lookup | hand the pair to `itemReconciler` |
 | `{ itemReconciler }` | position | hand the pair to `itemReconciler` |
 
@@ -62,10 +88,8 @@ function reconcileArray<T>(options?: ReconcileArrayOptions<T>): Reconciler<Array
 // collapse a rebuilt-but-unchanged array
 reconcileArray()
 
-// carry elements across a reorder, insert, or removal
-reconcileArray({ key: item => item.id })
-
-// same, but also reuse the unchanged fields of a changed element
+// carry elements across a reorder, insert, or removal,
+// and reuse the unchanged fields of a changed element
 reconcileArray({
   key: item => item.id,
   itemReconciler: reconcileObject<Item>()
@@ -75,7 +99,7 @@ reconcileArray({
 reconcileArray({ itemReconciler: reconcileObject<Item>() })
 ```
 
-Elements with no counterpart are new and pass through untouched. Elements sharing a key are matched one for one in order, so a duplicated key never hands the same element out twice.
+**Don't use `{ key }` alone unless an item's content never changes once it has a given key.** With no `itemReconciler`, the default is `useCurrent`, so a match always keeps the old element. `[{ id: 1, done: false }]` → `[{ id: 1, done: true }]` returns `current`, and the token does not publish. If items with the same key can change, pass an `itemReconciler`.
 
 ### ItemKey
 

@@ -119,6 +119,31 @@ export default behavior("reconciling the fields of an object", [
 
     expect(reconciled.theme, is("light"))
     expect(reconciled.fontSize, is(12))
+  }),
+
+  test("used as an item reconciler without an explicit type parameter", () => {
+    const reconcilePosts = reconcileArray<Post>({
+      key: post => post.title,
+      itemReconciler: reconcileObject({
+        author: reconcileObject(),
+        tags: reconcileArray()
+      })
+    })
+
+    const current = [
+      post("Hello", { id: "1", name: "Ana" }, ["news"]),
+      post("Goodbye", { id: "2", name: "Bo" }, ["sports"])
+    ]
+    const next = [
+      post("Goodbye", { id: "2", name: "Bo" }, ["sports"]),
+      post("Hello", { id: "1", name: "Ana" }, ["news", "weather"])
+    ]
+
+    const reconciled = reconcilePosts(current, next)
+
+    expect(reconciled[0], is(identicalTo(current[1])))
+    expect(reconciled[1].author, is(identicalTo(current[0].author)))
+    expect(reconciled[1].tags, is(identicalTo(next[1].tags)))
   })
 
 ])

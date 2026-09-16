@@ -4,7 +4,7 @@ export type FieldReconcilers<T> = {
   [K in keyof T]?: Reconciler<T[K]>
 }
 
-export function reconcileObject<T extends object>(fields: FieldReconcilers<T> = {}): Reconciler<T> {
+export function reconcileObject<T extends object>(fields: NoInfer<FieldReconcilers<T>> = {}): Reconciler<T> {
   return (current, next) => {
     if (Object.is(current, next)) {
       return current

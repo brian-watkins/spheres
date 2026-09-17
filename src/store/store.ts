@@ -2,7 +2,7 @@ import { Container } from "./state/container.js"
 import { dispatchMessage, StoreMessage } from "./message.js"
 import { error, meta, ok, pending } from "./state/meta.js"
 import { WeakMapTokenRegistry } from "./registry/weakMapTokenRegistry.js"
-import { Command, getStateHandler, GetState, initializeCommand, initListener, runQuery, StateEffect, StateListenerType, State, Subscriber, TokenRegistry, PublishableState } from "./tokenRegistry.js"
+import { Command, getStateHandler, GetState, initializeCommand, initListener, runQuery, StateEffect, StateListenerType, State, Subscriber, TokenRegistry, PublishableState, StateBatch } from "./tokenRegistry.js"
 import { CommandManager, ManagedCommandController } from "./command/managedCommandController.js"
 import { RootTokenRegistry } from "./registry/rootTokenRegistry.js"
 import { Writable, WritableTarget } from "./state/handler/writable.js"
@@ -132,8 +132,8 @@ export function useContainerHooks<T, M, E>(store: Store, container: Container<T,
   const registry = getTokenRegistry(store)
   const writable = registry.getState(container) as Writable<T, M>
   if (hooks.onWrite) {
-    writable.onWrite((target) => (message) => {
-      hooks.onWrite(message, containerWriteActions(registry, container, target))
+    writable.onWrite((target) => (message, batch) => {
+      hooks.onWrite(message, containerWriteActions(registry, container, target, batch))
     })
   }
 }
@@ -147,18 +147,18 @@ function initializerActions(registry: TokenRegistry): StoreInitializerActions {
   }
 }
 
-function containerWriteActions<T, M, E>(registry: TokenRegistry, container: Container<T, M>, writable: WritableTarget<T, M>): WriteHookActions<T, M, E> {
+function containerWriteActions<T, M, E>(registry: TokenRegistry, container: Container<T, M>, writable: WritableTarget<T, M>, batch: StateBatch | undefined): WriteHookActions<T, M, E> {
   return {
     get: (state) => runQuery(registry, get => get(state)),
     ok: (message) => {
-      writable.write(message)
-      registry.getState(meta(container)).publish(ok())
+      writable.write(message, batch)
+      registry.getState(meta(container)).publish(ok(), batch)
     },
     pending: (message) => {
-      registry.getState(meta(container)).publish(pending(message))
+      registry.getState(meta(container)).publish(pending(message), batch)
     },
     error: (reason, message) => {
-      registry.getState(meta(container)).publish(error(reason, message))
+      registry.getState(meta(container)).publish(error(reason, message), batch)
     },
     current: writable.getValue()
   }

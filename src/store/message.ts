@@ -135,6 +135,7 @@ export function dispatchMessage(registry: TokenRegistry, message: StoreMessage<a
       const batchPublisher = new BatchPublisher()
       dispatchBatch(registry, batchPublisher, message.messages)
       batchPublisher.publish()
+      batchPublisher.close()
       break
     }
   }

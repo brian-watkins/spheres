@@ -4,9 +4,18 @@ import { Publisher } from "./publisher.js";
 
 export class BatchPublisher implements StateBatch {
   private publishers: Set<Publisher<any>> = new Set()
+  private open: boolean = true
 
   add(publisher: Publisher<any>): void {
     this.publishers.add(publisher)
+  }
+
+  isOpen(): boolean {
+    return this.open
+  }
+
+  close() {
+    this.open = false
   }
 
   publish(): void {

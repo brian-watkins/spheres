@@ -1,4 +1,4 @@
-import { createSubscriber, StateDerivation, StateListenerType, StateWriter, Subscriber, TokenRegistry } from "../../tokenRegistry.js"
+import { createSubscriber, StateBatch, StateDerivation, StateListenerType, StateWriter, Subscriber, TokenRegistry } from "../../tokenRegistry.js"
 import { SubscriberSet } from "./subscriberSet.js"
 
 export class OverlayStateHandler extends SubscriberSet implements StateWriter<any, any>, StateDerivation {
@@ -34,12 +34,12 @@ export class OverlayStateHandler extends SubscriberSet implements StateWriter<an
     }
   }
 
-  write(value: any) {
-    this.parent.write(value)
+  write(value: any, batch?: StateBatch) {
+    this.parent.write(value, batch)
   }
 
-  publish(value: any) {
-    this.parent.publish(value)
+  publish(value: any, batch?: StateBatch) {
+    this.parent.publish(value, batch)
   }
 
   getValue() {

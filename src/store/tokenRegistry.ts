@@ -160,6 +160,8 @@ export interface StateReader<T> extends Subscribable {
 export interface StateBatch {
   add(subscribable: Subscribable): void
   publish(): void
+  isOpen(): boolean
+  close(): void
 }
 
 export interface StatePublisher<T> extends StateReader<T> {

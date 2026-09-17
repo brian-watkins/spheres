@@ -1,7 +1,8 @@
-import { batch, command, Container, container, derived, DerivedState, exec, reset, run, update, use, write } from "@store/index.js";
+import { batch, command, Container, ContainerHooks, container, derived, DerivedState, exec, meta, reset, run, update, use, write } from "@store/index.js";
 import { behavior, effect, example, fact, step } from "best-behavior";
 import { equalTo, expect, is } from "great-expectations";
-import { testStoreContext } from "./helpers/testStore.js";
+import { testStoreContext, TestStore } from "./helpers/testStore.js";
+import { TestTask } from "./helpers/testTask.js";
 
 interface SimpleBatchContext {
   numberContainer: Container<number>
@@ -17,6 +18,20 @@ interface DerivedBatchContext {
 
 interface DerivedBatchWithCounterContext extends DerivedBatchContext {
   counter: number
+}
+
+interface DerivedBatchWithWriteHookContext extends DerivedBatchContext {
+  writeTask: TestTask<string>
+}
+
+interface DerivedBatchWithMetaAndTaskContext extends DerivedBatchWithMetaContext {
+  writeTask: TestTask<string>
+}
+
+interface DerivedBatchWithMetaContext {
+  numberContainer: Container<number>
+  stringContainer: Container<string>
+  calculated: DerivedState<string>
 }
 
 export default behavior("batched store messages", [
@@ -292,6 +307,62 @@ export default behavior("batched store messages", [
       ]
     }),
 
+  example(testStoreContext<DerivedBatchWithMetaContext>())
+    .description("batch with batch writing to a container with a write hook")
+    .script({
+      suppose: [
+        fact("there is a derivation based on a container and its meta value", (context) => {
+          setMetaTokens(context)
+        }),
+        fact("the string container has a write hook that rejects some messages", (context) => {
+          context.useContainerHooks(context.tokens.stringContainer, writeHooks)
+        }),
+        fact("there is a subscriber to the derived value", (context) => {
+          context.subscribeTo(context.tokens.calculated, "sub-calc")
+        })
+      ],
+      perform: [
+        step("a batch message is sent with a batch that writes to the container with the write hook", (context) => {
+          context.sendBatch([
+            write(context.tokens.stringContainer, "cool"),
+            batch([
+              write(context.tokens.numberContainer, 27),
+            ]),
+            write(context.tokens.stringContainer, "super"),
+            write(context.tokens.numberContainer, 31),
+          ])
+        })
+      ],
+      observe: [
+        effect("the subscriber sees one update of the calculated value", (context) => {
+          expect(context.valuesForSubscriber("sub-calc"), is(equalTo([
+            "0 + hello = ok!",
+            "31 + super = ok!"
+          ])))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("a batch message is sent with a batch that is rejected by the write hook", (context) => {
+          context.sendBatch([
+            batch([
+              write(context.tokens.numberContainer, 14),
+            ]),
+            write(context.tokens.stringContainer, "bad"),
+          ])
+        })
+      ],
+      observe: [
+        effect("the subscriber sees one more update of the calculated value", (context) => {
+          expect(context.valuesForSubscriber("sub-calc"), is(equalTo([
+            "0 + hello = ok!",
+            "31 + super = ok!",
+            "14 + super = error!"
+          ])))
+        })
+      ]
+    }),
+
   example(testStoreContext<DerivedBatchWithCounterContext>())
     .description("batched messages with run")
     .script({
@@ -330,6 +401,53 @@ export default behavior("batched store messages", [
             "0 + hello = awesome!",
             "14 + fun = awesome!",
             "14 + something cool = awesome!"
+          ])))
+        }),
+        effect("the run message callback is executed", (context) => {
+          expect(context.tokens.counter, is(1))
+        })
+      ]
+    }),
+
+  example(testStoreContext<DerivedBatchWithCounterContext>())
+    .description("batched messages with run followed by a write to a container with a write hook")
+    .script({
+      suppose: [
+        fact("there is a derivation based on containers", (context) => {
+          const numberContainer = container({ initialValue: 0 })
+          const stringContainer = container({ initialValue: "hello" })
+          context.setTokens({
+            counter: 0,
+            numberContainer,
+            stringContainer,
+            calculated: derived(get => {
+              return `${get(numberContainer)} + ${get(stringContainer)} = awesome!`
+            })
+          })
+        }),
+        fact("the string container has a write hook that accepts the write", (context) => {
+          context.useContainerHooks(context.tokens.stringContainer, writeHooks)
+        }),
+        fact("there is a subscriber to the derived value", (context) => {
+          context.subscribeTo(context.tokens.calculated, "sub-calc")
+        })
+      ],
+      perform: [
+        step("a batch message is sent with a run message before the writes", (context) => {
+          context.sendBatch([
+            run(() => {
+              context.tokens.counter = context.tokens.counter + 1
+            }),
+            write(context.tokens.stringContainer, "fun"),
+            write(context.tokens.numberContainer, 14),
+          ])
+        })
+      ],
+      observe: [
+        effect("the subscriber sees one update of the calculated value after the run", (context) => {
+          expect(context.valuesForSubscriber("sub-calc"), is(equalTo([
+            "0 + hello = awesome!",
+            "14 + fun = awesome!"
           ])))
         }),
         effect("the run message callback is executed", (context) => {
@@ -427,6 +545,294 @@ export default behavior("batched store messages", [
           expect(context.valuesForSubscriber("sub-one"), is(equalTo([0, 10, 100])))
         })
       ]
+    }),
+
+  example(testStoreContext<DerivedBatchWithWriteHookContext>())
+    .description("batched messages to a container with a write hook")
+    .script({
+      suppose: [
+        fact("there is a derivation based on containers", (context) => {
+          const numberContainer = container({ initialValue: 0 })
+          const stringContainer = container({ initialValue: "hello" })
+          context.setTokens({
+            numberContainer,
+            stringContainer,
+            calculated: derived(get => {
+              return `${get(numberContainer)} + ${get(stringContainer)} = awesome!`
+            }),
+            writeTask: new TestTask<string>()
+          })
+        }),
+        fact("the string container has a write hook that sometimes waits before accepting the write", (context) => {
+          context.useContainerHooks(context.tokens.stringContainer, {
+            async onWrite(message, actions) {
+              if (message === "wait") {
+                const value = await context.tokens.writeTask.waitForIt()
+                actions.ok(value)
+              } else {
+                actions.ok(`${actions.current} + ${message}`)
+              }
+            }
+          })
+        }),
+        fact("there is a subscriber to the derived value", (context) => {
+          context.subscribeTo(context.tokens.calculated, "sub-calc")
+        })
+      ],
+      perform: [
+        step("a batch message is sent with writes the hook accepts immediately", (context) => {
+          context.sendBatch([
+            write(context.tokens.stringContainer, "cool"),
+            write(context.tokens.numberContainer, 27),
+            write(context.tokens.stringContainer, "super"),
+          ])
+        })
+      ],
+      observe: [
+        effect("the subscriber sees one update of the calculated value", (context) => {
+          expect(context.valuesForSubscriber("sub-calc"), is(equalTo([
+            "0 + hello = awesome!",
+            "27 + hello + cool + super = awesome!"
+          ])))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("a batch message is sent with a write the hook waits to accept", (context) => {
+          context.sendBatch([
+            write(context.tokens.stringContainer, "wait"),
+            write(context.tokens.numberContainer, 14),
+          ])
+        })
+      ],
+      observe: [
+        effect("the subscriber sees only the update from the other container", (context) => {
+          expect(context.valuesForSubscriber("sub-calc"), is(equalTo([
+            "0 + hello = awesome!",
+            "27 + hello + cool + super = awesome!",
+            "14 + hello + cool + super = awesome!"
+          ])))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the write hook accepts the write after the batch has completed", (context) => {
+          context.tokens.writeTask.resolveWith("later")
+        })
+      ],
+      observe: [
+        effect("the subscriber sees the late update", (context) => {
+          expect(context.valuesForSubscriber("sub-calc"), is(equalTo([
+            "0 + hello = awesome!",
+            "27 + hello + cool + super = awesome!",
+            "14 + hello + cool + super = awesome!",
+            "14 + later = awesome!"
+          ])))
+        })
+      ]
+    }),
+
+  example(testStoreContext<DerivedBatchWithMetaContext>())
+    .description("the meta value published by a write hook is part of the batch")
+    .script({
+      suppose: [
+        fact("there is a derivation based on a container and its meta value", (context) => {
+          setMetaTokens(context)
+        }),
+        fact("the string container has a write hook that rejects some messages", (context) => {
+          context.useContainerHooks(context.tokens.stringContainer, writeHooks)
+        }),
+        fact("there is a subscriber to the derived value", (context) => {
+          context.subscribeTo(context.tokens.calculated, "sub-calc")
+        })
+      ],
+      perform: [
+        step("a message is written that the write hook rejects", (context) => {
+          context.writeTo(context.tokens.stringContainer, "bad")
+        })
+      ],
+      observe: [
+        effect("the subscriber sees the error meta value", (context) => {
+          expect(context.valuesForSubscriber("sub-calc"), is(equalTo([
+            "0 + hello = ok!",
+            "0 + hello = error!"
+          ])))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("a batch message is sent updating the two containers", (context) => {
+          context.sendBatch([
+            write(context.tokens.stringContainer, "cool"),
+            write(context.tokens.numberContainer, 27),
+          ])
+        })
+      ],
+      observe: [
+        effect("the subscriber sees one update of the calculated value", (context) => {
+          expect(context.valuesForSubscriber("sub-calc"), is(equalTo([
+            "0 + hello = ok!",
+            "0 + hello = error!",
+            "27 + cool = ok!"
+          ])))
+        })
+      ]
+    }),
+
+  example(testStoreContext<DerivedBatchWithMetaContext>())
+    .description("the pending meta value published by a write hook is part of the batch")
+    .script({
+      suppose: [
+        fact("there is a derivation based on a container and its meta value", (context) => {
+          setMetaTokens(context)
+        }),
+        fact("the string container has a write hook that waits to accept some messages", (context) => {
+          context.useContainerHooks(context.tokens.stringContainer, writeHooks)
+        }),
+        fact("there is a subscriber to the derived value", (context) => {
+          context.subscribeTo(context.tokens.calculated, "sub-calc")
+        })
+      ],
+      perform: [
+        step("a batch message is sent with a message the write hook does not accept yet", (context) => {
+          context.sendBatch([
+            write(context.tokens.stringContainer, "wait"),
+            write(context.tokens.numberContainer, 27),
+          ])
+        })
+      ],
+      observe: [
+        effect("the subscriber sees one update of the calculated value", (context) => {
+          expect(context.valuesForSubscriber("sub-calc"), is(equalTo([
+            "0 + hello = ok!",
+            "27 + hello = pending!"
+          ])))
+        })
+      ]
+    }),
+
+  example(testStoreContext<DerivedBatchWithMetaContext>())
+    .description("the error meta value published by a write hook is part of the batch")
+    .script({
+      suppose: [
+        fact("there is a derivation based on a container and its meta value", (context) => {
+          setMetaTokens(context)
+        }),
+        fact("the string container has a write hook that rejects some messages", (context) => {
+          context.useContainerHooks(context.tokens.stringContainer, writeHooks)
+        }),
+        fact("there is a subscriber to the derived value", (context) => {
+          context.subscribeTo(context.tokens.calculated, "sub-calc")
+        })
+      ],
+      perform: [
+        step("a batch message is sent with a message the write hook rejects", (context) => {
+          context.sendBatch([
+            write(context.tokens.stringContainer, "bad"),
+            write(context.tokens.numberContainer, 27),
+          ])
+        })
+      ],
+      observe: [
+        effect("the subscriber sees one update of the calculated value", (context) => {
+          expect(context.valuesForSubscriber("sub-calc"), is(equalTo([
+            "0 + hello = ok!",
+            "27 + hello = error!"
+          ])))
+        })
+      ]
+    }),
+
+  example(testStoreContext<DerivedBatchWithMetaAndTaskContext>())
+    .description("a write hook reports an error after the batch has completed")
+    .script({
+      suppose: [
+        fact("there is a derivation based on a container and its meta value", (context) => {
+          const numberContainer = container({ initialValue: 0 })
+          const stringContainer = container({ initialValue: "hello" })
+          context.setTokens({
+            numberContainer,
+            stringContainer,
+            calculated: derived(get => {
+              return `${get(numberContainer)} + ${get(stringContainer)} = ${get(meta(stringContainer)).type}!`
+            }),
+            writeTask: new TestTask<string>()
+          })
+        }),
+        fact("the string container has a write hook that waits before rejecting the write", (context) => {
+          context.useContainerHooks(context.tokens.stringContainer, {
+            async onWrite(message, actions) {
+              await context.tokens.writeTask.waitForIt()
+              actions.error("not a good value", message)
+            }
+          })
+        }),
+        fact("there is a subscriber to the derived value", (context) => {
+          context.subscribeTo(context.tokens.calculated, "sub-calc")
+        })
+      ],
+      perform: [
+        step("a batch message is sent updating the two containers", (context) => {
+          context.sendBatch([
+            write(context.tokens.stringContainer, "cool"),
+            write(context.tokens.numberContainer, 27),
+          ])
+        })
+      ],
+      observe: [
+        effect("the subscriber sees only the update from the other container", (context) => {
+          expect(context.valuesForSubscriber("sub-calc"), is(equalTo([
+            "0 + hello = ok!",
+            "27 + hello = ok!"
+          ])))
+        })
+      ]
+    }).andThen({
+      perform: [
+        step("the write hook rejects the write after the batch has completed", async (context) => {
+          context.tokens.writeTask.resolveWith("whatever")
+          await Promise.resolve()
+        })
+      ],
+      observe: [
+        effect("the subscriber sees the error meta value", (context) => {
+          expect(context.valuesForSubscriber("sub-calc"), is(equalTo([
+            "0 + hello = ok!",
+            "27 + hello = ok!",
+            "27 + hello = error!"
+          ])))
+        })
+      ]
     })
 
 ])
+
+const writeHooks: ContainerHooks<string, string, string> = {
+  onWrite(message, actions) {
+    switch (message) {
+      case "wait": {
+        actions.pending(message)
+        break
+      }
+      case "bad": {
+        actions.error("not a good value", message)
+        break
+      }
+      default: {
+        actions.ok(message)
+      }
+    }
+  }
+}
+
+function setMetaTokens(context: TestStore<DerivedBatchWithMetaContext>) {
+  const numberContainer = container({ initialValue: 0 })
+  const stringContainer = container({ initialValue: "hello" })
+  context.setTokens({
+    numberContainer,
+    stringContainer,
+    calculated: derived(get => {
+      return `${get(numberContainer)} + ${get(stringContainer)} = ${get(meta(stringContainer)).type}!`
+    })
+  })
+}

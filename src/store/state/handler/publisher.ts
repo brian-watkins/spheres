@@ -15,7 +15,7 @@ export class Publisher<T> extends SubscriberSet implements StatePublisher<T> {
 
     this.value = reconciled
 
-    if (batch !== undefined) {
+    if (batch !== undefined && batch.isOpen()) {
       batch.add(this)
       return
     }

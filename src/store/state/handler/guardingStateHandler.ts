@@ -1,4 +1,4 @@
-import { createSubscriber, GetState, StateDerivation, StateListenerType, StateWriter, Subscriber, TokenRegistry } from "../../tokenRegistry.js"
+import { createSubscriber, GetState, StateBatch, StateDerivation, StateListenerType, StateWriter, Subscriber, TokenRegistry } from "../../tokenRegistry.js"
 import { SubscriberSet } from "./subscriberSet.js"
 
 export class GuardingStateHandler extends SubscriberSet implements StateWriter<any, any>, StateDerivation {
@@ -33,12 +33,12 @@ export class GuardingStateHandler extends SubscriberSet implements StateWriter<a
     this.parent.addSubscriber(this.subscriber)
   }
 
-  write(value: any) {
-    this.parent.write(value)
+  write(value: any, batch?: StateBatch) {
+    this.parent.write(value, batch)
   }
 
-  publish(value: any) {
-    this.parent.publish(value)
+  publish(value: any, batch?: StateBatch) {
+    this.parent.publish(value, batch)
   }
 
   getValue() {

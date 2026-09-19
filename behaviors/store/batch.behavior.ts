@@ -24,6 +24,12 @@ interface DerivedBatchWithQueryContext extends DerivedBatchContext {
   queried: Container<string>
 }
 
+interface ReconciledDerivedBatchContext {
+  numberContainer: Container<number>
+  highWaterMark: DerivedState<number>
+  queried: Container<number>
+}
+
 interface DerivedBatchWithWriteHookContext extends DerivedBatchContext {
   writeTask: TestTask<string>
 }
@@ -251,6 +257,51 @@ export default behavior("batched store messages", [
           expect(context.valuesForSubscriber("sub-queried"), is(equalTo([
             "nothing yet",
             "27 + hello = awesome!"
+          ])))
+        })
+      ]
+    }),
+
+  example(testStoreContext<ReconciledDerivedBatchContext>())
+    .description("batched messages with use that queries a reconciled derived value updated by a message earlier in the batch")
+    .script({
+      suppose: [
+        fact("there is a derivation with a reconciler", (context) => {
+          const numberContainer = container({ initialValue: 0 })
+          context.setTokens({
+            numberContainer,
+            highWaterMark: derived({
+              query: get => get(numberContainer),
+              reconciler: (current, next) => Math.max(current, next)
+            }),
+            queried: container({ initialValue: -1 })
+          })
+        }),
+        fact("there is a subscriber to the derived value", (context) => {
+          context.subscribeTo(context.tokens.highWaterMark, "sub-high-water-mark")
+        }),
+        fact("there is a subscriber to the container that records the query", (context) => {
+          context.subscribeTo(context.tokens.queried, "sub-queried")
+        }),
+        fact("the container has been updated to a high value", (context) => {
+          context.writeTo(context.tokens.numberContainer, 14)
+        })
+      ],
+      perform: [
+        step("a batch message writes a lower value to the container and then queries the derived value", (context) => {
+          context.sendBatch([
+            write(context.tokens.numberContainer, 3),
+            use(get => {
+              return write(context.tokens.queried, get(context.tokens.highWaterMark))
+            })
+          ])
+        })
+      ],
+      observe: [
+        effect("the query sees the reconciled derived value", (context) => {
+          expect(context.valuesForSubscriber("sub-queried"), is(equalTo([
+            -1,
+            14
           ])))
         })
       ]

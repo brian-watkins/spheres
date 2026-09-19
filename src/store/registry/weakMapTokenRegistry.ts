@@ -1,29 +1,29 @@
+import { joinBatch } from "../message.js";
 import { Container } from "../state/container.js";
-import { Command, CommandController, createController, createStateHandler, StateReader, StateHandler, StateToken } from "../tokenRegistry.js";
+import { Command, CommandController, createController, createStateHandler, StateReader, StateHandler, StateToken, StateBatch } from "../tokenRegistry.js";
 import { RootTokenRegistry } from "./rootTokenRegistry.js";
 
 type Token = StateToken<unknown> | Command<unknown>
 
 export class WeakMapTokenRegistry implements RootTokenRegistry {
   protected registry: WeakMap<Token, any> = new WeakMap();
-  private registerHook: ((container: Container<any>) => void) | undefined
+  private registerHook: ((container: Container<any>, batch: StateBatch | undefined) => void) | undefined
 
-  constructor() { }
-
-  onRegister(handler: (container: Container<any>) => void): void {
+  onRegister(handler: (container: Container<any>, batch: StateBatch | undefined) => void): void {
     this.registerHook = handler
   }
 
-  registerState(token: StateToken<unknown>): StateReader<unknown> {
+  private registerState(token: StateToken<unknown>): StateReader<unknown> {
     const controller = token[createStateHandler](this)
     this.registry.set(token, controller)
     if (this.registerHook !== undefined && token instanceof Container) {
-      this.registerHook(token)
+      const hook = this.registerHook
+      joinBatch((batch) => hook(token, batch))
     }
     return controller
   }
 
-  registerCommand(token: Command<any>): CommandController<any> {
+  private registerCommand(token: Command<any>): CommandController<any> {
     const controller = token[createController](this)
     this.registry.set(token, controller)
     return controller
@@ -53,7 +53,7 @@ export class WeakMapTokenRegistry implements RootTokenRegistry {
     const shouldNotify = this.registerHook !== undefined && token instanceof Container && !this.registry.has(token)
     this.registry.set(token, publisher)
     if (shouldNotify) {
-      this.registerHook!(token)
+      joinBatch(batch => this.registerHook!(token, batch))
     }
   }
 }

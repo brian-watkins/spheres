@@ -554,6 +554,50 @@ export default behavior("batched store messages", [
       ]
     }),
 
+  example(testStoreContext<DerivedBatchContext>())
+    .description("batched messages with run that dispatches another batch")
+    .script({
+      suppose: [
+        fact("there is a derivation based on containers", (context) => {
+          const numberContainer = container({ initialValue: 0 })
+          const stringContainer = container({ initialValue: "hello" })
+          context.setTokens({
+            numberContainer,
+            stringContainer,
+            calculated: derived(get => {
+              return `${get(numberContainer)} + ${get(stringContainer)} = awesome!`
+            })
+          })
+        }),
+        fact("there is a subscriber to the derived value", (context) => {
+          context.subscribeTo(context.tokens.calculated, "sub-calc")
+        })
+      ],
+      perform: [
+        step("a batch message is sent with a run message that dispatches another batch", (context) => {
+          context.sendBatch([
+            write(context.tokens.stringContainer, "fun"),
+            run(() => {
+              context.sendBatch([
+                write(context.tokens.numberContainer, 14)
+              ])
+            }),
+            write(context.tokens.stringContainer, "something cool"),
+          ])
+        })
+      ],
+      observe: [
+        effect("the subscriber sees updates from both batches", (context) => {
+          expect(context.valuesForSubscriber("sub-calc"), is(equalTo([
+            "0 + hello = awesome!",
+            "0 + fun = awesome!",
+            "14 + fun = awesome!",
+            "14 + something cool = awesome!"
+          ])))
+        })
+      ]
+    }),
+
   example(testStoreContext<DerivedBatchWithCounterContext>())
     .description("batched messages with exec")
     .script({

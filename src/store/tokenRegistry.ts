@@ -17,11 +17,16 @@ export function isStateful<T>(value: T | Stateful<T>): value is Stateful<T> {
   return typeof value === "function"
 }
 
-export function runQuery<M>(registry: TokenRegistry, query: (get: GetState) => M): M {
+export function runQuery<M>(registry: TokenRegistry, query: (get: GetState) => M, batch?: StateBatch): M {
+  const performQuery = batch?.isOpen() ? resolveQuery : getQuery
+  return performQuery(registry, query)
+}
+
+function getQuery<M>(registry: TokenRegistry, query: (get: GetState) => M): M {
   return query((token) => token[getStateHandler](registry).getValue())
 }
 
-export function resolveQuery<M>(registry: TokenRegistry, query: (get: GetState) => M): M {
+function resolveQuery<M>(registry: TokenRegistry, query: (get: GetState) => M): M {
   const getState: GetState = (token) => token[getStateHandler](registry).resolveValue(getState)
   return query(getState)
 }

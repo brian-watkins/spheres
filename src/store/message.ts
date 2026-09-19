@@ -1,5 +1,5 @@
 import { BatchPublisher } from "./state/handler/batchPublisher.js"
-import { Command, getStateHandler, GetState, runQuery, TokenRegistry, WritableState, StateBatch, PublishableState, resolveQuery } from "./tokenRegistry.js"
+import { Command, getStateHandler, GetState, TokenRegistry, WritableState, StateBatch, PublishableState, runQuery } from "./tokenRegistry.js"
 
 export const getInitialValue = Symbol("initialValue")
 
@@ -96,6 +96,14 @@ export function reset<T>(container: ResettableState<T>): ResetMessage<T> {
   }
 }
 
+// Note: Currently all stores would use this same stack
+// We could have a map keyed by registry if we need to distinguish by store
+const batchStack: Array<StateBatch> = []
+
+export function joinBatch(handler: (batch: StateBatch | undefined) => void): void {
+  handler(batchStack.at(-1))
+}
+
 export function dispatchMessage(registry: TokenRegistry, message: StoreMessage<any>, batch?: StateBatch) {
   switch (message.type) {
     case "write": {
@@ -113,8 +121,7 @@ export function dispatchMessage(registry: TokenRegistry, message: StoreMessage<a
       break
     }
     case "use": {
-      const query = batch !== undefined ? resolveQuery : runQuery
-      const statefulMessage = query(registry, message.rule) ?? { type: "batch", messages: [] }
+      const statefulMessage = runQuery(registry, message.rule, batch) ?? { type: "batch", messages: [] }
       dispatchMessage(registry, statefulMessage, batch)
       break
     }
@@ -133,10 +140,12 @@ export function dispatchMessage(registry: TokenRegistry, message: StoreMessage<a
         dispatchBatch(registry, batch, message.messages)
         break
       }
-      const batchPublisher = new BatchPublisher()
-      dispatchBatch(registry, batchPublisher, message.messages)
-      batchPublisher.publish()
-      batchPublisher.close()
+      const nextBatch = new BatchPublisher()
+      batchStack.push(nextBatch)
+      dispatchBatch(registry, nextBatch, message.messages)
+      nextBatch.publish()
+      nextBatch.close()
+      batchStack.pop()
       break
     }
   }

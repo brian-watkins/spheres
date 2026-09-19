@@ -2,7 +2,7 @@ import { Container } from "./state/container.js"
 import { dispatchMessage, StoreMessage } from "./message.js"
 import { error, meta, ok, pending } from "./state/meta.js"
 import { WeakMapTokenRegistry } from "./registry/weakMapTokenRegistry.js"
-import { Command, getStateHandler, GetState, initializeCommand, initListener, runQuery, StateEffect, StateListenerType, State, Subscriber, TokenRegistry, PublishableState, StateBatch, resolveQuery } from "./tokenRegistry.js"
+import { Command, getStateHandler, GetState, initializeCommand, initListener, StateEffect, StateListenerType, State, Subscriber, TokenRegistry, PublishableState, StateBatch, runQuery } from "./tokenRegistry.js"
 import { CommandManager, ManagedCommandController } from "./command/managedCommandController.js"
 import { RootTokenRegistry } from "./registry/rootTokenRegistry.js"
 import { Writable, WritableTarget } from "./state/handler/writable.js"
@@ -111,10 +111,18 @@ export function useCommand<M>(store: Store, command: Command<M>, manager: Comman
 }
 
 export function useHooks(store: Store, hooks: StoreHooks) {
-  getTokenRegistry(store).onRegister((token) => {
+  getTokenRegistry(store).onRegister((token, batch) => {
     const registry = getTokenRegistry(store)
+    // Note: We don't pass the batch through in the case of
+    // supply, pending, or error because at this point there
+    // cannot be any subscribers to the container so it's fine
+    // to just publish immediately. And by passing the batch
+    // we would cause other problems -- a test will fail if you try
+    // to pass the batch in the supply case.
     hooks.onRegister(token, {
-      get: (state) => runQuery(registry, get => get(state)),
+      get: (state) => {
+        return runQuery(registry, get => get(state), batch)
+      },
       supply: (value) => {
         token[getStateHandler](registry).publish(value)
       },
@@ -150,8 +158,7 @@ function initializerActions(registry: TokenRegistry): StoreInitializerActions {
 function containerWriteActions<T, M, E>(registry: TokenRegistry, container: Container<T, M>, writable: WritableTarget<T, M>, batch: StateBatch | undefined): WriteHookActions<T, M, E> {
   return {
     get: (state) => {
-      const query = batch?.isOpen() ? resolveQuery : runQuery
-      return query(registry, get => get(state))
+      return runQuery(registry, get => get(state), batch)
     },
     ok: (message) => {
       writable.write(message, batch)

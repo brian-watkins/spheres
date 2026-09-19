@@ -19,6 +19,10 @@ export class ListItemReader<T> implements ListItem<T>, StateReader<ListItem<T>> 
     return this
   }
 
+  resolveValue(_: GetState): ListItem<T> {
+    return this
+  }
+
   addSubscriber(): void { }
 
   removeSubscriber(): void { }

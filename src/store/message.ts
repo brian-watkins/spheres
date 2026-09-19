@@ -1,5 +1,5 @@
 import { BatchPublisher } from "./state/handler/batchPublisher.js"
-import { Command, getStateHandler, GetState, runQuery, TokenRegistry, WritableState, StateBatch, PublishableState } from "./tokenRegistry.js"
+import { Command, getStateHandler, GetState, runQuery, TokenRegistry, WritableState, StateBatch, PublishableState, resolveQuery } from "./tokenRegistry.js"
 
 export const getInitialValue = Symbol("initialValue")
 
@@ -113,7 +113,8 @@ export function dispatchMessage(registry: TokenRegistry, message: StoreMessage<a
       break
     }
     case "use": {
-      const statefulMessage = runQuery(registry, message.rule) ?? { type: "batch", messages: [] }
+      const query = batch !== undefined ? resolveQuery : runQuery
+      const statefulMessage = query(registry, message.rule) ?? { type: "batch", messages: [] }
       dispatchMessage(registry, statefulMessage, batch)
       break
     }

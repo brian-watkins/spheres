@@ -21,6 +21,11 @@ export function runQuery<M>(registry: TokenRegistry, query: (get: GetState) => M
   return query((token) => token[getStateHandler](registry).getValue())
 }
 
+export function resolveQuery<M>(registry: TokenRegistry, query: (get: GetState) => M): M {
+  const getState: GetState = (token) => token[getStateHandler](registry).resolveValue(getState)
+  return query(getState)
+}
+
 export function generateStateManager<S>(registry: TokenRegistry, token: StateToken<S>): StateReader<S> {
   return token[createStateHandler](registry)
 }
@@ -155,6 +160,7 @@ export interface Subscribable {
 
 export interface StateReader<T> extends Subscribable {
   getValue(): T
+  resolveValue(get: GetState): T
 }
 
 export interface StateBatch {

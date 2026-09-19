@@ -20,6 +20,10 @@ interface DerivedBatchWithCounterContext extends DerivedBatchContext {
   counter: number
 }
 
+interface DerivedBatchWithQueryContext extends DerivedBatchContext {
+  queried: Container<string>
+}
+
 interface DerivedBatchWithWriteHookContext extends DerivedBatchContext {
   writeTask: TestTask<string>
 }
@@ -169,7 +173,7 @@ export default behavior("batched store messages", [
     }),
 
   example(testStoreContext<DerivedBatchContext>())
-    .description("batched messages with use")
+    .description("batched messages with use that references a container updated earlier in the batch")
     .script({
       suppose: [
         fact("there is a derivation based on containers", (context) => {
@@ -204,6 +208,49 @@ export default behavior("batched store messages", [
           expect(context.valuesForSubscriber("sub-calc"), is(equalTo([
             "0 + hello = awesome!",
             "9 + something cool = awesome!"
+          ])))
+        })
+      ]
+    }),
+
+  example(testStoreContext<DerivedBatchWithQueryContext>())
+    .description("batched messages with use that queries a derived value updated by a message earlier in the batch")
+    .script({
+      suppose: [
+        fact("there is a derivation based on containers", (context) => {
+          const numberContainer = container({ initialValue: 0 })
+          const stringContainer = container({ initialValue: "hello" })
+          context.setTokens({
+            numberContainer,
+            stringContainer,
+            calculated: derived(get => {
+              return `${get(numberContainer)} + ${get(stringContainer)} = awesome!`
+            }),
+            queried: container({ initialValue: "nothing yet" })
+          })
+        }),
+        fact("there is a subscriber to the derived value", (context) => {
+          context.subscribeTo(context.tokens.calculated, "sub-calc")
+        }),
+        fact("there is a subscriber to the container that records the query", (context) => {
+          context.subscribeTo(context.tokens.queried, "sub-queried")
+        })
+      ],
+      perform: [
+        step("a batch message writes to a container and then queries the derived value", (context) => {
+          context.sendBatch([
+            write(context.tokens.numberContainer, 27),
+            use(get => {
+              return write(context.tokens.queried, get(context.tokens.calculated))
+            })
+          ])
+        })
+      ],
+      observe: [
+        effect("the query sees the derived value that accounts for the earlier message in the batch", (context) => {
+          expect(context.valuesForSubscriber("sub-queried"), is(equalTo([
+            "nothing yet",
+            "27 + hello = awesome!"
           ])))
         })
       ]

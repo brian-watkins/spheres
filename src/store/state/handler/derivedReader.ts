@@ -6,7 +6,10 @@ export class DerivedStateReader<T> extends SubscriberSet implements StateReader<
   readonly type = StateListenerType.Derivation
   private _value!: T
 
-  constructor(private derivation: (get: GetState) => T, private reconciler?: Reconciler<T>) {
+  constructor(
+    private derivation: (get: GetState) => T,
+    private reconciler?: Reconciler<T>
+  ) {
     super()
   }
 
@@ -33,5 +36,9 @@ export class DerivedStateReader<T> extends SubscriberSet implements StateReader<
 
   getValue(): T {
     return this._value
+  }
+
+  resolveValue(get: GetState): T {
+    return this.derivation(get)
   }
 }

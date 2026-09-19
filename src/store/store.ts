@@ -2,7 +2,7 @@ import { Container } from "./state/container.js"
 import { dispatchMessage, StoreMessage } from "./message.js"
 import { error, meta, ok, pending } from "./state/meta.js"
 import { WeakMapTokenRegistry } from "./registry/weakMapTokenRegistry.js"
-import { Command, getStateHandler, GetState, initializeCommand, initListener, runQuery, StateEffect, StateListenerType, State, Subscriber, TokenRegistry, PublishableState, StateBatch } from "./tokenRegistry.js"
+import { Command, getStateHandler, GetState, initializeCommand, initListener, runQuery, StateEffect, StateListenerType, State, Subscriber, TokenRegistry, PublishableState, StateBatch, resolveQuery } from "./tokenRegistry.js"
 import { CommandManager, ManagedCommandController } from "./command/managedCommandController.js"
 import { RootTokenRegistry } from "./registry/rootTokenRegistry.js"
 import { Writable, WritableTarget } from "./state/handler/writable.js"
@@ -149,7 +149,10 @@ function initializerActions(registry: TokenRegistry): StoreInitializerActions {
 
 function containerWriteActions<T, M, E>(registry: TokenRegistry, container: Container<T, M>, writable: WritableTarget<T, M>, batch: StateBatch | undefined): WriteHookActions<T, M, E> {
   return {
-    get: (state) => runQuery(registry, get => get(state)),
+    get: (state) => {
+      const query = batch?.isOpen() ? resolveQuery : runQuery
+      return query(registry, get => get(state))
+    },
     ok: (message) => {
       writable.write(message, batch)
       registry.getState(meta(container)).publish(ok(), batch)

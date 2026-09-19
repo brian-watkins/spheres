@@ -730,6 +730,54 @@ export default behavior("batched store messages", [
       ]
     }),
 
+  example(testStoreContext<DerivedBatchWithQueryContext>())
+    .description("batched messages to a container with a write hook that queries a derived value updated by a message earlier in the batch")
+    .script({
+      suppose: [
+        fact("there is a derivation based on containers", (context) => {
+          const numberContainer = container({ initialValue: 0 })
+          const stringContainer = container({ initialValue: "hello" })
+          context.setTokens({
+            numberContainer,
+            stringContainer,
+            calculated: derived(get => {
+              return `${get(numberContainer)} + ${get(stringContainer)} = awesome!`
+            }),
+            queried: container({ initialValue: "nothing yet" })
+          })
+        }),
+        fact("the queried container has a write hook that records the derived value", (context) => {
+          context.useContainerHooks(context.tokens.queried, {
+            onWrite(message, actions) {
+              actions.ok(`${message}: ${actions.get(context.tokens.calculated)}`)
+            }
+          })
+        }),
+        fact("there is a subscriber to the derived value", (context) => {
+          context.subscribeTo(context.tokens.calculated, "sub-calc")
+        }),
+        fact("there is a subscriber to the queried container", (context) => {
+          context.subscribeTo(context.tokens.queried, "sub-queried")
+        })
+      ],
+      perform: [
+        step("a batch message writes to a container and then to the container with the write hook", (context) => {
+          context.sendBatch([
+            write(context.tokens.numberContainer, 27),
+            write(context.tokens.queried, "recorded")
+          ])
+        })
+      ],
+      observe: [
+        effect("the write hook sees the derived value that accounts for the earlier message in the batch", (context) => {
+          expect(context.valuesForSubscriber("sub-queried"), is(equalTo([
+            "nothing yet",
+            "recorded: 27 + hello = awesome!"
+          ])))
+        })
+      ]
+    }),
+
   example(testStoreContext<DerivedBatchWithMetaContext>())
     .description("the meta value published by a write hook is part of the batch")
     .script({

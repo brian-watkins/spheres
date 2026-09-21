@@ -26,14 +26,14 @@ export class DerivedStateReader<T>
   }
 
   run(get: GetState): void {
-    const resolved = this.resolveValue(get)
+    const nextValue = this.calculateValue(get)
 
-    if (Object.is(resolved, this.value)) {
+    if (Object.is(nextValue, this.value)) {
       this.notifyStable()
       return
     }
 
-    this.value = resolved
+    this.value = nextValue
 
     this.runSubscribers()
   }
@@ -42,7 +42,7 @@ export class DerivedStateReader<T>
     return this.value
   }
 
-  resolveValue(get: GetState): T {
+  private calculateValue(get: GetState): T {
     const derived = this.derivation(get)
     return this.reconciler !== undefined
       ? this.reconciler(this.value, derived)

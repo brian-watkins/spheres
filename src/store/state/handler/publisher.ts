@@ -1,4 +1,4 @@
-import { GetState, StateBatch, StatePublisher } from "../../tokenRegistry.js"
+import { StateBatch, StatePublisher } from "../../tokenRegistry.js"
 import { Reconciler } from "../reconciler.js"
 import { NativeEffectList } from "./nativeEffectList.js"
 import { SubscriberSet } from "./subscriberSet.js"
@@ -29,10 +29,6 @@ export class Publisher<T> extends SubscriberSet implements StatePublisher<T> {
   }
 
   getValue(): T {
-    return this.value
-  }
-
-  resolveValue(_: GetState): T {
     return this.value
   }
 }

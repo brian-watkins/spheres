@@ -18,17 +18,14 @@ export function isStateful<T>(value: T | Stateful<T>): value is Stateful<T> {
 }
 
 export function runQuery<M>(registry: TokenRegistry, query: (get: GetState) => M, batch?: StateBatch): M {
-  const performQuery = batch?.isOpen() ? resolveQuery : getQuery
-  return performQuery(registry, query)
+  if (batch?.isOpen()) {
+    batch.apply()
+  }
+  return getQuery(registry, query)
 }
 
 function getQuery<M>(registry: TokenRegistry, query: (get: GetState) => M): M {
   return query((token) => token[getStateHandler](registry).getValue())
-}
-
-function resolveQuery<M>(registry: TokenRegistry, query: (get: GetState) => M): M {
-  const getState: GetState = (token) => token[getStateHandler](registry).resolveValue(getState)
-  return query(getState)
 }
 
 export function generateStateManager<S>(registry: TokenRegistry, token: StateToken<S>): StateReader<S> {
@@ -165,11 +162,11 @@ export interface Subscribable {
 
 export interface StateReader<T> extends Subscribable {
   getValue(): T
-  resolveValue(get: GetState): T
 }
 
 export interface StateBatch {
   add(subscribable: Subscribable): void
+  apply(): void
   publish(): void
   isOpen(): boolean
   close(): void

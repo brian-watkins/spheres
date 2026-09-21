@@ -4,6 +4,7 @@ import { Publisher } from "./publisher.js";
 
 export class BatchPublisher implements StateBatch {
   private publishers: Set<Publisher<any>> = new Set()
+  private effects: NativeEffectList = new NativeEffectList()
   private open: boolean = true
 
   add(publisher: Publisher<any>): void {
@@ -18,17 +19,23 @@ export class BatchPublisher implements StateBatch {
     this.open = false
   }
 
-  publish(): void {
-    const effects = new NativeEffectList()
+  apply(): void {
     for (const publisher of this.publishers) {
-      publisher.prepareSubscribers(effects)
+      publisher.prepareSubscribers(this.effects)
     }
     for (const publisher of this.publishers) {
       publisher.runSubscribers()
     }
-    for (const subscriber of effects) {
+    this.publishers.clear()
+  }
+
+  publish(): void {
+    this.apply()
+
+    for (const subscriber of this.effects) {
       subscriber.run()
     }
-    this.publishers.clear()
+
+    this.effects = new NativeEffectList()
   }
 }

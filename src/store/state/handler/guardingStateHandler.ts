@@ -44,8 +44,4 @@ export class GuardingStateHandler extends SubscriberSet implements StateWriter<a
   getValue() {
     return this.parent.getValue()
   }
-
-  resolveValue(get: GetState) {
-    return this.parent.resolveValue(get)
-  }
 }

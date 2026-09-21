@@ -1,5 +1,16 @@
 # spheres
 
+## 0.31.0
+
+### Minor Changes
+
+- 6244b72: Reconciler functions prevent unnecessary state updates
+
+### Patch Changes
+
+- 2a16447: Support for matching subviews with view tokens inside lists
+- 1c43543: Improved batch message handling
+
 ## 0.30.2
 
 ### Patch Changes

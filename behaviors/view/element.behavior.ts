@@ -1,9 +1,7 @@
-import { behavior, effect, example, fact } from "best-behavior";
-import { equalTo, expect, is } from "great-expectations";
-import { browserAppContext } from "./helpers/testAppController.js";
-import { theElementExists, theElementHasText } from "./helpers/effects.js";
-
-
+import { behavior, effect, example, fact } from "best-behavior"
+import { equalTo, expect, is } from "great-expectations"
+import { browserAppContext } from "./helpers/testAppController.js"
+import { theElementExists, theElementHasText } from "./helpers/effects.js"
 
 export default behavior("View Elements", [
   example(browserAppContext())
@@ -12,7 +10,7 @@ export default behavior("View Elements", [
       suppose: [
         fact("there is a view with all the elements", async (controller) => {
           await controller.loadApp("elements.app")
-        })
+        }),
       ],
       observe: [
         theElementExists("DIV#funny-id"),
@@ -26,7 +24,7 @@ export default behavior("View Elements", [
           const isDisabled = await context.display.select("input[type='checkbox']").isDisabled()
           expect(isDisabled, is(equalTo(false)), "the element is enabled")
         }),
-        theElementExists("button[aria-label='submit']")
-      ]
-    })
+        theElementExists("button[aria-label='submit']"),
+      ],
+    }),
 ])

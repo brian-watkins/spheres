@@ -1,6 +1,13 @@
 ---
 name: spheres
-description: Build browser-based web applications with spheres — a TypeScript framework with fine-grained reactive views and token-based state management. TRIGGER when code imports `spheres`, `spheres/store`, `spheres/store/reconciler`, `spheres/view`, or `spheres/server`; when a user asks to build, modify, or debug a spheres application; or when discussing `HTMLBuilder`/`SVGBuilder`, `container`/`derived`/`supplied`, `renderToDOM`, `createStore`, `useEffect`, `useCommand`, `useContainerHooks`, `elementIdentifier`/`withDomActions`, `createStringRenderer`, `createStreamRenderer`, `activateZone`, or `reconcileArray`/`reconcileObject`.
+description:
+  Build browser-based web applications with spheres — a TypeScript framework with fine-grained
+  reactive views and token-based state management. TRIGGER when code imports `spheres`,
+  `spheres/store`, `spheres/store/reconciler`, `spheres/view`, or `spheres/server`; when a user asks
+  to build, modify, or debug a spheres application; or when discussing `HTMLBuilder`/`SVGBuilder`,
+  `container`/`derived`/`supplied`, `renderToDOM`, `createStore`, `useEffect`, `useCommand`,
+  `useContainerHooks`, `elementIdentifier`/`withDomActions`, `createStringRenderer`,
+  `createStreamRenderer`, `activateZone`, or `reconcileArray`/`reconcileObject`.
 ---
 
 # Spheres
@@ -10,17 +17,29 @@ Spheres is a TypeScript framework for building browser-based web applications. I
 - `spheres/store` — state management separating application logic from storage.
 - `spheres/view` — declarative views with fine-grained reactive updates.
 
-Full documentation wiki at `/Users/bwatkins/workspace/spheres.wiki/` (`Home.md`, `Store.md`, `View.md`).
+Full documentation wiki at `/Users/bwatkins/workspace/spheres.wiki/` (`Home.md`, `Store.md`,
+`View.md`).
 
 ## Mental model
 
 Spheres is **not** React. Internalize these differences before writing code:
 
-- **No components, no props, no hooks.** Views are plain functions that take a builder (`HTMLBuilder` or `SVGBuilder`) and mutate it.
-- **State lives in tokens, not in views.** A `container`, `derived`, or `supplied` token is just a handle — it holds nothing until registered with a `Store`. Tokens are typically declared at module scope and shared, but a view function may declare its own — view functions are evaluated once, so nothing is recreated per update.
-- **Reactivity is fine-grained and automatic.** Anywhere you pass `(get) => ...` (a `Stateful<T>`), spheres tracks which tokens you read and re-runs *just that binding* when they change. There's no virtual DOM diff, no re-rendering of parent views.
-- **Event handlers return messages; they don't dispatch.** An `on("click", ...)` handler must *return* a `StoreMessage` (from `write`, `update`, `reset`, `run`, `batch`, or `use`). Spheres dispatches it to the store automatically. Calling `store.dispatch` inside a handler is almost always wrong.
-- **Storage is a separate concern.** Persistence, fetching, and async I/O happen through `ContainerHooks`, `Commands`, or `useEffect` — not inside views or update functions. Application logic stays pure.
+- **No components, no props, no hooks.** Views are plain functions that take a builder
+  (`HTMLBuilder` or `SVGBuilder`) and mutate it.
+- **State lives in tokens, not in views.** A `container`, `derived`, or `supplied` token is just a
+  handle — it holds nothing until registered with a `Store`. Tokens are typically declared at module
+  scope and shared, but a view function may declare its own — view functions are evaluated once, so
+  nothing is recreated per update.
+- **Reactivity is fine-grained and automatic.** Anywhere you pass `(get) => ...` (a `Stateful<T>`),
+  spheres tracks which tokens you read and re-runs _just that binding_ when they change. There's no
+  virtual DOM diff, no re-rendering of parent views.
+- **Event handlers return messages; they don't dispatch.** An `on("click", ...)` handler must
+  _return_ a `StoreMessage` (from `write`, `update`, `reset`, `run`, `batch`, or `use`). Spheres
+  dispatches it to the store automatically. Calling `store.dispatch` inside a handler is almost
+  always wrong.
+- **Storage is a separate concern.** Persistence, fetching, and async I/O happen through
+  `ContainerHooks`, `Commands`, or `useEffect` — not inside views or update functions. Application
+  logic stays pure.
 
 ## Minimal example
 
@@ -31,13 +50,13 @@ import { container, update, createStore } from "spheres/store"
 const clickCount = container({ initialValue: 0 })
 
 function counter(root: HTMLBuilder) {
-  root.main(el => {
+  root.main((el) => {
     el.children
-      .p(el => {
+      .p((el) => {
         el.children.textNode((get) => `Clicks: ${get(clickCount)}`)
       })
-      .button(el => {
-        el.config.on("click", () => update(clickCount, c => c + 1))
+      .button((el) => {
+        el.config.on("click", () => update(clickCount, (c) => c + 1))
         el.children.textNode("Count!")
       })
   })
@@ -48,36 +67,56 @@ renderToDOM(createStore(), document.getElementById("app")!, counter)
 
 ## Core idioms
 
-- **Reactive bindings.** Any attribute, text node, or subview selector accepts either a literal or a `(get) => T | undefined`. Prefer the stateful form whenever the value depends on a token — spheres will only update that specific binding.
-- **Composition:** `subview(view)` inlines another view function. `subviews(get => get(items), itemView)` renders keyed lists (spheres diffs by identity, only updating changed items) — **item values must be unique**, since the value itself keys the diff. `subviewMatching(matcher => matcher.withUnion(...).when(...).default(...))` picks one view based on state; use `matcher.withConditions()` to select on boolean predicates instead.
+- **Reactive bindings.** Any attribute, text node, or subview selector accepts either a literal or a
+  `(get) => T | undefined`. Prefer the stateful form whenever the value depends on a token — spheres
+  will only update that specific binding.
+- **Composition:** `subview(view)` inlines another view function.
+  `subviews(get => get(items), itemView)` renders keyed lists (spheres diffs by identity, only
+  updating changed items) — **item values must be unique**, since the value itself keys the diff.
+  `subviewMatching(matcher => matcher.withUnion(...).when(...).default(...))` picks one view based
+  on state; use `matcher.withConditions()` to select on boolean predicates instead.
 - **Updating containers:**
   - `write(container, value)` — set a new value directly.
   - `update(container, current => next)` — derive next value from current.
   - `reset(container)` — return to `initialValue`.
   - `batch([...])` — apply many messages as a single update (effects fire once).
   - `use(get => message)` — compute a message from current state, then dispatch.
-- **Custom messages.** If a container has an `update` function, `write` sends messages of its input type `M` and the update function returns `{ value, message? }`. The optional returned `message` chains another dispatch.
-- **Effects vs derived:** use `derived` for values you want to read reactively; use `useEffect` for side effects (logging, persistence, calling into external APIs).
-- **Commands** model messages from app logic *to* the storage system. Register with `useCommand(store, command, manager)`; dispatch with `exec(command, message)`.
-- **Real DOM elements.** There are no refs. Tag an element in the view with `config.elementIdentifier(id)` (from `elementIdentifier()`), then resolve it with `actions.getElement(id)` inside a command manager registered as `withDomActions(manager)`. See `view-api.md`.
+- **Custom messages.** If a container has an `update` function, `write` sends messages of its input
+  type `M` and the update function returns `{ value, message? }`. The optional returned `message`
+  chains another dispatch.
+- **Effects vs derived:** use `derived` for values you want to read reactively; use `useEffect` for
+  side effects (logging, persistence, calling into external APIs).
+- **Commands** model messages from app logic _to_ the storage system. Register with
+  `useCommand(store, command, manager)`; dispatch with `exec(command, message)`.
+- **Real DOM elements.** There are no refs. Tag an element in the view with
+  `config.elementIdentifier(id)` (from `elementIdentifier()`), then resolve it with
+  `actions.getElement(id)` inside a command manager registered as `withDomActions(manager)`. See
+  `view-api.md`.
 
 ## Common mistakes to avoid
 
 - Mutating a container's current value instead of producing a new one in `update`.
 - Dispatching inside event handlers instead of returning a message.
 - Reaching for React-style patterns: hooks, refs, lifecycle, `useState`, component props.
-- Reading tokens outside a reactive context (`get` is only available inside a `Stateful` function, a `derived` query, a `useEffect.run`, a `CommandManager.exec`, or a store `init`).
+- Reading tokens outside a reactive context (`get` is only available inside a `Stateful` function, a
+  `derived` query, a `useEffect.run`, a `CommandManager.exec`, or a store `init`).
 - Forgetting that a token's value doesn't exist until it's registered with a store.
-- Creating tokens inside code that re-runs — a `Stateful` callback, an event handler, or a container's `update` function. (Declaring a token inside a *view function* is fine: view functions are evaluated once.)
+- Creating tokens inside code that re-runs — a `Stateful` callback, an event handler, or a
+  container's `update` function. (Declaring a token inside a _view function_ is fine: view functions
+  are evaluated once.)
 - Using `innerHTML` alongside children (children are ignored when `innerHTML` is set).
 
 ## Reference files
 
-Load the relevant reference file when working in depth on that area. These mirror the wiki but are structured for quick lookup:
+Load the relevant reference file when working in depth on that area. These mirror the wiki but are
+structured for quick lookup:
 
-- `store-api.md` — full `spheres/store` API: state tokens, store, messages, hooks, commands, effects.
-- `view-api.md` — full `spheres/view` API: builders, element functions, subview/subviews/subviewMatching, stateful attributes, events.
-- `reconcilers.md` — `spheres/store/reconciler`: keeping old values and element identity across updates.
+- `store-api.md` — full `spheres/store` API: state tokens, store, messages, hooks, commands,
+  effects.
+- `view-api.md` — full `spheres/view` API: builders, element functions,
+  subview/subviews/subviewMatching, stateful attributes, events.
+- `reconcilers.md` — `spheres/store/reconciler`: keeping old values and element identity across
+  updates.
 - `ssr.md` — server-side rendering, streaming, `activateZone`, state manifests, the vite plugin.
 
 ## Project setup

@@ -15,8 +15,8 @@ export interface ElementSupport {
 }
 
 export class BasicElementConfigSupport implements ElementConfigSupport {
-  constructor(private next: ElementConfigSupport = new AttributeElementConfigSupport()) { }
-  
+  constructor(private next: ElementConfigSupport = new AttributeElementConfigSupport()) {}
+
   configure(config: ElementConfig, name: string, args: Array<any>): void {
     if (name === "dataAttribute") {
       config.attribute(`data-${args[0]}`, args[1] ?? "true")

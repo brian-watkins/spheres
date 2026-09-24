@@ -1,16 +1,35 @@
 import { dispatchMessage } from "../../store/message.js"
-import { GetState, initListener, StateListener, createSubscriber, TokenRegistry } from "../../store/tokenRegistry.js"
+import {
+  GetState,
+  initListener,
+  StateListener,
+  createSubscriber,
+  TokenRegistry,
+} from "../../store/tokenRegistry.js"
 import { EffectLocation } from "./effectLocation.js"
 import { activateList, ListEffect } from "./effects/listEffect.js"
 import { MatchViewEffect } from "./effects/matchViewEffect.js"
-import { findListEndNode, findMatchEndNode, getListElementId, getMatchElementId, LIST_START, MATCH_START } from "./fragmentHelpers.js"
+import {
+  findListEndNode,
+  findMatchEndNode,
+  getListElementId,
+  getMatchElementId,
+  LIST_START,
+  MATCH_START,
+} from "./fragmentHelpers.js"
 import { spheresTemplateData, StoreEventHandler } from "./index.js"
 import { TemplateCollection } from "./viewMatcherBuilder.js"
 import { ListItemTemplateContext } from "./templateContext.js"
 import { ElementIdentifier, storeElement } from "../element.js"
 
 export enum EffectTemplateTypes {
-  Text, Attribute, Property, List, Match, Event, Element
+  Text,
+  Attribute,
+  Property,
+  List,
+  Match,
+  Event,
+  Element,
 }
 
 export interface TextEffectTemplate {
@@ -60,8 +79,8 @@ export interface ElementEffectTemplate {
   location: EffectLocation
 }
 
-export type EffectTemplate
-  = TextEffectTemplate
+export type EffectTemplate =
+  | TextEffectTemplate
   | AttributeEffectTemplate
   | PropertyEffectTemplate
   | ListEffectTemplate
@@ -70,7 +89,9 @@ export type EffectTemplate
   | ElementEffectTemplate
 
 export enum TemplateType {
-  List, Match, Other
+  List,
+  Match,
+  Other,
 }
 
 export interface DOMTemplate {
@@ -144,7 +165,14 @@ function initializeEffect(registry: TokenRegistry, root: Node, effect: EffectTem
       const listStartIndicatorNode = effect.location.findNode(root)
       const end = findListEndNode(listStartIndicatorNode, effect.elementId)
 
-      const listEffect = new ListEffect(registry, effect.domTemplate, effect.query, effect.context, listStartIndicatorNode, end)
+      const listEffect = new ListEffect(
+        registry,
+        effect.domTemplate,
+        effect.query,
+        effect.context,
+        listStartIndicatorNode,
+        end,
+      )
       initListener(registry, listEffect)
       break
     }
@@ -185,10 +213,24 @@ function activateEffect(registry: TokenRegistry, root: Node, effect: EffectTempl
       const elementId = getListElementId(listStartIndicatorNode)
       let end = findListEndNode(listStartIndicatorNode, elementId)
 
-      const listEffect = new ListEffect(registry, effect.domTemplate, effect.query, effect.context, listStartIndicatorNode, end)
+      const listEffect = new ListEffect(
+        registry,
+        effect.domTemplate,
+        effect.query,
+        effect.context,
+        listStartIndicatorNode,
+        end,
+      )
       const subscriber = createSubscriber(registry, listEffect)
       const data = effect.query(subscriber.generateGetState())
-      const virtualList = activateList(registry, effect.context, effect.domTemplate, listStartIndicatorNode, end, data)
+      const virtualList = activateList(
+        registry,
+        effect.context,
+        effect.domTemplate,
+        listStartIndicatorNode,
+        end,
+        data,
+      )
       listEffect.setVirtualList(...virtualList)
 
       break

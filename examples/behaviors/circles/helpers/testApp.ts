@@ -7,11 +7,11 @@ export const testCirclesApp: Context<TestCirclesApp> = {
   init: async () => {
     const testApp = await testAppContext.init()
     return new TestCirclesApp(testApp)
-  }
+  },
 }
 
 export class TestCirclesApp {
-  constructor(private testApp: TestApp) { }
+  constructor(private testApp: TestApp) {}
 
   async renderAppWithCircles(circles: Array<Circle>) {
     await this.testApp.renderApp("circles")
@@ -83,21 +83,27 @@ function circleSelector(x: number, y: number, options?: CircleOptions) {
 class CircleDisplayElement extends DisplayElement {
   private display: TestCirclesDisplay
 
-  constructor(private page: Page, private x: number, private y: number) {
+  constructor(
+    private page: Page,
+    private x: number,
+    private y: number,
+  ) {
     super(page.locator(circleSelector(x, y)))
     this.display = new TestCirclesDisplay(this.page)
   }
 
   get radius(): Promise<number> {
-    return this.attribute("r").then(s => Number(s))
+    return this.attribute("r").then((s) => Number(s))
   }
 
   get isHighlighted(): Promise<boolean> {
-    return this.attribute("fill").then(value => value !== "transparent")
+    return this.attribute("fill").then((value) => value !== "transparent")
   }
 
   async waitUntilTransparent(): Promise<void> {
-    return this.page.locator(circleSelector(this.x, this.y, { highlighted: false })).waitFor({ state: "visible", timeout: 200 })
+    return this.page
+      .locator(circleSelector(this.x, this.y, { highlighted: false }))
+      .waitFor({ state: "visible", timeout: 200 })
   }
 
   async adjustRadiusTo(radius: number): Promise<void> {

@@ -1,28 +1,28 @@
-import { use, write } from "spheres/store";
-import { DataRecord, createRecord, deleteSelected, filterPrefix, filteredRecords, records, selectedRecord, updateSelected } from "./state.js";
-import { names, useValue } from "../helpers/helpers.js";
-import { HTMLBuilder, HTMLView, UseItem } from "../../../src/view/index.js";
+import { use, write } from "spheres/store"
+import {
+  DataRecord,
+  createRecord,
+  deleteSelected,
+  filterPrefix,
+  filteredRecords,
+  records,
+  selectedRecord,
+  updateSelected,
+} from "./state.js"
+import { names, useValue } from "../helpers/helpers.js"
+import { HTMLBuilder, HTMLView, UseItem } from "../../../src/view/index.js"
 
 export function crud(root: HTMLBuilder) {
   root.main(({ config, children }) => {
-    config
-      .class("m-4")
+    config.class("m-4")
     children
       .subview(filterInputView)
       .div(({ config, children }) => {
-        config
-          .class(names([
-            "flex",
-            "gap-4",
-            "my-4"
-          ]))
-        children
-          .subview(recordsView)
-          .subview(recordForm)
+        config.class(names(["flex", "gap-4", "my-4"]))
+        children.subview(recordsView).subview(recordForm)
       })
       .div(({ config, children }) => {
-        config
-          .class("flex gap-4")
+        config.class("flex gap-4")
         children
           .button(({ config, children }) => {
             config
@@ -53,18 +53,13 @@ export function crud(root: HTMLBuilder) {
   })
 }
 
-
 function recordForm(root: HTMLBuilder) {
   root.form(({ config, children }) => {
     config
       .id("record-form")
-      .class(names([
-        "flex",
-        "flex-col",
-        "gap-4"
-      ]))
+      .class(names(["flex", "flex-col", "gap-4"]))
       .on("submit", (evt) => {
-        evt.preventDefault();
+        evt.preventDefault()
         const data = new FormData(evt.target as HTMLFormElement)
         const firstName = data.get("firstName")!.toString()
         const lastName = data.get("lastName")!.toString()
@@ -75,14 +70,18 @@ function recordForm(root: HTMLBuilder) {
         }
       })
     children
-      .subview(inputView({
-        label: "First Name:",
-        name: "firstName"
-      }))
-      .subview(inputView({
-        label: "Last Name:",
-        name: "lastName"
-      }))
+      .subview(
+        inputView({
+          label: "First Name:",
+          name: "firstName",
+        }),
+      )
+      .subview(
+        inputView({
+          label: "Last Name:",
+          name: "lastName",
+        }),
+      )
   })
 }
 
@@ -92,42 +91,39 @@ interface InputViewAttributes {
 }
 
 function inputView(attr: InputViewAttributes): HTMLView {
-  return root =>
-    root.label(el => {
-      el.children
-        .textNode(attr.label)
-        .input(el => {
-          el.config
-            .type("text")
-            .required(true)
-            .class(`${inputClasses()} ml-2 w-48`)
-            .name(attr.name)
-        })
+  return (root) =>
+    root.label((el) => {
+      el.children.textNode(attr.label).input((el) => {
+        el.config.type("text").required(true).class(`${inputClasses()} ml-2 w-48`).name(attr.name)
+      })
     })
 }
 
 function filterInputView(root: HTMLBuilder) {
-  root.label(el => {
-    el.children
-      .textNode("Filter:")
-      .input(el => {
-        el.config
-          .type("text")
-          .required(true)
-          .class(`${inputClasses()} ml-2 w-48`)
-          .dataAttribute("filter-input")
-          .on("input", useValue((val) => write(filterPrefix, val)))
-      })
+  root.label((el) => {
+    el.children.textNode("Filter:").input((el) => {
+      el.config
+        .type("text")
+        .required(true)
+        .class(`${inputClasses()} ml-2 w-48`)
+        .dataAttribute("filter-input")
+        .on(
+          "input",
+          useValue((val) => write(filterPrefix, val)),
+        )
+    })
   })
 }
-
 
 function recordsView(root: HTMLBuilder) {
   root.select(({ config, children }) => {
     config
       .size("5")
       .dataAttribute("records")
-      .on("change", useValue((value) => write(selectedRecord, parseInt(value))))
+      .on(
+        "change",
+        useValue((value) => write(selectedRecord, parseInt(value))),
+      )
       .class(`${inputClasses()} w-64`)
 
     children.option(({ config, children }) => {
@@ -135,19 +131,16 @@ function recordsView(root: HTMLBuilder) {
       children.textNode("")
     })
 
-    children.subviews(get => get(filteredRecords), optionView)
+    children.subviews((get) => get(filteredRecords), optionView)
   })
 }
 
 function optionView(useItem: UseItem<DataRecord>): HTMLView {
-  return root => {
-    root
-      .option(({ config, children }) => {
-        config
-          .value(useItem((record) => `${record.data.id}`))
-        children
-          .textNode(useItem((record) => `${record.data.lastName}, ${record.data.firstName}`))
-      })
+  return (root) => {
+    root.option(({ config, children }) => {
+      config.value(useItem((record) => `${record.data.id}`))
+      children.textNode(useItem((record) => `${record.data.lastName}, ${record.data.firstName}`))
+    })
   }
 }
 
@@ -160,13 +153,14 @@ function inputClasses(): string {
 }
 
 function buttonClasses(): string {
-  return names(["bg-sky-600",
+  return names([
+    "bg-sky-600",
     "text-slate-100",
     "font-bold",
     "text-xl",
     "px-8",
     "py-4",
     "disabled:bg-slate-400",
-    "hover:bg-sky-800"
+    "hover:bg-sky-800",
   ])
 }

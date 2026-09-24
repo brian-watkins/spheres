@@ -1,19 +1,19 @@
-import { createStore, GetState, ReactiveEffect, useEffect, write } from "spheres/store";
-import { Context } from "best-behavior";
-import { cellContainer } from "../../../../src/cells/state";
-import { Result } from "../../../../src/cells/result";
-import { CellError, ParseFailure } from "../../../../src/cells/formula";
+import { createStore, GetState, ReactiveEffect, useEffect, write } from "spheres/store"
+import { Context } from "best-behavior"
+import { cellContainer } from "../../../../src/cells/state"
+import { Result } from "../../../../src/cells/result"
+import { CellError, ParseFailure } from "../../../../src/cells/formula"
 
 export function testStoreContext(): Context<TestStore> {
   return {
-    init: () => new TestStore()
+    init: () => new TestStore(),
   }
 }
 
 class CellValueEffect implements ReactiveEffect {
   cellValue!: Result<string, CellError>
 
-  constructor(private cellId: string) { }
+  constructor(private cellId: string) {}
 
   run(get: GetState): void {
     try {
@@ -49,6 +49,9 @@ export class TestStore {
   }
 
   printall() {
-    console.log("cell values", Array.from(this.cellValues.entries()).map(entry => entry.toString()))
+    console.log(
+      "cell values",
+      Array.from(this.cellValues.entries()).map((entry) => entry.toString()),
+    )
   }
 }

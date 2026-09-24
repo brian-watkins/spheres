@@ -1,5 +1,5 @@
 export class EffectLocation {
-  constructor(readonly findNode: (root: Node) => Node) { }
+  constructor(readonly findNode: (root: Node) => Node) {}
 
   nextSibling(): EffectLocation {
     return new EffectLocation((root) => this.findNode(root).nextSibling!)

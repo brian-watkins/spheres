@@ -1,10 +1,23 @@
-import { GetState, State } from "../../store/index.js";
-import { OverlayTokenRegistry } from "../../store/registry/overlayTokenRegistry.js";
-import { recordTokens } from "../../store/state/stateRecorder.js";
-import { generateStateManager, Subscribable, TokenRegistry, StateHandler, StateToken, StateWriter } from "../../store/tokenRegistry.js";
-import { ViewDefinition, ViewCaseMatcher, ViewMatcher, ViewConditionMatcher, UseCase } from "./viewRenderer.js";
+import { GetState, State } from "../../store/index.js"
+import { OverlayTokenRegistry } from "../../store/registry/overlayTokenRegistry.js"
+import { recordTokens } from "../../store/state/stateRecorder.js"
+import {
+  generateStateManager,
+  Subscribable,
+  TokenRegistry,
+  StateHandler,
+  StateToken,
+  StateWriter,
+} from "../../store/tokenRegistry.js"
+import {
+  ViewDefinition,
+  ViewCaseMatcher,
+  ViewMatcher,
+  ViewConditionMatcher,
+  UseCase,
+} from "./viewRenderer.js"
 import { Container } from "../../store/state/container.js"
-import { GuardingStateHandler } from "../../store/state/handler/guardingStateHandler.js";
+import { GuardingStateHandler } from "../../store/state/handler/guardingStateHandler.js"
 
 export interface TemplateCollection<T> {
   match(get: GetState): TemplateMatch<T>
@@ -34,7 +47,7 @@ interface MatcherCollectionBuilder<T> {
 export class MatcherBuilder<T> implements ViewMatcher {
   private builder: MatcherCollectionBuilder<T> | undefined
 
-  constructor(private createTemplate: (view: ViewDefinition, selectorId: number) => T) { }
+  constructor(private createTemplate: (view: ViewDefinition, selectorId: number) => T) {}
 
   get collection(): TemplateCollection<T> {
     return this.builder?.getCollection() ?? new EmptyCollection()
@@ -61,9 +74,15 @@ class CaseCollectionBuilder<T, S> implements ViewCaseMatcher<S>, MatcherCollecti
   private caseMatchers: Array<CaseMatcher<T, S, any>> = []
   private defaultMatcher: TemplateMatch<T> | undefined = undefined
 
-  constructor(private createTemplate: (view: ViewDefinition, matcherId: number) => T, private valueQuery: (get: GetState) => S) { }
+  constructor(
+    private createTemplate: (view: ViewDefinition, matcherId: number) => T,
+    private valueQuery: (get: GetState) => S,
+  ) {}
 
-  when<X extends S>(typePredicate: (val: S) => val is X, viewGenerator: (useCase: UseCase<X>) => ViewDefinition): ViewCaseMatcher<S> {
+  when<X extends S>(
+    typePredicate: (val: S) => val is X,
+    viewGenerator: (useCase: UseCase<X>) => ViewDefinition,
+  ): ViewCaseMatcher<S> {
     const index = this.caseMatchers.length
 
     this.caseMatchers.push({
@@ -82,10 +101,14 @@ class CaseCollectionBuilder<T, S> implements ViewCaseMatcher<S>, MatcherCollecti
           template,
           tokens,
           overlayRegistry: (registry) => {
-            return new CaseViewOverlayTokenRegistry(registry, (get) => typePredicate(this.valueQuery(get)), tokens)
+            return new CaseViewOverlayTokenRegistry(
+              registry,
+              (get) => typePredicate(this.valueQuery(get)),
+              tokens,
+            )
           },
         }
-      })
+      }),
     })
 
     return this
@@ -109,9 +132,9 @@ class CaseCollectionBuilder<T, S> implements ViewCaseMatcher<S>, MatcherCollecti
           // Note: No need for an overlay registry here as the default view does not get
           // a particular discrimiant as its state argument -- the guard provided by
           // the registry is not needed
-          overlayRegistry: (registry) => registry
+          overlayRegistry: (registry) => registry,
         }
-      })
+      }),
     }
   }
 
@@ -119,7 +142,7 @@ class CaseCollectionBuilder<T, S> implements ViewCaseMatcher<S>, MatcherCollecti
     return {
       match: (get) => {
         const val = this.valueQuery(get)
-        const matcher = this.caseMatchers.find(sel => sel.predicate(val))
+        const matcher = this.caseMatchers.find((sel) => sel.predicate(val))
         if (matcher === undefined) {
           return this.defaultMatcher ?? { type: "empty" }
         } else {
@@ -138,14 +161,14 @@ class ConditionCollectionBuilder<T> implements ViewConditionMatcher, MatcherColl
   private conditionMatchers: Array<ConditionMatcher<T>> = []
   private defaultMatcher: TemplateMatch<T> | undefined = undefined
 
-  constructor(private createTemplate: (view: ViewDefinition, selectorId: number) => T) { }
+  constructor(private createTemplate: (view: ViewDefinition, selectorId: number) => T) {}
 
   when(predicate: (get: GetState) => boolean, view: ViewDefinition): this {
     const index = this.conditionMatchers.length
     this.conditionMatchers.push({
       type: "view",
       predicate,
-      templateContext: memoize(() => this.buildTemplate(view, index))
+      templateContext: memoize(() => this.buildTemplate(view, index)),
     })
 
     return this
@@ -154,9 +177,7 @@ class ConditionCollectionBuilder<T> implements ViewConditionMatcher, MatcherColl
   default(view: ViewDefinition): void {
     this.defaultMatcher = {
       type: "view",
-      templateContext: memoize(() =>
-        this.buildTemplate(view, this.conditionMatchers.length)
-      )
+      templateContext: memoize(() => this.buildTemplate(view, this.conditionMatchers.length)),
     }
   }
 
@@ -169,14 +190,14 @@ class ConditionCollectionBuilder<T> implements ViewConditionMatcher, MatcherColl
     return {
       template,
       tokens,
-      overlayRegistry: (registry) => registry
+      overlayRegistry: (registry) => registry,
     }
   }
 
   getCollection(): TemplateCollection<T> {
     return {
       match: (get) => {
-        const selector = this.conditionMatchers.find(sel => sel.predicate(get))
+        const selector = this.conditionMatchers.find((sel) => sel.predicate(get))
         if (selector === undefined) {
           return this.defaultMatcher ?? { type: "empty" }
         }
@@ -206,7 +227,11 @@ function memoize<X>(fun: () => X): () => X {
 class CaseViewOverlayTokenRegistry extends OverlayTokenRegistry {
   private tokenMap: Map<State<any>, any> = new Map()
 
-  constructor(parentRegistry: TokenRegistry, private matcher: (get: GetState) => boolean, private tokens: Set<State<any>>) {
+  constructor(
+    parentRegistry: TokenRegistry,
+    private matcher: (get: GetState) => boolean,
+    private tokens: Set<State<any>>,
+  ) {
     super(parentRegistry)
   }
 
@@ -233,7 +258,7 @@ class CaseViewOverlayTokenRegistry extends OverlayTokenRegistry {
     return new GuardingStateHandler(
       this.parentRegistry,
       subscribable as unknown as StateWriter<any>,
-      this.matcher
+      this.matcher,
     )
   }
 }

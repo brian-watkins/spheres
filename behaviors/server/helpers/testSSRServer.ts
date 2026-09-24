@@ -1,15 +1,20 @@
-import fs from 'fs'
-import path from 'path'
-import { fileURLToPath } from 'url'
+import fs from "fs"
+import path from "path"
+import { fileURLToPath } from "url"
 import express, { Response } from "express"
 import { Server } from "http"
-import { PluginOption, RunnableDevEnvironment, ViteDevServer, createServer as createViteServer } from "vite"
-import { browserContext, BrowserTestInstrument } from 'best-behavior/browser'
+import {
+  PluginOption,
+  RunnableDevEnvironment,
+  ViteDevServer,
+  createServer as createViteServer,
+} from "vite"
+import { browserContext, BrowserTestInstrument } from "best-behavior/browser"
 import { useModule } from "best-behavior/transpiler"
-import { SSRParts, StreamingSSRParts } from './ssrApp.js'
-import { TestAppDisplay } from '../../helpers/testDisplay.js'
-import { spheres, SpheresPluginOptions } from '@server/index.js'
-import { Context, use } from 'best-behavior'
+import { SSRParts, StreamingSSRParts } from "./ssrApp.js"
+import { TestAppDisplay } from "../../helpers/testDisplay.js"
+import { spheres, SpheresPluginOptions } from "@server/index.js"
+import { Context, use } from "best-behavior"
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -18,7 +23,9 @@ export interface SSRTestAppContext {
   browser: TestBrowser
 }
 
-export function ssrTestAppContext(configure?: (server: TestSSRServer) => void): Context<SSRTestAppContext> {
+export function ssrTestAppContext(
+  configure?: (server: TestSSRServer) => void,
+): Context<SSRTestAppContext> {
   return use(browserContext(), {
     init: async (browser) => {
       const server = new TestSSRServer()
@@ -28,7 +35,7 @@ export function ssrTestAppContext(configure?: (server: TestSSRServer) => void): 
 
       return {
         server: server,
-        browser: new TestBrowser(browser)
+        browser: new TestBrowser(browser),
       }
     },
     teardown: async (context) => {
@@ -36,13 +43,12 @@ export function ssrTestAppContext(configure?: (server: TestSSRServer) => void): 
         await context.browser.browser.page.close()
         await context.server.close()
       }
-    }  
+    },
   })
 }
 
-
 class TestBrowser {
-  constructor(public browser: BrowserTestInstrument) { }
+  constructor(public browser: BrowserTestInstrument) {}
 
   get display(): TestAppDisplay {
     return new TestAppDisplay(this.browser.page)
@@ -110,35 +116,34 @@ export class TestSSRServer {
 
     this.viteDevServer = await createViteServer({
       optimizeDeps: {
-        noDiscovery: true
+        noDiscovery: true,
       },
       server: {
         port: 9898,
         middlewareMode: true,
-        hmr: false
+        hmr: false,
       },
       plugins: this.getVitePlugins(),
       resolve: {
-        tsconfigPaths: true
+        tsconfigPaths: true,
       },
-      appType: "custom"
+      appType: "custom",
     })
 
     app.use(this.viteDevServer.middlewares)
 
     app.get("/app", (_, res, next) => {
-      this.renderer?.renderResponse(this.viteDevServer!, res)
-        .catch((err) => {
-          this.viteDevServer!.ssrFixStacktrace(err)
-          next(err)
-        })
+      this.renderer?.renderResponse(this.viteDevServer!, res).catch((err) => {
+        this.viteDevServer!.ssrFixStacktrace(err)
+        next(err)
+      })
     })
 
     this.server = app.listen(9899)
   }
 
   async close(): Promise<void> {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       this.viteDevServer?.close().then(() => {
         this.server?.closeAllConnections()
         this.server?.close(() => {
@@ -154,13 +159,11 @@ interface ServerSideRenderer {
 }
 
 function sendHTMLResponse(res: Response, html: string): void {
-  res.status(200)
-    .set({ 'Content-Type': 'text/html' })
-    .end(html)
+  res.status(200).set({ "Content-Type": "text/html" }).end(html)
 }
 
 class PageRenderer implements ServerSideRenderer {
-  constructor(private path: string) { }
+  constructor(private path: string) {}
 
   async renderResponse(viteDevServer: ViteDevServer, res: Response): Promise<void> {
     const devEnvironment = viteDevServer.environments.server as RunnableDevEnvironment
@@ -170,13 +173,10 @@ class PageRenderer implements ServerSideRenderer {
 }
 
 class TemplateRenderer implements ServerSideRenderer {
-  constructor(private contentOptions: SsrAppOptions) { }
+  constructor(private contentOptions: SsrAppOptions) {}
 
   async renderResponse(viteDevServer: ViteDevServer, res: Response): Promise<void> {
-    let template = fs.readFileSync(
-      path.resolve(__dirname, this.contentOptions.template),
-      'utf-8',
-    )
+    let template = fs.readFileSync(path.resolve(__dirname, this.contentOptions.template), "utf-8")
 
     template = await viteDevServer.transformIndexHtml("index.html", template)
 
@@ -190,15 +190,15 @@ class TemplateRenderer implements ServerSideRenderer {
 }
 
 class StreamingRenderer implements ServerSideRenderer {
-  constructor(private contentOptions: StreamingSsrAppOptions) { }
+  constructor(private contentOptions: StreamingSsrAppOptions) {}
 
   async renderResponse(_: ViteDevServer, res: Response): Promise<void> {
     const viewRenderer = await useModule(this.contentOptions.view)
     const ssrParts: StreamingSSRParts = viewRenderer.default()
 
     res.writeHead(200, {
-      'Content-Type': 'text/html',
-      'Transfer-Encoding': 'chunked'
+      "Content-Type": "text/html",
+      "Transfer-Encoding": "chunked",
     })
 
     for await (const chunk of ssrParts.stream) {

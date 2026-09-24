@@ -1,6 +1,21 @@
-import { DomCommandActions, HTMLView, RenderResult, renderToDOM, withDomActions } from "@view/index.js"
+import {
+  DomCommandActions,
+  HTMLView,
+  RenderResult,
+  renderToDOM,
+  withDomActions,
+} from "@view/index.js"
 import { Context } from "best-behavior"
-import { Collection, Command, createStore, StateManifest, Store, useCommand, WritableState, write } from "@store/index.js"
+import {
+  Collection,
+  Command,
+  createStore,
+  StateManifest,
+  Store,
+  useCommand,
+  WritableState,
+  write,
+} from "@store/index.js"
 import { createStringRenderer } from "@server/index"
 import { activateView, activateZone, prepareForStreaming, StreamingAppWindow } from "@view/activate"
 import { DOMChangeRecord, structureChangeRecord, textChangeRecord } from "./changeRecords"
@@ -35,7 +50,11 @@ export class RenderApp<T> {
     this.store.dispatch(write(token, value))
   }
 
-  writeToCollection<K, M, S extends WritableState<unknown, M>>(collection: Collection<K, S>, key: K, value: M) {
+  writeToCollection<K, M, S extends WritableState<unknown, M>>(
+    collection: Collection<K, S>,
+    key: K,
+    value: M,
+  ) {
     this.store.dispatch(write(collection.at(key), value))
   }
 
@@ -76,7 +95,7 @@ export class RenderApp<T> {
       stateManifest,
       setupView(activate) {
         activate(document.body, view)
-      }
+      },
     })
   }
 
@@ -93,10 +112,12 @@ export class RenderApp<T> {
             this.changeRecords.push(textChangeRecord())
             break
           case "childList":
-            this.changeRecords.push(structureChangeRecord({
-              removedNodes: mutation.removedNodes.length,
-              addedNodes: mutation.addedNodes.length
-            }))
+            this.changeRecords.push(
+              structureChangeRecord({
+                removedNodes: mutation.removedNodes.length,
+                addedNodes: mutation.addedNodes.length,
+              }),
+            )
             break
         }
       }
@@ -105,7 +126,7 @@ export class RenderApp<T> {
     this.observer.observe(target, {
       childList: true,
       subtree: true,
-      characterData: true
+      characterData: true,
     })
   }
 
@@ -122,12 +143,12 @@ export function renderContext<T = undefined>(): Context<RenderApp<T>> {
     init: async () => {
       window._testApp?.destroy()
       // reset the mouse position in case it moved in the previous example
-      await usePage(page => page.mouse.move(0, 0))
+      await usePage((page) => page.mouse.move(0, 0))
       return new RenderApp()
     },
     teardown: async (testApp) => {
       window._testApp = testApp
-    }
+    },
   }
 }
 

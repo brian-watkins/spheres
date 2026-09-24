@@ -1,25 +1,40 @@
-import { container, update, use, write } from "@store/index.js";
-import { HTMLBuilder, HTMLView, UseItem } from "@view/index.js";
+import { container, update, use, write } from "@store/index.js"
+import { HTMLBuilder, HTMLView, UseItem } from "@view/index.js"
 
 function funTemplate(useItem: UseItem<string>): HTMLView {
-  return root => {
-    root.subviewMatching(select => select.withConditions().when(get => get(showLabels), root => {
-      root.div(el => {
-        el.children
-          .h3(el => {
-            el.config.dataAttribute("toggleable-view")
-            el.children.textNode(useItem((item) => `You are ${item.data}!`))
+  return (root) => {
+    root.subviewMatching((select) =>
+      select.withConditions().when(
+        (get) => get(showLabels),
+        (root) => {
+          root.div((el) => {
+            el.children
+              .h3((el) => {
+                el.config.dataAttribute("toggleable-view")
+                el.children.textNode(useItem((item) => `You are ${item.data}!`))
+              })
+              .button((el) => {
+                el.config
+                  .dataAttribute(
+                    "delete-button",
+                    useItem((item) => item.data),
+                  )
+                  .on("click", () =>
+                    use(
+                      useItem((item, get) => {
+                        return write(
+                          names,
+                          get(names).filter((n) => n !== item.data),
+                        )
+                      }),
+                    ),
+                  )
+                el.children.textNode("Delete")
+              })
           })
-          .button(el => {
-            el.config
-              .dataAttribute("delete-button", useItem((item) => item.data))
-              .on("click", () => use(useItem((item, get) => {
-                return write(names, get(names).filter(n => n !== item.data))
-              })))
-            el.children.textNode("Delete")
-          })
-      })
-    }))
+        },
+      ),
+    )
   }
 }
 
@@ -27,11 +42,11 @@ const names = container<Array<string>>({ initialValue: ["cool", "awesome", "fun"
 const showLabels = container({ initialValue: true })
 
 export default function (root: HTMLBuilder) {
-  root.main(el => {
+  root.main((el) => {
     el.children
-      .subviews(get => get(names), funTemplate)
+      .subviews((get) => get(names), funTemplate)
       .hr()
-      .button(el => {
+      .button((el) => {
         el.config
           .dataAttribute("toggle-button")
           .on("click", () => update(showLabels, (val) => !val))

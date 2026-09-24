@@ -1,10 +1,13 @@
-import { GetState } from "../../../store/index.js";
-import { StateEffect, Stateful, StateListenerType } from "../../../store/tokenRegistry.js";
+import { GetState } from "../../../store/index.js"
+import { StateEffect, Stateful, StateListenerType } from "../../../store/tokenRegistry.js"
 
 export class UpdatePropertyEffect implements StateEffect {
   readonly type = StateListenerType.ElementEffect
 
-  constructor(private property: string, private generator: Stateful<any>) { }
+  constructor(
+    private property: string,
+    private generator: Stateful<any>,
+  ) {}
 
   init(get: GetState, element: Node): void {
     const val = this.generator(get)

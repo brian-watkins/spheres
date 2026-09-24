@@ -15,9 +15,7 @@
   "postCreateCommand": ".devcontainer/setup.sh",
   "customizations": {
     "vscode": {
-      "extensions": [
-        "k--kato.intellij-idea-keybindings"
-      ]
+      "extensions": ["k--kato.intellij-idea-keybindings"]
     }
   }
 }

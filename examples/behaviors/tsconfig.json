@@ -4,16 +4,9 @@
     "noEmit": true,
     "rootDir": "./",
     "paths": {
-      "@src/*": [
-        "../src/*"
-      ],
-    },
+      "@src/*": ["../src/*"]
+    }
   },
-  "include": [
-    "./**/*",
-  ],
-  "references": [
-    { "path": "../" },
-    { "path": "../../" }
-  ]
+  "include": ["./**/*"],
+  "references": [{ "path": "../" }, { "path": "../../" }]
 }

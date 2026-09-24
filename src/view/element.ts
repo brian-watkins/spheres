@@ -1,5 +1,5 @@
-import { CommandActions, CommandManager, supplied, SuppliedState } from "../store/index.js";
-import { TokenRegistry } from "../store/tokenRegistry.js";
+import { CommandActions, CommandManager, supplied, SuppliedState } from "../store/index.js"
+import { TokenRegistry } from "../store/tokenRegistry.js"
 
 declare const elementType: unique symbol
 const elementToken = Symbol("elementToken")
@@ -15,7 +15,11 @@ export function elementIdentifier<T extends Element = Element>(): ElementIdentif
   return { [elementToken]: supplied({ initialValue: undefined }) }
 }
 
-export function storeElement(registry: TokenRegistry, identifier: ElementIdentifier<any>, element: Element) {
+export function storeElement(
+  registry: TokenRegistry,
+  identifier: ElementIdentifier<any>,
+  element: Element,
+) {
   const publisher = registry.getState(identifier[elementToken])
   publisher.publish(element)
 }
@@ -38,11 +42,13 @@ export function withDomActions<M>(manager: DomCommandManager<M>): CommandManager
         getElement(identifier) {
           const element = actions.get(identifier[elementToken])
           if (element === undefined) {
-            throw new Error("Attempt to resolve an unknown element identifier! Use the elementIdentifier method when configuring a view element to associate the identifier with an element.")
+            throw new Error(
+              "Attempt to resolve an unknown element identifier! Use the elementIdentifier method when configuring a view element to associate the identifier with an element.",
+            )
           }
           return element
-        }
+        },
       })
-    }
+    },
   }
 }

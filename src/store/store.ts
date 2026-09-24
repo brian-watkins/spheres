@@ -2,7 +2,21 @@ import { Container } from "./state/container.js"
 import { dispatchMessage, StoreMessage } from "./message.js"
 import { error, meta, ok, pending } from "./state/meta.js"
 import { WeakMapTokenRegistry } from "./registry/weakMapTokenRegistry.js"
-import { Command, getStateHandler, GetState, initializeCommand, initListener, StateEffect, StateListenerType, State, Subscriber, TokenRegistry, PublishableState, StateBatch, runQuery } from "./tokenRegistry.js"
+import {
+  Command,
+  getStateHandler,
+  GetState,
+  initializeCommand,
+  initListener,
+  StateEffect,
+  StateListenerType,
+  State,
+  Subscriber,
+  TokenRegistry,
+  PublishableState,
+  StateBatch,
+  runQuery,
+} from "./tokenRegistry.js"
 import { CommandManager, ManagedCommandController } from "./command/managedCommandController.js"
 import { RootTokenRegistry } from "./registry/rootTokenRegistry.js"
 import { Writable, WritableTarget } from "./state/handler/writable.js"
@@ -34,7 +48,7 @@ export interface ContainerHooks<T, M, E = unknown> {
 }
 
 export interface RegisterHookActions {
-  get: GetState,
+  get: GetState
   supply(value: any): void
   pending(value?: any): void
   error(reason: any, value: any): void
@@ -74,7 +88,9 @@ export class Store {
     }
   }
 
-  private initialize(initializer: (actions: StoreInitializerActions, store: Store) => Promise<void>): Promise<void> {
+  private initialize(
+    initializer: (actions: StoreInitializerActions, store: Store) => Promise<void>,
+  ): Promise<void> {
     return initializer(initializerActions(this.registry), this)
   }
 
@@ -103,7 +119,11 @@ export function useEffect(store: Store, effect: ReactiveEffect): ReactiveEffectH
   return new EffectListener(getTokenRegistry(store), effect)
 }
 
-export function useCommand<M>(store: Store, command: Command<M>, manager: CommandManager<NoInfer<M>>) {
+export function useCommand<M>(
+  store: Store,
+  command: Command<M>,
+  manager: CommandManager<NoInfer<M>>,
+) {
   const registry = getTokenRegistry(store)
   const controller = new ManagedCommandController(manager)
   registry.setCommand(command, controller)
@@ -121,7 +141,7 @@ export function useHooks(store: Store, hooks: StoreHooks) {
     // to pass the batch in the supply case.
     hooks.onRegister(token, {
       get: (state) => {
-        return runQuery(registry, get => get(state), batch)
+        return runQuery(registry, (get) => get(state), batch)
       },
       supply: (value) => {
         token[getStateHandler](registry).publish(value)
@@ -131,12 +151,16 @@ export function useHooks(store: Store, hooks: StoreHooks) {
       },
       error: (reason, value) => {
         meta(token)[getStateHandler](registry).publish(error(reason, value))
-      }
+      },
     })
   })
 }
 
-export function useContainerHooks<T, M, E>(store: Store, container: Container<T, M, E>, hooks: ContainerHooks<NoInfer<T>, NoInfer<M>, NoInfer<E>>) {
+export function useContainerHooks<T, M, E>(
+  store: Store,
+  container: Container<T, M, E>,
+  hooks: ContainerHooks<NoInfer<T>, NoInfer<M>, NoInfer<E>>,
+) {
   const registry = getTokenRegistry(store)
   const writable = registry.getState(container) as Writable<T, M>
   if (hooks.onWrite) {
@@ -148,17 +172,22 @@ export function useContainerHooks<T, M, E>(store: Store, container: Container<T,
 
 function initializerActions(registry: TokenRegistry): StoreInitializerActions {
   return {
-    get: (state) => runQuery(registry, get => get(state)),
+    get: (state) => runQuery(registry, (get) => get(state)),
     supply: <T>(writable: PublishableState<T>, value: T) => {
       writable[getStateHandler](registry).publish(value)
-    }
+    },
   }
 }
 
-function containerWriteActions<T, M, E>(registry: TokenRegistry, container: Container<T, M>, writable: WritableTarget<T, M>, batch: StateBatch | undefined): WriteHookActions<T, M, E> {
+function containerWriteActions<T, M, E>(
+  registry: TokenRegistry,
+  container: Container<T, M>,
+  writable: WritableTarget<T, M>,
+  batch: StateBatch | undefined,
+): WriteHookActions<T, M, E> {
   return {
     get: (state) => {
-      return runQuery(registry, get => get(state), batch)
+      return runQuery(registry, (get) => get(state), batch)
     },
     ok: (message) => {
       writable.write(message, batch)
@@ -170,7 +199,7 @@ function containerWriteActions<T, M, E>(registry: TokenRegistry, container: Cont
     error: (reason, message) => {
       registry.getState(meta(container)).publish(error(reason, message), batch)
     },
-    current: writable.getValue()
+    current: writable.getValue(),
   }
 }
 
@@ -179,7 +208,10 @@ class EffectListener implements StateEffect, ReactiveEffectHandle {
   private dependencies = new Set<State<any>>()
   private subscriber: Subscriber
 
-  constructor(private registry: TokenRegistry, private effect: ReactiveEffect) {
+  constructor(
+    private registry: TokenRegistry,
+    private effect: ReactiveEffect,
+  ) {
     this.subscriber = initListener(registry, this)
   }
 

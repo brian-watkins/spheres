@@ -1,17 +1,21 @@
-import { use, write } from "spheres/store";
-import { FlightTypes, allowReturnDate, bookFlight, bookingAllowed, flightType, returnDate, returnDateIsValid, startDate, startDateIsValid } from "./state.js";
-import { names, useValue } from "../helpers/helpers.js";
-import { HTMLBuilder } from "../../../src/view/index.js";
+import { use, write } from "spheres/store"
+import {
+  FlightTypes,
+  allowReturnDate,
+  bookFlight,
+  bookingAllowed,
+  flightType,
+  returnDate,
+  returnDateIsValid,
+  startDate,
+  startDateIsValid,
+} from "./state.js"
+import { names, useValue } from "../helpers/helpers.js"
+import { HTMLBuilder } from "../../../src/view/index.js"
 
 export function flightBooker(root: HTMLBuilder) {
-  root.main(el => {
-    el.config
-      .class(names([
-        "flex",
-        "flex-col",
-        "gap-2",
-        "w-96"
-      ]))
+  root.main((el) => {
+    el.config.class(names(["flex", "flex-col", "gap-2", "w-96"]))
     el.children
       .subview(flightTypeSelect)
       .subview(startDateInput)
@@ -21,60 +25,68 @@ export function flightBooker(root: HTMLBuilder) {
 }
 
 function flightTypeSelect(root: HTMLBuilder) {
-  root.select(el => {
-    el.config.on("change", useValue((value) => write(flightType, value)))
+  root.select((el) => {
+    el.config.on(
+      "change",
+      useValue((value) => write(flightType, value)),
+    )
     el.children
-      .option(el => {
+      .option((el) => {
         el.children.textNode(FlightTypes.ONE_WAY)
       })
-      .option(el => {
+      .option((el) => {
         el.children.textNode(FlightTypes.RETURN)
       })
   })
 }
 
 function bookFlightButton(root: HTMLBuilder) {
-  root.button(el => {
+  root.button((el) => {
     el.config
-      .class(names([
-        "bg-sky-600",
-        "text-slate-100",
-        "font-bold",
-        "text-xl",
-        "px-8",
-        "py-4",
-        "disabled:bg-slate-400",
-        "hover:bg-sky-800"
-      ]))
+      .class(
+        names([
+          "bg-sky-600",
+          "text-slate-100",
+          "font-bold",
+          "text-xl",
+          "px-8",
+          "py-4",
+          "disabled:bg-slate-400",
+          "hover:bg-sky-800",
+        ]),
+      )
       .on("click", () => use(bookFlight))
       .disabled((get) => !get(bookingAllowed))
-    el.children
-      .textNode("Book Flight!")
+    el.children.textNode("Book Flight!")
   })
 }
 
-
 function startDateInput(root: HTMLBuilder) {
-  root.input(el => {
+  root.input((el) => {
     el.config
       .dataAttribute("start-date")
       .class((get) => textInputClasses(get(startDateIsValid)))
       .value((get) => get(startDate))
-      .on("input", useValue((value) => write(startDate, value)))
+      .on(
+        "input",
+        useValue((value) => write(startDate, value)),
+      )
   })
 }
 
 function returnDateInput(root: HTMLBuilder) {
-  root.input(el => {
+  root.input((el) => {
     el.config
       .dataAttribute("return-date")
       .class((get) => textInputClasses(get(returnDateIsValid)))
       .value((get) => get(returnDate))
       .disabled((get) => !get(allowReturnDate))
-      .on("input", useValue((value) => write(returnDate, value)))
+      .on(
+        "input",
+        useValue((value) => write(returnDate, value)),
+      )
   })
 }
-
 
 function textInputClasses(isValid: boolean): string {
   let classes = [

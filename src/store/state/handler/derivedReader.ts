@@ -1,9 +1,4 @@
-import {
-  GetState,
-  StateDerivation,
-  StateListenerType,
-  StateReader,
-} from "../../tokenRegistry.js"
+import { GetState, StateDerivation, StateListenerType, StateReader } from "../../tokenRegistry.js"
 import { Reconciler } from "../reconciler.js"
 import { SubscriberSet } from "./subscriberSet.js"
 
@@ -16,7 +11,7 @@ export class DerivedStateReader<T>
 
   constructor(
     private derivation: (get: GetState) => T,
-    private reconciler?: Reconciler<T>
+    private reconciler?: Reconciler<T>,
   ) {
     super()
   }
@@ -44,8 +39,6 @@ export class DerivedStateReader<T>
 
   private calculateValue(get: GetState): T {
     const derived = this.derivation(get)
-    return this.reconciler !== undefined
-      ? this.reconciler(this.value, derived)
-      : derived
+    return this.reconciler !== undefined ? this.reconciler(this.value, derived) : derived
   }
 }

@@ -1,11 +1,34 @@
-import { behavior, effect, example, fact, step } from "best-behavior";
-import { renderContext } from "./helpers/renderContext";
-import { command, CommandManager, Container, container, exec, use, useCommand, write } from "@store/index";
-import { DomCommandActions, elementIdentifier, ElementIdentifier, withDomActions } from "@view/element";
-import { selectElement } from "./helpers/displayElement";
-import { arrayWith, equalTo, expect, is, objectWithProperty, resolvesTo, stringContaining, throws } from "great-expectations";
-import { useValue } from "../view/fixtures/helpers";
-import { HTMLView, UseItem } from "@view/index";
+import { behavior, effect, example, fact, step } from "best-behavior"
+import { renderContext } from "./helpers/renderContext"
+import {
+  command,
+  CommandManager,
+  Container,
+  container,
+  exec,
+  use,
+  useCommand,
+  write,
+} from "@store/index"
+import {
+  DomCommandActions,
+  elementIdentifier,
+  ElementIdentifier,
+  withDomActions,
+} from "@view/element"
+import { selectElement } from "./helpers/displayElement"
+import {
+  arrayWith,
+  equalTo,
+  expect,
+  is,
+  objectWithProperty,
+  resolvesTo,
+  stringContaining,
+  throws,
+} from "great-expectations"
+import { useValue } from "../view/fixtures/helpers"
+import { HTMLView, UseItem } from "@view/index"
 
 interface CommandMessage {
   syncedElement: ElementIdentifier<HTMLInputElement>
@@ -15,7 +38,6 @@ const customDomCommand = command<CommandMessage>()
 const inputState = container({ initialValue: "nothing" })
 
 export default behavior("dom command manager", [
-
   example(renderContext())
     .description("getting an element that does not resolve in a custom command manager")
     .script({
@@ -28,15 +50,18 @@ export default behavior("dom command manager", [
         }),
       ],
       observe: [
-        effect("an error is thrown when a resolved identifier does not reference an element", (app) => {
-          expect(() => {
-            app.store.dispatch(exec(
-              customDomCommand,
-              { syncedElement: elementIdentifier() }
-            ))
-          }, throws(objectWithProperty("message", stringContaining("unknown element identifier"))))
-        })
-      ]
+        effect(
+          "an error is thrown when a resolved identifier does not reference an element",
+          (app) => {
+            expect(
+              () => {
+                app.store.dispatch(exec(customDomCommand, { syncedElement: elementIdentifier() }))
+              },
+              throws(objectWithProperty("message", stringContaining("unknown element identifier"))),
+            )
+          },
+        ),
+      ],
     }),
 
   example(renderContext())
@@ -52,69 +77,67 @@ export default behavior("dom command manager", [
           })
         }),
         fact("there is a view that invokes the command", (app) => {
-          app.mountView(root => {
+          app.mountView((root) => {
             const syncedElementId = elementIdentifier<HTMLInputElement>()
-            root.main(el => {
+            root.main((el) => {
               el.children
-                .input(el => {
+                .input((el) => {
                   el.config
                     .type("text")
                     .dataAttribute("initial-input")
-                    .on("input", useValue(val => write(inputState, val)))
+                    .on(
+                      "input",
+                      useValue((val) => write(inputState, val)),
+                    )
                 })
-                .input(el => {
+                .input((el) => {
                   el.config
                     .elementIdentifier(syncedElementId)
                     .type("text")
                     .dataAttribute("synced-input")
                 })
                 .hr()
-                .button(el => {
+                .button((el) => {
                   el.config.on("click", () => {
                     return exec(customDomCommand, {
-                      syncedElement: syncedElementId
+                      syncedElement: syncedElementId,
                     })
                   })
                   el.children.textNode("Sync inputs!")
                 })
             })
           })
-        })
+        }),
       ],
       observe: [
         effect("the synced input is not focused", async () => {
-          await expect(
-            selectElement("input[data-synced-input]").isFocused(),
-            resolvesTo(false)
-          )
+          await expect(selectElement("input[data-synced-input]").isFocused(), resolvesTo(false))
         }),
         effect("the synced input value is empty", async () => {
-          await expect(
-            selectElement("input[data-synced-input]").inputValue(),
-            resolvesTo("")
-          )
-        })
-      ]
-    }).andThen({
+          await expect(selectElement("input[data-synced-input]").inputValue(), resolvesTo(""))
+        }),
+      ],
+    })
+    .andThen({
       perform: [
         step("type some text in the input", async () => {
           await selectElement("input[data-initial-input]").type("Something cool!")
         }),
         step("click the button to focus the element and transfer the text", async () => {
           await selectElement("button").click()
-        })
+        }),
       ],
       observe: [
         effect("the synced input is focused", async () => {
-          await expect(
-            selectElement("input[data-synced-input]").isFocused(),
-            resolvesTo(true)
-          )
+          await expect(selectElement("input[data-synced-input]").isFocused(), resolvesTo(true))
         }),
         effect("the synced input value has the value from the other input", async () => {
-          await expect(selectElement("input[data-synced-input]").inputValue(), resolvesTo("Something cool!"))
-        })
-      ]
+          await expect(
+            selectElement("input[data-synced-input]").inputValue(),
+            resolvesTo("Something cool!"),
+          )
+        }),
+      ],
     }),
 
   example(renderContext<DisconnectionContext>())
@@ -127,29 +150,37 @@ export default behavior("dom command manager", [
         fact("there is state", (app) => {
           app.setState({
             disconnections: [],
-            listData: container({ initialValue: ["one", "two", "three"] })
+            listData: container({ initialValue: ["one", "two", "three"] }),
           })
         }),
         fact("there is a view with a list", (app) => {
           function itemView(useItem: UseItem<string>): HTMLView {
             const id = elementIdentifier()
 
-            return root => {
-              root.div(el => {
+            return (root) => {
+              root.div((el) => {
                 el.children
-                  .h1(el => {
+                  .h1((el) => {
                     el.config.elementIdentifier(id)
-                    el.children.textNode(useItem(item => item.data))
+                    el.children.textNode(useItem((item) => item.data))
                   })
-                  .button(el => {
-                    el.config.dataAttribute("item", useItem(item => item.data))
+                  .button((el) => {
+                    el.config
+                      .dataAttribute(
+                        "item",
+                        useItem((item) => item.data),
+                      )
                       .on("click", () => {
-                        return use(useItem(item => exec(onDisconnectElement, {
-                          element: id,
-                          effect: () => {
-                            app.state.disconnections.push(item.data)
-                          }
-                        })))
+                        return use(
+                          useItem((item) =>
+                            exec(onDisconnectElement, {
+                              element: id,
+                              effect: () => {
+                                app.state.disconnections.push(item.data)
+                              },
+                            }),
+                          ),
+                        )
                       })
                     el.children.textNode("Click to alert on disconnect")
                   })
@@ -157,13 +188,13 @@ export default behavior("dom command manager", [
             }
           }
 
-          app.mountView(root => {
-            root.main(el => {
+          app.mountView((root) => {
+            root.main((el) => {
               el.config.elementIdentifier(appRoot)
-              el.children.subviews(get => get(app.state.listData), itemView)
+              el.children.subviews((get) => get(app.state.listData), itemView)
             })
           })
-        })
+        }),
       ],
       perform: [
         step("select some elements to be notified on disconnect", async () => {
@@ -172,17 +203,17 @@ export default behavior("dom command manager", [
         }),
         step("update the list data to remove some elements", (app) => {
           app.writeTo(app.state.listData, ["one", "seven", "nine"])
-        })
+        }),
       ],
       observe: [
         effect("the disconnection effects were called", (app) => {
-          expect(app.state.disconnections, is(arrayWith([
-            equalTo("two"), equalTo("three")
-          ], { withAnyOrder: true })))
-        })
-      ]
-    })
-
+          expect(
+            app.state.disconnections,
+            is(arrayWith([equalTo("two"), equalTo("three")], { withAnyOrder: true })),
+          )
+        }),
+      ],
+    }),
 ])
 
 interface DisconnectionContext {
@@ -228,12 +259,11 @@ class DomMutationManager implements CommandManager<DisconnectElementConfig> {
         this.observer = undefined
       }
     })
-    
+
     this.observer.observe(root, {
       attributes: false,
       childList: true,
-      subtree: true
+      subtree: true,
     })
   }
-
 }

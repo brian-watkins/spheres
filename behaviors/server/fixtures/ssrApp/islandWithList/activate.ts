@@ -8,5 +8,5 @@ activateZone({
     activate(document.querySelector("#item-form")!, itemInput)
     activate(document.querySelector("OL")!, itemList)
     activate(document.querySelector("[data-title]")!, titleText)
-  }
+  },
 })

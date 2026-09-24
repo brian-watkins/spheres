@@ -1,12 +1,26 @@
-import { createSubscriber, StateBatch, StateDerivation, StateListenerType, StateWriter, Subscriber, TokenRegistry } from "../../tokenRegistry.js"
+import {
+  createSubscriber,
+  StateBatch,
+  StateDerivation,
+  StateListenerType,
+  StateWriter,
+  Subscriber,
+  TokenRegistry,
+} from "../../tokenRegistry.js"
 import { SubscriberSet } from "./subscriberSet.js"
 
-export class OverlayStateHandler extends SubscriberSet implements StateWriter<any, any>, StateDerivation {
+export class OverlayStateHandler
+  extends SubscriberSet
+  implements StateWriter<any, any>, StateDerivation
+{
   readonly type = StateListenerType.Derivation
   private subscriber: Subscriber
   private isSubscribed: boolean = false
 
-  constructor(registry: TokenRegistry, private parent: StateWriter<any, any>) {
+  constructor(
+    registry: TokenRegistry,
+    private parent: StateWriter<any, any>,
+  ) {
     super()
     this.subscriber = createSubscriber(registry, this)
   }
@@ -19,7 +33,7 @@ export class OverlayStateHandler extends SubscriberSet implements StateWriter<an
     super.addSubscriber(subscriber)
   }
 
-  init(): void { }
+  init(): void {}
 
   run(): void {
     this.runSubscribers()

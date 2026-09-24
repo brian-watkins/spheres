@@ -1,11 +1,15 @@
 import { VirtualItem } from "./virtualItem.js"
 
 export enum PatchResult {
-  Survive, Delete, Replace
+  Survive,
+  Delete,
+  Replace,
 }
 
 export enum ListUpdateType {
-  Insert, Delete, Change
+  Insert,
+  Delete,
+  Change,
 }
 
 export interface ListInsert {
@@ -67,7 +71,7 @@ export class ListPatch {
         this.setItem(item)
         this.addUpdate({
           type: ListUpdateType.Delete,
-          item
+          item,
         })
         item.patchResult = PatchResult.Delete
         item = item.next
@@ -92,7 +96,7 @@ export class ListPatch {
           type: ListUpdateType.Insert,
           data: data[index],
           before: item,
-          index
+          index,
         })
 
         index = index + 1
@@ -106,7 +110,7 @@ export class ListPatch {
         this.setItem(item)
         this.addUpdate({
           type: ListUpdateType.Delete,
-          item
+          item,
         })
 
         if (item.next !== undefined) {
@@ -125,7 +129,7 @@ export class ListPatch {
         type: ListUpdateType.Change,
         item,
         data: data[index],
-        index
+        index,
       })
 
       this.setItem(item)

@@ -1,25 +1,21 @@
-import { behavior, effect, example, fact, step } from "best-behavior";
-import { expect, resolvesTo } from "great-expectations";
-import { testCirclesApp } from "./helpers/testApp.js";
-import { testCircle } from "./helpers/fakeCircle.js";
+import { behavior, effect, example, fact, step } from "best-behavior"
+import { expect, resolvesTo } from "great-expectations"
+import { testCirclesApp } from "./helpers/testApp.js"
+import { testCircle } from "./helpers/fakeCircle.js"
 
 export default behavior("Adjust Radius", [
-
   example(testCirclesApp)
     .description("opening and closing the options popover")
     .script({
       suppose: [
         fact("the app is rendered", async (context) => {
-          await context.renderAppWithCircles([
-            testCircle(50, 50),
-            testCircle(120, 120)
-          ])
-        })
+          await context.renderAppWithCircles([testCircle(50, 50), testCircle(120, 120)])
+        }),
       ],
       perform: [
         step("the popover is opened", async (context) => {
           await context.display.openOptionsForCircleCenteredAt(50, 50)
-        })
+        }),
       ],
       observe: [
         effect("the popover is visible", async (context) => {
@@ -30,16 +26,17 @@ export default behavior("Adjust Radius", [
         }),
         effect("the other circle is not highlighted", async (context) => {
           await expect(context.display.circleCenteredAt(120, 120).isHighlighted, resolvesTo(false))
-        })
-      ]
-    }).andThen({
+        }),
+      ],
+    })
+    .andThen({
       perform: [
         step("click outside the popover", async (context) => {
           await context.display.selectElement("body").click({ x: 2, y: 2 })
         }),
         step("wait until the selected circle is no longer highlighted", async (context) => {
           await context.display.circleCenteredAt(50, 50).waitUntilTransparent()
-        })
+        }),
       ],
       observe: [
         effect("the popover is closed", async (context) => {
@@ -47,8 +44,8 @@ export default behavior("Adjust Radius", [
         }),
         effect("the circle to be adjusted is no longer highlighted", async (context) => {
           await expect(context.display.circleCenteredAt(50, 50).isHighlighted, resolvesTo(false))
-        })
-      ]
+        }),
+      ],
     }),
 
   example(testCirclesApp)
@@ -56,19 +53,17 @@ export default behavior("Adjust Radius", [
     .script({
       suppose: [
         fact("there are some circles", async (context) => {
-          await context.renderAppWithCircles([
-            testCircle(100, 120),
-            testCircle(320, 200)
-          ])
-        })
+          await context.renderAppWithCircles([testCircle(100, 120), testCircle(320, 200)])
+        }),
       ],
       observe: [
         effect("the radius for both circles is 20 by default", async (context) => {
           await expect(context.display.circleCenteredAt(100, 120).radius, resolvesTo(20))
           await expect(context.display.circleCenteredAt(320, 200).radius, resolvesTo(20))
-        })
-      ]
-    }).andThen({
+        }),
+      ],
+    })
+    .andThen({
       perform: [
         step("open the options for the circle", async (context) => {
           await context.display.openOptionsForCircleCenteredAt(320, 200)
@@ -78,7 +73,7 @@ export default behavior("Adjust Radius", [
         }),
         step("Adjust diameter to 90 for one circle", async (context) => {
           await context.display.radiusInput.setValue("45")
-        })
+        }),
       ],
       observe: [
         effect("the radius for the adjusted circle is 45", async (context) => {
@@ -86,9 +81,10 @@ export default behavior("Adjust Radius", [
         }),
         effect("the radius for the other circle is unaffected", async (context) => {
           await expect(context.display.circleCenteredAt(100, 120).radius, resolvesTo(20))
-        })
-      ]
-    }).andThen({
+        }),
+      ],
+    })
+    .andThen({
       perform: [
         step("close the options", async (context) => {
           await context.display.closeCircleOptions()
@@ -101,7 +97,7 @@ export default behavior("Adjust Radius", [
         }),
         step("Adjust diameter to 90 for one circle", async (context) => {
           await context.display.radiusInput.setValue("8")
-        })
+        }),
       ],
       observe: [
         effect("the radius for the adjusted circle is 16", async (context) => {
@@ -109,8 +105,7 @@ export default behavior("Adjust Radius", [
         }),
         effect("the radius for the other circle is still 45", async (context) => {
           await expect(context.display.circleCenteredAt(320, 200).radius, resolvesTo(45))
-        })
-      ]
-    })
-
+        }),
+      ],
+    }),
 ])

@@ -1,5 +1,11 @@
 import { dispatchMessage, StoreMessage } from "../message.js"
-import { CommandController, getStateHandler, PublishableState, TokenRegistry, State } from "../tokenRegistry.js"
+import {
+  CommandController,
+  getStateHandler,
+  PublishableState,
+  TokenRegistry,
+  State,
+} from "../tokenRegistry.js"
 
 export interface CommandActions {
   get<T>(state: State<T>): T
@@ -12,7 +18,7 @@ export interface CommandManager<M> {
 }
 
 export class ManagedCommandController<T> implements CommandController<T> {
-  constructor(private manager: CommandManager<T>) { }
+  constructor(private manager: CommandManager<T>) {}
 
   run(registry: TokenRegistry, message: T) {
     this.manager.exec(message, {
@@ -24,7 +30,7 @@ export class ManagedCommandController<T> implements CommandController<T> {
       },
       dispatch: (message) => {
         dispatchMessage(registry, message)
-      }
+      },
     })
   }
 }

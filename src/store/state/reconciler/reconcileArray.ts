@@ -20,9 +20,7 @@ export function reconcileArray<T>(options: ReconcileArrayOptions<T> = {}): Recon
       return next
     }
 
-    const selectCurrent = key === undefined ?
-      selectByPosition(current) :
-      selectByKey(key, current)
+    const selectCurrent = key === undefined ? selectByPosition(current) : selectByKey(key, current)
 
     let unchanged = current.length === next.length
     let nothingReused = true
@@ -33,9 +31,7 @@ export function reconcileArray<T>(options: ReconcileArrayOptions<T> = {}): Recon
 
       const currentItem = selectCurrent(nextItem, i)
 
-      const element = currentItem === undefined ?
-        nextItem :
-        reconcileItem(currentItem, nextItem)
+      const element = currentItem === undefined ? nextItem : reconcileItem(currentItem, nextItem)
 
       elements[i] = element
 
@@ -65,7 +61,7 @@ function isPositionallyIdentical<T>(current: Array<T>, next: Array<T>): boolean 
 type ItemSelector<T> = (item: T, index: number) => T | undefined
 
 function selectByPosition<T>(current: Array<T>): ItemSelector<T> {
-  return (_, index) => index < current.length ? current[index] : undefined
+  return (_, index) => (index < current.length ? current[index] : undefined)
 }
 
 function selectByKey<T>(key: (item: T) => ItemKey, current: Array<T>): ItemSelector<T> {

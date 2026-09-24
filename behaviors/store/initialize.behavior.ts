@@ -1,12 +1,11 @@
-import { container, error, meta, pending, supplied, write } from "@store/index.js";
-import { behavior, effect, example, step } from "best-behavior";
-import { arrayWith, expect, is } from "great-expectations";
-import { errorMessage, okMessage, pendingMessage } from "./helpers/metaMatchers";
-import { testStoreContext } from "./helpers/testStore";
-import { TestTask } from "./helpers/testTask";
+import { container, error, meta, pending, supplied, write } from "@store/index.js"
+import { behavior, effect, example, step } from "best-behavior"
+import { arrayWith, expect, is } from "great-expectations"
+import { errorMessage, okMessage, pendingMessage } from "./helpers/metaMatchers"
+import { testStoreContext } from "./helpers/testStore"
+import { TestTask } from "./helpers/testTask"
 
 export default behavior("initialize state", [
-
   example(testStoreContext())
     .description("await on initialized with no initializer")
     .script({
@@ -14,17 +13,15 @@ export default behavior("initialize state", [
         step("await on initialized", async (context) => {
           await context.store.initialized
         }),
-        step("subscribe to a token", context => {
+        step("subscribe to a token", (context) => {
           context.subscribeTo(readonlyContainer, "sub-1")
-        })
+        }),
       ],
       observe: [
         effect("the subscriber gets the default value", (context) => {
-          expect(context.valuesForSubscriber("sub-1"), is([
-            17
-          ]))
-        })
-      ]
+          expect(context.valuesForSubscriber("sub-1"), is([17]))
+        }),
+      ],
     }),
 
   example(testStoreContext())
@@ -33,29 +30,30 @@ export default behavior("initialize state", [
       perform: [
         step("initialize the store", async (context) => {
           await context.initialize((actions) => {
-            return new Promise<void>(resolve => setTimeout(() => {
-              actions.supply(testContainer, "Fun Stuff!")
-              resolve()
-            }, 10))
+            return new Promise<void>((resolve) =>
+              setTimeout(() => {
+                actions.supply(testContainer, "Fun Stuff!")
+                resolve()
+              }, 10),
+            )
           })
         }),
         step("subscribe to updates on the container", (context) => {
           context.subscribeTo(testContainer, "sub-1")
         }),
         step("dispatch a message to the container", (context) => {
-          context.store.dispatch(write(testContainer, {
-            action: "yo yo yo!"
-          }))
-        })
+          context.store.dispatch(
+            write(testContainer, {
+              action: "yo yo yo!",
+            }),
+          )
+        }),
       ],
       observe: [
         effect("the subscriber gets the expected values for the token", (context) => {
-          expect(context.valuesForSubscriber("sub-1"), is([
-            "Fun Stuff!",
-            "yo yo yo!"
-          ]))
-        })
-      ]
+          expect(context.valuesForSubscriber("sub-1"), is(["Fun Stuff!", "yo yo yo!"]))
+        }),
+      ],
     }),
 
   example(testStoreContext())
@@ -70,15 +68,13 @@ export default behavior("initialize state", [
         }),
         step("there is a subscriber to the new state", (context) => {
           context.subscribeTo(anotherTestContainer, "sub-2")
-        })
+        }),
       ],
       observe: [
         effect("the subscriber gets the newly initialized state", (context) => {
-          expect(context.valuesForSubscriber("sub-2"), is([
-            7
-          ]))
-        })
-      ]
+          expect(context.valuesForSubscriber("sub-2"), is([7]))
+        }),
+      ],
     }),
 
   example(testStoreContext())
@@ -99,16 +95,15 @@ export default behavior("initialize state", [
       ],
       observe: [
         effect("the subscriber gets the initial value of the token", (context) => {
-          expect(context.valuesForSubscriber("sub-1"), is([
-            "Initial"
-          ]))
+          expect(context.valuesForSubscriber("sub-1"), is(["Initial"]))
         }),
         effect("the meta subscriber gets the initial values", (context) => {
-          expect(context.valuesForSubscriber("sub-meta"), is(arrayWith([
-            pendingMessage({ action: "Loading!" })
-          ])))
-        })
-      ]
+          expect(
+            context.valuesForSubscriber("sub-meta"),
+            is(arrayWith([pendingMessage({ action: "Loading!" })])),
+          )
+        }),
+      ],
     }),
 
   example(testStoreContext())
@@ -129,16 +124,15 @@ export default behavior("initialize state", [
       ],
       observe: [
         effect("the subscriber gets the initial value of the token", (context) => {
-          expect(context.valuesForSubscriber("sub-1"), is([
-            "Initial"
-          ]))
+          expect(context.valuesForSubscriber("sub-1"), is(["Initial"]))
         }),
         effect("the meta subscriber gets the initial values", (context) => {
-          expect(context.valuesForSubscriber("sub-meta"), is(arrayWith([
-            errorMessage({ action: "Loading!" }, "No reason!")
-          ])))
-        })
-      ]
+          expect(
+            context.valuesForSubscriber("sub-meta"),
+            is(arrayWith([errorMessage({ action: "Loading!" }, "No reason!")])),
+          )
+        }),
+      ],
     }),
 
   example(testStoreContext())
@@ -155,20 +149,19 @@ export default behavior("initialize state", [
         }),
         step("there is a subscriber to the associated meta container", (context) => {
           context.subscribeTo(meta(readonlyContainer), "sub-meta")
-        })
+        }),
       ],
       observe: [
         effect("the subscriber receives the initial value only", (context) => {
-          expect(context.valuesForSubscriber("sub-1"), is([
-            17
-          ]))
+          expect(context.valuesForSubscriber("sub-1"), is([17]))
         }),
         effect("the meta subscriber receives the pending message", (context) => {
-          expect(context.valuesForSubscriber("sub-meta"), is(arrayWith([
-            pendingMessage(undefined)
-          ])))
-        })
-      ]
+          expect(
+            context.valuesForSubscriber("sub-meta"),
+            is(arrayWith([pendingMessage(undefined)])),
+          )
+        }),
+      ],
     }),
 
   example(testStoreContext<TestTask<number>>())
@@ -187,44 +180,40 @@ export default behavior("initialize state", [
         step("subscribe to the container", (context) => {
           context.subscribeTo(readonlyContainer, "sub-1")
         }),
-        step("subscribe to the meta-container", context => {
+        step("subscribe to the meta-container", (context) => {
           context.subscribeTo(meta(readonlyContainer), "sub-meta")
-        })
+        }),
       ],
       observe: [
         effect("the subscriber receives the initial value only", (context) => {
-          expect(context.valuesForSubscriber("sub-1"), is([
-            17
-          ]))
+          expect(context.valuesForSubscriber("sub-1"), is([17]))
         }),
         effect("the meta subscriber receives the pending message", (context) => {
-          expect(context.valuesForSubscriber("sub-meta"), is(arrayWith([
-            pendingMessage(undefined),
-          ])))
-        })
-      ]
-    }).andThen({
+          expect(
+            context.valuesForSubscriber("sub-meta"),
+            is(arrayWith([pendingMessage(undefined)])),
+          )
+        }),
+      ],
+    })
+    .andThen({
       perform: [
         step("a value is supplied", (context) => {
           context.tokens.resolveWith(37)
-        })
+        }),
       ],
       observe: [
         effect("the subscriber receives the supplied value", (context) => {
-          expect(context.valuesForSubscriber("sub-1"), is([
-            17,
-            37
-          ]))
+          expect(context.valuesForSubscriber("sub-1"), is([17, 37]))
         }),
         effect("the meta subscriber receives the ok message", (context) => {
-          expect(context.valuesForSubscriber("sub-meta"), is(arrayWith([
-            pendingMessage(undefined),
-            okMessage()
-          ])))
-        })
-      ]
-    })
-
+          expect(
+            context.valuesForSubscriber("sub-meta"),
+            is(arrayWith([pendingMessage(undefined), okMessage()])),
+          )
+        }),
+      ],
+    }),
 ])
 
 interface TestMessage {
@@ -239,7 +228,7 @@ const testContainer = container<string, TestMessage>({
 })
 
 const anotherTestContainer = container<number>({
-  initialValue: 0
+  initialValue: 0,
 })
 
 const readonlyContainer = supplied<number, string>({ initialValue: 17 })

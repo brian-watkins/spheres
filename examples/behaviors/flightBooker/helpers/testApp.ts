@@ -1,6 +1,6 @@
-import { Context } from "best-behavior";
-import { TestApp, TestDisplay, testAppContext } from "../../helpers/testApp";
-import { Dialog } from "playwright";
+import { Context } from "best-behavior"
+import { TestApp, TestDisplay, testAppContext } from "../../helpers/testApp"
+import { Dialog } from "playwright"
 
 export const flightBookerApp: Context<FlightBookerTestApp> = {
   init: async () => {
@@ -9,11 +9,11 @@ export const flightBookerApp: Context<FlightBookerTestApp> = {
   },
   teardown: (context) => {
     context.teardown()
-  }
+  },
 }
 
 class TestAlert {
-  constructor(public readonly message: string) { }
+  constructor(public readonly message: string) {}
 }
 
 export class FlightBookerTestApp {
@@ -23,7 +23,7 @@ export class FlightBookerTestApp {
     await dialog.dismiss()
   }
 
-  constructor(private testApp: TestApp) { }
+  constructor(private testApp: TestApp) {}
 
   async renderApp() {
     await this.testApp.renderApp("flightBooker")

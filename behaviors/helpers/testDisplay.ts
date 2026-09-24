@@ -34,7 +34,7 @@ export class DisplayElementList {
   }
 
   async texts(): Promise<Array<string>> {
-    return this.map(el => el.text())
+    return this.map((el) => el.text())
   }
 
   async count(): Promise<number> {

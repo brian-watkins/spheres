@@ -1,2 +1,1 @@
-
-export class StoreError extends Error { }
+export class StoreError extends Error {}

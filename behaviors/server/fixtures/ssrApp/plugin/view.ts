@@ -1,12 +1,12 @@
-import { HTMLBuilder } from "spheres/view";
+import { HTMLBuilder } from "spheres/view"
 import "./moreStyles.css"
 import "./viewStyles.css"
-import { superList } from "./helperView";
+import { superList } from "./helperView"
 
 export function funView(root: HTMLBuilder) {
-  root.main(el => {
+  root.main((el) => {
     el.children
-      .h1(el => {
+      .h1((el) => {
         el.children.textNode("YO YO YO!!")
       })
       .hr()

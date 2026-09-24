@@ -1,4 +1,3 @@
-
 export function createFragment(start: string, end: string) {
   const fragment = document.createDocumentFragment()
   fragment.appendChild(document.createComment(start))

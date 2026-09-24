@@ -1,5 +1,10 @@
 import { GetState } from "../../../store/index.js"
-import { findListEndNode, findMatchEndNode, getListElementId, getMatchElementId } from "../fragmentHelpers.js"
+import {
+  findListEndNode,
+  findMatchEndNode,
+  getListElementId,
+  getMatchElementId,
+} from "../fragmentHelpers.js"
 import { activate, DOMTemplate, render, TemplateType } from "../domTemplate.js"
 import { StateEffect, StateListenerType, TokenRegistry } from "../../../store/tokenRegistry.js"
 import { ListItemTemplateContext } from "../templateContext.js"
@@ -20,7 +25,7 @@ export class ListEffect implements StateEffect {
     private templateContext: ListItemTemplateContext<any>,
     private listStart: Node,
     private listEnd: Node,
-  ) { }
+  ) {}
 
   setVirtualList(first: VirtualItem | undefined, last: VirtualItem | undefined) {
     this.first = first
@@ -121,7 +126,12 @@ export class ListEffect implements StateEffect {
             this.replaceNode(update.item, virtualItem)
             this.replaceItem(update.item, virtualItem)
           } else {
-            this.placeUpdatedItem(state, update.data, update.index, state.getItem(data[update.index + 1]))
+            this.placeUpdatedItem(
+              state,
+              update.data,
+              update.index,
+              state.getItem(data[update.index + 1]),
+            )
             if (update.item.patchResult === PatchResult.Replace) {
               this.removeNode(update.item)
               this.deleteItem(update.item)
@@ -133,7 +143,12 @@ export class ListEffect implements StateEffect {
     }
   }
 
-  private placeUpdatedItem(state: ListPatch, data: any, index: number, before: VirtualItem | undefined) {
+  private placeUpdatedItem(
+    state: ListPatch,
+    data: any,
+    index: number,
+    before: VirtualItem | undefined,
+  ) {
     const cached = state.getItem(data)
     if (cached === undefined) {
       const item = this.createItem(index, data)
@@ -312,7 +327,11 @@ export class ListEffect implements StateEffect {
   }
 
   private removeAllAfter(start: VirtualItem) {
-    if (start.prev === undefined && this.listStart.previousSibling === null && this.listEnd.nextSibling === null) {
+    if (
+      start.prev === undefined &&
+      this.listStart.previousSibling === null &&
+      this.listEnd.nextSibling === null
+    ) {
       // just replace everything if the list itself has no siblings under this parent
       this.parentNode.replaceChildren(this.listStart, this.listEnd)
     } else {
@@ -346,18 +365,32 @@ export class ListEffect implements StateEffect {
       index,
       node,
       this.domTemplate.isFragment ? node.firstChild! : undefined,
-      this.domTemplate.isFragment ? node.lastChild! : undefined
+      this.domTemplate.isFragment ? node.lastChild! : undefined,
     )
   }
 }
 
-export function activateList(registry: TokenRegistry, context: ListItemTemplateContext<any>, template: DOMTemplate, startNode: Node, endNode: Node, data: ReadonlyArray<any>): [VirtualItem | undefined, VirtualItem | undefined] {
+export function activateList(
+  registry: TokenRegistry,
+  context: ListItemTemplateContext<any>,
+  template: DOMTemplate,
+  startNode: Node,
+  endNode: Node,
+  data: ReadonlyArray<any>,
+): [VirtualItem | undefined, VirtualItem | undefined] {
   let index = 0
   let existingNode: Node = startNode.nextSibling!
   let firstItem: VirtualItem | undefined
   let lastItem: VirtualItem | undefined
   while (existingNode !== endNode) {
-    const [item, nextNode] = activateItem(registry, context, template, index, existingNode, data[index])
+    const [item, nextNode] = activateItem(
+      registry,
+      context,
+      template,
+      index,
+      existingNode,
+      data[index],
+    )
     if (index === 0) {
       firstItem = item
     } else {
@@ -371,17 +404,38 @@ export function activateList(registry: TokenRegistry, context: ListItemTemplateC
   return [firstItem, lastItem]
 }
 
-function activateItem(registry: TokenRegistry, context: ListItemTemplateContext<any>, template: DOMTemplate, index: number, node: Node, data: any): [VirtualItem, Node] {
+function activateItem(
+  registry: TokenRegistry,
+  context: ListItemTemplateContext<any>,
+  template: DOMTemplate,
+  index: number,
+  node: Node,
+  data: any,
+): [VirtualItem, Node] {
   const state = ItemState.newInstance(data, index, registry, context)
   activate(template, state, node)
 
   switch (template.type) {
     case TemplateType.List: {
-      const item = new VirtualItem(state, data, index, document.createDocumentFragment(), node, findListEndNode(node, getListElementId(node)))
+      const item = new VirtualItem(
+        state,
+        data,
+        index,
+        document.createDocumentFragment(),
+        node,
+        findListEndNode(node, getListElementId(node)),
+      )
       return [item, item.lastNode!.nextSibling!]
     }
     case TemplateType.Match: {
-      const item = new VirtualItem(state, data, index, document.createDocumentFragment(), node, findMatchEndNode(node, getMatchElementId(node)))
+      const item = new VirtualItem(
+        state,
+        data,
+        index,
+        document.createDocumentFragment(),
+        node,
+        findMatchEndNode(node, getMatchElementId(node)),
+      )
       return [item, item.lastNode!.nextSibling!]
     }
     default: {

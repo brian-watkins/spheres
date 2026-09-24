@@ -1,5 +1,15 @@
 import { didCreateToken } from "./stateRecorder.js"
-import { createStateHandler, getStateHandler, isStateful, runQuery, Stateful, StatePublisher, StateWriter, TokenRegistry, WritableState } from "../tokenRegistry.js"
+import {
+  createStateHandler,
+  getStateHandler,
+  isStateful,
+  runQuery,
+  Stateful,
+  StatePublisher,
+  StateWriter,
+  TokenRegistry,
+  WritableState,
+} from "../tokenRegistry.js"
 import { getInitialValue, ResettableState } from "../message.js"
 import { MessageWriter, UpdateResult } from "./handler/messageWriter.js"
 import { Writer } from "./handler/writer.js"
@@ -7,7 +17,7 @@ import { value, Value } from "./value.js"
 import { Reconciler } from "./reconciler.js"
 
 export interface ContainerInitializer<T, M> {
-  initialValue: T | Stateful<T>,
+  initialValue: T | Stateful<T>
   update?: (message: M, current: T) => UpdateResult<T>
   reconciler?: Reconciler<T>
   name?: string
@@ -16,17 +26,15 @@ export interface ContainerInitializer<T, M> {
 export type ValueGenerator = <S>(value: S) => Value<S>
 
 export function container<T, M = T, E = any>(
-  initializer: ContainerInitializer<T, M> | ((value: ValueGenerator) => ContainerInitializer<T, M>)
+  initializer: ContainerInitializer<T, M> | ((value: ValueGenerator) => ContainerInitializer<T, M>),
 ): Container<T, M, E> {
-  const config = typeof initializer === "function" ?
-    initializer(value) :
-    initializer
+  const config = typeof initializer === "function" ? initializer(value) : initializer
 
   const token = new Container<T, M, E>(
     config.name,
     config.initialValue,
     config.update,
-    config.reconciler
+    config.reconciler,
   )
   didCreateToken(token)
   return token
@@ -39,13 +47,11 @@ export class Container<T, M = T, E = any> implements ResettableState<T>, Writabl
     readonly name: string | undefined,
     private initialValue: T | Stateful<T>,
     private update: ((message: M, current: T) => UpdateResult<T>) | undefined,
-    private reconciler: Reconciler<T> | undefined
-  ) { }
+    private reconciler: Reconciler<T> | undefined,
+  ) {}
 
   [getInitialValue](registry: TokenRegistry): T {
-    return isStateful(this.initialValue) ?
-      runQuery(registry, this.initialValue) :
-      this.initialValue
+    return isStateful(this.initialValue) ? runQuery(registry, this.initialValue) : this.initialValue
   }
 
   [getStateHandler](registry: TokenRegistry): StateWriter<T, M> {
@@ -55,9 +61,9 @@ export class Container<T, M = T, E = any> implements ResettableState<T>, Writabl
   [createStateHandler](registry: TokenRegistry): StatePublisher<T> {
     const value = this[getInitialValue](registry)
 
-    return this.update ?
-      new MessageWriter(registry, value, this.update, this.reconciler) :
-      new Writer(value, this.reconciler)
+    return this.update
+      ? new MessageWriter(registry, value, this.update, this.reconciler)
+      : new Writer(value, this.reconciler)
   }
 
   [clone](): Container<T, M, E> {

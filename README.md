@@ -1,6 +1,7 @@
 # Spheres
 
 Write browser-based web applications. Spheres features:
+
 - state management that separates application logic from state storage details
 - a declarative view framework that supports fine-grained reactive updates
 
@@ -34,4 +35,3 @@ renderToDOM(createStore(), document.getElementById("app"), counter)
 ```
 
 Find [more examples here](https://github.com/brian-watkins/spheres/tree/main/examples).
-

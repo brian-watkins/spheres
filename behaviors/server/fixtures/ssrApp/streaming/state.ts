@@ -1,4 +1,4 @@
-import { container, derived, StateManifest } from "@store/index";
+import { container, derived, StateManifest } from "@store/index"
 
 export interface Thing {
   name: string
@@ -7,12 +7,14 @@ export interface Thing {
 
 export const things = container<Array<Thing>>({ initialValue: [] })
 
-export const thingCount = derived(get => get(things).length)
+export const thingCount = derived((get) => get(things).length)
 
 export const thingValue = container({ initialValue: "unknown" })
 
 export const someWord = container({ initialValue: "" })
 
 export const serializedTokens: StateManifest = {
-  things, thingValue, someWord
+  things,
+  thingValue,
+  someWord,
 }

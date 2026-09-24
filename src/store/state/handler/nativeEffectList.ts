@@ -1,4 +1,4 @@
-import { EffectList, Subscriber } from "../../tokenRegistry.js";
+import { EffectList, Subscriber } from "../../tokenRegistry.js"
 
 export class NativeEffectList implements EffectList {
   private viewEffects: Array<Subscriber> = []

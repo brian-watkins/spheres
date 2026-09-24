@@ -1,12 +1,15 @@
-import { Value } from "../../../../store/state/value.js";
-import { GetState, StateReader } from "../../../../store/tokenRegistry.js";
-import { ListItem } from "../../viewRenderer.js";
+import { Value } from "../../../../store/state/value.js"
+import { GetState, StateReader } from "../../../../store/tokenRegistry.js"
+import { ListItem } from "../../viewRenderer.js"
 
 export class ListItemReader<T> implements ListItem<T>, StateReader<ListItem<T>> {
   indexPublisher: Value<number> | undefined
   public getState: GetState | undefined
 
-  constructor(readonly data: T, private _index: number) {}
+  constructor(
+    readonly data: T,
+    private _index: number,
+  ) {}
 
   get index(): number {
     if (this.indexPublisher === undefined) {
@@ -19,9 +22,9 @@ export class ListItemReader<T> implements ListItem<T>, StateReader<ListItem<T>> 
     return this
   }
 
-  addSubscriber(): void { }
+  addSubscriber(): void {}
 
-  removeSubscriber(): void { }
+  removeSubscriber(): void {}
 
   updateIndex(index: number) {
     this._index = index

@@ -1,13 +1,24 @@
-import { joinBatch } from "../message.js";
-import { Container } from "../state/container.js";
-import { Command, CommandController, createController, createStateHandler, StateReader, StateHandler, StateToken, StateBatch } from "../tokenRegistry.js";
-import { RootTokenRegistry } from "./rootTokenRegistry.js";
+import { joinBatch } from "../message.js"
+import { Container } from "../state/container.js"
+import {
+  Command,
+  CommandController,
+  createController,
+  createStateHandler,
+  StateReader,
+  StateHandler,
+  StateToken,
+  StateBatch,
+} from "../tokenRegistry.js"
+import { RootTokenRegistry } from "./rootTokenRegistry.js"
 
 type Token = StateToken<unknown> | Command<unknown>
 
 export class WeakMapTokenRegistry implements RootTokenRegistry {
-  protected registry: WeakMap<Token, any> = new WeakMap();
-  private registerHook: ((container: Container<any>, batch: StateBatch | undefined) => void) | undefined
+  protected registry: WeakMap<Token, any> = new WeakMap()
+  private registerHook:
+    | ((container: Container<any>, batch: StateBatch | undefined) => void)
+    | undefined
 
   onRegister(handler: (container: Container<any>, batch: StateBatch | undefined) => void): void {
     this.registerHook = handler
@@ -50,10 +61,11 @@ export class WeakMapTokenRegistry implements RootTokenRegistry {
   }
 
   setState<T>(token: StateToken<T>, publisher: StateReader<T>): void {
-    const shouldNotify = this.registerHook !== undefined && token instanceof Container && !this.registry.has(token)
+    const shouldNotify =
+      this.registerHook !== undefined && token instanceof Container && !this.registry.has(token)
     this.registry.set(token, publisher)
     if (shouldNotify) {
-      joinBatch(batch => this.registerHook!(token, batch))
+      joinBatch((batch) => this.registerHook!(token, batch))
     }
   }
 }

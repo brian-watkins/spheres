@@ -1,7 +1,7 @@
 export function toCamel(word: string, capitalizeFirst: boolean = false): string {
   return word
     .split("-")
-    .map((word, i) => capitalizeFirst || i > 0 ? capitalize(word) : word)
+    .map((word, i) => (capitalizeFirst || i > 0 ? capitalize(word) : word))
     .join("")
 }
 

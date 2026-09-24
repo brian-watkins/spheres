@@ -1,7 +1,7 @@
-import { behavior } from "best-behavior";
-import { expect, identicalTo, is } from "great-expectations";
-import { test } from "../helpers/testExample";
-import { reconcileArray, reconcileObject, useCurrent } from "@store/state/reconciler";
+import { behavior } from "best-behavior"
+import { expect, identicalTo, is } from "great-expectations"
+import { test } from "../helpers/testExample"
+import { reconcileArray, reconcileObject, useCurrent } from "@store/state/reconciler"
 
 interface Author {
   id: string
@@ -25,11 +25,10 @@ function post(title: string, author: Author, tags: Array<string>): Post {
 
 const reconcilePost = reconcileObject<Post>({
   author: reconcileObject<Author>(),
-  tags: reconcileArray<string>()
+  tags: reconcileArray<string>(),
 })
 
 export default behavior("reconciling the fields of an object", [
-
   test("the very same object", () => {
     const current = post("Hello", { id: "1", name: "Ana" }, ["news"])
 
@@ -109,7 +108,7 @@ export default behavior("reconciling the fields of an object", [
 
   test("a field is pinned to the current value", () => {
     const reconcileSettings = reconcileObject<Settings>({
-      fontSize: useCurrent
+      fontSize: useCurrent,
     })
 
     const current: Settings = { theme: "dark", fontSize: 12 }
@@ -123,20 +122,20 @@ export default behavior("reconciling the fields of an object", [
 
   test("used as an item reconciler without an explicit type parameter", () => {
     const reconcilePosts = reconcileArray<Post>({
-      key: post => post.title,
+      key: (post) => post.title,
       itemReconciler: reconcileObject({
         author: reconcileObject(),
-        tags: reconcileArray()
-      })
+        tags: reconcileArray(),
+      }),
     })
 
     const current = [
       post("Hello", { id: "1", name: "Ana" }, ["news"]),
-      post("Goodbye", { id: "2", name: "Bo" }, ["sports"])
+      post("Goodbye", { id: "2", name: "Bo" }, ["sports"]),
     ]
     const next = [
       post("Goodbye", { id: "2", name: "Bo" }, ["sports"]),
-      post("Hello", { id: "1", name: "Ana" }, ["news", "weather"])
+      post("Hello", { id: "1", name: "Ana" }, ["news", "weather"]),
     ]
 
     const reconciled = reconcilePosts(current, next)
@@ -144,6 +143,5 @@ export default behavior("reconciling the fields of an object", [
     expect(reconciled[0], is(identicalTo(current[1])))
     expect(reconciled[1].author, is(identicalTo(current[0].author)))
     expect(reconciled[1].tags, is(identicalTo(next[1].tags)))
-  })
-
+  }),
 ])

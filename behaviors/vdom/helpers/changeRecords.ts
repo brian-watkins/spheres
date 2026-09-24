@@ -4,7 +4,7 @@ export interface DOMTextChangeRecord {
 
 export function textChangeRecord(): DOMTextChangeRecord {
   return {
-    type: "text"
+    type: "text",
   }
 }
 
@@ -14,11 +14,14 @@ export interface DOMStructureChangeRecord {
   addedNodes: number
 }
 
-export function structureChangeRecord(details: { removedNodes: number, addedNodes: number }): DOMStructureChangeRecord {
+export function structureChangeRecord(details: {
+  removedNodes: number
+  addedNodes: number
+}): DOMStructureChangeRecord {
   return {
     type: "structure",
     removedNodes: details.removedNodes,
-    addedNodes: details.addedNodes
+    addedNodes: details.addedNodes,
   }
 }
 

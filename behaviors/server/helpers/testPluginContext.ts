@@ -1,9 +1,9 @@
-import { loadViteContext, FileReader } from "@server/plugin/viteContextPlugin";
-import { Context } from "best-behavior";
-import { ResolvedConfig, UserConfig } from "vite";
+import { loadViteContext, FileReader } from "@server/plugin/viteContextPlugin"
+import { Context } from "best-behavior"
+import { ResolvedConfig, UserConfig } from "vite"
 
 export const testablePluginContext: Context<TestablePlugin> = {
-  init: () => new TestablePlugin()
+  init: () => new TestablePlugin(),
 }
 
 export type TestableResolvedConfig = UserConfig & { command: "serve" | "build" }
@@ -16,10 +16,10 @@ const defaultTestConfig: TestableResolvedConfig = {
     client: {
       build: {
         outDir: "dist",
-        manifest: true
-      }
-    }
-  }
+        manifest: true,
+      },
+    },
+  },
 }
 
 class TestablePlugin {

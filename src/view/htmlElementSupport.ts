@@ -1,9 +1,12 @@
-import { BasicElementConfigSupport, ElementConfig, ElementConfigSupport, ElementSupport } from "./elementSupport.js";
+import {
+  BasicElementConfigSupport,
+  ElementConfig,
+  ElementConfigSupport,
+  ElementSupport,
+} from "./elementSupport.js"
 
 export class HTMLElementSupport implements ElementSupport {
-  private configSupport = new HtmlElementConfigSupport(
-    new BasicElementConfigSupport()
-  )
+  private configSupport = new HtmlElementConfigSupport(new BasicElementConfigSupport())
   private inputConfigSupport = new HtmlInputElementConfigSupport(this.configSupport)
 
   createElement(tag: string): Element {
@@ -20,8 +23,8 @@ export class HTMLElementSupport implements ElementSupport {
 }
 
 class HtmlElementConfigSupport implements ElementConfigSupport {
-  constructor(private next: ElementConfigSupport) { }
-  
+  constructor(private next: ElementConfigSupport) {}
+
   configure(config: ElementConfig, name: string, args: Array<any>): void {
     if (name === "class") {
       config.property("className", args[0])
@@ -38,7 +41,7 @@ class HtmlElementConfigSupport implements ElementConfigSupport {
 }
 
 class HtmlInputElementConfigSupport implements ElementConfigSupport {
-  constructor(private next: ElementConfigSupport) { }
+  constructor(private next: ElementConfigSupport) {}
 
   configure(config: ElementConfig, name: string, args: Array<any>): void {
     if (name === "value") {

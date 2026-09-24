@@ -1,4 +1,3 @@
-
 export interface ResultHandler<T, E, X> {
   ok(val: T): X
   err(error: E): X
@@ -27,7 +26,7 @@ export class Result<T, E = undefined> {
     return Result.ok(values)
   }
 
-  private constructor(private impl: Ok<T, E> | Err<T, E>) { }
+  private constructor(private impl: Ok<T, E> | Err<T, E>) {}
 
   get isOk(): boolean {
     return this.impl.isOk
@@ -64,8 +63,8 @@ export class Result<T, E = undefined> {
 
 class Ok<T, E> {
   type: "ok-result" = "ok-result"
-  
-  constructor(readonly value: T) { }
+
+  constructor(readonly value: T) {}
 
   get isOk(): boolean {
     return true
@@ -90,8 +89,8 @@ class Ok<T, E> {
 
 export class Err<T, E> {
   type: "error-result" = "error-result"
-  
-  constructor(readonly error: E) { }
+
+  constructor(readonly error: E) {}
 
   get isOk(): boolean {
     return false

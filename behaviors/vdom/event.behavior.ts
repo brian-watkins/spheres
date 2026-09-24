@@ -1,12 +1,11 @@
-import { behavior, effect, Example, example, fact, step } from "best-behavior";
-import { equalTo, expect, is, resolvesTo } from "great-expectations";
-import { selectElement } from "./helpers/displayElement.js";
-import { RenderApp, renderContext } from "./helpers/renderContext.js";
-import { Container, container, update, use, write } from "@store/index.js";
-import { HTMLBuilder, HTMLView, UseItem } from "@view/index.js";
+import { behavior, effect, Example, example, fact, step } from "best-behavior"
+import { equalTo, expect, is, resolvesTo } from "great-expectations"
+import { selectElement } from "./helpers/displayElement.js"
+import { RenderApp, renderContext } from "./helpers/renderContext.js"
+import { Container, container, update, use, write } from "@store/index.js"
+import { HTMLBuilder, HTMLView, UseItem } from "@view/index.js"
 
 export default behavior("event handlers", [
-
   example(renderContext<Container<number>>())
     .description("mount an element with an event handler")
     .script({
@@ -15,17 +14,19 @@ export default behavior("event handlers", [
           context.setState(container({ initialValue: 0 }))
         }),
         fact("there are elements with click events", (context) => {
-          context.mountView(root => {
-            root.div(el => {
+          context.mountView((root) => {
+            root.div((el) => {
               el.children
-                .p(el => el.children.textNode(get => `You clicked ${get(context.state)} times!`))
-                .button(el => {
+                .p((el) =>
+                  el.children.textNode((get) => `You clicked ${get(context.state)} times!`),
+                )
+                .button((el) => {
                   el.config
                     .dataAttribute("click-one")
                     .on("click", () => update(context.state, (current) => current + 1))
                   el.children.textNode("Click me!")
                 })
-                .button(el => {
+                .button((el) => {
                   el.config
                     .dataAttribute("click-ten")
                     .on("click", () => update(context.state, (current) => current + 10))
@@ -33,21 +34,20 @@ export default behavior("event handlers", [
                 })
             })
           })
-        })
+        }),
       ],
       perform: [
         step("the button is clicked multiple times", async () => {
           await selectElement("button[data-click-one]").click()
           await selectElement("button[data-click-ten]").click()
           await selectElement("button[data-click-one]").click()
-        })
+        }),
       ],
       observe: [
         effect("the message updates with the click count", async () => {
-          await expect(selectElement("p").text(),
-            resolvesTo(equalTo("You clicked 12 times!")))
-        })
-      ]
+          await expect(selectElement("p").text(), resolvesTo(equalTo("You clicked 12 times!")))
+        }),
+      ],
     }),
 
   example(renderContext<Container<number>>())
@@ -57,34 +57,38 @@ export default behavior("event handlers", [
         fact("there is state with a number", (context) => {
           context.setState(container({ initialValue: 0 }))
         }),
-        fact("there is a view with an event that sends a stateful message to the store", (context) => {
-          context.mountView(root => {
-            root.div(el => {
-              el.children
-                .p(el => el.children.textNode(get => `You clicked ${get(context.state)} times!`))
-                .button(el => {
-                  el.config
-                    .dataAttribute("click")
-                    .on("click", () => use(get => write(context.state, get(context.state) + 1)))
-                  el.children.textNode("Click me!")
-                })
+        fact(
+          "there is a view with an event that sends a stateful message to the store",
+          (context) => {
+            context.mountView((root) => {
+              root.div((el) => {
+                el.children
+                  .p((el) =>
+                    el.children.textNode((get) => `You clicked ${get(context.state)} times!`),
+                  )
+                  .button((el) => {
+                    el.config
+                      .dataAttribute("click")
+                      .on("click", () => use((get) => write(context.state, get(context.state) + 1)))
+                    el.children.textNode("Click me!")
+                  })
+              })
             })
-          })
-        })
+          },
+        ),
       ],
       perform: [
         step("the button is clicked multiple times", async () => {
           await selectElement("button[data-click]").click()
           await selectElement("button[data-click]").click()
           await selectElement("button[data-click]").click()
-        })
+        }),
       ],
       observe: [
         effect("the message updates with the click count", async () => {
-          await expect(selectElement("p").text(),
-            resolvesTo(equalTo("You clicked 3 times!")))
-        })
-      ]
+          await expect(selectElement("p").text(), resolvesTo(equalTo("You clicked 3 times!")))
+        }),
+      ],
     }),
 
   example(renderContext<Container<number>>())
@@ -95,33 +99,32 @@ export default behavior("event handlers", [
           context.setState(container({ initialValue: 0 }))
         }),
         fact("there is a view with an event that sends undefined to the store", (context) => {
-          context.mountView(root => {
-            root.div(el => {
+          context.mountView((root) => {
+            root.div((el) => {
               el.children
-                .p(el => el.children.textNode(get => `You clicked ${get(context.state)} times!`))
-                .button(el => {
-                  el.config
-                    .dataAttribute("click")
-                    .on("click", () => use(() => undefined))
+                .p((el) =>
+                  el.children.textNode((get) => `You clicked ${get(context.state)} times!`),
+                )
+                .button((el) => {
+                  el.config.dataAttribute("click").on("click", () => use(() => undefined))
                   el.children.textNode("Click me!")
                 })
             })
           })
-        })
+        }),
       ],
       perform: [
         step("the button is clicked multiple times", async () => {
           await selectElement("button[data-click]").click()
           await selectElement("button[data-click]").click()
           await selectElement("button[data-click]").click()
-        })
+        }),
       ],
       observe: [
         effect("nothing changes", async () => {
-          await expect(selectElement("p").text(),
-            resolvesTo(equalTo("You clicked 0 times!")))
-        })
-      ]
+          await expect(selectElement("p").text(), resolvesTo(equalTo("You clicked 0 times!")))
+        }),
+      ],
     }),
 
   example(renderContext<MultipleEventContext>())
@@ -131,36 +134,47 @@ export default behavior("event handlers", [
         fact("there is state", (context) => {
           context.setState({
             showFocus: container({ initialValue: false }),
-            textMessage: container({ initialValue: "" })
+            textMessage: container({ initialValue: "" }),
           })
         }),
         fact("there is an element with focus and input events", (context) => {
-          context.mountView(root => {
-            root.div(el => {
+          context.mountView((root) => {
+            root.div((el) => {
               el.children
-                .h3(el => el.children.textNode(get => get(context.state.showFocus) ? "Type a message!" : "Click in the field, please!"))
-                .input(el => {
+                .h3((el) =>
+                  el.children.textNode((get) =>
+                    get(context.state.showFocus)
+                      ? "Type a message!"
+                      : "Click in the field, please!",
+                  ),
+                )
+                .input((el) => {
                   el.config
                     .on("focusin", () => write(context.state.showFocus, true))
                     .on("focusout", () => write(context.state.showFocus, false))
-                    .on("input", (evt) => write(context.state.textMessage, (evt.target as HTMLInputElement).value))
+                    .on("input", (evt) =>
+                      write(context.state.textMessage, (evt.target as HTMLInputElement).value),
+                    )
                 })
                 .hr()
-                .p(el => el.children.textNode(get => `You typed: '${get(context.state.textMessage)}'`))
+                .p((el) =>
+                  el.children.textNode((get) => `You typed: '${get(context.state.textMessage)}'`),
+                )
             })
           })
-        })
+        }),
       ],
       observe: [
         effect("the focus message is off", async () => {
           await expect(selectElement("h3").text(), resolvesTo("Click in the field, please!"))
-        })
-      ]
-    }).andThen({
+        }),
+      ],
+    })
+    .andThen({
       perform: [
         step("focus the input field", async () => {
           await selectElement("input").click()
-        })
+        }),
       ],
       observe: [
         effect("the focus message is on", async () => {
@@ -168,58 +182,76 @@ export default behavior("event handlers", [
         }),
         effect("there is no typed text", async () => {
           await expect(selectElement("p").text(), resolvesTo("You typed: ''"))
-        })
-      ]
-    }).andThen({
+        }),
+      ],
+    })
+    .andThen({
       perform: [
         step("type some text", async () => {
           await selectElement("input").type("This is something funny!")
-        })
+        }),
       ],
       observe: [
         effect("the typed text shows up in the message area", async () => {
-          await expect(selectElement("p").text(), resolvesTo("You typed: 'This is something funny!'"))
-        })
-      ]
-    }).andThen({
+          await expect(
+            selectElement("p").text(),
+            resolvesTo("You typed: 'This is something funny!'"),
+          )
+        }),
+      ],
+    })
+    .andThen({
       perform: [
         step("the input field loses focus", async () => {
           await selectElement("p").click()
-        })
+        }),
       ],
       observe: [
         effect("the focus message is off", async () => {
           await expect(selectElement("h3").text(), resolvesTo("Click in the field, please!"))
-        })
-      ]
+        }),
+      ],
     }),
 
   example(renderContext<MultipleEventContext>())
-    .description("event is dispatched and handled by parent; other elements in hierarchy handle other events")
+    .description(
+      "event is dispatched and handled by parent; other elements in hierarchy handle other events",
+    )
     .script({
       suppose: [
         fact("there is state", (context) => {
           context.setState({
             showFocus: container({ initialValue: false }),
-            textMessage: container({ initialValue: "" })
+            textMessage: container({ initialValue: "" }),
           })
         }),
-        fact("there is an element with an input event and a parent that handles click event", (context) => {
-          context.mountView(root => {
-            root.div(el => {
-              el.config
-                .on("click", () => write(context.state.showFocus, true))
-              el.children
-                .h3(el => el.children.textNode(get => get(context.state.showFocus) ? "Type a message!" : "Click in the field, please!"))
-                .input(el => {
-                  el.config
-                    .on("input", (evt) => write(context.state.textMessage, (evt.target as HTMLInputElement).value))
-                })
-                .hr()
-                .p(el => el.children.textNode(get => `You typed: '${get(context.state.textMessage)}'`))
+        fact(
+          "there is an element with an input event and a parent that handles click event",
+          (context) => {
+            context.mountView((root) => {
+              root.div((el) => {
+                el.config.on("click", () => write(context.state.showFocus, true))
+                el.children
+                  .h3((el) =>
+                    el.children.textNode((get) =>
+                      get(context.state.showFocus)
+                        ? "Type a message!"
+                        : "Click in the field, please!",
+                    ),
+                  )
+                  .input((el) => {
+                    el.config.on("input", (evt) =>
+                      write(context.state.textMessage, (evt.target as HTMLInputElement).value),
+                    )
+                  })
+                  .hr()
+                  .p((el) =>
+                    el.children.textNode((get) => `You typed: '${get(context.state.textMessage)}'`),
+                  )
+              })
             })
-          })
-        })
+          },
+        ),
       ],
       perform: [
         step("dispatch click event from input element", async () => {
@@ -227,7 +259,7 @@ export default behavior("event handlers", [
         }),
         step("type in the input field", async () => {
           await selectElement("input").type("Good morning!")
-        })
+        }),
       ],
       observe: [
         effect("the click event was handled by the parent element", async () => {
@@ -235,8 +267,8 @@ export default behavior("event handlers", [
         }),
         effect("the input event was handled by the input element", async () => {
           await expect(selectElement("P").text(), resolvesTo("You typed: 'Good morning!'"))
-        })
-      ]
+        }),
+      ],
     }),
 
   example(renderContext<MultipleEventContext>())
@@ -246,75 +278,95 @@ export default behavior("event handlers", [
         fact("there is state", (context) => {
           context.setState({
             showFocus: container({ initialValue: false }),
-            textMessage: container({ initialValue: "" })
+            textMessage: container({ initialValue: "" }),
           })
         }),
-        fact("there is a nested template that handles the same event type as its parent", (context) => {
-          const nestedZone = (root: HTMLBuilder) => {
-            root.div(el => {
-              el.children
-                .p(el => {
-                  el.config.dataAttribute("nested-text")
-                  el.children.textNode((get) => `Clicks: ${get(context.state.textMessage)}`)
-                })
-                .button(el => {
-                  el.config
-                    .dataAttribute("nested-button")
-                    .on("click", () => update(context.state.textMessage, (val) => `${val}A`))
-                  el.children.textNode("Nested Zone Button")
-                })
-            })
-          }
-
-          context.mountView(root => {
-            root.subviews(() => ["yo"], () => zone => {
-              zone.div(el => {
+        fact(
+          "there is a nested template that handles the same event type as its parent",
+          (context) => {
+            const nestedZone = (root: HTMLBuilder) => {
+              root.div((el) => {
                 el.children
-                  .h3(el => {
-                    el.config.dataAttribute("parent-text")
-                    el.children.textNode(get => get(context.state.showFocus) ? "Clicked the outer button" : "No clicks on outer button!")
+                  .p((el) => {
+                    el.config.dataAttribute("nested-text")
+                    el.children.textNode((get) => `Clicks: ${get(context.state.textMessage)}`)
                   })
-                  .button(el => {
+                  .button((el) => {
                     el.config
-                      .dataAttribute("parent-button")
-                      .on("click", () => write(context.state.showFocus, true))
-                    el.children.textNode("Parent Button")
+                      .dataAttribute("nested-button")
+                      .on("click", () => update(context.state.textMessage, (val) => `${val}A`))
+                    el.children.textNode("Nested Zone Button")
                   })
-                  .subviews(() => ["hey"], () => nestedZone)
               })
+            }
+
+            context.mountView((root) => {
+              root.subviews(
+                () => ["yo"],
+                () => (zone) => {
+                  zone.div((el) => {
+                    el.children
+                      .h3((el) => {
+                        el.config.dataAttribute("parent-text")
+                        el.children.textNode((get) =>
+                          get(context.state.showFocus)
+                            ? "Clicked the outer button"
+                            : "No clicks on outer button!",
+                        )
+                      })
+                      .button((el) => {
+                        el.config
+                          .dataAttribute("parent-button")
+                          .on("click", () => write(context.state.showFocus, true))
+                        el.children.textNode("Parent Button")
+                      })
+                      .subviews(
+                        () => ["hey"],
+                        () => nestedZone,
+                      )
+                  })
+                },
+              )
             })
-          })
-        })
+          },
+        ),
       ],
       perform: [
         step("click the nested template's button", async () => {
           await selectElement("[data-nested-button]").click()
           await selectElement("[data-nested-button]").click()
           await selectElement("[data-nested-button]").click()
-        })
+        }),
       ],
       observe: [
         effect("the nested template handles the click events", async () => {
           await expect(selectElement("[data-nested-text]").text(), resolvesTo("Clicks: AAA"))
         }),
         effect("the parent template did not receive a click event", async () => {
-          await expect(selectElement("[data-parent-text]").text(), resolvesTo("No clicks on outer button!"))
-        })
-      ]
-    }).andThen({
+          await expect(
+            selectElement("[data-parent-text]").text(),
+            resolvesTo("No clicks on outer button!"),
+          )
+        }),
+      ],
+    })
+    .andThen({
       perform: [
         step("click the outer button", async () => {
           await selectElement("[data-parent-button]").click()
-        })
+        }),
       ],
       observe: [
         effect("the nested template did not receive a click", async () => {
           await expect(selectElement("[data-nested-text]").text(), resolvesTo("Clicks: AAA"))
         }),
         effect("the parent template handles the click event", async () => {
-          await expect(selectElement("[data-parent-text]").text(), resolvesTo("Clicked the outer button"))
-        })
-      ]
+          await expect(
+            selectElement("[data-parent-text]").text(),
+            resolvesTo("Clicked the outer button"),
+          )
+        }),
+      ],
     }),
 
   example(renderContext<NestedEventsContext>())
@@ -325,59 +377,71 @@ export default behavior("event handlers", [
           context.setState({
             inner: container({ initialValue: 0 }),
             outer: container({ initialValue: 20 }),
-            currentTargets: []
+            currentTargets: [],
           })
         }),
         fact("there is a view with nested events", (context) => {
-          context.mountView(root => {
-            root.main(el => {
+          context.mountView((root) => {
+            root.main((el) => {
               el.children
-                .h3(el => {
-                  el.children.textNode(get => `Outer: ${get(context.state.outer)}; Inner: ${get(context.state.inner)}`)
+                .h3((el) => {
+                  el.children.textNode(
+                    (get) =>
+                      `Outer: ${get(context.state.outer)}; Inner: ${get(context.state.inner)}`,
+                  )
                 })
-                .div(el => {
+                .div((el) => {
                   el.config
                     .style("background-color: green; width:400px; height:400px;")
                     .dataAttribute("element", "outer")
                     .on("click", (evt) => {
-                      context.state.currentTargets.push(`OUTER: ${(evt.currentTarget as HTMLElement).dataset.element}`)
-                      return update(context.state.outer, (val) => val += 10)
+                      context.state.currentTargets.push(
+                        `OUTER: ${(evt.currentTarget as HTMLElement).dataset.element}`,
+                      )
+                      return update(context.state.outer, (val) => (val += 10))
                     })
-                  el.children
-                    .div(el => {
-                      el.config
-                        .dataAttribute("element", "inner")
-                        .style("background-color: blue; width:150px; height: 150px;")
-                        .on("click", (evt) => {
-                          context.state.currentTargets.push(`INNER: ${(evt.currentTarget as HTMLElement).dataset.element} at (${evt.offsetX}, ${evt.offsetY})`)
-                          return update(context.state.inner, (val) => val += 1)
-                        })
-                      el.children.textNode("click me!")
-                    })
+                  el.children.div((el) => {
+                    el.config
+                      .dataAttribute("element", "inner")
+                      .style("background-color: blue; width:150px; height: 150px;")
+                      .on("click", (evt) => {
+                        context.state.currentTargets.push(
+                          `INNER: ${(evt.currentTarget as HTMLElement).dataset.element} at (${evt.offsetX}, ${evt.offsetY})`,
+                        )
+                        return update(context.state.inner, (val) => (val += 1))
+                      })
+                    el.children.textNode("click me!")
+                  })
                 })
             })
           })
-        })
+        }),
       ],
       perform: [
         step("click the inner box", async () => {
           await selectElement("[data-element='inner']").click({ x: 10, y: 10 })
           await selectElement("[data-element='inner']").click({ x: 20, y: 20 })
-        })
+        }),
       ],
       observe: [
         effect("the state updates due to the event propagating to both handlers", async () => {
           await expect(selectElement("h3").text(), resolvesTo("Outer: 40; Inner: 2"))
         }),
-        effect("the current target value is set to the element with the event handler", (context) => {
-          expect(context.state.currentTargets, is([
-            "INNER: inner at (10, 10)",
-            "OUTER: outer",
-            "INNER: inner at (20, 20)",
-            "OUTER: outer",
-          ]))
-        })
-      ]
+        effect(
+          "the current target value is set to the element with the event handler",
+          (context) => {
+            expect(
+              context.state.currentTargets,
+              is([
+                "INNER: inner at (10, 10)",
+                "OUTER: outer",
+                "INNER: inner at (20, 20)",
+                "OUTER: outer",
+              ]),
+            )
+          },
+        ),
+      ],
     }),
 
   example(renderContext<Container<boolean>>())
@@ -388,11 +452,11 @@ export default behavior("event handlers", [
           context.setState(container({ initialValue: false }))
         }),
         fact("there is a checkbox whose click handler calls preventDefault", (context) => {
-          context.mountView(root => {
-            root.div(el => {
+          context.mountView((root) => {
+            root.div((el) => {
               el.children
-                .p(el => el.children.textNode(get => `Handler ran: ${get(context.state)}`))
-                .input(el => {
+                .p((el) => el.children.textNode((get) => `Handler ran: ${get(context.state)}`))
+                .input((el) => {
                   el.config
                     .type("checkbox")
                     .dataAttribute("checkbox")
@@ -403,21 +467,24 @@ export default behavior("event handlers", [
                 })
             })
           })
-        })
+        }),
       ],
       perform: [
         step("the checkbox is clicked", async () => {
           await selectElement("[data-checkbox]").click()
-        })
+        }),
       ],
       observe: [
         effect("the click handler ran", async () => {
           await expect(selectElement("p").text(), resolvesTo("Handler ran: true"))
         }),
         effect("the default action was prevented so the checkbox is not checked", async () => {
-          await expect(selectElement("[data-checkbox]").property("checked"), resolvesTo<unknown>(false))
-        })
-      ]
+          await expect(
+            selectElement("[data-checkbox]").property("checked"),
+            resolvesTo<unknown>(false),
+          )
+        }),
+      ],
     }),
 
   example(renderContext<NestedEventsContext>())
@@ -428,48 +495,50 @@ export default behavior("event handlers", [
           context.setState({
             inner: container({ initialValue: 0 }),
             outer: container({ initialValue: 20 }),
-            currentTargets: []
+            currentTargets: [],
           })
         }),
         fact("there is a view with nested events", (context) => {
-          context.mountView(root => {
-            root.main(el => {
+          context.mountView((root) => {
+            root.main((el) => {
               el.children
-                .h3(el => {
-                  el.children.textNode(get => `Outer: ${get(context.state.outer)}; Inner: ${get(context.state.inner)}`)
+                .h3((el) => {
+                  el.children.textNode(
+                    (get) =>
+                      `Outer: ${get(context.state.outer)}; Inner: ${get(context.state.inner)}`,
+                  )
                 })
-                .div(el => {
+                .div((el) => {
                   el.config
                     .style("background-color: green; width:400px; height:400px;")
                     .dataAttribute("outer")
-                    .on("click", () => update(context.state.outer, (val) => val += 10))
-                  el.children
-                    .div(el => {
-                      el.config
-                        .dataAttribute("inner")
-                        .style("background-color: blue; width:150px; height: 150px;")
-                        .on("click", (evt) => {
-                          evt.stopPropagation()
-                          return update(context.state.inner, (val) => val += 1)
-                        })
-                      el.children.textNode("click me!")
-                    })
+                    .on("click", () => update(context.state.outer, (val) => (val += 10)))
+                  el.children.div((el) => {
+                    el.config
+                      .dataAttribute("inner")
+                      .style("background-color: blue; width:150px; height: 150px;")
+                      .on("click", (evt) => {
+                        evt.stopPropagation()
+                        return update(context.state.inner, (val) => (val += 1))
+                      })
+                    el.children.textNode("click me!")
+                  })
                 })
             })
           })
-        })
+        }),
       ],
       perform: [
         step("click the inner box", async () => {
           await selectElement("[data-inner]").click()
           await selectElement("[data-inner]").click()
-        })
+        }),
       ],
       observe: [
         effect("the state updates due to the event propagating to both handlers", async () => {
           await expect(selectElement("h3").text(), resolvesTo("Outer: 20; Inner: 2"))
-        })
-      ]
+        }),
+      ],
     }),
 
   example(renderContext<NestedEventsContext>())
@@ -480,48 +549,50 @@ export default behavior("event handlers", [
           context.setState({
             inner: container({ initialValue: 0 }),
             outer: container({ initialValue: 20 }),
-            currentTargets: []
+            currentTargets: [],
           })
         }),
         fact("there is a view with nested events", (context) => {
-          context.mountView(root => {
-            root.main(el => {
+          context.mountView((root) => {
+            root.main((el) => {
               el.children
-                .h3(el => {
-                  el.children.textNode(get => `Outer: ${get(context.state.outer)}; Inner: ${get(context.state.inner)}`)
+                .h3((el) => {
+                  el.children.textNode(
+                    (get) =>
+                      `Outer: ${get(context.state.outer)}; Inner: ${get(context.state.inner)}`,
+                  )
                 })
-                .div(el => {
+                .div((el) => {
                   el.config
                     .style("background-color: green; width:400px; height:400px;")
                     .dataAttribute("outer")
-                    .on("click", () => update(context.state.outer, (val) => val += 10))
-                  el.children
-                    .div(el => {
-                      el.config
-                        .dataAttribute("inner")
-                        .style("background-color: blue; width:150px; height: 150px;")
-                        .on("click", (evt) => {
-                          evt.stopImmediatePropagation()
-                          return update(context.state.inner, (val) => val += 1)
-                        })
-                      el.children.textNode("click me!")
-                    })
+                    .on("click", () => update(context.state.outer, (val) => (val += 10)))
+                  el.children.div((el) => {
+                    el.config
+                      .dataAttribute("inner")
+                      .style("background-color: blue; width:150px; height: 150px;")
+                      .on("click", (evt) => {
+                        evt.stopImmediatePropagation()
+                        return update(context.state.inner, (val) => (val += 1))
+                      })
+                    el.children.textNode("click me!")
+                  })
                 })
             })
           })
-        })
+        }),
       ],
       perform: [
         step("click the inner box", async () => {
           await selectElement("[data-inner]").click()
           await selectElement("[data-inner]").click()
-        })
+        }),
       ],
       observe: [
         effect("the state updates due to the event propagating to both handlers", async () => {
           await expect(selectElement("h3").text(), resolvesTo("Outer: 20; Inner: 2"))
-        })
-      ]
+        }),
+      ],
     }),
 
   example(renderContext<NestedEventsContext>())
@@ -532,52 +603,60 @@ export default behavior("event handlers", [
           context.setState({
             inner: container({ initialValue: 0 }),
             outer: container({ initialValue: 20 }),
-            currentTargets: []
+            currentTargets: [],
           })
         }),
         fact("there is a view with events nested in templates", (context) => {
-          context.mountView(root => {
-            root.main(el => {
+          context.mountView((root) => {
+            root.main((el) => {
               el.children
-                .h3(el => {
-                  el.children.textNode(get => `Outer: ${get(context.state.outer)}; Inner: ${get(context.state.inner)}`)
+                .h3((el) => {
+                  el.children.textNode(
+                    (get) =>
+                      `Outer: ${get(context.state.outer)}; Inner: ${get(context.state.inner)}`,
+                  )
                 })
-                .div(el => {
+                .div((el) => {
                   el.config
                     .style("background-color: green; width:400px; height:400px;")
                     .dataAttribute("outer")
-                    .on("click", () => update(context.state.outer, (val) => val += 10))
-                  el.children
-                    .subviews(() => ["a", "b", "c"], (stateful: UseItem<string>): HTMLView => {
-                      return root => {
-                        root.div(el => {
+                    .on("click", () => update(context.state.outer, (val) => (val += 10)))
+                  el.children.subviews(
+                    () => ["a", "b", "c"],
+                    (stateful: UseItem<string>): HTMLView => {
+                      return (root) => {
+                        root.div((el) => {
                           el.config
-                            .dataAttribute("element", stateful((label) => `inner-${label.data}`))
+                            .dataAttribute(
+                              "element",
+                              stateful((label) => `inner-${label.data}`),
+                            )
                             .style("background-color: blue; width:100px; height: 100px;")
                             .on("click", () => {
-                              return update(context.state.inner, (val) => val += 1)
+                              return update(context.state.inner, (val) => (val += 1))
                             })
                           el.children.textNode(stateful((label) => `click me: ${label.data}`))
                         })
                       }
-                    })
+                    },
+                  )
                 })
             })
           })
-        })
+        }),
       ],
       perform: [
         step("click the inner boxes", async () => {
           await selectElement("[data-element='inner-a']").click()
           await selectElement("[data-element='inner-b']").click()
           await selectElement("[data-element='inner-c']").click()
-        })
+        }),
       ],
       observe: [
         effect("the state updates due to the event propagating to both handlers", async () => {
           await expect(selectElement("h3").text(), resolvesTo("Outer: 50; Inner: 3"))
-        })
-      ]
+        }),
+      ],
     }),
 
   example(renderContext<NestedEventsContext>())
@@ -588,53 +667,61 @@ export default behavior("event handlers", [
           context.setState({
             inner: container({ initialValue: 0 }),
             outer: container({ initialValue: 20 }),
-            currentTargets: []
+            currentTargets: [],
           })
         }),
         fact("there is a view with events nested in templates", (context) => {
-          context.mountView(root => {
-            root.main(el => {
+          context.mountView((root) => {
+            root.main((el) => {
               el.children
-                .h3(el => {
-                  el.children.textNode(get => `Outer: ${get(context.state.outer)}; Inner: ${get(context.state.inner)}`)
+                .h3((el) => {
+                  el.children.textNode(
+                    (get) =>
+                      `Outer: ${get(context.state.outer)}; Inner: ${get(context.state.inner)}`,
+                  )
                 })
-                .div(el => {
+                .div((el) => {
                   el.config
                     .style("background-color: green; width:400px; height:400px;")
                     .dataAttribute("outer")
-                    .on("click", () => update(context.state.outer, (val) => val += 10))
-                  el.children
-                    .subviews(() => ["a", "b", "c"], (stateful: UseItem<string>): HTMLView => {
-                      return root => {
-                        root.div(el => {
+                    .on("click", () => update(context.state.outer, (val) => (val += 10)))
+                  el.children.subviews(
+                    () => ["a", "b", "c"],
+                    (stateful: UseItem<string>): HTMLView => {
+                      return (root) => {
+                        root.div((el) => {
                           el.config
-                            .dataAttribute("element", stateful((label) => `inner-${label.data}`))
+                            .dataAttribute(
+                              "element",
+                              stateful((label) => `inner-${label.data}`),
+                            )
                             .style("background-color: blue; width:100px; height: 100px;")
                             .on("click", (evt) => {
                               evt.stopPropagation()
-                              return update(context.state.inner, (val) => val += 1)
+                              return update(context.state.inner, (val) => (val += 1))
                             })
                           el.children.textNode(stateful((label) => `click me: ${label.data}`))
                         })
                       }
-                    })
+                    },
+                  )
                 })
             })
           })
-        })
+        }),
       ],
       perform: [
         step("click the inner boxes", async () => {
           await selectElement("[data-element='inner-a']").click()
           await selectElement("[data-element='inner-b']").click()
           await selectElement("[data-element='inner-c']").click()
-        })
+        }),
       ],
       observe: [
         effect("the state updates due to the event propagating to both handlers", async () => {
           await expect(selectElement("h3").text(), resolvesTo("Outer: 20; Inner: 3"))
-        })
-      ]
+        }),
+      ],
     }),
 
   example(renderContext<NestedEventsContext>())
@@ -645,53 +732,61 @@ export default behavior("event handlers", [
           context.setState({
             inner: container({ initialValue: 0 }),
             outer: container({ initialValue: 20 }),
-            currentTargets: []
+            currentTargets: [],
           })
         }),
         fact("there is a view with events nested in templates", (context) => {
-          context.mountView(root => {
-            root.main(el => {
+          context.mountView((root) => {
+            root.main((el) => {
               el.children
-                .h3(el => {
-                  el.children.textNode(get => `Outer: ${get(context.state.outer)}; Inner: ${get(context.state.inner)}`)
+                .h3((el) => {
+                  el.children.textNode(
+                    (get) =>
+                      `Outer: ${get(context.state.outer)}; Inner: ${get(context.state.inner)}`,
+                  )
                 })
-                .div(el => {
+                .div((el) => {
                   el.config
                     .style("background-color: green; width:400px; height:400px;")
                     .dataAttribute("outer")
-                    .on("click", () => update(context.state.outer, (val) => val += 10))
-                  el.children
-                    .subviews(() => ["a", "b", "c"], (stateful: UseItem<string>): HTMLView => {
-                      return root => {
-                        root.div(el => {
+                    .on("click", () => update(context.state.outer, (val) => (val += 10)))
+                  el.children.subviews(
+                    () => ["a", "b", "c"],
+                    (stateful: UseItem<string>): HTMLView => {
+                      return (root) => {
+                        root.div((el) => {
                           el.config
-                            .dataAttribute("element", stateful((label) => `inner-${label.data}`))
+                            .dataAttribute(
+                              "element",
+                              stateful((label) => `inner-${label.data}`),
+                            )
                             .style("background-color: blue; width:100px; height: 100px;")
                             .on("click", (evt) => {
                               evt.stopImmediatePropagation()
-                              return update(context.state.inner, (val) => val += 1)
+                              return update(context.state.inner, (val) => (val += 1))
                             })
                           el.children.textNode(stateful((label) => `click me: ${label.data}`))
                         })
                       }
-                    })
+                    },
+                  )
                 })
             })
           })
-        })
+        }),
       ],
       perform: [
         step("click the inner boxes", async () => {
           await selectElement("[data-element='inner-a']").click()
           await selectElement("[data-element='inner-b']").click()
           await selectElement("[data-element='inner-c']").click()
-        })
+        }),
       ],
       observe: [
         effect("the state updates due to the event propagating to both handlers", async () => {
           await expect(selectElement("h3").text(), resolvesTo("Outer: 20; Inner: 3"))
-        })
-      ]
+        }),
+      ],
     }),
 
   example(renderContext<ListEventContext>())
@@ -701,65 +796,74 @@ export default behavior("event handlers", [
         fact("there is state", (context) => {
           context.setState({
             message: container({ initialValue: "" }),
-            options: container({ initialValue: ["apples", "candy", "trees", "balloons"] })
+            options: container({ initialValue: ["apples", "candy", "trees", "balloons"] }),
           })
         }),
-        fact("these is a list of templates and each template has an event that depends on state", (context) => {
-          function viewZone(stateful: UseItem<string>): HTMLView {
-            return root =>
-              root.li(el => {
-                el.children
-                  .button(el => {
+        fact(
+          "these is a list of templates and each template has an event that depends on state",
+          (context) => {
+            function viewZone(stateful: UseItem<string>): HTMLView {
+              return (root) =>
+                root.li((el) => {
+                  el.children.button((el) => {
                     el.config
-                      .dataAttribute("button-name", stateful((name) => name.data))
-                      .on("click", () => use(stateful((name) => {
-                        if (name.data === "trees") {
-                          return write(context.state.message, name.data)
-                        } else {
-                          return undefined
-                        }
-                      })))
+                      .dataAttribute(
+                        "button-name",
+                        stateful((name) => name.data),
+                      )
+                      .on("click", () =>
+                        use(
+                          stateful((name) => {
+                            if (name.data === "trees") {
+                              return write(context.state.message, name.data)
+                            } else {
+                              return undefined
+                            }
+                          }),
+                        ),
+                      )
                     el.children.textNode(stateful((name) => `Click to get ${name}`))
                   })
-              })
-          }
+                })
+            }
 
-          context.mountView(root => {
-            root.main(el => {
-              el.children
-                .ul(el => {
-                  el.children
-                    .subviews((get) => get(context.state.options), viewZone)
-                })
-                .hr()
-                .p(el => {
-                  el.children.textNode(get => `You selected '${get(context.state.message)}'`)
-                })
+            context.mountView((root) => {
+              root.main((el) => {
+                el.children
+                  .ul((el) => {
+                    el.children.subviews((get) => get(context.state.options), viewZone)
+                  })
+                  .hr()
+                  .p((el) => {
+                    el.children.textNode((get) => `You selected '${get(context.state.message)}'`)
+                  })
+              })
             })
-          })
-        })
+          },
+        ),
       ],
       perform: [
         step("click one of the options in the list", async () => {
           await selectElement("[data-button-name='trees']").click()
-        })
+        }),
       ],
       observe: [
         effect("the event is handled and the message is updated", async () => {
           await expect(selectElement("p").text(), resolvesTo("You selected 'trees'"))
-        })
-      ]
-    }).andThen({
+        }),
+      ],
+    })
+    .andThen({
       perform: [
         step("click one of the options that returns undefined", async () => {
           await selectElement("[data-button-name='apples']").click()
-        })
+        }),
       ],
       observe: [
         effect("nothing happens", async () => {
           await expect(selectElement("p").text(), resolvesTo("You selected 'trees'"))
-        })
-      ]
+        }),
+      ],
     }),
 
   elementWithNonBubblingEvent("client", (context, view) => context.mountView(view)),
@@ -767,10 +871,12 @@ export default behavior("event handlers", [
 
   templateInstanceWithNonBubblingEvent("client", (context, view) => context.mountView(view)),
   templateInstanceWithNonBubblingEvent("ssr", (context, view) => context.ssrAndActivate(view)),
-
 ])
 
-function elementWithNonBubblingEvent(title: string, renderer: (context: RenderApp<Container<string>>, view: HTMLView) => void): Example {
+function elementWithNonBubblingEvent(
+  title: string,
+  renderer: (context: RenderApp<Container<string>>, view: HTMLView) => void,
+): Example {
   return example(renderContext<Container<string>>())
     .description(`element with an event that does not bubble (${title})`)
     .script({
@@ -780,38 +886,39 @@ function elementWithNonBubblingEvent(title: string, renderer: (context: RenderAp
         }),
         fact("there is a view with a non-bubbling focus event", (context) => {
           renderer(context, (root) => {
-            root.main(el => {
+            root.main((el) => {
               el.children
-                .h3(el => el.children.textNode(get => get(context.state)))
-                .form(el => {
-                  el.children.label(el => {
-                    el.children
-                      .textNode("Name")
-                      .input(el => {
-                        el.config
-                          .type("text")
-                          .on("focus", () => write(context.state, "Hello! (Focused)"))
-                      })
+                .h3((el) => el.children.textNode((get) => get(context.state)))
+                .form((el) => {
+                  el.children.label((el) => {
+                    el.children.textNode("Name").input((el) => {
+                      el.config
+                        .type("text")
+                        .on("focus", () => write(context.state, "Hello! (Focused)"))
+                    })
                   })
                 })
             })
           })
-        })
+        }),
       ],
       perform: [
         step("trigger the focus event", async () => {
           await selectElement("input").focus()
-        })
+        }),
       ],
       observe: [
         effect("the text updates in response to the event", async () => {
           await expect(selectElement("h3").text(), resolvesTo("Hello! (Focused)"))
-        })
-      ]
+        }),
+      ],
     })
 }
 
-function templateInstanceWithNonBubblingEvent(title: string, renderer: (context: RenderApp<ListEventContext>, view: HTMLView) => void): Example {
+function templateInstanceWithNonBubblingEvent(
+  title: string,
+  renderer: (context: RenderApp<ListEventContext>, view: HTMLView) => void,
+): Example {
   return example(renderContext<ListEventContext>())
     .description(`list view where template instance contains non-bubbling event (${title})`)
     .script({
@@ -819,47 +926,51 @@ function templateInstanceWithNonBubblingEvent(title: string, renderer: (context:
         fact("there is state", (context) => {
           context.setState({
             message: container({ initialValue: "Hello" }),
-            options: container({ initialValue: ["Name", "Age", "Height"] })
+            options: container({ initialValue: ["Name", "Age", "Height"] }),
           })
         }),
         fact("there is a list view with a focus event, which does not bubble", (context) => {
           function optionView(stateful: UseItem<string>): HTMLView {
             return (root) => {
-              root.form(el => {
-                el.children.label(el => {
-                  el.children
-                    .textNode(stateful((option) => option.data))
-                    .input(el => {
-                      el.config
-                        .name(stateful((option) => option.data.toLowerCase()))
-                        .on("focus", () => use(stateful((option) => write(context.state.message, `${option.data} is focused!`))))
-                    })
+              root.form((el) => {
+                el.children.label((el) => {
+                  el.children.textNode(stateful((option) => option.data)).input((el) => {
+                    el.config
+                      .name(stateful((option) => option.data.toLowerCase()))
+                      .on("focus", () =>
+                        use(
+                          stateful((option) =>
+                            write(context.state.message, `${option.data} is focused!`),
+                          ),
+                        ),
+                      )
+                  })
                 })
               })
             }
           }
 
           renderer(context, (root) => {
-            root.main(el => {
+            root.main((el) => {
               el.children
-                .h3(el => el.children.textNode(get => get(context.state.message)))
-                .ol(el => {
-                  el.children.subviews(get => get(context.state.options), optionView)
+                .h3((el) => el.children.textNode((get) => get(context.state.message)))
+                .ol((el) => {
+                  el.children.subviews((get) => get(context.state.options), optionView)
                 })
             })
           })
-        })
+        }),
       ],
       perform: [
         step("select the age field", async () => {
           await selectElement("input[name='age']").focus()
-        })
+        }),
       ],
       observe: [
         effect("the message updates in response to the focus event", async () => {
           await expect(selectElement("h3").text(), resolvesTo("Age is focused!"))
-        })
-      ]
+        }),
+      ],
     })
 }
 

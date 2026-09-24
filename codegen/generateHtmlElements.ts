@@ -1,4 +1,9 @@
-import { MethodSignatureStructure, OptionalKind, ParameterDeclarationStructure, Project } from "ts-morph"
+import {
+  MethodSignatureStructure,
+  OptionalKind,
+  ParameterDeclarationStructure,
+  Project,
+} from "ts-morph"
 import { htmlElementAttributes } from "html-element-attributes"
 import htmlTags, { voidHtmlTags } from "html-tags"
 import { booleanAttributes } from "./booleanAttributes"
@@ -9,55 +14,44 @@ const project = new Project({
 })
 
 const htmlElementsFile = project.createSourceFile("./src/view/htmlElements.ts", undefined, {
-  overwrite: true
+  overwrite: true,
 })
 htmlElementsFile.addImportDeclarations([
   {
-    namedImports: [
-      "ConfigurableElement",
-      "UseCase",
-      "UseItem"
-    ],
-    moduleSpecifier: "./render/viewRenderer.js"
+    namedImports: ["ConfigurableElement", "UseCase", "UseItem"],
+    moduleSpecifier: "./render/viewRenderer.js",
   },
   {
-    namedImports: [
-      "GetState",
-      "Stateful"
-    ],
-    moduleSpecifier: "../store/index.js"
+    namedImports: ["GetState", "Stateful"],
+    moduleSpecifier: "../store/index.js",
   },
   {
-    namedImports: [
-      "SpecialElementAttributes"
-    ],
-    moduleSpecifier: "./specialAttributes.js"
+    namedImports: ["SpecialElementAttributes"],
+    moduleSpecifier: "./specialAttributes.js",
   },
   {
-    namedImports: [
-      "ElementSupport"
-    ],
-    moduleSpecifier: "./elementSupport.js"
-  }
+    namedImports: ["ElementSupport"],
+    moduleSpecifier: "./elementSupport.js",
+  },
 ])
 
 htmlElementsFile.addTypeAlias({
   name: "HTMLView",
   isExported: true,
-  type: "(root: HTMLBuilder) => void"
+  type: "(root: HTMLBuilder) => void",
 })
 
 htmlElementsFile.addTypeAlias({
   name: "TagElement",
   isExported: true,
   typeParameters: ["T extends string"],
-  type: "T extends keyof HTMLElementTagNameMap ? HTMLElementTagNameMap[T] : HTMLElement"
+  type: "T extends keyof HTMLElementTagNameMap ? HTMLElementTagNameMap[T] : HTMLElement",
 })
 
 const caseMatcherInterface = htmlElementsFile.addInterface({
   name: "HTMLCaseMatcher",
   typeParameters: ["T"],
-  isExported: true
+  isExported: true,
 })
 
 caseMatcherInterface.addMethod({
@@ -65,137 +59,123 @@ caseMatcherInterface.addMethod({
   typeParameters: ["X extends T"],
   parameters: [
     { name: "typePredicate", type: "(val: T) => val is X" },
-    { name: "generator", type: "(useCase: UseCase<X>) => HTMLView" }
+    { name: "generator", type: "(useCase: UseCase<X>) => HTMLView" },
   ],
-  returnType: "HTMLCaseMatcher<T>"
+  returnType: "HTMLCaseMatcher<T>",
 })
 
 caseMatcherInterface.addMethod({
   name: "default",
-  parameters: [
-    { name: "generator", "type": "(useCase: UseCase<T>) => HTMLView" }
-  ],
-  returnType: "void"
+  parameters: [{ name: "generator", type: "(useCase: UseCase<T>) => HTMLView" }],
+  returnType: "void",
 })
 
 const conditionMatcherInterface = htmlElementsFile.addInterface({
   name: "HTMLConditionMatcher",
-  isExported: true
+  isExported: true,
 })
 
 conditionMatcherInterface.addMethod({
   name: "when",
   parameters: [
     { name: "predicate", type: "(get: GetState) => boolean" },
-    { name: "view", type: "HTMLView" }
+    { name: "view", type: "HTMLView" },
   ],
-  returnType: "HTMLConditionMatcher"
+  returnType: "HTMLConditionMatcher",
 })
 
 conditionMatcherInterface.addMethod({
   name: "default",
-  parameters: [
-    { name: "view", type: "HTMLView" }
-  ],
-  returnType: "void"
+  parameters: [{ name: "view", type: "HTMLView" }],
+  returnType: "void",
 })
-
 
 const viewMatcherInterface = htmlElementsFile.addInterface({
   name: "HTMLViewMatcher",
-  isExported: true
+  isExported: true,
 })
 
 viewMatcherInterface.addMethod({
   name: "withUnion",
   typeParameters: ["T"],
-  parameters: [
-    { name: "unionValue", type: "(get: GetState) => T" }
-  ],
-  returnType: "HTMLCaseMatcher<T>"
+  parameters: [{ name: "unionValue", type: "(get: GetState) => T" }],
+  returnType: "HTMLCaseMatcher<T>",
 })
 
 viewMatcherInterface.addMethod({
   name: "withConditions",
-  returnType: "HTMLConditionMatcher"
+  returnType: "HTMLConditionMatcher",
 })
 
 const specialHtmlElementsInterface = htmlElementsFile.addInterface({
   name: "SpecialHTMLElements",
-  isExported: true
+  isExported: true,
 })
 
 specialHtmlElementsInterface.addMethod({
   name: "element",
   parameters: [
     { name: "tag", type: "string" },
-    { name: "builder", type: "(element: ConfigurableElement<SpecialElementAttributes & GlobalHTMLAttributes, HTMLBuilder>) => void", hasQuestionToken: true },
-    { name: "support", type: "ElementSupport", hasQuestionToken: true }
+    {
+      name: "builder",
+      type: "(element: ConfigurableElement<SpecialElementAttributes & GlobalHTMLAttributes, HTMLBuilder>) => void",
+      hasQuestionToken: true,
+    },
+    { name: "support", type: "ElementSupport", hasQuestionToken: true },
   ],
-  returnType: "this"
+  returnType: "this",
 })
 
 specialHtmlElementsInterface.addMethod({
   name: "textNode",
-  parameters: [
-    { name: "value", type: "string | Stateful<string | undefined>" }
-  ],
-  returnType: "this"
+  parameters: [{ name: "value", type: "string | Stateful<string | undefined>" }],
+  returnType: "this",
 })
 
 specialHtmlElementsInterface.addMethod({
   name: "subview",
-  parameters: [
-    { name: "value", type: "HTMLView" }
-  ],
-  returnType: "this"
+  parameters: [{ name: "value", type: "HTMLView" }],
+  returnType: "this",
 })
 
 specialHtmlElementsInterface.addMethod({
   name: "subviewMatching",
-  parameters: [
-    { name: "matcherGenerator", type: "(matcher: HTMLViewMatcher) => void" }
-  ],
-  returnType: "this"
+  parameters: [{ name: "matcherGenerator", type: "(matcher: HTMLViewMatcher) => void" }],
+  returnType: "this",
 })
 
 specialHtmlElementsInterface.addMethod({
   name: "subviews",
-  typeParameters: [
-    { name: "T" }
-  ],
+  typeParameters: [{ name: "T" }],
   parameters: [
     { name: "data", type: "(get: GetState) => ReadonlyArray<T>" },
-    { name: "viewGenerator", type: "(useItem: UseItem<T>) => HTMLView" }
+    { name: "viewGenerator", type: "(useItem: UseItem<T>) => HTMLView" },
   ],
-  returnType: "this"
+  returnType: "this",
 })
 
 // GlobalAttributes interface
 
 const globalAttibutesInterface = htmlElementsFile.addInterface({
   name: "GlobalHTMLAttributes",
-  isExported: true
+  isExported: true,
 })
 
 const globalAttribute = buildAttributeProperty("this")
 
-for (const attribute of htmlElementAttributes['*']) {
+for (const attribute of htmlElementAttributes["*"]) {
   globalAttibutesInterface.addMethod(globalAttribute(attribute))
 }
 
 // add aria role property to global attributes
 globalAttibutesInterface.addMethod(buildAttributeProperty("this")("role"))
 
-
 // ViewBuilder interface
 
 const viewBuilderInterface = htmlElementsFile.addInterface({
   name: "HTMLBuilder",
-  extends: [
-    "SpecialHTMLElements"
-  ],
-  isExported: true
+  extends: ["SpecialHTMLElements"],
+  isExported: true,
 })
 
 for (const tag of htmlTags) {
@@ -205,17 +185,18 @@ for (const tag of htmlTags) {
 
   const methodSignature = viewBuilderInterface.addMethod({
     name: tag,
-    returnType: "HTMLBuilder"
+    returnType: "HTMLBuilder",
   })
 
   methodSignature.addParameter({
     name: "builder?",
     type: (writer) => {
-      writer.write(`(element: ConfigurableElement<${attributesName(tag)}, ${elementChildren(tag)}>) => void`)
-    }
+      writer.write(
+        `(element: ConfigurableElement<${attributesName(tag)}, ${elementChildren(tag)}>) => void`,
+      )
+    },
   })
 }
-
 
 // Attribute Interfaces
 
@@ -229,34 +210,28 @@ for (const tag of htmlTags) {
   htmlElementsFile.addInterface({
     name: attributesName(tag),
     methods: elementAttributes.map(buildAttributeProperty(`${attributesName(tag)}`)),
-    extends: [
-      `SpecialElementAttributes<TagElement<"${tag}">>`,
-      "GlobalHTMLAttributes"
-    ],
-    isExported: true
+    extends: [`SpecialElementAttributes<TagElement<"${tag}">>`, "GlobalHTMLAttributes"],
+    isExported: true,
   })
 }
 
-
 project.save()
 
-function buildAttributeProperty(returnType: string): (attribute: string) => OptionalKind<MethodSignatureStructure> {
+function buildAttributeProperty(
+  returnType: string,
+): (attribute: string) => OptionalKind<MethodSignatureStructure> {
   return (attribute) => {
     let parameters: Array<OptionalKind<ParameterDeclarationStructure>> = []
     if (booleanAttributes.includes(attribute)) {
-      parameters = [
-        { name: "value", type: "boolean | Stateful<boolean | undefined>" }
-      ]
+      parameters = [{ name: "value", type: "boolean | Stateful<boolean | undefined>" }]
     } else {
-      parameters = [
-        { name: "value", type: "string | Stateful<string | undefined>" }
-      ]
+      parameters = [{ name: "value", type: "string | Stateful<string | undefined>" }]
     }
 
     return {
       name: toCamel(attribute),
       returnType: `${returnType}`,
-      parameters
+      parameters,
     }
   }
 }

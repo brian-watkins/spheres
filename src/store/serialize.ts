@@ -7,7 +7,9 @@ export type SerializableState = Container<any> | SuppliedState<any>
 export type StateManifest = Record<string, SerializableState>
 
 export enum SerializedStateType {
-  Value, Meta, Message
+  Value,
+  Meta,
+  Message,
 }
 
 export interface SerializedValue {
@@ -34,7 +36,7 @@ export function serializedValue(key: string, value: any): SerializedValue {
   return {
     k: SerializedStateType.Value,
     t: key,
-    v: value
+    v: value,
   }
 }
 
@@ -42,7 +44,7 @@ export function serializedMessage(key: string, message: any): SerializedMessage 
   return {
     k: SerializedStateType.Message,
     t: key,
-    v: message
+    v: message,
   }
 }
 
@@ -50,6 +52,6 @@ export function serializedMeta(key: string, value: any): SerializedMeta {
   return {
     k: SerializedStateType.Meta,
     t: key,
-    v: value
+    v: value,
   }
 }

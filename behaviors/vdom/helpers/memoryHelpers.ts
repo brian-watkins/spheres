@@ -17,6 +17,6 @@ export function requestGC(): Promise<void> {
     // elements can actually be collected.
     await page.mouse.move(0, 0)
     await page.requestGC()
-    await new Promise(resolve => setTimeout(resolve, 50))
+    await new Promise((resolve) => setTimeout(resolve, 50))
   })
 }

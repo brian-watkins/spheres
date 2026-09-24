@@ -12,8 +12,8 @@ export class VirtualItem {
     public index: number,
     public node: Node,
     public firstNode: Node | undefined,
-    public lastNode: Node | undefined
-  ) { }
+    public lastNode: Node | undefined,
+  ) {}
 
   updateIndex(index: number) {
     this.index = index

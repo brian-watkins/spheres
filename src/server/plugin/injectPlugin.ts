@@ -1,8 +1,8 @@
 import type { PluginOption } from "vite"
 
 export function spheresInjectPlugin(): PluginOption {
-  const virtualModuleId = 'virtual:spheres/server'
-  const resolvedVirtualModuleId = '\0' + virtualModuleId
+  const virtualModuleId = "virtual:spheres/server"
+  const resolvedVirtualModuleId = "\0" + virtualModuleId
 
   return {
     name: "spheres-inject",
@@ -41,8 +41,8 @@ export function zone(view, options) {
 
       return {
         code: code.replaceAll("spheres/server", "virtual:spheres/server"),
-        map: null
+        map: null,
       }
-    }
+    },
   }
 }

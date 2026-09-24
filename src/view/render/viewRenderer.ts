@@ -11,21 +11,19 @@ export type ViewDefinition = (root: any) => void
 
 export type ElementDefinition = (el: ConfigurableElement<any, any>) => void
 
-export type UseCase<T> = <S>(
-  generator: (
-    dataReference: T,
-    get: GetState
-  ) => S
-) => Stateful<S>
+export type UseCase<T> = <S>(generator: (dataReference: T, get: GetState) => S) => Stateful<S>
 
 export interface ViewCaseMatcher<T> {
-  when<X extends T>(typePredicate: (val: T) => val is X, generator: (useCase: UseCase<X>) => ViewDefinition): ViewCaseMatcher<T>
+  when<X extends T>(
+    typePredicate: (val: T) => val is X,
+    generator: (useCase: UseCase<X>) => ViewDefinition,
+  ): ViewCaseMatcher<T>
   default(generator: (useCase: UseCase<T>) => ViewDefinition): void
 }
 
 export interface ViewConditionMatcher {
   when(predicate: (get: GetState) => boolean, view: ViewDefinition): this
-  default(view: ViewDefinition): void;
+  default(view: ViewDefinition): void
 }
 
 export interface ViewMatcher {
@@ -38,12 +36,7 @@ export interface ListItem<T> {
   index: number
 }
 
-export type UseItem<T> = <S>(
-  generator: (
-    item: ListItem<T>,
-    get: GetState
-  ) => S
-) => Stateful<S>
+export type UseItem<T> = <S>(generator: (item: ListItem<T>, get: GetState) => S) => Stateful<S>
 
 export interface ViewRenderer {
   textNode(value: string | Stateful<string>): this
@@ -51,7 +44,7 @@ export interface ViewRenderer {
   subview(view: ViewDefinition): this
   subviews<T>(
     data: (get: GetState) => ReadonlyArray<T>,
-    viewGenerator: (useItem: UseItem<T>) => ViewDefinition
+    viewGenerator: (useItem: UseItem<T>) => ViewDefinition,
   ): this
   subviewMatching(matcherGenerator: (matcher: ViewMatcher) => void): this
 }
@@ -60,7 +53,10 @@ abstract class BaseViewRenderer implements ViewRenderer {
   abstract textNode(value: string | Stateful<string>): this
   abstract element(tag: string, builder?: ElementDefinition, support?: ElementSupport): this
   abstract subviewMatching(matcherGenerator: (matcher: ViewMatcher) => void): this
-  abstract subviews<T>(data: (get: GetState) => ReadonlyArray<T>, viewGenerator: (useItem: UseItem<T>) => ViewDefinition): this
+  abstract subviews<T>(
+    data: (get: GetState) => ReadonlyArray<T>,
+    viewGenerator: (useItem: UseItem<T>) => ViewDefinition,
+  ): this
 
   subview(view: ViewDefinition): this {
     view(this)
@@ -75,14 +71,17 @@ export const AbstractViewRenderer = new Proxy(BaseViewRenderer, {
       get: function (target, prop, receiver) {
         if (Reflect.has(obj, prop)) {
           return Reflect.get(target, prop, receiver)
-        }
-        else {
-          return function (builder?: <A extends SpecialElementAttributes, B>(element: ConfigurableElement<A, B>) => void) {
+        } else {
+          return function (
+            builder?: <A extends SpecialElementAttributes, B>(
+              element: ConfigurableElement<A, B>,
+            ) => void,
+          ) {
             target.element(prop as string, builder)
             return receiver
           }
         }
-      }
+      },
     })
-  }
+  },
 })

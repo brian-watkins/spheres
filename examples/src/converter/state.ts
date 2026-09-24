@@ -6,10 +6,7 @@ export interface TemperatureUpdate {
 }
 
 export const temperatureUpdate = (input: TemperatureUpdate) => {
-  return batch([
-    write(celsiusTemperature, input),
-    write(farenheitTemperature, input)
-  ])
+  return batch([write(celsiusTemperature, input), write(farenheitTemperature, input)])
 }
 
 export const celsiusTemperature = container({
@@ -27,7 +24,7 @@ export const celsiusTemperature = container({
     }
 
     return { value: "" }
-  }
+  },
 })
 
 export const farenheitTemperature = container({
@@ -45,13 +42,13 @@ export const farenheitTemperature = container({
     }
 
     return { value: "" }
-  }
+  },
 })
 
 export const farenheitInvalid = derived({
-  query: (get) => isNaN(Number(get(farenheitTemperature)))
+  query: (get) => isNaN(Number(get(farenheitTemperature))),
 })
 
 export const celsiusInvalid = derived({
-  query: (get) => isNaN(Number(get(celsiusTemperature)))
+  query: (get) => isNaN(Number(get(celsiusTemperature))),
 })

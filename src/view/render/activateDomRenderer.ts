@@ -1,30 +1,54 @@
-import { DOMEventType, EventsToDelegate, StoreEventHandler, EventZone } from "./index.js";
-import { Stateful, GetState } from "../../store/index.js";
-import { dispatchMessage } from "../../store/message.js";
-import { initListener, createSubscriber, TokenRegistry, isStateful } from "../../store/tokenRegistry.js";
-import { UpdateAttributeEffect } from "./effects/attributeEffect.js";
-import { UpdatePropertyEffect } from "./effects/propertyEffect.js";
-import { MatchViewEffect } from "./effects/matchViewEffect.js";
-import { UpdateTextEffect } from "./effects/textEffect.js";
-import { getEventAttribute } from "./eventHelpers.js";
-import { findListEndNode, findMatchEndNode, getListElementId, getMatchElementId, listEndIndicator, matchEndIndicator } from "./fragmentHelpers.js";
-import { createDOMTemplate, DomTemplateRenderer } from "./templateRenderer.js";
-import { AbstractViewConfig } from "./viewConfig.js";
-import { AbstractViewRenderer, ElementDefinition, UseItem, ViewDefinition, ViewMatcher } from "./viewRenderer.js";
-import { IdSequence } from "./idSequence.js";
-import { EffectLocation } from "./effectLocation.js";
-import { ListItemTemplateContext } from "./templateContext.js";
-import { activateList, ListEffect } from "./effects/listEffect.js";
-import { MatcherBuilder } from "./viewMatcherBuilder.js";
-import { ElementConfigSupport, ElementSupport } from "../elementSupport.js";
-import { ElementIdentifier, storeElement } from "../element.js";
-import { DOMRoot } from "./domRoot.js";
+import { DOMEventType, EventsToDelegate, StoreEventHandler, EventZone } from "./index.js"
+import { Stateful, GetState } from "../../store/index.js"
+import { dispatchMessage } from "../../store/message.js"
+import {
+  initListener,
+  createSubscriber,
+  TokenRegistry,
+  isStateful,
+} from "../../store/tokenRegistry.js"
+import { UpdateAttributeEffect } from "./effects/attributeEffect.js"
+import { UpdatePropertyEffect } from "./effects/propertyEffect.js"
+import { MatchViewEffect } from "./effects/matchViewEffect.js"
+import { UpdateTextEffect } from "./effects/textEffect.js"
+import { getEventAttribute } from "./eventHelpers.js"
+import {
+  findListEndNode,
+  findMatchEndNode,
+  getListElementId,
+  getMatchElementId,
+  listEndIndicator,
+  matchEndIndicator,
+} from "./fragmentHelpers.js"
+import { createDOMTemplate, DomTemplateRenderer } from "./templateRenderer.js"
+import { AbstractViewConfig } from "./viewConfig.js"
+import {
+  AbstractViewRenderer,
+  ElementDefinition,
+  UseItem,
+  ViewDefinition,
+  ViewMatcher,
+} from "./viewRenderer.js"
+import { IdSequence } from "./idSequence.js"
+import { EffectLocation } from "./effectLocation.js"
+import { ListItemTemplateContext } from "./templateContext.js"
+import { activateList, ListEffect } from "./effects/listEffect.js"
+import { MatcherBuilder } from "./viewMatcherBuilder.js"
+import { ElementConfigSupport, ElementSupport } from "../elementSupport.js"
+import { ElementIdentifier, storeElement } from "../element.js"
+import { DOMRoot } from "./domRoot.js"
 
 export class ActivateDomRenderer extends AbstractViewRenderer {
   private currentNode: Node | null
   private currentLocation: EffectLocation
 
-  constructor(private elementSupport: ElementSupport, private zone: DOMRoot, private registry: TokenRegistry, node: Node, location: EffectLocation) {
+  constructor(
+    private elementSupport: ElementSupport,
+    private zone: DOMRoot,
+    private registry: TokenRegistry,
+    node: Node,
+    location: EffectLocation,
+  ) {
     super()
 
     this.currentNode = node
@@ -47,8 +71,21 @@ export class ActivateDomRenderer extends AbstractViewRenderer {
     const renderSupport = support ?? this.elementSupport
 
     builder?.({
-      config: new ActivateDomConfig(renderSupport.getConfigSupport(tag), this.zone, this.registry, this.zone.root, this.currentNode as Element, this.currentLocation),
-      children: new ActivateDomRenderer(renderSupport, this.zone, this.registry, this.currentNode!.firstChild!, this.currentLocation.firstChild())
+      config: new ActivateDomConfig(
+        renderSupport.getConfigSupport(tag),
+        this.zone,
+        this.registry,
+        this.zone.root,
+        this.currentNode as Element,
+        this.currentLocation,
+      ),
+      children: new ActivateDomRenderer(
+        renderSupport,
+        this.zone,
+        this.registry,
+        this.currentNode!.firstChild!,
+        this.currentLocation.firstChild(),
+      ),
     })
 
     this.currentNode = this.currentNode!.nextSibling
@@ -57,21 +94,45 @@ export class ActivateDomRenderer extends AbstractViewRenderer {
     return this
   }
 
-  subviews<T>(query: (get: GetState) => ReadonlyArray<T>, viewGenerator: (useItem: UseItem<T>) => ViewDefinition): this {
+  subviews<T>(
+    query: (get: GetState) => ReadonlyArray<T>,
+    viewGenerator: (useItem: UseItem<T>) => ViewDefinition,
+  ): this {
     const elementId = getListElementId(this.currentNode!)
     let end = findListEndNode(this.currentNode!, elementId)
 
-    const renderer = new DomTemplateRenderer(this.elementSupport, this.zone, new IdSequence(elementId), new EffectLocation(root => root))
+    const renderer = new DomTemplateRenderer(
+      this.elementSupport,
+      this.zone,
+      new IdSequence(elementId),
+      new EffectLocation((root) => root),
+    )
     const templateContext = new ListItemTemplateContext(renderer, viewGenerator)
 
-    const effect = new ListEffect(this.registry, renderer.template, query, templateContext, this.currentNode!, end)
+    const effect = new ListEffect(
+      this.registry,
+      renderer.template,
+      query,
+      templateContext,
+      this.currentNode!,
+      end,
+    )
     const subscriber = createSubscriber(this.registry, effect)
     const data = query(subscriber.generateGetState())
-    const virtualList = activateList(this.registry, templateContext, renderer.template, this.currentNode!, end, data)
+    const virtualList = activateList(
+      this.registry,
+      templateContext,
+      renderer.template,
+      this.currentNode!,
+      end,
+      data,
+    )
     effect.setVirtualList(...virtualList)
 
     this.currentNode = end.nextSibling
-    this.currentLocation = this.currentLocation.nextCommentSiblingMatching(listEndIndicator(elementId)).nextSibling()
+    this.currentLocation = this.currentLocation
+      .nextCommentSiblingMatching(listEndIndicator(elementId))
+      .nextSibling()
 
     return this
   }
@@ -80,22 +141,42 @@ export class ActivateDomRenderer extends AbstractViewRenderer {
     const elementId = getMatchElementId(this.currentNode!)
     let end = findMatchEndNode(this.currentNode!, elementId)
 
-    const matcherBuilder = new MatcherBuilder(createDOMTemplate(this.elementSupport, this.zone, elementId))
+    const matcherBuilder = new MatcherBuilder(
+      createDOMTemplate(this.elementSupport, this.zone, elementId),
+    )
     matcherGenerator(matcherBuilder)
 
-    const effect = new MatchViewEffect(this.registry, matcherBuilder.collection, this.currentNode!, end)
+    const effect = new MatchViewEffect(
+      this.registry,
+      matcherBuilder.collection,
+      this.currentNode!,
+      end,
+    )
     const subscriber = createSubscriber(this.registry, effect)
-    effect.activateMatch(matcherBuilder.collection, this.currentNode!, subscriber.generateGetState())
+    effect.activateMatch(
+      matcherBuilder.collection,
+      this.currentNode!,
+      subscriber.generateGetState(),
+    )
 
     this.currentNode = end.nextSibling
-    this.currentLocation = this.currentLocation.nextCommentSiblingMatching(matchEndIndicator(elementId)).nextSibling()
+    this.currentLocation = this.currentLocation
+      .nextCommentSiblingMatching(matchEndIndicator(elementId))
+      .nextSibling()
 
     return this
   }
 }
 
 class ActivateDomConfig extends AbstractViewConfig {
-  constructor(configSupport: ElementConfigSupport, private zone: EventZone, private registry: TokenRegistry, private root: Node, private element: Element, private location: EffectLocation) {
+  constructor(
+    configSupport: ElementConfigSupport,
+    private zone: EventZone,
+    private registry: TokenRegistry,
+    private root: Node,
+    private element: Element,
+    private location: EffectLocation,
+  ) {
     super(configSupport)
   }
 
@@ -121,7 +202,10 @@ class ActivateDomConfig extends AbstractViewConfig {
     return this
   }
 
-  on<E extends keyof HTMLElementEventMap | string>(event: E, handler: StoreEventHandler<any>): this {
+  on<E extends keyof HTMLElementEventMap | string>(
+    event: E,
+    handler: StoreEventHandler<any>,
+  ): this {
     if (EventsToDelegate.has(event)) {
       const elementId = getEventAttribute(this.element, event)
       if (elementId !== null) {

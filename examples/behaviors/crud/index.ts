@@ -1,8 +1,7 @@
-import { crud } from "../../src/crud/view.js";
-import { createStore, write } from "spheres/store";
-import { DataRecord, createRecord, records } from "../../src/crud/state.js";
-import { renderToDOM } from "spheres/view";
-
+import { crud } from "../../src/crud/view.js"
+import { createStore, write } from "spheres/store"
+import { DataRecord, createRecord, records } from "../../src/crud/state.js"
+import { renderToDOM } from "spheres/view"
 
 window.startApp = (testData: Array<DataRecord>) => {
   const store = createStore()
@@ -13,4 +12,3 @@ window.startApp = (testData: Array<DataRecord>) => {
 
   renderToDOM(store, document.getElementById("test-display")!, crud)
 }
-

@@ -1,4 +1,3 @@
-
 export class TestTask<M, E = any> {
   private resolver: ((value: M) => void) | undefined
   private rejector: ((value: E) => void) | undefined

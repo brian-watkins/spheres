@@ -9,7 +9,7 @@ const { store } = await activateZone({
     useContainerHooks(store, someWord, {
       onWrite(message, actions) {
         actions.ok(`Transformed in hook: ${message}`)
-      }
+      },
     })
   },
   setupView(activate) {

@@ -1,4 +1,3 @@
-
 function startTelemetry() {
   console.log("Starting metrics!!")
 }

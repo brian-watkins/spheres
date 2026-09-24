@@ -7,23 +7,18 @@ import { StreamingSSRParts } from "../../../helpers/ssrApp"
 
 const streamRenderer = createStreamRenderer(page, {
   stateManifest: serializedTokens,
-  activationScripts: [
-    "/behaviors/server/fixtures/ssrApp/streamingError/activate.ts"
-  ]
+  activationScripts: ["/behaviors/server/fixtures/ssrApp/streamingError/activate.ts"],
 })
 
 function page(root: HTMLBuilder) {
-  root.html(el => {
+  root.html((el) => {
     el.children
-      .head(el => {
-        el.children
-          .link(el => {
-            el.config
-              .rel("icon")
-              .href("data:,")
-          })
+      .head((el) => {
+        el.children.link((el) => {
+          el.config.rel("icon").href("data:,")
+        })
       })
-      .body(el => {
+      .body((el) => {
         el.children.subview(view)
       })
   })
@@ -36,7 +31,7 @@ export default function (): StreamingSSRParts {
     init: async (actions) => {
       actions.supply(meta(things), pending([]))
 
-      const thingPromise = new Promise<void>(resolve => {
+      const thingPromise = new Promise<void>((resolve) => {
         setTimeout(() => {
           actions.supply(meta(things), error("failed", []))
           resolve()
@@ -45,7 +40,7 @@ export default function (): StreamingSSRParts {
 
       actions.supply(meta(thingValue), pending(""))
 
-      const thingValuePromise = new Promise<void>(resolve => {
+      const thingValuePromise = new Promise<void>((resolve) => {
         setTimeout(() => {
           actions.supply(thingValue, thingValueServerState)
           resolve()
@@ -53,10 +48,10 @@ export default function (): StreamingSSRParts {
       })
 
       await Promise.all([thingPromise, thingValuePromise])
-    }
+    },
   })
 
   return {
-    stream: streamRenderer(store)
+    stream: streamRenderer(store),
   }
 }

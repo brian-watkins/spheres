@@ -10,19 +10,16 @@ const project = new Project({
 })
 
 const elementDataFile = project.createSourceFile("./src/view/elementData.ts", undefined, {
-  overwrite: true
+  overwrite: true,
 })
-
-
 
 // AriaAttribute Type
 
 elementDataFile.addTypeAlias({
   name: "AriaAttribute",
-  type: ariaAttributes.map(attr => `"${attr.substring(5)}"`).join(" | "),
-  isExported: true
+  type: ariaAttributes.map((attr) => `"${attr.substring(5)}"`).join(" | "),
+  isExported: true,
 })
-
 
 // Void Elements Set
 
@@ -32,9 +29,9 @@ elementDataFile.addVariableStatement({
     {
       name: "voidElementData",
       type: "Set<string> | undefined",
-      initializer: "undefined"
-    }
-  ]
+      initializer: "undefined",
+    },
+  ],
 })
 
 elementDataFile.addFunction({
@@ -46,10 +43,9 @@ elementDataFile.addFunction({
     `  const data = "${voidHtmlTags.join(",")}"`,
     "  voidElementData = new Set(data.split(','))",
     "}",
-    "return voidElementData"
-  ]
+    "return voidElementData",
+  ],
 })
-
 
 // SVG Attribute names
 const kebabAttributes = new Set<string>()
@@ -60,9 +56,9 @@ elementDataFile.addVariableStatement({
     {
       name: "svgAttributeData",
       type: "Map<string, string> | undefined",
-      initializer: "undefined"
-    }
-  ]
+      initializer: "undefined",
+    },
+  ],
 })
 
 const svgAttributeStatements: Array<string> = []
@@ -86,9 +82,8 @@ elementDataFile.addFunction({
     "  svgAttributeData = new Map()",
     ...svgAttributeStatements,
     "}",
-    "return svgAttributeData"
-  ]
+    "return svgAttributeData",
+  ],
 })
-
 
 project.save()

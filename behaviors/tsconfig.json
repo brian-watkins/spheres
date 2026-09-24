@@ -5,21 +5,11 @@
     "rootDir": "./",
     "noUncheckedSideEffectImports": false,
     "paths": {
-      "@server/*": [
-        "../src/server/*"
-      ],
-      "@store/*": [
-        "../src/store/*"
-      ],
-      "@view/*": [
-        "../src/view/*"
-      ]
-    },
+      "@server/*": ["../src/server/*"],
+      "@store/*": ["../src/store/*"],
+      "@view/*": ["../src/view/*"]
+    }
   },
-  "include": [
-    "./**/*"
-  ],
-  "references": [
-    { "path": "../" }
-  ]
+  "include": ["./**/*"],
+  "references": [{ "path": "../" }]
 }

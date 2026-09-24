@@ -1,7 +1,7 @@
-import { renderToDOM, withDomActions } from "spheres/view";
-import { circles } from "./view";
-import { createStore, useCommand } from "spheres/store";
-import { PopoverController, showPopover } from "./popover";
+import { renderToDOM, withDomActions } from "spheres/view"
+import { circles } from "./view"
+import { createStore, useCommand } from "spheres/store"
+import { PopoverController, showPopover } from "./popover"
 
 const store = createStore()
 

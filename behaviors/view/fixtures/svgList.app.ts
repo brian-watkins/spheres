@@ -1,5 +1,5 @@
-import { container, use, write } from "@store/index.js";
-import { HTMLBuilder, svg, SVGView, UseItem } from "@view/index.js";
+import { container, use, write } from "@store/index.js"
+import { HTMLBuilder, svg, SVGView, UseItem } from "@view/index.js"
 
 interface Circle {
   label: string
@@ -15,60 +15,54 @@ function putFirst(index: number): ListUpdate {
 }
 
 const circleData = container<Array<Circle>, ListUpdate>({
-  initialValue: [
-    { label: "apple" },
-    { label: "grapes" },
-    { label: "pizza" },
-  ],
+  initialValue: [{ label: "apple" }, { label: "grapes" }, { label: "pizza" }],
   update(message, current) {
     return {
-      value: [ current[message.index], ...current.filter((_, i) => message.index != i) ]
+      value: [current[message.index], ...current.filter((_, i) => message.index != i)],
     }
   },
 })
 
 export default function (root: HTMLBuilder) {
-  root.main(el => {
-    el.children.
-      subview(svg(el => {
-        el.config
-          .width("500")
-          .height("300")
+  root.main((el) => {
+    el.children.subview(
+      svg((el) => {
+        el.config.width("500").height("300")
         el.children
-          .rect(el => {
-            el.config
-              .width("100%")
-              .height("100%")
-              .fill("red")
+          .rect((el) => {
+            el.config.width("100%").height("100%").fill("red")
           })
-          .subviews(get => get(circleData), circleView)
-      }))
+          .subviews((get) => get(circleData), circleView)
+      }),
+    )
   })
 }
 
 function circleView(useCircle: UseItem<Circle>): SVGView {
-  return root =>
-    root.g(el => {
+  return (root) =>
+    root.g((el) => {
       el.config
-        .dataAttribute("circle-button", useCircle((item) => `${item.index}`))
+        .dataAttribute(
+          "circle-button",
+          useCircle((item) => `${item.index}`),
+        )
         .on("click", () => use(useCircle((item) => write(circleData, putFirst(item.index)))))
       el.children
-        .circle(el => {
+        .circle((el) => {
           el.config
             .cx(useCircle((item) => `${item.index * 150 + 100}`))
             .cy("150")
             .r("50")
             .fill("blue")
         })
-        .text(el => {
+        .text((el) => {
           el.config
             .x(useCircle((item) => `${item.index * 150 + 100}`))
             .y("158")
             .fontSize("30")
             .textAnchor("middle")
             .fill("white")
-          el.children
-            .textNode(useCircle((circle) => `${circle.data.label}`))
+          el.children.textNode(useCircle((circle) => `${circle.data.label}`))
         })
     })
 }

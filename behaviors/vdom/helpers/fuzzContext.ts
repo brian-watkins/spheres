@@ -1,19 +1,20 @@
-import { Context } from "best-behavior";
+import { Context } from "best-behavior"
 
 type RandomNumberGenerator = () => number
 
 function mulberry32(seed: number): RandomNumberGenerator {
   let a = seed
   return () => {
-    a |= 0; a = a + 0x6D2B79F5 | 0
-    let t = Math.imul(a ^ a >>> 15, 1 | a)
-    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t
-    return ((t ^ t >>> 14) >>> 0) / 4294967296
+    a |= 0
+    a = (a + 0x6d2b79f5) | 0
+    let t = Math.imul(a ^ (a >>> 15), 1 | a)
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
   }
 }
 
 class RandomNumberSource {
-  constructor(private generator: RandomNumberGenerator) { }
+  constructor(private generator: RandomNumberGenerator) {}
 
   randomInt(maxExclusive: number): number {
     return Math.floor(this.generator() * maxExclusive)
@@ -35,9 +36,11 @@ export interface FuzzerConfig<T, X extends FuzzState<T>> {
   mutations: Array<Mutation<T, X>>
 }
 
-export function fuzzContext<T, X extends FuzzState<T>>(config: FuzzerConfig<T, X>): Context<Fuzzer<T, X>> {
+export function fuzzContext<T, X extends FuzzState<T>>(
+  config: FuzzerConfig<T, X>,
+): Context<Fuzzer<T, X>> {
   return {
-    init: () => new Fuzzer(config)
+    init: () => new Fuzzer(config),
   }
 }
 

@@ -24,14 +24,19 @@ export abstract class Writable<T, M> extends Publisher<T> implements StateWriter
   onWrite(generator: (target: WritableTarget<T, M>) => WriteHandler<M>): void {
     const currentHandler = this.getCurrentHandler()
     this.writeHandler = generator({
-      write: (message, batch) => { currentHandler(message, batch) },
-      getValue: () => this.getValue()
+      write: (message, batch) => {
+        currentHandler(message, batch)
+      },
+      getValue: () => this.getValue(),
     })
   }
 
   private getCurrentHandler(): WriteHandler<M> {
-    return this.writeHandler ?? ((message, batch) => {
+    return (
+      this.writeHandler ??
+      ((message, batch) => {
         this.apply(message, batch)
-    })
+      })
+    )
   }
 }

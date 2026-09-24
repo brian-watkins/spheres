@@ -1,4 +1,3 @@
-
 export interface ParseSuccess<T> {
   type: "success"
   value: T
@@ -11,7 +10,7 @@ export interface ParseFailure {
 
 export function failureResult(): ParseFailure {
   return {
-    type: "failure"
+    type: "failure",
   }
 }
 
@@ -24,7 +23,7 @@ export function end(message: string): ParseResult<string> {
     return {
       type: "success",
       value: "",
-      next: ""
+      next: "",
     }
   }
 
@@ -88,39 +87,34 @@ export function joinOneOrMore(parser: Parser<string>): Parser<string> {
   return map(oneOrMore(parser), (values) => values.join(""))
 }
 
-export function sequence<A>(
-  aParser: Parser<A>
-): Parser<[A]>;
-export function sequence<A, B>(
-  aParser: Parser<A>,
-  bParser: Parser<B>
-): Parser<[A, B]>;
+export function sequence<A>(aParser: Parser<A>): Parser<[A]>
+export function sequence<A, B>(aParser: Parser<A>, bParser: Parser<B>): Parser<[A, B]>
 export function sequence<A, B, C>(
   aParser: Parser<A>,
   bParser: Parser<B>,
-  cParser: Parser<C>
-): Parser<[A, B, C]>;
+  cParser: Parser<C>,
+): Parser<[A, B, C]>
 export function sequence<A, B, C, D>(
   aParser: Parser<A>,
   bParser: Parser<B>,
   cParser: Parser<C>,
   dParser: Parser<D>,
-): Parser<[A, B, C, D]>;
+): Parser<[A, B, C, D]>
 export function sequence<A, B, C, D, E>(
   aParser: Parser<A>,
   bParser: Parser<B>,
   cParser: Parser<C>,
   dParser: Parser<D>,
-  eParser: Parser<E>
-): Parser<[A, B, C, D, E]>;
+  eParser: Parser<E>,
+): Parser<[A, B, C, D, E]>
 export function sequence<A, B, C, D, E, F>(
   aParser: Parser<A>,
   bParser: Parser<B>,
   cParser: Parser<C>,
   dParser: Parser<D>,
   eParser: Parser<E>,
-  fParser: Parser<F>
-): Parser<[A, B, C, D, E, F]>;
+  fParser: Parser<F>,
+): Parser<[A, B, C, D, E, F]>
 export function sequence<A, B, C, D, E, F, G>(
   aParser: Parser<A>,
   bParser: Parser<B>,
@@ -128,8 +122,8 @@ export function sequence<A, B, C, D, E, F, G>(
   dParser: Parser<D>,
   eParser: Parser<E>,
   fParser: Parser<F>,
-  gParser: Parser<G>
-): Parser<[A, B, C, D, E, F, G]>;
+  gParser: Parser<G>,
+): Parser<[A, B, C, D, E, F, G]>
 export function sequence<A, B, C, D, E, F, G, H>(
   aParser: Parser<A>,
   bParser: Parser<B>,
@@ -138,8 +132,8 @@ export function sequence<A, B, C, D, E, F, G, H>(
   eParser: Parser<E>,
   fParser: Parser<F>,
   gParser: Parser<G>,
-  hParser: Parser<H>
-): Parser<[A, B, C, D, E, F, G, H]>;
+  hParser: Parser<H>,
+): Parser<[A, B, C, D, E, F, G, H]>
 export function sequence<A, B, C, D, E, F, G, H, I>(
   aParser: Parser<A>,
   bParser: Parser<B>,
@@ -150,7 +144,7 @@ export function sequence<A, B, C, D, E, F, G, H, I>(
   gParser: Parser<G>,
   hParser: Parser<H>,
   iParser: Parser<I>,
-): Parser<[A, B, C, D, E, F, G, H, I,]>;
+): Parser<[A, B, C, D, E, F, G, H, I]>
 export function sequence<A, B, C, D, E, F, G, H, I, J>(
   aParser: Parser<A>,
   bParser: Parser<B>,
@@ -162,8 +156,8 @@ export function sequence<A, B, C, D, E, F, G, H, I, J>(
   hParser: Parser<H>,
   iParser: Parser<I>,
   jParser: Parser<J>,
-): Parser<[A, B, C, D, E, F, G, H, I, J]>;
-export function sequence<T>(...parsers: Array<Parser<T>>): Parser<Array<T>>;
+): Parser<[A, B, C, D, E, F, G, H, I, J]>
+export function sequence<T>(...parsers: Array<Parser<T>>): Parser<Array<T>>
 export function sequence<T extends any>(...parsers: Array<Parser<T>>): Parser<Array<any>> {
   return (message) => {
     let next = message
@@ -179,7 +173,7 @@ export function sequence<T extends any>(...parsers: Array<Parser<T>>): Parser<Ar
     return {
       type: "success",
       value: values,
-      next
+      next,
     }
   }
 }
@@ -196,7 +190,7 @@ export function map<T, R>(parser: Parser<T>, map: (value: T) => R): Parser<R> {
         type: "success",
         value: map(result.value),
         next: result.next,
-        context: {}
+        context: {},
       }
     } else {
       return failureResult()
@@ -209,7 +203,7 @@ export function succeed<T>(value: T): Parser<T> {
     return {
       type: "success",
       value,
-      next: message
+      next: message,
     }
   }
 }
@@ -237,7 +231,9 @@ export function charSequence(expected: string): Parser<string> {
   return join(Array.from(expected).map(char))
 }
 
-export const letter = oneOf(Array.from("aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ").map(char))
+export const letter = oneOf(
+  Array.from("aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ").map(char),
+)
 export const punctuation = oneOf(Array.from("!?,.';:#@$%^&*()+=-_<>/~`{}[]\\|").map(char))
 export const word = joinOneOrMore(letter)
 export const digit = oneOf(Array.from("1234567890").map(char))
@@ -246,6 +242,5 @@ export const text = joinOneOrMore(oneOf([word, digit, char(" "), punctuation]))
 export const number = join([
   maybe(char("-"), ""),
   joinOneOrMore(digit),
-  maybe(join([char("."), joinOneOrMore(digit)]), "")
+  maybe(join([char("."), joinOneOrMore(digit)]), ""),
 ])
-

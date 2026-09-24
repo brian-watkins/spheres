@@ -1,9 +1,16 @@
-import { behavior, effect, example, fact, step } from "best-behavior";
-import { testablePluginContext } from "./helpers/testPluginContext";
-import { assignedWith, expect, is, objectOfType, rejectsWith, satisfying, stringContaining } from "great-expectations";
+import { behavior, effect, example, fact, step } from "best-behavior"
+import { testablePluginContext } from "./helpers/testPluginContext"
+import {
+  assignedWith,
+  expect,
+  is,
+  objectOfType,
+  rejectsWith,
+  satisfying,
+  stringContaining,
+} from "great-expectations"
 
 export default behavior("vite plugin", [
-
   example(testablePluginContext)
     .description("manifest config is set to false in resolved config")
     .script({
@@ -14,20 +21,18 @@ export default behavior("vite plugin", [
             environments: {
               client: {
                 build: {
-                  manifest: false
-                }
-              }
-            }
+                  manifest: false,
+                },
+              },
+            },
           })
-        })
+        }),
       ],
       observe: [
         effect("an error is throw when try to load the vite context", async (context) => {
-          await expect(context.loadViteContext(), rejectsWith(satisfying([
-            objectOfType(Error)
-          ])))
-        })
-      ]
+          await expect(context.loadViteContext(), rejectsWith(satisfying([objectOfType(Error)])))
+        }),
+      ],
     }),
 
   example(testablePluginContext)
@@ -43,10 +48,10 @@ export default behavior("vite plugin", [
                 client: {
                   build: {
                     outDir: "dist",
-                    manifest: true
-                  }
-                }
-              }
+                    manifest: true,
+                  },
+                },
+              },
             })
             .withFile("/project/root/dist/.vite/manifest.json", `{ data: "blah" }`)
         }),
@@ -54,13 +59,21 @@ export default behavior("vite plugin", [
       perform: [
         step("load the vite context", async (context) => {
           await context.loadViteContext()
-        })
+        }),
       ],
       observe: [
-        effect("the loaded code contains the manifest file contents and the build command", (context) => {
-          expect(context.viteContext, is(`export const context = { command: "build", base: "/", manifest: { data: "blah" } };`))
-        })
-      ]
+        effect(
+          "the loaded code contains the manifest file contents and the build command",
+          (context) => {
+            expect(
+              context.viteContext,
+              is(
+                `export const context = { command: "build", base: "/", manifest: { data: "blah" } };`,
+              ),
+            )
+          },
+        ),
+      ],
     }),
 
   example(testablePluginContext)
@@ -77,9 +90,9 @@ export default behavior("vite plugin", [
                   build: {
                     manifest: "my-manifest.json",
                     outDir: "dist",
-                  }
-                }
-              }
+                  },
+                },
+              },
             })
             .withFile("/project/root/dist/my-manifest.json", `{ data: "fun" }`)
         }),
@@ -87,13 +100,16 @@ export default behavior("vite plugin", [
       perform: [
         step("load the vite context", async (context) => {
           await context.loadViteContext()
-        })
+        }),
       ],
       observe: [
         effect("the loaded code contains the manifest file contents", (context) => {
-          expect(context.viteContext, is(assignedWith(stringContaining(`manifest: { data: "fun" }`))))
-        })
-      ]
+          expect(
+            context.viteContext,
+            is(assignedWith(stringContaining(`manifest: { data: "fun" }`))),
+          )
+        }),
+      ],
     }),
 
   example(testablePluginContext)
@@ -110,10 +126,10 @@ export default behavior("vite plugin", [
                 client: {
                   build: {
                     outDir: "dist",
-                    manifest: true
-                  }
-                }
-              }
+                    manifest: true,
+                  },
+                },
+              },
             })
             .withFile("/project/root/dist/.vite/manifest.json", `{ data: "fun" }`)
         }),
@@ -121,13 +137,21 @@ export default behavior("vite plugin", [
       perform: [
         step("load the vite context", async (context) => {
           await context.loadViteContext()
-        })
+        }),
       ],
       observe: [
-        effect("the loaded code contains the manifest file contents and the build command and the base", (context) => {
-          expect(context.viteContext, is(`export const context = { command: "build", base: "/cool", manifest: { data: "fun" } };`))
-        })
-      ]
+        effect(
+          "the loaded code contains the manifest file contents and the build command and the base",
+          (context) => {
+            expect(
+              context.viteContext,
+              is(
+                `export const context = { command: "build", base: "/cool", manifest: { data: "fun" } };`,
+              ),
+            )
+          },
+        ),
+      ],
     }),
 
   example(testablePluginContext)
@@ -144,20 +168,18 @@ export default behavior("vite plugin", [
                   build: {
                     manifest: "",
                     outDir: "dist",
-                  }
-                }
-              }
+                  },
+                },
+              },
             })
             .withFile("/project/root/dist/my-manifest.json", `{ data: "fun" }`)
         }),
       ],
       observe: [
         effect("an error is thrown when try to load the vite context", async (context) => {
-          await expect(context.loadViteContext(), rejectsWith(satisfying([
-            objectOfType(Error)
-          ])))
-        })
-      ]
+          await expect(context.loadViteContext(), rejectsWith(satisfying([objectOfType(Error)])))
+        }),
+      ],
     }),
 
   example(testablePluginContext)
@@ -165,28 +187,25 @@ export default behavior("vite plugin", [
     .script({
       suppose: [
         fact("the manifest file is not present", (context) => {
-          context
-            .withConfig({
-              command: "build",
-              root: "/project/root/",
-              environments: {
-                client: {
-                  build: {
-                    outDir: "dist",
-                    manifest: true
-                  }
-                }
-              }
-            })
+          context.withConfig({
+            command: "build",
+            root: "/project/root/",
+            environments: {
+              client: {
+                build: {
+                  outDir: "dist",
+                  manifest: true,
+                },
+              },
+            },
+          })
         }),
       ],
       observe: [
         effect("an error is thrown when try to load the vite context", async (context) => {
-          await expect(context.loadViteContext(), rejectsWith(satisfying([
-            objectOfType(Error)
-          ])))
-        })
-      ]
+          await expect(context.loadViteContext(), rejectsWith(satisfying([objectOfType(Error)])))
+        }),
+      ],
     }),
 
   example(testablePluginContext)
@@ -194,22 +213,26 @@ export default behavior("vite plugin", [
     .script({
       suppose: [
         fact("the config shows vite is serving files", (context) => {
-          context
-            .withConfig({
-              command: "serve"
-            })
+          context.withConfig({
+            command: "serve",
+          })
         }),
       ],
       perform: [
         step("load the vite context", async (context) => {
           await context.loadViteContext()
-        })
+        }),
       ],
       observe: [
-        effect("the context specifies the serve command and the manifest is undefined", (context) => {
-          expect(context.viteContext, is(`export const context = { command: "serve", base: "/", manifest: undefined };`))
-        })
-      ]
-    })
-
+        effect(
+          "the context specifies the serve command and the manifest is undefined",
+          (context) => {
+            expect(
+              context.viteContext,
+              is(`export const context = { command: "serve", base: "/", manifest: undefined };`),
+            )
+          },
+        ),
+      ],
+    }),
 ])

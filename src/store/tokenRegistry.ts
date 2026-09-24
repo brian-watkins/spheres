@@ -17,7 +17,11 @@ export function isStateful<T>(value: T | Stateful<T>): value is Stateful<T> {
   return typeof value === "function"
 }
 
-export function runQuery<M>(registry: TokenRegistry, query: (get: GetState) => M, batch?: StateBatch): M {
+export function runQuery<M>(
+  registry: TokenRegistry,
+  query: (get: GetState) => M,
+  batch?: StateBatch,
+): M {
   if (batch?.isOpen()) {
     batch.apply()
   }
@@ -28,7 +32,10 @@ function getQuery<M>(registry: TokenRegistry, query: (get: GetState) => M): M {
   return query((token) => token[getStateHandler](registry).getValue())
 }
 
-export function generateStateManager<S>(registry: TokenRegistry, token: StateToken<S>): StateReader<S> {
+export function generateStateManager<S>(
+  registry: TokenRegistry,
+  token: StateToken<S>,
+): StateReader<S> {
   return token[createStateHandler](registry)
 }
 
@@ -38,7 +45,10 @@ export const createStateHandler = Symbol("createStateHandler")
 export type StateListenerVersion = number
 
 export enum StateListenerType {
-  Derivation, ViewEffect, ElementEffect, UserEffect
+  Derivation,
+  ViewEffect,
+  ElementEffect,
+  UserEffect,
 }
 
 export interface EffectList extends Iterable<Subscriber> {
@@ -56,28 +66,35 @@ export interface StateDerivation {
 }
 
 export interface StateEffect {
-  readonly type: StateListenerType.ViewEffect | StateListenerType.ElementEffect | StateListenerType.UserEffect
+  readonly type:
+    | StateListenerType.ViewEffect
+    | StateListenerType.ElementEffect
+    | StateListenerType.UserEffect
   init(get: GetState, context?: any): void
   run(get: GetState, context?: any): void
 }
 
 export type StateListener = StateEffect | StateDerivation
 
-export function initListener(registry: TokenRegistry, listener: StateListener, context?: any): Subscriber {
+export function initListener(
+  registry: TokenRegistry,
+  listener: StateListener,
+  context?: any,
+): Subscriber {
   const subscriber = createSubscriber(registry, listener, context)
   listener.init(subscriber.generateGetState(), context)
   return subscriber
 }
 
 export class Subscriber {
-  private version: StateListenerVersion = 0;
-  private parent: Subscribable | undefined = undefined;
-  private dirty: boolean = false;
+  private version: StateListenerVersion = 0
+  private parent: Subscribable | undefined = undefined
+  private dirty: boolean = false
 
   constructor(
     readonly registry: TokenRegistry,
     private listener: StateListener,
-    private context?: any
+    private context?: any,
   ) {}
 
   private subscribeOnGet<T>(token: State<T>): T {
@@ -91,7 +108,7 @@ export class Subscriber {
   }
 
   getVersion(): StateListenerVersion {
-    return this.version;
+    return this.version
   }
 
   prepareForUpdate(dependency: Subscribable, effects: EffectList): void {
@@ -114,44 +131,44 @@ export class Subscriber {
 
   dependencyUpdated(dependency: Subscribable): void {
     if (this.parent !== dependency) {
-      this.dirty = true;
-      return;
+      this.dirty = true
+      return
     }
 
     if (this.listener.type === StateListenerType.Derivation) {
-      this.runListener();
+      this.runListener()
     } else {
-      this.parent = undefined;
-      this.dirty = true;
+      this.parent = undefined
+      this.dirty = true
     }
   }
 
   dependencyStable(dependency: Subscribable): void {
     if (this.parent !== dependency) {
-      return;
+      return
     }
 
     if (this.listener.type === StateListenerType.Derivation) {
       if (this.dirty) {
-        this.runListener();
+        this.runListener()
       } else {
-        this.parent = undefined;
-        this.listener.notifyStable();
+        this.parent = undefined
+        this.listener.notifyStable()
       }
     }
   }
 
   run(): void {
     if (this.dirty) {
-      this.runListener();
+      this.runListener()
     }
   }
 
   private runListener() {
-    this.version = this.version + 1;
+    this.version = this.version + 1
     this.listener.run(this.generateGetState(), this.context)
-    this.parent = undefined;
-    this.dirty = false;
+    this.parent = undefined
+    this.dirty = false
   }
 }
 
@@ -188,7 +205,11 @@ export interface WritableState<T, M = T> extends State<T> {
   [getStateHandler](registry: TokenRegistry): StateWriter<T, M>
 }
 
-export function createSubscriber(registry: TokenRegistry, listener: StateListener, context?: any): Subscriber {
+export function createSubscriber(
+  registry: TokenRegistry,
+  listener: StateListener,
+  context?: any,
+): Subscriber {
   return new Subscriber(registry, listener, context)
 }
 
@@ -199,7 +220,7 @@ export interface CommandController<T> {
 export const initializeCommand = Symbol("initializeCommand")
 
 export abstract class Command<M> {
-  constructor(readonly name: string | undefined) { }
+  constructor(readonly name: string | undefined) {}
 
   abstract [createController](registry: TokenRegistry): CommandController<M>
 

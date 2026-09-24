@@ -1,12 +1,11 @@
-import { behavior, effect, example, fact, step } from "best-behavior";
-import { testStoreContext } from "./helpers/testStore";
-import { Container, container, meta, useContainerHooks, useHooks } from "@store/index";
-import { arrayWith, equalTo, expect, is, objectWithProperty } from "great-expectations";
-import { errorMessage, pendingMessage } from "./helpers/metaMatchers";
-import { StateToken } from "@store/tokenRegistry";
+import { behavior, effect, example, fact, step } from "best-behavior"
+import { testStoreContext } from "./helpers/testStore"
+import { Container, container, meta, useContainerHooks, useHooks } from "@store/index"
+import { arrayWith, equalTo, expect, is, objectWithProperty } from "great-expectations"
+import { errorMessage, pendingMessage } from "./helpers/metaMatchers"
+import { StateToken } from "@store/tokenRegistry"
 
 export default behavior("store hooks", [
-
   example(testStoreContext<OnRegisterContext>())
     .description("onRegister hook")
     .script({
@@ -15,7 +14,7 @@ export default behavior("store hooks", [
           context.setTokens({
             stringContainer: container({ name: "string-container", initialValue: "hello" }),
             numberContainer: container({ name: "number-container", initialValue: 27 }),
-            registeredContainers: []
+            registeredContainers: [],
           })
           context.tokens.registeredContainers = []
           useHooks(context.store, {
@@ -23,44 +22,43 @@ export default behavior("store hooks", [
               context.tokens.registeredContainers.push(container)
             },
           })
-        })
+        }),
       ],
       perform: [
         step("containers are registered with the store", (context) => {
           context.subscribeTo(context.tokens.stringContainer, "string-sub")
           context.subscribeTo(context.tokens.numberContainer, "number-sub")
-        })
+        }),
       ],
       observe: [
         effect("the onRegister hook is called with each container", (context) => {
-          expect(context.tokens.registeredContainers, is(arrayWith([
-            objectWithProperty("name", equalTo("string-container")),
-            objectWithProperty("name", equalTo("number-container"))
-          ])))
+          expect(
+            context.tokens.registeredContainers,
+            is(
+              arrayWith([
+                objectWithProperty("name", equalTo("string-container")),
+                objectWithProperty("name", equalTo("number-container")),
+              ]),
+            ),
+          )
         }),
         effect("subscribers receive the initial value", (context) => {
-          expect(context.valuesForSubscriber("string-sub"), is([
-            "hello"
-          ]))
-          expect(context.valuesForSubscriber("number-sub"), is([
-            27
-          ]))
-        })
-      ]
-    }).andThen({
+          expect(context.valuesForSubscriber("string-sub"), is(["hello"]))
+          expect(context.valuesForSubscriber("number-sub"), is([27]))
+        }),
+      ],
+    })
+    .andThen({
       perform: [
         step("a container is updated", (context) => {
           context.writeTo(context.tokens.stringContainer, "Yo!")
-        })
+        }),
       ],
       observe: [
         effect("the subscriber is updated", (context) => {
-          expect(context.valuesForSubscriber("string-sub"), is([
-            "hello",
-            "Yo!"
-          ]))
-        })
-      ]
+          expect(context.valuesForSubscriber("string-sub"), is(["hello", "Yo!"]))
+        }),
+      ],
     }),
 
   example(testStoreContext<Container<string>>())
@@ -83,15 +81,13 @@ export default behavior("store hooks", [
       perform: [
         step("register a container", (context) => {
           context.subscribeTo(context.tokens, "sub-one")
-        })
+        }),
       ],
       observe: [
         effect("the subscriber gets the value supplied by the container", (context) => {
-          expect(context.valuesForSubscriber("sub-one"), is([
-            "supplied text"
-          ]))
-        })
-      ]
+          expect(context.valuesForSubscriber("sub-one"), is(["supplied text"]))
+        }),
+      ],
     }),
 
   example(testStoreContext<Container<string>>())
@@ -117,20 +113,19 @@ export default behavior("store hooks", [
         }),
         step("subscribe to updates on the meta container", (context) => {
           context.subscribeTo(meta(context.tokens), "meta-sub")
-        })
+        }),
       ],
       observe: [
         effect("the subscriber gets the initial value of the container", (context) => {
-          expect(context.valuesForSubscriber("sub-one"), is([
-            "hello"
-          ]))
+          expect(context.valuesForSubscriber("sub-one"), is(["hello"]))
         }),
         effect("the meta subscriber gets the pending message", (context) => {
-          expect(context.valuesForSubscriber("meta-sub"), is(arrayWith([
-            pendingMessage("Just wait!")
-          ])))
-        })
-      ]
+          expect(
+            context.valuesForSubscriber("meta-sub"),
+            is(arrayWith([pendingMessage("Just wait!")])),
+          )
+        }),
+      ],
     }),
 
   example(testStoreContext<Container<string>>())
@@ -156,20 +151,19 @@ export default behavior("store hooks", [
         }),
         step("subscribe to updates on the meta container", (context) => {
           context.subscribeTo(meta(context.tokens), "meta-sub")
-        })
+        }),
       ],
       observe: [
         effect("the subscriber gets the initial value of the container", (context) => {
-          expect(context.valuesForSubscriber("sub-one"), is([
-            "hello"
-          ]))
+          expect(context.valuesForSubscriber("sub-one"), is(["hello"]))
         }),
         effect("the meta subscriber gets the pending message", (context) => {
-          expect(context.valuesForSubscriber("meta-sub"), is(arrayWith([
-            errorMessage("The value", "Something bad happened!")
-          ])))
-        })
-      ]
+          expect(
+            context.valuesForSubscriber("meta-sub"),
+            is(arrayWith([errorMessage("The value", "Something bad happened!")])),
+          )
+        }),
+      ],
     }),
 
   example(testStoreContext<LogWritesContext>())
@@ -179,7 +173,7 @@ export default behavior("store hooks", [
         fact("initialize the context", (context) => {
           context.setTokens({
             logs: [],
-            container: container({ name: "test-container", initialValue: "hello" })
+            container: container({ name: "test-container", initialValue: "hello" }),
           })
         }),
         fact("there is an onRegister hook that attaches a write hook", (context) => {
@@ -187,11 +181,13 @@ export default behavior("store hooks", [
             onRegister(container) {
               useContainerHooks(context.store, container, {
                 onWrite(message, actions) {
-                  context.tokens.logs.push(`[${container.toString()}] => ${JSON.stringify(message)}`)
+                  context.tokens.logs.push(
+                    `[${container.toString()}] => ${JSON.stringify(message)}`,
+                  )
                   actions.ok(message)
                 },
               })
-            }
+            },
           })
         }),
         fact("add another hook to the container", (context) => {
@@ -200,22 +196,19 @@ export default behavior("store hooks", [
               actions.ok(`Hooked: ${message}`)
             },
           })
-        })
+        }),
       ],
       perform: [
         step("write to a container", (context) => {
           context.writeTo(context.tokens.container, "One!")
-        })
+        }),
       ],
       observe: [
         effect("all the hooks are applied", (context) => {
-          expect(context.tokens.logs, is([
-            `[test-container] => "Hooked: One!"`
-          ]))
-        })
-      ]
-    })
-
+          expect(context.tokens.logs, is([`[test-container] => "Hooked: One!"`]))
+        }),
+      ],
+    }),
 ])
 
 interface OnRegisterContext {

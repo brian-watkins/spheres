@@ -7,13 +7,11 @@ export function activate() {
   activateZone({
     setupView(activate) {
       activate(document.body, (root) => {
-        root.main(el => {
-          el.children
-            .subview(someView)
-            .subview(funView)
+        root.main((el) => {
+          el.children.subview(someView).subview(funView)
         })
       })
-    }
+    },
   })
 }
 

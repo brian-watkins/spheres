@@ -1,24 +1,23 @@
-import { behavior, effect, example, fact } from "best-behavior";
-import { testStoreContext } from "./helpers/testStoreContext";
-import { expect, is } from "great-expectations";
-import { Result } from "../../../src/cells/result";
-import { CellError, UnableToCalculate } from "../../../src/cells/formula";
+import { behavior, effect, example, fact } from "best-behavior"
+import { testStoreContext } from "./helpers/testStoreContext"
+import { expect, is } from "great-expectations"
+import { Result } from "../../../src/cells/result"
+import { CellError, UnableToCalculate } from "../../../src/cells/formula"
 
 export default behavior("sum function", [
-
   example(testStoreContext())
     .description("sum many numbers")
     .script({
       suppose: [
         fact("there is a cell with a function to sum many numbers", (context) => {
           context.defineCell("D4", "=SUM(2,4,5,12,33,-10,4.5)")
-        })
+        }),
       ],
       observe: [
         effect("the cell has the calculated value", (context) => {
           expect(context.getCellValue("D4"), is("50.5"))
-        })
-      ]
+        }),
+      ],
     }),
 
   example(testStoreContext())
@@ -32,13 +31,13 @@ export default behavior("sum function", [
         }),
         fact("there is a cell that sums the other cell values", (context) => {
           context.defineCell("D3", "=SUM(A2,B2,C2,10)")
-        })
+        }),
       ],
       observe: [
         effect("the calculated value is shown", (context) => {
           expect(context.getCellValue("D3"), is("24.2"))
-        })
-      ]
+        }),
+      ],
     }),
 
   example(testStoreContext())
@@ -52,13 +51,13 @@ export default behavior("sum function", [
         }),
         fact("there is a cell that sums the other cell values", (context) => {
           context.defineCell("D3", "=SUM(10,A2:A4,-14)")
-        })
+        }),
       ],
       observe: [
         effect("the calculated value is shown", (context) => {
           expect(context.getCellValue("D3"), is("4"))
-        })
-      ]
+        }),
+      ],
     }),
 
   example(testStoreContext())
@@ -79,13 +78,13 @@ export default behavior("sum function", [
         }),
         fact("there is a cell that sums the other cell values", (context) => {
           context.defineCell("D8", "=SUM(a2:C4)")
-        })
+        }),
       ],
       observe: [
         effect("the calculated value is shown", (context) => {
           expect(context.getCellValue("D8"), is("46"))
-        })
-      ]
+        }),
+      ],
     }),
 
   example(testStoreContext())
@@ -106,13 +105,13 @@ export default behavior("sum function", [
         }),
         fact("there is a cell that sums the other cell values", (context) => {
           context.defineCell("D8", "=SUM(A22:C24)")
-        })
+        }),
       ],
       observe: [
         effect("the calculated value is shown", (context) => {
           expect(context.getCellValue("D8"), is("46"))
-        })
-      ]
+        }),
+      ],
     }),
 
   example(testStoreContext())
@@ -126,13 +125,18 @@ export default behavior("sum function", [
         }),
         fact("there is a cell with a formula that attempts to sum the cells", (context) => {
           context.defineCell("C1", "=SUM(B1:B3)")
-        })
+        }),
       ],
       observe: [
-        effect("the cell with the formula is an error that shows it was uncalculable", (context) => {
-          expect(context.getCellResult("C1"), is<Result<string, CellError>>(Result.err(new UnableToCalculate())))
-        })
-      ]
-    })
-
+        effect(
+          "the cell with the formula is an error that shows it was uncalculable",
+          (context) => {
+            expect(
+              context.getCellResult("C1"),
+              is<Result<string, CellError>>(Result.err(new UnableToCalculate())),
+            )
+          },
+        ),
+      ],
+    }),
 ])

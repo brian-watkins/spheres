@@ -1,6 +1,6 @@
-import { StateBatch } from "../../tokenRegistry.js";
-import { NativeEffectList } from "./nativeEffectList.js";
-import { Publisher } from "./publisher.js";
+import { StateBatch } from "../../tokenRegistry.js"
+import { NativeEffectList } from "./nativeEffectList.js"
+import { Publisher } from "./publisher.js"
 
 export class BatchPublisher implements StateBatch {
   private publishers: Set<Publisher<any>> = new Set()

@@ -1,5 +1,5 @@
-import { clickCount } from "../state";
+import { clickCount } from "../state"
 
 export const serializedTokens = {
-  clickCount
+  clickCount,
 }

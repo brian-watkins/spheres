@@ -1,16 +1,22 @@
-import { Context } from "best-behavior";
-import { DisplayElement, KeyboardKey, TestApp, TestDisplay, testAppContext } from "../../../helpers/testApp.js";
-import { Locator, Page } from "playwright";
+import { Context } from "best-behavior"
+import {
+  DisplayElement,
+  KeyboardKey,
+  TestApp,
+  TestDisplay,
+  testAppContext,
+} from "../../../helpers/testApp.js"
+import { Locator, Page } from "playwright"
 
 export const testCellsApp: Context<TestCellsApp> = {
   init: async () => {
     const testApp = await testAppContext.init()
     return new TestCellsApp(testApp)
-  }
+  },
 }
 
 export class TestCellsApp {
-  constructor(private testApp: TestApp) { }
+  constructor(private testApp: TestApp) {}
 
   async renderApp(): Promise<void> {
     await this.testApp.renderApp("cells/display")

@@ -1,11 +1,11 @@
-import { buildStringRenderer } from "@server/render/stringRenderer";
-import { createStore } from "@store/store";
-import { HTMLView } from "@view/index";
-import { Context } from "best-behavior";
-import { Manifest } from "vite";
+import { buildStringRenderer } from "@server/render/stringRenderer"
+import { createStore } from "@store/store"
+import { HTMLView } from "@view/index"
+import { Context } from "best-behavior"
+import { Manifest } from "vite"
 
 export const testableStringRendererContext: Context<TestableStringRenderer> = {
-  init: () => new TestableStringRenderer()
+  init: () => new TestableStringRenderer(),
 }
 
 class TestableStringRenderer {
@@ -21,8 +21,8 @@ class TestableStringRenderer {
       viteContext: {
         command: "build",
         base: "/",
-        manifest: this.manifest
-      }
+        manifest: this.manifest,
+      },
     })
     this.html = renderer(createStore())
   }

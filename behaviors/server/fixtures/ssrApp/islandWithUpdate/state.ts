@@ -1,4 +1,4 @@
-import { container } from "@store/index.js";
+import { container } from "@store/index.js"
 
 export interface Item {
   name: string
@@ -12,7 +12,7 @@ export interface AddItem {
 export function addItem(item: Item): AddItem {
   return {
     type: "add",
-    item
+    item,
   }
 }
 
@@ -24,7 +24,7 @@ export const items = container<Array<Item>, ItemsMessage>({
     switch (message.type) {
       case "add": {
         return {
-          value: [ ...current, message.item ]
+          value: [...current, message.item],
         }
       }
     }
@@ -32,5 +32,5 @@ export const items = container<Array<Item>, ItemsMessage>({
 })
 
 export const serializedTokens = {
-  items
+  items,
 }

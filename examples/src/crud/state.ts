@@ -1,4 +1,4 @@
-import { Container, GetState, batch, container, derived, write } from "spheres/store";
+import { Container, GetState, batch, container, derived, write } from "spheres/store"
 
 export interface DataRecord {
   id?: number
@@ -14,7 +14,7 @@ export interface CreateRecordMessage {
 export function createRecord(record: DataRecord): CreateRecordMessage {
   return {
     type: "create",
-    record
+    record,
   }
 }
 
@@ -26,7 +26,7 @@ export interface UpdateRecordMessage {
 function updateRecord(record: DataRecord): UpdateRecordMessage {
   return {
     type: "update",
-    record
+    record,
   }
 }
 
@@ -38,7 +38,7 @@ interface DeleteRecordMessage {
 function deleteRecord(id: number): DeleteRecordMessage {
   return {
     type: "delete",
-    id
+    id,
   }
 }
 
@@ -52,22 +52,22 @@ export const records: Container<Array<DataRecord>, DataMessage> = container({
     switch (message.type) {
       case "create":
         return {
-          value: [...current, { id: idSequence++, ...message.record }]
+          value: [...current, { id: idSequence++, ...message.record }],
         }
       case "update":
         return {
-          value: current.map(r => r.id === message.record.id ? message.record : r)
+          value: current.map((r) => (r.id === message.record.id ? message.record : r)),
         }
       case "delete":
         return {
-          value: current.filter(r => r.id !== message.id)
+          value: current.filter((r) => r.id !== message.id),
         }
     }
-  }
+  },
 })
 
 export const selectedRecord = container({
-  initialValue: -1
+  initialValue: -1,
 })
 
 export const updateSelected = (record: DataRecord) => (get: GetState) => {
@@ -91,7 +91,7 @@ export const deleteSelected = (get: GetState) => {
 }
 
 export const filterPrefix = container({
-  initialValue: ""
+  initialValue: "",
 })
 
 export const filteredRecords = derived({
@@ -102,7 +102,7 @@ export const filteredRecords = derived({
     if (prefix.length === 0) {
       return data
     } else {
-      return data.filter(r => r.lastName.toLowerCase().startsWith(prefix.toLowerCase()))
+      return data.filter((r) => r.lastName.toLowerCase().startsWith(prefix.toLowerCase()))
     }
-  }
+  },
 })

@@ -1,37 +1,37 @@
-import { batch, container, derived, GetState } from "spheres/store";
+import { batch, container, derived, GetState } from "spheres/store"
 import { DateTime } from "luxon"
 
 export const DATE_FORMAT = "dd.MM.yyyy"
 
 export enum FlightTypes {
   ONE_WAY = "one-way flight",
-  RETURN = "return flight"
+  RETURN = "return flight",
 }
 
 export const startDate = container({
-  initialValue: formatDate(DateTime.now())
+  initialValue: formatDate(DateTime.now()),
 })
 
 export const startDateIsValid = derived({
-  query: (get) => toDateTime(get(startDate)).isValid
+  query: (get) => toDateTime(get(startDate)).isValid,
 })
 
 export const returnDate = container({
-  initialValue: formatDate(DateTime.now())
+  initialValue: formatDate(DateTime.now()),
 })
 
 export const returnDateIsValid = derived({
-  query: (get) => toDateTime(get(returnDate)).isValid
+  query: (get) => toDateTime(get(returnDate)).isValid,
 })
 
 export const flightType = container<FlightTypes, string>({
-  initialValue: FlightTypes.ONE_WAY
+  initialValue: FlightTypes.ONE_WAY,
 })
 
 export const allowReturnDate = derived({
   query: (get) => {
     return get(flightType) === FlightTypes.RETURN
-  }
+  },
 })
 
 export const bookingAllowed = derived({
@@ -46,13 +46,13 @@ export const bookingAllowed = derived({
     if (get(flightType) === FlightTypes.ONE_WAY) {
       return true
     }
-    
+
     if (startDateValue <= returnDateValue) {
       return true
     }
 
     return false
-  }
+  },
 })
 
 export const bookFlight = (get: GetState) => {
@@ -61,7 +61,9 @@ export const bookFlight = (get: GetState) => {
       alert(`You have booked a one-way flight on ${get(startDate)}.`)
       break
     case FlightTypes.RETURN:
-      alert(`You have booked a flight on ${get(startDate)} with a return flight on ${get(returnDate)}.`)
+      alert(
+        `You have booked a flight on ${get(startDate)} with a return flight on ${get(returnDate)}.`,
+      )
       break
   }
 

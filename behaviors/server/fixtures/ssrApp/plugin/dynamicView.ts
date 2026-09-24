@@ -1,7 +1,7 @@
-import { HTMLBuilder } from "spheres/view";
+import { HTMLBuilder } from "spheres/view"
 
 export function dynamic(root: HTMLBuilder) {
-  root.b(el => {
+  root.b((el) => {
     el.children.textNode("BOLD TEXT!")
   })
 }

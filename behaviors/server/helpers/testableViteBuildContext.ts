@@ -1,12 +1,12 @@
-import { spheres, SpheresPluginOptions } from "@server/index";
-import { Context, use } from "best-behavior";
-import { createBuilder } from "vite";
+import { spheres, SpheresPluginOptions } from "@server/index"
+import { Context, use } from "best-behavior"
+import { createBuilder } from "vite"
 import express from "express"
-import { useModule } from "best-behavior/transpiler";
+import { useModule } from "best-behavior/transpiler"
 import { Server } from "http"
-import { browserContext, BrowserTestInstrument } from "best-behavior/browser";
-import { Readable } from 'stream';
-import { TestAppDisplay } from "../../helpers/testDisplay";
+import { browserContext, BrowserTestInstrument } from "best-behavior/browser"
+import { Readable } from "stream"
+import { TestAppDisplay } from "../../helpers/testDisplay"
 
 export const testableViteBuildContext: Context<TestViteBuildContext> = use(browserContext(), {
   init: (browser) => new TestViteBuildContext(browser),
@@ -21,7 +21,7 @@ class TestViteBuildContext {
   private server: Server<any, any> | undefined
   private browserDisplay: TestAppDisplay | undefined
 
-  constructor(private browser: BrowserTestInstrument) { }
+  constructor(private browser: BrowserTestInstrument) {}
 
   setBase(base: string): TestViteBuildContext {
     this.base = base
@@ -33,13 +33,11 @@ class TestViteBuildContext {
       configFile: false,
       root: root,
       base: this.base,
-      plugins: [
-        spheres(pluginOptions)
-      ],
+      plugins: [spheres(pluginOptions)],
       resolve: {
-        tsconfigPaths: true
+        tsconfigPaths: true,
       },
-      logLevel: "warn"
+      logLevel: "warn",
     })
 
     await builder.buildApp()
@@ -55,7 +53,7 @@ class TestViteBuildContext {
 
   async start(distPath: string): Promise<void> {
     const serverModule = await useModule(`${distPath}/server.js`)
-    
+
     const app = express()
 
     app.use("/app", express.static(distPath))
@@ -63,11 +61,11 @@ class TestViteBuildContext {
     app.get("/index.html", async (_, res) => {
       const { stream }: { stream: ReadableStream<string> } = serverModule.default()
 
-      res.setHeader('Content-Type', 'text/html');
-      res.setHeader('Transfer-Encoding', 'chunked');
+      res.setHeader("Content-Type", "text/html")
+      res.setHeader("Transfer-Encoding", "chunked")
 
-      const nodeStream = Readable.fromWeb(stream as any);
-      nodeStream.pipe(res);
+      const nodeStream = Readable.fromWeb(stream as any)
+      nodeStream.pipe(res)
     })
 
     this.server = app.listen(9899)
@@ -86,7 +84,7 @@ class TestViteBuildContext {
   }
 
   async close(): Promise<void> {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       if (this.server === undefined) {
         resolve()
         return

@@ -1,10 +1,13 @@
-import { prepareForStreaming } from "../../../view/activate.js";
-import { emptyTemplate, HTMLTemplate, templateFromString } from "../template.js";
-import { shouldServeImport, ViteContext } from "../viteContext.js";
-import { BaseElementRenderer } from "./elementRenderer.js";
+import { prepareForStreaming } from "../../../view/activate.js"
+import { emptyTemplate, HTMLTemplate, templateFromString } from "../template.js"
+import { shouldServeImport, ViteContext } from "../viteContext.js"
+import { BaseElementRenderer } from "./elementRenderer.js"
 
 export class HeadElementRenderer extends BaseElementRenderer {
-  constructor(private viteContext: ViteContext | undefined, private isStreaming: boolean) {
+  constructor(
+    private viteContext: ViteContext | undefined,
+    private isStreaming: boolean,
+  ) {
     super()
   }
 

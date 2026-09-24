@@ -25,7 +25,9 @@ export interface StylesheetResource {
 
 export type TransformedResource = ScriptResource | ExtraScriptResource | StylesheetResource
 
-export function shouldTransformImport(viteContext: ViteContext | undefined): viteContext is ViteContext {
+export function shouldTransformImport(
+  viteContext: ViteContext | undefined,
+): viteContext is ViteContext {
   if (viteContext === undefined) {
     return false
   }
@@ -49,7 +51,11 @@ export function shouldServeImport(viteContext: ViteContext | undefined): boolean
   return false
 }
 
-export function getTransformedResource(viteContext: ViteContext, type: "script" | "stylesheet", src: string): TransformedResource {
+export function getTransformedResource(
+  viteContext: ViteContext,
+  type: "script" | "stylesheet",
+  src: string,
+): TransformedResource {
   const chunk = findManifestChunk(viteContext, src)
 
   if (chunk === undefined) {
@@ -58,14 +64,22 @@ export function getTransformedResource(viteContext: ViteContext, type: "script" 
 
   return {
     type,
-    src: `${viteContext.base}${chunk.file}`
+    src: `${viteContext.base}${chunk.file}`,
   }
 }
 
-export function getExtraResources(viteContext: ViteContext, resourceType: "script" | "stylesheet", src: string): Array<TransformedResource> {
+export function getExtraResources(
+  viteContext: ViteContext,
+  resourceType: "script" | "stylesheet",
+  src: string,
+): Array<TransformedResource> {
   const fetched: Set<string> = new Set()
 
-  function findResources(type: "script" | "stylesheet" | "extra-script", src: string, options: { extraOnly: boolean } = { extraOnly: false }): Array<TransformedResource> {
+  function findResources(
+    type: "script" | "stylesheet" | "extra-script",
+    src: string,
+    options: { extraOnly: boolean } = { extraOnly: false },
+  ): Array<TransformedResource> {
     const chunk = findManifestChunk(viteContext, src)
 
     if (chunk === undefined) {
@@ -74,9 +88,9 @@ export function getExtraResources(viteContext: ViteContext, resourceType: "scrip
 
     fetched.add(chunk.manifestKey)
 
-    let linkData: Array<TransformedResource> = options.extraOnly ? [] : [
-      { type, src: `${viteContext.base}${chunk.file}` }
-    ]
+    let linkData: Array<TransformedResource> = options.extraOnly
+      ? []
+      : [{ type, src: `${viteContext.base}${chunk.file}` }]
 
     for (const script of chunk.imports ?? []) {
       if (fetched.has(script)) continue
@@ -103,7 +117,7 @@ function findManifestChunk(viteContext: ViteContext, path: string): SSRManifestC
     if (path.endsWith(file)) {
       return {
         ...viteContext.manifest[file],
-        manifestKey: file
+        manifestKey: file,
       }
     }
   }

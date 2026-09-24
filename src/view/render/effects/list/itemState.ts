@@ -1,7 +1,15 @@
 import { OverlayTokenRegistry } from "../../../../store/registry/overlayTokenRegistry.js"
 import { clone, Container } from "../../../../store/state/container.js"
 import { OverlayStateHandler } from "../../../../store/state/handler/overlayStateHandler.js"
-import { generateStateManager, State, StateHandler, StateReader, StateToken, StateWriter, TokenRegistry } from "../../../../store/tokenRegistry.js"
+import {
+  generateStateManager,
+  State,
+  StateHandler,
+  StateReader,
+  StateToken,
+  StateWriter,
+  TokenRegistry,
+} from "../../../../store/tokenRegistry.js"
 import { ListItemTemplateContext } from "../../templateContext.js"
 import { ListItem } from "../../viewRenderer.js"
 import { ListItemReader } from "./itemReader.js"
@@ -9,7 +17,11 @@ import { ListItemReader } from "./itemReader.js"
 class ExternalStateHandler extends OverlayStateHandler {
   next: ExternalStateHandler | undefined = undefined
 
-  constructor(registry: TokenRegistry, parent: StateWriter<any, any>, readonly token: StateToken<unknown>) {
+  constructor(
+    registry: TokenRegistry,
+    parent: StateWriter<any, any>,
+    readonly token: StateToken<unknown>,
+  ) {
     super(registry, parent)
   }
 }
@@ -18,12 +30,17 @@ export class ItemState extends OverlayTokenRegistry {
   private itemRegistry: Map<StateToken<unknown>, StateReader<unknown>> | undefined = undefined
   private externalStateHead: ExternalStateHandler | undefined = undefined
 
-  static newInstance(data: any, index: number, parentRegistry: TokenRegistry, context: ListItemTemplateContext<any>): ItemState {
+  static newInstance(
+    data: any,
+    index: number,
+    parentRegistry: TokenRegistry,
+    context: ListItemTemplateContext<any>,
+  ): ItemState {
     return new ItemState(
       parentRegistry,
       context.listItemDataToken,
       new ListItemReader(data, index),
-      context.viewTokens
+      context.viewTokens,
     )
   }
 
@@ -31,7 +48,7 @@ export class ItemState extends OverlayTokenRegistry {
     parentRegistry: TokenRegistry,
     private listItemDataToken: State<ListItem<any>>,
     private listItemDataReader: ListItemReader<any>,
-    private viewTokens: Set<StateToken<unknown>>
+    private viewTokens: Set<StateToken<unknown>>,
   ) {
     super(parentRegistry)
   }

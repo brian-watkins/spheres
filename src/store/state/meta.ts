@@ -1,4 +1,16 @@
-import { createStateHandler, GetState, StateListenerType, StatePublisher, TokenRegistry, getStateHandler, PublishableState, StateToken, StateDerivation, State, initListener } from "../tokenRegistry.js"
+import {
+  createStateHandler,
+  GetState,
+  StateListenerType,
+  StatePublisher,
+  TokenRegistry,
+  getStateHandler,
+  PublishableState,
+  StateToken,
+  StateDerivation,
+  State,
+  initListener,
+} from "../tokenRegistry.js"
 import { Container } from "./container.js"
 import { Publisher } from "./handler/publisher.js"
 import { SuppliedState } from "./supplied.js"
@@ -31,7 +43,7 @@ export function pending<M>(message: M): PendingMessage<M>
 export function pending<M>(message?: M): PendingMessage<M | undefined> {
   return {
     type: "pending",
-    message
+    message,
   }
 }
 
@@ -41,7 +53,7 @@ export function error<M, E>(reason: E, message?: M): ErrorMessage<M | undefined,
   return {
     type: "error",
     message,
-    reason
+    reason,
   }
 }
 
@@ -70,7 +82,10 @@ export class MetaState<T, M, E = unknown> implements PublishableState<Meta<M, E>
     return registry.getState(this)
   }
 
-  [createStateHandler](registry: TokenRegistry, serializedState?: Meta<M, E>): StatePublisher<Meta<M, E>> {
+  [createStateHandler](
+    registry: TokenRegistry,
+    serializedState?: Meta<M, E>,
+  ): StatePublisher<Meta<M, E>> {
     const reader = new MetaStateReader<M, E>(this.token, serializedState ?? ok())
     initListener(registry, reader)
     return reader
@@ -84,7 +99,10 @@ export class MetaState<T, M, E = unknown> implements PublishableState<Meta<M, E>
 class MetaStateReader<M, E> extends Publisher<Meta<M, E>> implements StateDerivation {
   readonly type = StateListenerType.Derivation
 
-  constructor(private token: StateToken<any>, initialValue: Meta<M, E>) {
+  constructor(
+    private token: StateToken<any>,
+    initialValue: Meta<M, E>,
+  ) {
     super(initialValue)
   }
 

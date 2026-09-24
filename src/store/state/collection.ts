@@ -4,7 +4,9 @@ export interface Collection<Key, S extends State<any>> {
   at(index: Key): S
 }
 
-export function collection<Key, S extends State<any>>(generator: (id: Key) => S): Collection<Key, S> {
+export function collection<Key, S extends State<any>>(
+  generator: (id: Key) => S,
+): Collection<Key, S> {
   const registry = new Map<Key, S>()
 
   return {
@@ -15,6 +17,6 @@ export function collection<Key, S extends State<any>>(generator: (id: Key) => S)
         registry.set(index, token)
       }
       return token
-    }
+    },
   }
 }

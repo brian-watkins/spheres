@@ -1,7 +1,6 @@
 # Examples
 
-This is an implementation of the
-[7 Guis Programming Benchmark](https://eugenkiss.github.io/7guis/)
+This is an implementation of the [7 Guis Programming Benchmark](https://eugenkiss.github.io/7guis/)
 using `spheres/view` and `spheres/store`.
 
 To run the examples:

@@ -1,23 +1,22 @@
-import { behavior, effect, example, fact, step } from "best-behavior";
-import { expect, resolvesTo } from "great-expectations";
-import { testCirclesApp } from "./helpers/testApp.js";
-import { testCircle } from "./helpers/fakeCircle.js";
+import { behavior, effect, example, fact, step } from "best-behavior"
+import { expect, resolvesTo } from "great-expectations"
+import { testCirclesApp } from "./helpers/testApp.js"
+import { testCircle } from "./helpers/fakeCircle.js"
 
 export default behavior("undo", [
-
   example(testCirclesApp)
     .description("no actions have been taken")
     .script({
       suppose: [
         fact("the app is rendered", async (context) => {
           await context.renderAppWithCircles([])
-        })
+        }),
       ],
       observe: [
         effect("the undo button is disabled", async (context) => {
           await expect(context.display.undoButton.isDisabled(), resolvesTo(true))
-        })
-      ]
+        }),
+      ],
     }),
 
   example(testCirclesApp)
@@ -26,7 +25,7 @@ export default behavior("undo", [
       suppose: [
         fact("the app is rendered", async (context) => {
           await context.renderAppWithCircles([])
-        })
+        }),
       ],
       perform: [
         step("create a circle", async (context) => {
@@ -37,21 +36,22 @@ export default behavior("undo", [
         }),
         step("the undo button is clicked", async (context) => {
           await context.display.undoButton.click()
-        })
+        }),
       ],
       observe: [
         effect("there is only the first circle", async (context) => {
           await expect(context.display.selectElements("circle").count(), resolvesTo(1))
           await expect(context.display.circleCenteredAt(120, 200).exists(), resolvesTo(true))
-        })
-      ]
-    }).andThen({
+        }),
+      ],
+    })
+    .andThen({
       perform: [
         step("add three more circles", async (context) => {
           await context.display.createCircleAt(175, 100)
           await context.display.createCircleAt(220, 240)
           await context.display.createCircleAt(420, 380)
-        })
+        }),
       ],
       observe: [
         effect("there are four circles", async (context) => {
@@ -60,13 +60,14 @@ export default behavior("undo", [
           await expect(context.display.circleCenteredAt(175, 100).exists(), resolvesTo(true))
           await expect(context.display.circleCenteredAt(220, 240).exists(), resolvesTo(true))
           await expect(context.display.circleCenteredAt(420, 380).exists(), resolvesTo(true))
-        })
-      ]
-    }).andThen({
+        }),
+      ],
+    })
+    .andThen({
       perform: [
         step("undo the last circle creation", async (context) => {
           await context.display.undoButton.click()
-        })
+        }),
       ],
       observe: [
         effect("the last circle is removed and the others remain", async (context) => {
@@ -74,8 +75,8 @@ export default behavior("undo", [
           await expect(context.display.circleCenteredAt(120, 200).exists(), resolvesTo(true))
           await expect(context.display.circleCenteredAt(175, 100).exists(), resolvesTo(true))
           await expect(context.display.circleCenteredAt(220, 240).exists(), resolvesTo(true))
-        })
-      ]
+        }),
+      ],
     }),
 
   example(testCirclesApp)
@@ -84,7 +85,7 @@ export default behavior("undo", [
       suppose: [
         fact("the app is rendered", async (context) => {
           await context.renderAppWithCircles([])
-        })
+        }),
       ],
       perform: [
         step("add two circles", async (context) => {
@@ -111,14 +112,15 @@ export default behavior("undo", [
         }),
         step("click to undo", async (context) => {
           await context.display.undoButton.click()
-        })
+        }),
       ],
       observe: [
         effect("the diameter of the circle is the first adjusted value", async (context) => {
           await expect(context.display.circleCenteredAt(420, 280).radius, resolvesTo(40))
-        })
-      ]
-    }).andThen({
+        }),
+      ],
+    })
+    .andThen({
       perform: [
         step("adjust radius to 10", async (context) => {
           await context.display.circleCenteredAt(420, 280).adjustRadiusTo(10)
@@ -131,13 +133,13 @@ export default behavior("undo", [
         }),
         step("undo the last adjustment", async (context) => {
           await context.display.undoButton.click()
-        })
+        }),
       ],
       observe: [
         effect("the radius is 25", async (context) => {
           await expect(context.display.circleCenteredAt(420, 280).radius, resolvesTo(25))
-        })
-      ]
+        }),
+      ],
     }),
 
   example(testCirclesApp)
@@ -146,7 +148,7 @@ export default behavior("undo", [
       suppose: [
         fact("the app is rendered", async (context) => {
           await context.renderAppWithCircles([])
-        })
+        }),
       ],
       perform: [
         step("create a circle", async (context) => {
@@ -163,7 +165,7 @@ export default behavior("undo", [
         }),
         step("click undo", async (context) => {
           await context.display.undoButton.click()
-        })
+        }),
       ],
       observe: [
         effect("the last radius change is undone", async (context) => {
@@ -171,8 +173,8 @@ export default behavior("undo", [
         }),
         effect("the first circle remains unchanged", async (context) => {
           await expect(context.display.circleCenteredAt(120, 280).radius, resolvesTo(32))
-        })
-      ]
+        }),
+      ],
     }),
 
   example(testCirclesApp)
@@ -180,10 +182,8 @@ export default behavior("undo", [
     .script({
       suppose: [
         fact("the app is running", async (context) => {
-          await context.renderAppWithCircles([
-            testCircle(120, 110)
-          ])
-        })
+          await context.renderAppWithCircles([testCircle(120, 110)])
+        }),
       ],
       perform: [
         step("open the options", async (context) => {
@@ -201,13 +201,15 @@ export default behavior("undo", [
         }),
         step("press undo", async (context) => {
           await context.display.undoButton.click()
-        })
+        }),
       ],
       observe: [
-        effect("the circle is removed, since that was the last significant event", async (context) => {
-          await expect(context.display.circleCenteredAt(120, 110).exists(), resolvesTo(false))
-        })
-      ]
-    })
-
+        effect(
+          "the circle is removed, since that was the last significant event",
+          async (context) => {
+            await expect(context.display.circleCenteredAt(120, 110).exists(), resolvesTo(false))
+          },
+        ),
+      ],
+    }),
 ])

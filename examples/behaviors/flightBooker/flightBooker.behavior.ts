@@ -1,19 +1,26 @@
-import { Observation, behavior, effect, example, fact, step } from "best-behavior";
-import { DisplayElement } from "../helpers/testApp.js";
-import { assignedWith, expect, is, resolvesTo, satisfying, stringContaining, stringWithLength } from "great-expectations";
+import { Observation, behavior, effect, example, fact, step } from "best-behavior"
+import { DisplayElement } from "../helpers/testApp.js"
+import {
+  assignedWith,
+  expect,
+  is,
+  resolvesTo,
+  satisfying,
+  stringContaining,
+  stringWithLength,
+} from "great-expectations"
 import { DateTime } from "luxon"
-import { FlightTypes } from "../../src/flightBooker/state.js";
-import { FlightBookerTestApp, flightBookerApp } from "./helpers/testApp.js";
+import { FlightTypes } from "../../src/flightBooker/state.js"
+import { FlightBookerTestApp, flightBookerApp } from "./helpers/testApp.js"
 
 export default behavior("Flight Booker", [
-
   example(flightBookerApp)
     .description("default state")
     .script({
       suppose: [
         fact("the flight booker is rendered", async (context) => {
           await context.renderApp()
-        })
+        }),
       ],
       observe: [
         effect("one-way flight is selected", async (context) => {
@@ -29,8 +36,8 @@ export default behavior("Flight Booker", [
           const returnDate = await returnDateInput(context).inputValue()
           expect(returnDate, is(startDate))
         }),
-        theReturnDateIsDisabled()
-      ]
+        theReturnDateIsDisabled(),
+      ],
     }),
 
   example(flightBookerApp)
@@ -39,7 +46,7 @@ export default behavior("Flight Booker", [
       suppose: [
         fact("the flight booker is rendered", async (context) => {
           await context.renderApp()
-        })
+        }),
       ],
       perform: [
         step("select a one way flight", async (context) => {
@@ -50,17 +57,24 @@ export default behavior("Flight Booker", [
         }),
         step("click to book", async (context) => {
           await bookFlightButton(context).click()
-        })
+        }),
       ],
       observe: [
         effect("an alert is displayed with the booked flight info", async (context) => {
-          expect(context.lastAlert?.message, is(assignedWith(satisfying([
-            stringContaining("one-way flight"),
-            stringContaining(dateInTheFuture(2))
-          ]))))
+          expect(
+            context.lastAlert?.message,
+            is(
+              assignedWith(
+                satisfying([
+                  stringContaining("one-way flight"),
+                  stringContaining(dateInTheFuture(2)),
+                ]),
+              ),
+            ),
+          )
         }),
-        theReturnDateIsDisabled()
-      ]
+        theReturnDateIsDisabled(),
+      ],
     }),
 
   example(flightBookerApp)
@@ -69,7 +83,7 @@ export default behavior("Flight Booker", [
       suppose: [
         fact("the flight booker is rendered", async (context) => {
           await context.renderApp()
-        })
+        }),
       ],
       perform: [
         step("select a return flight", async (context) => {
@@ -83,17 +97,24 @@ export default behavior("Flight Booker", [
         }),
         step("click to book", async (context) => {
           await bookFlightButton(context).click()
-        })
+        }),
       ],
       observe: [
         effect("an alert is displayed with the booked flight info", async (context) => {
-          expect(context.lastAlert?.message, is(assignedWith(satisfying([
-            stringContaining("return flight"),
-            stringContaining(dateInTheFuture(3)),
-            stringContaining(dateInTheFuture(5))
-          ]))))
-        })
-      ]
+          expect(
+            context.lastAlert?.message,
+            is(
+              assignedWith(
+                satisfying([
+                  stringContaining("return flight"),
+                  stringContaining(dateInTheFuture(3)),
+                  stringContaining(dateInTheFuture(5)),
+                ]),
+              ),
+            ),
+          )
+        }),
+      ],
     }),
 
   example(flightBookerApp)
@@ -102,7 +123,7 @@ export default behavior("Flight Booker", [
       suppose: [
         fact("the flight booker is rendered", async (context) => {
           await context.renderApp()
-        })
+        }),
       ],
       perform: [
         step("select a return flight", async (context) => {
@@ -116,17 +137,24 @@ export default behavior("Flight Booker", [
         }),
         step("click to book", async (context) => {
           await bookFlightButton(context).click()
-        })
+        }),
       ],
       observe: [
         effect("an alert is displayed with the booked flight info", async (context) => {
-          expect(context.lastAlert?.message, is(assignedWith(satisfying([
-            stringContaining("return flight"),
-            stringContaining(dateInTheFuture(3)),
-            stringContaining(dateInTheFuture(3))
-          ]))))
-        })
-      ]
+          expect(
+            context.lastAlert?.message,
+            is(
+              assignedWith(
+                satisfying([
+                  stringContaining("return flight"),
+                  stringContaining(dateInTheFuture(3)),
+                  stringContaining(dateInTheFuture(3)),
+                ]),
+              ),
+            ),
+          )
+        }),
+      ],
     }),
 
   example(flightBookerApp)
@@ -135,7 +163,7 @@ export default behavior("Flight Booker", [
       suppose: [
         fact("the flight booker is rendered", async (context) => {
           await context.renderApp()
-        })
+        }),
       ],
       perform: [
         step("select a return flight", async (context) => {
@@ -146,11 +174,9 @@ export default behavior("Flight Booker", [
         }),
         step("enter an end date before the start date", async (context) => {
           await returnDateInput(context).type(dateInTheFuture(1))
-        })
+        }),
       ],
-      observe: [
-        theBookingButtonIsDisabled()
-      ]
+      observe: [theBookingButtonIsDisabled()],
     }),
 
   example(flightBookerApp)
@@ -159,7 +185,7 @@ export default behavior("Flight Booker", [
       suppose: [
         fact("the flight booker is rendered", async (context) => {
           await context.renderApp()
-        })
+        }),
       ],
       perform: [
         step("select a one-way flight", async (context) => {
@@ -167,15 +193,15 @@ export default behavior("Flight Booker", [
         }),
         step("enter a bad start date", async (context) => {
           await startDateInput(context).type("blah")
-        })
+        }),
       ],
       observe: [
         theBookingButtonIsDisabled(),
         theInputFieldIsInvalid("start date", startDateInput),
         effect("the start date contains the bad date", async (context) => {
           await expect(startDateInput(context).inputValue(), resolvesTo("blah"))
-        })
-      ]
+        }),
+      ],
     }),
 
   example(flightBookerApp)
@@ -184,7 +210,7 @@ export default behavior("Flight Booker", [
       suppose: [
         fact("the flight booker is rendered", async (context) => {
           await context.renderApp()
-        })
+        }),
       ],
       perform: [
         step("select a one-way flight", async (context) => {
@@ -192,22 +218,27 @@ export default behavior("Flight Booker", [
         }),
         step("enter a bad start date", async (context) => {
           await returnDateInput(context).type("blerg")
-        })
+        }),
       ],
       observe: [
         theBookingButtonIsDisabled(),
         theInputFieldIsInvalid("return date", returnDateInput),
         effect("the return date contains the bad date", async (context) => {
           await expect(returnDateInput(context).inputValue(), resolvesTo("blerg"))
-        })
-      ]
-    })
-
+        }),
+      ],
+    }),
 ])
 
-function theInputFieldIsInvalid(name: string, elementGenerator: (context: FlightBookerTestApp) => DisplayElement): Observation<FlightBookerTestApp> {
+function theInputFieldIsInvalid(
+  name: string,
+  elementGenerator: (context: FlightBookerTestApp) => DisplayElement,
+): Observation<FlightBookerTestApp> {
   return effect(`the ${name} is shown to be invalid`, async (context) => {
-    await expect(elementGenerator(context).classNames(), resolvesTo(stringContaining("bg-fuchsia-400")))
+    await expect(
+      elementGenerator(context).classNames(),
+      resolvesTo(stringContaining("bg-fuchsia-400")),
+    )
   })
 }
 

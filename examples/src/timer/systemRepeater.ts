@@ -1,10 +1,10 @@
-import { CommandManager, Store, use } from "spheres/store";
-import { RepeaterCommand } from "./state";
+import { CommandManager, Store, use } from "spheres/store"
+import { RepeaterCommand } from "./state"
 
 export class RepeaterCommandManager implements CommandManager<RepeaterCommand> {
   private timerId: any | undefined
 
-  constructor(private store: Store) { }
+  constructor(private store: Store) {}
 
   exec(message: RepeaterCommand): void {
     if (this.timerId && message.shouldRun) return

@@ -1,7 +1,7 @@
-import { useHooks } from "@store/index.js";
-import { view } from "./view";
-import { serializedTokens } from "./state";
-import { activateZone } from "@view/index";
+import { useHooks } from "@store/index.js"
+import { view } from "./view"
+import { serializedTokens } from "./state"
+import { activateZone } from "@view/index"
 
 activateZone({
   stateManifest: serializedTokens,
@@ -9,10 +9,10 @@ activateZone({
     useHooks(store, {
       onRegister() {
         // do something with the container
-      }
-    })  
+      },
+    })
   },
   setupView(activate) {
     activate(document.body, view)
-  }
+  },
 })

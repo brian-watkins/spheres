@@ -1,20 +1,32 @@
-import { DOMEvent, DOMEventType, EventsToDelegate, StoreEventHandler, EventZone } from "./index.js";
-import { Stateful, GetState } from "../../store/index.js";
-import { EffectLocation } from "./effectLocation.js";
-import { setEventAttribute } from "./eventHelpers.js";
-import { createFragment, listEndIndicator, listStartIndicator, matchEndIndicator, matchStartIndicator } from "./fragmentHelpers.js";
-import { IdSequence } from "./idSequence.js";
-import { ListItemTemplateContext } from "./templateContext.js";
-import { AbstractViewConfig } from "./viewConfig.js";
-import { AbstractViewRenderer, ElementDefinition, UseItem, ViewDefinition, ViewMatcher } from "./viewRenderer.js";
-import { DOMTemplate, EffectTemplate, EffectTemplateTypes, TemplateType } from "./domTemplate.js";
-import { MatcherBuilder } from "./viewMatcherBuilder.js";
-import { ElementConfigSupport, ElementSupport } from "../elementSupport.js";
-import { UpdateTextEffect } from "./effects/textEffect.js";
-import { UpdateAttributeEffect } from "./effects/attributeEffect.js";
-import { UpdatePropertyEffect } from "./effects/propertyEffect.js";
-import { isStateful } from "../../store/tokenRegistry.js";
-import { ElementIdentifier } from "../element.js";
+import { DOMEvent, DOMEventType, EventsToDelegate, StoreEventHandler, EventZone } from "./index.js"
+import { Stateful, GetState } from "../../store/index.js"
+import { EffectLocation } from "./effectLocation.js"
+import { setEventAttribute } from "./eventHelpers.js"
+import {
+  createFragment,
+  listEndIndicator,
+  listStartIndicator,
+  matchEndIndicator,
+  matchStartIndicator,
+} from "./fragmentHelpers.js"
+import { IdSequence } from "./idSequence.js"
+import { ListItemTemplateContext } from "./templateContext.js"
+import { AbstractViewConfig } from "./viewConfig.js"
+import {
+  AbstractViewRenderer,
+  ElementDefinition,
+  UseItem,
+  ViewDefinition,
+  ViewMatcher,
+} from "./viewRenderer.js"
+import { DOMTemplate, EffectTemplate, EffectTemplateTypes, TemplateType } from "./domTemplate.js"
+import { MatcherBuilder } from "./viewMatcherBuilder.js"
+import { ElementConfigSupport, ElementSupport } from "../elementSupport.js"
+import { UpdateTextEffect } from "./effects/textEffect.js"
+import { UpdateAttributeEffect } from "./effects/attributeEffect.js"
+import { UpdatePropertyEffect } from "./effects/propertyEffect.js"
+import { isStateful } from "../../store/tokenRegistry.js"
+import { ElementIdentifier } from "../element.js"
 
 export class DomTemplateRenderer extends AbstractViewRenderer {
   public effectTemplates: Array<EffectTemplate> = []
@@ -22,7 +34,14 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
   private templateElement: HTMLTemplateElement | undefined
   private root: Node
 
-  constructor(private elementSupport: ElementSupport, private zone: EventZone, private idSequence: IdSequence, private location: EffectLocation, root?: Node, private eventType: DOMEventType = DOMEventType.Template) {
+  constructor(
+    private elementSupport: ElementSupport,
+    private zone: EventZone,
+    private idSequence: IdSequence,
+    private location: EffectLocation,
+    root?: Node,
+    private eventType: DOMEventType = DOMEventType.Template,
+  ) {
     super()
     if (root === undefined) {
       this.templateElement = document.createElement("template")
@@ -37,9 +56,10 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
       type: this.templateType,
       element: this.templateElement!,
       effects: this.effectTemplates,
-      isFragment: this.templateType === TemplateType.List ||
+      isFragment:
+        this.templateType === TemplateType.List ||
         this.templateType === TemplateType.Match ||
-        this.root.childNodes.length > 1
+        this.root.childNodes.length > 1,
     }
   }
 
@@ -61,7 +81,7 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
       this.effectTemplates.push({
         type: EffectTemplateTypes.Text,
         effect: new UpdateTextEffect(value),
-        location: this.location
+        location: this.location,
       })
     } else {
       this.root.appendChild(document.createTextNode(value))
@@ -79,32 +99,54 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
 
     this.location = this.advanceLocation()
 
-    const config = new DomTemplateConfig(renderSupport.getConfigSupport(tag), this.zone, elementId, element, this.location, this.eventType)
+    const config = new DomTemplateConfig(
+      renderSupport.getConfigSupport(tag),
+      this.zone,
+      elementId,
+      element,
+      this.location,
+      this.eventType,
+    )
 
-    const children = new DomTemplateRenderer(renderSupport, this.zone, this.idSequence, this.location, element, this.eventType)
+    const children = new DomTemplateRenderer(
+      renderSupport,
+      this.zone,
+      this.idSequence,
+      this.location,
+      element,
+      this.eventType,
+    )
 
     builder?.({
       config: config,
-      children: children
+      children: children,
     })
 
     this.root.appendChild(element)
 
-    this.effectTemplates = this.effectTemplates.concat(config.effectTemplates, children.effectTemplates)
+    this.effectTemplates = this.effectTemplates.concat(
+      config.effectTemplates,
+      children.effectTemplates,
+    )
 
     return this
   }
 
   subviews<T>(
     data: (get: GetState) => ReadonlyArray<T>,
-    viewGenerator: (useItem: UseItem<T>) => ViewDefinition
+    viewGenerator: (useItem: UseItem<T>) => ViewDefinition,
   ): this {
     this.templateType = TemplateType.List
 
     const elementId = this.idSequence.next
     const fragment = createFragment(listStartIndicator(elementId), listEndIndicator(elementId))
 
-    const renderer = new DomTemplateRenderer(this.elementSupport, this.zone, new IdSequence(elementId), new EffectLocation(root => root))
+    const renderer = new DomTemplateRenderer(
+      this.elementSupport,
+      this.zone,
+      new IdSequence(elementId),
+      new EffectLocation((root) => root),
+    )
     const templateContext = new ListItemTemplateContext(renderer, viewGenerator)
 
     this.location = this.advanceLocation()
@@ -117,7 +159,7 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
       query: data,
       context: templateContext,
       elementId,
-      location: this.location
+      location: this.location,
     })
 
     this.location = this.location.nextCommentSiblingMatching(listEndIndicator(elementId))
@@ -135,14 +177,16 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
 
     this.root.appendChild(fragment)
 
-    const matcherBuilder = new MatcherBuilder(createDOMTemplate(this.elementSupport, this.zone, elementId))
+    const matcherBuilder = new MatcherBuilder(
+      createDOMTemplate(this.elementSupport, this.zone, elementId),
+    )
     matcherGenerator(matcherBuilder)
 
     this.effectTemplates.push({
       type: EffectTemplateTypes.Match,
       collection: matcherBuilder.collection,
       elementId,
-      location: this.location
+      location: this.location,
     })
 
     this.location = this.location.nextCommentSiblingMatching(matchEndIndicator(elementId))
@@ -154,7 +198,14 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
 class DomTemplateConfig extends AbstractViewConfig {
   readonly effectTemplates: Array<EffectTemplate> = []
 
-  constructor(support: ElementConfigSupport, private zone: EventZone, private elementId: string, private element: Element, private location: EffectLocation, private eventType: DOMEvent["type"]) {
+  constructor(
+    support: ElementConfigSupport,
+    private zone: EventZone,
+    private elementId: string,
+    private element: Element,
+    private location: EffectLocation,
+    private eventType: DOMEvent["type"],
+  ) {
     super(support)
   }
 
@@ -162,7 +213,7 @@ class DomTemplateConfig extends AbstractViewConfig {
     this.effectTemplates.push({
       type: EffectTemplateTypes.Element,
       identifier: id,
-      location: this.location
+      location: this.location,
     })
 
     return this
@@ -173,7 +224,7 @@ class DomTemplateConfig extends AbstractViewConfig {
       this.effectTemplates.push({
         type: EffectTemplateTypes.Attribute,
         effect: new UpdateAttributeEffect(name, value),
-        location: this.location
+        location: this.location,
       })
     } else {
       this.element.setAttribute(name, value)
@@ -186,7 +237,7 @@ class DomTemplateConfig extends AbstractViewConfig {
       this.effectTemplates.push({
         type: EffectTemplateTypes.Property,
         effect: new UpdatePropertyEffect(name, value),
-        location: this.location
+        location: this.location,
       })
     } else {
       //@ts-ignore
@@ -196,7 +247,10 @@ class DomTemplateConfig extends AbstractViewConfig {
     return this
   }
 
-  on<E extends keyof HTMLElementEventMap | string>(event: E, handler: StoreEventHandler<any>): this {
+  on<E extends keyof HTMLElementEventMap | string>(
+    event: E,
+    handler: StoreEventHandler<any>,
+  ): this {
     if (EventsToDelegate.has(event)) {
       setEventAttribute(this.element, event, this.elementId)
       this.zone.addEvent(this.eventType, this.elementId, event, handler)
@@ -205,16 +259,25 @@ class DomTemplateConfig extends AbstractViewConfig {
         type: EffectTemplateTypes.Event,
         name: event,
         handler,
-        location: this.location
+        location: this.location,
       })
     }
     return this
   }
 }
 
-export function createDOMTemplate(elementSupport: ElementSupport, zone: EventZone, elementId: string): (view: ViewDefinition, selectorId: number) => DOMTemplate {
+export function createDOMTemplate(
+  elementSupport: ElementSupport,
+  zone: EventZone,
+  elementId: string,
+): (view: ViewDefinition, selectorId: number) => DOMTemplate {
   return (view, selectorId) => {
-    const renderer = new DomTemplateRenderer(elementSupport, zone, new IdSequence(`${elementId}.${selectorId}`), new EffectLocation(root => root))
+    const renderer = new DomTemplateRenderer(
+      elementSupport,
+      zone,
+      new IdSequence(`${elementId}.${selectorId}`),
+      new EffectLocation((root) => root),
+    )
     view(renderer)
     return renderer.template
   }

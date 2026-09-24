@@ -1,11 +1,28 @@
 import { container, meta } from "../../../store/index.js"
-import { serializedValue, serializedMeta, SerializedState, StateManifest } from "../../../store/serialize.js"
-import { addTemplate, emptyTemplate, HTMLTemplate, templateFromString, toStatefulString } from "../template.js"
-import { getExtraResources, getTransformedResource, shouldTransformImport, TransformedResource, ViteContext } from "../viteContext.js"
+import {
+  serializedValue,
+  serializedMeta,
+  SerializedState,
+  StateManifest,
+} from "../../../store/serialize.js"
+import {
+  addTemplate,
+  emptyTemplate,
+  HTMLTemplate,
+  templateFromString,
+  toStatefulString,
+} from "../template.js"
+import {
+  getExtraResources,
+  getTransformedResource,
+  shouldTransformImport,
+  TransformedResource,
+  ViteContext,
+} from "../viteContext.js"
 
 export interface ActivationOptions {
-  viteContext?: ViteContext,
-  stateManifest?: StateManifest,
+  viteContext?: ViteContext
+  stateManifest?: StateManifest
   activationScripts?: ReadonlyArray<string>
 }
 
@@ -24,7 +41,10 @@ export function getActivationTemplate(options: ActivationOptions): HTMLTemplate 
   return template
 }
 
-function activationScriptTemplate(viteContext: ViteContext | undefined, scriptSrc: string): HTMLTemplate {
+function activationScriptTemplate(
+  viteContext: ViteContext | undefined,
+  scriptSrc: string,
+): HTMLTemplate {
   if (!shouldTransformImport(viteContext)) {
     return templateFromString(`<script type="module" async src="${scriptSrc}"></script>`)
   }
@@ -32,7 +52,9 @@ function activationScriptTemplate(viteContext: ViteContext | undefined, scriptSr
   const transformedResource = getTransformedResource(viteContext, "script", scriptSrc)
 
   // Should this always be async?
-  let template = templateFromString(`<script type="module" async src="${transformedResource.src}"></script>`)
+  let template = templateFromString(
+    `<script type="module" async src="${transformedResource.src}"></script>`,
+  )
 
   const extraResources = getExtraResources(viteContext, "script", scriptSrc)
   for (const resource of extraResources) {
@@ -60,11 +82,11 @@ export function storeDataTemplate(stateManifest: StateManifest): HTMLTemplate {
     strings: [
       `<script type="application/json" data-spheres-stream="init" data-spheres-store="`,
       `">`,
-      `</script>`
+      `</script>`,
     ],
     statefuls: [
       toStatefulString((get) => get(storeIdToken)),
-      toStatefulString(get => {
+      toStatefulString((get) => {
         const values: Array<SerializedState> = []
 
         for (const key in stateManifest) {
@@ -78,7 +100,7 @@ export function storeDataTemplate(stateManifest: StateManifest): HTMLTemplate {
         }
 
         return JSON.stringify(values)
-      })
-    ]
+      }),
+    ],
   }
 }

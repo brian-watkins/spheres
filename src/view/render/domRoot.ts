@@ -1,4 +1,11 @@
-import { DOMEvent, DOMEventType, RenderResult, spheresTemplateData, StoreEventHandler, EventZone } from "./index.js"
+import {
+  DOMEvent,
+  DOMEventType,
+  RenderResult,
+  spheresTemplateData,
+  StoreEventHandler,
+  EventZone,
+} from "./index.js"
 import { dispatchMessage } from "../../store/message.js"
 import { TokenRegistry } from "../../store/tokenRegistry.js"
 import { getEventAttribute, wrapEvent } from "./eventHelpers.js"
@@ -8,9 +15,17 @@ export class DOMRoot implements EventZone, RenderResult {
   private eventController = new AbortController()
   private events: Map<string, DOMEvent> = new Map()
 
-  constructor(readonly registry: TokenRegistry, readonly root: Element) { }
+  constructor(
+    readonly registry: TokenRegistry,
+    readonly root: Element,
+  ) {}
 
-  addEvent(location: DOMEventType, elementId: string, eventType: string, handler: StoreEventHandler<any>) {
+  addEvent(
+    location: DOMEventType,
+    elementId: string,
+    eventType: string,
+    handler: StoreEventHandler<any>,
+  ) {
     this.setupEventHandler(eventType)
     this.events.set(`${eventType}-${elementId}`, { type: location, handler })
   }
@@ -18,11 +33,9 @@ export class DOMRoot implements EventZone, RenderResult {
   private setupEventHandler(eventType: string) {
     if (this.activeDocumentEvents.has(eventType)) return
 
-    this.root.addEventListener(
-      eventType,
-      this.createEventListener(eventType),
-      { signal: this.eventController.signal }
-    )
+    this.root.addEventListener(eventType, this.createEventListener(eventType), {
+      signal: this.eventController.signal,
+    })
 
     this.activeDocumentEvents.add(eventType)
   }

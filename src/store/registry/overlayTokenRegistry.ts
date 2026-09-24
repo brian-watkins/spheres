@@ -1,7 +1,14 @@
-import { Command, CommandController, StateReader, StateHandler, TokenRegistry, StateToken } from "../tokenRegistry.js"
+import {
+  Command,
+  CommandController,
+  StateReader,
+  StateHandler,
+  TokenRegistry,
+  StateToken,
+} from "../tokenRegistry.js"
 
 export class OverlayTokenRegistry implements TokenRegistry {
-  constructor(protected parentRegistry: TokenRegistry) { }
+  constructor(protected parentRegistry: TokenRegistry) {}
 
   getState<S extends StateToken<unknown>>(token: S): StateHandler<S> {
     return this.parentRegistry.getState(token)

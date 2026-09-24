@@ -9,5 +9,5 @@ activateZone({
     for (const element of tallyElements) {
       activate(element, tally)
     }
-  }
+  },
 })

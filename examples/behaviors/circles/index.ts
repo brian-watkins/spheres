@@ -17,7 +17,7 @@ window.startCircleApp = (testData: Array<FakeCircle>) => {
   renderToDOM(dataStore, document.getElementById("test-display")!, circles)
 
   // to deselect all circles
-  document.querySelectorAll("circle").forEach(circle => {
+  document.querySelectorAll("circle").forEach((circle) => {
     circle.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }))
   })
 }

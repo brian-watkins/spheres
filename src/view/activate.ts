@@ -12,7 +12,13 @@ export function activateView(store: Store, element: Element, view: HTMLView): Re
   const registry = getTokenRegistry(store)
   const root = new DOMRoot(registry, element)
   root.clean()
-  const renderer = new ActivateDomRenderer(new HTMLElementSupport(), root, registry, element.firstChild!, new EffectLocation(root => root).firstChild())
+  const renderer = new ActivateDomRenderer(
+    new HTMLElementSupport(),
+    root,
+    registry,
+    element.firstChild!,
+    new EffectLocation((root) => root).firstChild(),
+  )
   view(renderer as unknown as HTMLBuilder)
 
   return root
@@ -30,7 +36,10 @@ export interface ActivatedZone {
 }
 
 export interface StreamingAppWindow extends Window {
-  _spheres_register_streaming_store: (storeId: string, deserializer: (data: SerializedState) => void) => void
+  _spheres_register_streaming_store: (
+    storeId: string,
+    deserializer: (data: SerializedState) => void,
+  ) => void
   _spheres_deserialize: (storeId: string, chunkId: string) => void
 }
 
@@ -40,7 +49,10 @@ export function prepareForStreaming() {
   const spheres_deserializers = new Map<string, (data: SerializedState) => void>()
   const spheres_deserializer_queue = new Map<string, Array<string>>()
 
-  window._spheres_register_streaming_store = (storeId: string, deserializer: (data: SerializedState) => void) => {
+  window._spheres_register_streaming_store = (
+    storeId: string,
+    deserializer: (data: SerializedState) => void,
+  ) => {
     spheres_deserializers.set(storeId, deserializer)
     const chunks = spheres_deserializer_queue.get(storeId) ?? []
     for (const chunk of chunks) {
@@ -49,7 +61,9 @@ export function prepareForStreaming() {
   }
 
   window._spheres_deserialize = (storeId: string, chunkId: string) => {
-    const dataTag = document.querySelector(`script[data-spheres-store="${storeId}"][data-spheres-stream="${chunkId}"]`)
+    const dataTag = document.querySelector(
+      `script[data-spheres-store="${storeId}"][data-spheres-stream="${chunkId}"]`,
+    )
     if (dataTag !== null) {
       const deserializer = spheres_deserializers.get(storeId)
       if (deserializer !== undefined) {
@@ -73,7 +87,9 @@ export function activateZone(options: ActivationOptions): Promise<ActivatedZone>
       options.configureStore?.(store)
 
       // get the initial state
-      const tag = document.querySelector(`script[data-spheres-store="${store.id}"][data-spheres-stream="init"]`)
+      const tag = document.querySelector(
+        `script[data-spheres-store="${store.id}"][data-spheres-stream="init"]`,
+      )
       if (tag !== null && options.stateManifest !== undefined) {
         const data: Array<SerializedState> = JSON.parse(tag.textContent!)
         for (const value of data) {
@@ -99,19 +115,23 @@ export function activateZone(options: ActivationOptions): Promise<ActivatedZone>
       }
 
       // wait for the response to end
-      return new Promise(resolve => {
+      return new Promise((resolve) => {
         window.addEventListener("DOMContentLoaded", () => {
           resolve()
         })
       })
-    }
+    },
   })
 
-  return store.initialized.then(() => ({store}))
+  return store.initialized.then(() => ({ store }))
 }
 
-
-function deserializeState(store: Store, stateManifest: StateManifest, actions: StoreInitializerActions, state: SerializedState) {
+function deserializeState(
+  store: Store,
+  stateManifest: StateManifest,
+  actions: StoreInitializerActions,
+  state: SerializedState,
+) {
   const token = stateManifest[state.t]
   if (token === undefined) return
 

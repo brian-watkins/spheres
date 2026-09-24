@@ -1,6 +1,16 @@
-import { dispatchMessage, ExecMessage } from "./message.js";
-import { Command, CommandController, createController, GetState, initializeCommand, initListener, StateEffect, StateListenerType, TokenRegistry } from "./tokenRegistry.js";
-import { DefaultCommandController } from "./command/defaultCommandController.js";
+import { dispatchMessage, ExecMessage } from "./message.js"
+import {
+  Command,
+  CommandController,
+  createController,
+  GetState,
+  initializeCommand,
+  initListener,
+  StateEffect,
+  StateListenerType,
+  TokenRegistry,
+} from "./tokenRegistry.js"
+import { DefaultCommandController } from "./command/defaultCommandController.js"
 
 export interface CommandInitializer<M> {
   trigger?: (get: GetState) => M
@@ -10,11 +20,14 @@ export function command<M = never>(initializer: CommandInitializer<M> = {}): Com
   return new BasicCommand<M>(initializer.trigger)
 }
 
-export function exec<M = never>(command: Command<M>, ...message: NoInfer<M> extends never ? [] : [NoInfer<M>]): ExecMessage<M> {
+export function exec<M = never>(
+  command: Command<M>,
+  ...message: NoInfer<M> extends never ? [] : [NoInfer<M>]
+): ExecMessage<M> {
   return {
     type: "exec",
     command,
-    message: message.length === 0 ? undefined : message[0] as any
+    message: message.length === 0 ? undefined : (message[0] as any),
   }
 }
 
@@ -37,7 +50,11 @@ export class BasicCommand<M> extends Command<M> {
 class DispatchCommandQuery<M> implements StateEffect {
   readonly type = StateListenerType.UserEffect
 
-  constructor(public registry: TokenRegistry, private command: Command<M>, private trigger: (get: GetState) => M) { }
+  constructor(
+    public registry: TokenRegistry,
+    private command: Command<M>,
+    private trigger: (get: GetState) => M,
+  ) {}
 
   init(get: GetState): void {
     this.run(get)
@@ -47,8 +64,7 @@ class DispatchCommandQuery<M> implements StateEffect {
     dispatchMessage(this.registry, {
       type: "exec",
       command: this.command,
-      message: this.trigger!((state) => get(state))
+      message: this.trigger!((state) => get(state)),
     })
   }
 }
-

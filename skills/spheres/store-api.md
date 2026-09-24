@@ -1,12 +1,15 @@
 # spheres/store — API Reference
 
-State management that separates application logic (rules over state tokens) from the storage system (persistence, fetching, async I/O).
+State management that separates application logic (rules over state tokens) from the storage system
+(persistence, fetching, async I/O).
 
 ## Concepts
 
-- **State Token** — a handle to a value managed by a `Store`. Four kinds: `Derived`, `Container`, `Supplied`, `Meta`.
+- **State Token** — a handle to a value managed by a `Store`. Four kinds: `Derived`, `Container`,
+  `Supplied`, `Meta`.
 - **Store** — holds values for registered tokens and processes `StoreMessage`s.
-- **Storage system** — optional; defined via `ContainerHooks` (lifecycle hooks on a container) or `Commands` (explicit messages handled by a `CommandManager`).
+- **Storage system** — optional; defined via `ContainerHooks` (lifecycle hooks on a container) or
+  `Commands` (explicit messages handled by a `CommandManager`).
 
 ## GetState
 
@@ -14,7 +17,9 @@ State management that separates application logic (rules over state tokens) from
 type GetState = <T, M>(state: State<T, M>) => T
 ```
 
-A function that reads a token's current value. Only available inside reactive contexts: `derived` queries, `Stateful` bindings in views, `useEffect` functions, `CommandManager.exec`, `ContainerHooks` actions, and store `init`.
+A function that reads a token's current value. Only available inside reactive contexts: `derived`
+queries, `Stateful` bindings in views, `useEffect` functions, `CommandManager.exec`,
+`ContainerHooks` actions, and store `init`.
 
 ## State tokens
 
@@ -48,13 +53,17 @@ interface ContainerInitializer<T, M> {
 }
 type ValueGenerator = <S>(value: S) => Value<S>
 function container<T, M = T, E = any>(
-  init: ContainerInitializer<T, M> | ((value: ValueGenerator) => ContainerInitializer<T, M>)
+  init: ContainerInitializer<T, M> | ((value: ValueGenerator) => ContainerInitializer<T, M>),
 ): Container<T, M, E>
 ```
 
-Program input. Value changes via messages dispatched to the store. Without `update`, messages *are* the new values (type `M` = type `T`). With `update`, you define how incoming messages of type `M` transform the current value.
+Program input. Value changes via messages dispatched to the store. Without `update`, messages _are_
+the new values (type `M` = type `T`). With `update`, you define how incoming messages of type `M`
+transform the current value.
 
-The initializer can also be a function that receives a `value` generator and returns a `ContainerInitializer`. Use this form to wrap individual fields of the container's state in `Value<S>` so they can be addressed and written to independently via `valueAt`.
+The initializer can also be a function that receives a `value` generator and returns a
+`ContainerInitializer`. Use this form to wrap individual fields of the container's state in
+`Value<S>` so they can be addressed and written to independently via `valueAt`.
 
 `meta(container)` accesses the container's `Meta` token.
 
@@ -65,7 +74,9 @@ function value<T>(initial: T): Value<T>
 function valueAt<T, S>(state: State<T>, locator: (val: T) => Value<S>): WritableState<S>
 ```
 
-A `Value<T>` is a writable cell embedded inside a container's state. Combined with `valueAt`, it lets you target a single field of a composite container value as if it were its own writable token — useful for forms, lists of records, and other cases where parts of a container update independently.
+A `Value<T>` is a writable cell embedded inside a container's state. Combined with `valueAt`, it
+lets you target a single field of a composite container value as if it were its own writable token —
+useful for forms, lists of records, and other cases where parts of a container update independently.
 
 ### supplied
 
@@ -78,41 +89,57 @@ interface SuppliedStateInitializer<T> {
 function supplied<T, M = any, E = any>(init: SuppliedStateInitializer<T>): SuppliedState<T, M, E>
 ```
 
-Read-only values provided by the storage system. The `initialValue` is used until the storage system supplies another. Set `M`/`E` generics to type the meta state.
+Read-only values provided by the storage system. The `initialValue` is used until the storage system
+supplies another. Set `M`/`E` generics to type the meta state.
 
 `meta(supplied)` accesses the supplied state's `Meta` token.
 
 ### Meta state
 
 ```ts
-interface PendingMessage<M> { type: "pending"; message: M }
-interface OkMessage { type: "ok" }
-interface ErrorMessage<M, E> { type: "error"; message: M; reason: E }
+interface PendingMessage<M> {
+  type: "pending"
+  message: M
+}
+interface OkMessage {
+  type: "ok"
+}
+interface ErrorMessage<M, E> {
+  type: "error"
+  message: M
+  reason: E
+}
 type Meta<M, E> = OkMessage | PendingMessage<M> | ErrorMessage<M, E>
 ```
 
-Program authors don't create Meta tokens directly — they access them via `meta(container)` / `meta(supplied)` and read them in queries, effects, or views. Meta reflects the storage-system status of the underlying token.
+Program authors don't create Meta tokens directly — they access them via `meta(container)` /
+`meta(supplied)` and read them in queries, effects, or views. Meta reflects the storage-system
+status of the underlying token.
 
 ## Reconcilers
 
-`container`, `derived`, and `supplied` all accept an optional `reconciler`, which decides how much of a token's old value to keep when a new one arrives:
+`container`, `derived`, and `supplied` all accept an optional `reconciler`, which decides how much
+of a token's old value to keep when a new one arrives:
 
 ```ts
 type Reconciler<T> = (current: T, next: T) => T
 ```
 
-Returning `current` means "nothing changed" and the token does not publish at all. Returning anything else publishes that value. Combinators live in a separate entry point:
+Returning `current` means "nothing changed" and the token does not publish at all. Returning
+anything else publishes that value. Combinators live in a separate entry point:
 
 ```ts
 import { reconcileArray } from "spheres/store/reconciler"
 
 const visibleItems = derived({
-  query: (get) => get(allItems).filter(item => !get(hidden).has(item.id)),
-  reconciler: reconcileArray({ key: item => item.id })
+  query: (get) => get(allItems).filter((item) => !get(hidden).has(item.id)),
+  reconciler: reconcileArray({ key: (item) => item.id }),
 })
 ```
 
-Use one to stop a `derived` list from publishing when a `filter` or `map` rebuilt an equivalent value, and to carry old element objects forward so `subviews` only rebuilds rows that genuinely changed. See `reconcilers.md`.
+Use one to stop a `derived` list from publishing when a `filter` or `map` rebuilt an equivalent
+value, and to carry old element objects forward so `subviews` only rebuilds rows that genuinely
+changed. See `reconcilers.md`.
 
 ## Store
 
@@ -133,11 +160,13 @@ function createStore(options?: StoreOptions): Store
 ```
 
 - `id` — identifies the store; needed when serializing multiple stores.
-- `init` — async initialization. `supply` set values -- including meta state -- before the app runs. Await `store.initialized` to know when init has completed.
+- `init` — async initialization. `supply` set values -- including meta state -- before the app runs.
+  Await `store.initialized` to know when init has completed.
 
 ## Store messages
 
-Factory functions that build `StoreMessage` values for `store.dispatch` (or for returning from view event handlers).
+Factory functions that build `StoreMessage` values for `store.dispatch` (or for returning from view
+event handlers).
 
 ### write
 
@@ -169,7 +198,8 @@ Restore the container's `initialValue`.
 run(effect: () => void): RunMessage
 ```
 
-Run an arbitrary function. Most useful inside a `batch` to sequence a side effect between message applications.
+Run an arbitrary function. Most useful inside a `batch` to sequence a side effect between message
+applications.
 
 ### batch
 
@@ -185,7 +215,8 @@ Apply many messages as one update. Effects depending on multiple changed values 
 use(rule: (get: GetState) => StoreMessage<any> | undefined): UseMessage
 ```
 
-Build a message from current state. The generated message is dispatched immediately after the `UseMessage` is processed.
+Build a message from current state. The generated message is dispatched immediately after the
+`UseMessage` is processed.
 
 ## Configuring the store
 
@@ -204,7 +235,8 @@ interface StoreHooks {
 function useHooks(store: Store, hooks: StoreHooks): void
 ```
 
-Runs once per container when it's first registered with the store. Useful for attaching `ContainerHooks` at runtime.
+Runs once per container when it's first registered with the store. Useful for attaching
+`ContainerHooks` at runtime.
 
 ### useContainerHooks — per-container lifecycle
 
@@ -219,10 +251,15 @@ interface WriteHookActions<T, M, E> {
 interface ContainerHooks<T, M, E = unknown> {
   onWrite?(message: M, actions: WriteHookActions<T, M, E>): void
 }
-function useContainerHooks<T, M, E>(store: Store, container: Container<T, M>, hooks: ContainerHooks<T, M, E>): void
+function useContainerHooks<T, M, E>(
+  store: Store,
+  container: Container<T, M>,
+  hooks: ContainerHooks<T, M, E>,
+): void
 ```
 
-`onWrite` runs every time a message is written to the container. Use it to persist the message, set meta state, or transform the value before it lands.
+`onWrite` runs every time a message is written to the container. Use it to persist the message, set
+meta state, or transform the value before it lands.
 
 ### command + useCommand
 
@@ -243,9 +280,12 @@ interface CommandManager<M> {
 function useCommand<M>(store: Store, command: Command<M>, handler: CommandManager<M>): void
 ```
 
-Commands are messages from app logic to the storage system. Invoke with `exec(command, message)` via dispatch. If `trigger` is provided, the command fires automatically whenever the reactive query produces a new message.
+Commands are messages from app logic to the storage system. Invoke with `exec(command, message)` via
+dispatch. If `trigger` is provided, the command fires automatically whenever the reactive query
+produces a new message.
 
-The handler can read tokens, set values -- including meta -- on `SuppliedState`, and dispatch store messages.
+The handler can read tokens, set values -- including meta -- on `SuppliedState`, and dispatch store
+messages.
 
 ### useEffect
 
@@ -260,7 +300,8 @@ interface ReactiveEffectHandle {
 function useEffect(store: Store, effect: ReactiveEffect): ReactiveEffectHandle
 ```
 
-`init` runs once when the effect is registered. `run` fires reactively when any token read inside it changes. Returns a handle you can `unsubscribe()` to stop the effect.
+`init` runs once when the effect is registered. `run` fires reactively when any token read inside it
+changes. Returns a handle you can `unsubscribe()` to stop the effect.
 
 ## Persistence pattern (localStorage)
 
@@ -268,31 +309,31 @@ function useEffect(store: Store, effect: ReactiveEffect): ReactiveEffectHandle
 const counter = container({
   initialValue: 0,
   update: (msg: "increment", current) =>
-    msg === "increment" ? { value: current + 1 } : { value: current }
+    msg === "increment" ? { value: current + 1 } : { value: current },
 })
 
 const store = createStore({
   init: async ({ supply }) => {
     supply(counter, Number(localStorage.getItem("counter") ?? 0))
-  }
+  },
 })
 
 useEffect(store, {
-  run: (get) => localStorage.setItem("counter", String(get(counter)))
+  run: (get) => localStorage.setItem("counter", String(get(counter))),
 })
 ```
 
 ## When to reach for what
 
-| Need | Use |
-|------|-----|
-| Mutable app input | `container` |
-| Read-only value derived from others | `derived` |
-| External data loaded into the store | `supplied` + `init` or `command` |
-| Track pending/error status of async ops | `meta(container)` / `meta(supplied)` |
-| Persist a container on every write | `useContainerHooks` with `onWrite` |
-| Trigger external calls from state changes | `command` with `trigger`, or `useEffect` |
-| Side effect (log, persist, notify) reactive to state | `useEffect` |
-| Dispatch many messages as one update | `batch` |
-| Stop a rebuilt-but-equivalent `derived` value from publishing | `reconciler` (see `reconcilers.md`) |
-| Keep `subviews` from rebuilding rows that did not change | `reconcileArray({ key })` |
+| Need                                                          | Use                                      |
+| ------------------------------------------------------------- | ---------------------------------------- |
+| Mutable app input                                             | `container`                              |
+| Read-only value derived from others                           | `derived`                                |
+| External data loaded into the store                           | `supplied` + `init` or `command`         |
+| Track pending/error status of async ops                       | `meta(container)` / `meta(supplied)`     |
+| Persist a container on every write                            | `useContainerHooks` with `onWrite`       |
+| Trigger external calls from state changes                     | `command` with `trigger`, or `useEffect` |
+| Side effect (log, persist, notify) reactive to state          | `useEffect`                              |
+| Dispatch many messages as one update                          | `batch`                                  |
+| Stop a rebuilt-but-equivalent `derived` value from publishing | `reconciler` (see `reconcilers.md`)      |
+| Keep `subviews` from rebuilding rows that did not change      | `reconcileArray({ key })`                |

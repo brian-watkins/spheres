@@ -1,23 +1,22 @@
-import { behavior, effect, example, fact, step } from "best-behavior";
-import { testCirclesApp } from "./helpers/testApp.js";
-import { expect, resolvesTo } from "great-expectations";
-import { testCircle } from "./helpers/fakeCircle.js";
+import { behavior, effect, example, fact, step } from "best-behavior"
+import { testCirclesApp } from "./helpers/testApp.js"
+import { expect, resolvesTo } from "great-expectations"
+import { testCircle } from "./helpers/fakeCircle.js"
 
 export default behavior("redo", [
-
   example(testCirclesApp)
     .description("before any undo")
     .script({
       suppose: [
         fact("the app is rendered", async (context) => {
           await context.renderAppWithCircles([])
-        })
+        }),
       ],
       observe: [
         effect("the redo button is disabled", async (context) => {
           await expect(context.display.redoButton.isDisabled(), resolvesTo(true))
-        })
-      ]
+        }),
+      ],
     }),
 
   example(testCirclesApp)
@@ -26,7 +25,7 @@ export default behavior("redo", [
       suppose: [
         fact("the app is rendered", async (context) => {
           await context.renderAppWithCircles([])
-        })
+        }),
       ],
       perform: [
         step("create some circles", async (context) => {
@@ -37,7 +36,7 @@ export default behavior("redo", [
         step("undo two of the circles", async (context) => {
           await context.display.undoButton.click()
           await context.display.undoButton.click()
-        })
+        }),
       ],
       observe: [
         effect("there is only the first circle", async (context) => {
@@ -46,14 +45,15 @@ export default behavior("redo", [
         }),
         effect("the redo button is enabled", async (context) => {
           await expect(context.display.redoButton.isDisabled(), resolvesTo(false))
-        })
-      ]
-    }).andThen({
+        }),
+      ],
+    })
+    .andThen({
       perform: [
         step("redo the creation of the two circles", async (context) => {
           await context.display.redoButton.click()
           await context.display.redoButton.click()
-        })
+        }),
       ],
       observe: [
         effect("all three circles exist", async (context) => {
@@ -64,8 +64,8 @@ export default behavior("redo", [
         }),
         effect("the redo button is disabled", async (context) => {
           await expect(context.display.redoButton.isDisabled(), resolvesTo(true))
-        })
-      ]
+        }),
+      ],
     }),
 
   example(testCirclesApp)
@@ -73,10 +73,8 @@ export default behavior("redo", [
     .script({
       suppose: [
         fact("the app is rendered with a circle", async (context) => {
-          await context.renderAppWithCircles([
-            testCircle(280, 190)
-          ])
-        })
+          await context.renderAppWithCircles([testCircle(280, 190)])
+        }),
       ],
       perform: [
         step("adjust the radius to 25", async (context) => {
@@ -85,14 +83,16 @@ export default behavior("redo", [
         step("adjust the radius to 45", async (context) => {
           await context.display.circleCenteredAt(280, 190).adjustRadiusTo(45)
         }),
-      ]
-    }).andThen({
+      ],
+    })
+    .andThen({
       observe: [
         effect("the circle has radius 45", async (context) => {
           await expect(context.display.circleCenteredAt(280, 190).radius, resolvesTo(45))
-        })
-      ]
-    }).andThen({
+        }),
+      ],
+    })
+    .andThen({
       perform: [
         step("undo twice", async (context) => {
           await context.display.undoButton.click()
@@ -101,13 +101,12 @@ export default behavior("redo", [
         step("redo twice", async (context) => {
           await context.display.redoButton.click()
           await context.display.redoButton.click()
-        })
+        }),
       ],
       observe: [
         effect("the circle has radius 45", async (context) => {
           await expect(context.display.circleCenteredAt(280, 190).radius, resolvesTo(45))
-        })
-      ]
-    })
-
+        }),
+      ],
+    }),
 ])

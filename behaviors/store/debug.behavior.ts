@@ -1,7 +1,7 @@
-import { Container, DerivedState, container, derived, meta } from "@store/index.js";
-import { behavior, effect, example, fact } from "best-behavior";
-import { expect, is } from "great-expectations";
-import { testStoreContext } from "./helpers/testStore.js";
+import { Container, DerivedState, container, derived, meta } from "@store/index.js"
+import { behavior, effect, example, fact } from "best-behavior"
+import { expect, is } from "great-expectations"
+import { testStoreContext } from "./helpers/testStore.js"
 
 interface ContainerTokenContext {
   stringState: Container<string>
@@ -20,16 +20,16 @@ export default behavior("debug name", [
           context.setTokens({
             stringState: container({
               initialValue: "hello",
-              name: "my-container"
-            })
+              name: "my-container",
+            }),
           })
-        })
+        }),
       ],
       observe: [
         effect("the state token's name is printed", (context) => {
           expect(context.tokens.stringState.toString(), is("my-container"))
-        })
-      ]
+        }),
+      ],
     }),
   example(testStoreContext<ContainerTokenContext>())
     .description("no debug name is provided for a container")
@@ -37,15 +37,15 @@ export default behavior("debug name", [
       suppose: [
         fact("there is a container with no debug name", (context) => {
           context.setTokens({
-            stringState: container({ initialValue: "yo yo!" })
+            stringState: container({ initialValue: "yo yo!" }),
           })
-        })
+        }),
       ],
       observe: [
         effect("the default token name is printed", (context) => {
           expect(context.tokens.stringState.toString(), is("Container"))
-        })
-      ]
+        }),
+      ],
     }),
   example(testStoreContext<DerivedTokenContext>())
     .description("value with debug name")
@@ -55,16 +55,16 @@ export default behavior("debug name", [
           context.setTokens({
             stringState: derived({
               query: () => "blah",
-              name: "funny-value"
-            })
+              name: "funny-value",
+            }),
           })
-        })
+        }),
       ],
       observe: [
         effect("the state token's name is printed", (context) => {
           expect(context.tokens.stringState.toString(), is("funny-value"))
-        })
-      ]
+        }),
+      ],
     }),
   example(testStoreContext<DerivedTokenContext>())
     .description("no debug name is provided for a value")
@@ -72,15 +72,15 @@ export default behavior("debug name", [
       suppose: [
         fact("there is a value with no debug name", (context) => {
           context.setTokens({
-            stringState: derived({ query: () => "blah" })
+            stringState: derived({ query: () => "blah" }),
           })
-        })
+        }),
       ],
       observe: [
         effect("the state token's name is printed", (context) => {
           expect(context.tokens.stringState.toString(), is("DerivedState"))
-        })
-      ]
+        }),
+      ],
     }),
   example(testStoreContext<ContainerTokenContext>())
     .description("the meta token's name")
@@ -90,15 +90,15 @@ export default behavior("debug name", [
           context.setTokens({
             stringState: container({
               initialValue: "hello",
-              name: "super-state"
-            })
+              name: "super-state",
+            }),
           })
-        })
+        }),
       ],
       observe: [
         effect("the meta state token's name is printed", (context) => {
           expect(meta(context.tokens.stringState).toString(), is("meta[super-state]"))
-        })
-      ]
-    })
+        }),
+      ],
+    }),
 ])

@@ -4,7 +4,9 @@ export type FieldReconcilers<T> = {
   [K in keyof T]?: Reconciler<T[K]>
 }
 
-export function reconcileObject<T extends object>(fields: NoInfer<FieldReconcilers<T>> = {}): Reconciler<T> {
+export function reconcileObject<T extends object>(
+  fields: NoInfer<FieldReconcilers<T>> = {},
+): Reconciler<T> {
   return (current, next) => {
     if (Object.is(current, next)) {
       return current
@@ -18,9 +20,8 @@ export function reconcileObject<T extends object>(fields: NoInfer<FieldReconcile
 
     for (const key of nextKeys) {
       const fieldReconciler = fields[key]
-      const value = fieldReconciler === undefined ?
-        next[key] :
-        fieldReconciler(current[key], next[key])
+      const value =
+        fieldReconciler === undefined ? next[key] : fieldReconciler(current[key], next[key])
 
       reconciled[key] = value
 

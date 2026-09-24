@@ -22,5 +22,5 @@ export const booleanAttributes = [
   "readonly",
   "required",
   "reversed",
-  "selected"
+  "selected",
 ]

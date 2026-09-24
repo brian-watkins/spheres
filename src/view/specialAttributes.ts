@@ -1,6 +1,6 @@
-import { Stateful, StoreMessage } from "../store/index.js";
-import { ElementIdentifier } from "./element.js";
-import { AriaAttribute } from "./elementData.js";
+import { Stateful, StoreMessage } from "../store/index.js"
+import { ElementIdentifier } from "./element.js"
+import { AriaAttribute } from "./elementData.js"
 
 export interface SpecialElementAttributes<El extends Element = Element> {
   elementIdentifier(id: ElementIdentifier<El>): this
@@ -8,7 +8,10 @@ export interface SpecialElementAttributes<El extends Element = Element> {
   dataAttribute(name: string, value?: string | Stateful<string | undefined>): this
   innerHTML(html: string | Stateful<string | undefined>): this
   aria(name: AriaAttribute, value: string | Stateful<string | undefined>): this
-  on<E extends keyof HTMLElementEventMap | string>(event: E, handler: (evt: E extends keyof HTMLElementEventMap ? HTMLElementEventMap[E] : Event) => StoreMessage<any>): this
+  on<E extends keyof HTMLElementEventMap | string>(
+    event: E,
+    handler: (
+      evt: E extends keyof HTMLElementEventMap ? HTMLElementEventMap[E] : Event,
+    ) => StoreMessage<any>,
+  ): this
 }
-
-

@@ -1,6 +1,11 @@
 import { State, StateManifest, Store } from "../store/index.js"
 import { HTMLView } from "../view/index.js"
-import { buildStreamRenderer, InternalZoneOptions, StreamRendererOptions, Zone } from "./render/streamRenderer.js"
+import {
+  buildStreamRenderer,
+  InternalZoneOptions,
+  StreamRendererOptions,
+  Zone,
+} from "./render/streamRenderer.js"
 import { buildStringRenderer, StringRendererOptions } from "./render/stringRenderer.js"
 export type { SpheresPluginOptions } from "./plugin/index.js"
 export { spheres } from "./plugin/index.js"
@@ -15,7 +20,10 @@ export interface RendererOptions {
 }
 
 export function createStringRenderer(view: HTMLView, options?: RendererOptions): HTMLStringRenderer
-export function createStringRenderer(view: HTMLView, options: StringRendererOptions = {}): HTMLStringRenderer {
+export function createStringRenderer(
+  view: HTMLView,
+  options: StringRendererOptions = {},
+): HTMLStringRenderer {
   return buildStringRenderer(view, options)
 }
 
@@ -26,7 +34,10 @@ export interface StreamOptions {
 }
 
 export function createStreamRenderer(view: HTMLView, options?: StreamOptions): HTMLStreamRenderer
-export function createStreamRenderer(view: HTMLView, options: StreamRendererOptions = {}): HTMLStreamRenderer {
+export function createStreamRenderer(
+  view: HTMLView,
+  options: StreamRendererOptions = {},
+): HTMLStreamRenderer {
   return buildStreamRenderer(view, options)
 }
 

@@ -1,34 +1,24 @@
 import { HTMLBuilder } from "@view/index.js"
 
 export default function (root: HTMLBuilder) {
-  root.div(div => {
-    div.config
-      .id("funny-id")
+  root.div((div) => {
+    div.config.id("funny-id")
     div.children
-      .p(p => {
-        p.config
-          .class("super-class")
-          .dataAttribute("blah")
-        p.children
-          .textNode("This is text")
+      .p((p) => {
+        p.config.class("super-class").dataAttribute("blah")
+        p.children.textNode("This is text")
       })
-      .h3(h3 => {
-        h3.config
-          .dataAttribute("title")
+      .h3((h3) => {
+        h3.config.dataAttribute("title")
       })
-      .div(el => {
-        el.config
-          .attribute("silly-attribute", "joke")
-        el.children
-          .textNode("This is silly!")
+      .div((el) => {
+        el.config.attribute("silly-attribute", "joke")
+        el.children.textNode("This is silly!")
       })
-      .input(el => {
-        el.config
-          .type("checkbox")
-          .checked(true)
-          .disabled(false)
+      .input((el) => {
+        el.config.type("checkbox").checked(true).disabled(false)
       })
-      .button(el => {
+      .button((el) => {
         el.config.aria("label", "submit")
       })
   })

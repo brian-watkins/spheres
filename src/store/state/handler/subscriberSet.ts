@@ -3,7 +3,7 @@ import { Subscribable, StateListenerVersion, Subscriber, EffectList } from "../.
 export class SubscriberSet implements Subscribable {
   private subscribers: Map<Subscriber, StateListenerVersion> = new Map()
 
-  constructor() { }
+  constructor() {}
 
   addSubscriber(subscriber: Subscriber): void {
     this.subscribers.set(subscriber, subscriber.getVersion())

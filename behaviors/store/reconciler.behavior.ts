@@ -1,10 +1,20 @@
-import { behavior, effect, example, fact, step } from "best-behavior";
-import { testStoreContext } from "./helpers/testStore";
-import { command, Command, container, Container, derived, exec, supplied, SuppliedState, update } from "@store/index";
-import { expect, identicalTo, is } from "great-expectations";
+import { behavior, effect, example, fact, step } from "best-behavior"
+import { testStoreContext } from "./helpers/testStore"
+import {
+  command,
+  Command,
+  container,
+  Container,
+  derived,
+  exec,
+  supplied,
+  SuppliedState,
+  update,
+} from "@store/index"
+import { expect, identicalTo, is } from "great-expectations"
 
 interface MagicObject {
-  name: string,
+  name: string
   count: number
 }
 
@@ -18,7 +28,6 @@ interface SuppliedReconcilerContext {
 }
 
 export default behavior("reconciler", [
-
   example(testStoreContext<ReconcilerContext>())
     .description("derived state with a reconciler")
     .script({
@@ -28,14 +37,14 @@ export default behavior("reconciler", [
             initialValue: [
               { name: "wand", count: 22 },
               { name: "cape", count: 14 },
-              { name: "rabbit", count: 2 }
-            ]
+              { name: "rabbit", count: 2 },
+            ],
           })
           context.setTokens({ root })
         }),
         fact("there is derived state with a reconciler that filters the list", (context) => {
           const plentiful = derived({
-            query: (get) => get(context.tokens.root).filter(item => item.count > 5),
+            query: (get) => get(context.tokens.root).filter((item) => item.count > 5),
             reconciler: (current, next) => {
               // Naive reconciler for testing only
               let isDifferent = false
@@ -46,50 +55,68 @@ export default behavior("reconciler", [
                 }
               }
               return isDifferent ? next : current
-            }
+            },
           })
           context.subscribeTo(plentiful, "filter-sub")
-        })
+        }),
       ],
       perform: [
         step("an item excluded by the filter is updated", (context) => {
-          context.store.dispatch(update(context.tokens.root, (val) => {
-            return val.map(item => item.name === "rabbit" ? { ...item, count: item.count + 1 } : item)
-          }))
-        })
+          context.store.dispatch(
+            update(context.tokens.root, (val) => {
+              return val.map((item) =>
+                item.name === "rabbit" ? { ...item, count: item.count + 1 } : item,
+              )
+            }),
+          )
+        }),
       ],
       observe: [
-        effect("the subscriber does not get an update, since the filtered items are unchanged", (context) => {
-          expect(context.valuesForSubscriber("filter-sub"), is([
-            [
-              { name: "wand", count: 22 },
-              { name: "cape", count: 14 }
-            ]
-          ]))
-        })
-      ]
-    }).andThen({
+        effect(
+          "the subscriber does not get an update, since the filtered items are unchanged",
+          (context) => {
+            expect(
+              context.valuesForSubscriber("filter-sub"),
+              is([
+                [
+                  { name: "wand", count: 22 },
+                  { name: "cape", count: 14 },
+                ],
+              ]),
+            )
+          },
+        ),
+      ],
+    })
+    .andThen({
       perform: [
         step("an item included in the filter is updated", (context) => {
-          context.store.dispatch(update(context.tokens.root, (val) => {
-            return val.map(item => item.name === "wand" ? { ...item, count: item.count + 1 } : item)
-          }))
-        })
+          context.store.dispatch(
+            update(context.tokens.root, (val) => {
+              return val.map((item) =>
+                item.name === "wand" ? { ...item, count: item.count + 1 } : item,
+              )
+            }),
+          )
+        }),
       ],
       observe: [
         effect("the subscriber gets an update with the new filtered items", (context) => {
-          expect(context.valuesForSubscriber("filter-sub"), is([
-            [
-              { name: "wand", count: 22 },
-              { name: "cape", count: 14 }
-            ],
-            [
-              { name: "wand", count: 23 },
-              { name: "cape", count: 14 }
-            ]
-          ]))
-        })
-      ]
+          expect(
+            context.valuesForSubscriber("filter-sub"),
+            is([
+              [
+                { name: "wand", count: 22 },
+                { name: "cape", count: 14 },
+              ],
+              [
+                { name: "wand", count: 23 },
+                { name: "cape", count: 14 },
+              ],
+            ]),
+          )
+        }),
+      ],
     }),
 
   example(testStoreContext<ReconcilerContext>())
@@ -101,53 +128,73 @@ export default behavior("reconciler", [
             initialValue: [
               { name: "wand", count: 22 },
               { name: "cape", count: 14 },
-              { name: "rabbit", count: 2 }
-            ]
+              { name: "rabbit", count: 2 },
+            ],
           })
           context.setTokens({ root })
         }),
-        fact("there is derived state that maps to fresh objects with a reconciler that keeps unchanged items", (context) => {
-          const plentiful = derived({
-            query: (get) => get(context.tokens.root)
-              .filter(item => item.count > 5)
-              .map(item => ({ ...item })),
-            reconciler: (current, next) => {
-              // Naive reconciler for testing only
-              const isSameItem = (a: MagicObject, b: MagicObject) => a !== undefined && a.name === b.name && a.count === b.count
-              if (current.length === next.length && current.every((item, i) => isSameItem(item, next[i]))) {
-                return current
-              }
-              return next.map((nextItem, i) => isSameItem(current[i], nextItem) ? current[i] : nextItem)
-            }
-          })
-          context.subscribeTo(plentiful, "identity-sub")
-        })
+        fact(
+          "there is derived state that maps to fresh objects with a reconciler that keeps unchanged items",
+          (context) => {
+            const plentiful = derived({
+              query: (get) =>
+                get(context.tokens.root)
+                  .filter((item) => item.count > 5)
+                  .map((item) => ({ ...item })),
+              reconciler: (current, next) => {
+                // Naive reconciler for testing only
+                const isSameItem = (a: MagicObject, b: MagicObject) =>
+                  a !== undefined && a.name === b.name && a.count === b.count
+                if (
+                  current.length === next.length &&
+                  current.every((item, i) => isSameItem(item, next[i]))
+                ) {
+                  return current
+                }
+                return next.map((nextItem, i) =>
+                  isSameItem(current[i], nextItem) ? current[i] : nextItem,
+                )
+              },
+            })
+            context.subscribeTo(plentiful, "identity-sub")
+          },
+        ),
       ],
       perform: [
         step("an item included in the filter is updated", (context) => {
-          context.store.dispatch(update(context.tokens.root, (val) => {
-            return val.map(item => item.name === "wand" ? { ...item, count: item.count + 1 } : item)
-          }))
-        })
+          context.store.dispatch(
+            update(context.tokens.root, (val) => {
+              return val.map((item) =>
+                item.name === "wand" ? { ...item, count: item.count + 1 } : item,
+              )
+            }),
+          )
+        }),
       ],
       observe: [
         effect("the subscriber gets an update with the new filtered items", (context) => {
-          expect(context.valuesForSubscriber("identity-sub"), is([
-            [
-              { name: "wand", count: 22 },
-              { name: "cape", count: 14 }
-            ],
-            [
-              { name: "wand", count: 23 },
-              { name: "cape", count: 14 }
-            ]
-          ]))
+          expect(
+            context.valuesForSubscriber("identity-sub"),
+            is([
+              [
+                { name: "wand", count: 22 },
+                { name: "cape", count: 14 },
+              ],
+              [
+                { name: "wand", count: 23 },
+                { name: "cape", count: 14 },
+              ],
+            ]),
+          )
         }),
-        effect("the unchanged item keeps its identity across updates, since the reconciled value is stored", (context) => {
-          const [first, second] = context.valuesForSubscriber("identity-sub")
-          expect(second[1], is(identicalTo(first[1])))
-        })
-      ]
+        effect(
+          "the unchanged item keeps its identity across updates, since the reconciled value is stored",
+          (context) => {
+            const [first, second] = context.valuesForSubscriber("identity-sub")
+            expect(second[1], is(identicalTo(first[1])))
+          },
+        ),
+      ],
     }),
 
   example(testStoreContext<ReconcilerContext>())
@@ -159,7 +206,7 @@ export default behavior("reconciler", [
             initialValue: [
               { name: "wand", count: 22 },
               { name: "cape", count: 14 },
-              { name: "rabbit", count: 2 }
+              { name: "rabbit", count: 2 },
             ],
             reconciler(current, next) {
               // Naive reconciler for testing only
@@ -171,14 +218,14 @@ export default behavior("reconciler", [
         }),
         fact("there is a subscriber to the container", (context) => {
           context.subscribeTo(context.tokens.root, "sub-one")
-        })
+        }),
       ],
       perform: [
         step("the container is updated with a value that is identical to the first", (context) => {
           context.writeTo(context.tokens.root, [
             { name: "wand", count: 22 },
             { name: "cape", count: 14 },
-            { name: "rabbit", count: 2 }
+            { name: "rabbit", count: 2 },
           ])
         }),
         step("the container is updated with a value is different", (context) => {
@@ -186,27 +233,30 @@ export default behavior("reconciler", [
             { name: "wand", count: 22 },
             { name: "cape", count: 14 },
             { name: "rabbit", count: 2 },
-            { name: "hat", count: 1 }
+            { name: "hat", count: 1 },
           ])
-        })
+        }),
       ],
       observe: [
         effect("the subscriber only receives two updates", (context) => {
-          expect(context.valuesForSubscriber("sub-one"), is([
-            [
-              { name: "wand", count: 22 },
-              { name: "cape", count: 14 },
-              { name: "rabbit", count: 2 }
-            ],
-            [
-              { name: "wand", count: 22 },
-              { name: "cape", count: 14 },
-              { name: "rabbit", count: 2 },
-              { name: "hat", count: 1 }
-            ]
-          ]))
+          expect(
+            context.valuesForSubscriber("sub-one"),
+            is([
+              [
+                { name: "wand", count: 22 },
+                { name: "cape", count: 14 },
+                { name: "rabbit", count: 2 },
+              ],
+              [
+                { name: "wand", count: 22 },
+                { name: "cape", count: 14 },
+                { name: "rabbit", count: 2 },
+                { name: "hat", count: 1 },
+              ],
+            ]),
+          )
         }),
-      ]
+      ],
     }),
 
   example(testStoreContext<ReconcilerContext>())
@@ -218,51 +268,70 @@ export default behavior("reconciler", [
             initialValue: [
               { name: "wand", count: 22 },
               { name: "cape", count: 14 },
-              { name: "rabbit", count: 2 }
+              { name: "rabbit", count: 2 },
             ],
             reconciler(current, next) {
               // Naive reconciler for testing only
-              const isSameItem = (a: MagicObject, b: MagicObject) => a !== undefined && a.name === b.name && a.count === b.count
-              if (current.length === next.length && current.every((item, i) => isSameItem(item, next[i]))) {
+              const isSameItem = (a: MagicObject, b: MagicObject) =>
+                a !== undefined && a.name === b.name && a.count === b.count
+              if (
+                current.length === next.length &&
+                current.every((item, i) => isSameItem(item, next[i]))
+              ) {
                 return current
               }
-              return next.map((nextItem, i) => isSameItem(current[i], nextItem) ? current[i] : nextItem)
+              return next.map((nextItem, i) =>
+                isSameItem(current[i], nextItem) ? current[i] : nextItem,
+              )
             },
           })
           context.setTokens({ root })
         }),
         fact("there is a subscriber to the container", (context) => {
           context.subscribeTo(context.tokens.root, "identity-container-sub")
-        })
+        }),
       ],
       perform: [
-        step("the container is updated with fresh objects where only one item changes", (context) => {
-          context.store.dispatch(update(context.tokens.root, (val) => {
-            return val.map(item => item.name === "wand" ? { ...item, count: item.count + 1 } : { ...item })
-          }))
-        })
+        step(
+          "the container is updated with fresh objects where only one item changes",
+          (context) => {
+            context.store.dispatch(
+              update(context.tokens.root, (val) => {
+                return val.map((item) =>
+                  item.name === "wand" ? { ...item, count: item.count + 1 } : { ...item },
+                )
+              }),
+            )
+          },
+        ),
       ],
       observe: [
         effect("the subscriber gets an update with the new items", (context) => {
-          expect(context.valuesForSubscriber("identity-container-sub"), is([
-            [
-              { name: "wand", count: 22 },
-              { name: "cape", count: 14 },
-              { name: "rabbit", count: 2 }
-            ],
-            [
-              { name: "wand", count: 23 },
-              { name: "cape", count: 14 },
-              { name: "rabbit", count: 2 }
-            ]
-          ]))
+          expect(
+            context.valuesForSubscriber("identity-container-sub"),
+            is([
+              [
+                { name: "wand", count: 22 },
+                { name: "cape", count: 14 },
+                { name: "rabbit", count: 2 },
+              ],
+              [
+                { name: "wand", count: 23 },
+                { name: "cape", count: 14 },
+                { name: "rabbit", count: 2 },
+              ],
+            ]),
+          )
         }),
-        effect("the unchanged items keep their identity across updates, since the reconciled value is stored", (context) => {
-          const [first, second] = context.valuesForSubscriber("identity-container-sub")
-          expect(second[1], is(identicalTo(first[1])))
-          expect(second[2], is(identicalTo(first[2])))
-        })
-      ]
+        effect(
+          "the unchanged items keep their identity across updates, since the reconciled value is stored",
+          (context) => {
+            const [first, second] = context.valuesForSubscriber("identity-container-sub")
+            expect(second[1], is(identicalTo(first[1])))
+            expect(second[2], is(identicalTo(first[2])))
+          },
+        ),
+      ],
     }),
 
   example(testStoreContext<SuppliedReconcilerContext>())
@@ -274,20 +343,26 @@ export default behavior("reconciler", [
             initialValue: [
               { name: "wand", count: 22 },
               { name: "cape", count: 14 },
-              { name: "rabbit", count: 2 }
+              { name: "rabbit", count: 2 },
             ],
             reconciler: (current, next) => {
               // Naive reconciler for testing only
-              const isSameItem = (a: MagicObject, b: MagicObject) => a !== undefined && a.name === b.name && a.count === b.count
-              if (current.length === next.length && current.every((item, i) => isSameItem(item, next[i]))) {
+              const isSameItem = (a: MagicObject, b: MagicObject) =>
+                a !== undefined && a.name === b.name && a.count === b.count
+              if (
+                current.length === next.length &&
+                current.every((item, i) => isSameItem(item, next[i]))
+              ) {
                 return current
               }
-              return next.map((nextItem, i) => isSameItem(current[i], nextItem) ? current[i] : nextItem)
-            }
+              return next.map((nextItem, i) =>
+                isSameItem(current[i], nextItem) ? current[i] : nextItem,
+              )
+            },
           })
           context.setTokens({
             items,
-            supplyCommand: command<Array<MagicObject>>()
+            supplyCommand: command<Array<MagicObject>>(),
           })
         }),
         fact("there is a command manager that writes to the supplied state", (context) => {
@@ -297,59 +372,72 @@ export default behavior("reconciler", [
         }),
         fact("there is a subscriber to the supplied state", (context) => {
           context.subscribeTo(context.tokens.items, "identity-supplied-sub")
-        })
+        }),
       ],
       perform: [
         step("the command supplies fresh objects that are deep equal to the current", (context) => {
-          context.store.dispatch(exec(context.tokens.supplyCommand, [
-            { name: "wand", count: 22 },
-            { name: "cape", count: 14 },
-            { name: "rabbit", count: 2 }
-          ]))
-        })
+          context.store.dispatch(
+            exec(context.tokens.supplyCommand, [
+              { name: "wand", count: 22 },
+              { name: "cape", count: 14 },
+              { name: "rabbit", count: 2 },
+            ]),
+          )
+        }),
       ],
       observe: [
         effect("the subscriber does not get a new value", (context) => {
-          expect(context.valuesForSubscriber("identity-supplied-sub"), is([
-            [
-              { name: "wand", count: 22 },
-              { name: "cape", count: 14 },
-              { name: "rabbit", count: 2 }
-            ],
-          ]))
-        })
-      ]
-    }).andThen({
+          expect(
+            context.valuesForSubscriber("identity-supplied-sub"),
+            is([
+              [
+                { name: "wand", count: 22 },
+                { name: "cape", count: 14 },
+                { name: "rabbit", count: 2 },
+              ],
+            ]),
+          )
+        }),
+      ],
+    })
+    .andThen({
       perform: [
         step("the command supplies fresh objects where only one item changes", (context) => {
-          context.store.dispatch(exec(context.tokens.supplyCommand, [
-            { name: "wand", count: 23 },
-            { name: "cape", count: 14 },
-            { name: "rabbit", count: 2 }
-          ]))
-        })
+          context.store.dispatch(
+            exec(context.tokens.supplyCommand, [
+              { name: "wand", count: 23 },
+              { name: "cape", count: 14 },
+              { name: "rabbit", count: 2 },
+            ]),
+          )
+        }),
       ],
       observe: [
         effect("the subscriber gets an update with the new items", (context) => {
-          expect(context.valuesForSubscriber("identity-supplied-sub"), is([
-            [
-              { name: "wand", count: 22 },
-              { name: "cape", count: 14 },
-              { name: "rabbit", count: 2 }
-            ],
-            [
-              { name: "wand", count: 23 },
-              { name: "cape", count: 14 },
-              { name: "rabbit", count: 2 }
-            ]
-          ]))
+          expect(
+            context.valuesForSubscriber("identity-supplied-sub"),
+            is([
+              [
+                { name: "wand", count: 22 },
+                { name: "cape", count: 14 },
+                { name: "rabbit", count: 2 },
+              ],
+              [
+                { name: "wand", count: 23 },
+                { name: "cape", count: 14 },
+                { name: "rabbit", count: 2 },
+              ],
+            ]),
+          )
         }),
-        effect("the unchanged items keep their identity across updates, since the reconciled value is stored", (context) => {
-          const [first, second] = context.valuesForSubscriber("identity-supplied-sub")
-          expect(second[1], is(identicalTo(first[1])))
-          expect(second[2], is(identicalTo(first[2])))
-        })
-      ]
-    })
-
+        effect(
+          "the unchanged items keep their identity across updates, since the reconciled value is stored",
+          (context) => {
+            const [first, second] = context.valuesForSubscriber("identity-supplied-sub")
+            expect(second[1], is(identicalTo(first[1])))
+            expect(second[2], is(identicalTo(first[2])))
+          },
+        ),
+      ],
+    }),
 ])

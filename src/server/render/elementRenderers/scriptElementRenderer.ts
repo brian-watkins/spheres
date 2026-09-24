@@ -1,10 +1,25 @@
-import { Stateful } from "../../../store/index.js";
-import { runQuery } from "../../../store/tokenRegistry.js";
-import { BasicElementConfigSupport, ElementConfig, ElementConfigSupport } from "../../../view/elementSupport.js";
-import { addTemplate, emptyTemplate, HTMLTemplate, stringForTemplate, templateFromStateful } from "../template.js";
-import { getExtraResources, getTransformedResource, shouldTransformImport, ViteContext } from "../viteContext.js";
-import { templateForResource } from "./activationElements.js";
-import { BaseElementRenderer } from "./elementRenderer.js";
+import { Stateful } from "../../../store/index.js"
+import { runQuery } from "../../../store/tokenRegistry.js"
+import {
+  BasicElementConfigSupport,
+  ElementConfig,
+  ElementConfigSupport,
+} from "../../../view/elementSupport.js"
+import {
+  addTemplate,
+  emptyTemplate,
+  HTMLTemplate,
+  stringForTemplate,
+  templateFromStateful,
+} from "../template.js"
+import {
+  getExtraResources,
+  getTransformedResource,
+  shouldTransformImport,
+  ViteContext,
+} from "../viteContext.js"
+import { templateForResource } from "./activationElements.js"
+import { BaseElementRenderer } from "./elementRenderer.js"
 
 export class ScriptElementRenderer extends BaseElementRenderer {
   private configSupport: ScriptConfigSupport
@@ -48,7 +63,10 @@ export class ScriptElementRenderer extends BaseElementRenderer {
 class ScriptConfigSupport implements ElementConfigSupport {
   scriptSrc: string | Stateful<string> | undefined = undefined
 
-  constructor(private viteContext: ViteContext | undefined, private next: ElementConfigSupport) { }
+  constructor(
+    private viteContext: ViteContext | undefined,
+    private next: ElementConfigSupport,
+  ) {}
 
   configure(config: ElementConfig, name: string, args: Array<any>): void {
     if (name === "src" && shouldTransformImport(this.viteContext)) {

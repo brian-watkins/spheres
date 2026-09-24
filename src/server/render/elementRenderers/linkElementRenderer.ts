@@ -1,7 +1,7 @@
-import { Stateful } from "../../../store/index.js";
-import { ElementConfig, ElementConfigSupport } from "../../../view/elementSupport.js";
-import { getTransformedResource, shouldTransformImport, ViteContext } from "../viteContext.js";
-import { BaseElementRenderer } from "./elementRenderer.js";
+import { Stateful } from "../../../store/index.js"
+import { ElementConfig, ElementConfigSupport } from "../../../view/elementSupport.js"
+import { getTransformedResource, shouldTransformImport, ViteContext } from "../viteContext.js"
+import { BaseElementRenderer } from "./elementRenderer.js"
 
 export class LinkElementRenderer extends BaseElementRenderer {
   private configSupport: LinkConfigSupport
@@ -19,7 +19,7 @@ export class LinkElementRenderer extends BaseElementRenderer {
 class LinkConfigSupport implements ElementConfigSupport {
   scriptSrc: string | Stateful<string> | undefined = undefined
 
-  constructor(private viteContext: ViteContext | undefined) { }
+  constructor(private viteContext: ViteContext | undefined) {}
 
   configure(config: ElementConfig, name: string, args: Array<any>): void {
     if (name === "href" && shouldTransformImport(this.viteContext)) {

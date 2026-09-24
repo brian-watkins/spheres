@@ -1,6 +1,6 @@
-import { Context } from "best-behavior";
-import { DataRecord } from "../../../src/crud/state.js";
-import { DisplayElement, TestApp, TestDisplay, testAppContext } from "../../helpers/testApp.js";
+import { Context } from "best-behavior"
+import { DataRecord } from "../../../src/crud/state.js"
+import { DisplayElement, TestApp, TestDisplay, testAppContext } from "../../helpers/testApp.js"
 
 export const testCrudApp: Context<TestCrudApp> = {
   init: async () => {
@@ -10,7 +10,7 @@ export const testCrudApp: Context<TestCrudApp> = {
 }
 
 export class TestCrudApp {
-  constructor(private testApp: TestApp) { }
+  constructor(private testApp: TestApp) {}
 
   async renderAppWithRecords(records: Array<DataRecord>) {
     await this.testApp.renderApp("crud")
@@ -25,7 +25,7 @@ export class TestCrudApp {
 }
 
 export class CrudDisplay {
-  constructor(private display: TestDisplay) { }
+  constructor(private display: TestDisplay) {}
 
   get firstNameInput(): DisplayElement {
     return this.display.selectElement("input[name='firstName']")

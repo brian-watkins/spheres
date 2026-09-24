@@ -3,7 +3,8 @@ import { StoreMessage } from "../../store/message.js"
 export type StoreEventHandler<T> = (evt: Event) => StoreMessage<T>
 
 export enum DOMEventType {
-  Element, Template
+  Element,
+  Template,
 }
 
 export interface DOMEvent {
@@ -12,7 +13,12 @@ export interface DOMEvent {
 }
 
 export interface EventZone {
-  addEvent(type: DOMEventType, elementId: string, eventType: string, handler: StoreEventHandler<any>): void
+  addEvent(
+    type: DOMEventType,
+    elementId: string,
+    eventType: string,
+    handler: StoreEventHandler<any>,
+  ): void
 }
 
 export interface RenderResult {
@@ -45,5 +51,5 @@ export const EventsToDelegate = new Set([
   "pointerup",
   "touchend",
   "touchmove",
-  "touchstart"
+  "touchstart",
 ])

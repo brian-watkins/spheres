@@ -1,12 +1,20 @@
-import { Collection, collection, container, Container, derived, GetState, update, use } from "@store/index.js";
-import { HTMLBuilder, HTMLView, UseItem } from "@view/index";
-import { behavior, effect, example, fact, step } from "best-behavior";
-import { expect, is, resolvesTo } from "great-expectations";
-import { selectElement, selectElements, selectElementWithText } from "./helpers/displayElement";
-import { RenderApp, renderContext } from "./helpers/renderContext";
+import {
+  Collection,
+  collection,
+  container,
+  Container,
+  derived,
+  GetState,
+  update,
+  use,
+} from "@store/index.js"
+import { HTMLBuilder, HTMLView, UseItem } from "@view/index"
+import { behavior, effect, example, fact, step } from "best-behavior"
+import { expect, is, resolvesTo } from "great-expectations"
+import { selectElement, selectElements, selectElementWithText } from "./helpers/displayElement"
+import { RenderApp, renderContext } from "./helpers/renderContext"
 
 export default behavior("conditional zone", [
-
   basicSelectEmptyAtFirst("client rendered", (context, view) => context.mountView(view)),
   basicSelectEmptyAtFirst("server rendered", (context, view) => context.ssrAndActivate(view)),
 
@@ -19,48 +27,49 @@ export default behavior("conditional zone", [
         }),
         fact("there is a view selector", (context) => {
           function evenView(root: HTMLBuilder) {
-            root.p(el => {
-              el.children.textNode(get => `Counter is even: ${get(context.state)}`)
+            root.p((el) => {
+              el.children.textNode((get) => `Counter is even: ${get(context.state)}`)
             })
           }
 
-          context.mountView(root => {
-            root.div(el => {
-              el.children
-                .subviewMatching(select => select.withConditions()
-                  .when(get => get(context.state) % 2 === 0, evenView)
-                )
+          context.mountView((root) => {
+            root.div((el) => {
+              el.children.subviewMatching((select) =>
+                select.withConditions().when((get) => get(context.state) % 2 === 0, evenView),
+              )
             })
           })
-        })
+        }),
       ],
       observe: [
         effect("the view is visible", async () => {
           await expect(selectElement("p").text(), resolvesTo("Counter is even: 0"))
-        })
-      ]
-    }).andThen({
+        }),
+      ],
+    })
+    .andThen({
       perform: [
         step("update the state so that no view is selected", (context) => {
           context.writeTo(context.state, 3)
-        })
+        }),
       ],
       observe: [
         effect("the view updates to show nothing", async () => {
           await expect(selectElement("p").exists(), resolvesTo(false))
-        })
-      ]
-    }).andThen({
+        }),
+      ],
+    })
+    .andThen({
       perform: [
         step("update the state so that a view is selected", (context) => {
           context.writeTo(context.state, 8)
-        })
+        }),
       ],
       observe: [
         effect("the selected view is rendered with the latest state", async () => {
           await expect(selectElement("p").text(), resolvesTo("Counter is even: 8"))
-        })
-      ]
+        }),
+      ],
     }),
 
   example(renderContext<Container<number>>())
@@ -72,42 +81,44 @@ export default behavior("conditional zone", [
         }),
         fact("there is a view selector", (context) => {
           function evenView(root: HTMLBuilder) {
-            root.p(el => {
-              el.children.textNode(get => `Counter is even: ${get(context.state)}`)
+            root.p((el) => {
+              el.children.textNode((get) => `Counter is even: ${get(context.state)}`)
             })
           }
 
           function defaultView(root: HTMLBuilder) {
-            root.p(el => el.children.textNode("Just show something by default"))
+            root.p((el) => el.children.textNode("Just show something by default"))
           }
 
-          context.mountView(root => {
-            root.div(el => {
-              el.children
-                .subviewMatching(select => select.withConditions()
-                  .when(get => get(context.state) % 2 === 0, evenView)
-                  .when(() => true, defaultView)
-                )
+          context.mountView((root) => {
+            root.div((el) => {
+              el.children.subviewMatching((select) =>
+                select
+                  .withConditions()
+                  .when((get) => get(context.state) % 2 === 0, evenView)
+                  .when(() => true, defaultView),
+              )
             })
           })
-        })
+        }),
       ],
       observe: [
         effect("the first matching view is visible", async () => {
           await expect(selectElement("p").text(), resolvesTo("Counter is even: 0"))
-        })
-      ]
-    }).andThen({
+        }),
+      ],
+    })
+    .andThen({
       perform: [
         step("update the state so that the first view no longer matches", (context) => {
           context.writeTo(context.state, 3)
-        })
+        }),
       ],
       observe: [
         effect("the view updates to show the next matching view", async () => {
           await expect(selectElement("p").text(), resolvesTo("Just show something by default"))
-        })
-      ]
+        }),
+      ],
     }),
 
   example(renderContext<Container<number>>())
@@ -119,42 +130,44 @@ export default behavior("conditional zone", [
         }),
         fact("there is a view selector", (context) => {
           function evenView(root: HTMLBuilder) {
-            root.p(el => {
-              el.children.textNode(get => `Counter is even: ${get(context.state)}`)
+            root.p((el) => {
+              el.children.textNode((get) => `Counter is even: ${get(context.state)}`)
             })
           }
 
           function defaultView(root: HTMLBuilder) {
-            root.p(el => el.children.textNode("Just show something by default"))
+            root.p((el) => el.children.textNode("Just show something by default"))
           }
 
-          context.mountView(root => {
-            root.div(el => {
-              el.children
-                .subviewMatching(select => select.withConditions()
-                  .when(get => get(context.state) % 2 === 0, evenView)
-                  .default(defaultView)
-                )
+          context.mountView((root) => {
+            root.div((el) => {
+              el.children.subviewMatching((select) =>
+                select
+                  .withConditions()
+                  .when((get) => get(context.state) % 2 === 0, evenView)
+                  .default(defaultView),
+              )
             })
           })
-        })
+        }),
       ],
       observe: [
         effect("the first matching view is visible", async () => {
           await expect(selectElement("p").text(), resolvesTo("Counter is even: 0"))
-        })
-      ]
-    }).andThen({
+        }),
+      ],
+    })
+    .andThen({
       perform: [
         step("update the state so that the first view no longer matches", (context) => {
           context.writeTo(context.state, 3)
-        })
+        }),
       ],
       observe: [
         effect("the default view is shown", async () => {
           await expect(selectElement("p").text(), resolvesTo("Just show something by default"))
-        })
-      ]
+        }),
+      ],
     }),
 
   example(renderContext())
@@ -162,21 +175,19 @@ export default behavior("conditional zone", [
     .script({
       suppose: [
         fact("there is a view with data attributes", (context) => {
-          context.mountView(root => {
-            root.main(el => {
-              el.children.subviewMatching(selector => {
-                selector.withConditions().default(root => {
-                  root.div(el => {
-                    el.config
-                      .dataAttribute("blah")
-                      .dataAttribute("name", "cool dude")
+          context.mountView((root) => {
+            root.main((el) => {
+              el.children.subviewMatching((selector) => {
+                selector.withConditions().default((root) => {
+                  root.div((el) => {
+                    el.config.dataAttribute("blah").dataAttribute("name", "cool dude")
                     el.children.textNode("Yo!")
                   })
                 })
               })
             })
           })
-        })
+        }),
       ],
       observe: [
         effect("the data attribute with no value is rendered", async () => {
@@ -184,8 +195,8 @@ export default behavior("conditional zone", [
         }),
         effect("the data attribute with a value is rendered", async () => {
           await expect(selectElement("DIV[data-name='cool dude']").exists(), resolvesTo(true))
-        })
-      ]
+        }),
+      ],
     }),
 
   example(renderContext<Container<boolean>>())
@@ -200,25 +211,29 @@ export default behavior("conditional zone", [
           const bCounter = container({ initialValue: 0 })
 
           function counterView(counter: Container<number>): HTMLView {
-            return root => root.div(el => {
-              el.children
-                .p(el => el.children.textNode(get => `Total: ${get(counter)}`))
-                .button(el => {
-                  el.config
-                    .on("click", () => update(counter, (val) => val + 1))
-                  el.children.textNode("Click me!")
-                })
-            })
+            return (root) =>
+              root.div((el) => {
+                el.children
+                  .p((el) => el.children.textNode((get) => `Total: ${get(counter)}`))
+                  .button((el) => {
+                    el.config.on("click", () => update(counter, (val) => val + 1))
+                    el.children.textNode("Click me!")
+                  })
+              })
           }
 
-          context.mountView(root => {
-            root.main(el => {
+          context.mountView((root) => {
+            root.main((el) => {
               el.children
-                .subviewMatching(select => select.withConditions().when(get => get(context.state), counterView(aCounter)))
-                .subviewMatching(select => select.withConditions().when(get => get(context.state), counterView(bCounter)))
+                .subviewMatching((select) =>
+                  select.withConditions().when((get) => get(context.state), counterView(aCounter)),
+                )
+                .subviewMatching((select) =>
+                  select.withConditions().when((get) => get(context.state), counterView(bCounter)),
+                )
             })
           })
-        })
+        }),
       ],
       perform: [
         step("toggle the view", (context) => {
@@ -232,16 +247,16 @@ export default behavior("conditional zone", [
           await selectElements("button").at(1).click()
           await selectElements("button").at(1).click()
           await selectElements("button").at(1).click()
-        })
+        }),
       ],
       observe: [
         effect("the events work as expected", async () => {
-          await expect(selectElements("p").map(el => el.text()), resolvesTo([
-            "Total: 2",
-            "Total: 3",
-          ]))
-        })
-      ]
+          await expect(
+            selectElements("p").map((el) => el.text()),
+            resolvesTo(["Total: 2", "Total: 3"]),
+          )
+        }),
+      ],
     }),
 
   example(renderContext<Container<boolean>>())
@@ -255,12 +270,12 @@ export default behavior("conditional zone", [
           function counterView(root: HTMLBuilder) {
             const count = container({ initialValue: 0 })
 
-            root.div(el => {
+            root.div((el) => {
               el.children
-                .h1(el => {
-                  el.children.textNode(get => `The count is: ${get(count)}`)
+                .h1((el) => {
+                  el.children.textNode((get) => `The count is: ${get(count)}`)
                 })
-                .button(el => {
+                .button((el) => {
                   el.config.on("click", () => update(count, (val) => val + 2))
                   el.children.textNode("Increment count!")
                 })
@@ -270,47 +285,50 @@ export default behavior("conditional zone", [
           function defaultView(root: HTMLBuilder) {
             const count = container({ initialValue: 0 })
 
-            root.div(el => {
+            root.div((el) => {
               el.children
-                .h1(el => {
-                  el.children.textNode(get => `The default count is: ${get(count)}`)
+                .h1((el) => {
+                  el.children.textNode((get) => `The default count is: ${get(count)}`)
                 })
-                .button(el => {
+                .button((el) => {
                   el.config.on("click", () => update(count, (val) => val + 2))
                   el.children.textNode("Increment default count!")
                 })
             })
           }
 
-          context.mountView(root => {
-            root.main(el => {
+          context.mountView((root) => {
+            root.main((el) => {
               el.children
-                .subviewMatching(selector => selector.withConditions()
-                  .when(get => get(context.state), counterView)
-                  .default(defaultView)
+                .subviewMatching((selector) =>
+                  selector
+                    .withConditions()
+                    .when((get) => get(context.state), counterView)
+                    .default(defaultView),
                 )
                 .hr()
-                .button(el => {
+                .button((el) => {
                   el.config.on("click", () => update(context.state, (val) => !val))
                   el.children.textNode("Click to switch")
                 })
             })
           })
-        })
+        }),
       ],
       perform: [
         step("click the button", async () => {
           await selectElement("button").click()
           await selectElement("button").click()
           await selectElement("button").click()
-        })
+        }),
       ],
       observe: [
         effect("the counter tally is correct", async () => {
           await expect(selectElement("h1").text(), resolvesTo("The count is: 6"))
-        })
-      ]
-    }).andThen({
+        }),
+      ],
+    })
+    .andThen({
       perform: [
         step("update the state so that the default view is shown", (context) => {
           context.writeTo(context.state, false)
@@ -320,13 +338,13 @@ export default behavior("conditional zone", [
           await selectElement("button").click()
           await selectElement("button").click()
           await selectElement("button").click()
-        })
+        }),
       ],
       observe: [
         effect("the default counter tally is correct", async () => {
           await expect(selectElement("h1").text(), resolvesTo("The default count is: 8"))
-        })
-      ]
+        }),
+      ],
     }),
 
   example(renderContext<ConditionalUpdatesContext>())
@@ -336,93 +354,100 @@ export default behavior("conditional zone", [
         fact("there is some state", (context) => {
           context.setState({
             root: container({ initialValue: { name: "Bob" } }),
-            log: []
+            log: [],
           })
         }),
         fact("there is a conditional view with derived state", (context) => {
-          const nameState = derived(get => {
+          const nameState = derived((get) => {
             return get(context.state.root).name
           })
 
           function showName(root: HTMLBuilder) {
-            root.div(el => el.children.textNode(get => {
-              context.state.log.push(`Running text effect for ${get(nameState)}`)
-              return `The name is: ${get(nameState)}`
-            }))
+            root.div((el) =>
+              el.children.textNode((get) => {
+                context.state.log.push(`Running text effect for ${get(nameState)}`)
+                return `The name is: ${get(nameState)}`
+              }),
+            )
           }
           function noName(root: HTMLBuilder) {
-            root.div(el => el.children.textNode("NO name!"))
+            root.div((el) => el.children.textNode("NO name!"))
           }
-          context.mountView(root => {
-            root.main(el => {
-              el.children.subviewMatching(selector => {
-                selector.withConditions()
-                  .when(get => get(context.state.root).name !== "Bob", showName)
+          context.mountView((root) => {
+            root.main((el) => {
+              el.children.subviewMatching((selector) => {
+                selector
+                  .withConditions()
+                  .when((get) => get(context.state.root).name !== "Bob", showName)
                   .default(noName)
               })
             })
           })
-        })
+        }),
       ],
       observe: [
         effect("No name is shown", async () => {
           await expect(selectElement("div").text(), resolvesTo("NO name!"))
-        })
-      ]
-    }).andThen({
+        }),
+      ],
+    })
+    .andThen({
       perform: [
         step("update the condition state", (context) => {
           context.writeTo(context.state.root, { name: "Anne" })
-        })
+        }),
       ],
       observe: [
         effect("the name is shown", async () => {
           await expect(selectElement("div").text(), resolvesTo("The name is: Anne"))
         }),
         effect("the text effect renders once", (context) => {
-          expect(context.state.log, is([
-            "Running text effect for Anne"
-          ]))
-        })
-      ]
-    }).andThen({
+          expect(context.state.log, is(["Running text effect for Anne"]))
+        }),
+      ],
+    })
+    .andThen({
       perform: [
         step("show a different name", (context) => {
           context.writeTo(context.state.root, { name: "Frank" })
-        })
+        }),
       ],
       observe: [
         effect("the new name is shown", async () => {
           await expect(selectElement("div").text(), resolvesTo("The name is: Frank"))
         }),
         effect("the text effect renders once more", (context) => {
-          expect(context.state.log, is([
-            "Running text effect for Anne",
-            "Running text effect for Frank"
-          ]))
-        })
-      ]
-    }).andThen({
+          expect(
+            context.state.log,
+            is(["Running text effect for Anne", "Running text effect for Frank"]),
+          )
+        }),
+      ],
+    })
+    .andThen({
       perform: [
         step("return to showing no name", (context) => {
           context.writeTo(context.state.root, { name: "Bob" })
         }),
         step("show a different name", (context) => {
           context.writeTo(context.state.root, { name: "Charles" })
-        })
+        }),
       ],
       observe: [
         effect("the new name is shown", async () => {
           await expect(selectElement("div").text(), resolvesTo("The name is: Charles"))
         }),
         effect("the text effect renders again", (context) => {
-          expect(context.state.log, is([
-            "Running text effect for Anne",
-            "Running text effect for Frank",
-            "Running text effect for Charles"
-          ]))
-        })
-      ]
+          expect(
+            context.state.log,
+            is([
+              "Running text effect for Anne",
+              "Running text effect for Frank",
+              "Running text effect for Charles",
+            ]),
+          )
+        }),
+      ],
     }),
 
   example(renderContext<MultiStateConditionsContext>())
@@ -433,95 +458,109 @@ export default behavior("conditional zone", [
           context.setState({
             stateA: container({ initialValue: "Goodbye" }),
             stateB: container({ initialValue: 12 }),
-            stateC: container({ initialValue: "huh" })
+            stateC: container({ initialValue: "huh" }),
           })
         }),
-        fact("there is a conditional view where the conditions depend on different state", (context) => {
-          function showView(message: string): HTMLView {
-            return root => {
-              root.h1(el => {
-                el.children.textNode(message)
-              })
+        fact(
+          "there is a conditional view where the conditions depend on different state",
+          (context) => {
+            function showView(message: string): HTMLView {
+              return (root) => {
+                root.h1((el) => {
+                  el.children.textNode(message)
+                })
+              }
             }
-          }
 
-          context.mountView(root => {
-            root.main(el => {
-              el.children.subviewMatching(selector => {
-                selector.withConditions()
-                  .when(get => get(context.state.stateA) === "Hello", showView("Hello!"))
-                  .when(get => get(context.state.stateB) === 27, showView("NUMBERS"))
-                  .when(get => get(context.state.stateC) === "yo", showView("Yo!!"))
-                  .default(showView("Nothing!"))
+            context.mountView((root) => {
+              root.main((el) => {
+                el.children.subviewMatching((selector) => {
+                  selector
+                    .withConditions()
+                    .when((get) => get(context.state.stateA) === "Hello", showView("Hello!"))
+                    .when((get) => get(context.state.stateB) === 27, showView("NUMBERS"))
+                    .when((get) => get(context.state.stateC) === "yo", showView("Yo!!"))
+                    .default(showView("Nothing!"))
+                })
               })
             })
-          })
-        })
+          },
+        ),
       ],
       observe: [
         effect("it shows the default view", async () => {
           await expect(selectElement("h1").text(), resolvesTo("Nothing!"))
-        })
-      ]
-    }).andThen({
+        }),
+      ],
+    })
+    .andThen({
       perform: [
         step("update so the second state matches", (context) => {
           context.writeTo(context.state.stateB, 27)
-        })
+        }),
       ],
       observe: [
         effect("it shows the second conditional view", async () => {
           await expect(selectElement("h1").text(), resolvesTo("NUMBERS"))
-        })
-      ]
-    }).andThen({
+        }),
+      ],
+    })
+    .andThen({
       perform: [
         step("update so the first state matches", (context) => {
           context.writeTo(context.state.stateA, "Hello")
-        })
+        }),
       ],
       observe: [
         effect("it shows the first conditional view", async () => {
           await expect(selectElement("h1").text(), resolvesTo("Hello!"))
-        })
-      ]
-    }).andThen({
+        }),
+      ],
+    })
+    .andThen({
       perform: [
         step("update so the third matches", (context) => {
           context.writeTo(context.state.stateC, "yo")
           context.writeTo(context.state.stateB, 22)
           context.writeTo(context.state.stateA, "later")
-        })
+        }),
       ],
       observe: [
         effect("it shows the first conditional view", async () => {
           await expect(selectElement("h1").text(), resolvesTo("Yo!!"))
-        })
-      ]
-    }).andThen({
+        }),
+      ],
+    })
+    .andThen({
       perform: [
         step("update so the second state matches", (context) => {
           context.writeTo(context.state.stateB, 27)
-        })
+        }),
       ],
       observe: [
         effect("it shows the second conditional view", async () => {
           await expect(selectElement("h1").text(), resolvesTo("NUMBERS"))
-        })
-      ]
+        }),
+      ],
     }),
 
   matchedViewWithLocalStateExample("client rendered", (context, view) => context.mountView(view)),
-  matchedViewWithLocalStateExample("server rendered", (context, view) => context.ssrAndActivate(view)),
+  matchedViewWithLocalStateExample("server rendered", (context, view) =>
+    context.ssrAndActivate(view),
+  ),
 
   nestedSiblingSelectViewExample("client rendered", (context, view) => context.mountView(view)),
-  nestedSiblingSelectViewExample("server rendered", (context, view) => context.ssrAndActivate(view)),
+  nestedSiblingSelectViewExample("server rendered", (context, view) =>
+    context.ssrAndActivate(view),
+  ),
 
   siblingSelectViewExample("client rendered", (context, view) => context.mountView(view)),
   siblingSelectViewExample("server rendered", (context, view) => context.ssrAndActivate(view)),
 
   multipleSelectFragmentsExample("client rendered", (context, view) => context.mountView(view)),
-  multipleSelectFragmentsExample("server rendered", (context, view) => context.ssrAndActivate(view)),
+  multipleSelectFragmentsExample("server rendered", (context, view) =>
+    context.ssrAndActivate(view),
+  ),
 
   nestedSelectorExample("client rendered", (context, view) => context.mountView(view)),
   nestedSelectorExample("server rendered", (context, view) => context.ssrAndActivate(view)),
@@ -530,11 +569,12 @@ export default behavior("conditional zone", [
   conditionalListWithEvents("server rendered", (context, view) => context.ssrAndActivate(view)),
 
   multipleConditionalListsWithEvents("client rendered", (context, view) => context.mountView(view)),
-  multipleConditionalListsWithEvents("server rendered", (context, view) => context.ssrAndActivate(view)),
+  multipleConditionalListsWithEvents("server rendered", (context, view) =>
+    context.ssrAndActivate(view),
+  ),
 
   elementAfterSelectViewExample("client rendered", (context, view) => context.mountView(view)),
-  elementAfterSelectViewExample("server rendered", (context, view) => context.ssrAndActivate(view))
-
+  elementAfterSelectViewExample("server rendered", (context, view) => context.ssrAndActivate(view)),
 ])
 
 interface ConditionalUpdatesContext {
@@ -548,7 +588,10 @@ interface MultiStateConditionsContext {
   stateC: Container<string>
 }
 
-function basicSelectEmptyAtFirst(name: string, renderer: (context: RenderApp<Container<boolean>>, view: HTMLView) => void) {
+function basicSelectEmptyAtFirst(
+  name: string,
+  renderer: (context: RenderApp<Container<boolean>>, view: HTMLView) => void,
+) {
   return example(renderContext<Container<boolean>>())
     .description(`start hidden, then show (${name})`)
     .script({
@@ -558,50 +601,56 @@ function basicSelectEmptyAtFirst(name: string, renderer: (context: RenderApp<Con
         }),
         fact("there is a view that is conditional", (context) => {
           function conditionalView(root: HTMLBuilder) {
-            root.p(el => {
+            root.p((el) => {
               el.children.textNode("I am visible now!")
             })
           }
 
-          renderer(context, root => {
-            root.div(el => {
-              el.children
-                .subviewMatching(select => select.withConditions().when(get => get(context.state), conditionalView))
+          renderer(context, (root) => {
+            root.div((el) => {
+              el.children.subviewMatching((select) =>
+                select.withConditions().when((get) => get(context.state), conditionalView),
+              )
             })
           })
-        })
+        }),
       ],
       observe: [
         effect("the view is not visible", async () => {
           await expect(selectElement("p").exists(), resolvesTo(false))
-        })
-      ]
-    }).andThen({
+        }),
+      ],
+    })
+    .andThen({
       perform: [
         step("the state changes to show the view", (context) => {
           context.writeTo(context.state, true)
-        })
+        }),
       ],
       observe: [
         effect("the view is visible", async () => {
           await expect(selectElement("p").text(), resolvesTo("I am visible now!"))
-        })
-      ]
-    }).andThen({
+        }),
+      ],
+    })
+    .andThen({
       perform: [
         step("the state changes to hide the view", (context) => {
           context.writeTo(context.state, false)
-        })
+        }),
       ],
       observe: [
         effect("the view is no longer visible", async () => {
           await expect(selectElement("p").exists(), resolvesTo(false))
-        })
-      ]
+        }),
+      ],
     })
 }
 
-function matchedViewWithLocalStateExample(name: string, renderer: (context: RenderApp<Container<string>>, view: HTMLView) => void) {
+function matchedViewWithLocalStateExample(
+  name: string,
+  renderer: (context: RenderApp<Container<string>>, view: HTMLView) => void,
+) {
   return example(renderContext<Container<string>>())
     .description(`matched view that defines state is switched away and back (${name})`)
     .script({
@@ -611,16 +660,16 @@ function matchedViewWithLocalStateExample(name: string, renderer: (context: Rend
         }),
         fact("there is a matched view that defines state", (context) => {
           function counterView(): HTMLView {
-            return root => {
+            return (root) => {
               const count = container({ initialValue: 0 })
 
-              root.div(el => {
+              root.div((el) => {
                 el.children
-                  .h1(el => {
+                  .h1((el) => {
                     el.config.dataAttribute("count")
-                    el.children.textNode(get => `The count is: ${get(count)}`)
+                    el.children.textNode((get) => `The count is: ${get(count)}`)
                   })
-                  .button(el => {
+                  .button((el) => {
                     el.config
                       .dataAttribute("increment")
                       .on("click", () => update(count, (val) => val + 2))
@@ -631,43 +680,44 @@ function matchedViewWithLocalStateExample(name: string, renderer: (context: Rend
           }
 
           function otherView(): HTMLView {
-            return root => {
-              root.h2(el => {
+            return (root) => {
+              root.h2((el) => {
                 el.config.dataAttribute("other")
                 el.children.textNode("Something else entirely")
               })
             }
           }
 
-          renderer(context, root => {
-            root.main(el => {
-              el.children
-                .subviewMatching(selector => {
-                  selector.withUnion(get => get(context.state))
-                    .when((val): val is string => val === "counter", counterView)
-                    .when((val): val is string => val === "other", otherView)
-                })
+          renderer(context, (root) => {
+            root.main((el) => {
+              el.children.subviewMatching((selector) => {
+                selector
+                  .withUnion((get) => get(context.state))
+                  .when((val): val is string => val === "counter", counterView)
+                  .when((val): val is string => val === "other", otherView)
+              })
             })
           })
-        })
+        }),
       ],
       perform: [
         step("increment the count", async () => {
           await selectElement("[data-increment]").click()
           await selectElement("[data-increment]").click()
           await selectElement("[data-increment]").click()
-        })
+        }),
       ],
       observe: [
         effect("the counter tally is correct", async () => {
           await expect(selectElement("[data-count]").text(), resolvesTo("The count is: 6"))
-        })
-      ]
-    }).andThen({
+        }),
+      ],
+    })
+    .andThen({
       perform: [
         step("switch to the other view", (context) => {
           context.writeTo(context.state, "other")
-        })
+        }),
       ],
       observe: [
         effect("the other view is displayed", async () => {
@@ -675,30 +725,32 @@ function matchedViewWithLocalStateExample(name: string, renderer: (context: Rend
         }),
         effect("the counter view is no longer displayed", async () => {
           await expect(selectElement("[data-count]").exists(), resolvesTo(false))
-        })
-      ]
-    }).andThen({
+        }),
+      ],
+    })
+    .andThen({
       perform: [
         step("switch back to the counter view", (context) => {
           context.writeTo(context.state, "counter")
-        })
+        }),
       ],
       observe: [
         effect("the counter view remembers its state", async () => {
           await expect(selectElement("[data-count]").text(), resolvesTo("The count is: 6"))
-        })
-      ]
-    }).andThen({
+        }),
+      ],
+    })
+    .andThen({
       perform: [
         step("increment the count again", async () => {
           await selectElement("[data-increment]").click()
-        })
+        }),
       ],
       observe: [
         effect("the counter tally continues from where it left off", async () => {
           await expect(selectElement("[data-count]").text(), resolvesTo("The count is: 8"))
-        })
-      ]
+        }),
+      ],
     })
 }
 
@@ -706,106 +758,121 @@ interface MultipleSelectFragmentContext {
   items: Container<Array<string>>
 }
 
-function multipleSelectFragmentsExample(name: string, renderer: (context: RenderApp<MultipleSelectFragmentContext>, view: HTMLView) => void) {
+function multipleSelectFragmentsExample(
+  name: string,
+  renderer: (context: RenderApp<MultipleSelectFragmentContext>, view: HTMLView) => void,
+) {
   return example(renderContext<MultipleSelectFragmentContext>())
     .description(`multiple select views with fragments (${name})`)
     .script({
       suppose: [
         fact("there is some state", (context) => {
           context.setState({
-            items: container({ initialValue: ["one", "two", "three"] })
+            items: container({ initialValue: ["one", "two", "three"] }),
           })
         }),
         fact("there is a view with multiple selects that contain fragments", (context) => {
           const toggle = container({ initialValue: true })
 
           function fragmentView(name: string): HTMLView {
-            return root =>
-              root.subviews(get => get(context.state.items), useData => root => {
-                root.div(el => {
-                  el.config.dataAttribute("item-text")
-                  el.children.textNode(useData((item) => `${name} => ${item.data}`))
-                })
-              })
+            return (root) =>
+              root.subviews(
+                (get) => get(context.state.items),
+                (useData) => (root) => {
+                  root.div((el) => {
+                    el.config.dataAttribute("item-text")
+                    el.children.textNode(useData((item) => `${name} => ${item.data}`))
+                  })
+                },
+              )
           }
 
-          renderer(context, root => {
-            root.main(el => {
-              el.children.subviewMatching(select => select.withConditions().default(root => {
-                root.div(el => {
-                  el.children
-                    .subviewMatching(select => select.withConditions().when(get => get(toggle), fragmentView("A")))
-                    .subviewMatching(select => select.withConditions().when(get => get(toggle), fragmentView("B")))
-                    .hr()
-                    .h3(el => {
-                      el.children.textNode(get => `Views are visible: ${get(toggle)}`)
-                    })
-                    .button(el => {
-                      el.config.on("click", () => update(toggle, val => !val))
-                      el.children.textNode("Toggle Views!")
-                    })
-                })
-              })
+          renderer(context, (root) => {
+            root.main((el) => {
+              el.children.subviewMatching((select) =>
+                select.withConditions().default((root) => {
+                  root.div((el) => {
+                    el.children
+                      .subviewMatching((select) =>
+                        select.withConditions().when((get) => get(toggle), fragmentView("A")),
+                      )
+                      .subviewMatching((select) =>
+                        select.withConditions().when((get) => get(toggle), fragmentView("B")),
+                      )
+                      .hr()
+                      .h3((el) => {
+                        el.children.textNode((get) => `Views are visible: ${get(toggle)}`)
+                      })
+                      .button((el) => {
+                        el.config.on("click", () => update(toggle, (val) => !val))
+                        el.children.textNode("Toggle Views!")
+                      })
+                  })
+                }),
               )
             })
           })
-        })
+        }),
       ],
       observe: [
         effect("the select fragments are rendered", async () => {
-          const texts = await selectElements("[data-item-text]").map(el => el.text())
-          expect(texts, is([
-            "A => one",
-            "A => two",
-            "A => three",
-            "B => one",
-            "B => two",
-            "B => three"
-          ]))
+          const texts = await selectElements("[data-item-text]").map((el) => el.text())
+          expect(
+            texts,
+            is(["A => one", "A => two", "A => three", "B => one", "B => two", "B => three"]),
+          )
         }),
         effect("text effect works", async () => {
           await expect(selectElement("h3").text(), resolvesTo("Views are visible: true"))
-        })
-      ]
-    }).andThen({
+        }),
+      ],
+    })
+    .andThen({
       perform: [
         step("toggle the views", async () => {
           await selectElement("button").click()
-        })
+        }),
       ],
       observe: [
         effect("the views are no longer visible", async () => {
           await expect(selectElements("[data-item-text]").count(), resolvesTo(0))
-        })
-      ]
-    }).andThen({
+        }),
+      ],
+    })
+    .andThen({
       perform: [
         step("toggle the views", async () => {
           await selectElement("button").click()
         }),
         step("update the list state", (context) => {
           context.writeTo(context.state.items, ["four", "three", "two", "one"])
-        })
+        }),
       ],
       observe: [
         effect("the select fragments are updated", async () => {
-          const texts = await selectElements("[data-item-text]").map(el => el.text())
-          expect(texts, is([
-            "A => four",
-            "A => three",
-            "A => two",
-            "A => one",
-            "B => four",
-            "B => three",
-            "B => two",
-            "B => one"
-          ]))
+          const texts = await selectElements("[data-item-text]").map((el) => el.text())
+          expect(
+            texts,
+            is([
+              "A => four",
+              "A => three",
+              "A => two",
+              "A => one",
+              "B => four",
+              "B => three",
+              "B => two",
+              "B => one",
+            ]),
+          )
         }),
-      ]
+      ],
     })
 }
 
-function nestedSiblingSelectViewExample(name: string, renderer: (context: RenderApp<NestedSelectViewContext>, view: HTMLView) => void) {
+function nestedSiblingSelectViewExample(
+  name: string,
+  renderer: (context: RenderApp<NestedSelectViewContext>, view: HTMLView) => void,
+) {
   return example(renderContext<ToggleableNestedSelectViewContext>())
     .description(`multiple select views inside a list item (${name})`)
     .script({
@@ -813,61 +880,96 @@ function nestedSiblingSelectViewExample(name: string, renderer: (context: Render
         fact("there is some state for a list", (context) => {
           context.setState({
             listItems: container({ initialValue: ["a", "b", "c"] }),
-            toggles: collection(() => container({ initialValue: true }))
+            toggles: collection(() => container({ initialValue: true })),
           })
         }),
         fact("there are multiple conditional views with events in each list item", (context) => {
           const counters = collection(() => container({ initialValue: 0 }))
 
           function counterView(name: string, stateful: UseItem<string>): HTMLView {
-            return root => root.div(el => {
-              el.children
-                .p(el => {
-                  el.config
-                    .class(stateful((item, get) => `counter-style-${name}-${item.index}-${get(counters.at(`${name}-${item.index}`))}`))
-                    .dataAttribute("counter-text", stateful(({index}) => `${name}-${index}`))
-                  el.children
-                    .textNode(stateful((item, get) => `${name} total: ${get(counters.at(`${name}-${item.index}`))}`))
-                })
-                .button(el => {
-                  el.config
-                    .dataAttribute("counter-button", stateful((item) => `${name}-${item.index}`))
-                    .on("click", () => use(stateful((item) => update(counters.at(`${name}-${item.index}`), (val) => val + 1))))
-                  el.children.textNode("Click me!")
-                })
-            })
+            return (root) =>
+              root.div((el) => {
+                el.children
+                  .p((el) => {
+                    el.config
+                      .class(
+                        stateful(
+                          (item, get) =>
+                            `counter-style-${name}-${item.index}-${get(counters.at(`${name}-${item.index}`))}`,
+                        ),
+                      )
+                      .dataAttribute(
+                        "counter-text",
+                        stateful(({ index }) => `${name}-${index}`),
+                      )
+                    el.children.textNode(
+                      stateful(
+                        (item, get) =>
+                          `${name} total: ${get(counters.at(`${name}-${item.index}`))}`,
+                      ),
+                    )
+                  })
+                  .button((el) => {
+                    el.config
+                      .dataAttribute(
+                        "counter-button",
+                        stateful((item) => `${name}-${item.index}`),
+                      )
+                      .on("click", () =>
+                        use(
+                          stateful((item) =>
+                            update(counters.at(`${name}-${item.index}`), (val) => val + 1),
+                          ),
+                        ),
+                      )
+                    el.children.textNode("Click me!")
+                  })
+              })
           }
 
           function basicView(name: string, stateful: UseItem<string>): HTMLView {
-            return root =>
-              root.h3(el => {
-                el.config.dataAttribute("hidden-view", stateful(({index}) => `${name}-${index}`))
+            return (root) =>
+              root.h3((el) => {
+                el.config.dataAttribute(
+                  "hidden-view",
+                  stateful(({ index }) => `${name}-${index}`),
+                )
                 el.children.textNode(`Just wait and see! (${name})`)
               })
           }
 
           function itemView(stateful: UseItem<string>): HTMLView {
             return (root) => {
-              root.div(el => {
+              root.div((el) => {
                 el.children
-                  .h1(el => el.children.textNode(stateful((item) => item.data)))
-                  .subviewMatching(select => select.withConditions()
-                    .when(stateful(({index}, get) => itemToggle(get, context, `first-${index}`)), counterView("first", stateful))
-                    .default(basicView("first", stateful))
+                  .h1((el) => el.children.textNode(stateful((item) => item.data)))
+                  .subviewMatching((select) =>
+                    select
+                      .withConditions()
+                      .when(
+                        stateful(({ index }, get) => itemToggle(get, context, `first-${index}`)),
+                        counterView("first", stateful),
+                      )
+                      .default(basicView("first", stateful)),
                   )
-                  .subviewMatching(select => select.withConditions()
-                    .when(stateful(({index}, get) => itemToggle(get, context, `second-${index}`)), counterView("second", stateful))
-                    .default(basicView("second", stateful))
+                  .subviewMatching((select) =>
+                    select
+                      .withConditions()
+                      .when(
+                        stateful(({ index }, get) => itemToggle(get, context, `second-${index}`)),
+                        counterView("second", stateful),
+                      )
+                      .default(basicView("second", stateful)),
                   )
                   .hr()
               })
             }
           }
 
-          renderer(context, root => {
+          renderer(context, (root) => {
             root.subviews((get) => get(context.state.listItems), itemView)
           })
-        })
+        }),
       ],
       perform: [
         step("update two counters in the same list item", async () => {
@@ -876,36 +978,46 @@ function nestedSiblingSelectViewExample(name: string, renderer: (context: Render
           await selectElement("[data-counter-button='second-1']").click()
           await selectElement("[data-counter-button='second-1']").click()
           await selectElement("[data-counter-button='second-1']").click()
-        })
+        }),
       ],
       observe: [
         effect("the counters both updated", async () => {
-          await expect(selectElement("[data-counter-text='first-1']").text(),
-            resolvesTo("first total: 2"))
-          await expect(selectElement("[data-counter-text='second-1']").text(),
-            resolvesTo("second total: 3"))
+          await expect(
+            selectElement("[data-counter-text='first-1']").text(),
+            resolvesTo("first total: 2"),
+          )
+          await expect(
+            selectElement("[data-counter-text='second-1']").text(),
+            resolvesTo("second total: 3"),
+          )
         }),
         effect("the class property updated", async () => {
-          await expect(selectElement("[data-counter-text='first-1']").property("className"),
-            resolvesTo("counter-style-first-1-2"))
-        })
-      ]
-    }).andThen({
+          await expect(
+            selectElement("[data-counter-text='first-1']").property("className"),
+            resolvesTo("counter-style-first-1-2"),
+          )
+        }),
+      ],
+    })
+    .andThen({
       perform: [
         step("toggle one of the views", (context) => {
           context.writeToCollection(context.state.toggles, "second-1", false)
-        })
+        }),
       ],
       observe: [
         effect("the other select view in the list item remains visible", async () => {
-          await expect(selectElement("[data-counter-text='first-1']").text(),
-            resolvesTo("first total: 2"))
+          await expect(
+            selectElement("[data-counter-text='first-1']").text(),
+            resolvesTo("first total: 2"),
+          )
         }),
         effect("the hidden view is shown", async () => {
           await expect(selectElement("[data-hidden-view='second-1']").exists(), resolvesTo(true))
-        })
-      ]
-    }).andThen({
+        }),
+      ],
+    })
+    .andThen({
       perform: [
         step("toggle the view again", (context) => {
           context.writeToCollection(context.state.toggles, "second-1", true)
@@ -913,78 +1025,90 @@ function nestedSiblingSelectViewExample(name: string, renderer: (context: Render
         step("update the counter", async () => {
           await selectElement("[data-counter-button='second-1']").click()
           await selectElement("[data-counter-button='second-1']").click()
-        })
+        }),
       ],
       observe: [
         effect("the counters are both visible with the correct state", async () => {
-          await expect(selectElement("[data-counter-text='first-1']").text(),
-            resolvesTo("first total: 2"))
-          await expect(selectElement("[data-counter-text='second-1']").text(),
-            resolvesTo("second total: 5"))
+          await expect(
+            selectElement("[data-counter-text='first-1']").text(),
+            resolvesTo("first total: 2"),
+          )
+          await expect(
+            selectElement("[data-counter-text='second-1']").text(),
+            resolvesTo("second total: 5"),
+          )
         }),
         effect("the clicked counter updates as expected", async () => {
-          await expect(selectElement("[data-counter-text='second-1']").property("className"),
-            resolvesTo("counter-style-second-1-5"))
-        })
-      ]
+          await expect(
+            selectElement("[data-counter-text='second-1']").property("className"),
+            resolvesTo("counter-style-second-1-5"),
+          )
+        }),
+      ],
     })
 }
 
-function siblingSelectViewExample(name: string, renderer: (context: RenderApp<ToggleableViewContext>, view: HTMLView) => void) {
+function siblingSelectViewExample(
+  name: string,
+  renderer: (context: RenderApp<ToggleableViewContext>, view: HTMLView) => void,
+) {
   return example(renderContext<ToggleableViewContext>())
     .description(`multiple select views as siblings (${name})`)
     .script({
       suppose: [
         fact("there is some state for toggling views", (context) => {
           context.setState({
-            toggles: collection(() => container({ initialValue: true }))
+            toggles: collection(() => container({ initialValue: true })),
           })
         }),
         fact("there are sibling conditional views", (context) => {
           const counters = collection(() => container({ initialValue: 0 }))
 
           function counterView(name: string): HTMLView {
-            return root => root.div(el => {
-              el.children
-                .p(el => {
-                  el.config
-                    .dataAttribute("counter-text", name)
-                  el.children
-                    .textNode(get => `${name} total: ${get(counters.at(name))}`)
-                })
-                .button(el => {
-                  el.config
-                    .dataAttribute("counter-button", name)
-                    .on("click", () => update(counters.at(name), (val) => val + 1))
-                  el.children.textNode("Click me!")
-                })
-            })
+            return (root) =>
+              root.div((el) => {
+                el.children
+                  .p((el) => {
+                    el.config.dataAttribute("counter-text", name)
+                    el.children.textNode((get) => `${name} total: ${get(counters.at(name))}`)
+                  })
+                  .button((el) => {
+                    el.config
+                      .dataAttribute("counter-button", name)
+                      .on("click", () => update(counters.at(name), (val) => val + 1))
+                    el.children.textNode("Click me!")
+                  })
+              })
           }
 
           function basicView(name: string): HTMLView {
-            return root =>
-              root.h3(el => {
+            return (root) =>
+              root.h3((el) => {
                 el.config.dataAttribute("hidden-view", name)
                 el.children.textNode(`Just wait and see! (${name})`)
               })
           }
 
           renderer(context, (root) => {
-            root.div(el => {
+            root.div((el) => {
               el.children
-                .h1(el => el.children.textNode("Hello!"))
-                .subviewMatching(select => select.withConditions()
-                  .when(get => itemToggle(get, context, "first"), counterView("first"))
-                  .default(basicView("first"))
+                .h1((el) => el.children.textNode("Hello!"))
+                .subviewMatching((select) =>
+                  select
+                    .withConditions()
+                    .when((get) => itemToggle(get, context, "first"), counterView("first"))
+                    .default(basicView("first")),
                 )
-                .subviewMatching(select => select.withConditions()
-                  .when(get => itemToggle(get, context, "second"), counterView("second"))
-                  .default(basicView("second"))
+                .subviewMatching((select) =>
+                  select
+                    .withConditions()
+                    .when((get) => itemToggle(get, context, "second"), counterView("second"))
+                    .default(basicView("second")),
                 )
                 .hr()
             })
           })
-        })
+        }),
       ],
       perform: [
         step("update each conditional view", async () => {
@@ -993,32 +1117,40 @@ function siblingSelectViewExample(name: string, renderer: (context: RenderApp<To
           await selectElement("[data-counter-button='second']").click()
           await selectElement("[data-counter-button='second']").click()
           await selectElement("[data-counter-button='second']").click()
-        })
+        }),
       ],
       observe: [
         effect("the counters both updated", async () => {
-          await expect(selectElement("[data-counter-text='first']").text(),
-            resolvesTo("first total: 2"))
-          await expect(selectElement("[data-counter-text='second']").text(),
-            resolvesTo("second total: 3"))
-        })
-      ]
-    }).andThen({
+          await expect(
+            selectElement("[data-counter-text='first']").text(),
+            resolvesTo("first total: 2"),
+          )
+          await expect(
+            selectElement("[data-counter-text='second']").text(),
+            resolvesTo("second total: 3"),
+          )
+        }),
+      ],
+    })
+    .andThen({
       perform: [
         step("toggle one of the views", (context) => {
           context.writeToCollection(context.state.toggles, "second", false)
-        })
+        }),
       ],
       observe: [
         effect("the other conditional view in the list item remains visible", async () => {
-          await expect(selectElement("[data-counter-text='first']").text(),
-            resolvesTo("first total: 2"))
+          await expect(
+            selectElement("[data-counter-text='first']").text(),
+            resolvesTo("first total: 2"),
+          )
         }),
         effect("the hidden view is shown", async () => {
           await expect(selectElement("[data-hidden-view='second']").exists(), resolvesTo(true))
-        })
-      ]
-    }).andThen({
+        }),
+      ],
+    })
+    .andThen({
       perform: [
         step("toggle the view again", (context) => {
           context.writeToCollection(context.state.toggles, "second", true)
@@ -1026,20 +1158,27 @@ function siblingSelectViewExample(name: string, renderer: (context: RenderApp<To
         step("update the counter", async () => {
           await selectElement("[data-counter-button='second']").click()
           await selectElement("[data-counter-button='second']").click()
-        })
+        }),
       ],
       observe: [
         effect("the counters are both visible with the correct state", async () => {
-          await expect(selectElement("[data-counter-text='first']").text(),
-            resolvesTo("first total: 2"))
-          await expect(selectElement("[data-counter-text='second']").text(),
-            resolvesTo("second total: 5"))
-        })
-      ]
+          await expect(
+            selectElement("[data-counter-text='first']").text(),
+            resolvesTo("first total: 2"),
+          )
+          await expect(
+            selectElement("[data-counter-text='second']").text(),
+            resolvesTo("second total: 5"),
+          )
+        }),
+      ],
     })
 }
 
-function elementAfterSelectViewExample(name: string, renderer: (context: RenderApp<Container<string>>, view: HTMLView) => void) {
+function elementAfterSelectViewExample(
+  name: string,
+  renderer: (context: RenderApp<Container<string>>, view: HTMLView) => void,
+) {
   return example(renderContext<Container<string>>())
     .description(`an element that follows a select view (${name})`)
     .script({
@@ -1049,49 +1188,51 @@ function elementAfterSelectViewExample(name: string, renderer: (context: RenderA
         }),
         fact("there is an element after a select view", (context) => {
           function conditionalView(root: HTMLBuilder) {
-            root.p(el => el.children.textNode("I am conditional!"))
+            root.p((el) => el.children.textNode("I am conditional!"))
           }
 
-          renderer(context, root => {
-            root.div(el => {
+          renderer(context, (root) => {
+            root.div((el) => {
               el.children
-                .subviewMatching(select => select.withConditions()
-                  .default(conditionalView)
-                )
-                .h3(el => {
-                  el.children.textNode(get => get(context.state))
+                .subviewMatching((select) => select.withConditions().default(conditionalView))
+                .h3((el) => {
+                  el.children.textNode((get) => get(context.state))
                 })
             })
           })
-        })
+        }),
       ],
       observe: [
         effect("the element displays the message", async () => {
           await expect(selectElement("h3").text(), resolvesTo("Hello!"))
-        })
-      ]
-    }).andThen({
+        }),
+      ],
+    })
+    .andThen({
       perform: [
         step("the message is updated", (context) => {
           context.writeTo(context.state, "Goodbye!")
-        })
+        }),
       ],
       observe: [
         effect("the element displays the updated message", async () => {
           await expect(selectElement("h3").text(), resolvesTo("Goodbye!"))
-        })
-      ]
+        }),
+      ],
     })
 }
 
-function conditionalListWithEvents(name: string, renderer: (context: RenderApp<NestedSelectViewContext>, view: HTMLView) => void) {
+function conditionalListWithEvents(
+  name: string,
+  renderer: (context: RenderApp<NestedSelectViewContext>, view: HTMLView) => void,
+) {
   return example(renderContext<NestedSelectViewContext>())
     .description(`conditional view with list as root that uses events (${name})`)
     .script({
       suppose: [
         fact("there is some state", (context) => {
           context.setState({
-            listItems: container({ initialValue: ["cat", "frog", "snake"] })
+            listItems: container({ initialValue: ["cat", "frog", "snake"] }),
           })
         }),
         fact("there is a conditional list view", (context) => {
@@ -1099,16 +1240,24 @@ function conditionalListWithEvents(name: string, renderer: (context: RenderApp<N
             const counters = collection(() => container({ initialValue: 0 }))
 
             return (root) => {
-              root.div(el => {
+              root.div((el) => {
                 el.children
-                  .h3(el => {
-                    el.config
-                      .dataAttribute("item-count", stateful((item) => item.data))
-                    el.children
-                      .textNode(stateful((item, get) => `You clicked the ${item.data} ${get(counters.at(item.data))} times!`))
+                  .h3((el) => {
+                    el.config.dataAttribute(
+                      "item-count",
+                      stateful((item) => item.data),
+                    )
+                    el.children.textNode(
+                      stateful(
+                        (item, get) =>
+                          `You clicked the ${item.data} ${get(counters.at(item.data))} times!`,
+                      ),
+                    )
                   })
-                  .button(el => {
-                    el.config.on("click", () => use(stateful((item) => update(counters.at(item.data), (val) => val + 1))))
+                  .button((el) => {
+                    el.config.on("click", () =>
+                      use(stateful((item) => update(counters.at(item.data), (val) => val + 1))),
+                    )
                     el.children.textNode(stateful((item) => `Click the ${item.data}`))
                   })
               })
@@ -1116,33 +1265,38 @@ function conditionalListWithEvents(name: string, renderer: (context: RenderApp<N
           }
 
           function listView(root: HTMLBuilder) {
-            root.subviews(get => get(context.state.listItems), itemView)
+            root.subviews((get) => get(context.state.listItems), itemView)
           }
 
           renderer(context, (root) => {
-            root.subviewMatching(selector => {
+            root.subviewMatching((selector) => {
               selector.withConditions().default(listView)
             })
           })
-        })
+        }),
       ],
       perform: [
         step("click the item multiple times", async () => {
           await selectElementWithText("Click the frog").click()
           await selectElementWithText("Click the frog").click()
           await selectElementWithText("Click the frog").click()
-        })
+        }),
       ],
       observe: [
         step("the counter is updated", async () => {
-          await expect(selectElement("[data-item-count='frog']").text(),
-            resolvesTo("You clicked the frog 3 times!"))
-        })
-      ]
+          await expect(
+            selectElement("[data-item-count='frog']").text(),
+            resolvesTo("You clicked the frog 3 times!"),
+          )
+        }),
+      ],
     })
 }
 
-function multipleConditionalListsWithEvents(name: string, renderer: (context: RenderApp<NestedSelectViewContext>, view: HTMLView) => void) {
+function multipleConditionalListsWithEvents(
+  name: string,
+  renderer: (context: RenderApp<NestedSelectViewContext>, view: HTMLView) => void,
+) {
   return example(renderContext<MultipleNestedSelectViewContext>())
     .description(`conditional view with list as root that uses events (${name})`)
     .script({
@@ -1151,7 +1305,7 @@ function multipleConditionalListsWithEvents(name: string, renderer: (context: Re
           context.setState({
             trigger: container<Things>({ initialValue: { type: "one-thing" } }),
             listItems: container({ initialValue: ["cat", "frog", "snake"] }),
-            moreListItems: container({ initialValue: ["apple", "pear", "grape"] })
+            moreListItems: container({ initialValue: ["apple", "pear", "grape"] }),
           })
         }),
         fact("there is a conditional list view", (context) => {
@@ -1159,16 +1313,24 @@ function multipleConditionalListsWithEvents(name: string, renderer: (context: Re
             const counters = collection(() => container({ initialValue: 0 }))
 
             return (root) => {
-              root.div(el => {
+              root.div((el) => {
                 el.children
-                  .h3(el => {
-                    el.config
-                      .dataAttribute("item-count", stateful((item) => item.data))
-                    el.children
-                      .textNode(stateful((item, get) => `You clicked the ${item.data} ${get(counters.at(item.data))} times!`))
+                  .h3((el) => {
+                    el.config.dataAttribute(
+                      "item-count",
+                      stateful((item) => item.data),
+                    )
+                    el.children.textNode(
+                      stateful(
+                        (item, get) =>
+                          `You clicked the ${item.data} ${get(counters.at(item.data))} times!`,
+                      ),
+                    )
                   })
-                  .button(el => {
-                    el.config.on("click", () => use(stateful((item) => update(counters.at(item.data), (val) => val + 1))))
+                  .button((el) => {
+                    el.config.on("click", () =>
+                      use(stateful((item) => update(counters.at(item.data), (val) => val + 1))),
+                    )
                     el.children.textNode(stateful((item) => `Click the ${item.data}`))
                   })
               })
@@ -1176,49 +1338,61 @@ function multipleConditionalListsWithEvents(name: string, renderer: (context: Re
           }
 
           function listView(root: HTMLBuilder) {
-            root.subviews(get => get(context.state.listItems), itemView)
+            root.subviews((get) => get(context.state.listItems), itemView)
           }
 
           function otherListView(root: HTMLBuilder) {
-            root.subviews(get => get(context.state.moreListItems), itemView)
+            root.subviews((get) => get(context.state.moreListItems), itemView)
           }
 
           renderer(context, (root) => {
-            root.main(el => {
+            root.main((el) => {
               el.children
-                .button(el => {
-                  el.config.on("click", () => update(context.state.trigger, (cur) => {
-                    if (cur.type === "one-thing") {
-                      return { type: "two-thing" } as Things
-                    } else {
-                      return { type: "one-thing" } as Things
-                    }
-                  }))
+                .button((el) => {
+                  el.config.on("click", () =>
+                    update(context.state.trigger, (cur) => {
+                      if (cur.type === "one-thing") {
+                        return { type: "two-thing" } as Things
+                      } else {
+                        return { type: "one-thing" } as Things
+                      }
+                    }),
+                  )
                   el.children.textNode("switch lists")
                 })
-                .subviewMatching(selector => {
-                  selector.withUnion(get => get(context.state.trigger))
-                    .when(thing => thing.type === "one-thing", () => listView)
-                    .when(thing => thing.type === "two-thing", () => otherListView)
+                .subviewMatching((selector) => {
+                  selector
+                    .withUnion((get) => get(context.state.trigger))
+                    .when(
+                      (thing) => thing.type === "one-thing",
+                      () => listView,
+                    )
+                    .when(
+                      (thing) => thing.type === "two-thing",
+                      () => otherListView,
+                    )
                 })
             })
           })
-        })
+        }),
       ],
       perform: [
         step("click the item multiple times", async () => {
           await selectElementWithText("Click the frog").click()
           await selectElementWithText("Click the frog").click()
           await selectElementWithText("Click the frog").click()
-        })
+        }),
       ],
       observe: [
         step("the counter is updated", async () => {
-          await expect(selectElement("[data-item-count='frog']").text(),
-            resolvesTo("You clicked the frog 3 times!"))
-        })
-      ]
-    }).andThen({
+          await expect(
+            selectElement("[data-item-count='frog']").text(),
+            resolvesTo("You clicked the frog 3 times!"),
+          )
+        }),
+      ],
+    })
+    .andThen({
       perform: [
         step("switch to the other list", (context) => {
           context.writeTo(context.state.trigger, { type: "two-thing" } as Things)
@@ -1226,32 +1400,35 @@ function multipleConditionalListsWithEvents(name: string, renderer: (context: Re
         step("click some items", async () => {
           await selectElementWithText("Click the grape").click()
           await selectElementWithText("Click the grape").click()
-        })
+        }),
       ],
       observe: [
         step("the counter is updated", async () => {
-          await expect(selectElement("[data-item-count='grape']").text(),
-            resolvesTo("You clicked the grape 2 times!"))
-        })
-      ]
-    }).andThen({
+          await expect(
+            selectElement("[data-item-count='grape']").text(),
+            resolvesTo("You clicked the grape 2 times!"),
+          )
+        }),
+      ],
+    })
+    .andThen({
       perform: [
         step("switch back to the first list", (context) => {
           context.writeTo(context.state.trigger, { type: "one-thing" } as Things)
         }),
         step("click the same item again", async () => {
           await selectElementWithText("Click the frog").click()
-        })
+        }),
       ],
       observe: [
         effect("the counter is updated", async () => {
-          await expect(selectElement("[data-item-count='frog']").text(),
-            resolvesTo("You clicked the frog 4 times!")
+          await expect(
+            selectElement("[data-item-count='frog']").text(),
+            resolvesTo("You clicked the frog 4 times!"),
           )
-        })
-      ]
+        }),
+      ],
     })
-
 }
 
 type SelectOptions = "fruit" | "fruits" | "sport" | "sports" | "book" | "books"
@@ -1261,7 +1438,10 @@ interface NestedSelectorContext {
   modifier: Container<string>
 }
 
-function nestedSelectorExample(name: string, renderer: (context: RenderApp<NestedSelectorContext>, view: HTMLView) => void) {
+function nestedSelectorExample(
+  name: string,
+  renderer: (context: RenderApp<NestedSelectorContext>, view: HTMLView) => void,
+) {
   return example(renderContext<NestedSelectorContext>())
     .description(`nested conditional view with selector that uses parent args (${name})`)
     .script({
@@ -1269,61 +1449,92 @@ function nestedSelectorExample(name: string, renderer: (context: RenderApp<Neste
         fact("there is state", (context) => {
           context.setState({
             items: container<Array<SelectOptions>>({ initialValue: ["fruit", "sport", "book"] }),
-            modifier: container({ initialValue: "" })
+            modifier: container({ initialValue: "" }),
           })
         }),
         fact("there is a nested conditional view selector that uses parent args", (context) => {
           function singleItemDescription(name: string): HTMLView {
-            return root => root.div(el => el.children.textNode(`This is a ${name}!`))
+            return (root) => root.div((el) => el.children.textNode(`This is a ${name}!`))
           }
 
           function pluralItemDescription(name: string): HTMLView {
-            return root => root.div(el => el.children.textNode(`These are ${name}!`))
+            return (root) => root.div((el) => el.children.textNode(`These are ${name}!`))
           }
 
           function itemView(stateful: UseItem<SelectOptions>): HTMLView {
-            return root => {
-              root.subviewMatching(select => select.withConditions()
-                .when(stateful((item, get) => `${item.data}${get(context.state.modifier)}` === "fruit"), singleItemDescription("fruit"))
-                .when(stateful((item, get) => `${item.data}${get(context.state.modifier)}` === "fruits"), pluralItemDescription("fruits"))
-                .when(stateful((item, get) => `${item.data}${get(context.state.modifier)}` === "sport"), singleItemDescription("sport"))
-                .when(stateful((item, get) => `${item.data}${get(context.state.modifier)}` === "sports"), pluralItemDescription("sports"))
-                .when(stateful((item, get) => `${item.data}${get(context.state.modifier)}` === "book"), singleItemDescription("book"))
-                .when(stateful((item, get) => `${item.data}${get(context.state.modifier)}` === "books"), pluralItemDescription("books"))
-                .default(root => root.h1(el => el.children.textNode("WHAT??!")))
+            return (root) => {
+              root.subviewMatching((select) =>
+                select
+                  .withConditions()
+                  .when(
+                    stateful(
+                      (item, get) => `${item.data}${get(context.state.modifier)}` === "fruit",
+                    ),
+                    singleItemDescription("fruit"),
+                  )
+                  .when(
+                    stateful(
+                      (item, get) => `${item.data}${get(context.state.modifier)}` === "fruits",
+                    ),
+                    pluralItemDescription("fruits"),
+                  )
+                  .when(
+                    stateful(
+                      (item, get) => `${item.data}${get(context.state.modifier)}` === "sport",
+                    ),
+                    singleItemDescription("sport"),
+                  )
+                  .when(
+                    stateful(
+                      (item, get) => `${item.data}${get(context.state.modifier)}` === "sports",
+                    ),
+                    pluralItemDescription("sports"),
+                  )
+                  .when(
+                    stateful(
+                      (item, get) => `${item.data}${get(context.state.modifier)}` === "book",
+                    ),
+                    singleItemDescription("book"),
+                  )
+                  .when(
+                    stateful(
+                      (item, get) => `${item.data}${get(context.state.modifier)}` === "books",
+                    ),
+                    pluralItemDescription("books"),
+                  )
+                  .default((root) => root.h1((el) => el.children.textNode("WHAT??!"))),
               )
             }
           }
 
-          renderer(context, root => {
-            root.subviews(get => get(context.state.items), itemView)
+          renderer(context, (root) => {
+            root.subviews((get) => get(context.state.items), itemView)
           })
-        })
+        }),
       ],
       observe: [
         effect("it renders the default values", async () => {
-          await expect(selectElements("div").texts(), resolvesTo([
-            "This is a fruit!",
-            "This is a sport!",
-            "This is a book!"
-          ]))
-        })
-      ]
-    }).andThen({
+          await expect(
+            selectElements("div").texts(),
+            resolvesTo(["This is a fruit!", "This is a sport!", "This is a book!"]),
+          )
+        }),
+      ],
+    })
+    .andThen({
       perform: [
         step("update a conditional view", (context) => {
           context.writeTo(context.state.modifier, "s")
-        })
+        }),
       ],
       observe: [
         effect("it updates the conditional views", async () => {
-          await expect(selectElements("div").texts(), resolvesTo([
-            "These are fruits!",
-            "These are sports!",
-            "These are books!"
-          ]))
-        })
-      ]
+          await expect(
+            selectElements("div").texts(),
+            resolvesTo(["These are fruits!", "These are sports!", "These are books!"]),
+          )
+        }),
+      ],
     })
 }
 
@@ -1335,8 +1546,12 @@ interface NestedSelectViewContext {
   listItems: Container<Array<string>>
 }
 
-interface OneThing { type: "one-thing" }
-interface TwoThing { type: "two-thing" }
+interface OneThing {
+  type: "one-thing"
+}
+interface TwoThing {
+  type: "two-thing"
+}
 
 type Things = OneThing | TwoThing
 

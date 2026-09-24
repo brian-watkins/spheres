@@ -5,8 +5,8 @@ import { SSRParts } from "../../../helpers/ssrApp"
 
 const store = createStore()
 
-export default function(): SSRParts {
+export default function (): SSRParts {
   return {
-    html: createStringRenderer(view)(store)
+    html: createStringRenderer(view)(store),
   }
 }

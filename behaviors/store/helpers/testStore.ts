@@ -1,11 +1,31 @@
-import { Container, State, Store, write, StoreMessage, batch, GetState, reset, Command, CommandActions, ContainerHooks, ReactiveEffect, createStore, useContainerHooks, useEffect, useCommand, Collection, WritableState, StoreInitializerActions } from "@store/index.js"
+import {
+  Container,
+  State,
+  Store,
+  write,
+  StoreMessage,
+  batch,
+  GetState,
+  reset,
+  Command,
+  CommandActions,
+  ContainerHooks,
+  ReactiveEffect,
+  createStore,
+  useContainerHooks,
+  useEffect,
+  useCommand,
+  Collection,
+  WritableState,
+  StoreInitializerActions,
+} from "@store/index.js"
 import { initListener, StateEffect, StateListenerType } from "@store/tokenRegistry"
 import { Context } from "best-behavior"
 import { getTokenRegistry } from "@store/store"
 
 export function testStoreContext<T>(): Context<TestStore<T>> {
   return {
-    init: () => new TestStore<T>()
+    init: () => new TestStore<T>(),
   }
 }
 
@@ -16,7 +36,7 @@ interface ValuesStore {
 export class StoreValuesUserEffect implements ReactiveEffect, ValuesStore {
   values: Array<any> = []
 
-  constructor(private definition: (get: GetState) => any) { }
+  constructor(private definition: (get: GetState) => any) {}
 
   run(get: GetState): void {
     this.values.push(this.definition(get))
@@ -27,7 +47,7 @@ export class StoreValuesElementEffect implements StateEffect, ValuesStore {
   readonly type = StateListenerType.ElementEffect
   values: Array<any> = []
 
-  constructor(private definition: (get: GetState) => any) { }
+  constructor(private definition: (get: GetState) => any) {}
 
   init(get: GetState): void {
     this.run(get)
@@ -37,7 +57,6 @@ export class StoreValuesElementEffect implements StateEffect, ValuesStore {
     this.values.push(this.definition(get))
   }
 }
-
 
 export class TestStore<T> {
   store: Store
@@ -50,7 +69,7 @@ export class TestStore<T> {
 
   initialize(initializer: (actions: StoreInitializerActions) => Promise<void>): Promise<void> {
     this.store = createStore({
-      init: initializer
+      init: initializer,
     })
 
     return this.store.initialized
@@ -69,15 +88,15 @@ export class TestStore<T> {
   }
 
   subscribeToCollection<K, S extends State<any>>(token: Collection<K, S>, id: K, name: string) {
-    this.registerEffect(name, get => get(token.at(id)))
+    this.registerEffect(name, (get) => get(token.at(id)))
   }
 
   subscribeTo<S>(token: State<S>, name: string) {
-    this.registerEffect(name, get => get(token))
+    this.registerEffect(name, (get) => get(token))
   }
 
   subscribeSystemEffectTo<S>(token: State<S>, name: string) {
-    this.registerSystemEffect(name, get => get(token))
+    this.registerSystemEffect(name, (get) => get(token))
   }
 
   useCommand<M>(command: Command<M>, handler: (message: M, actions: CommandActions) => void) {

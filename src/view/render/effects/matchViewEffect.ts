@@ -1,10 +1,19 @@
-import { GetState } from "../../../store/index.js";
-import { activate, DOMTemplate, render } from "../domTemplate.js";
-import { generateStateManager, StateEffect, StateListenerType, StateReader, StateWriter, StateHandler, TokenRegistry, StateToken } from "../../../store/tokenRegistry.js";
-import { clone, Container } from "../../../store/state/container.js";
-import { TemplateCollection, TemplateMatch } from "../viewMatcherBuilder.js";
-import { OverlayTokenRegistry } from "../../../store/registry/overlayTokenRegistry.js";
-import { OverlayStateHandler } from "../../../store/state/handler/overlayStateHandler.js";
+import { GetState } from "../../../store/index.js"
+import { activate, DOMTemplate, render } from "../domTemplate.js"
+import {
+  generateStateManager,
+  StateEffect,
+  StateListenerType,
+  StateReader,
+  StateWriter,
+  StateHandler,
+  TokenRegistry,
+  StateToken,
+} from "../../../store/tokenRegistry.js"
+import { clone, Container } from "../../../store/state/container.js"
+import { TemplateCollection, TemplateMatch } from "../viewMatcherBuilder.js"
+import { OverlayTokenRegistry } from "../../../store/registry/overlayTokenRegistry.js"
+import { OverlayStateHandler } from "../../../store/state/handler/overlayStateHandler.js"
 
 export class MatchViewEffect implements StateEffect {
   readonly type = StateListenerType.ViewEffect
@@ -68,7 +77,11 @@ export class MatchViewEffect implements StateEffect {
     range.deleteContents()
   }
 
-  activateMatch(templateCollection: TemplateCollection<DOMTemplate>, startNode: Node, get: GetState) {
+  activateMatch(
+    templateCollection: TemplateCollection<DOMTemplate>,
+    startNode: Node,
+    get: GetState,
+  ) {
     const match = templateCollection.match(get)
 
     this.currentMatch = match
@@ -76,7 +89,11 @@ export class MatchViewEffect implements StateEffect {
     if (match.type === "view") {
       const templateContext = match.templateContext()
       this.registry.setViewTokens(templateContext.tokens)
-      activate(templateContext.template, templateContext.overlayRegistry(this.registry), startNode.nextSibling!)
+      activate(
+        templateContext.template,
+        templateContext.overlayRegistry(this.registry),
+        startNode.nextSibling!,
+      )
     }
   }
 }

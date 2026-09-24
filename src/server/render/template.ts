@@ -9,40 +9,43 @@ export interface HTMLTemplate {
 
 export function emptyTemplate(): HTMLTemplate {
   return {
-    strings: [ "" ],
-    statefuls: []
+    strings: [""],
+    statefuls: [],
   }
 }
 
 export function templateFromString(value: string): HTMLTemplate {
   return {
-    strings: [ value ],
-    statefuls: []
+    strings: [value],
+    statefuls: [],
   }
 }
 
-export function toStatefulString(stateful: Stateful<string>, defaultValue: string = ""): StatefulString {
+export function toStatefulString(
+  stateful: Stateful<string>,
+  defaultValue: string = "",
+): StatefulString {
   return (registry) => runQuery(registry, stateful) || defaultValue
 }
 
 export function templateFromStateful(stateful: StatefulString): HTMLTemplate {
   return {
-    strings: [ "", "" ],
-    statefuls: [ stateful ]
+    strings: ["", ""],
+    statefuls: [stateful],
   }
 }
 
 export function addStringToTemplate(current: HTMLTemplate, val: string): HTMLTemplate {
   return addTemplate(current, {
     strings: [val],
-    statefuls: []
+    statefuls: [],
   })
 }
 
 export function addTemplate(current: HTMLTemplate, next: HTMLTemplate): HTMLTemplate {
   const added: HTMLTemplate = {
     strings: [...current.strings],
-    statefuls: [...current.statefuls]
+    statefuls: [...current.statefuls],
   }
 
   let currentString = added.strings[added.strings.length - 1]

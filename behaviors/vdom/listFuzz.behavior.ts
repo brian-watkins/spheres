@@ -8,7 +8,10 @@ import { fuzzContext, FuzzState, Mutation } from "./helpers/fuzzContext.js"
 class ListFuzzState implements FuzzState<Array<string>> {
   private counter: number = 0
 
-  constructor(private seed: number, public current: Array<string>) { }
+  constructor(
+    private seed: number,
+    public current: Array<string>,
+  ) {}
 
   uniqueItem() {
     return `item-${this.seed}-${this.counter++}`
@@ -27,18 +30,18 @@ const shuffle: ListMutation = {
   apply(state, generator) {
     const next = [...state.current]
     for (let i = next.length - 1; i > 0; i--) {
-      const j = generator.randomInt(i + 1);
-      [next[i], next[j]] = [next[j], next[i]]
+      const j = generator.randomInt(i + 1)
+      ;[next[i], next[j]] = [next[j], next[i]]
     }
     return state.next(next)
-  }
+  },
 }
 
 const reverse: ListMutation = {
   name: "reverse",
   apply(state) {
     return state.next([...state.current].reverse())
-  }
+  },
 }
 
 const moveOne: ListMutation = {
@@ -50,7 +53,7 @@ const moveOne: ListMutation = {
     const [item] = next.splice(from, 1)
     next.splice(generator.randomInt(next.length + 1), 0, item)
     return state.next(next)
-  }
+  },
 }
 
 const swapTwo: ListMutation = {
@@ -59,10 +62,10 @@ const swapTwo: ListMutation = {
     if (state.current.length < 2) return state
     const next = [...state.current]
     const a = generator.randomInt(next.length)
-    const b = generator.randomInt(next.length);
-    [next[a], next[b]] = [next[b], next[a]]
+    const b = generator.randomInt(next.length)
+    ;[next[a], next[b]] = [next[b], next[a]]
     return state.next(next)
-  }
+  },
 }
 
 const removeSome: ListMutation = {
@@ -75,7 +78,7 @@ const removeSome: ListMutation = {
       next.splice(generator.randomInt(next.length), 1)
     }
     return state.next(next)
-  }
+  },
 }
 
 const insertSome: ListMutation = {
@@ -87,7 +90,7 @@ const insertSome: ListMutation = {
       next.splice(generator.randomInt(next.length + 1), 0, state.uniqueItem())
     }
     return state.next(next)
-  }
+  },
 }
 
 const replaceSome: ListMutation = {
@@ -100,14 +103,14 @@ const replaceSome: ListMutation = {
       next[generator.randomInt(next.length)] = state.uniqueItem()
     }
     return state.next(next)
-  }
+  },
 }
 
 const clearAll: ListMutation = {
   name: "clearAll",
   apply(state) {
     return state.next([])
-  }
+  },
 }
 
 const freshList: ListMutation = {
@@ -119,14 +122,14 @@ const freshList: ListMutation = {
       next.push(state.uniqueItem())
     }
     return state.next(next)
-  }
+  },
 }
 
 const noChange: ListMutation = {
   name: "noChange",
   apply(state) {
     return state.next([...state.current])
-  }
+  },
 }
 
 const prependSome: ListMutation = {
@@ -138,7 +141,7 @@ const prependSome: ListMutation = {
       added.push(state.uniqueItem())
     }
     return state.next([...added, ...state.current])
-  }
+  },
 }
 
 const shrinkToOne: ListMutation = {
@@ -146,7 +149,7 @@ const shrinkToOne: ListMutation = {
   apply(state, generator) {
     if (state.current.length === 0) return state
     return state.next([state.current[generator.randomInt(state.current.length)]])
-  }
+  },
 }
 
 const removeInsertAndShuffle: ListMutation = {
@@ -155,49 +158,61 @@ const removeInsertAndShuffle: ListMutation = {
     const removedSome = removeSome.apply(state, generator)
     const insertedSome = insertSome.apply(removedSome, generator)
     return shuffle.apply(insertedSome, generator)
-  }
+  },
 }
 
 // weighted so structural churn dominates, with occasional degenerate cases
 const mutations: Array<ListMutation> = [
-  shuffle, shuffle,
+  shuffle,
+  shuffle,
   reverse,
-  moveOne, moveOne,
-  swapTwo, swapTwo,
-  removeSome, removeSome,
-  insertSome, insertSome,
-  replaceSome, replaceSome,
-  removeInsertAndShuffle, removeInsertAndShuffle,
-  prependSome, prependSome,
+  moveOne,
+  moveOne,
+  swapTwo,
+  swapTwo,
+  removeSome,
+  removeSome,
+  insertSome,
+  insertSome,
+  replaceSome,
+  replaceSome,
+  removeInsertAndShuffle,
+  removeInsertAndShuffle,
+  prependSome,
+  prependSome,
   shrinkToOne,
   noChange,
   clearAll,
-  freshList
+  freshList,
 ]
 
 // ---- item views ----
 
 function elementItemView(stateful: UseItem<string>): HTMLView {
-  return root => {
-    root.p(el => {
-      el.config
-        .dataAttribute("child")
-        .dataAttribute("key", stateful(item => item.data))
-      el.children.textNode(stateful(item => `${item.data} (${item.index})`))
+  return (root) => {
+    root.p((el) => {
+      el.config.dataAttribute("child").dataAttribute(
+        "key",
+        stateful((item) => item.data),
+      )
+      el.children.textNode(stateful((item) => `${item.data} (${item.index})`))
     })
   }
 }
 
 function fragmentItemView(stateful: UseItem<string>): HTMLView {
-  return root => {
+  return (root) => {
     root
-      .h3(el => {
-        el.config.dataAttribute("key", stateful(item => item.data))
-        el.children.textNode(stateful(item => item.data))
+      .h3((el) => {
+        el.config.dataAttribute(
+          "key",
+          stateful((item) => item.data),
+        )
+        el.children.textNode(stateful((item) => item.data))
       })
-      .p(el => {
+      .p((el) => {
         el.config.dataAttribute("child")
-        el.children.textNode(stateful(item => `${item.data} (${item.index})`))
+        el.children.textNode(stateful((item) => `${item.data} (${item.index})`))
       })
   }
 }
@@ -212,29 +227,38 @@ function currentKeyedElements(): Map<string, Element> {
   return elements
 }
 
-function verifyRenderedList(expected: Array<string>, elementsBeforePatch: Map<string, Element>, detail: string) {
-  const actualTexts = Array.from(document.querySelectorAll("[data-child]"))
-    .map(el => el.textContent)
+function verifyRenderedList(
+  expected: Array<string>,
+  elementsBeforePatch: Map<string, Element>,
+  detail: string,
+) {
+  const actualTexts = Array.from(document.querySelectorAll("[data-child]")).map(
+    (el) => el.textContent,
+  )
   const expectedTexts = expected.map((key, index) => `${key} (${index})`)
 
   expect(actualTexts, is(equalTo(expectedTexts)), detail)
 
   expect(
-    currentKeyedElements(), is(subsetOfMap(elementsBeforePatch)),
-    `An item was recreated instead of moved ${detail}`
+    currentKeyedElements(),
+    is(subsetOfMap(elementsBeforePatch)),
+    `An item was recreated instead of moved ${detail}`,
   )
 }
 
 function subsetOfMap<K, V>(map: Map<K, V>): Matcher<Map<K, V>> {
-  return valueWhere(actual => {
-    for (const [key, value] of actual) {
-      const original = map.get(key)
-      if (original !== undefined && original !== value) {
-        return false
+  return valueWhere(
+    (actual) => {
+      for (const [key, value] of actual) {
+        const original = map.get(key)
+        if (original !== undefined && original !== value) {
+          return false
+        }
       }
-    }
-    return true
-  }, message`a subset of ${map}`)
+      return true
+    },
+    message`a subset of ${map}`,
+  )
 }
 
 // ---- fuzz examples ----
@@ -254,54 +278,60 @@ function listFuzzContext(seed: number) {
       initialState(generator) {
         return freshList.apply(new ListFuzzState(seed, []), generator)
       },
-    })
+    }),
   })
 }
 
-function fuzzExample(description: string, seed: number, itemView: (stateful: UseItem<string>) => HTMLView) {
+function fuzzExample(
+  description: string,
+  seed: number,
+  itemView: (stateful: UseItem<string>) => HTMLView,
+) {
   return example(listFuzzContext(seed))
     .description(`${description} (seed ${seed})`)
     .script({
       suppose: [
         fact("there is a randomly generated list of unique items", ({ app, fuzz }) => {
           app.setState({
-            items: container({ initialValue: fuzz.current })
+            items: container({ initialValue: fuzz.current }),
           })
         }),
         fact("the list is rendered", ({ app }) => {
-          app.mountView(root => {
-            root.div(el => {
-              el.children.subviews(get => get(app.state.items), itemView)
+          app.mountView((root) => {
+            root.div((el) => {
+              el.children.subviews((get) => get(app.state.items), itemView)
             })
           })
-        })
+        }),
       ],
       perform: [
-        step(`the list is randomly mutated ${updatesPerRun} times, checking the rendered output after each change`, ({ app, fuzz }) => {
-          for (let i = 0; i < updatesPerRun; i++) {
-            const current = fuzz.current
-            const next = fuzz.next
+        step(
+          `the list is randomly mutated ${updatesPerRun} times, checking the rendered output after each change`,
+          ({ app, fuzz }) => {
+            for (let i = 0; i < updatesPerRun; i++) {
+              const current = fuzz.current
+              const next = fuzz.next
 
-            const elementsBeforePatch = currentKeyedElements()
-            app.writeTo(app.state.items, next)
+              const elementsBeforePatch = currentKeyedElements()
+              app.writeTo(app.state.items, next)
 
-            verifyRenderedList(
-              next,
-              elementsBeforePatch,
-              `after update ${i + 1} (${fuzz.lastMutation.name}) from ${JSON.stringify(current)} to ${JSON.stringify(next)}`
-            )
-          }
-        })
+              verifyRenderedList(
+                next,
+                elementsBeforePatch,
+                `after update ${i + 1} (${fuzz.lastMutation.name}) from ${JSON.stringify(current)} to ${JSON.stringify(next)}`,
+              )
+            }
+          },
+        ),
       ],
       observe: [
         effect("the rendered items match the final list data", ({ fuzz }) => {
-          const actualTexts = Array.from(document.querySelectorAll("[data-child]"))
-            .map(el => el.textContent)
-          expect(actualTexts, is(equalTo(
-            fuzz.current.map((key, index) => `${key} (${index})`)
-          )))
-        })
-      ]
+          const actualTexts = Array.from(document.querySelectorAll("[data-child]")).map(
+            (el) => el.textContent,
+          )
+          expect(actualTexts, is(equalTo(fuzz.current.map((key, index) => `${key} (${index})`))))
+        }),
+      ],
     })
 }
 
@@ -309,6 +339,10 @@ const elementSeeds = [1, 2, 3, 4, 5, 6, 7, 8]
 const fragmentSeeds = [101, 102, 103, 104, 105, 106, 107, 108]
 
 export default behavior("list fuzz", [
-  ...elementSeeds.map(seed => fuzzExample("random updates to a list of elements", seed, elementItemView)),
-  ...fragmentSeeds.map(seed => fuzzExample("random updates to a list of fragments", seed, fragmentItemView)),
+  ...elementSeeds.map((seed) =>
+    fuzzExample("random updates to a list of elements", seed, elementItemView),
+  ),
+  ...fragmentSeeds.map((seed) =>
+    fuzzExample("random updates to a list of fragments", seed, fragmentItemView),
+  ),
 ])

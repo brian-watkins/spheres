@@ -4,7 +4,7 @@ import { StateEffect, Stateful, StateListenerType } from "../../../store/tokenRe
 export class UpdateTextEffect implements StateEffect {
   readonly type = StateListenerType.ElementEffect
 
-  constructor(private generator: Stateful<string>) { }
+  constructor(private generator: Stateful<string>) {}
 
   init(get: GetState, node: Node): void {
     node.nodeValue = this.generator(get) ?? ""

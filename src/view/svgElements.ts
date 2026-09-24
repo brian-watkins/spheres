@@ -1,4312 +1,5039 @@
-import { ConfigurableElement, UseCase, UseItem } from "./render/viewRenderer.js";
-import { GetState, Stateful } from "../store/index.js";
-import { SpecialElementAttributes } from "./specialAttributes.js";
-import { ElementSupport } from "./elementSupport.js";
+import { ConfigurableElement, UseCase, UseItem } from "./render/viewRenderer.js"
+import { GetState, Stateful } from "../store/index.js"
+import { SpecialElementAttributes } from "./specialAttributes.js"
+import { ElementSupport } from "./elementSupport.js"
 
-export type SVGView = (root: SVGBuilder) => void;
-export type SvgTagElement<T extends string> = T extends keyof SVGElementTagNameMap ? SVGElementTagNameMap[T] : SVGElement;
+export type SVGView = (root: SVGBuilder) => void
+export type SvgTagElement<T extends string> = T extends keyof SVGElementTagNameMap
+  ? SVGElementTagNameMap[T]
+  : SVGElement
 
 export interface SVGCaseMatcher<T> {
-    when<X extends T>(typePredicate: (val: T) => val is X, generator: (useCase: UseCase<X>) => SVGView): SVGCaseMatcher<T>;
-    default(generator: (useCase: UseCase<T>) => SVGView): void;
+  when<X extends T>(
+    typePredicate: (val: T) => val is X,
+    generator: (useCase: UseCase<X>) => SVGView,
+  ): SVGCaseMatcher<T>
+  default(generator: (useCase: UseCase<T>) => SVGView): void
 }
 
 export interface SVGConditionMatcher {
-    when(predicate: (get: GetState) => boolean, view: SVGView): SVGConditionMatcher;
-    default(view: SVGView): void;
+  when(predicate: (get: GetState) => boolean, view: SVGView): SVGConditionMatcher
+  default(view: SVGView): void
 }
 
 export interface SVGViewMatcher {
-    withUnion<T>(unionValue: (get: GetState) => T): SVGCaseMatcher<T>;
-    withConditions(): SVGConditionMatcher;
+  withUnion<T>(unionValue: (get: GetState) => T): SVGCaseMatcher<T>
+  withConditions(): SVGConditionMatcher
 }
 
 export interface SpecialSVGElements {
-    element(tag: string, builder?: (element: ConfigurableElement<SpecialElementAttributes & GlobalSVGAttributes, SVGBuilder>) => void, support?: ElementSupport): this;
-    textNode(value: string | Stateful<string | undefined>): this;
-    subview(value: SVGView): this;
-    subviewMatching(matcherGenerator: (matcher: SVGViewMatcher) => void): this;
-    subviews<T>(data: (get: GetState) => ReadonlyArray<T>, viewGenerator: (useItem: UseItem<T>) => SVGView): this;
+  element(
+    tag: string,
+    builder?: (
+      element: ConfigurableElement<SpecialElementAttributes & GlobalSVGAttributes, SVGBuilder>,
+    ) => void,
+    support?: ElementSupport,
+  ): this
+  textNode(value: string | Stateful<string | undefined>): this
+  subview(value: SVGView): this
+  subviewMatching(matcherGenerator: (matcher: SVGViewMatcher) => void): this
+  subviews<T>(
+    data: (get: GetState) => ReadonlyArray<T>,
+    viewGenerator: (useItem: UseItem<T>) => SVGView,
+  ): this
 }
 
 export interface SVGBuilder extends SpecialSVGElements {
-    a(builder?: (element: ConfigurableElement<ASVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    altGlyph(builder?: (element: ConfigurableElement<AltGlyphSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    altGlyphDef(builder?: (element: ConfigurableElement<AltGlyphDefSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    altGlyphItem(builder?: (element: ConfigurableElement<AltGlyphItemSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    animate(builder?: (element: ConfigurableElement<AnimateSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    animateColor(builder?: (element: ConfigurableElement<AnimateColorSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    animateMotion(builder?: (element: ConfigurableElement<AnimateMotionSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    animateTransform(builder?: (element: ConfigurableElement<AnimateTransformSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    animation(builder?: (element: ConfigurableElement<AnimationSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    audio(builder?: (element: ConfigurableElement<AudioSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    canvas(builder?: (element: ConfigurableElement<CanvasSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    circle(builder?: (element: ConfigurableElement<CircleSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    clipPath(builder?: (element: ConfigurableElement<ClipPathSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    cursor(builder?: (element: ConfigurableElement<CursorSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    defs(builder?: (element: ConfigurableElement<DefsSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    desc(builder?: (element: ConfigurableElement<DescSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    discard(builder?: (element: ConfigurableElement<DiscardSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    ellipse(builder?: (element: ConfigurableElement<EllipseSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    feBlend(builder?: (element: ConfigurableElement<FeBlendSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    feColorMatrix(builder?: (element: ConfigurableElement<FeColorMatrixSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    feComponentTransfer(builder?: (element: ConfigurableElement<FeComponentTransferSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    feComposite(builder?: (element: ConfigurableElement<FeCompositeSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    feConvolveMatrix(builder?: (element: ConfigurableElement<FeConvolveMatrixSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    feDiffuseLighting(builder?: (element: ConfigurableElement<FeDiffuseLightingSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    feDisplacementMap(builder?: (element: ConfigurableElement<FeDisplacementMapSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    feDistantLight(builder?: (element: ConfigurableElement<FeDistantLightSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    feDropShadow(builder?: (element: ConfigurableElement<FeDropShadowSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    feFlood(builder?: (element: ConfigurableElement<FeFloodSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    feFuncA(builder?: (element: ConfigurableElement<FeFuncASVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    feFuncB(builder?: (element: ConfigurableElement<FeFuncBSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    feFuncG(builder?: (element: ConfigurableElement<FeFuncGSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    feFuncR(builder?: (element: ConfigurableElement<FeFuncRSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    feGaussianBlur(builder?: (element: ConfigurableElement<FeGaussianBlurSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    feImage(builder?: (element: ConfigurableElement<FeImageSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    feMerge(builder?: (element: ConfigurableElement<FeMergeSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    feMergeNode(builder?: (element: ConfigurableElement<FeMergeNodeSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    feMorphology(builder?: (element: ConfigurableElement<FeMorphologySVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    feOffset(builder?: (element: ConfigurableElement<FeOffsetSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    fePointLight(builder?: (element: ConfigurableElement<FePointLightSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    feSpecularLighting(builder?: (element: ConfigurableElement<FeSpecularLightingSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    feSpotLight(builder?: (element: ConfigurableElement<FeSpotLightSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    feTile(builder?: (element: ConfigurableElement<FeTileSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    feTurbulence(builder?: (element: ConfigurableElement<FeTurbulenceSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    filter(builder?: (element: ConfigurableElement<FilterSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    foreignObject(builder?: (element: ConfigurableElement<ForeignObjectSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    g(builder?: (element: ConfigurableElement<GSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    glyph(builder?: (element: ConfigurableElement<GlyphSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    glyphRef(builder?: (element: ConfigurableElement<GlyphRefSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    handler(builder?: (element: ConfigurableElement<HandlerSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    hkern(builder?: (element: ConfigurableElement<HkernSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    iframe(builder?: (element: ConfigurableElement<IframeSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    image(builder?: (element: ConfigurableElement<ImageSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    line(builder?: (element: ConfigurableElement<LineSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    linearGradient(builder?: (element: ConfigurableElement<LinearGradientSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    listener(builder?: (element: ConfigurableElement<ListenerSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    marker(builder?: (element: ConfigurableElement<MarkerSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    mask(builder?: (element: ConfigurableElement<MaskSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    metadata(builder?: (element: ConfigurableElement<MetadataSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    mpath(builder?: (element: ConfigurableElement<MpathSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    path(builder?: (element: ConfigurableElement<PathSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    pattern(builder?: (element: ConfigurableElement<PatternSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    polygon(builder?: (element: ConfigurableElement<PolygonSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    polyline(builder?: (element: ConfigurableElement<PolylineSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    prefetch(builder?: (element: ConfigurableElement<PrefetchSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    radialGradient(builder?: (element: ConfigurableElement<RadialGradientSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    rect(builder?: (element: ConfigurableElement<RectSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    script(builder?: (element: ConfigurableElement<ScriptSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    set(builder?: (element: ConfigurableElement<SetSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    solidColor(builder?: (element: ConfigurableElement<SolidColorSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    stop(builder?: (element: ConfigurableElement<StopSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    style(builder?: (element: ConfigurableElement<StyleSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    svg(builder?: (element: ConfigurableElement<SVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    switch(builder?: (element: ConfigurableElement<SwitchSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    symbol(builder?: (element: ConfigurableElement<SymbolSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    tbreak(builder?: (element: ConfigurableElement<TbreakSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    text(builder?: (element: ConfigurableElement<TextSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    textArea(builder?: (element: ConfigurableElement<TextAreaSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    textPath(builder?: (element: ConfigurableElement<TextPathSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    title(builder?: (element: ConfigurableElement<TitleSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    tref(builder?: (element: ConfigurableElement<TrefSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    tspan(builder?: (element: ConfigurableElement<TspanSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    unknown(builder?: (element: ConfigurableElement<UnknownSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    use(builder?: (element: ConfigurableElement<UseSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    video(builder?: (element: ConfigurableElement<VideoSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    view(builder?: (element: ConfigurableElement<ViewSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
-    vkern(builder?: (element: ConfigurableElement<VkernSVGElementAttributes, SVGBuilder>) => void): SVGBuilder;
+  a(builder?: (element: ConfigurableElement<ASVGElementAttributes, SVGBuilder>) => void): SVGBuilder
+  altGlyph(
+    builder?: (element: ConfigurableElement<AltGlyphSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  altGlyphDef(
+    builder?: (element: ConfigurableElement<AltGlyphDefSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  altGlyphItem(
+    builder?: (element: ConfigurableElement<AltGlyphItemSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  animate(
+    builder?: (element: ConfigurableElement<AnimateSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  animateColor(
+    builder?: (element: ConfigurableElement<AnimateColorSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  animateMotion(
+    builder?: (element: ConfigurableElement<AnimateMotionSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  animateTransform(
+    builder?: (
+      element: ConfigurableElement<AnimateTransformSVGElementAttributes, SVGBuilder>,
+    ) => void,
+  ): SVGBuilder
+  animation(
+    builder?: (element: ConfigurableElement<AnimationSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  audio(
+    builder?: (element: ConfigurableElement<AudioSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  canvas(
+    builder?: (element: ConfigurableElement<CanvasSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  circle(
+    builder?: (element: ConfigurableElement<CircleSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  clipPath(
+    builder?: (element: ConfigurableElement<ClipPathSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  cursor(
+    builder?: (element: ConfigurableElement<CursorSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  defs(
+    builder?: (element: ConfigurableElement<DefsSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  desc(
+    builder?: (element: ConfigurableElement<DescSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  discard(
+    builder?: (element: ConfigurableElement<DiscardSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  ellipse(
+    builder?: (element: ConfigurableElement<EllipseSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  feBlend(
+    builder?: (element: ConfigurableElement<FeBlendSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  feColorMatrix(
+    builder?: (element: ConfigurableElement<FeColorMatrixSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  feComponentTransfer(
+    builder?: (
+      element: ConfigurableElement<FeComponentTransferSVGElementAttributes, SVGBuilder>,
+    ) => void,
+  ): SVGBuilder
+  feComposite(
+    builder?: (element: ConfigurableElement<FeCompositeSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  feConvolveMatrix(
+    builder?: (
+      element: ConfigurableElement<FeConvolveMatrixSVGElementAttributes, SVGBuilder>,
+    ) => void,
+  ): SVGBuilder
+  feDiffuseLighting(
+    builder?: (
+      element: ConfigurableElement<FeDiffuseLightingSVGElementAttributes, SVGBuilder>,
+    ) => void,
+  ): SVGBuilder
+  feDisplacementMap(
+    builder?: (
+      element: ConfigurableElement<FeDisplacementMapSVGElementAttributes, SVGBuilder>,
+    ) => void,
+  ): SVGBuilder
+  feDistantLight(
+    builder?: (
+      element: ConfigurableElement<FeDistantLightSVGElementAttributes, SVGBuilder>,
+    ) => void,
+  ): SVGBuilder
+  feDropShadow(
+    builder?: (element: ConfigurableElement<FeDropShadowSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  feFlood(
+    builder?: (element: ConfigurableElement<FeFloodSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  feFuncA(
+    builder?: (element: ConfigurableElement<FeFuncASVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  feFuncB(
+    builder?: (element: ConfigurableElement<FeFuncBSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  feFuncG(
+    builder?: (element: ConfigurableElement<FeFuncGSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  feFuncR(
+    builder?: (element: ConfigurableElement<FeFuncRSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  feGaussianBlur(
+    builder?: (
+      element: ConfigurableElement<FeGaussianBlurSVGElementAttributes, SVGBuilder>,
+    ) => void,
+  ): SVGBuilder
+  feImage(
+    builder?: (element: ConfigurableElement<FeImageSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  feMerge(
+    builder?: (element: ConfigurableElement<FeMergeSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  feMergeNode(
+    builder?: (element: ConfigurableElement<FeMergeNodeSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  feMorphology(
+    builder?: (element: ConfigurableElement<FeMorphologySVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  feOffset(
+    builder?: (element: ConfigurableElement<FeOffsetSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  fePointLight(
+    builder?: (element: ConfigurableElement<FePointLightSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  feSpecularLighting(
+    builder?: (
+      element: ConfigurableElement<FeSpecularLightingSVGElementAttributes, SVGBuilder>,
+    ) => void,
+  ): SVGBuilder
+  feSpotLight(
+    builder?: (element: ConfigurableElement<FeSpotLightSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  feTile(
+    builder?: (element: ConfigurableElement<FeTileSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  feTurbulence(
+    builder?: (element: ConfigurableElement<FeTurbulenceSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  filter(
+    builder?: (element: ConfigurableElement<FilterSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  foreignObject(
+    builder?: (element: ConfigurableElement<ForeignObjectSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  g(builder?: (element: ConfigurableElement<GSVGElementAttributes, SVGBuilder>) => void): SVGBuilder
+  glyph(
+    builder?: (element: ConfigurableElement<GlyphSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  glyphRef(
+    builder?: (element: ConfigurableElement<GlyphRefSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  handler(
+    builder?: (element: ConfigurableElement<HandlerSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  hkern(
+    builder?: (element: ConfigurableElement<HkernSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  iframe(
+    builder?: (element: ConfigurableElement<IframeSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  image(
+    builder?: (element: ConfigurableElement<ImageSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  line(
+    builder?: (element: ConfigurableElement<LineSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  linearGradient(
+    builder?: (
+      element: ConfigurableElement<LinearGradientSVGElementAttributes, SVGBuilder>,
+    ) => void,
+  ): SVGBuilder
+  listener(
+    builder?: (element: ConfigurableElement<ListenerSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  marker(
+    builder?: (element: ConfigurableElement<MarkerSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  mask(
+    builder?: (element: ConfigurableElement<MaskSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  metadata(
+    builder?: (element: ConfigurableElement<MetadataSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  mpath(
+    builder?: (element: ConfigurableElement<MpathSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  path(
+    builder?: (element: ConfigurableElement<PathSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  pattern(
+    builder?: (element: ConfigurableElement<PatternSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  polygon(
+    builder?: (element: ConfigurableElement<PolygonSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  polyline(
+    builder?: (element: ConfigurableElement<PolylineSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  prefetch(
+    builder?: (element: ConfigurableElement<PrefetchSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  radialGradient(
+    builder?: (
+      element: ConfigurableElement<RadialGradientSVGElementAttributes, SVGBuilder>,
+    ) => void,
+  ): SVGBuilder
+  rect(
+    builder?: (element: ConfigurableElement<RectSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  script(
+    builder?: (element: ConfigurableElement<ScriptSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  set(
+    builder?: (element: ConfigurableElement<SetSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  solidColor(
+    builder?: (element: ConfigurableElement<SolidColorSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  stop(
+    builder?: (element: ConfigurableElement<StopSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  style(
+    builder?: (element: ConfigurableElement<StyleSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  svg(
+    builder?: (element: ConfigurableElement<SVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  switch(
+    builder?: (element: ConfigurableElement<SwitchSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  symbol(
+    builder?: (element: ConfigurableElement<SymbolSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  tbreak(
+    builder?: (element: ConfigurableElement<TbreakSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  text(
+    builder?: (element: ConfigurableElement<TextSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  textArea(
+    builder?: (element: ConfigurableElement<TextAreaSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  textPath(
+    builder?: (element: ConfigurableElement<TextPathSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  title(
+    builder?: (element: ConfigurableElement<TitleSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  tref(
+    builder?: (element: ConfigurableElement<TrefSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  tspan(
+    builder?: (element: ConfigurableElement<TspanSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  unknown(
+    builder?: (element: ConfigurableElement<UnknownSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  use(
+    builder?: (element: ConfigurableElement<UseSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  video(
+    builder?: (element: ConfigurableElement<VideoSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  view(
+    builder?: (element: ConfigurableElement<ViewSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
+  vkern(
+    builder?: (element: ConfigurableElement<VkernSVGElementAttributes, SVGBuilder>) => void,
+  ): SVGBuilder
 }
 
 export interface GlobalSVGAttributes {
-    about(value: string | Stateful<string | undefined>): this;
-    class(value: string | Stateful<string | undefined>): this;
-    content(value: string | Stateful<string | undefined>): this;
-    datatype(value: string | Stateful<string | undefined>): this;
-    id(value: string | Stateful<string | undefined>): this;
-    lang(value: string | Stateful<string | undefined>): this;
-    property(value: string | Stateful<string | undefined>): this;
-    rel(value: string | Stateful<string | undefined>): this;
-    resource(value: string | Stateful<string | undefined>): this;
-    rev(value: string | Stateful<string | undefined>): this;
-    style(value: string | Stateful<string | undefined>): this;
-    tabindex(value: string | Stateful<string | undefined>): this;
-    typeof(value: string | Stateful<string | undefined>): this;
-}
-
-export interface ASVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"a">>, GlobalSVGAttributes {
-    alignmentBaseline(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    download(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    externalResourcesRequired(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    focusHighlight(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    focusable(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    href(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    hreflang(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    navDown(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    navDownLeft(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    navDownRight(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    navLeft(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    navNext(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    navPrev(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    navRight(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    navUp(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    navUpLeft(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    navUpRight(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    ping(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    referrerpolicy(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    requiredExtensions(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    requiredFeatures(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    requiredFonts(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    requiredFormats(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    systemLanguage(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    target(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    transform(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    type(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): ASVGElementAttributes;
-}
-
-export interface AltGlyphSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"altGlyph">>, GlobalSVGAttributes {
-    alignmentBaseline(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    dx(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    dy(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    externalResourcesRequired(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    format(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    glyphRef(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    requiredExtensions(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    requiredFeatures(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    rotate(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    systemLanguage(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    x(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-    y(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes;
-}
-
-export interface AltGlyphDefSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"altGlyphDef">>, GlobalSVGAttributes {
-}
-
-export interface AltGlyphItemSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"altGlyphItem">>, GlobalSVGAttributes {
-}
-
-export interface AnimateSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"animate">>, GlobalSVGAttributes {
-    accumulate(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    additive(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    alignmentBaseline(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    attributeName(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    attributeType(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    begin(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    by(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    calcMode(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    dur(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    end(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    externalResourcesRequired(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    from(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    href(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    keySplines(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    keyTimes(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    max(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    min(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    repeatCount(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    repeatDur(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    requiredExtensions(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    requiredFeatures(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    requiredFonts(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    requiredFormats(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    restart(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    systemLanguage(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    to(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    values(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes;
-}
-
-export interface AnimateColorSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"animateColor">>, GlobalSVGAttributes {
-    accumulate(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    additive(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    alignmentBaseline(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    attributeName(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    attributeType(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    begin(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    by(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    calcMode(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    dur(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    end(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    externalResourcesRequired(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    from(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    keySplines(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    keyTimes(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    max(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    min(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    repeatCount(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    repeatDur(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    requiredExtensions(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    requiredFeatures(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    requiredFonts(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    requiredFormats(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    restart(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    systemLanguage(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    to(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    values(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes;
-}
-
-export interface AnimateMotionSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"animateMotion">>, GlobalSVGAttributes {
-    accumulate(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes;
-    additive(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes;
-    begin(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes;
-    by(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes;
-    calcMode(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes;
-    dur(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes;
-    end(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes;
-    externalResourcesRequired(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes;
-    from(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes;
-    href(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes;
-    keyPoints(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes;
-    keySplines(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes;
-    keyTimes(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes;
-    max(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes;
-    min(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes;
-    origin(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes;
-    path(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes;
-    repeatCount(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes;
-    repeatDur(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes;
-    requiredExtensions(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes;
-    requiredFeatures(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes;
-    requiredFonts(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes;
-    requiredFormats(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes;
-    restart(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes;
-    rotate(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes;
-    systemLanguage(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes;
-    to(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes;
-    values(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes;
-}
-
-export interface AnimateTransformSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"animateTransform">>, GlobalSVGAttributes {
-    accumulate(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes;
-    additive(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes;
-    attributeName(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes;
-    attributeType(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes;
-    begin(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes;
-    by(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes;
-    calcMode(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes;
-    dur(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes;
-    end(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes;
-    externalResourcesRequired(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes;
-    from(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes;
-    href(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes;
-    keySplines(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes;
-    keyTimes(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes;
-    max(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes;
-    min(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes;
-    repeatCount(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes;
-    repeatDur(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes;
-    requiredExtensions(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes;
-    requiredFeatures(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes;
-    requiredFonts(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes;
-    requiredFormats(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes;
-    restart(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes;
-    systemLanguage(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes;
-    to(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes;
-    type(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes;
-    values(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes;
-}
-
-export interface AnimationSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"animation">>, GlobalSVGAttributes {
-    begin(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes;
-    dur(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes;
-    end(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes;
-    externalResourcesRequired(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes;
-    focusHighlight(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes;
-    focusable(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes;
-    height(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes;
-    initialVisibility(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes;
-    max(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes;
-    min(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes;
-    navDown(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes;
-    navDownLeft(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes;
-    navDownRight(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes;
-    navLeft(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes;
-    navNext(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes;
-    navPrev(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes;
-    navRight(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes;
-    navUp(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes;
-    navUpLeft(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes;
-    navUpRight(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes;
-    preserveAspectRatio(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes;
-    repeatCount(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes;
-    repeatDur(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes;
-    requiredExtensions(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes;
-    requiredFeatures(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes;
-    requiredFonts(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes;
-    requiredFormats(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes;
-    restart(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes;
-    syncBehavior(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes;
-    syncMaster(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes;
-    syncTolerance(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes;
-    systemLanguage(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes;
-    transform(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes;
-    width(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes;
-    x(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes;
-    y(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes;
-}
-
-export interface AudioSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"audio">>, GlobalSVGAttributes {
-    begin(value: string | Stateful<string | undefined>): AudioSVGElementAttributes;
-    dur(value: string | Stateful<string | undefined>): AudioSVGElementAttributes;
-    end(value: string | Stateful<string | undefined>): AudioSVGElementAttributes;
-    externalResourcesRequired(value: string | Stateful<string | undefined>): AudioSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): AudioSVGElementAttributes;
-    max(value: string | Stateful<string | undefined>): AudioSVGElementAttributes;
-    min(value: string | Stateful<string | undefined>): AudioSVGElementAttributes;
-    repeatCount(value: string | Stateful<string | undefined>): AudioSVGElementAttributes;
-    repeatDur(value: string | Stateful<string | undefined>): AudioSVGElementAttributes;
-    requiredExtensions(value: string | Stateful<string | undefined>): AudioSVGElementAttributes;
-    requiredFeatures(value: string | Stateful<string | undefined>): AudioSVGElementAttributes;
-    requiredFonts(value: string | Stateful<string | undefined>): AudioSVGElementAttributes;
-    requiredFormats(value: string | Stateful<string | undefined>): AudioSVGElementAttributes;
-    restart(value: string | Stateful<string | undefined>): AudioSVGElementAttributes;
-    syncBehavior(value: string | Stateful<string | undefined>): AudioSVGElementAttributes;
-    syncMaster(value: string | Stateful<string | undefined>): AudioSVGElementAttributes;
-    syncTolerance(value: string | Stateful<string | undefined>): AudioSVGElementAttributes;
-    systemLanguage(value: string | Stateful<string | undefined>): AudioSVGElementAttributes;
-    type(value: string | Stateful<string | undefined>): AudioSVGElementAttributes;
-}
-
-export interface CanvasSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"canvas">>, GlobalSVGAttributes {
-    preserveAspectRatio(value: string | Stateful<string | undefined>): CanvasSVGElementAttributes;
-    requiredExtensions(value: string | Stateful<string | undefined>): CanvasSVGElementAttributes;
-    systemLanguage(value: string | Stateful<string | undefined>): CanvasSVGElementAttributes;
-}
-
-export interface CircleSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"circle">>, GlobalSVGAttributes {
-    alignmentBaseline(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    cx(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    cy(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    externalResourcesRequired(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    focusHighlight(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    focusable(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    navDown(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    navDownLeft(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    navDownRight(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    navLeft(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    navNext(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    navPrev(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    navRight(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    navUp(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    navUpLeft(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    navUpRight(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    pathLength(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    r(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    requiredExtensions(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    requiredFeatures(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    requiredFonts(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    requiredFormats(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    systemLanguage(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    transform(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): CircleSVGElementAttributes;
-}
-
-export interface ClipPathSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"clipPath">>, GlobalSVGAttributes {
-    alignmentBaseline(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    clipPathUnits(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    externalResourcesRequired(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    requiredExtensions(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    requiredFeatures(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    systemLanguage(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    transform(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes;
-}
-
-export interface CursorSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"cursor">>, GlobalSVGAttributes {
-    externalResourcesRequired(value: string | Stateful<string | undefined>): CursorSVGElementAttributes;
-    requiredExtensions(value: string | Stateful<string | undefined>): CursorSVGElementAttributes;
-    requiredFeatures(value: string | Stateful<string | undefined>): CursorSVGElementAttributes;
-    systemLanguage(value: string | Stateful<string | undefined>): CursorSVGElementAttributes;
-    x(value: string | Stateful<string | undefined>): CursorSVGElementAttributes;
-    y(value: string | Stateful<string | undefined>): CursorSVGElementAttributes;
-}
-
-export interface DefsSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"defs">>, GlobalSVGAttributes {
-    alignmentBaseline(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    externalResourcesRequired(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    requiredExtensions(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    requiredFeatures(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    systemLanguage(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    transform(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): DefsSVGElementAttributes;
-}
-
-export interface DescSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"desc">>, GlobalSVGAttributes {
-    requiredExtensions(value: string | Stateful<string | undefined>): DescSVGElementAttributes;
-    requiredFeatures(value: string | Stateful<string | undefined>): DescSVGElementAttributes;
-    requiredFonts(value: string | Stateful<string | undefined>): DescSVGElementAttributes;
-    requiredFormats(value: string | Stateful<string | undefined>): DescSVGElementAttributes;
-    systemLanguage(value: string | Stateful<string | undefined>): DescSVGElementAttributes;
-}
-
-export interface DiscardSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"discard">>, GlobalSVGAttributes {
-    begin(value: string | Stateful<string | undefined>): DiscardSVGElementAttributes;
-    href(value: string | Stateful<string | undefined>): DiscardSVGElementAttributes;
-    requiredExtensions(value: string | Stateful<string | undefined>): DiscardSVGElementAttributes;
-    requiredFeatures(value: string | Stateful<string | undefined>): DiscardSVGElementAttributes;
-    requiredFonts(value: string | Stateful<string | undefined>): DiscardSVGElementAttributes;
-    requiredFormats(value: string | Stateful<string | undefined>): DiscardSVGElementAttributes;
-    systemLanguage(value: string | Stateful<string | undefined>): DiscardSVGElementAttributes;
-}
-
-export interface EllipseSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"ellipse">>, GlobalSVGAttributes {
-    alignmentBaseline(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    cx(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    cy(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    externalResourcesRequired(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    focusHighlight(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    focusable(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    navDown(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    navDownLeft(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    navDownRight(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    navLeft(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    navNext(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    navPrev(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    navRight(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    navUp(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    navUpLeft(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    navUpRight(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    pathLength(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    requiredExtensions(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    requiredFeatures(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    requiredFonts(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    requiredFormats(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    rx(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    ry(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    systemLanguage(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    transform(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes;
-}
-
-export interface FeBlendSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"feBlend">>, GlobalSVGAttributes {
-    alignmentBaseline(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    height(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    in(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    in2(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    mode(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    result(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    width(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    x(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-    y(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes;
-}
-
-export interface FeColorMatrixSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"feColorMatrix">>, GlobalSVGAttributes {
-    alignmentBaseline(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    height(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    in(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    result(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    type(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    values(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    width(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    x(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-    y(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes;
-}
-
-export interface FeComponentTransferSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"feComponentTransfer">>, GlobalSVGAttributes {
-    alignmentBaseline(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    height(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    in(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    result(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    width(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    x(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-    y(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes;
-}
-
-export interface FeCompositeSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"feComposite">>, GlobalSVGAttributes {
-    alignmentBaseline(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    height(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    in(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    in2(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    k1(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    k2(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    k3(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    k4(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    operator(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    result(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    width(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    x(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-    y(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes;
-}
-
-export interface FeConvolveMatrixSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"feConvolveMatrix">>, GlobalSVGAttributes {
-    alignmentBaseline(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    bias(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    divisor(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    edgeMode(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    height(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    in(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    kernelMatrix(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    kernelUnitLength(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    order(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    preserveAlpha(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    result(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    targetX(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    targetY(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    width(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    x(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-    y(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes;
-}
-
-export interface FeDiffuseLightingSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"feDiffuseLighting">>, GlobalSVGAttributes {
-    alignmentBaseline(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    diffuseConstant(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    height(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    in(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    kernelUnitLength(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    result(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    surfaceScale(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    width(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    x(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-    y(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes;
-}
-
-export interface FeDisplacementMapSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"feDisplacementMap">>, GlobalSVGAttributes {
-    alignmentBaseline(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    height(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    in(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    in2(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    result(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    scale(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    width(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    x(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    xChannelSelector(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    y(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-    yChannelSelector(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes;
-}
-
-export interface FeDistantLightSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"feDistantLight">>, GlobalSVGAttributes {
-    azimuth(value: string | Stateful<string | undefined>): FeDistantLightSVGElementAttributes;
-    elevation(value: string | Stateful<string | undefined>): FeDistantLightSVGElementAttributes;
-}
-
-export interface FeDropShadowSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"feDropShadow">>, GlobalSVGAttributes {
-    dx(value: string | Stateful<string | undefined>): FeDropShadowSVGElementAttributes;
-    dy(value: string | Stateful<string | undefined>): FeDropShadowSVGElementAttributes;
-    height(value: string | Stateful<string | undefined>): FeDropShadowSVGElementAttributes;
-    in(value: string | Stateful<string | undefined>): FeDropShadowSVGElementAttributes;
-    result(value: string | Stateful<string | undefined>): FeDropShadowSVGElementAttributes;
-    stdDeviation(value: string | Stateful<string | undefined>): FeDropShadowSVGElementAttributes;
-    width(value: string | Stateful<string | undefined>): FeDropShadowSVGElementAttributes;
-    x(value: string | Stateful<string | undefined>): FeDropShadowSVGElementAttributes;
-    y(value: string | Stateful<string | undefined>): FeDropShadowSVGElementAttributes;
-}
-
-export interface FeFloodSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"feFlood">>, GlobalSVGAttributes {
-    alignmentBaseline(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    height(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    result(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    width(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    x(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-    y(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes;
-}
-
-export interface FeFuncASVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"feFuncA">>, GlobalSVGAttributes {
-    amplitude(value: string | Stateful<string | undefined>): FeFuncASVGElementAttributes;
-    exponent(value: string | Stateful<string | undefined>): FeFuncASVGElementAttributes;
-    intercept(value: string | Stateful<string | undefined>): FeFuncASVGElementAttributes;
-    offset(value: string | Stateful<string | undefined>): FeFuncASVGElementAttributes;
-    slope(value: string | Stateful<string | undefined>): FeFuncASVGElementAttributes;
-    tableValues(value: string | Stateful<string | undefined>): FeFuncASVGElementAttributes;
-    type(value: string | Stateful<string | undefined>): FeFuncASVGElementAttributes;
-}
-
-export interface FeFuncBSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"feFuncB">>, GlobalSVGAttributes {
-    amplitude(value: string | Stateful<string | undefined>): FeFuncBSVGElementAttributes;
-    exponent(value: string | Stateful<string | undefined>): FeFuncBSVGElementAttributes;
-    intercept(value: string | Stateful<string | undefined>): FeFuncBSVGElementAttributes;
-    offset(value: string | Stateful<string | undefined>): FeFuncBSVGElementAttributes;
-    slope(value: string | Stateful<string | undefined>): FeFuncBSVGElementAttributes;
-    tableValues(value: string | Stateful<string | undefined>): FeFuncBSVGElementAttributes;
-    type(value: string | Stateful<string | undefined>): FeFuncBSVGElementAttributes;
-}
-
-export interface FeFuncGSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"feFuncG">>, GlobalSVGAttributes {
-    amplitude(value: string | Stateful<string | undefined>): FeFuncGSVGElementAttributes;
-    exponent(value: string | Stateful<string | undefined>): FeFuncGSVGElementAttributes;
-    intercept(value: string | Stateful<string | undefined>): FeFuncGSVGElementAttributes;
-    offset(value: string | Stateful<string | undefined>): FeFuncGSVGElementAttributes;
-    slope(value: string | Stateful<string | undefined>): FeFuncGSVGElementAttributes;
-    tableValues(value: string | Stateful<string | undefined>): FeFuncGSVGElementAttributes;
-    type(value: string | Stateful<string | undefined>): FeFuncGSVGElementAttributes;
-}
-
-export interface FeFuncRSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"feFuncR">>, GlobalSVGAttributes {
-    amplitude(value: string | Stateful<string | undefined>): FeFuncRSVGElementAttributes;
-    exponent(value: string | Stateful<string | undefined>): FeFuncRSVGElementAttributes;
-    intercept(value: string | Stateful<string | undefined>): FeFuncRSVGElementAttributes;
-    offset(value: string | Stateful<string | undefined>): FeFuncRSVGElementAttributes;
-    slope(value: string | Stateful<string | undefined>): FeFuncRSVGElementAttributes;
-    tableValues(value: string | Stateful<string | undefined>): FeFuncRSVGElementAttributes;
-    type(value: string | Stateful<string | undefined>): FeFuncRSVGElementAttributes;
-}
-
-export interface FeGaussianBlurSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"feGaussianBlur">>, GlobalSVGAttributes {
-    alignmentBaseline(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    edgeMode(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    height(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    in(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    result(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    stdDeviation(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    width(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    x(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-    y(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes;
-}
-
-export interface FeImageSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"feImage">>, GlobalSVGAttributes {
-    alignmentBaseline(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    crossorigin(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    externalResourcesRequired(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    height(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    href(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    preserveAspectRatio(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    result(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    width(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    x(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-    y(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes;
-}
-
-export interface FeMergeSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"feMerge">>, GlobalSVGAttributes {
-    alignmentBaseline(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    height(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    result(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    width(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    x(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-    y(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes;
-}
-
-export interface FeMergeNodeSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"feMergeNode">>, GlobalSVGAttributes {
-    in(value: string | Stateful<string | undefined>): FeMergeNodeSVGElementAttributes;
-}
-
-export interface FeMorphologySVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"feMorphology">>, GlobalSVGAttributes {
-    alignmentBaseline(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    height(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    in(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    operator(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    radius(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    result(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    width(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    x(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-    y(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes;
-}
-
-export interface FeOffsetSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"feOffset">>, GlobalSVGAttributes {
-    alignmentBaseline(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    dx(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    dy(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    height(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    in(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    result(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    width(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    x(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-    y(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes;
-}
-
-export interface FePointLightSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"fePointLight">>, GlobalSVGAttributes {
-    x(value: string | Stateful<string | undefined>): FePointLightSVGElementAttributes;
-    y(value: string | Stateful<string | undefined>): FePointLightSVGElementAttributes;
-    z(value: string | Stateful<string | undefined>): FePointLightSVGElementAttributes;
-}
-
-export interface FeSpecularLightingSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"feSpecularLighting">>, GlobalSVGAttributes {
-    alignmentBaseline(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    height(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    in(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    kernelUnitLength(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    result(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    specularConstant(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    specularExponent(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    surfaceScale(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    width(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    x(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-    y(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes;
-}
-
-export interface FeSpotLightSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"feSpotLight">>, GlobalSVGAttributes {
-    limitingConeAngle(value: string | Stateful<string | undefined>): FeSpotLightSVGElementAttributes;
-    pointsAtX(value: string | Stateful<string | undefined>): FeSpotLightSVGElementAttributes;
-    pointsAtY(value: string | Stateful<string | undefined>): FeSpotLightSVGElementAttributes;
-    pointsAtZ(value: string | Stateful<string | undefined>): FeSpotLightSVGElementAttributes;
-    specularExponent(value: string | Stateful<string | undefined>): FeSpotLightSVGElementAttributes;
-    x(value: string | Stateful<string | undefined>): FeSpotLightSVGElementAttributes;
-    y(value: string | Stateful<string | undefined>): FeSpotLightSVGElementAttributes;
-    z(value: string | Stateful<string | undefined>): FeSpotLightSVGElementAttributes;
-}
-
-export interface FeTileSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"feTile">>, GlobalSVGAttributes {
-    alignmentBaseline(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    height(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    in(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    result(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    width(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    x(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-    y(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes;
-}
-
-export interface FeTurbulenceSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"feTurbulence">>, GlobalSVGAttributes {
-    alignmentBaseline(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    baseFrequency(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    height(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    numOctaves(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    result(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    seed(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    stitchTiles(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    type(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    width(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    x(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-    y(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes;
-}
-
-export interface FilterSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"filter">>, GlobalSVGAttributes {
-    alignmentBaseline(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    externalResourcesRequired(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    filterRes(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    filterUnits(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    height(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    primitiveUnits(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    width(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    x(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-    y(value: string | Stateful<string | undefined>): FilterSVGElementAttributes;
-}
-
-export interface ForeignObjectSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"foreignObject">>, GlobalSVGAttributes {
-    alignmentBaseline(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    externalResourcesRequired(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    focusHighlight(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    focusable(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    height(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    navDown(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    navDownLeft(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    navDownRight(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    navLeft(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    navNext(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    navPrev(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    navRight(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    navUp(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    navUpLeft(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    navUpRight(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    requiredExtensions(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    requiredFeatures(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    requiredFonts(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    requiredFormats(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    systemLanguage(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    transform(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    width(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    x(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-    y(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes;
-}
-
-export interface GSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"g">>, GlobalSVGAttributes {
-    alignmentBaseline(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    externalResourcesRequired(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    focusHighlight(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    focusable(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    navDown(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    navDownLeft(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    navDownRight(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    navLeft(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    navNext(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    navPrev(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    navRight(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    navUp(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    navUpLeft(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    navUpRight(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    requiredExtensions(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    requiredFeatures(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    requiredFonts(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    requiredFormats(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    systemLanguage(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    transform(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): GSVGElementAttributes;
-}
-
-export interface GlyphSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"glyph">>, GlobalSVGAttributes {
-    alignmentBaseline(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    arabicForm(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    d(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    glyphName(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    horizAdvX(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    orientation(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    unicode(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    vertAdvY(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    vertOriginX(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    vertOriginY(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes;
-}
-
-export interface GlyphRefSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"glyphRef">>, GlobalSVGAttributes {
-    alignmentBaseline(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    dx(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    dy(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    format(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    glyphRef(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    x(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-    y(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes;
-}
-
-export interface HandlerSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"handler">>, GlobalSVGAttributes {
-    externalResourcesRequired(value: string | Stateful<string | undefined>): HandlerSVGElementAttributes;
-    type(value: string | Stateful<string | undefined>): HandlerSVGElementAttributes;
-}
-
-export interface HkernSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"hkern">>, GlobalSVGAttributes {
-    g1(value: string | Stateful<string | undefined>): HkernSVGElementAttributes;
-    g2(value: string | Stateful<string | undefined>): HkernSVGElementAttributes;
-    k(value: string | Stateful<string | undefined>): HkernSVGElementAttributes;
-    u1(value: string | Stateful<string | undefined>): HkernSVGElementAttributes;
-    u2(value: string | Stateful<string | undefined>): HkernSVGElementAttributes;
-}
-
-export interface IframeSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"iframe">>, GlobalSVGAttributes {
-    requiredExtensions(value: string | Stateful<string | undefined>): IframeSVGElementAttributes;
-    systemLanguage(value: string | Stateful<string | undefined>): IframeSVGElementAttributes;
-}
-
-export interface ImageSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"image">>, GlobalSVGAttributes {
-    alignmentBaseline(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    crossorigin(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    externalResourcesRequired(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    focusHighlight(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    focusable(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    height(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    href(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    navDown(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    navDownLeft(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    navDownRight(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    navLeft(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    navNext(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    navPrev(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    navRight(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    navUp(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    navUpLeft(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    navUpRight(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    preserveAspectRatio(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    requiredExtensions(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    requiredFeatures(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    requiredFonts(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    requiredFormats(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    systemLanguage(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    transform(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    type(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    width(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    x(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-    y(value: string | Stateful<string | undefined>): ImageSVGElementAttributes;
-}
-
-export interface LineSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"line">>, GlobalSVGAttributes {
-    alignmentBaseline(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    externalResourcesRequired(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    focusHighlight(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    focusable(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    navDown(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    navDownLeft(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    navDownRight(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    navLeft(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    navNext(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    navPrev(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    navRight(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    navUp(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    navUpLeft(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    navUpRight(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    pathLength(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    requiredExtensions(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    requiredFeatures(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    requiredFonts(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    requiredFormats(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    systemLanguage(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    transform(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    x1(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    x2(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    y1(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-    y2(value: string | Stateful<string | undefined>): LineSVGElementAttributes;
-}
-
-export interface LinearGradientSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"linearGradient">>, GlobalSVGAttributes {
-    alignmentBaseline(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    externalResourcesRequired(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    gradientTransform(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    gradientUnits(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    href(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    spreadMethod(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    x1(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    x2(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    y1(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-    y2(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes;
-}
-
-export interface ListenerSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"listener">>, GlobalSVGAttributes {
-    defaultAction(value: string | Stateful<string | undefined>): ListenerSVGElementAttributes;
-    event(value: string | Stateful<string | undefined>): ListenerSVGElementAttributes;
-    handler(value: string | Stateful<string | undefined>): ListenerSVGElementAttributes;
-    observer(value: string | Stateful<string | undefined>): ListenerSVGElementAttributes;
-    phase(value: string | Stateful<string | undefined>): ListenerSVGElementAttributes;
-    propagate(value: string | Stateful<string | undefined>): ListenerSVGElementAttributes;
-    target(value: string | Stateful<string | undefined>): ListenerSVGElementAttributes;
-}
-
-export interface MarkerSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"marker">>, GlobalSVGAttributes {
-    alignmentBaseline(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    externalResourcesRequired(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    markerHeight(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    markerUnits(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    markerWidth(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    orient(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    preserveAspectRatio(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    refX(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    refY(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    viewBox(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes;
-}
-
-export interface MaskSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"mask">>, GlobalSVGAttributes {
-    alignmentBaseline(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    externalResourcesRequired(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    height(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    maskContentUnits(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    maskUnits(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    requiredExtensions(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    requiredFeatures(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    systemLanguage(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    width(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    x(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-    y(value: string | Stateful<string | undefined>): MaskSVGElementAttributes;
-}
-
-export interface MetadataSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"metadata">>, GlobalSVGAttributes {
-    requiredExtensions(value: string | Stateful<string | undefined>): MetadataSVGElementAttributes;
-    requiredFeatures(value: string | Stateful<string | undefined>): MetadataSVGElementAttributes;
-    requiredFonts(value: string | Stateful<string | undefined>): MetadataSVGElementAttributes;
-    requiredFormats(value: string | Stateful<string | undefined>): MetadataSVGElementAttributes;
-    systemLanguage(value: string | Stateful<string | undefined>): MetadataSVGElementAttributes;
-}
-
-export interface MpathSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"mpath">>, GlobalSVGAttributes {
-    externalResourcesRequired(value: string | Stateful<string | undefined>): MpathSVGElementAttributes;
-    href(value: string | Stateful<string | undefined>): MpathSVGElementAttributes;
-}
-
-export interface PathSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"path">>, GlobalSVGAttributes {
-    alignmentBaseline(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    d(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    externalResourcesRequired(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    focusHighlight(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    focusable(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    navDown(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    navDownLeft(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    navDownRight(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    navLeft(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    navNext(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    navPrev(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    navRight(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    navUp(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    navUpLeft(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    navUpRight(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    pathLength(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    requiredExtensions(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    requiredFeatures(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    requiredFonts(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    requiredFormats(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    systemLanguage(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    transform(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): PathSVGElementAttributes;
-}
-
-export interface PatternSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"pattern">>, GlobalSVGAttributes {
-    alignmentBaseline(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    externalResourcesRequired(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    height(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    href(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    patternContentUnits(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    patternTransform(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    patternUnits(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    preserveAspectRatio(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    requiredExtensions(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    requiredFeatures(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    systemLanguage(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    viewBox(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    width(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    x(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-    y(value: string | Stateful<string | undefined>): PatternSVGElementAttributes;
-}
-
-export interface PolygonSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"polygon">>, GlobalSVGAttributes {
-    alignmentBaseline(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    externalResourcesRequired(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    focusHighlight(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    focusable(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    navDown(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    navDownLeft(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    navDownRight(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    navLeft(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    navNext(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    navPrev(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    navRight(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    navUp(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    navUpLeft(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    navUpRight(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    pathLength(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    points(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    requiredExtensions(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    requiredFeatures(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    requiredFonts(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    requiredFormats(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    systemLanguage(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    transform(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes;
-}
-
-export interface PolylineSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"polyline">>, GlobalSVGAttributes {
-    alignmentBaseline(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    externalResourcesRequired(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    focusHighlight(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    focusable(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    navDown(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    navDownLeft(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    navDownRight(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    navLeft(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    navNext(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    navPrev(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    navRight(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    navUp(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    navUpLeft(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    navUpRight(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    pathLength(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    points(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    requiredExtensions(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    requiredFeatures(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    requiredFonts(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    requiredFormats(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    systemLanguage(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    transform(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes;
-}
-
-export interface PrefetchSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"prefetch">>, GlobalSVGAttributes {
-    bandwidth(value: string | Stateful<string | undefined>): PrefetchSVGElementAttributes;
-    mediaCharacterEncoding(value: string | Stateful<string | undefined>): PrefetchSVGElementAttributes;
-    mediaContentEncodings(value: string | Stateful<string | undefined>): PrefetchSVGElementAttributes;
-    mediaSize(value: string | Stateful<string | undefined>): PrefetchSVGElementAttributes;
-    mediaTime(value: string | Stateful<string | undefined>): PrefetchSVGElementAttributes;
-}
-
-export interface RadialGradientSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"radialGradient">>, GlobalSVGAttributes {
-    alignmentBaseline(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    cx(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    cy(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    externalResourcesRequired(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    fr(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    fx(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    fy(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    gradientTransform(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    gradientUnits(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    href(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    r(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    spreadMethod(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes;
-}
-
-export interface RectSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"rect">>, GlobalSVGAttributes {
-    alignmentBaseline(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    externalResourcesRequired(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    focusHighlight(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    focusable(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    height(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    navDown(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    navDownLeft(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    navDownRight(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    navLeft(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    navNext(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    navPrev(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    navRight(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    navUp(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    navUpLeft(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    navUpRight(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    pathLength(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    requiredExtensions(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    requiredFeatures(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    requiredFonts(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    requiredFormats(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    rx(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    ry(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    systemLanguage(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    transform(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    width(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    x(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-    y(value: string | Stateful<string | undefined>): RectSVGElementAttributes;
-}
-
-export interface ScriptSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"script">>, GlobalSVGAttributes {
-    crossorigin(value: string | Stateful<string | undefined>): ScriptSVGElementAttributes;
-    externalResourcesRequired(value: string | Stateful<string | undefined>): ScriptSVGElementAttributes;
-    href(value: string | Stateful<string | undefined>): ScriptSVGElementAttributes;
-    type(value: string | Stateful<string | undefined>): ScriptSVGElementAttributes;
-}
-
-export interface SetSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"set">>, GlobalSVGAttributes {
-    attributeName(value: string | Stateful<string | undefined>): SetSVGElementAttributes;
-    attributeType(value: string | Stateful<string | undefined>): SetSVGElementAttributes;
-    begin(value: string | Stateful<string | undefined>): SetSVGElementAttributes;
-    dur(value: string | Stateful<string | undefined>): SetSVGElementAttributes;
-    end(value: string | Stateful<string | undefined>): SetSVGElementAttributes;
-    externalResourcesRequired(value: string | Stateful<string | undefined>): SetSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): SetSVGElementAttributes;
-    href(value: string | Stateful<string | undefined>): SetSVGElementAttributes;
-    max(value: string | Stateful<string | undefined>): SetSVGElementAttributes;
-    min(value: string | Stateful<string | undefined>): SetSVGElementAttributes;
-    repeatCount(value: string | Stateful<string | undefined>): SetSVGElementAttributes;
-    repeatDur(value: string | Stateful<string | undefined>): SetSVGElementAttributes;
-    requiredExtensions(value: string | Stateful<string | undefined>): SetSVGElementAttributes;
-    requiredFeatures(value: string | Stateful<string | undefined>): SetSVGElementAttributes;
-    requiredFonts(value: string | Stateful<string | undefined>): SetSVGElementAttributes;
-    requiredFormats(value: string | Stateful<string | undefined>): SetSVGElementAttributes;
-    restart(value: string | Stateful<string | undefined>): SetSVGElementAttributes;
-    systemLanguage(value: string | Stateful<string | undefined>): SetSVGElementAttributes;
-    to(value: string | Stateful<string | undefined>): SetSVGElementAttributes;
-}
-
-export interface SolidColorSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"solidColor">>, GlobalSVGAttributes {
-}
-
-export interface StopSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"stop">>, GlobalSVGAttributes {
-    alignmentBaseline(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    offset(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): StopSVGElementAttributes;
-}
-
-export interface StyleSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"style">>, GlobalSVGAttributes {
-    media(value: string | Stateful<string | undefined>): StyleSVGElementAttributes;
-    title(value: string | Stateful<string | undefined>): StyleSVGElementAttributes;
-    type(value: string | Stateful<string | undefined>): StyleSVGElementAttributes;
-}
-
-export interface SVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"svg">>, GlobalSVGAttributes {
-    alignmentBaseline(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    baseProfile(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    contentScriptType(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    contentStyleType(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    externalResourcesRequired(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    focusHighlight(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    focusable(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    height(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    navDown(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    navDownLeft(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    navDownRight(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    navLeft(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    navNext(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    navPrev(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    navRight(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    navUp(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    navUpLeft(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    navUpRight(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    playbackOrder(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    playbackorder(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    preserveAspectRatio(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    requiredExtensions(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    requiredFeatures(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    snapshotTime(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    syncBehaviorDefault(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    syncToleranceDefault(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    systemLanguage(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    timelineBegin(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    timelinebegin(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    transform(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    version(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    viewBox(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    width(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    x(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    y(value: string | Stateful<string | undefined>): SVGElementAttributes;
-    zoomAndPan(value: string | Stateful<string | undefined>): SVGElementAttributes;
-}
-
-export interface SwitchSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"switch">>, GlobalSVGAttributes {
-    alignmentBaseline(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    externalResourcesRequired(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    focusHighlight(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    focusable(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    navDown(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    navDownLeft(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    navDownRight(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    navLeft(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    navNext(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    navPrev(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    navRight(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    navUp(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    navUpLeft(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    navUpRight(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    requiredExtensions(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    requiredFeatures(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    requiredFonts(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    requiredFormats(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    systemLanguage(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    transform(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes;
-}
-
-export interface SymbolSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"symbol">>, GlobalSVGAttributes {
-    alignmentBaseline(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    externalResourcesRequired(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    height(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    preserveAspectRatio(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    refX(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    refY(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    viewBox(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    width(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    x(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-    y(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes;
-}
-
-export interface TbreakSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"tbreak">>, GlobalSVGAttributes {
-    requiredExtensions(value: string | Stateful<string | undefined>): TbreakSVGElementAttributes;
-    requiredFeatures(value: string | Stateful<string | undefined>): TbreakSVGElementAttributes;
-    requiredFonts(value: string | Stateful<string | undefined>): TbreakSVGElementAttributes;
-    requiredFormats(value: string | Stateful<string | undefined>): TbreakSVGElementAttributes;
-    systemLanguage(value: string | Stateful<string | undefined>): TbreakSVGElementAttributes;
-}
-
-export interface TextSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"text">>, GlobalSVGAttributes {
-    alignmentBaseline(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    dx(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    dy(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    editable(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    externalResourcesRequired(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    focusHighlight(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    focusable(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    lengthAdjust(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    navDown(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    navDownLeft(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    navDownRight(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    navLeft(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    navNext(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    navPrev(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    navRight(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    navUp(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    navUpLeft(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    navUpRight(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    requiredExtensions(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    requiredFeatures(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    requiredFonts(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    requiredFormats(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    rotate(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    systemLanguage(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    textLength(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    transform(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    x(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-    y(value: string | Stateful<string | undefined>): TextSVGElementAttributes;
-}
-
-export interface TextAreaSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"textArea">>, GlobalSVGAttributes {
-    editable(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes;
-    focusHighlight(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes;
-    focusable(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes;
-    height(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes;
-    navDown(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes;
-    navDownLeft(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes;
-    navDownRight(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes;
-    navLeft(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes;
-    navNext(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes;
-    navPrev(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes;
-    navRight(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes;
-    navUp(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes;
-    navUpLeft(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes;
-    navUpRight(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes;
-    requiredExtensions(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes;
-    requiredFeatures(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes;
-    requiredFonts(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes;
-    requiredFormats(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes;
-    systemLanguage(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes;
-    transform(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes;
-    width(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes;
-    x(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes;
-    y(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes;
-}
-
-export interface TextPathSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"textPath">>, GlobalSVGAttributes {
-    alignmentBaseline(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    externalResourcesRequired(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    href(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    lengthAdjust(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    method(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    path(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    requiredExtensions(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    requiredFeatures(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    side(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    spacing(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    startOffset(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    systemLanguage(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    textLength(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes;
-}
-
-export interface TitleSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"title">>, GlobalSVGAttributes {
-    requiredExtensions(value: string | Stateful<string | undefined>): TitleSVGElementAttributes;
-    requiredFeatures(value: string | Stateful<string | undefined>): TitleSVGElementAttributes;
-    requiredFonts(value: string | Stateful<string | undefined>): TitleSVGElementAttributes;
-    requiredFormats(value: string | Stateful<string | undefined>): TitleSVGElementAttributes;
-    systemLanguage(value: string | Stateful<string | undefined>): TitleSVGElementAttributes;
-}
-
-export interface TrefSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"tref">>, GlobalSVGAttributes {
-    alignmentBaseline(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    dx(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    dy(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    externalResourcesRequired(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    lengthAdjust(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    requiredExtensions(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    requiredFeatures(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    rotate(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    systemLanguage(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    textLength(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    x(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-    y(value: string | Stateful<string | undefined>): TrefSVGElementAttributes;
-}
-
-export interface TspanSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"tspan">>, GlobalSVGAttributes {
-    alignmentBaseline(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    dx(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    dy(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    externalResourcesRequired(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    focusHighlight(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    focusable(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    lengthAdjust(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    navDown(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    navDownLeft(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    navDownRight(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    navLeft(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    navNext(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    navPrev(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    navRight(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    navUp(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    navUpLeft(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    navUpRight(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    requiredExtensions(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    requiredFeatures(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    requiredFonts(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    requiredFormats(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    rotate(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    systemLanguage(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    textLength(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    x(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-    y(value: string | Stateful<string | undefined>): TspanSVGElementAttributes;
-}
-
-export interface UnknownSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"unknown">>, GlobalSVGAttributes {
-    requiredExtensions(value: string | Stateful<string | undefined>): UnknownSVGElementAttributes;
-    systemLanguage(value: string | Stateful<string | undefined>): UnknownSVGElementAttributes;
-}
-
-export interface UseSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"use">>, GlobalSVGAttributes {
-    alignmentBaseline(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    baselineShift(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    clip(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    clipPath(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    clipRule(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    color(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    colorInterpolation(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    colorInterpolationFilters(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    colorProfile(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    colorRendering(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    cursor(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    direction(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    display(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    dominantBaseline(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    enableBackground(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    externalResourcesRequired(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    fillOpacity(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    fillRule(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    filter(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    floodColor(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    floodOpacity(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    focusHighlight(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    focusable(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    fontFamily(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    fontSize(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    fontSizeAdjust(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    fontStretch(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    fontStyle(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    fontVariant(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    fontWeight(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    glyphOrientationHorizontal(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    glyphOrientationVertical(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    height(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    href(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    imageRendering(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    kerning(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    letterSpacing(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    lightingColor(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    markerEnd(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    markerMid(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    markerStart(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    mask(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    navDown(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    navDownLeft(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    navDownRight(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    navLeft(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    navNext(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    navPrev(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    navRight(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    navUp(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    navUpLeft(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    navUpRight(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    opacity(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    overflow(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    pointerEvents(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    requiredExtensions(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    requiredFeatures(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    requiredFonts(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    requiredFormats(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    shapeRendering(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    stopColor(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    stopOpacity(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    stroke(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    strokeDasharray(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    strokeDashoffset(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    strokeLinecap(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    strokeLinejoin(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    strokeMiterlimit(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    strokeOpacity(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    strokeWidth(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    systemLanguage(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    textAnchor(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    textDecoration(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    textRendering(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    transform(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    unicodeBidi(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    visibility(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    width(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    wordSpacing(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    writingMode(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    x(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-    y(value: string | Stateful<string | undefined>): UseSVGElementAttributes;
-}
-
-export interface VideoSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"video">>, GlobalSVGAttributes {
-    begin(value: string | Stateful<string | undefined>): VideoSVGElementAttributes;
-    dur(value: string | Stateful<string | undefined>): VideoSVGElementAttributes;
-    end(value: string | Stateful<string | undefined>): VideoSVGElementAttributes;
-    externalResourcesRequired(value: string | Stateful<string | undefined>): VideoSVGElementAttributes;
-    fill(value: string | Stateful<string | undefined>): VideoSVGElementAttributes;
-    focusHighlight(value: string | Stateful<string | undefined>): VideoSVGElementAttributes;
-    focusable(value: string | Stateful<string | undefined>): VideoSVGElementAttributes;
-    height(value: string | Stateful<string | undefined>): VideoSVGElementAttributes;
-    initialVisibility(value: string | Stateful<string | undefined>): VideoSVGElementAttributes;
-    max(value: string | Stateful<string | undefined>): VideoSVGElementAttributes;
-    min(value: string | Stateful<string | undefined>): VideoSVGElementAttributes;
-    navDown(value: string | Stateful<string | undefined>): VideoSVGElementAttributes;
-    navDownLeft(value: string | Stateful<string | undefined>): VideoSVGElementAttributes;
-    navDownRight(value: string | Stateful<string | undefined>): VideoSVGElementAttributes;
-    navLeft(value: string | Stateful<string | undefined>): VideoSVGElementAttributes;
-    navNext(value: string | Stateful<string | undefined>): VideoSVGElementAttributes;
-    navPrev(value: string | Stateful<string | undefined>): VideoSVGElementAttributes;
-    navRight(value: string | Stateful<string | undefined>): VideoSVGElementAttributes;
-    navUp(value: string | Stateful<string | undefined>): VideoSVGElementAttributes;
-    navUpLeft(value: string | Stateful<string | undefined>): VideoSVGElementAttributes;
-    navUpRight(value: string | Stateful<string | undefined>): VideoSVGElementAttributes;
-    overlay(value: string | Stateful<string | undefined>): VideoSVGElementAttributes;
-    preserveAspectRatio(value: string | Stateful<string | undefined>): VideoSVGElementAttributes;
-    repeatCount(value: string | Stateful<string | undefined>): VideoSVGElementAttributes;
-    repeatDur(value: string | Stateful<string | undefined>): VideoSVGElementAttributes;
-    requiredExtensions(value: string | Stateful<string | undefined>): VideoSVGElementAttributes;
-    requiredFeatures(value: string | Stateful<string | undefined>): VideoSVGElementAttributes;
-    requiredFonts(value: string | Stateful<string | undefined>): VideoSVGElementAttributes;
-    requiredFormats(value: string | Stateful<string | undefined>): VideoSVGElementAttributes;
-    restart(value: string | Stateful<string | undefined>): VideoSVGElementAttributes;
-    syncBehavior(value: string | Stateful<string | undefined>): VideoSVGElementAttributes;
-    syncMaster(value: string | Stateful<string | undefined>): VideoSVGElementAttributes;
-    syncTolerance(value: string | Stateful<string | undefined>): VideoSVGElementAttributes;
-    systemLanguage(value: string | Stateful<string | undefined>): VideoSVGElementAttributes;
-    transform(value: string | Stateful<string | undefined>): VideoSVGElementAttributes;
-    transformBehavior(value: string | Stateful<string | undefined>): VideoSVGElementAttributes;
-    type(value: string | Stateful<string | undefined>): VideoSVGElementAttributes;
-    width(value: string | Stateful<string | undefined>): VideoSVGElementAttributes;
-    x(value: string | Stateful<string | undefined>): VideoSVGElementAttributes;
-    y(value: string | Stateful<string | undefined>): VideoSVGElementAttributes;
-}
-
-export interface ViewSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"view">>, GlobalSVGAttributes {
-    externalResourcesRequired(value: string | Stateful<string | undefined>): ViewSVGElementAttributes;
-    preserveAspectRatio(value: string | Stateful<string | undefined>): ViewSVGElementAttributes;
-    viewBox(value: string | Stateful<string | undefined>): ViewSVGElementAttributes;
-    viewTarget(value: string | Stateful<string | undefined>): ViewSVGElementAttributes;
-    zoomAndPan(value: string | Stateful<string | undefined>): ViewSVGElementAttributes;
-}
-
-export interface VkernSVGElementAttributes extends SpecialElementAttributes<SvgTagElement<"vkern">>, GlobalSVGAttributes {
-    g1(value: string | Stateful<string | undefined>): VkernSVGElementAttributes;
-    g2(value: string | Stateful<string | undefined>): VkernSVGElementAttributes;
-    k(value: string | Stateful<string | undefined>): VkernSVGElementAttributes;
-    u1(value: string | Stateful<string | undefined>): VkernSVGElementAttributes;
-    u2(value: string | Stateful<string | undefined>): VkernSVGElementAttributes;
+  about(value: string | Stateful<string | undefined>): this
+  class(value: string | Stateful<string | undefined>): this
+  content(value: string | Stateful<string | undefined>): this
+  datatype(value: string | Stateful<string | undefined>): this
+  id(value: string | Stateful<string | undefined>): this
+  lang(value: string | Stateful<string | undefined>): this
+  property(value: string | Stateful<string | undefined>): this
+  rel(value: string | Stateful<string | undefined>): this
+  resource(value: string | Stateful<string | undefined>): this
+  rev(value: string | Stateful<string | undefined>): this
+  style(value: string | Stateful<string | undefined>): this
+  tabindex(value: string | Stateful<string | undefined>): this
+  typeof(value: string | Stateful<string | undefined>): this
+}
+
+export interface ASVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"a">>, GlobalSVGAttributes {
+  alignmentBaseline(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  baselineShift(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  color(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  colorInterpolation(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  colorInterpolationFilters(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  colorProfile(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  colorRendering(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  display(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  dominantBaseline(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  download(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  enableBackground(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  externalResourcesRequired(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  floodOpacity(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  focusHighlight(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  focusable(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  fontSizeAdjust(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  glyphOrientationHorizontal(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  glyphOrientationVertical(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  href(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  hreflang(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  imageRendering(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  letterSpacing(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  lightingColor(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  navDown(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  navDownLeft(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  navDownRight(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  navLeft(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  navNext(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  navPrev(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  navRight(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  navUp(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  navUpLeft(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  navUpRight(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  ping(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  pointerEvents(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  referrerpolicy(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  requiredExtensions(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  requiredFeatures(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  requiredFonts(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  requiredFormats(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  shapeRendering(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  strokeDasharray(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  strokeDashoffset(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  strokeLinecap(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  strokeLinejoin(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  strokeMiterlimit(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  strokeOpacity(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  systemLanguage(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  target(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  textDecoration(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  textRendering(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  transform(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  type(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): ASVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): ASVGElementAttributes
+}
+
+export interface AltGlyphSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"altGlyph">>, GlobalSVGAttributes {
+  alignmentBaseline(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  baselineShift(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  color(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  colorInterpolation(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  colorInterpolationFilters(
+    value: string | Stateful<string | undefined>,
+  ): AltGlyphSVGElementAttributes
+  colorProfile(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  colorRendering(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  display(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  dominantBaseline(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  dx(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  dy(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  enableBackground(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  externalResourcesRequired(
+    value: string | Stateful<string | undefined>,
+  ): AltGlyphSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  floodOpacity(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  fontSizeAdjust(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  format(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  glyphOrientationHorizontal(
+    value: string | Stateful<string | undefined>,
+  ): AltGlyphSVGElementAttributes
+  glyphOrientationVertical(
+    value: string | Stateful<string | undefined>,
+  ): AltGlyphSVGElementAttributes
+  glyphRef(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  imageRendering(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  letterSpacing(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  lightingColor(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  pointerEvents(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  requiredExtensions(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  requiredFeatures(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  rotate(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  shapeRendering(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  strokeDasharray(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  strokeDashoffset(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  strokeLinecap(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  strokeLinejoin(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  strokeMiterlimit(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  strokeOpacity(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  systemLanguage(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  textDecoration(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  textRendering(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  x(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+  y(value: string | Stateful<string | undefined>): AltGlyphSVGElementAttributes
+}
+
+export interface AltGlyphDefSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"altGlyphDef">>, GlobalSVGAttributes {}
+
+export interface AltGlyphItemSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"altGlyphItem">>, GlobalSVGAttributes {}
+
+export interface AnimateSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"animate">>, GlobalSVGAttributes {
+  accumulate(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  additive(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  alignmentBaseline(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  attributeName(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  attributeType(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  baselineShift(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  begin(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  by(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  calcMode(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  color(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  colorInterpolation(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  colorInterpolationFilters(
+    value: string | Stateful<string | undefined>,
+  ): AnimateSVGElementAttributes
+  colorProfile(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  colorRendering(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  display(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  dominantBaseline(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  dur(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  enableBackground(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  end(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  externalResourcesRequired(
+    value: string | Stateful<string | undefined>,
+  ): AnimateSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  floodOpacity(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  fontSizeAdjust(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  from(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  glyphOrientationHorizontal(
+    value: string | Stateful<string | undefined>,
+  ): AnimateSVGElementAttributes
+  glyphOrientationVertical(
+    value: string | Stateful<string | undefined>,
+  ): AnimateSVGElementAttributes
+  href(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  imageRendering(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  keySplines(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  keyTimes(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  letterSpacing(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  lightingColor(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  max(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  min(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  pointerEvents(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  repeatCount(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  repeatDur(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  requiredExtensions(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  requiredFeatures(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  requiredFonts(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  requiredFormats(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  restart(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  shapeRendering(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  strokeDasharray(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  strokeDashoffset(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  strokeLinecap(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  strokeLinejoin(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  strokeMiterlimit(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  strokeOpacity(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  systemLanguage(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  textDecoration(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  textRendering(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  to(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  values(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): AnimateSVGElementAttributes
+}
+
+export interface AnimateColorSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"animateColor">>, GlobalSVGAttributes {
+  accumulate(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  additive(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  alignmentBaseline(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  attributeName(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  attributeType(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  baselineShift(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  begin(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  by(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  calcMode(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  color(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  colorInterpolation(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  colorInterpolationFilters(
+    value: string | Stateful<string | undefined>,
+  ): AnimateColorSVGElementAttributes
+  colorProfile(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  colorRendering(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  display(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  dominantBaseline(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  dur(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  enableBackground(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  end(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  externalResourcesRequired(
+    value: string | Stateful<string | undefined>,
+  ): AnimateColorSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  floodOpacity(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  fontSizeAdjust(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  from(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  glyphOrientationHorizontal(
+    value: string | Stateful<string | undefined>,
+  ): AnimateColorSVGElementAttributes
+  glyphOrientationVertical(
+    value: string | Stateful<string | undefined>,
+  ): AnimateColorSVGElementAttributes
+  imageRendering(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  keySplines(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  keyTimes(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  letterSpacing(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  lightingColor(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  max(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  min(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  pointerEvents(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  repeatCount(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  repeatDur(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  requiredExtensions(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  requiredFeatures(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  requiredFonts(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  requiredFormats(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  restart(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  shapeRendering(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  strokeDasharray(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  strokeDashoffset(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  strokeLinecap(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  strokeLinejoin(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  strokeMiterlimit(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  strokeOpacity(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  systemLanguage(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  textDecoration(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  textRendering(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  to(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  values(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): AnimateColorSVGElementAttributes
+}
+
+export interface AnimateMotionSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"animateMotion">>, GlobalSVGAttributes {
+  accumulate(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes
+  additive(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes
+  begin(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes
+  by(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes
+  calcMode(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes
+  dur(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes
+  end(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes
+  externalResourcesRequired(
+    value: string | Stateful<string | undefined>,
+  ): AnimateMotionSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes
+  from(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes
+  href(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes
+  keyPoints(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes
+  keySplines(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes
+  keyTimes(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes
+  max(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes
+  min(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes
+  origin(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes
+  path(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes
+  repeatCount(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes
+  repeatDur(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes
+  requiredExtensions(
+    value: string | Stateful<string | undefined>,
+  ): AnimateMotionSVGElementAttributes
+  requiredFeatures(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes
+  requiredFonts(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes
+  requiredFormats(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes
+  restart(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes
+  rotate(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes
+  systemLanguage(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes
+  to(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes
+  values(value: string | Stateful<string | undefined>): AnimateMotionSVGElementAttributes
+}
+
+export interface AnimateTransformSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"animateTransform">>, GlobalSVGAttributes {
+  accumulate(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes
+  additive(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes
+  attributeName(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes
+  attributeType(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes
+  begin(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes
+  by(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes
+  calcMode(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes
+  dur(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes
+  end(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes
+  externalResourcesRequired(
+    value: string | Stateful<string | undefined>,
+  ): AnimateTransformSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes
+  from(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes
+  href(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes
+  keySplines(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes
+  keyTimes(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes
+  max(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes
+  min(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes
+  repeatCount(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes
+  repeatDur(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes
+  requiredExtensions(
+    value: string | Stateful<string | undefined>,
+  ): AnimateTransformSVGElementAttributes
+  requiredFeatures(
+    value: string | Stateful<string | undefined>,
+  ): AnimateTransformSVGElementAttributes
+  requiredFonts(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes
+  requiredFormats(
+    value: string | Stateful<string | undefined>,
+  ): AnimateTransformSVGElementAttributes
+  restart(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes
+  systemLanguage(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes
+  to(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes
+  type(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes
+  values(value: string | Stateful<string | undefined>): AnimateTransformSVGElementAttributes
+}
+
+export interface AnimationSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"animation">>, GlobalSVGAttributes {
+  begin(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes
+  dur(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes
+  end(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes
+  externalResourcesRequired(
+    value: string | Stateful<string | undefined>,
+  ): AnimationSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes
+  focusHighlight(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes
+  focusable(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes
+  height(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes
+  initialVisibility(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes
+  max(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes
+  min(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes
+  navDown(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes
+  navDownLeft(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes
+  navDownRight(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes
+  navLeft(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes
+  navNext(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes
+  navPrev(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes
+  navRight(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes
+  navUp(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes
+  navUpLeft(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes
+  navUpRight(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes
+  preserveAspectRatio(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes
+  repeatCount(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes
+  repeatDur(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes
+  requiredExtensions(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes
+  requiredFeatures(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes
+  requiredFonts(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes
+  requiredFormats(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes
+  restart(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes
+  syncBehavior(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes
+  syncMaster(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes
+  syncTolerance(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes
+  systemLanguage(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes
+  transform(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes
+  width(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes
+  x(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes
+  y(value: string | Stateful<string | undefined>): AnimationSVGElementAttributes
+}
+
+export interface AudioSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"audio">>, GlobalSVGAttributes {
+  begin(value: string | Stateful<string | undefined>): AudioSVGElementAttributes
+  dur(value: string | Stateful<string | undefined>): AudioSVGElementAttributes
+  end(value: string | Stateful<string | undefined>): AudioSVGElementAttributes
+  externalResourcesRequired(value: string | Stateful<string | undefined>): AudioSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): AudioSVGElementAttributes
+  max(value: string | Stateful<string | undefined>): AudioSVGElementAttributes
+  min(value: string | Stateful<string | undefined>): AudioSVGElementAttributes
+  repeatCount(value: string | Stateful<string | undefined>): AudioSVGElementAttributes
+  repeatDur(value: string | Stateful<string | undefined>): AudioSVGElementAttributes
+  requiredExtensions(value: string | Stateful<string | undefined>): AudioSVGElementAttributes
+  requiredFeatures(value: string | Stateful<string | undefined>): AudioSVGElementAttributes
+  requiredFonts(value: string | Stateful<string | undefined>): AudioSVGElementAttributes
+  requiredFormats(value: string | Stateful<string | undefined>): AudioSVGElementAttributes
+  restart(value: string | Stateful<string | undefined>): AudioSVGElementAttributes
+  syncBehavior(value: string | Stateful<string | undefined>): AudioSVGElementAttributes
+  syncMaster(value: string | Stateful<string | undefined>): AudioSVGElementAttributes
+  syncTolerance(value: string | Stateful<string | undefined>): AudioSVGElementAttributes
+  systemLanguage(value: string | Stateful<string | undefined>): AudioSVGElementAttributes
+  type(value: string | Stateful<string | undefined>): AudioSVGElementAttributes
+}
+
+export interface CanvasSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"canvas">>, GlobalSVGAttributes {
+  preserveAspectRatio(value: string | Stateful<string | undefined>): CanvasSVGElementAttributes
+  requiredExtensions(value: string | Stateful<string | undefined>): CanvasSVGElementAttributes
+  systemLanguage(value: string | Stateful<string | undefined>): CanvasSVGElementAttributes
+}
+
+export interface CircleSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"circle">>, GlobalSVGAttributes {
+  alignmentBaseline(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  baselineShift(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  color(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  colorInterpolation(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  colorInterpolationFilters(
+    value: string | Stateful<string | undefined>,
+  ): CircleSVGElementAttributes
+  colorProfile(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  colorRendering(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  cx(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  cy(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  display(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  dominantBaseline(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  enableBackground(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  externalResourcesRequired(
+    value: string | Stateful<string | undefined>,
+  ): CircleSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  floodOpacity(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  focusHighlight(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  focusable(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  fontSizeAdjust(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  glyphOrientationHorizontal(
+    value: string | Stateful<string | undefined>,
+  ): CircleSVGElementAttributes
+  glyphOrientationVertical(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  imageRendering(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  letterSpacing(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  lightingColor(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  navDown(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  navDownLeft(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  navDownRight(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  navLeft(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  navNext(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  navPrev(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  navRight(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  navUp(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  navUpLeft(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  navUpRight(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  pathLength(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  pointerEvents(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  r(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  requiredExtensions(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  requiredFeatures(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  requiredFonts(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  requiredFormats(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  shapeRendering(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  strokeDasharray(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  strokeDashoffset(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  strokeLinecap(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  strokeLinejoin(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  strokeMiterlimit(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  strokeOpacity(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  systemLanguage(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  textDecoration(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  textRendering(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  transform(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): CircleSVGElementAttributes
+}
+
+export interface ClipPathSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"clipPath">>, GlobalSVGAttributes {
+  alignmentBaseline(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  baselineShift(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  clipPathUnits(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  color(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  colorInterpolation(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  colorInterpolationFilters(
+    value: string | Stateful<string | undefined>,
+  ): ClipPathSVGElementAttributes
+  colorProfile(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  colorRendering(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  display(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  dominantBaseline(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  enableBackground(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  externalResourcesRequired(
+    value: string | Stateful<string | undefined>,
+  ): ClipPathSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  floodOpacity(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  fontSizeAdjust(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  glyphOrientationHorizontal(
+    value: string | Stateful<string | undefined>,
+  ): ClipPathSVGElementAttributes
+  glyphOrientationVertical(
+    value: string | Stateful<string | undefined>,
+  ): ClipPathSVGElementAttributes
+  imageRendering(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  letterSpacing(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  lightingColor(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  pointerEvents(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  requiredExtensions(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  requiredFeatures(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  shapeRendering(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  strokeDasharray(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  strokeDashoffset(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  strokeLinecap(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  strokeLinejoin(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  strokeMiterlimit(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  strokeOpacity(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  systemLanguage(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  textDecoration(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  textRendering(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  transform(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): ClipPathSVGElementAttributes
+}
+
+export interface CursorSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"cursor">>, GlobalSVGAttributes {
+  externalResourcesRequired(
+    value: string | Stateful<string | undefined>,
+  ): CursorSVGElementAttributes
+  requiredExtensions(value: string | Stateful<string | undefined>): CursorSVGElementAttributes
+  requiredFeatures(value: string | Stateful<string | undefined>): CursorSVGElementAttributes
+  systemLanguage(value: string | Stateful<string | undefined>): CursorSVGElementAttributes
+  x(value: string | Stateful<string | undefined>): CursorSVGElementAttributes
+  y(value: string | Stateful<string | undefined>): CursorSVGElementAttributes
+}
+
+export interface DefsSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"defs">>, GlobalSVGAttributes {
+  alignmentBaseline(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  baselineShift(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  color(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  colorInterpolation(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  colorInterpolationFilters(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  colorProfile(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  colorRendering(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  display(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  dominantBaseline(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  enableBackground(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  externalResourcesRequired(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  floodOpacity(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  fontSizeAdjust(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  glyphOrientationHorizontal(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  glyphOrientationVertical(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  imageRendering(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  letterSpacing(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  lightingColor(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  pointerEvents(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  requiredExtensions(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  requiredFeatures(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  shapeRendering(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  strokeDasharray(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  strokeDashoffset(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  strokeLinecap(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  strokeLinejoin(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  strokeMiterlimit(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  strokeOpacity(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  systemLanguage(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  textDecoration(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  textRendering(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  transform(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): DefsSVGElementAttributes
+}
+
+export interface DescSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"desc">>, GlobalSVGAttributes {
+  requiredExtensions(value: string | Stateful<string | undefined>): DescSVGElementAttributes
+  requiredFeatures(value: string | Stateful<string | undefined>): DescSVGElementAttributes
+  requiredFonts(value: string | Stateful<string | undefined>): DescSVGElementAttributes
+  requiredFormats(value: string | Stateful<string | undefined>): DescSVGElementAttributes
+  systemLanguage(value: string | Stateful<string | undefined>): DescSVGElementAttributes
+}
+
+export interface DiscardSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"discard">>, GlobalSVGAttributes {
+  begin(value: string | Stateful<string | undefined>): DiscardSVGElementAttributes
+  href(value: string | Stateful<string | undefined>): DiscardSVGElementAttributes
+  requiredExtensions(value: string | Stateful<string | undefined>): DiscardSVGElementAttributes
+  requiredFeatures(value: string | Stateful<string | undefined>): DiscardSVGElementAttributes
+  requiredFonts(value: string | Stateful<string | undefined>): DiscardSVGElementAttributes
+  requiredFormats(value: string | Stateful<string | undefined>): DiscardSVGElementAttributes
+  systemLanguage(value: string | Stateful<string | undefined>): DiscardSVGElementAttributes
+}
+
+export interface EllipseSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"ellipse">>, GlobalSVGAttributes {
+  alignmentBaseline(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  baselineShift(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  color(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  colorInterpolation(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  colorInterpolationFilters(
+    value: string | Stateful<string | undefined>,
+  ): EllipseSVGElementAttributes
+  colorProfile(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  colorRendering(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  cx(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  cy(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  display(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  dominantBaseline(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  enableBackground(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  externalResourcesRequired(
+    value: string | Stateful<string | undefined>,
+  ): EllipseSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  floodOpacity(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  focusHighlight(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  focusable(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  fontSizeAdjust(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  glyphOrientationHorizontal(
+    value: string | Stateful<string | undefined>,
+  ): EllipseSVGElementAttributes
+  glyphOrientationVertical(
+    value: string | Stateful<string | undefined>,
+  ): EllipseSVGElementAttributes
+  imageRendering(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  letterSpacing(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  lightingColor(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  navDown(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  navDownLeft(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  navDownRight(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  navLeft(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  navNext(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  navPrev(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  navRight(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  navUp(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  navUpLeft(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  navUpRight(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  pathLength(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  pointerEvents(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  requiredExtensions(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  requiredFeatures(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  requiredFonts(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  requiredFormats(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  rx(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  ry(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  shapeRendering(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  strokeDasharray(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  strokeDashoffset(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  strokeLinecap(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  strokeLinejoin(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  strokeMiterlimit(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  strokeOpacity(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  systemLanguage(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  textDecoration(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  textRendering(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  transform(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): EllipseSVGElementAttributes
+}
+
+export interface FeBlendSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"feBlend">>, GlobalSVGAttributes {
+  alignmentBaseline(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  baselineShift(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  color(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  colorInterpolation(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  colorInterpolationFilters(
+    value: string | Stateful<string | undefined>,
+  ): FeBlendSVGElementAttributes
+  colorProfile(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  colorRendering(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  display(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  dominantBaseline(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  enableBackground(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  floodOpacity(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  fontSizeAdjust(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  glyphOrientationHorizontal(
+    value: string | Stateful<string | undefined>,
+  ): FeBlendSVGElementAttributes
+  glyphOrientationVertical(
+    value: string | Stateful<string | undefined>,
+  ): FeBlendSVGElementAttributes
+  height(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  imageRendering(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  in(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  in2(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  letterSpacing(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  lightingColor(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  mode(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  pointerEvents(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  result(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  shapeRendering(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  strokeDasharray(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  strokeDashoffset(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  strokeLinecap(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  strokeLinejoin(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  strokeMiterlimit(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  strokeOpacity(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  textDecoration(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  textRendering(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  width(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  x(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+  y(value: string | Stateful<string | undefined>): FeBlendSVGElementAttributes
+}
+
+export interface FeColorMatrixSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"feColorMatrix">>, GlobalSVGAttributes {
+  alignmentBaseline(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  baselineShift(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  color(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  colorInterpolation(
+    value: string | Stateful<string | undefined>,
+  ): FeColorMatrixSVGElementAttributes
+  colorInterpolationFilters(
+    value: string | Stateful<string | undefined>,
+  ): FeColorMatrixSVGElementAttributes
+  colorProfile(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  colorRendering(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  display(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  dominantBaseline(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  enableBackground(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  floodOpacity(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  fontSizeAdjust(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  glyphOrientationHorizontal(
+    value: string | Stateful<string | undefined>,
+  ): FeColorMatrixSVGElementAttributes
+  glyphOrientationVertical(
+    value: string | Stateful<string | undefined>,
+  ): FeColorMatrixSVGElementAttributes
+  height(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  imageRendering(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  in(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  letterSpacing(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  lightingColor(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  pointerEvents(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  result(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  shapeRendering(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  strokeDasharray(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  strokeDashoffset(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  strokeLinecap(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  strokeLinejoin(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  strokeMiterlimit(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  strokeOpacity(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  textDecoration(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  textRendering(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  type(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  values(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  width(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  x(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+  y(value: string | Stateful<string | undefined>): FeColorMatrixSVGElementAttributes
+}
+
+export interface FeComponentTransferSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"feComponentTransfer">>, GlobalSVGAttributes {
+  alignmentBaseline(
+    value: string | Stateful<string | undefined>,
+  ): FeComponentTransferSVGElementAttributes
+  baselineShift(
+    value: string | Stateful<string | undefined>,
+  ): FeComponentTransferSVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes
+  color(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes
+  colorInterpolation(
+    value: string | Stateful<string | undefined>,
+  ): FeComponentTransferSVGElementAttributes
+  colorInterpolationFilters(
+    value: string | Stateful<string | undefined>,
+  ): FeComponentTransferSVGElementAttributes
+  colorProfile(
+    value: string | Stateful<string | undefined>,
+  ): FeComponentTransferSVGElementAttributes
+  colorRendering(
+    value: string | Stateful<string | undefined>,
+  ): FeComponentTransferSVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes
+  display(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes
+  dominantBaseline(
+    value: string | Stateful<string | undefined>,
+  ): FeComponentTransferSVGElementAttributes
+  enableBackground(
+    value: string | Stateful<string | undefined>,
+  ): FeComponentTransferSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes
+  floodOpacity(
+    value: string | Stateful<string | undefined>,
+  ): FeComponentTransferSVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes
+  fontSizeAdjust(
+    value: string | Stateful<string | undefined>,
+  ): FeComponentTransferSVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes
+  glyphOrientationHorizontal(
+    value: string | Stateful<string | undefined>,
+  ): FeComponentTransferSVGElementAttributes
+  glyphOrientationVertical(
+    value: string | Stateful<string | undefined>,
+  ): FeComponentTransferSVGElementAttributes
+  height(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes
+  imageRendering(
+    value: string | Stateful<string | undefined>,
+  ): FeComponentTransferSVGElementAttributes
+  in(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes
+  letterSpacing(
+    value: string | Stateful<string | undefined>,
+  ): FeComponentTransferSVGElementAttributes
+  lightingColor(
+    value: string | Stateful<string | undefined>,
+  ): FeComponentTransferSVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes
+  pointerEvents(
+    value: string | Stateful<string | undefined>,
+  ): FeComponentTransferSVGElementAttributes
+  result(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes
+  shapeRendering(
+    value: string | Stateful<string | undefined>,
+  ): FeComponentTransferSVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes
+  strokeDasharray(
+    value: string | Stateful<string | undefined>,
+  ): FeComponentTransferSVGElementAttributes
+  strokeDashoffset(
+    value: string | Stateful<string | undefined>,
+  ): FeComponentTransferSVGElementAttributes
+  strokeLinecap(
+    value: string | Stateful<string | undefined>,
+  ): FeComponentTransferSVGElementAttributes
+  strokeLinejoin(
+    value: string | Stateful<string | undefined>,
+  ): FeComponentTransferSVGElementAttributes
+  strokeMiterlimit(
+    value: string | Stateful<string | undefined>,
+  ): FeComponentTransferSVGElementAttributes
+  strokeOpacity(
+    value: string | Stateful<string | undefined>,
+  ): FeComponentTransferSVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes
+  textDecoration(
+    value: string | Stateful<string | undefined>,
+  ): FeComponentTransferSVGElementAttributes
+  textRendering(
+    value: string | Stateful<string | undefined>,
+  ): FeComponentTransferSVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes
+  width(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes
+  x(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes
+  y(value: string | Stateful<string | undefined>): FeComponentTransferSVGElementAttributes
+}
+
+export interface FeCompositeSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"feComposite">>, GlobalSVGAttributes {
+  alignmentBaseline(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  baselineShift(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  color(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  colorInterpolation(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  colorInterpolationFilters(
+    value: string | Stateful<string | undefined>,
+  ): FeCompositeSVGElementAttributes
+  colorProfile(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  colorRendering(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  display(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  dominantBaseline(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  enableBackground(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  floodOpacity(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  fontSizeAdjust(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  glyphOrientationHorizontal(
+    value: string | Stateful<string | undefined>,
+  ): FeCompositeSVGElementAttributes
+  glyphOrientationVertical(
+    value: string | Stateful<string | undefined>,
+  ): FeCompositeSVGElementAttributes
+  height(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  imageRendering(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  in(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  in2(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  k1(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  k2(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  k3(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  k4(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  letterSpacing(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  lightingColor(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  operator(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  pointerEvents(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  result(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  shapeRendering(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  strokeDasharray(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  strokeDashoffset(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  strokeLinecap(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  strokeLinejoin(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  strokeMiterlimit(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  strokeOpacity(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  textDecoration(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  textRendering(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  width(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  x(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+  y(value: string | Stateful<string | undefined>): FeCompositeSVGElementAttributes
+}
+
+export interface FeConvolveMatrixSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"feConvolveMatrix">>, GlobalSVGAttributes {
+  alignmentBaseline(
+    value: string | Stateful<string | undefined>,
+  ): FeConvolveMatrixSVGElementAttributes
+  baselineShift(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  bias(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  color(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  colorInterpolation(
+    value: string | Stateful<string | undefined>,
+  ): FeConvolveMatrixSVGElementAttributes
+  colorInterpolationFilters(
+    value: string | Stateful<string | undefined>,
+  ): FeConvolveMatrixSVGElementAttributes
+  colorProfile(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  colorRendering(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  display(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  divisor(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  dominantBaseline(
+    value: string | Stateful<string | undefined>,
+  ): FeConvolveMatrixSVGElementAttributes
+  edgeMode(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  enableBackground(
+    value: string | Stateful<string | undefined>,
+  ): FeConvolveMatrixSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  floodOpacity(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  fontSizeAdjust(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  glyphOrientationHorizontal(
+    value: string | Stateful<string | undefined>,
+  ): FeConvolveMatrixSVGElementAttributes
+  glyphOrientationVertical(
+    value: string | Stateful<string | undefined>,
+  ): FeConvolveMatrixSVGElementAttributes
+  height(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  imageRendering(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  in(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  kernelMatrix(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  kernelUnitLength(
+    value: string | Stateful<string | undefined>,
+  ): FeConvolveMatrixSVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  letterSpacing(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  lightingColor(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  order(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  pointerEvents(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  preserveAlpha(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  result(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  shapeRendering(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  strokeDasharray(
+    value: string | Stateful<string | undefined>,
+  ): FeConvolveMatrixSVGElementAttributes
+  strokeDashoffset(
+    value: string | Stateful<string | undefined>,
+  ): FeConvolveMatrixSVGElementAttributes
+  strokeLinecap(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  strokeLinejoin(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  strokeMiterlimit(
+    value: string | Stateful<string | undefined>,
+  ): FeConvolveMatrixSVGElementAttributes
+  strokeOpacity(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  targetX(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  targetY(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  textDecoration(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  textRendering(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  width(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  x(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+  y(value: string | Stateful<string | undefined>): FeConvolveMatrixSVGElementAttributes
+}
+
+export interface FeDiffuseLightingSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"feDiffuseLighting">>, GlobalSVGAttributes {
+  alignmentBaseline(
+    value: string | Stateful<string | undefined>,
+  ): FeDiffuseLightingSVGElementAttributes
+  baselineShift(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  color(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  colorInterpolation(
+    value: string | Stateful<string | undefined>,
+  ): FeDiffuseLightingSVGElementAttributes
+  colorInterpolationFilters(
+    value: string | Stateful<string | undefined>,
+  ): FeDiffuseLightingSVGElementAttributes
+  colorProfile(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  colorRendering(
+    value: string | Stateful<string | undefined>,
+  ): FeDiffuseLightingSVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  diffuseConstant(
+    value: string | Stateful<string | undefined>,
+  ): FeDiffuseLightingSVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  display(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  dominantBaseline(
+    value: string | Stateful<string | undefined>,
+  ): FeDiffuseLightingSVGElementAttributes
+  enableBackground(
+    value: string | Stateful<string | undefined>,
+  ): FeDiffuseLightingSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  floodOpacity(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  fontSizeAdjust(
+    value: string | Stateful<string | undefined>,
+  ): FeDiffuseLightingSVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  glyphOrientationHorizontal(
+    value: string | Stateful<string | undefined>,
+  ): FeDiffuseLightingSVGElementAttributes
+  glyphOrientationVertical(
+    value: string | Stateful<string | undefined>,
+  ): FeDiffuseLightingSVGElementAttributes
+  height(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  imageRendering(
+    value: string | Stateful<string | undefined>,
+  ): FeDiffuseLightingSVGElementAttributes
+  in(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  kernelUnitLength(
+    value: string | Stateful<string | undefined>,
+  ): FeDiffuseLightingSVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  letterSpacing(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  lightingColor(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  pointerEvents(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  result(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  shapeRendering(
+    value: string | Stateful<string | undefined>,
+  ): FeDiffuseLightingSVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  strokeDasharray(
+    value: string | Stateful<string | undefined>,
+  ): FeDiffuseLightingSVGElementAttributes
+  strokeDashoffset(
+    value: string | Stateful<string | undefined>,
+  ): FeDiffuseLightingSVGElementAttributes
+  strokeLinecap(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  strokeLinejoin(
+    value: string | Stateful<string | undefined>,
+  ): FeDiffuseLightingSVGElementAttributes
+  strokeMiterlimit(
+    value: string | Stateful<string | undefined>,
+  ): FeDiffuseLightingSVGElementAttributes
+  strokeOpacity(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  surfaceScale(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  textDecoration(
+    value: string | Stateful<string | undefined>,
+  ): FeDiffuseLightingSVGElementAttributes
+  textRendering(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  width(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  x(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+  y(value: string | Stateful<string | undefined>): FeDiffuseLightingSVGElementAttributes
+}
+
+export interface FeDisplacementMapSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"feDisplacementMap">>, GlobalSVGAttributes {
+  alignmentBaseline(
+    value: string | Stateful<string | undefined>,
+  ): FeDisplacementMapSVGElementAttributes
+  baselineShift(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  color(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  colorInterpolation(
+    value: string | Stateful<string | undefined>,
+  ): FeDisplacementMapSVGElementAttributes
+  colorInterpolationFilters(
+    value: string | Stateful<string | undefined>,
+  ): FeDisplacementMapSVGElementAttributes
+  colorProfile(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  colorRendering(
+    value: string | Stateful<string | undefined>,
+  ): FeDisplacementMapSVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  display(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  dominantBaseline(
+    value: string | Stateful<string | undefined>,
+  ): FeDisplacementMapSVGElementAttributes
+  enableBackground(
+    value: string | Stateful<string | undefined>,
+  ): FeDisplacementMapSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  floodOpacity(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  fontSizeAdjust(
+    value: string | Stateful<string | undefined>,
+  ): FeDisplacementMapSVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  glyphOrientationHorizontal(
+    value: string | Stateful<string | undefined>,
+  ): FeDisplacementMapSVGElementAttributes
+  glyphOrientationVertical(
+    value: string | Stateful<string | undefined>,
+  ): FeDisplacementMapSVGElementAttributes
+  height(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  imageRendering(
+    value: string | Stateful<string | undefined>,
+  ): FeDisplacementMapSVGElementAttributes
+  in(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  in2(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  letterSpacing(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  lightingColor(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  pointerEvents(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  result(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  scale(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  shapeRendering(
+    value: string | Stateful<string | undefined>,
+  ): FeDisplacementMapSVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  strokeDasharray(
+    value: string | Stateful<string | undefined>,
+  ): FeDisplacementMapSVGElementAttributes
+  strokeDashoffset(
+    value: string | Stateful<string | undefined>,
+  ): FeDisplacementMapSVGElementAttributes
+  strokeLinecap(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  strokeLinejoin(
+    value: string | Stateful<string | undefined>,
+  ): FeDisplacementMapSVGElementAttributes
+  strokeMiterlimit(
+    value: string | Stateful<string | undefined>,
+  ): FeDisplacementMapSVGElementAttributes
+  strokeOpacity(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  textDecoration(
+    value: string | Stateful<string | undefined>,
+  ): FeDisplacementMapSVGElementAttributes
+  textRendering(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  width(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  x(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  xChannelSelector(
+    value: string | Stateful<string | undefined>,
+  ): FeDisplacementMapSVGElementAttributes
+  y(value: string | Stateful<string | undefined>): FeDisplacementMapSVGElementAttributes
+  yChannelSelector(
+    value: string | Stateful<string | undefined>,
+  ): FeDisplacementMapSVGElementAttributes
+}
+
+export interface FeDistantLightSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"feDistantLight">>, GlobalSVGAttributes {
+  azimuth(value: string | Stateful<string | undefined>): FeDistantLightSVGElementAttributes
+  elevation(value: string | Stateful<string | undefined>): FeDistantLightSVGElementAttributes
+}
+
+export interface FeDropShadowSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"feDropShadow">>, GlobalSVGAttributes {
+  dx(value: string | Stateful<string | undefined>): FeDropShadowSVGElementAttributes
+  dy(value: string | Stateful<string | undefined>): FeDropShadowSVGElementAttributes
+  height(value: string | Stateful<string | undefined>): FeDropShadowSVGElementAttributes
+  in(value: string | Stateful<string | undefined>): FeDropShadowSVGElementAttributes
+  result(value: string | Stateful<string | undefined>): FeDropShadowSVGElementAttributes
+  stdDeviation(value: string | Stateful<string | undefined>): FeDropShadowSVGElementAttributes
+  width(value: string | Stateful<string | undefined>): FeDropShadowSVGElementAttributes
+  x(value: string | Stateful<string | undefined>): FeDropShadowSVGElementAttributes
+  y(value: string | Stateful<string | undefined>): FeDropShadowSVGElementAttributes
+}
+
+export interface FeFloodSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"feFlood">>, GlobalSVGAttributes {
+  alignmentBaseline(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  baselineShift(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  color(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  colorInterpolation(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  colorInterpolationFilters(
+    value: string | Stateful<string | undefined>,
+  ): FeFloodSVGElementAttributes
+  colorProfile(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  colorRendering(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  display(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  dominantBaseline(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  enableBackground(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  floodOpacity(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  fontSizeAdjust(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  glyphOrientationHorizontal(
+    value: string | Stateful<string | undefined>,
+  ): FeFloodSVGElementAttributes
+  glyphOrientationVertical(
+    value: string | Stateful<string | undefined>,
+  ): FeFloodSVGElementAttributes
+  height(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  imageRendering(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  letterSpacing(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  lightingColor(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  pointerEvents(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  result(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  shapeRendering(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  strokeDasharray(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  strokeDashoffset(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  strokeLinecap(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  strokeLinejoin(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  strokeMiterlimit(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  strokeOpacity(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  textDecoration(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  textRendering(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  width(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  x(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+  y(value: string | Stateful<string | undefined>): FeFloodSVGElementAttributes
+}
+
+export interface FeFuncASVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"feFuncA">>, GlobalSVGAttributes {
+  amplitude(value: string | Stateful<string | undefined>): FeFuncASVGElementAttributes
+  exponent(value: string | Stateful<string | undefined>): FeFuncASVGElementAttributes
+  intercept(value: string | Stateful<string | undefined>): FeFuncASVGElementAttributes
+  offset(value: string | Stateful<string | undefined>): FeFuncASVGElementAttributes
+  slope(value: string | Stateful<string | undefined>): FeFuncASVGElementAttributes
+  tableValues(value: string | Stateful<string | undefined>): FeFuncASVGElementAttributes
+  type(value: string | Stateful<string | undefined>): FeFuncASVGElementAttributes
+}
+
+export interface FeFuncBSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"feFuncB">>, GlobalSVGAttributes {
+  amplitude(value: string | Stateful<string | undefined>): FeFuncBSVGElementAttributes
+  exponent(value: string | Stateful<string | undefined>): FeFuncBSVGElementAttributes
+  intercept(value: string | Stateful<string | undefined>): FeFuncBSVGElementAttributes
+  offset(value: string | Stateful<string | undefined>): FeFuncBSVGElementAttributes
+  slope(value: string | Stateful<string | undefined>): FeFuncBSVGElementAttributes
+  tableValues(value: string | Stateful<string | undefined>): FeFuncBSVGElementAttributes
+  type(value: string | Stateful<string | undefined>): FeFuncBSVGElementAttributes
+}
+
+export interface FeFuncGSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"feFuncG">>, GlobalSVGAttributes {
+  amplitude(value: string | Stateful<string | undefined>): FeFuncGSVGElementAttributes
+  exponent(value: string | Stateful<string | undefined>): FeFuncGSVGElementAttributes
+  intercept(value: string | Stateful<string | undefined>): FeFuncGSVGElementAttributes
+  offset(value: string | Stateful<string | undefined>): FeFuncGSVGElementAttributes
+  slope(value: string | Stateful<string | undefined>): FeFuncGSVGElementAttributes
+  tableValues(value: string | Stateful<string | undefined>): FeFuncGSVGElementAttributes
+  type(value: string | Stateful<string | undefined>): FeFuncGSVGElementAttributes
+}
+
+export interface FeFuncRSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"feFuncR">>, GlobalSVGAttributes {
+  amplitude(value: string | Stateful<string | undefined>): FeFuncRSVGElementAttributes
+  exponent(value: string | Stateful<string | undefined>): FeFuncRSVGElementAttributes
+  intercept(value: string | Stateful<string | undefined>): FeFuncRSVGElementAttributes
+  offset(value: string | Stateful<string | undefined>): FeFuncRSVGElementAttributes
+  slope(value: string | Stateful<string | undefined>): FeFuncRSVGElementAttributes
+  tableValues(value: string | Stateful<string | undefined>): FeFuncRSVGElementAttributes
+  type(value: string | Stateful<string | undefined>): FeFuncRSVGElementAttributes
+}
+
+export interface FeGaussianBlurSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"feGaussianBlur">>, GlobalSVGAttributes {
+  alignmentBaseline(
+    value: string | Stateful<string | undefined>,
+  ): FeGaussianBlurSVGElementAttributes
+  baselineShift(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  color(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  colorInterpolation(
+    value: string | Stateful<string | undefined>,
+  ): FeGaussianBlurSVGElementAttributes
+  colorInterpolationFilters(
+    value: string | Stateful<string | undefined>,
+  ): FeGaussianBlurSVGElementAttributes
+  colorProfile(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  colorRendering(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  display(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  dominantBaseline(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  edgeMode(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  enableBackground(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  floodOpacity(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  fontSizeAdjust(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  glyphOrientationHorizontal(
+    value: string | Stateful<string | undefined>,
+  ): FeGaussianBlurSVGElementAttributes
+  glyphOrientationVertical(
+    value: string | Stateful<string | undefined>,
+  ): FeGaussianBlurSVGElementAttributes
+  height(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  imageRendering(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  in(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  letterSpacing(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  lightingColor(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  pointerEvents(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  result(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  shapeRendering(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  stdDeviation(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  strokeDasharray(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  strokeDashoffset(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  strokeLinecap(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  strokeLinejoin(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  strokeMiterlimit(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  strokeOpacity(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  textDecoration(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  textRendering(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  width(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  x(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+  y(value: string | Stateful<string | undefined>): FeGaussianBlurSVGElementAttributes
+}
+
+export interface FeImageSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"feImage">>, GlobalSVGAttributes {
+  alignmentBaseline(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  baselineShift(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  color(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  colorInterpolation(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  colorInterpolationFilters(
+    value: string | Stateful<string | undefined>,
+  ): FeImageSVGElementAttributes
+  colorProfile(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  colorRendering(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  crossorigin(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  display(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  dominantBaseline(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  enableBackground(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  externalResourcesRequired(
+    value: string | Stateful<string | undefined>,
+  ): FeImageSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  floodOpacity(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  fontSizeAdjust(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  glyphOrientationHorizontal(
+    value: string | Stateful<string | undefined>,
+  ): FeImageSVGElementAttributes
+  glyphOrientationVertical(
+    value: string | Stateful<string | undefined>,
+  ): FeImageSVGElementAttributes
+  height(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  href(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  imageRendering(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  letterSpacing(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  lightingColor(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  pointerEvents(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  preserveAspectRatio(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  result(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  shapeRendering(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  strokeDasharray(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  strokeDashoffset(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  strokeLinecap(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  strokeLinejoin(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  strokeMiterlimit(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  strokeOpacity(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  textDecoration(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  textRendering(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  width(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  x(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+  y(value: string | Stateful<string | undefined>): FeImageSVGElementAttributes
+}
+
+export interface FeMergeSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"feMerge">>, GlobalSVGAttributes {
+  alignmentBaseline(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  baselineShift(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  color(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  colorInterpolation(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  colorInterpolationFilters(
+    value: string | Stateful<string | undefined>,
+  ): FeMergeSVGElementAttributes
+  colorProfile(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  colorRendering(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  display(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  dominantBaseline(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  enableBackground(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  floodOpacity(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  fontSizeAdjust(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  glyphOrientationHorizontal(
+    value: string | Stateful<string | undefined>,
+  ): FeMergeSVGElementAttributes
+  glyphOrientationVertical(
+    value: string | Stateful<string | undefined>,
+  ): FeMergeSVGElementAttributes
+  height(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  imageRendering(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  letterSpacing(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  lightingColor(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  pointerEvents(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  result(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  shapeRendering(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  strokeDasharray(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  strokeDashoffset(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  strokeLinecap(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  strokeLinejoin(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  strokeMiterlimit(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  strokeOpacity(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  textDecoration(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  textRendering(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  width(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  x(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+  y(value: string | Stateful<string | undefined>): FeMergeSVGElementAttributes
+}
+
+export interface FeMergeNodeSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"feMergeNode">>, GlobalSVGAttributes {
+  in(value: string | Stateful<string | undefined>): FeMergeNodeSVGElementAttributes
+}
+
+export interface FeMorphologySVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"feMorphology">>, GlobalSVGAttributes {
+  alignmentBaseline(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  baselineShift(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  color(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  colorInterpolation(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  colorInterpolationFilters(
+    value: string | Stateful<string | undefined>,
+  ): FeMorphologySVGElementAttributes
+  colorProfile(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  colorRendering(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  display(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  dominantBaseline(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  enableBackground(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  floodOpacity(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  fontSizeAdjust(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  glyphOrientationHorizontal(
+    value: string | Stateful<string | undefined>,
+  ): FeMorphologySVGElementAttributes
+  glyphOrientationVertical(
+    value: string | Stateful<string | undefined>,
+  ): FeMorphologySVGElementAttributes
+  height(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  imageRendering(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  in(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  letterSpacing(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  lightingColor(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  operator(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  pointerEvents(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  radius(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  result(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  shapeRendering(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  strokeDasharray(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  strokeDashoffset(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  strokeLinecap(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  strokeLinejoin(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  strokeMiterlimit(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  strokeOpacity(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  textDecoration(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  textRendering(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  width(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  x(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+  y(value: string | Stateful<string | undefined>): FeMorphologySVGElementAttributes
+}
+
+export interface FeOffsetSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"feOffset">>, GlobalSVGAttributes {
+  alignmentBaseline(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  baselineShift(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  color(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  colorInterpolation(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  colorInterpolationFilters(
+    value: string | Stateful<string | undefined>,
+  ): FeOffsetSVGElementAttributes
+  colorProfile(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  colorRendering(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  display(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  dominantBaseline(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  dx(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  dy(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  enableBackground(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  floodOpacity(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  fontSizeAdjust(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  glyphOrientationHorizontal(
+    value: string | Stateful<string | undefined>,
+  ): FeOffsetSVGElementAttributes
+  glyphOrientationVertical(
+    value: string | Stateful<string | undefined>,
+  ): FeOffsetSVGElementAttributes
+  height(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  imageRendering(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  in(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  letterSpacing(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  lightingColor(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  pointerEvents(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  result(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  shapeRendering(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  strokeDasharray(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  strokeDashoffset(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  strokeLinecap(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  strokeLinejoin(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  strokeMiterlimit(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  strokeOpacity(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  textDecoration(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  textRendering(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  width(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  x(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+  y(value: string | Stateful<string | undefined>): FeOffsetSVGElementAttributes
+}
+
+export interface FePointLightSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"fePointLight">>, GlobalSVGAttributes {
+  x(value: string | Stateful<string | undefined>): FePointLightSVGElementAttributes
+  y(value: string | Stateful<string | undefined>): FePointLightSVGElementAttributes
+  z(value: string | Stateful<string | undefined>): FePointLightSVGElementAttributes
+}
+
+export interface FeSpecularLightingSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"feSpecularLighting">>, GlobalSVGAttributes {
+  alignmentBaseline(
+    value: string | Stateful<string | undefined>,
+  ): FeSpecularLightingSVGElementAttributes
+  baselineShift(
+    value: string | Stateful<string | undefined>,
+  ): FeSpecularLightingSVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes
+  color(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes
+  colorInterpolation(
+    value: string | Stateful<string | undefined>,
+  ): FeSpecularLightingSVGElementAttributes
+  colorInterpolationFilters(
+    value: string | Stateful<string | undefined>,
+  ): FeSpecularLightingSVGElementAttributes
+  colorProfile(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes
+  colorRendering(
+    value: string | Stateful<string | undefined>,
+  ): FeSpecularLightingSVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes
+  display(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes
+  dominantBaseline(
+    value: string | Stateful<string | undefined>,
+  ): FeSpecularLightingSVGElementAttributes
+  enableBackground(
+    value: string | Stateful<string | undefined>,
+  ): FeSpecularLightingSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes
+  floodOpacity(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes
+  fontSizeAdjust(
+    value: string | Stateful<string | undefined>,
+  ): FeSpecularLightingSVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes
+  glyphOrientationHorizontal(
+    value: string | Stateful<string | undefined>,
+  ): FeSpecularLightingSVGElementAttributes
+  glyphOrientationVertical(
+    value: string | Stateful<string | undefined>,
+  ): FeSpecularLightingSVGElementAttributes
+  height(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes
+  imageRendering(
+    value: string | Stateful<string | undefined>,
+  ): FeSpecularLightingSVGElementAttributes
+  in(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes
+  kernelUnitLength(
+    value: string | Stateful<string | undefined>,
+  ): FeSpecularLightingSVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes
+  letterSpacing(
+    value: string | Stateful<string | undefined>,
+  ): FeSpecularLightingSVGElementAttributes
+  lightingColor(
+    value: string | Stateful<string | undefined>,
+  ): FeSpecularLightingSVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes
+  pointerEvents(
+    value: string | Stateful<string | undefined>,
+  ): FeSpecularLightingSVGElementAttributes
+  result(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes
+  shapeRendering(
+    value: string | Stateful<string | undefined>,
+  ): FeSpecularLightingSVGElementAttributes
+  specularConstant(
+    value: string | Stateful<string | undefined>,
+  ): FeSpecularLightingSVGElementAttributes
+  specularExponent(
+    value: string | Stateful<string | undefined>,
+  ): FeSpecularLightingSVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes
+  strokeDasharray(
+    value: string | Stateful<string | undefined>,
+  ): FeSpecularLightingSVGElementAttributes
+  strokeDashoffset(
+    value: string | Stateful<string | undefined>,
+  ): FeSpecularLightingSVGElementAttributes
+  strokeLinecap(
+    value: string | Stateful<string | undefined>,
+  ): FeSpecularLightingSVGElementAttributes
+  strokeLinejoin(
+    value: string | Stateful<string | undefined>,
+  ): FeSpecularLightingSVGElementAttributes
+  strokeMiterlimit(
+    value: string | Stateful<string | undefined>,
+  ): FeSpecularLightingSVGElementAttributes
+  strokeOpacity(
+    value: string | Stateful<string | undefined>,
+  ): FeSpecularLightingSVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes
+  surfaceScale(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes
+  textDecoration(
+    value: string | Stateful<string | undefined>,
+  ): FeSpecularLightingSVGElementAttributes
+  textRendering(
+    value: string | Stateful<string | undefined>,
+  ): FeSpecularLightingSVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes
+  width(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes
+  x(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes
+  y(value: string | Stateful<string | undefined>): FeSpecularLightingSVGElementAttributes
+}
+
+export interface FeSpotLightSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"feSpotLight">>, GlobalSVGAttributes {
+  limitingConeAngle(value: string | Stateful<string | undefined>): FeSpotLightSVGElementAttributes
+  pointsAtX(value: string | Stateful<string | undefined>): FeSpotLightSVGElementAttributes
+  pointsAtY(value: string | Stateful<string | undefined>): FeSpotLightSVGElementAttributes
+  pointsAtZ(value: string | Stateful<string | undefined>): FeSpotLightSVGElementAttributes
+  specularExponent(value: string | Stateful<string | undefined>): FeSpotLightSVGElementAttributes
+  x(value: string | Stateful<string | undefined>): FeSpotLightSVGElementAttributes
+  y(value: string | Stateful<string | undefined>): FeSpotLightSVGElementAttributes
+  z(value: string | Stateful<string | undefined>): FeSpotLightSVGElementAttributes
+}
+
+export interface FeTileSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"feTile">>, GlobalSVGAttributes {
+  alignmentBaseline(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  baselineShift(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  color(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  colorInterpolation(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  colorInterpolationFilters(
+    value: string | Stateful<string | undefined>,
+  ): FeTileSVGElementAttributes
+  colorProfile(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  colorRendering(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  display(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  dominantBaseline(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  enableBackground(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  floodOpacity(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  fontSizeAdjust(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  glyphOrientationHorizontal(
+    value: string | Stateful<string | undefined>,
+  ): FeTileSVGElementAttributes
+  glyphOrientationVertical(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  height(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  imageRendering(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  in(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  letterSpacing(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  lightingColor(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  pointerEvents(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  result(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  shapeRendering(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  strokeDasharray(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  strokeDashoffset(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  strokeLinecap(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  strokeLinejoin(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  strokeMiterlimit(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  strokeOpacity(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  textDecoration(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  textRendering(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  width(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  x(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+  y(value: string | Stateful<string | undefined>): FeTileSVGElementAttributes
+}
+
+export interface FeTurbulenceSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"feTurbulence">>, GlobalSVGAttributes {
+  alignmentBaseline(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  baseFrequency(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  baselineShift(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  color(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  colorInterpolation(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  colorInterpolationFilters(
+    value: string | Stateful<string | undefined>,
+  ): FeTurbulenceSVGElementAttributes
+  colorProfile(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  colorRendering(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  display(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  dominantBaseline(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  enableBackground(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  floodOpacity(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  fontSizeAdjust(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  glyphOrientationHorizontal(
+    value: string | Stateful<string | undefined>,
+  ): FeTurbulenceSVGElementAttributes
+  glyphOrientationVertical(
+    value: string | Stateful<string | undefined>,
+  ): FeTurbulenceSVGElementAttributes
+  height(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  imageRendering(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  letterSpacing(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  lightingColor(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  numOctaves(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  pointerEvents(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  result(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  seed(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  shapeRendering(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  stitchTiles(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  strokeDasharray(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  strokeDashoffset(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  strokeLinecap(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  strokeLinejoin(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  strokeMiterlimit(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  strokeOpacity(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  textDecoration(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  textRendering(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  type(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  width(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  x(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+  y(value: string | Stateful<string | undefined>): FeTurbulenceSVGElementAttributes
+}
+
+export interface FilterSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"filter">>, GlobalSVGAttributes {
+  alignmentBaseline(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  baselineShift(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  color(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  colorInterpolation(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  colorInterpolationFilters(
+    value: string | Stateful<string | undefined>,
+  ): FilterSVGElementAttributes
+  colorProfile(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  colorRendering(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  display(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  dominantBaseline(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  enableBackground(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  externalResourcesRequired(
+    value: string | Stateful<string | undefined>,
+  ): FilterSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  filterRes(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  filterUnits(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  floodOpacity(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  fontSizeAdjust(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  glyphOrientationHorizontal(
+    value: string | Stateful<string | undefined>,
+  ): FilterSVGElementAttributes
+  glyphOrientationVertical(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  height(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  imageRendering(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  letterSpacing(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  lightingColor(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  pointerEvents(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  primitiveUnits(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  shapeRendering(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  strokeDasharray(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  strokeDashoffset(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  strokeLinecap(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  strokeLinejoin(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  strokeMiterlimit(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  strokeOpacity(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  textDecoration(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  textRendering(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  width(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  x(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+  y(value: string | Stateful<string | undefined>): FilterSVGElementAttributes
+}
+
+export interface ForeignObjectSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"foreignObject">>, GlobalSVGAttributes {
+  alignmentBaseline(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  baselineShift(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  color(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  colorInterpolation(
+    value: string | Stateful<string | undefined>,
+  ): ForeignObjectSVGElementAttributes
+  colorInterpolationFilters(
+    value: string | Stateful<string | undefined>,
+  ): ForeignObjectSVGElementAttributes
+  colorProfile(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  colorRendering(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  display(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  dominantBaseline(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  enableBackground(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  externalResourcesRequired(
+    value: string | Stateful<string | undefined>,
+  ): ForeignObjectSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  floodOpacity(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  focusHighlight(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  focusable(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  fontSizeAdjust(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  glyphOrientationHorizontal(
+    value: string | Stateful<string | undefined>,
+  ): ForeignObjectSVGElementAttributes
+  glyphOrientationVertical(
+    value: string | Stateful<string | undefined>,
+  ): ForeignObjectSVGElementAttributes
+  height(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  imageRendering(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  letterSpacing(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  lightingColor(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  navDown(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  navDownLeft(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  navDownRight(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  navLeft(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  navNext(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  navPrev(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  navRight(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  navUp(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  navUpLeft(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  navUpRight(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  pointerEvents(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  requiredExtensions(
+    value: string | Stateful<string | undefined>,
+  ): ForeignObjectSVGElementAttributes
+  requiredFeatures(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  requiredFonts(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  requiredFormats(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  shapeRendering(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  strokeDasharray(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  strokeDashoffset(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  strokeLinecap(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  strokeLinejoin(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  strokeMiterlimit(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  strokeOpacity(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  systemLanguage(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  textDecoration(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  textRendering(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  transform(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  width(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  x(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+  y(value: string | Stateful<string | undefined>): ForeignObjectSVGElementAttributes
+}
+
+export interface GSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"g">>, GlobalSVGAttributes {
+  alignmentBaseline(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  baselineShift(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  color(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  colorInterpolation(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  colorInterpolationFilters(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  colorProfile(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  colorRendering(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  display(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  dominantBaseline(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  enableBackground(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  externalResourcesRequired(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  floodOpacity(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  focusHighlight(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  focusable(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  fontSizeAdjust(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  glyphOrientationHorizontal(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  glyphOrientationVertical(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  imageRendering(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  letterSpacing(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  lightingColor(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  navDown(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  navDownLeft(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  navDownRight(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  navLeft(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  navNext(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  navPrev(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  navRight(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  navUp(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  navUpLeft(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  navUpRight(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  pointerEvents(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  requiredExtensions(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  requiredFeatures(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  requiredFonts(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  requiredFormats(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  shapeRendering(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  strokeDasharray(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  strokeDashoffset(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  strokeLinecap(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  strokeLinejoin(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  strokeMiterlimit(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  strokeOpacity(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  systemLanguage(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  textDecoration(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  textRendering(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  transform(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): GSVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): GSVGElementAttributes
+}
+
+export interface GlyphSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"glyph">>, GlobalSVGAttributes {
+  alignmentBaseline(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  arabicForm(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  baselineShift(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  color(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  colorInterpolation(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  colorInterpolationFilters(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  colorProfile(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  colorRendering(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  d(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  display(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  dominantBaseline(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  enableBackground(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  floodOpacity(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  fontSizeAdjust(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  glyphName(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  glyphOrientationHorizontal(
+    value: string | Stateful<string | undefined>,
+  ): GlyphSVGElementAttributes
+  glyphOrientationVertical(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  horizAdvX(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  imageRendering(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  letterSpacing(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  lightingColor(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  orientation(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  pointerEvents(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  shapeRendering(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  strokeDasharray(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  strokeDashoffset(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  strokeLinecap(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  strokeLinejoin(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  strokeMiterlimit(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  strokeOpacity(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  textDecoration(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  textRendering(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  unicode(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  vertAdvY(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  vertOriginX(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  vertOriginY(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): GlyphSVGElementAttributes
+}
+
+export interface GlyphRefSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"glyphRef">>, GlobalSVGAttributes {
+  alignmentBaseline(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  baselineShift(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  color(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  colorInterpolation(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  colorInterpolationFilters(
+    value: string | Stateful<string | undefined>,
+  ): GlyphRefSVGElementAttributes
+  colorProfile(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  colorRendering(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  display(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  dominantBaseline(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  dx(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  dy(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  enableBackground(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  floodOpacity(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  fontSizeAdjust(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  format(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  glyphOrientationHorizontal(
+    value: string | Stateful<string | undefined>,
+  ): GlyphRefSVGElementAttributes
+  glyphOrientationVertical(
+    value: string | Stateful<string | undefined>,
+  ): GlyphRefSVGElementAttributes
+  glyphRef(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  imageRendering(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  letterSpacing(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  lightingColor(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  pointerEvents(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  shapeRendering(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  strokeDasharray(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  strokeDashoffset(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  strokeLinecap(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  strokeLinejoin(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  strokeMiterlimit(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  strokeOpacity(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  textDecoration(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  textRendering(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  x(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+  y(value: string | Stateful<string | undefined>): GlyphRefSVGElementAttributes
+}
+
+export interface HandlerSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"handler">>, GlobalSVGAttributes {
+  externalResourcesRequired(
+    value: string | Stateful<string | undefined>,
+  ): HandlerSVGElementAttributes
+  type(value: string | Stateful<string | undefined>): HandlerSVGElementAttributes
+}
+
+export interface HkernSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"hkern">>, GlobalSVGAttributes {
+  g1(value: string | Stateful<string | undefined>): HkernSVGElementAttributes
+  g2(value: string | Stateful<string | undefined>): HkernSVGElementAttributes
+  k(value: string | Stateful<string | undefined>): HkernSVGElementAttributes
+  u1(value: string | Stateful<string | undefined>): HkernSVGElementAttributes
+  u2(value: string | Stateful<string | undefined>): HkernSVGElementAttributes
+}
+
+export interface IframeSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"iframe">>, GlobalSVGAttributes {
+  requiredExtensions(value: string | Stateful<string | undefined>): IframeSVGElementAttributes
+  systemLanguage(value: string | Stateful<string | undefined>): IframeSVGElementAttributes
+}
+
+export interface ImageSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"image">>, GlobalSVGAttributes {
+  alignmentBaseline(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  baselineShift(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  color(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  colorInterpolation(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  colorInterpolationFilters(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  colorProfile(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  colorRendering(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  crossorigin(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  display(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  dominantBaseline(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  enableBackground(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  externalResourcesRequired(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  floodOpacity(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  focusHighlight(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  focusable(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  fontSizeAdjust(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  glyphOrientationHorizontal(
+    value: string | Stateful<string | undefined>,
+  ): ImageSVGElementAttributes
+  glyphOrientationVertical(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  height(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  href(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  imageRendering(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  letterSpacing(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  lightingColor(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  navDown(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  navDownLeft(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  navDownRight(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  navLeft(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  navNext(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  navPrev(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  navRight(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  navUp(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  navUpLeft(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  navUpRight(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  pointerEvents(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  preserveAspectRatio(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  requiredExtensions(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  requiredFeatures(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  requiredFonts(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  requiredFormats(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  shapeRendering(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  strokeDasharray(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  strokeDashoffset(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  strokeLinecap(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  strokeLinejoin(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  strokeMiterlimit(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  strokeOpacity(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  systemLanguage(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  textDecoration(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  textRendering(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  transform(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  type(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  width(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  x(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+  y(value: string | Stateful<string | undefined>): ImageSVGElementAttributes
+}
+
+export interface LineSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"line">>, GlobalSVGAttributes {
+  alignmentBaseline(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  baselineShift(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  color(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  colorInterpolation(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  colorInterpolationFilters(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  colorProfile(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  colorRendering(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  display(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  dominantBaseline(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  enableBackground(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  externalResourcesRequired(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  floodOpacity(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  focusHighlight(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  focusable(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  fontSizeAdjust(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  glyphOrientationHorizontal(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  glyphOrientationVertical(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  imageRendering(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  letterSpacing(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  lightingColor(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  navDown(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  navDownLeft(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  navDownRight(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  navLeft(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  navNext(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  navPrev(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  navRight(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  navUp(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  navUpLeft(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  navUpRight(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  pathLength(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  pointerEvents(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  requiredExtensions(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  requiredFeatures(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  requiredFonts(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  requiredFormats(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  shapeRendering(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  strokeDasharray(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  strokeDashoffset(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  strokeLinecap(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  strokeLinejoin(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  strokeMiterlimit(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  strokeOpacity(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  systemLanguage(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  textDecoration(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  textRendering(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  transform(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  x1(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  x2(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  y1(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+  y2(value: string | Stateful<string | undefined>): LineSVGElementAttributes
+}
+
+export interface LinearGradientSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"linearGradient">>, GlobalSVGAttributes {
+  alignmentBaseline(
+    value: string | Stateful<string | undefined>,
+  ): LinearGradientSVGElementAttributes
+  baselineShift(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  color(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  colorInterpolation(
+    value: string | Stateful<string | undefined>,
+  ): LinearGradientSVGElementAttributes
+  colorInterpolationFilters(
+    value: string | Stateful<string | undefined>,
+  ): LinearGradientSVGElementAttributes
+  colorProfile(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  colorRendering(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  display(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  dominantBaseline(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  enableBackground(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  externalResourcesRequired(
+    value: string | Stateful<string | undefined>,
+  ): LinearGradientSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  floodOpacity(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  fontSizeAdjust(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  glyphOrientationHorizontal(
+    value: string | Stateful<string | undefined>,
+  ): LinearGradientSVGElementAttributes
+  glyphOrientationVertical(
+    value: string | Stateful<string | undefined>,
+  ): LinearGradientSVGElementAttributes
+  gradientTransform(
+    value: string | Stateful<string | undefined>,
+  ): LinearGradientSVGElementAttributes
+  gradientUnits(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  href(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  imageRendering(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  letterSpacing(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  lightingColor(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  pointerEvents(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  shapeRendering(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  spreadMethod(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  strokeDasharray(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  strokeDashoffset(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  strokeLinecap(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  strokeLinejoin(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  strokeMiterlimit(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  strokeOpacity(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  textDecoration(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  textRendering(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  x1(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  x2(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  y1(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+  y2(value: string | Stateful<string | undefined>): LinearGradientSVGElementAttributes
+}
+
+export interface ListenerSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"listener">>, GlobalSVGAttributes {
+  defaultAction(value: string | Stateful<string | undefined>): ListenerSVGElementAttributes
+  event(value: string | Stateful<string | undefined>): ListenerSVGElementAttributes
+  handler(value: string | Stateful<string | undefined>): ListenerSVGElementAttributes
+  observer(value: string | Stateful<string | undefined>): ListenerSVGElementAttributes
+  phase(value: string | Stateful<string | undefined>): ListenerSVGElementAttributes
+  propagate(value: string | Stateful<string | undefined>): ListenerSVGElementAttributes
+  target(value: string | Stateful<string | undefined>): ListenerSVGElementAttributes
+}
+
+export interface MarkerSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"marker">>, GlobalSVGAttributes {
+  alignmentBaseline(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  baselineShift(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  color(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  colorInterpolation(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  colorInterpolationFilters(
+    value: string | Stateful<string | undefined>,
+  ): MarkerSVGElementAttributes
+  colorProfile(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  colorRendering(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  display(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  dominantBaseline(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  enableBackground(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  externalResourcesRequired(
+    value: string | Stateful<string | undefined>,
+  ): MarkerSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  floodOpacity(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  fontSizeAdjust(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  glyphOrientationHorizontal(
+    value: string | Stateful<string | undefined>,
+  ): MarkerSVGElementAttributes
+  glyphOrientationVertical(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  imageRendering(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  letterSpacing(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  lightingColor(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  markerHeight(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  markerUnits(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  markerWidth(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  orient(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  pointerEvents(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  preserveAspectRatio(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  refX(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  refY(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  shapeRendering(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  strokeDasharray(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  strokeDashoffset(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  strokeLinecap(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  strokeLinejoin(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  strokeMiterlimit(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  strokeOpacity(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  textDecoration(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  textRendering(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  viewBox(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): MarkerSVGElementAttributes
+}
+
+export interface MaskSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"mask">>, GlobalSVGAttributes {
+  alignmentBaseline(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  baselineShift(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  color(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  colorInterpolation(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  colorInterpolationFilters(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  colorProfile(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  colorRendering(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  display(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  dominantBaseline(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  enableBackground(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  externalResourcesRequired(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  floodOpacity(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  fontSizeAdjust(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  glyphOrientationHorizontal(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  glyphOrientationVertical(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  height(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  imageRendering(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  letterSpacing(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  lightingColor(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  maskContentUnits(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  maskUnits(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  pointerEvents(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  requiredExtensions(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  requiredFeatures(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  shapeRendering(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  strokeDasharray(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  strokeDashoffset(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  strokeLinecap(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  strokeLinejoin(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  strokeMiterlimit(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  strokeOpacity(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  systemLanguage(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  textDecoration(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  textRendering(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  width(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  x(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+  y(value: string | Stateful<string | undefined>): MaskSVGElementAttributes
+}
+
+export interface MetadataSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"metadata">>, GlobalSVGAttributes {
+  requiredExtensions(value: string | Stateful<string | undefined>): MetadataSVGElementAttributes
+  requiredFeatures(value: string | Stateful<string | undefined>): MetadataSVGElementAttributes
+  requiredFonts(value: string | Stateful<string | undefined>): MetadataSVGElementAttributes
+  requiredFormats(value: string | Stateful<string | undefined>): MetadataSVGElementAttributes
+  systemLanguage(value: string | Stateful<string | undefined>): MetadataSVGElementAttributes
+}
+
+export interface MpathSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"mpath">>, GlobalSVGAttributes {
+  externalResourcesRequired(value: string | Stateful<string | undefined>): MpathSVGElementAttributes
+  href(value: string | Stateful<string | undefined>): MpathSVGElementAttributes
+}
+
+export interface PathSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"path">>, GlobalSVGAttributes {
+  alignmentBaseline(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  baselineShift(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  color(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  colorInterpolation(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  colorInterpolationFilters(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  colorProfile(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  colorRendering(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  d(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  display(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  dominantBaseline(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  enableBackground(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  externalResourcesRequired(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  floodOpacity(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  focusHighlight(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  focusable(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  fontSizeAdjust(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  glyphOrientationHorizontal(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  glyphOrientationVertical(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  imageRendering(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  letterSpacing(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  lightingColor(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  navDown(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  navDownLeft(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  navDownRight(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  navLeft(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  navNext(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  navPrev(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  navRight(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  navUp(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  navUpLeft(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  navUpRight(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  pathLength(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  pointerEvents(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  requiredExtensions(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  requiredFeatures(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  requiredFonts(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  requiredFormats(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  shapeRendering(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  strokeDasharray(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  strokeDashoffset(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  strokeLinecap(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  strokeLinejoin(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  strokeMiterlimit(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  strokeOpacity(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  systemLanguage(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  textDecoration(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  textRendering(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  transform(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): PathSVGElementAttributes
+}
+
+export interface PatternSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"pattern">>, GlobalSVGAttributes {
+  alignmentBaseline(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  baselineShift(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  color(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  colorInterpolation(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  colorInterpolationFilters(
+    value: string | Stateful<string | undefined>,
+  ): PatternSVGElementAttributes
+  colorProfile(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  colorRendering(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  display(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  dominantBaseline(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  enableBackground(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  externalResourcesRequired(
+    value: string | Stateful<string | undefined>,
+  ): PatternSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  floodOpacity(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  fontSizeAdjust(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  glyphOrientationHorizontal(
+    value: string | Stateful<string | undefined>,
+  ): PatternSVGElementAttributes
+  glyphOrientationVertical(
+    value: string | Stateful<string | undefined>,
+  ): PatternSVGElementAttributes
+  height(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  href(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  imageRendering(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  letterSpacing(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  lightingColor(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  patternContentUnits(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  patternTransform(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  patternUnits(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  pointerEvents(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  preserveAspectRatio(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  requiredExtensions(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  requiredFeatures(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  shapeRendering(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  strokeDasharray(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  strokeDashoffset(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  strokeLinecap(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  strokeLinejoin(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  strokeMiterlimit(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  strokeOpacity(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  systemLanguage(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  textDecoration(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  textRendering(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  viewBox(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  width(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  x(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+  y(value: string | Stateful<string | undefined>): PatternSVGElementAttributes
+}
+
+export interface PolygonSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"polygon">>, GlobalSVGAttributes {
+  alignmentBaseline(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  baselineShift(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  color(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  colorInterpolation(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  colorInterpolationFilters(
+    value: string | Stateful<string | undefined>,
+  ): PolygonSVGElementAttributes
+  colorProfile(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  colorRendering(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  display(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  dominantBaseline(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  enableBackground(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  externalResourcesRequired(
+    value: string | Stateful<string | undefined>,
+  ): PolygonSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  floodOpacity(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  focusHighlight(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  focusable(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  fontSizeAdjust(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  glyphOrientationHorizontal(
+    value: string | Stateful<string | undefined>,
+  ): PolygonSVGElementAttributes
+  glyphOrientationVertical(
+    value: string | Stateful<string | undefined>,
+  ): PolygonSVGElementAttributes
+  imageRendering(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  letterSpacing(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  lightingColor(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  navDown(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  navDownLeft(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  navDownRight(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  navLeft(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  navNext(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  navPrev(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  navRight(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  navUp(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  navUpLeft(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  navUpRight(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  pathLength(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  pointerEvents(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  points(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  requiredExtensions(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  requiredFeatures(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  requiredFonts(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  requiredFormats(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  shapeRendering(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  strokeDasharray(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  strokeDashoffset(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  strokeLinecap(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  strokeLinejoin(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  strokeMiterlimit(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  strokeOpacity(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  systemLanguage(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  textDecoration(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  textRendering(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  transform(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): PolygonSVGElementAttributes
+}
+
+export interface PolylineSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"polyline">>, GlobalSVGAttributes {
+  alignmentBaseline(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  baselineShift(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  color(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  colorInterpolation(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  colorInterpolationFilters(
+    value: string | Stateful<string | undefined>,
+  ): PolylineSVGElementAttributes
+  colorProfile(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  colorRendering(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  display(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  dominantBaseline(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  enableBackground(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  externalResourcesRequired(
+    value: string | Stateful<string | undefined>,
+  ): PolylineSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  floodOpacity(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  focusHighlight(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  focusable(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  fontSizeAdjust(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  glyphOrientationHorizontal(
+    value: string | Stateful<string | undefined>,
+  ): PolylineSVGElementAttributes
+  glyphOrientationVertical(
+    value: string | Stateful<string | undefined>,
+  ): PolylineSVGElementAttributes
+  imageRendering(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  letterSpacing(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  lightingColor(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  navDown(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  navDownLeft(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  navDownRight(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  navLeft(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  navNext(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  navPrev(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  navRight(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  navUp(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  navUpLeft(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  navUpRight(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  pathLength(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  pointerEvents(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  points(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  requiredExtensions(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  requiredFeatures(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  requiredFonts(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  requiredFormats(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  shapeRendering(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  strokeDasharray(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  strokeDashoffset(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  strokeLinecap(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  strokeLinejoin(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  strokeMiterlimit(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  strokeOpacity(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  systemLanguage(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  textDecoration(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  textRendering(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  transform(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): PolylineSVGElementAttributes
+}
+
+export interface PrefetchSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"prefetch">>, GlobalSVGAttributes {
+  bandwidth(value: string | Stateful<string | undefined>): PrefetchSVGElementAttributes
+  mediaCharacterEncoding(value: string | Stateful<string | undefined>): PrefetchSVGElementAttributes
+  mediaContentEncodings(value: string | Stateful<string | undefined>): PrefetchSVGElementAttributes
+  mediaSize(value: string | Stateful<string | undefined>): PrefetchSVGElementAttributes
+  mediaTime(value: string | Stateful<string | undefined>): PrefetchSVGElementAttributes
+}
+
+export interface RadialGradientSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"radialGradient">>, GlobalSVGAttributes {
+  alignmentBaseline(
+    value: string | Stateful<string | undefined>,
+  ): RadialGradientSVGElementAttributes
+  baselineShift(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  color(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  colorInterpolation(
+    value: string | Stateful<string | undefined>,
+  ): RadialGradientSVGElementAttributes
+  colorInterpolationFilters(
+    value: string | Stateful<string | undefined>,
+  ): RadialGradientSVGElementAttributes
+  colorProfile(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  colorRendering(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  cx(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  cy(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  display(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  dominantBaseline(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  enableBackground(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  externalResourcesRequired(
+    value: string | Stateful<string | undefined>,
+  ): RadialGradientSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  floodOpacity(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  fontSizeAdjust(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  fr(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  fx(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  fy(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  glyphOrientationHorizontal(
+    value: string | Stateful<string | undefined>,
+  ): RadialGradientSVGElementAttributes
+  glyphOrientationVertical(
+    value: string | Stateful<string | undefined>,
+  ): RadialGradientSVGElementAttributes
+  gradientTransform(
+    value: string | Stateful<string | undefined>,
+  ): RadialGradientSVGElementAttributes
+  gradientUnits(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  href(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  imageRendering(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  letterSpacing(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  lightingColor(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  pointerEvents(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  r(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  shapeRendering(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  spreadMethod(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  strokeDasharray(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  strokeDashoffset(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  strokeLinecap(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  strokeLinejoin(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  strokeMiterlimit(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  strokeOpacity(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  textDecoration(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  textRendering(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): RadialGradientSVGElementAttributes
+}
+
+export interface RectSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"rect">>, GlobalSVGAttributes {
+  alignmentBaseline(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  baselineShift(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  color(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  colorInterpolation(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  colorInterpolationFilters(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  colorProfile(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  colorRendering(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  display(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  dominantBaseline(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  enableBackground(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  externalResourcesRequired(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  floodOpacity(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  focusHighlight(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  focusable(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  fontSizeAdjust(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  glyphOrientationHorizontal(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  glyphOrientationVertical(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  height(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  imageRendering(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  letterSpacing(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  lightingColor(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  navDown(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  navDownLeft(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  navDownRight(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  navLeft(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  navNext(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  navPrev(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  navRight(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  navUp(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  navUpLeft(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  navUpRight(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  pathLength(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  pointerEvents(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  requiredExtensions(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  requiredFeatures(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  requiredFonts(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  requiredFormats(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  rx(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  ry(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  shapeRendering(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  strokeDasharray(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  strokeDashoffset(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  strokeLinecap(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  strokeLinejoin(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  strokeMiterlimit(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  strokeOpacity(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  systemLanguage(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  textDecoration(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  textRendering(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  transform(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  width(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  x(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+  y(value: string | Stateful<string | undefined>): RectSVGElementAttributes
+}
+
+export interface ScriptSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"script">>, GlobalSVGAttributes {
+  crossorigin(value: string | Stateful<string | undefined>): ScriptSVGElementAttributes
+  externalResourcesRequired(
+    value: string | Stateful<string | undefined>,
+  ): ScriptSVGElementAttributes
+  href(value: string | Stateful<string | undefined>): ScriptSVGElementAttributes
+  type(value: string | Stateful<string | undefined>): ScriptSVGElementAttributes
+}
+
+export interface SetSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"set">>, GlobalSVGAttributes {
+  attributeName(value: string | Stateful<string | undefined>): SetSVGElementAttributes
+  attributeType(value: string | Stateful<string | undefined>): SetSVGElementAttributes
+  begin(value: string | Stateful<string | undefined>): SetSVGElementAttributes
+  dur(value: string | Stateful<string | undefined>): SetSVGElementAttributes
+  end(value: string | Stateful<string | undefined>): SetSVGElementAttributes
+  externalResourcesRequired(value: string | Stateful<string | undefined>): SetSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): SetSVGElementAttributes
+  href(value: string | Stateful<string | undefined>): SetSVGElementAttributes
+  max(value: string | Stateful<string | undefined>): SetSVGElementAttributes
+  min(value: string | Stateful<string | undefined>): SetSVGElementAttributes
+  repeatCount(value: string | Stateful<string | undefined>): SetSVGElementAttributes
+  repeatDur(value: string | Stateful<string | undefined>): SetSVGElementAttributes
+  requiredExtensions(value: string | Stateful<string | undefined>): SetSVGElementAttributes
+  requiredFeatures(value: string | Stateful<string | undefined>): SetSVGElementAttributes
+  requiredFonts(value: string | Stateful<string | undefined>): SetSVGElementAttributes
+  requiredFormats(value: string | Stateful<string | undefined>): SetSVGElementAttributes
+  restart(value: string | Stateful<string | undefined>): SetSVGElementAttributes
+  systemLanguage(value: string | Stateful<string | undefined>): SetSVGElementAttributes
+  to(value: string | Stateful<string | undefined>): SetSVGElementAttributes
+}
+
+export interface SolidColorSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"solidColor">>, GlobalSVGAttributes {}
+
+export interface StopSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"stop">>, GlobalSVGAttributes {
+  alignmentBaseline(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  baselineShift(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  color(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  colorInterpolation(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  colorInterpolationFilters(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  colorProfile(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  colorRendering(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  display(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  dominantBaseline(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  enableBackground(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  floodOpacity(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  fontSizeAdjust(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  glyphOrientationHorizontal(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  glyphOrientationVertical(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  imageRendering(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  letterSpacing(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  lightingColor(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  offset(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  pointerEvents(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  shapeRendering(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  strokeDasharray(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  strokeDashoffset(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  strokeLinecap(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  strokeLinejoin(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  strokeMiterlimit(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  strokeOpacity(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  textDecoration(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  textRendering(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): StopSVGElementAttributes
+}
+
+export interface StyleSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"style">>, GlobalSVGAttributes {
+  media(value: string | Stateful<string | undefined>): StyleSVGElementAttributes
+  title(value: string | Stateful<string | undefined>): StyleSVGElementAttributes
+  type(value: string | Stateful<string | undefined>): StyleSVGElementAttributes
+}
+
+export interface SVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"svg">>, GlobalSVGAttributes {
+  alignmentBaseline(value: string | Stateful<string | undefined>): SVGElementAttributes
+  baseProfile(value: string | Stateful<string | undefined>): SVGElementAttributes
+  baselineShift(value: string | Stateful<string | undefined>): SVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): SVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): SVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): SVGElementAttributes
+  color(value: string | Stateful<string | undefined>): SVGElementAttributes
+  colorInterpolation(value: string | Stateful<string | undefined>): SVGElementAttributes
+  colorInterpolationFilters(value: string | Stateful<string | undefined>): SVGElementAttributes
+  colorProfile(value: string | Stateful<string | undefined>): SVGElementAttributes
+  colorRendering(value: string | Stateful<string | undefined>): SVGElementAttributes
+  contentScriptType(value: string | Stateful<string | undefined>): SVGElementAttributes
+  contentStyleType(value: string | Stateful<string | undefined>): SVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): SVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): SVGElementAttributes
+  display(value: string | Stateful<string | undefined>): SVGElementAttributes
+  dominantBaseline(value: string | Stateful<string | undefined>): SVGElementAttributes
+  enableBackground(value: string | Stateful<string | undefined>): SVGElementAttributes
+  externalResourcesRequired(value: string | Stateful<string | undefined>): SVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): SVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): SVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): SVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): SVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): SVGElementAttributes
+  floodOpacity(value: string | Stateful<string | undefined>): SVGElementAttributes
+  focusHighlight(value: string | Stateful<string | undefined>): SVGElementAttributes
+  focusable(value: string | Stateful<string | undefined>): SVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): SVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): SVGElementAttributes
+  fontSizeAdjust(value: string | Stateful<string | undefined>): SVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): SVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): SVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): SVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): SVGElementAttributes
+  glyphOrientationHorizontal(value: string | Stateful<string | undefined>): SVGElementAttributes
+  glyphOrientationVertical(value: string | Stateful<string | undefined>): SVGElementAttributes
+  height(value: string | Stateful<string | undefined>): SVGElementAttributes
+  imageRendering(value: string | Stateful<string | undefined>): SVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): SVGElementAttributes
+  letterSpacing(value: string | Stateful<string | undefined>): SVGElementAttributes
+  lightingColor(value: string | Stateful<string | undefined>): SVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): SVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): SVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): SVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): SVGElementAttributes
+  navDown(value: string | Stateful<string | undefined>): SVGElementAttributes
+  navDownLeft(value: string | Stateful<string | undefined>): SVGElementAttributes
+  navDownRight(value: string | Stateful<string | undefined>): SVGElementAttributes
+  navLeft(value: string | Stateful<string | undefined>): SVGElementAttributes
+  navNext(value: string | Stateful<string | undefined>): SVGElementAttributes
+  navPrev(value: string | Stateful<string | undefined>): SVGElementAttributes
+  navRight(value: string | Stateful<string | undefined>): SVGElementAttributes
+  navUp(value: string | Stateful<string | undefined>): SVGElementAttributes
+  navUpLeft(value: string | Stateful<string | undefined>): SVGElementAttributes
+  navUpRight(value: string | Stateful<string | undefined>): SVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): SVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): SVGElementAttributes
+  playbackOrder(value: string | Stateful<string | undefined>): SVGElementAttributes
+  playbackorder(value: string | Stateful<string | undefined>): SVGElementAttributes
+  pointerEvents(value: string | Stateful<string | undefined>): SVGElementAttributes
+  preserveAspectRatio(value: string | Stateful<string | undefined>): SVGElementAttributes
+  requiredExtensions(value: string | Stateful<string | undefined>): SVGElementAttributes
+  requiredFeatures(value: string | Stateful<string | undefined>): SVGElementAttributes
+  shapeRendering(value: string | Stateful<string | undefined>): SVGElementAttributes
+  snapshotTime(value: string | Stateful<string | undefined>): SVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): SVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): SVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): SVGElementAttributes
+  strokeDasharray(value: string | Stateful<string | undefined>): SVGElementAttributes
+  strokeDashoffset(value: string | Stateful<string | undefined>): SVGElementAttributes
+  strokeLinecap(value: string | Stateful<string | undefined>): SVGElementAttributes
+  strokeLinejoin(value: string | Stateful<string | undefined>): SVGElementAttributes
+  strokeMiterlimit(value: string | Stateful<string | undefined>): SVGElementAttributes
+  strokeOpacity(value: string | Stateful<string | undefined>): SVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): SVGElementAttributes
+  syncBehaviorDefault(value: string | Stateful<string | undefined>): SVGElementAttributes
+  syncToleranceDefault(value: string | Stateful<string | undefined>): SVGElementAttributes
+  systemLanguage(value: string | Stateful<string | undefined>): SVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): SVGElementAttributes
+  textDecoration(value: string | Stateful<string | undefined>): SVGElementAttributes
+  textRendering(value: string | Stateful<string | undefined>): SVGElementAttributes
+  timelineBegin(value: string | Stateful<string | undefined>): SVGElementAttributes
+  timelinebegin(value: string | Stateful<string | undefined>): SVGElementAttributes
+  transform(value: string | Stateful<string | undefined>): SVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): SVGElementAttributes
+  version(value: string | Stateful<string | undefined>): SVGElementAttributes
+  viewBox(value: string | Stateful<string | undefined>): SVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): SVGElementAttributes
+  width(value: string | Stateful<string | undefined>): SVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): SVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): SVGElementAttributes
+  x(value: string | Stateful<string | undefined>): SVGElementAttributes
+  y(value: string | Stateful<string | undefined>): SVGElementAttributes
+  zoomAndPan(value: string | Stateful<string | undefined>): SVGElementAttributes
+}
+
+export interface SwitchSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"switch">>, GlobalSVGAttributes {
+  alignmentBaseline(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  baselineShift(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  color(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  colorInterpolation(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  colorInterpolationFilters(
+    value: string | Stateful<string | undefined>,
+  ): SwitchSVGElementAttributes
+  colorProfile(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  colorRendering(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  display(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  dominantBaseline(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  enableBackground(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  externalResourcesRequired(
+    value: string | Stateful<string | undefined>,
+  ): SwitchSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  floodOpacity(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  focusHighlight(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  focusable(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  fontSizeAdjust(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  glyphOrientationHorizontal(
+    value: string | Stateful<string | undefined>,
+  ): SwitchSVGElementAttributes
+  glyphOrientationVertical(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  imageRendering(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  letterSpacing(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  lightingColor(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  navDown(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  navDownLeft(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  navDownRight(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  navLeft(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  navNext(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  navPrev(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  navRight(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  navUp(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  navUpLeft(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  navUpRight(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  pointerEvents(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  requiredExtensions(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  requiredFeatures(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  requiredFonts(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  requiredFormats(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  shapeRendering(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  strokeDasharray(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  strokeDashoffset(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  strokeLinecap(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  strokeLinejoin(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  strokeMiterlimit(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  strokeOpacity(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  systemLanguage(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  textDecoration(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  textRendering(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  transform(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): SwitchSVGElementAttributes
+}
+
+export interface SymbolSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"symbol">>, GlobalSVGAttributes {
+  alignmentBaseline(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  baselineShift(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  color(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  colorInterpolation(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  colorInterpolationFilters(
+    value: string | Stateful<string | undefined>,
+  ): SymbolSVGElementAttributes
+  colorProfile(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  colorRendering(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  display(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  dominantBaseline(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  enableBackground(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  externalResourcesRequired(
+    value: string | Stateful<string | undefined>,
+  ): SymbolSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  floodOpacity(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  fontSizeAdjust(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  glyphOrientationHorizontal(
+    value: string | Stateful<string | undefined>,
+  ): SymbolSVGElementAttributes
+  glyphOrientationVertical(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  height(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  imageRendering(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  letterSpacing(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  lightingColor(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  pointerEvents(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  preserveAspectRatio(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  refX(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  refY(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  shapeRendering(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  strokeDasharray(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  strokeDashoffset(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  strokeLinecap(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  strokeLinejoin(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  strokeMiterlimit(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  strokeOpacity(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  textDecoration(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  textRendering(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  viewBox(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  width(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  x(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+  y(value: string | Stateful<string | undefined>): SymbolSVGElementAttributes
+}
+
+export interface TbreakSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"tbreak">>, GlobalSVGAttributes {
+  requiredExtensions(value: string | Stateful<string | undefined>): TbreakSVGElementAttributes
+  requiredFeatures(value: string | Stateful<string | undefined>): TbreakSVGElementAttributes
+  requiredFonts(value: string | Stateful<string | undefined>): TbreakSVGElementAttributes
+  requiredFormats(value: string | Stateful<string | undefined>): TbreakSVGElementAttributes
+  systemLanguage(value: string | Stateful<string | undefined>): TbreakSVGElementAttributes
+}
+
+export interface TextSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"text">>, GlobalSVGAttributes {
+  alignmentBaseline(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  baselineShift(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  color(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  colorInterpolation(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  colorInterpolationFilters(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  colorProfile(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  colorRendering(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  display(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  dominantBaseline(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  dx(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  dy(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  editable(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  enableBackground(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  externalResourcesRequired(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  floodOpacity(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  focusHighlight(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  focusable(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  fontSizeAdjust(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  glyphOrientationHorizontal(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  glyphOrientationVertical(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  imageRendering(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  lengthAdjust(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  letterSpacing(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  lightingColor(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  navDown(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  navDownLeft(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  navDownRight(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  navLeft(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  navNext(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  navPrev(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  navRight(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  navUp(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  navUpLeft(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  navUpRight(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  pointerEvents(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  requiredExtensions(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  requiredFeatures(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  requiredFonts(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  requiredFormats(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  rotate(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  shapeRendering(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  strokeDasharray(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  strokeDashoffset(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  strokeLinecap(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  strokeLinejoin(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  strokeMiterlimit(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  strokeOpacity(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  systemLanguage(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  textDecoration(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  textRendering(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  textLength(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  transform(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  x(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+  y(value: string | Stateful<string | undefined>): TextSVGElementAttributes
+}
+
+export interface TextAreaSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"textArea">>, GlobalSVGAttributes {
+  editable(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes
+  focusHighlight(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes
+  focusable(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes
+  height(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes
+  navDown(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes
+  navDownLeft(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes
+  navDownRight(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes
+  navLeft(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes
+  navNext(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes
+  navPrev(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes
+  navRight(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes
+  navUp(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes
+  navUpLeft(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes
+  navUpRight(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes
+  requiredExtensions(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes
+  requiredFeatures(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes
+  requiredFonts(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes
+  requiredFormats(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes
+  systemLanguage(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes
+  transform(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes
+  width(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes
+  x(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes
+  y(value: string | Stateful<string | undefined>): TextAreaSVGElementAttributes
+}
+
+export interface TextPathSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"textPath">>, GlobalSVGAttributes {
+  alignmentBaseline(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  baselineShift(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  color(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  colorInterpolation(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  colorInterpolationFilters(
+    value: string | Stateful<string | undefined>,
+  ): TextPathSVGElementAttributes
+  colorProfile(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  colorRendering(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  display(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  dominantBaseline(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  enableBackground(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  externalResourcesRequired(
+    value: string | Stateful<string | undefined>,
+  ): TextPathSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  floodOpacity(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  fontSizeAdjust(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  glyphOrientationHorizontal(
+    value: string | Stateful<string | undefined>,
+  ): TextPathSVGElementAttributes
+  glyphOrientationVertical(
+    value: string | Stateful<string | undefined>,
+  ): TextPathSVGElementAttributes
+  href(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  imageRendering(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  lengthAdjust(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  letterSpacing(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  lightingColor(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  method(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  path(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  pointerEvents(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  requiredExtensions(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  requiredFeatures(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  shapeRendering(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  side(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  spacing(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  startOffset(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  strokeDasharray(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  strokeDashoffset(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  strokeLinecap(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  strokeLinejoin(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  strokeMiterlimit(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  strokeOpacity(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  systemLanguage(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  textDecoration(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  textRendering(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  textLength(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): TextPathSVGElementAttributes
+}
+
+export interface TitleSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"title">>, GlobalSVGAttributes {
+  requiredExtensions(value: string | Stateful<string | undefined>): TitleSVGElementAttributes
+  requiredFeatures(value: string | Stateful<string | undefined>): TitleSVGElementAttributes
+  requiredFonts(value: string | Stateful<string | undefined>): TitleSVGElementAttributes
+  requiredFormats(value: string | Stateful<string | undefined>): TitleSVGElementAttributes
+  systemLanguage(value: string | Stateful<string | undefined>): TitleSVGElementAttributes
+}
+
+export interface TrefSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"tref">>, GlobalSVGAttributes {
+  alignmentBaseline(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  baselineShift(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  color(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  colorInterpolation(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  colorInterpolationFilters(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  colorProfile(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  colorRendering(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  display(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  dominantBaseline(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  dx(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  dy(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  enableBackground(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  externalResourcesRequired(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  floodOpacity(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  fontSizeAdjust(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  glyphOrientationHorizontal(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  glyphOrientationVertical(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  imageRendering(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  lengthAdjust(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  letterSpacing(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  lightingColor(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  pointerEvents(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  requiredExtensions(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  requiredFeatures(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  rotate(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  shapeRendering(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  strokeDasharray(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  strokeDashoffset(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  strokeLinecap(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  strokeLinejoin(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  strokeMiterlimit(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  strokeOpacity(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  systemLanguage(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  textDecoration(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  textRendering(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  textLength(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  x(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+  y(value: string | Stateful<string | undefined>): TrefSVGElementAttributes
+}
+
+export interface TspanSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"tspan">>, GlobalSVGAttributes {
+  alignmentBaseline(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  baselineShift(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  color(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  colorInterpolation(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  colorInterpolationFilters(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  colorProfile(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  colorRendering(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  display(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  dominantBaseline(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  dx(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  dy(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  enableBackground(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  externalResourcesRequired(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  floodOpacity(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  focusHighlight(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  focusable(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  fontSizeAdjust(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  glyphOrientationHorizontal(
+    value: string | Stateful<string | undefined>,
+  ): TspanSVGElementAttributes
+  glyphOrientationVertical(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  imageRendering(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  lengthAdjust(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  letterSpacing(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  lightingColor(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  navDown(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  navDownLeft(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  navDownRight(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  navLeft(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  navNext(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  navPrev(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  navRight(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  navUp(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  navUpLeft(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  navUpRight(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  pointerEvents(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  requiredExtensions(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  requiredFeatures(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  requiredFonts(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  requiredFormats(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  rotate(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  shapeRendering(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  strokeDasharray(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  strokeDashoffset(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  strokeLinecap(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  strokeLinejoin(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  strokeMiterlimit(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  strokeOpacity(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  systemLanguage(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  textDecoration(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  textRendering(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  textLength(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  x(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+  y(value: string | Stateful<string | undefined>): TspanSVGElementAttributes
+}
+
+export interface UnknownSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"unknown">>, GlobalSVGAttributes {
+  requiredExtensions(value: string | Stateful<string | undefined>): UnknownSVGElementAttributes
+  systemLanguage(value: string | Stateful<string | undefined>): UnknownSVGElementAttributes
+}
+
+export interface UseSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"use">>, GlobalSVGAttributes {
+  alignmentBaseline(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  baselineShift(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  clip(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  clipPath(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  clipRule(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  color(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  colorInterpolation(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  colorInterpolationFilters(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  colorProfile(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  colorRendering(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  cursor(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  direction(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  display(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  dominantBaseline(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  enableBackground(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  externalResourcesRequired(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  fillOpacity(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  fillRule(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  filter(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  floodColor(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  floodOpacity(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  focusHighlight(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  focusable(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  fontFamily(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  fontSize(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  fontSizeAdjust(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  fontStretch(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  fontStyle(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  fontVariant(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  fontWeight(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  glyphOrientationHorizontal(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  glyphOrientationVertical(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  height(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  href(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  imageRendering(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  kerning(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  letterSpacing(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  lightingColor(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  markerEnd(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  markerMid(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  markerStart(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  mask(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  navDown(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  navDownLeft(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  navDownRight(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  navLeft(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  navNext(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  navPrev(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  navRight(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  navUp(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  navUpLeft(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  navUpRight(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  opacity(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  overflow(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  pointerEvents(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  requiredExtensions(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  requiredFeatures(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  requiredFonts(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  requiredFormats(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  shapeRendering(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  stopColor(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  stopOpacity(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  stroke(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  strokeDasharray(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  strokeDashoffset(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  strokeLinecap(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  strokeLinejoin(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  strokeMiterlimit(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  strokeOpacity(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  strokeWidth(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  systemLanguage(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  textAnchor(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  textDecoration(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  textRendering(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  transform(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  unicodeBidi(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  visibility(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  width(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  wordSpacing(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  writingMode(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  x(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+  y(value: string | Stateful<string | undefined>): UseSVGElementAttributes
+}
+
+export interface VideoSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"video">>, GlobalSVGAttributes {
+  begin(value: string | Stateful<string | undefined>): VideoSVGElementAttributes
+  dur(value: string | Stateful<string | undefined>): VideoSVGElementAttributes
+  end(value: string | Stateful<string | undefined>): VideoSVGElementAttributes
+  externalResourcesRequired(value: string | Stateful<string | undefined>): VideoSVGElementAttributes
+  fill(value: string | Stateful<string | undefined>): VideoSVGElementAttributes
+  focusHighlight(value: string | Stateful<string | undefined>): VideoSVGElementAttributes
+  focusable(value: string | Stateful<string | undefined>): VideoSVGElementAttributes
+  height(value: string | Stateful<string | undefined>): VideoSVGElementAttributes
+  initialVisibility(value: string | Stateful<string | undefined>): VideoSVGElementAttributes
+  max(value: string | Stateful<string | undefined>): VideoSVGElementAttributes
+  min(value: string | Stateful<string | undefined>): VideoSVGElementAttributes
+  navDown(value: string | Stateful<string | undefined>): VideoSVGElementAttributes
+  navDownLeft(value: string | Stateful<string | undefined>): VideoSVGElementAttributes
+  navDownRight(value: string | Stateful<string | undefined>): VideoSVGElementAttributes
+  navLeft(value: string | Stateful<string | undefined>): VideoSVGElementAttributes
+  navNext(value: string | Stateful<string | undefined>): VideoSVGElementAttributes
+  navPrev(value: string | Stateful<string | undefined>): VideoSVGElementAttributes
+  navRight(value: string | Stateful<string | undefined>): VideoSVGElementAttributes
+  navUp(value: string | Stateful<string | undefined>): VideoSVGElementAttributes
+  navUpLeft(value: string | Stateful<string | undefined>): VideoSVGElementAttributes
+  navUpRight(value: string | Stateful<string | undefined>): VideoSVGElementAttributes
+  overlay(value: string | Stateful<string | undefined>): VideoSVGElementAttributes
+  preserveAspectRatio(value: string | Stateful<string | undefined>): VideoSVGElementAttributes
+  repeatCount(value: string | Stateful<string | undefined>): VideoSVGElementAttributes
+  repeatDur(value: string | Stateful<string | undefined>): VideoSVGElementAttributes
+  requiredExtensions(value: string | Stateful<string | undefined>): VideoSVGElementAttributes
+  requiredFeatures(value: string | Stateful<string | undefined>): VideoSVGElementAttributes
+  requiredFonts(value: string | Stateful<string | undefined>): VideoSVGElementAttributes
+  requiredFormats(value: string | Stateful<string | undefined>): VideoSVGElementAttributes
+  restart(value: string | Stateful<string | undefined>): VideoSVGElementAttributes
+  syncBehavior(value: string | Stateful<string | undefined>): VideoSVGElementAttributes
+  syncMaster(value: string | Stateful<string | undefined>): VideoSVGElementAttributes
+  syncTolerance(value: string | Stateful<string | undefined>): VideoSVGElementAttributes
+  systemLanguage(value: string | Stateful<string | undefined>): VideoSVGElementAttributes
+  transform(value: string | Stateful<string | undefined>): VideoSVGElementAttributes
+  transformBehavior(value: string | Stateful<string | undefined>): VideoSVGElementAttributes
+  type(value: string | Stateful<string | undefined>): VideoSVGElementAttributes
+  width(value: string | Stateful<string | undefined>): VideoSVGElementAttributes
+  x(value: string | Stateful<string | undefined>): VideoSVGElementAttributes
+  y(value: string | Stateful<string | undefined>): VideoSVGElementAttributes
+}
+
+export interface ViewSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"view">>, GlobalSVGAttributes {
+  externalResourcesRequired(value: string | Stateful<string | undefined>): ViewSVGElementAttributes
+  preserveAspectRatio(value: string | Stateful<string | undefined>): ViewSVGElementAttributes
+  viewBox(value: string | Stateful<string | undefined>): ViewSVGElementAttributes
+  viewTarget(value: string | Stateful<string | undefined>): ViewSVGElementAttributes
+  zoomAndPan(value: string | Stateful<string | undefined>): ViewSVGElementAttributes
+}
+
+export interface VkernSVGElementAttributes
+  extends SpecialElementAttributes<SvgTagElement<"vkern">>, GlobalSVGAttributes {
+  g1(value: string | Stateful<string | undefined>): VkernSVGElementAttributes
+  g2(value: string | Stateful<string | undefined>): VkernSVGElementAttributes
+  k(value: string | Stateful<string | undefined>): VkernSVGElementAttributes
+  u1(value: string | Stateful<string | undefined>): VkernSVGElementAttributes
+  u2(value: string | Stateful<string | undefined>): VkernSVGElementAttributes
 }

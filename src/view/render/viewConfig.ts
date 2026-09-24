@@ -11,12 +11,15 @@ export interface ViewConfig {
 }
 
 abstract class BaseViewConfig implements ViewConfig {
-  constructor(protected configSupport: ElementConfigSupport) { }
+  constructor(protected configSupport: ElementConfigSupport) {}
 
   abstract elementIdentifier(id: ElementIdentifier): this
   abstract attribute(name: string, value: string | Stateful<string>): this
   abstract property<T extends string | boolean>(name: string, value: T | Stateful<T>): this
-  abstract on<E extends keyof HTMLElementEventMap | string>(event: E, handler: StoreEventHandler<any>): this
+  abstract on<E extends keyof HTMLElementEventMap | string>(
+    event: E,
+    handler: StoreEventHandler<any>,
+  ): this
 }
 
 export const AbstractViewConfig = new Proxy(BaseViewConfig, {
@@ -26,14 +29,13 @@ export const AbstractViewConfig = new Proxy(BaseViewConfig, {
       get: function (target, prop, receiver) {
         if (Reflect.has(obj, prop)) {
           return Reflect.get(target, prop, receiver)
-        }
-        else {
+        } else {
           return function (...args: Array<any>) {
             target.configSupport.configure(target, prop, args)
             return receiver
           }
         }
-      }
+      },
     })
-  }
+  },
 })

@@ -1,34 +1,39 @@
-import { batch, container, use, write } from "@store/index.js";
-import { HTMLBuilder, HTMLView, UseItem } from "@view/index.js";
-import { addItem, Item, items } from "./state";
+import { batch, container, use, write } from "@store/index.js"
+import { HTMLBuilder, HTMLView, UseItem } from "@view/index.js"
+import { addItem, Item, items } from "./state"
 
 const inputField = container({ initialValue: "provided by server" })
 
 export function view(root: HTMLBuilder) {
-  root.main(el => {
+  root.main((el) => {
     el.children
-      .h1(el => el.children.textNode("List of stuff!"))
+      .h1((el) => el.children.textNode("List of stuff!"))
       .hr()
-      .ul(el => {
-        el.children.subviews(get => get(items), itemView)
+      .ul((el) => {
+        el.children.subviews((get) => get(items), itemView)
       })
       .hr()
-      .div(el => {
+      .div((el) => {
         el.children
-          .input(el => {
+          .input((el) => {
             el.config
               .type("text")
               .dataAttribute("item-input")
-              .value(get => get(inputField))
-              .on("input", useValue(value => write(inputField, value)))
+              .value((get) => get(inputField))
+              .on(
+                "input",
+                useValue((value) => write(inputField, value)),
+              )
           })
-          .button(el => {
+          .button((el) => {
             el.config
               .dataAttribute("item-submit")
-              .on("click", () => batch([
-                use(get => write(items, addItem({ name: get(inputField) }))),
-                write(inputField, "")
-              ]))
+              .on("click", () =>
+                batch([
+                  use((get) => write(items, addItem({ name: get(inputField) }))),
+                  write(inputField, ""),
+                ]),
+              )
             el.children.textNode("Add Item")
           })
       })
@@ -37,7 +42,7 @@ export function view(root: HTMLBuilder) {
 
 function itemView(useItem: UseItem<Item>): HTMLView {
   return (root) => {
-    root.li(el => {
+    root.li((el) => {
       el.children.textNode(useItem((item) => item.data.name))
     })
   }

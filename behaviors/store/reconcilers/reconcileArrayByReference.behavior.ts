@@ -1,10 +1,9 @@
-import { behavior } from "best-behavior";
-import { reconcileArray } from "@store/state/reconciler";
-import { expect, identicalTo, is } from "great-expectations";
-import { test } from "../helpers/testExample";
+import { behavior } from "best-behavior"
+import { reconcileArray } from "@store/state/reconciler"
+import { expect, identicalTo, is } from "great-expectations"
+import { test } from "../helpers/testExample"
 
 export default behavior("reconcile arrays by reference", [
-
   test("arrays with the same elements", () => {
     const one = {}
     const two = {}
@@ -81,6 +80,5 @@ export default behavior("reconcile arrays by reference", [
     expect(reconciled[1], is(identicalTo(one)))
     expect(reconciled[2], is(identicalTo(two)))
     expect(reconciled.length, is(3))
-  })
-
+  }),
 ])

@@ -1,7 +1,19 @@
-import { createSubscriber, GetState, StateBatch, StateDerivation, StateListenerType, StateWriter, Subscriber, TokenRegistry } from "../../tokenRegistry.js"
+import {
+  createSubscriber,
+  GetState,
+  StateBatch,
+  StateDerivation,
+  StateListenerType,
+  StateWriter,
+  Subscriber,
+  TokenRegistry,
+} from "../../tokenRegistry.js"
 import { SubscriberSet } from "./subscriberSet.js"
 
-export class GuardingStateHandler extends SubscriberSet implements StateWriter<any, any>, StateDerivation {
+export class GuardingStateHandler
+  extends SubscriberSet
+  implements StateWriter<any, any>, StateDerivation
+{
   readonly type = StateListenerType.Derivation
   private subscriber: Subscriber
   private isSubscribed: boolean = false
@@ -9,7 +21,7 @@ export class GuardingStateHandler extends SubscriberSet implements StateWriter<a
   constructor(
     registry: TokenRegistry,
     private parent: StateWriter<any, any>,
-    private predicate: (get: GetState) => boolean
+    private predicate: (get: GetState) => boolean,
   ) {
     super()
     this.subscriber = createSubscriber(registry, this)
@@ -24,7 +36,7 @@ export class GuardingStateHandler extends SubscriberSet implements StateWriter<a
     super.addSubscriber(subscriber)
   }
 
-  init(): void { }
+  init(): void {}
 
   run(get: GetState): void {
     if (this.predicate(get)) {

@@ -1,10 +1,22 @@
 {
   "name": "examples",
   "version": "1.0.25",
-  "description": "",
-  "main": "index.js",
-  "type": "module",
   "private": true,
+  "description": "",
+  "license": "MIT",
+  "author": "Brian Watkins",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "vite --open",
+    "test": "best",
+    "test:debug": "npm run test -- --showBrowser"
+  },
+  "dependencies": {
+    "@floating-ui/dom": "^1.8.0",
+    "luxon": "^3.4.0",
+    "spheres": "^0.31.0"
+  },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",
     "@types/luxon": "^3.3.1",
@@ -15,17 +27,5 @@
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",
     "vite": "^8.2.1"
-  },
-  "scripts": {
-    "start": "vite --open",
-    "test": "best",
-    "test:debug": "npm run test -- --showBrowser"
-  },
-  "author": "Brian Watkins",
-  "license": "MIT",
-  "dependencies": {
-    "@floating-ui/dom": "^1.8.0",
-    "luxon": "^3.4.0",
-    "spheres": "^0.31.0"
   }
 }

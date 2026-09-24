@@ -7,23 +7,18 @@ import { StreamingSSRParts } from "../../../helpers/ssrApp"
 
 const streamRenderer = createStreamRenderer(page, {
   stateManifest: serializedTokens,
-  activationScripts: [
-    "/behaviors/server/fixtures/ssrApp/streamingSync/activate.ts"
-  ]
+  activationScripts: ["/behaviors/server/fixtures/ssrApp/streamingSync/activate.ts"],
 })
 
 function page(root: HTMLBuilder) {
-  root.html(el => {
+  root.html((el) => {
     el.children
-      .head(el => {
-        el.children
-          .link(el => {
-            el.config
-              .rel("icon")
-              .href("data:,")
-          })
+      .head((el) => {
+        el.children.link((el) => {
+          el.config.rel("icon").href("data:,")
+        })
       })
-      .body(el => {
+      .body((el) => {
         el.children.subview(view)
       })
   })
@@ -35,7 +30,7 @@ const thingsServerState: Array<Thing> = [
   { name: "clouds", color: "dark gray" },
   { name: "paint", color: "pink" },
   { name: "camels", color: "brown" },
-  { name: "fruit", color: "blue" }
+  { name: "fruit", color: "blue" },
 ]
 
 const thingValueServerState = "tens of"
@@ -45,10 +40,10 @@ export default function (): StreamingSSRParts {
     init: async (actions) => {
       actions.supply(things, thingsServerState)
       actions.supply(thingValue, thingValueServerState)
-    }
+    },
   })
 
   return {
-    stream: streamRenderer(store)
+    stream: streamRenderer(store),
   }
 }

@@ -1,13 +1,10 @@
 export {
   type ItemKey,
   type ReconcileArrayOptions,
-  reconcileArray
+  reconcileArray,
 } from "./reconciler/reconcileArray.js"
 
-export {
-  type FieldReconcilers,
-  reconcileObject
-} from "./reconciler/reconcileObject.js"
+export { type FieldReconcilers, reconcileObject } from "./reconciler/reconcileObject.js"
 
 export type Reconciler<T> = (current: T, next: T) => T
 

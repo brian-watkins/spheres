@@ -1,7 +1,10 @@
-import { DataRecord } from "../../../src/crud/state.js";
+import { DataRecord } from "../../../src/crud/state.js"
 
 export class FakeDataRecord implements DataRecord {
-  constructor(public firstName: string, public lastName: string) { }
+  constructor(
+    public firstName: string,
+    public lastName: string,
+  ) {}
 
   asDisplayed(): string {
     return `${this.lastName}, ${this.firstName}`

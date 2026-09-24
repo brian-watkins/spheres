@@ -1,5 +1,14 @@
 import { BatchPublisher } from "./state/handler/batchPublisher.js"
-import { Command, getStateHandler, GetState, TokenRegistry, WritableState, StateBatch, PublishableState, runQuery } from "./tokenRegistry.js"
+import {
+  Command,
+  getStateHandler,
+  GetState,
+  TokenRegistry,
+  WritableState,
+  StateBatch,
+  PublishableState,
+  runQuery,
+} from "./tokenRegistry.js"
 
 export const getInitialValue = Symbol("initialValue")
 
@@ -50,26 +59,33 @@ export interface BatchMessage {
   messages: ReadonlyArray<StoreMessage<any>>
 }
 
-export type StoreMessage<T = any, M = T> = WriteMessage<T, M> | UpdateMessage<T, M> | ResetMessage<T> | UseMessage | BatchMessage | RunMessage | ExecMessage<M>
+export type StoreMessage<T = any, M = T> =
+  | WriteMessage<T, M>
+  | UpdateMessage<T, M>
+  | ResetMessage<T>
+  | UseMessage
+  | BatchMessage
+  | RunMessage
+  | ExecMessage<M>
 
 export function use(rule: (get: GetState) => StoreMessage<any> | undefined): UseMessage {
   return {
     type: "use",
-    rule
+    rule,
   }
 }
 
 export function run(effect: () => void): RunMessage {
   return {
     type: "run",
-    effect
+    effect,
   }
 }
 
 export function batch(messages: ReadonlyArray<StoreMessage<any>>): BatchMessage {
   return {
     type: "batch",
-    messages
+    messages,
   }
 }
 
@@ -77,22 +93,25 @@ export function write<T, M>(state: WritableState<T, M>, message: NoInfer<M>): Wr
   return {
     type: "write",
     token: state,
-    value: message
+    value: message,
   }
 }
 
-export function update<T, M>(state: WritableState<T, M>, generator: (current: NoInfer<T>) => NoInfer<M>): UpdateMessage<T, M> {
+export function update<T, M>(
+  state: WritableState<T, M>,
+  generator: (current: NoInfer<T>) => NoInfer<M>,
+): UpdateMessage<T, M> {
   return {
     type: "update",
     token: state,
-    generator
+    generator,
   }
 }
 
 export function reset<T>(container: ResettableState<T>): ResetMessage<T> {
   return {
     type: "reset",
-    container
+    container,
   }
 }
 
@@ -104,7 +123,11 @@ export function joinBatch(handler: (batch: StateBatch | undefined) => void): voi
   handler(batchStack.at(-1))
 }
 
-export function dispatchMessage(registry: TokenRegistry, message: StoreMessage<any>, batch?: StateBatch) {
+export function dispatchMessage(
+  registry: TokenRegistry,
+  message: StoreMessage<any>,
+  batch?: StateBatch,
+) {
   switch (message.type) {
     case "write": {
       message.token[getStateHandler](registry).write(message.value, batch)
@@ -121,7 +144,10 @@ export function dispatchMessage(registry: TokenRegistry, message: StoreMessage<a
       break
     }
     case "use": {
-      const statefulMessage = runQuery(registry, message.rule, batch) ?? { type: "batch", messages: [] }
+      const statefulMessage = runQuery(registry, message.rule, batch) ?? {
+        type: "batch",
+        messages: [],
+      }
       dispatchMessage(registry, statefulMessage, batch)
       break
     }
@@ -151,7 +177,11 @@ export function dispatchMessage(registry: TokenRegistry, message: StoreMessage<a
   }
 }
 
-function dispatchBatch(registry: TokenRegistry, batch: StateBatch, messages: ReadonlyArray<StoreMessage>): void {
+function dispatchBatch(
+  registry: TokenRegistry,
+  batch: StateBatch,
+  messages: ReadonlyArray<StoreMessage>,
+): void {
   for (let i = 0; i < messages.length; i++) {
     dispatchMessage(registry, messages[i], batch)
   }

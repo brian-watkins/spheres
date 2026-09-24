@@ -10,5 +10,6 @@ export const items = container<Array<Item>>({ initialValue: [] })
 export const suppliedTitle = supplied({ initialValue: "Fruits!" })
 
 export const serializedTokens = {
-  items, suppliedTitle
+  items,
+  suppliedTitle,
 }

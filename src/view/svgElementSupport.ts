@@ -1,9 +1,14 @@
-import { svgAttributeNames } from "./elementData.js";
-import { BasicElementConfigSupport, ElementConfig, ElementConfigSupport, ElementSupport } from "./elementSupport.js";
+import { svgAttributeNames } from "./elementData.js"
+import {
+  BasicElementConfigSupport,
+  ElementConfig,
+  ElementConfigSupport,
+  ElementSupport,
+} from "./elementSupport.js"
 
 export class SVGElementSupport implements ElementSupport {
   private configSupport = new BasicElementConfigSupport(new SVGElementConfigSupport())
-  
+
   createElement(tag: string): Element {
     return document.createElementNS("http://www.w3.org/2000/svg", tag)
   }

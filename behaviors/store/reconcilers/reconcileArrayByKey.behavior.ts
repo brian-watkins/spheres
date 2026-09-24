@@ -1,7 +1,7 @@
-import { behavior } from "best-behavior";
-import { reconcileArray, reconcileObject, Reconciler } from "@store/state/reconciler";
-import { expect, identicalTo, is } from "great-expectations";
-import { test } from "../helpers/testExample";
+import { behavior } from "best-behavior"
+import { reconcileArray, reconcileObject, Reconciler } from "@store/state/reconciler"
+import { expect, identicalTo, is } from "great-expectations"
+import { test } from "../helpers/testExample"
 
 interface Message {
   id: string
@@ -17,10 +17,11 @@ function message(id: string, text: string): Message {
   return { id, text }
 }
 
-const reconcileMessages: Reconciler<Array<Message>> = reconcileArray<Message>({ key: item => item.id })
+const reconcileMessages: Reconciler<Array<Message>> = reconcileArray<Message>({
+  key: (item) => item.id,
+})
 
 export default behavior("matching elements across a collection", [
-
   test("elements are recreated but unchanged", () => {
     const current = [message("1", "hello"), message("2", "there")]
     const next = [message("1", "hello"), message("2", "there")]
@@ -75,8 +76,8 @@ export default behavior("matching elements across a collection", [
 
   test("a matched element is reconciled field by field", () => {
     const reconciler: Reconciler<Array<Message>> = reconcileArray<Message>({
-      key: item => item.id,
-      itemReconciler: reconcileObject()
+      key: (item) => item.id,
+      itemReconciler: reconcileObject(),
     })
 
     const current = [message("1", "hello"), message("2", "there")]
@@ -91,20 +92,23 @@ export default behavior("matching elements across a collection", [
 
   test("nested collections are reconciled inside a matched element", () => {
     const reconciler = reconcileArray<Group>({
-      key: group => group.id,
+      key: (group) => group.id,
       itemReconciler: reconcileObject<Group>({
-        messages: reconcileArray<Message>({ key: item => item.id, itemReconciler: reconcileObject() })
-      })
+        messages: reconcileArray<Message>({
+          key: (item) => item.id,
+          itemReconciler: reconcileObject(),
+        }),
+      }),
     })
 
     const current: Array<Group> = [
       { id: "a", messages: [message("1", "hello"), message("2", "there")] },
-      { id: "b", messages: [message("3", "world")] }
+      { id: "b", messages: [message("3", "world")] },
     ]
 
     const next: Array<Group> = [
       { id: "b", messages: [message("3", "world")] },
-      { id: "a", messages: [message("1", "hello"), message("2", "everyone")] }
+      { id: "a", messages: [message("1", "hello"), message("2", "everyone")] },
     ]
 
     const reconciled = reconciler(current, next)
@@ -119,10 +123,18 @@ export default behavior("matching elements across a collection", [
 
   // This is probably not necessary
   test("elements with no identity are matched by a serialized key", () => {
-    const current = [{ name: "cool", count: 7 }, { name: "awesome", count: 3 }]
-    const next = [{ name: "awesome", count: 3 }, { name: "cool", count: 7 }]
+    const current = [
+      { name: "cool", count: 7 },
+      { name: "awesome", count: 3 },
+    ]
+    const next = [
+      { name: "awesome", count: 3 },
+      { name: "cool", count: 7 },
+    ]
 
-    const reconciled = reconcileArray<{ name: string, count: number }>({ key: item => JSON.stringify(item) })(current, next)
+    const reconciled = reconcileArray<{ name: string; count: number }>({
+      key: (item) => JSON.stringify(item),
+    })(current, next)
 
     expect(reconciled[0], is(identicalTo(current[1])))
     expect(reconciled[1], is(identicalTo(current[0])))
@@ -130,7 +142,7 @@ export default behavior("matching elements across a collection", [
 
   test("with no key, counterparts are found by position", () => {
     const reconciler = reconcileArray<Message>({
-      itemReconciler: reconcileObject<Message>()
+      itemReconciler: reconcileObject<Message>(),
     })
 
     const current = [message("1", "hello"), message("2", "there")]
@@ -144,7 +156,7 @@ export default behavior("matching elements across a collection", [
 
   test("reconciling moved items by position", () => {
     const reconciler = reconcileArray<Message>({
-      itemReconciler: reconcileObject<Message>()
+      itemReconciler: reconcileObject<Message>(),
     })
 
     const current = [message("1", "hello"), message("2", "there")]
@@ -158,7 +170,7 @@ export default behavior("matching elements across a collection", [
 
   test("elements past the end of the current collection are new", () => {
     const reconciler = reconcileArray<Message>({
-      itemReconciler: reconcileObject<Message>()
+      itemReconciler: reconcileObject<Message>(),
     })
 
     const current = [message("1", "hello")]
@@ -172,7 +184,12 @@ export default behavior("matching elements across a collection", [
 
   test("duplicated keys are matched one for one", () => {
     const current = [message("1", "hello"), message("1", "hello"), message("2", "there")]
-    const next = [message("1", "hello"), message("2", "there"), message("1", "hello"), message("1", "hello")]
+    const next = [
+      message("1", "hello"),
+      message("2", "there"),
+      message("1", "hello"),
+      message("1", "hello"),
+    ]
 
     const reconciled = reconcileMessages(current, next)
 
@@ -180,8 +197,7 @@ export default behavior("matching elements across a collection", [
     expect(reconciled[1], is(identicalTo(current[2])))
     expect(reconciled[2], is(identicalTo(current[1])))
     expect(reconciled[3], is(identicalTo(next[3])))
-  })
+  }),
 
   // What about the case where the key function returns undefined or something?
-
 ])

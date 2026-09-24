@@ -1,6 +1,5 @@
-import { anotherView } from "./anotherView";
-import { activateZone } from "@view/index";
-
+import { anotherView } from "./anotherView"
+import { activateZone } from "@view/index"
 
 export function activate() {
   activateZone({

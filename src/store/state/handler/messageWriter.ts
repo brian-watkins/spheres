@@ -12,8 +12,8 @@ export class MessageWriter<T, M> extends Writable<T, M> {
   constructor(
     private registry: TokenRegistry,
     initialValue: T,
-    private update: ((message: M, current: T) => UpdateResult<T>),
-    reconciler?: Reconciler<T>
+    private update: (message: M, current: T) => UpdateResult<T>,
+    reconciler?: Reconciler<T>,
   ) {
     super(initialValue, reconciler)
   }

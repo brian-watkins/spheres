@@ -1,5 +1,5 @@
-import { HTMLTemplate, templateFromString } from "../template.js";
-import { BaseElementRenderer } from "./elementRenderer.js";
+import { HTMLTemplate, templateFromString } from "../template.js"
+import { BaseElementRenderer } from "./elementRenderer.js"
 
 export class HtmlElementRenderer extends BaseElementRenderer {
   preTagTemplate(): HTMLTemplate {

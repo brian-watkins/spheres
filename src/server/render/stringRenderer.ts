@@ -1,26 +1,49 @@
-import { Stateful, StateManifest, Store, write } from "../../store/index.js";
-import { getTokenRegistry } from "../../store/store.js";
-import { GetState, isStateful, runQuery } from "../../store/tokenRegistry.js";
-import { voidElements } from "../../view/elementData.js";
-import { HTMLBuilder, HTMLView } from "../../view/index.js";
-import { EventsToDelegate, StoreEventHandler } from "../../view/render/index.js";
-import { listEndIndicator, listStartIndicator, matchEndIndicator, matchStartIndicator } from "../../view/render/fragmentHelpers.js";
-import { IdSequence } from "../../view/render/idSequence.js";
-import { ViteContext } from "./viteContext.js";
-import { AbstractViewRenderer, ElementDefinition, UseItem, ViewDefinition, ViewMatcher } from "../../view/render/viewRenderer.js";
-import { ListItemTemplateContext } from "../../view/render/templateContext.js";
-import { AbstractViewConfig } from "../../view/render/viewConfig.js";
-import { MatcherBuilder } from "../../view/render/viewMatcherBuilder.js";
-import { addTemplate, emptyTemplate, HTMLTemplate, stringForTemplate, templateFromStateful, templateFromString, toStatefulString } from "./template.js";
-import { HeadElementRenderer } from "./elementRenderers/headElementRenderer.js";
-import { HtmlElementRenderer } from "./elementRenderers/htmlElementRenderer.js";
-import { BodyElementRenderer } from "./elementRenderers/bodyElementRenderer.js";
-import { BaseElementRenderer, ElementRenderer } from "./elementRenderers/elementRenderer.js";
-import { ScriptElementRenderer } from "./elementRenderers/scriptElementRenderer.js";
-import { getActivationTemplate, storeIdToken } from "./elementRenderers/activationElements.js";
-import { LinkElementRenderer } from "./elementRenderers/linkElementRenderer.js";
-import { BasicElementConfigSupport, ElementConfigSupport, ElementSupport } from "../../view/elementSupport.js";
-import { createOverlayRegistry } from "./templateOverlayRegistry.js";
+import { Stateful, StateManifest, Store, write } from "../../store/index.js"
+import { getTokenRegistry } from "../../store/store.js"
+import { GetState, isStateful, runQuery } from "../../store/tokenRegistry.js"
+import { voidElements } from "../../view/elementData.js"
+import { HTMLBuilder, HTMLView } from "../../view/index.js"
+import { EventsToDelegate, StoreEventHandler } from "../../view/render/index.js"
+import {
+  listEndIndicator,
+  listStartIndicator,
+  matchEndIndicator,
+  matchStartIndicator,
+} from "../../view/render/fragmentHelpers.js"
+import { IdSequence } from "../../view/render/idSequence.js"
+import { ViteContext } from "./viteContext.js"
+import {
+  AbstractViewRenderer,
+  ElementDefinition,
+  UseItem,
+  ViewDefinition,
+  ViewMatcher,
+} from "../../view/render/viewRenderer.js"
+import { ListItemTemplateContext } from "../../view/render/templateContext.js"
+import { AbstractViewConfig } from "../../view/render/viewConfig.js"
+import { MatcherBuilder } from "../../view/render/viewMatcherBuilder.js"
+import {
+  addTemplate,
+  emptyTemplate,
+  HTMLTemplate,
+  stringForTemplate,
+  templateFromStateful,
+  templateFromString,
+  toStatefulString,
+} from "./template.js"
+import { HeadElementRenderer } from "./elementRenderers/headElementRenderer.js"
+import { HtmlElementRenderer } from "./elementRenderers/htmlElementRenderer.js"
+import { BodyElementRenderer } from "./elementRenderers/bodyElementRenderer.js"
+import { BaseElementRenderer, ElementRenderer } from "./elementRenderers/elementRenderer.js"
+import { ScriptElementRenderer } from "./elementRenderers/scriptElementRenderer.js"
+import { getActivationTemplate, storeIdToken } from "./elementRenderers/activationElements.js"
+import { LinkElementRenderer } from "./elementRenderers/linkElementRenderer.js"
+import {
+  BasicElementConfigSupport,
+  ElementConfigSupport,
+  ElementSupport,
+} from "../../view/elementSupport.js"
+import { createOverlayRegistry } from "./templateOverlayRegistry.js"
 
 export interface StringRendererOptions {
   stateManifest?: StateManifest
@@ -29,13 +52,16 @@ export interface StringRendererOptions {
   isStreaming?: boolean
 }
 
-export function buildStringRenderer(view: HTMLView, options: StringRendererOptions): (store: Store) => string {
+export function buildStringRenderer(
+  view: HTMLView,
+  options: StringRendererOptions,
+): (store: Store) => string {
   const renderer = new StringRenderer(new HTMLMarkupSupport(), options, new IdSequence())
   renderer.subview(view)
 
-  const template = renderer.hasBodyElement ?
-    renderer.template :
-    addTemplate(renderer.template, getActivationTemplate(options))
+  const template = renderer.hasBodyElement
+    ? renderer.template
+    : addTemplate(renderer.template, getActivationTemplate(options))
 
   return (store) => {
     store.dispatch(write(storeIdToken, store.id))
@@ -50,7 +76,11 @@ class StringRenderer extends AbstractViewRenderer {
 
   template: HTMLTemplate = emptyTemplate()
 
-  constructor(private elementSupport: ElementSupport, private options: StringRendererOptions, private idSequence: IdSequence) {
+  constructor(
+    private elementSupport: ElementSupport,
+    private options: StringRendererOptions,
+    private idSequence: IdSequence,
+  ) {
     super()
   }
 
@@ -80,7 +110,11 @@ class StringRenderer extends AbstractViewRenderer {
         return new HtmlElementRenderer()
       case "body":
         this.hasBodyElement = true
-        return new BodyElementRenderer(this.options.viteContext, this.options.stateManifest, this.options.activationScripts)
+        return new BodyElementRenderer(
+          this.options.viteContext,
+          this.options.stateManifest,
+          this.options.activationScripts,
+        )
       case "script":
         return new ScriptElementRenderer(this.options.viteContext)
       case "link":
@@ -96,14 +130,15 @@ class StringRenderer extends AbstractViewRenderer {
     const rendererDelegate = support ?? this.elementSupport
     const elementRenderer = this.getElementRenderer(tag)
 
-    const configSupport = elementRenderer.getConfigSupport() ?? rendererDelegate.getConfigSupport(tag)
+    const configSupport =
+      elementRenderer.getConfigSupport() ?? rendererDelegate.getConfigSupport(tag)
 
     const config = new StringConfig(configSupport, elementId)
     const children = new StringRenderer(rendererDelegate, this.options, this.idSequence)
 
     builder?.({
       config,
-      children: children
+      children: children,
     })
 
     this.appendToTemplate(elementRenderer.preTagTemplate())
@@ -144,18 +179,19 @@ class StringRenderer extends AbstractViewRenderer {
 
   subviews<T>(
     data: (get: GetState) => ReadonlyArray<T>,
-    viewGenerator: (useItem: UseItem<T>) => ViewDefinition
+    viewGenerator: (useItem: UseItem<T>) => ViewDefinition,
   ): this {
     const elementId = this.idSequence.next
 
-    const renderer = new StringRenderer(this.elementSupport, this.options, new IdSequence(elementId))
+    const renderer = new StringRenderer(
+      this.elementSupport,
+      this.options,
+      new IdSequence(elementId),
+    )
     const templateContext = new ListItemTemplateContext(renderer, viewGenerator)
 
     this.appendToTemplate({
-      strings: [
-        `<!--${listStartIndicator(elementId)}-->`,
-        `<!--${listEndIndicator(elementId)}-->`
-      ],
+      strings: [`<!--${listStartIndicator(elementId)}-->`, `<!--${listEndIndicator(elementId)}-->`],
       statefuls: [
         (registry) => {
           const listData = runQuery(registry, data)
@@ -165,8 +201,8 @@ class StringRenderer extends AbstractViewRenderer {
             html += stringForTemplate(overlayRegistry, renderer.template)
           }
           return html
-        }
-      ]
+        },
+      ],
     })
 
     return this
@@ -174,14 +210,16 @@ class StringRenderer extends AbstractViewRenderer {
 
   subviewMatching(matcherGenerator: (matcher: ViewMatcher) => void): this {
     const elementId = this.idSequence.next
-    const templateMatcherBuilder = new MatcherBuilder(createStringTemplate(this.elementSupport, this.options, elementId))
+    const templateMatcherBuilder = new MatcherBuilder(
+      createStringTemplate(this.elementSupport, this.options, elementId),
+    )
     matcherGenerator(templateMatcherBuilder)
     const templateCollection = templateMatcherBuilder.collection
 
     this.appendToTemplate({
       strings: [
         `<!--${matchStartIndicator(elementId)}-->`,
-        `<!--${matchEndIndicator(elementId)}-->`
+        `<!--${matchEndIndicator(elementId)}-->`,
       ],
       statefuls: [
         (registry) => {
@@ -194,22 +232,29 @@ class StringRenderer extends AbstractViewRenderer {
               const templateContext = selection.templateContext()
               return stringForTemplate(
                 templateContext.overlayRegistry(registry),
-                templateContext.template
+                templateContext.template,
               )
             }
           }
-
-        }
-      ]
+        },
+      ],
     })
 
     return this
   }
 }
 
-function createStringTemplate(elementSupport: ElementSupport, options: StringRendererOptions, elementId: string): (view: ViewDefinition, selectorId: number) => HTMLTemplate {
+function createStringTemplate(
+  elementSupport: ElementSupport,
+  options: StringRendererOptions,
+  elementId: string,
+): (view: ViewDefinition, selectorId: number) => HTMLTemplate {
   return (view, selectorId) => {
-    const renderer = new StringRenderer(elementSupport, options, new IdSequence(`${elementId}.${selectorId}`))
+    const renderer = new StringRenderer(
+      elementSupport,
+      options,
+      new IdSequence(`${elementId}.${selectorId}`),
+    )
     view(renderer as unknown as HTMLBuilder)
     return renderer.template
   }
@@ -218,12 +263,15 @@ function createStringTemplate(elementSupport: ElementSupport, options: StringRen
 class StringConfig extends AbstractViewConfig {
   template: HTMLTemplate = {
     strings: [""],
-    statefuls: []
+    statefuls: [],
   }
 
   innerHTMLContent: string | Stateful<string> | undefined = undefined
 
-  constructor(configSupport: ElementConfigSupport, private elementId: string) {
+  constructor(
+    configSupport: ElementConfigSupport,
+    private elementId: string,
+  ) {
     super(configSupport)
   }
 
@@ -245,14 +293,18 @@ class StringConfig extends AbstractViewConfig {
 
   attribute(name: string, value: string | Stateful<string>): this {
     if (isStateful(value)) {
-      this.appendToTemplate(templateFromStateful(toStatefulString(get => {
-        const attrValue = value(get)
-        if (attrValue === undefined) {
-          return ""
-        } else {
-          return attributeString(name, attrValue)
-        }
-      })))
+      this.appendToTemplate(
+        templateFromStateful(
+          toStatefulString((get) => {
+            const attrValue = value(get)
+            if (attrValue === undefined) {
+              return ""
+            } else {
+              return attributeString(name, attrValue)
+            }
+          }),
+        ),
+      )
     } else {
       this.appendToTemplate(templateFromString(attributeString(name, value)))
     }
@@ -261,7 +313,7 @@ class StringConfig extends AbstractViewConfig {
   }
 
   property<T extends string | boolean>(_: string, __: T | Stateful<T>): this {
-    throw new Error("Method not implemented.");
+    throw new Error("Method not implemented.")
   }
 
   on<E extends keyof HTMLElementEventMap | string>(event: E, _: StoreEventHandler<any>): this {
@@ -283,7 +335,7 @@ class HTMLMarkupSupport implements ElementSupport {
   private configSupport = new BasicElementConfigSupport()
 
   createElement(_: string): Element {
-    throw new Error("Creating elements not supported during SSR.");
+    throw new Error("Creating elements not supported during SSR.")
   }
 
   getConfigSupport(): ElementConfigSupport {

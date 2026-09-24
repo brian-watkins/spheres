@@ -1,7 +1,20 @@
 import { meta, Store, useEffect } from "../../store/index.js"
-import { SerializableState, serializedValue, serializedMessage, serializedMeta, SerializedState, StateManifest } from "../../store/serialize.js"
+import {
+  SerializableState,
+  serializedValue,
+  serializedMessage,
+  serializedMeta,
+  SerializedState,
+  StateManifest,
+} from "../../store/serialize.js"
 import { Container } from "../../store/state/container.js"
-import { ContainerHooks, getTokenRegistry, ReactiveEffect, useContainerHooks, WriteHookActions } from "../../store/store.js"
+import {
+  ContainerHooks,
+  getTokenRegistry,
+  ReactiveEffect,
+  useContainerHooks,
+  WriteHookActions,
+} from "../../store/store.js"
 import { GetState, getStateHandler, State, TokenRegistry } from "../../store/tokenRegistry.js"
 import { HTMLView } from "../../view/index.js"
 import { getActivationTemplate } from "./elementRenderers/activationElements.js"
@@ -16,7 +29,10 @@ export interface StreamRendererOptions {
   viteContext?: ViteContext
 }
 
-export function buildStreamRenderer(view: HTMLView, options: StreamRendererOptions): (store: Store) => ReadableStream {
+export function buildStreamRenderer(
+  view: HTMLView,
+  options: StreamRendererOptions,
+): (store: Store) => ReadableStream {
   const htmlRenderer = buildStringRenderer(view, { ...options, isStreaming: true })
 
   return (store) => {
@@ -53,7 +69,10 @@ export function buildStreamRenderer(view: HTMLView, options: StreamRendererOptio
 export class Zone {
   private buildHTMLString: (store: Store) => string
 
-  constructor(view: HTMLView, private options: InternalZoneOptions) {
+  constructor(
+    view: HTMLView,
+    private options: InternalZoneOptions,
+  ) {
     // just pass the vite context so we only generate the html
     this.buildHTMLString = buildStringRenderer(view, { viteContext: options.viteContext })
   }
@@ -90,7 +109,12 @@ export interface InternalZoneOptions {
   viteContext?: ViteContext
 }
 
-function streamUpdates(store: Store, key: string, token: SerializableState, stream: SpheresStateStream) {
+function streamUpdates(
+  store: Store,
+  key: string,
+  token: SerializableState,
+  stream: SpheresStateStream,
+) {
   const streamer = new StateStreamer(store, stream, key, token)
   useEffect(store, streamer)
   if (token instanceof Container) {
@@ -103,7 +127,7 @@ function streamUpdates(store: Store, key: string, token: SerializableState, stre
 class SpheresStateStream {
   private chunkCount: number = 0
 
-  constructor(private controller: ReadableStreamDefaultController) { }
+  constructor(private controller: ReadableStreamDefaultController) {}
 
   enqueueState(store: Store, state: SerializedState) {
     const chunkId = `${this.chunkCount++}`
@@ -125,9 +149,8 @@ class MetaStateStreamer implements ReactiveEffect {
     private store: Store,
     private stream: SpheresStateStream,
     private tokenKey: string,
-    private token: SerializableState
-  ) { }
-
+    private token: SerializableState,
+  ) {}
 
   init(get: GetState): void {
     get(meta(this.token))
@@ -139,7 +162,6 @@ class MetaStateStreamer implements ReactiveEffect {
       this.stream.enqueueState(this.store, serializedMeta(this.tokenKey, metaValue))
     }
   }
-
 }
 
 class StateStreamer implements ReactiveEffect, ContainerHooks<any, any> {
@@ -147,8 +169,8 @@ class StateStreamer implements ReactiveEffect, ContainerHooks<any, any> {
     private store: Store,
     private stream: SpheresStateStream,
     private tokenKey: string,
-    private token: SerializableState
-  ) { }
+    private token: SerializableState,
+  ) {}
 
   init(get: GetState): void {
     get(this.token)

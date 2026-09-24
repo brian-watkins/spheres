@@ -1,4 +1,4 @@
-import { Container, GetState, StoreMessage, batch, container, derived, write } from "spheres/store";
+import { Container, GetState, StoreMessage, batch, container, derived, write } from "spheres/store"
 
 export interface Coordinate {
   x: number
@@ -12,7 +12,7 @@ export interface Circle {
 }
 
 export const circleData = container<Array<CircleContainer>>({
-  initialValue: []
+  initialValue: [],
 })
 
 export interface CircleSelectionMessage {
@@ -23,14 +23,14 @@ export interface CircleSelectionMessage {
 export function selectCircle(): CircleSelectionMessage {
   return {
     type: "circle-selection",
-    selected: true
+    selected: true,
   }
 }
 
 export function deselectCircle(): CircleSelectionMessage {
   return {
     type: "circle-selection",
-    selected: false
+    selected: false,
   }
 }
 
@@ -42,7 +42,7 @@ export interface CircleAdjustRadiusMessage {
 export function adjustRadius(radius: number): CircleAdjustRadiusMessage {
   return {
     type: "circle-adjust-radius",
-    radius
+    radius,
   }
 }
 
@@ -58,14 +58,14 @@ function circleContainer(center: Coordinate): CircleContainer {
       switch (message.type) {
         case "circle-selection":
           return {
-            value: { ...current, selected: message.selected }
+            value: { ...current, selected: message.selected },
           }
         case "circle-adjust-radius":
           return {
-            value: { ...current, radius: message.radius }
+            value: { ...current, radius: message.radius },
           }
       }
-    }
+    },
   })
 }
 
@@ -75,7 +75,7 @@ interface Action {
 }
 
 const actions = container<Array<Action>>({
-  initialValue: []
+  initialValue: [],
 })
 
 export const currentAction = container({ initialValue: -1 })
@@ -87,22 +87,22 @@ function addActionMessage(get: GetState, message: Action): StoreMessage {
   return batch([
     write(actions, [...currentActions.slice(0, actionIndex + 1), message]),
     write(currentAction, actionIndex + 1),
-    message.execute
+    message.execute,
   ])
 }
 
-const dialogIsOpen = derived(get => get(dialog) !== undefined)
+const dialogIsOpen = derived((get) => get(dialog) !== undefined)
 
 export const addCircleRule = (center: Coordinate) => (get: GetState) => {
   if (get(dialogIsOpen)) {
     return batch([])
   }
-  
+
   const currentCircles = get(circleData)
 
   const addCircleAction = {
     execute: write(circleData, [...currentCircles, circleContainer(center)]),
-    undo: write(circleData, currentCircles)
+    undo: write(circleData, currentCircles),
   }
 
   return addActionMessage(get, addCircleAction)
@@ -115,7 +115,7 @@ export interface DialogContents {
 }
 
 export const dialog = container<DialogContents | undefined>({
-  initialValue: undefined
+  initialValue: undefined,
 })
 
 export const adjustRadiusRule = (get: GetState) => {
@@ -132,7 +132,7 @@ export const adjustRadiusRule = (get: GetState) => {
 
   const adjustRadiusAction = {
     execute: write(dialogData.circle, adjustRadius(currentRadius)),
-    undo: write(dialogData.circle, adjustRadius(dialogData.originalRadius))
+    undo: write(dialogData.circle, adjustRadius(dialogData.originalRadius)),
   }
 
   return addActionMessage(get, adjustRadiusAction)
@@ -148,7 +148,7 @@ export const closeDialogRule = (get: GetState) => {
   return batch([
     adjustRadiusRule(get),
     write(dialogData.circle, deselectCircle()),
-    write(dialog, undefined)
+    write(dialog, undefined),
   ])
 }
 
@@ -156,26 +156,20 @@ export const undoRule = (get: GetState) => {
   const actionIndex = get(currentAction)
   const action = get(actions)[actionIndex]
 
-  return batch([
-    action.undo,
-    write(currentAction, actionIndex - 1)
-  ])
+  return batch([action.undo, write(currentAction, actionIndex - 1)])
 }
 
 export const redoRule = (get: GetState) => {
   const actionIndex = get(currentAction)
   const action = get(actions)[actionIndex + 1]
 
-  return batch([
-    action.execute,
-    write(currentAction, actionIndex + 1)
-  ])
+  return batch([action.execute, write(currentAction, actionIndex + 1)])
 }
 
 export const canUndo = derived({
-  query: (get) => get(currentAction) > -1
+  query: (get) => get(currentAction) > -1,
 })
 
 export const canRedo = derived({
-  query: (get) => get(currentAction) !== get(actions).length - 1
+  query: (get) => get(currentAction) !== get(actions).length - 1,
 })

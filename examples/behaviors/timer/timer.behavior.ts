@@ -1,15 +1,21 @@
-import { Action, Observation, Presupposition, behavior, effect, example, fact, step } from "best-behavior";
-import { DisplayElement, TestApp, testAppContext } from "../helpers/testApp.js";
-import { expect, resolvesTo } from "great-expectations";
+import {
+  Action,
+  Observation,
+  Presupposition,
+  behavior,
+  effect,
+  example,
+  fact,
+  step,
+} from "best-behavior"
+import { DisplayElement, TestApp, testAppContext } from "../helpers/testApp.js"
+import { expect, resolvesTo } from "great-expectations"
 
 export default behavior("timer", [
-
   example(testAppContext)
     .description("default state")
     .script({
-      suppose: [
-        theTimerIsRendered()
-      ],
+      suppose: [theTimerIsRendered()],
       observe: [
         effect("the duration slider is at zero", async (context) => {
           await expect(durationInput(context).inputValue(), resolvesTo("0"))
@@ -19,105 +25,71 @@ export default behavior("timer", [
         }),
         effect("the elapsed time indicator is at zero", async (context) => {
           await expect(progressMeter(context).attribute("value"), resolvesTo("0"))
-        })
-      ]
+        }),
+      ],
     }),
 
   example(testAppContext)
     .description("run the timer to completion")
     .script({
-      suppose: [
-        theTimerIsRendered()
-      ],
-      perform: [
-        setTimerDuration(2000),
-        timePassesInMillis(500)
-      ],
-      observe: [
-        itShowsElapsedTime("0.5s"),
-        itShowsPercentComplete("0.25")
-      ]
-    }).andThen({
-      perform: [
-        timePassesInMillis(1000)
-      ],
-      observe: [
-        itShowsElapsedTime("1.5s"),
-        itShowsPercentComplete("0.75")
-      ]
-    }).andThen({
-      perform: [
-        timePassesInMillis(800)
-      ],
+      suppose: [theTimerIsRendered()],
+      perform: [setTimerDuration(2000), timePassesInMillis(500)],
+      observe: [itShowsElapsedTime("0.5s"), itShowsPercentComplete("0.25")],
+    })
+    .andThen({
+      perform: [timePassesInMillis(1000)],
+      observe: [itShowsElapsedTime("1.5s"), itShowsPercentComplete("0.75")],
+    })
+    .andThen({
+      perform: [timePassesInMillis(800)],
       observe: [
         itShowsElapsedTime("2.0s", "the timer stops when the duration is reached"),
-        itShowsPercentComplete("1.00", "the progress meter is filled")
-      ]
+        itShowsPercentComplete("1.00", "the progress meter is filled"),
+      ],
     }),
 
   example(testAppContext)
     .description("adjust the duration while the timer is running to less than the elapsed time")
     .script({
-      suppose: [
-        theTimerIsRendered()
-      ],
+      suppose: [theTimerIsRendered()],
       perform: [
         setTimerDuration(2000),
         timePassesInMillis(1200),
         setTimerDuration(1000),
-        timePassesInMillis(200)
+        timePassesInMillis(200),
       ],
-      observe: [
-        itShowsElapsedTime("1.0s"),
-        itShowsPercentComplete("1.00")
-      ]
-    }).andThen({
-      perform: [
-        setTimerDuration(3000),
-        timePassesInMillis(300)
-      ],
-      observe: [
-        itShowsElapsedTime("1.3s"),
-        itShowsPercentComplete("0.43")
-      ]
+      observe: [itShowsElapsedTime("1.0s"), itShowsPercentComplete("1.00")],
+    })
+    .andThen({
+      perform: [setTimerDuration(3000), timePassesInMillis(300)],
+      observe: [itShowsElapsedTime("1.3s"), itShowsPercentComplete("0.43")],
     }),
 
   example(testAppContext)
     .description("adjust the duration while the timer is running to give it more time")
     .script({
-      suppose: [
-        theTimerIsRendered()
-      ],
+      suppose: [theTimerIsRendered()],
       perform: [
         setTimerDuration(1000),
         timePassesInMillis(400),
         setTimerDuration(3000),
-        timePassesInMillis(200)
+        timePassesInMillis(200),
       ],
-      observe: [
-        itShowsElapsedTime("0.6s"),
-        itShowsPercentComplete("0.20")
-      ]
+      observe: [itShowsElapsedTime("0.6s"), itShowsPercentComplete("0.20")],
     }),
 
   example(testAppContext)
     .description("reset the time while it is running")
     .script({
-      suppose: [
-        theTimerIsRendered()
-      ],
+      suppose: [theTimerIsRendered()],
       perform: [
         setTimerDuration(1000),
         timePassesInMillis(400),
         resetTimer(),
-        timePassesInMillis(300)
+        timePassesInMillis(300),
       ],
-      observe: [
-        itShowsElapsedTime("0.3s"),
-        itShowsPercentComplete("0.30")
-      ]
-    })
-
+      observe: [itShowsElapsedTime("0.3s"), itShowsPercentComplete("0.30")],
+    }),
 ])
 
 function theTimerIsRendered(): Presupposition<TestApp> {
@@ -144,13 +116,19 @@ function resetTimer(): Action<TestApp> {
   })
 }
 
-function itShowsElapsedTime(time: string, description: string = "the elapsed time reflects the time that has passed"): Observation<TestApp> {
+function itShowsElapsedTime(
+  time: string,
+  description: string = "the elapsed time reflects the time that has passed",
+): Observation<TestApp> {
   return effect(description, async (context) => {
     await expect(elapsedTime(context).text(), resolvesTo(time))
   })
 }
 
-function itShowsPercentComplete(value: string, description: string = "the progress meter reflects the time that has passed"): Observation<TestApp> {
+function itShowsPercentComplete(
+  value: string,
+  description: string = "the progress meter reflects the time that has passed",
+): Observation<TestApp> {
   return effect(description, async (context) => {
     await expect(progressMeter(context).attribute("value"), resolvesTo(value), description)
   })

@@ -15,15 +15,12 @@ import { SVGElementSupport } from "./svgElementSupport.js"
 export * from "./htmlElements.js"
 export * from "./svgElements.js"
 export * from "./specialAttributes.js"
-export {
-  elementIdentifier,
-  withDomActions
-} from "./element.js"
+export { elementIdentifier, withDomActions } from "./element.js"
 export type {
   ElementIdentifier,
   GetElement,
   DomCommandActions,
-  DomCommandManager
+  DomCommandManager,
 } from "./element.js"
 export type { ElementSupport, ElementConfigSupport, ElementConfig } from "./elementSupport.js"
 export type { ConfigurableElement, UseItem, ListItem, UseCase } from "./render/viewRenderer.js"
@@ -31,20 +28,32 @@ export type { RenderResult } from "./render/index.js"
 export type { ActivationOptions, ActivatedZone } from "./activate.js"
 export { activateZone } from "./activate.js"
 
-
 export function renderToDOM(store: Store, element: Element, view: HTMLView): RenderResult {
   const registry = getTokenRegistry(store)
   const root = new DOMRoot(registry, element)
   root.clear()
-  const renderer = new DomTemplateRenderer(new HTMLElementSupport(), root, new IdSequence(), new EffectLocation(root => root), element, DOMEventType.Element)
+  const renderer = new DomTemplateRenderer(
+    new HTMLElementSupport(),
+    root,
+    new IdSequence(),
+    new EffectLocation((root) => root),
+    element,
+    DOMEventType.Element,
+  )
   view(renderer as unknown as HTMLBuilder)
   initializeEffects(renderer.template, registry, element)
 
   return root
 }
 
-export function svg(builder?: (el: ConfigurableElement<SVGElementAttributes, SVGBuilder>) => void): HTMLView {
-  return root => {
-    root.element("svg", builder as (el: ConfigurableElement<any, any>) => void, new SVGElementSupport())
+export function svg(
+  builder?: (el: ConfigurableElement<SVGElementAttributes, SVGBuilder>) => void,
+): HTMLView {
+  return (root) => {
+    root.element(
+      "svg",
+      builder as (el: ConfigurableElement<any, any>) => void,
+      new SVGElementSupport(),
+    )
   }
 }

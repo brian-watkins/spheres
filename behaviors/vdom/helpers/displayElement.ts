@@ -13,7 +13,7 @@ export function selectElements(selector: string): DisplayElementList {
 }
 
 export class DisplayElementList {
-  constructor(private selector: string) { }
+  constructor(private selector: string) {}
 
   async count(): Promise<number> {
     return usePage((page, selector) => page.locator(selector).count(), this.selector)
@@ -24,7 +24,7 @@ export class DisplayElementList {
   }
 
   async texts(): Promise<Array<string>> {
-    return this.map(el => el.text())
+    return this.map((el) => el.text())
   }
 
   async map<T>(handler: (element: DisplayElement) => Promise<T>): Promise<Array<T>> {
@@ -39,82 +39,118 @@ export class DisplayElementList {
 }
 
 export class DisplayElement {
-  constructor(private selector: string, private index: number) { }
+  constructor(
+    private selector: string,
+    private index: number,
+  ) {}
 
   async text(): Promise<string> {
-    const text = await usePage((page, opt) => page.locator(opt.selector).nth(opt.index).textContent({ timeout: 200 }), {
-      selector: this.selector,
-      index: this.index
-    })
+    const text = await usePage(
+      (page, opt) => page.locator(opt.selector).nth(opt.index).textContent({ timeout: 200 }),
+      {
+        selector: this.selector,
+        index: this.index,
+      },
+    )
     return text ?? ""
   }
 
   async attribute(name: string): Promise<string | undefined> {
-    const attributeValue = await usePage((page, opt) => page.locator(opt.selector).nth(opt.index).getAttribute(opt.name, { timeout: 200 }), {
-      selector: this.selector,
-      index: this.index,
-      name
-    })
+    const attributeValue = await usePage(
+      (page, opt) =>
+        page.locator(opt.selector).nth(opt.index).getAttribute(opt.name, { timeout: 200 }),
+      {
+        selector: this.selector,
+        index: this.index,
+        name,
+      },
+    )
     return attributeValue ?? undefined
   }
 
   async property(name: string): Promise<string | undefined> {
-    const propertyValue = await usePage((page, opt) => page.locator(opt.selector).nth(opt.index).evaluate((el: Record<string, any>, o) => el[o.name], { name: opt.name }), {
-      selector: this.selector,
-      index: this.index,
-      name
-    })
+    const propertyValue = await usePage(
+      (page, opt) =>
+        page
+          .locator(opt.selector)
+          .nth(opt.index)
+          .evaluate((el: Record<string, any>, o) => el[o.name], { name: opt.name }),
+      {
+        selector: this.selector,
+        index: this.index,
+        name,
+      },
+    )
 
     return propertyValue ?? undefined
   }
 
   inputValue(): Promise<string> {
-    return usePage((page, opt) => page.locator(opt.selector).nth(opt.index).inputValue({ timeout: 200 }), {
-      selector: this.selector,
-      index: this.index
-    })
+    return usePage(
+      (page, opt) => page.locator(opt.selector).nth(opt.index).inputValue({ timeout: 200 }),
+      {
+        selector: this.selector,
+        index: this.index,
+      },
+    )
   }
 
   type(text: string): Promise<void> {
-    return usePage((page, opt) => page.locator(opt.selector).nth(opt.index).fill(opt.text, { timeout: 200 }), {
-      selector: this.selector,
-      index: this.index,
-      text
-    })
+    return usePage(
+      (page, opt) => page.locator(opt.selector).nth(opt.index).fill(opt.text, { timeout: 200 }),
+      {
+        selector: this.selector,
+        index: this.index,
+        text,
+      },
+    )
   }
 
   async exists(): Promise<boolean> {
-    const elementCount = await usePage((page, opt) => page.locator(opt.selector).nth(opt.index).count(), {
-      selector: this.selector,
-      index: this.index
-    })
+    const elementCount = await usePage(
+      (page, opt) => page.locator(opt.selector).nth(opt.index).count(),
+      {
+        selector: this.selector,
+        index: this.index,
+      },
+    )
     return elementCount > 0
   }
 
-  click(position?: { x: number, y: number }): Promise<void> {
-    return usePage((page, opt) => page.locator(opt.selector).nth(opt.index).click({ position: opt.position, timeout: 200 }), {
-      selector: this.selector,
-      index: this.index,
-      position
-    })
+  click(position?: { x: number; y: number }): Promise<void> {
+    return usePage(
+      (page, opt) =>
+        page.locator(opt.selector).nth(opt.index).click({ position: opt.position, timeout: 200 }),
+      {
+        selector: this.selector,
+        index: this.index,
+        position,
+      },
+    )
   }
 
   focus(): Promise<void> {
-    return usePage((page, opt) => page.locator(opt.selector).nth(opt.index).focus({ timeout: 200 }), {
-      selector: this.selector,
-      index: this.index
-    })
+    return usePage(
+      (page, opt) => page.locator(opt.selector).nth(opt.index).focus({ timeout: 200 }),
+      {
+        selector: this.selector,
+        index: this.index,
+      },
+    )
   }
 
   isFocused(): Promise<boolean> {
-    return usePage((page, opt) => {
-      return page
-        .locator(opt.selector)
-        .nth(opt.index)
-        .evaluate(el => document.activeElement === el, { timeout: 200 })
-    }, {
-      selector: this.selector,
-      index: this.index
-    })
+    return usePage(
+      (page, opt) => {
+        return page
+          .locator(opt.selector)
+          .nth(opt.index)
+          .evaluate((el) => document.activeElement === el, { timeout: 200 })
+      },
+      {
+        selector: this.selector,
+        index: this.index,
+      },
+    )
   }
 }

@@ -1,13 +1,13 @@
-import { HTMLBuilder } from "@view/index.js";
+import { HTMLBuilder } from "@view/index.js"
 import { view } from "./withState.js"
 
 export default function (root: HTMLBuilder) {
-  root.div(el => {
+  root.div((el) => {
     el.children
-      .h1(el => {
+      .h1((el) => {
         el.children.textNode("THis is the click counter!")
       })
-      .div(el => {
+      .div((el) => {
         el.config.id("nested-state-island")
         el.children.subview(view)
       })

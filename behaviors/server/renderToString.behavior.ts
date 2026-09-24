@@ -197,6 +197,21 @@ export default behavior("Render view to HTML string", [
       ),
     )
   }),
+
+  renderTest("render template element", (renderer) => {
+    const actual = renderer.renderView((root) => {
+      root.div((el) => {
+        el.children.template((el) => {
+          el.config.shadowrootmode("open")
+          el.children.p((el) => el.children.textNode("In the shadows!"))
+        })
+      })
+    })
+    expect(
+      actual,
+      is(`<div><template shadowrootmode="open"><p>In the shadows!</p></template></div>`),
+    )
+  }),
 ])
 
 class TestRenderer {

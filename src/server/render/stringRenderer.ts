@@ -3,7 +3,7 @@ import { getTokenRegistry } from "../../store/store.js"
 import { GetState, isStateful, runQuery } from "../../store/tokenRegistry.js"
 import { voidElements } from "../../view/elementData.js"
 import { HTMLBuilder, HTMLView } from "../../view/index.js"
-import { EventsToDelegate, StoreEventHandler } from "../../view/render/index.js"
+import { EventsToDelegate } from "../../view/render/index.js"
 import {
   listEndIndicator,
   listStartIndicator,
@@ -60,8 +60,8 @@ export function buildStringRenderer(
   renderer.subview(view)
 
   const template = renderer.hasBodyElement
-    ? renderer.template
-    : addTemplate(renderer.template, getActivationTemplate(options))
+    ? renderer.getTemplate()
+    : addTemplate(renderer.getTemplate(), getActivationTemplate(options))
 
   return (store) => {
     store.dispatch(write(storeIdToken, store.id))
@@ -74,7 +74,7 @@ const ZERO_WIDTH_SPACE = "&#x200b;"
 class StringRenderer extends AbstractViewRenderer {
   hasBodyElement: boolean = false
 
-  template: HTMLTemplate = emptyTemplate()
+  private _template: HTMLTemplate = emptyTemplate()
 
   constructor(
     private elementSupport: ElementSupport,
@@ -84,8 +84,12 @@ class StringRenderer extends AbstractViewRenderer {
     super()
   }
 
+  getTemplate(): HTMLTemplate {
+    return this._template
+  }
+
   private appendToTemplate(next: HTMLTemplate) {
-    this.template = addTemplate(this.template, next)
+    this._template = addTemplate(this._template, next)
   }
 
   private appendStringToTemplate(content: string) {
@@ -162,7 +166,7 @@ class StringRenderer extends AbstractViewRenderer {
         this.appendStringToTemplate(config.innerHTMLContent)
       }
     } else {
-      this.appendToTemplate(children.template)
+      this.appendToTemplate(children.getTemplate())
       if (children.hasBodyElement) {
         this.hasBodyElement = true
       }
@@ -198,7 +202,7 @@ class StringRenderer extends AbstractViewRenderer {
           let html: string = ""
           for (let i = 0; i < listData.length; i++) {
             let overlayRegistry = createOverlayRegistry(templateContext, registry, listData[i], i)
-            html += stringForTemplate(overlayRegistry, renderer.template)
+            html += stringForTemplate(overlayRegistry, renderer.getTemplate())
           }
           return html
         },
@@ -256,7 +260,7 @@ function createStringTemplate(
       new IdSequence(`${elementId}.${selectorId}`),
     )
     view(renderer as unknown as HTMLBuilder)
-    return renderer.template
+    return renderer.getTemplate()
   }
 }
 
@@ -312,11 +316,11 @@ class StringConfig extends AbstractViewConfig {
     return this
   }
 
-  property<T extends string | boolean>(_: string, __: T | Stateful<T>): this {
+  property(): this {
     throw new Error("Method not implemented.")
   }
 
-  on<E extends keyof HTMLElementEventMap | string>(event: E, _: StoreEventHandler<any>): this {
+  on<E extends keyof HTMLElementEventMap | string>(event: E): this {
     if (EventsToDelegate.has(event)) {
       return this.attribute(`data-spheres-${event}`, this.elementId)
     } else {
@@ -334,7 +338,7 @@ class HTMLMarkupSupport implements ElementSupport {
   rootTag: string = "html"
   private configSupport = new BasicElementConfigSupport()
 
-  createElement(_: string): Element {
+  createElement(): Element {
     throw new Error("Creating elements not supported during SSR.")
   }
 

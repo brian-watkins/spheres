@@ -1,5 +1,10 @@
 import { ItemState } from "./itemState.js"
-import { PatchResult } from "./patch.js"
+
+export enum PatchResult {
+  Survive,
+  Delete,
+  Replace,
+}
 
 export class VirtualItem {
   prev: VirtualItem | undefined = undefined

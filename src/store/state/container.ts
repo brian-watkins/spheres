@@ -14,7 +14,7 @@ import { getInitialValue, ResettableState } from "../message.js"
 import { MessageWriter, UpdateResult } from "./handler/messageWriter.js"
 import { Writer } from "./handler/writer.js"
 import { value, Value } from "./value.js"
-import { Reconciler } from "./reconciler.js"
+import { Reconciler } from "./reconciler/reconciler.js"
 
 export interface ContainerInitializer<T, M> {
   initialValue: T | Stateful<T>

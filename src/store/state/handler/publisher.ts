@@ -1,5 +1,5 @@
 import { StateBatch, StatePublisher } from "../../tokenRegistry.js"
-import { Reconciler } from "../reconciler.js"
+import { Reconciler } from "../reconciler/reconciler.js"
 import { NativeEffectList } from "./nativeEffectList.js"
 import { SubscriberSet } from "./subscriberSet.js"
 

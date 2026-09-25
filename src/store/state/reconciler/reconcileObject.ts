@@ -1,4 +1,4 @@
-import { Reconciler } from "../reconciler.js"
+import { Reconciler } from "./reconciler.js"
 
 export type FieldReconcilers<T> = {
   [K in keyof T]?: Reconciler<T[K]>

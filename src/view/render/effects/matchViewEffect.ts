@@ -1,4 +1,5 @@
 import { GetState } from "../../../store/index.js"
+// oxlint-disable-next-line import/no-cycle
 import { activate, DOMTemplate, render } from "../domTemplate.js"
 import {
   generateStateManager,

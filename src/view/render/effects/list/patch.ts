@@ -1,10 +1,4 @@
-import { VirtualItem } from "./virtualItem.js"
-
-export enum PatchResult {
-  Survive,
-  Delete,
-  Replace,
-}
+import { PatchResult, VirtualItem } from "./virtualItem.js"
 
 export enum ListUpdateType {
   Insert,

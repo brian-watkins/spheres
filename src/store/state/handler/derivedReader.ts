@@ -1,5 +1,5 @@
 import { GetState, StateDerivation, StateListenerType, StateReader } from "../../tokenRegistry.js"
-import { Reconciler } from "../reconciler.js"
+import { Reconciler } from "../reconciler/reconciler.js"
 import { SubscriberSet } from "./subscriberSet.js"
 
 export class DerivedStateReader<T>

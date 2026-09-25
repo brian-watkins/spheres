@@ -7,7 +7,9 @@ import {
   TokenRegistry,
 } from "../../store/tokenRegistry.js"
 import { EffectLocation } from "./effectLocation.js"
+// oxlint-disable-next-line import/no-cycle
 import { activateList, ListEffect } from "./effects/listEffect.js"
+// oxlint-disable-next-line import/no-cycle
 import { MatchViewEffect } from "./effects/matchViewEffect.js"
 import {
   findListEndNode,

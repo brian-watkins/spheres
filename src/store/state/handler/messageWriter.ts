@@ -1,6 +1,6 @@
 import { dispatchMessage, StoreMessage } from "../../message.js"
 import { StateBatch, TokenRegistry } from "../../tokenRegistry.js"
-import { Reconciler } from "../reconciler.js"
+import { Reconciler } from "../reconciler/reconciler.js"
 import { Writable } from "./writable.js"
 
 export interface UpdateResult<T> {

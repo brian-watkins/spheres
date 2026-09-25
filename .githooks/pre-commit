@@ -1,0 +1,2 @@
+#!/bin/sh
+npm run lint && npx oxfmt --check && npm run test:types

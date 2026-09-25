@@ -9,7 +9,7 @@ import {
   initListener,
 } from "../tokenRegistry.js"
 import { DerivedStateReader } from "./handler/derivedReader.js"
-import { Reconciler } from "./reconciler.js"
+import { Reconciler } from "./reconciler/reconciler.js"
 
 export interface DerivedStateInitializer<T> {
   query: (get: GetState) => T

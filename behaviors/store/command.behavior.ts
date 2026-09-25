@@ -370,9 +370,7 @@ export default behavior("command", [
         fact("there is a command", (context) => {
           const myCommand = command<string>()
           const task = new TestTask<string>()
-          const suppliedCollection = collection((_: string) =>
-            supplied({ initialValue: "initial" }),
-          )
+          const suppliedCollection = collection(() => supplied({ initialValue: "initial" }))
           context.setTokens({
             collection: suppliedCollection,
             command: myCommand,

@@ -19,7 +19,7 @@
   "type": "module",
   "exports": {
     "./store": "./dist/store/index.js",
-    "./store/reconciler": "./dist/store/state/reconciler.js",
+    "./store/reconciler": "./dist/store/state/reconciler/index.js",
     "./view": "./dist/view/index.js",
     "./server": "./dist/server/index.js"
   },
@@ -30,6 +30,8 @@
     "build": "tsc --build --verbose",
     "clean": "rm -rf ./dist && rm ./tsconfig.tsbuildinfo",
     "format": "oxfmt",
+    "format:check": "oxfmt --check",
+    "lint": "oxlint",
     "test": "npm run test:build && best",
     "test:examples": "npm run clean && npm run build && npm run test -w examples",
     "test:store": "best --behaviors './behaviors/store/**/*.behavior.ts'",
@@ -37,11 +39,13 @@
     "test:vdom": "best --behaviors './behaviors/vdom/**/*.behavior.ts'",
     "test:view:debug": "DEBUG=true npm run test:view",
     "test:build": "tsc --build ./behaviors --verbose",
+    "test:types": "tsc --noEmit",
     "test:server": "npm run test:build && best --behaviors './behaviors/server/**/*.behavior.ts'",
     "test:coverage": "best --coverage",
     "change:add": "changeset add",
     "change:version": "changeset version",
-    "change:release": "npm run clean && npm run build && changeset publish && git push --follow-tags"
+    "change:release": "npm run clean && npm run build && changeset publish && git push --follow-tags",
+    "prepare": "git config core.hooksPath .githooks || true"
   },
   "devDependencies": {
     "@changesets/cli": "^2.31.1",
@@ -54,6 +58,7 @@
     "html-tags": "^4.0.0",
     "monocart-coverage-reports": "^2.12.3",
     "oxfmt": "^0.70.0",
+    "oxlint": "^1.85.0",
     "playwright": "^1.62.1",
     "svg-element-attributes": "^2.1.0",
     "svg-tag-names": "^3.0.1",

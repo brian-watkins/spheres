@@ -5,12 +5,13 @@ import {
   getListElementId,
   getMatchElementId,
 } from "../fragmentHelpers.js"
+// oxlint-disable-next-line import/no-cycle
 import { activate, DOMTemplate, render, TemplateType } from "../domTemplate.js"
 import { StateEffect, StateListenerType, TokenRegistry } from "../../../store/tokenRegistry.js"
 import { ListItemTemplateContext } from "../templateContext.js"
 import { ItemState } from "./list/itemState.js"
-import { VirtualItem } from "./list/virtualItem.js"
-import { ListPatch, ListUpdateType, PatchResult } from "./list/patch.js"
+import { PatchResult, VirtualItem } from "./list/virtualItem.js"
+import { ListPatch, ListUpdateType } from "./list/patch.js"
 
 export class ListEffect implements StateEffect {
   readonly type = StateListenerType.ViewEffect

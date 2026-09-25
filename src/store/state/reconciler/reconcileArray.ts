@@ -1,4 +1,4 @@
-import { Reconciler, useCurrent } from "../reconciler.js"
+import { Reconciler, useCurrent } from "./reconciler.js"
 
 export type ItemKey = string | number
 

@@ -6,7 +6,7 @@ import {
   TokenRegistry,
 } from "../tokenRegistry.js"
 import { Publisher } from "./handler/publisher.js"
-import { Reconciler } from "./reconciler.js"
+import { Reconciler } from "./reconciler/reconciler.js"
 import { didCreateToken } from "./stateRecorder.js"
 
 export interface SuppliedStateInitializer<T> {

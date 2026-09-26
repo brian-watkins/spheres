@@ -51,7 +51,7 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
     }
   }
 
-  get template(): DOMTemplate {
+  getTemplate(): DOMTemplate {
     return {
       type: this.templateType,
       element: this.templateElement!,
@@ -90,6 +90,11 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
     return this
   }
 
+  template(_?: ElementDefinition, __?: ElementSupport): this {
+    this.location = this.advanceLocation()
+    return this
+  }
+
   element(tag: string, builder?: ElementDefinition, support?: ElementSupport): this {
     const renderSupport = support ?? this.elementSupport
 
@@ -97,14 +102,14 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
 
     const elementId = this.idSequence.next
 
-    this.location = this.advanceLocation()
+    const nextLocation = this.advanceLocation()
 
     const config = new DomTemplateConfig(
       renderSupport.getConfigSupport(tag),
       this.zone,
       elementId,
       element,
-      this.location,
+      nextLocation,
       this.eventType,
     )
 
@@ -112,7 +117,7 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
       renderSupport,
       this.zone,
       this.idSequence,
-      this.location,
+      nextLocation,
       element,
       this.eventType,
     )
@@ -122,8 +127,8 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
       children: children,
     })
 
+    this.location = nextLocation
     this.root.appendChild(element)
-
     this.effectTemplates = this.effectTemplates.concat(
       config.effectTemplates,
       children.effectTemplates,
@@ -155,7 +160,7 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
 
     this.effectTemplates.push({
       type: EffectTemplateTypes.List,
-      domTemplate: renderer.template,
+      domTemplate: renderer.getTemplate(),
       query: data,
       context: templateContext,
       elementId,
@@ -279,6 +284,6 @@ export function createDOMTemplate(
       new EffectLocation((root) => root),
     )
     view(renderer)
-    return renderer.template
+    return renderer.getTemplate()
   }
 }

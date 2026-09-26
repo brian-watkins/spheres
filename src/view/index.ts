@@ -41,7 +41,7 @@ export function renderToDOM(store: Store, element: Element, view: HTMLView): Ren
     DOMEventType.Element,
   )
   view(renderer as unknown as HTMLBuilder)
-  initializeEffects(renderer.template, registry, element)
+  initializeEffects(renderer.getTemplate(), registry, element)
 
   return root
 }

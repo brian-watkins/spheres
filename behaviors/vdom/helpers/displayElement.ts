@@ -85,6 +85,13 @@ export class DisplayElement {
     return propertyValue ?? undefined
   }
 
+  async innerHtml(): Promise<string> {
+    return await usePage((page, opt) => page.locator(opt.selector).nth(opt.index).innerHTML(), {
+      selector: this.selector,
+      index: this.index,
+    })
+  }
+
   inputValue(): Promise<string> {
     return usePage(
       (page, opt) => page.locator(opt.selector).nth(opt.index).inputValue({ timeout: 200 }),

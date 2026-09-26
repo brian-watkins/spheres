@@ -67,8 +67,24 @@ export class ActivateDomRenderer extends AbstractViewRenderer {
     return this
   }
 
+  template(_?: ElementDefinition, __?: ElementSupport): this {
+    // if we have an SSR DSD template that's been parsed by the browser then
+    // the template tag will not be in the dom and so we should not update
+    // the currentNode or currentLocation
+    if (!(this.currentNode instanceof HTMLTemplateElement)) {
+      return this
+    }
+
+    // otherwise just skip it
+    this.currentNode = this.currentNode.nextSibling
+    this.currentLocation = this.currentLocation.nextSibling()
+
+    return this
+  }
+
   element(tag: string, builder?: ElementDefinition, support?: ElementSupport): this {
     const renderSupport = support ?? this.elementSupport
+    const element = this.currentNode as Element
 
     builder?.({
       config: new ActivateDomConfig(
@@ -76,19 +92,19 @@ export class ActivateDomRenderer extends AbstractViewRenderer {
         this.zone,
         this.registry,
         this.zone.root,
-        this.currentNode as Element,
+        element,
         this.currentLocation,
       ),
       children: new ActivateDomRenderer(
         renderSupport,
         this.zone,
         this.registry,
-        this.currentNode!.firstChild!,
+        element.firstChild!,
         this.currentLocation.firstChild(),
       ),
     })
 
-    this.currentNode = this.currentNode!.nextSibling
+    this.currentNode = element.nextSibling
     this.currentLocation = this.currentLocation.nextSibling()
 
     return this
@@ -111,7 +127,7 @@ export class ActivateDomRenderer extends AbstractViewRenderer {
 
     const effect = new ListEffect(
       this.registry,
-      renderer.template,
+      renderer.getTemplate(),
       query,
       templateContext,
       this.currentNode!,
@@ -122,7 +138,7 @@ export class ActivateDomRenderer extends AbstractViewRenderer {
     const virtualList = activateList(
       this.registry,
       templateContext,
-      renderer.template,
+      renderer.getTemplate(),
       this.currentNode!,
       end,
       data,

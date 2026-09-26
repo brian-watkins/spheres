@@ -365,4 +365,85 @@ export default behavior("client activation of server rendered views", [
         }),
       ],
     }),
+
+  example(ssrTestAppContext())
+    .description("app with a template element that declares a shadow root")
+    .script({
+      suppose: [
+        fact("the app is loaded in the browser", async (context) => {
+          context.server.setSSRApp({
+            template: "../fixtures/ssrApp/islandWithShadowRoot/template.html",
+            view: "./behaviors/server/fixtures/ssrApp/islandWithShadowRoot/server.ts",
+          })
+          await context.browser.loadApp()
+        }),
+      ],
+      observe: [
+        effect("the shadow root content is displayed", async (context) => {
+          await expect(
+            context.browser.display.select("#shadow-host p").text(),
+            resolvesTo("In the shadows!"),
+          )
+        }),
+      ],
+    })
+    .andThen({
+      perform: [
+        step("the button is clicked three times", async (context) => {
+          await context.browser.display.select("button").click()
+          await context.browser.display.select("button").click()
+          await context.browser.display.select("button").click()
+        }),
+      ],
+      observe: [
+        effect("the stateful text after the shadow root host is updated", async (context) => {
+          await expect(
+            context.browser.display.select("[data-click-count]").text(),
+            resolvesTo("You've clicked the button 3 times!"),
+          )
+        }),
+      ],
+    }),
+
+  customElementShadowRootExample("open", "listWithCustomElementShadowRoot"),
+  customElementShadowRootExample("closed", "listWithCustomElementClosedShadowRoot"),
 ])
+
+function customElementShadowRootExample(mode: ShadowRootMode, fixture: string) {
+  return example(ssrTestAppContext())
+    .description(`list of custom elements that hydrate a declarative shadow root (${mode})`)
+    .script({
+      suppose: [
+        fact("the app is loaded in the browser", async (context) => {
+          context.server.setSSRApp({
+            template: `../fixtures/ssrApp/${fixture}/template.html`,
+            view: `./behaviors/server/fixtures/ssrApp/${fixture}/server.ts`,
+          })
+          await context.browser.loadApp()
+        }),
+      ],
+      observe: [
+        effect("the server-rendered custom elements are upgraded", async (context) => {
+          await expect(
+            context.browser.display.selectAll("shadow-card[data-upgraded]").count(),
+            resolvesTo(2),
+          )
+        }),
+      ],
+    })
+    .andThen({
+      perform: [
+        step("an item is added on the client", async (context) => {
+          await context.browser.display.selectWithText("Add Item").click()
+        }),
+      ],
+      observe: [
+        effect("the added custom element is upgraded", async (context) => {
+          await expect(
+            context.browser.display.selectAll("shadow-card[data-upgraded]").count(),
+            resolvesTo(3),
+          )
+        }),
+      ],
+    })
+}

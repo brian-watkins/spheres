@@ -212,6 +212,87 @@ Fragments compose naturally with the rest of the API:
 Because a fragment has no single root element, there's nowhere to hang shared `config`
 (attributes/events) — configure each top-level node independently.
 
+## Shadow DOM
+
+### shadowRoot — attach a shadow root to an element
+
+```ts
+config.shadowRoot(builder: (el: ConfigurableElement<TemplateElementAttributes, HTMLBuilder>) => void)
+```
+
+Attach a shadow root to an element. The builder receives a `config` for the shadow root options and
+a `children` builder for the shadow root's content. The element's own `children` become its light
+DOM, which the shadow content can project with `slot`.
+
+```ts
+root.div((el) => {
+  el.config.shadowRoot((el) => {
+    el.config.shadowrootmode("open")
+    el.children.p((el) => el.children.textNode((get) => `Count: ${get(counter)}`)).slot()
+  })
+  el.children.button((el) => {
+    el.config.on("click", () => update(counter, (c) => c + 1))
+    el.children.textNode("Increment")
+  })
+})
+```
+
+Shadow root options, set on the builder's `config`:
+
+- `shadowrootmode("open" | "closed")` — defaults to `"open"` when omitted.
+- `shadowrootdelegatesfocus(true)` — focusing the host moves focus to the first focusable element in
+  the shadow root.
+- `shadowrootclonable(true)`, `shadowrootserializable(true)`,
+  `shadowrootcustomelementregistry(...)`.
+
+`shadowRoot` is only available on elements that the platform allows as shadow hosts: `article`,
+`aside`, `blockquote`, `body`, `div`, `footer`, `h1`–`h6`, `header`, `main`, `nav`, `p`, `section`,
+`span`, and arbitrary tags created with `element(...)` (for custom elements).
+
+How it renders:
+
+- **Client (`renderToDOM`, list items, matched views)** — Spheres calls `attachShadow` with the
+  options and renders the content into the shadow root.
+- **Server (`createStringRenderer`, `createStreamRenderer`)** — the shadow root is emitted as
+  declarative shadow DOM: a `<template shadowrootmode="...">` as the element's first child. The
+  browser's parser turns it into a real shadow root, and `activateZone` wires up effects inside it.
+  Streamed zones are mounted with `setHTMLUnsafe`, so declarative shadow roots in streamed zone
+  content work too.
+
+Shadow root content is built like any other view: stateful text and attributes and event handlers
+(which return messages as usual) all work inside it. State isn't blocked by the shadow boundary, so
+a button outside the shadow root can update text inside it and vice versa. Shadow roots also work
+inside `subviews` item views, including items added after activation.
+
+Caution: when server rendering, reactive content inside a **closed** shadow root is not activated
+(the host's `shadowRoot` is not reachable). Use `"open"` (the default) for shadow content that has
+state or events and is server rendered.
+
+### template — static templates and hand-written declarative shadow DOM
+
+`children.template(...)` renders a `<template>` element. Its content must be **static** — stateful
+text, stateful attributes, event handlers, and lists inside a template are not supported. On the
+server it renders as a normal `<template>`; on the client it is skipped (nothing is added to the
+DOM), and activation skips over it.
+
+Prefer `config.shadowRoot` for shadow DOM. Use a raw `template` with `shadowrootmode` only when
+server rendering a declarative shadow root for a **custom element** that hydrates it itself:
+
+```ts
+root.element("shadow-card", (el) => {
+  el.children.template((el) => {
+    el.config.shadowrootmode("open")
+    el.children.p((el) => el.children.textNode("In the shadows!"))
+  })
+})
+```
+
+A hand-written declarative shadow root only takes effect in server-rendered HTML, where the
+browser's parser handles it. When the same view renders on the client (or as a list item added
+later), Spheres renders nothing for the template. So the custom element must attach its own shadow
+root when it's missing, typically by checking `this.attachInternals().shadowRoot` in its constructor
+and calling `attachShadow` if it's `null`.
+
 ## Stateful attributes
 
 Every attribute function accepts a literal or a `Stateful<T>`. Only the specific attribute is
@@ -457,3 +538,5 @@ root.input((el) => {
   wrapped in `withDomActions`.
 - A view can render a fragment (multiple sibling nodes chained on `root`) instead of a single root
   element; there's no shared `config` across a fragment's top-level nodes.
+- For shadow DOM, use `config.shadowRoot(...)`, not a hand-written `template`. It works on both
+  client and server. Keep `template` content static.

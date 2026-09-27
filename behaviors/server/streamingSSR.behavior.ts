@@ -160,4 +160,40 @@ export default behavior("ssr with streaming data", [
         }),
       ],
     }),
+
+  example(ssrTestAppContext())
+    .description("streaming a zone that contains a shadow root host")
+    .script({
+      suppose: [
+        fact("the app is loaded in the browser", async (context) => {
+          context.server.setStreamingSSRApp({
+            view: "./behaviors/server/fixtures/ssrApp/streamingZoneWithShadowRoot/server.ts",
+          })
+          await context.browser.loadApp()
+        }),
+      ],
+      observe: [
+        effect("the shadow root content is displayed", async (context) => {
+          await expect(
+            context.browser.display.select("[data-shadow-host] p").text(),
+            resolvesTo("In the shadows!"),
+          )
+        }),
+      ],
+    })
+    .andThen({
+      perform: [
+        step("click the light dom button inside the shadow root host", async (context) => {
+          await context.browser.display.selectWithText("Click me").click()
+        }),
+      ],
+      observe: [
+        effect("the click count updates", async (context) => {
+          await expect(
+            context.browser.display.select(`[data-zone="shadow"] h3`).text(),
+            resolvesTo("Clicks: 1"),
+          )
+        }),
+      ],
+    }),
 ])

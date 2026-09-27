@@ -81,7 +81,7 @@ export class Zone {
     const zoneStore: Store = this.options.store[getStateHandler](registry).getValue()
     const initialHtml = this.buildHTMLString(zoneStore)
 
-    const mountScript = `<script>document.querySelector("${this.options.mountPoint}").innerHTML = '${initialHtml}';</script>`
+    const mountScript = `<script>document.querySelector("${this.options.mountPoint}").setHTMLUnsafe('${initialHtml}');</script>`
 
     controller.enqueue(mountScript)
 

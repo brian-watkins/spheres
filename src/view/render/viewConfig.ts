@@ -2,6 +2,7 @@ import { StoreEventHandler } from "./index.js"
 import { Stateful } from "../../store/index.js"
 import { ElementConfigSupport } from "../elementSupport.js"
 import { ElementIdentifier } from "../element.js"
+import { ElementDefinition } from "./viewRenderer.js"
 
 export interface ViewConfig {
   elementIdentifier(id: ElementIdentifier): this
@@ -11,7 +12,14 @@ export interface ViewConfig {
 }
 
 abstract class BaseViewConfig implements ViewConfig {
+  shadowRootBuilder: ElementDefinition | undefined = undefined
+
   constructor(protected configSupport: ElementConfigSupport) {}
+
+  shadowRoot(builder: ElementDefinition): this {
+    this.shadowRootBuilder = builder
+    return this
+  }
 
   abstract elementIdentifier(id: ElementIdentifier): this
   abstract attribute(name: string, value: string | Stateful<string>): this

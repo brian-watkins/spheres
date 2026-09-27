@@ -73,7 +73,7 @@ export class RenderApp<T> {
 
   loadServerSideRenderedHtml(view: HTMLView) {
     this.ssrHtmlString = createStringRenderer(view)(this.serverSideStore ?? this.store)
-    document.body.innerHTML = this.ssrHtmlString
+    document.body.setHTMLUnsafe(this.ssrHtmlString)
   }
 
   initStream() {

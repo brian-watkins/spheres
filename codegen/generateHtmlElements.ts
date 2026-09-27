@@ -118,7 +118,7 @@ specialHtmlElementsInterface.addMethod({
     { name: "tag", type: "string" },
     {
       name: "builder",
-      type: "(element: ConfigurableElement<SpecialElementAttributes & GlobalHTMLAttributes, HTMLBuilder>) => void",
+      type: "(element: ConfigurableElement<SpecialElementAttributes & GlobalHTMLAttributes & ShadowRootHostAttributes, HTMLBuilder>) => void",
       hasQuestionToken: true,
     },
     { name: "support", type: "ElementSupport", hasQuestionToken: true },
@@ -150,6 +150,56 @@ specialHtmlElementsInterface.addMethod({
   parameters: [
     { name: "data", type: "(get: GetState) => ReadonlyArray<T>" },
     { name: "viewGenerator", type: "(useItem: UseItem<T>) => HTMLView" },
+  ],
+  returnType: "this",
+})
+
+// attributes that configure how a shadow root is attached; these cannot
+// change once the shadow root exists so they do not accept stateful values
+const staticAttributeTypes = new Map([
+  ["shadowrootmode", `"open" | "closed"`],
+  ["shadowrootclonable", "boolean"],
+  ["shadowrootdelegatesfocus", "boolean"],
+  ["shadowrootserializable", "boolean"],
+])
+
+// ShadowRootHostAttributes interface
+
+// elements that are allowed to have a shadow root attached (besides custom elements)
+// see https://dom.spec.whatwg.org/#dom-element-attachshadow
+const shadowRootHostTags = [
+  "article",
+  "aside",
+  "blockquote",
+  "body",
+  "div",
+  "footer",
+  "h1",
+  "h2",
+  "h3",
+  "h4",
+  "h5",
+  "h6",
+  "header",
+  "main",
+  "nav",
+  "p",
+  "section",
+  "span",
+]
+
+const shadowRootHostAttributesInterface = htmlElementsFile.addInterface({
+  name: "ShadowRootHostAttributes",
+  isExported: true,
+})
+
+shadowRootHostAttributesInterface.addMethod({
+  name: "shadowRoot",
+  parameters: [
+    {
+      name: "builder",
+      type: "(element: ConfigurableElement<TemplateElementAttributes, HTMLBuilder>) => void",
+    },
   ],
   returnType: "this",
 })
@@ -210,7 +260,11 @@ for (const tag of htmlTags) {
   htmlElementsFile.addInterface({
     name: attributesName(tag),
     methods: elementAttributes.map(buildAttributeProperty(`${attributesName(tag)}`)),
-    extends: [`SpecialElementAttributes<TagElement<"${tag}">>`, "GlobalHTMLAttributes"],
+    extends: [
+      `SpecialElementAttributes<TagElement<"${tag}">>`,
+      "GlobalHTMLAttributes",
+      ...(shadowRootHostTags.includes(tag) ? ["ShadowRootHostAttributes"] : []),
+    ],
     isExported: true,
   })
 }
@@ -222,7 +276,10 @@ function buildAttributeProperty(
 ): (attribute: string) => OptionalKind<MethodSignatureStructure> {
   return (attribute) => {
     let parameters: Array<OptionalKind<ParameterDeclarationStructure>> = []
-    if (booleanAttributes.includes(attribute)) {
+    const staticType = staticAttributeTypes.get(attribute)
+    if (staticType !== undefined) {
+      parameters = [{ name: "value", type: staticType }]
+    } else if (booleanAttributes.includes(attribute)) {
       parameters = [{ name: "value", type: "boolean | Stateful<boolean | undefined>" }]
     } else {
       parameters = [{ name: "value", type: "string | Stateful<string | undefined>" }]

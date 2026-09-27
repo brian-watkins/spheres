@@ -30,7 +30,10 @@ export interface SpecialHTMLElements {
   element(
     tag: string,
     builder?: (
-      element: ConfigurableElement<SpecialElementAttributes & GlobalHTMLAttributes, HTMLBuilder>,
+      element: ConfigurableElement<
+        SpecialElementAttributes & GlobalHTMLAttributes & ShadowRootHostAttributes,
+        HTMLBuilder
+      >,
     ) => void,
     support?: ElementSupport,
   ): this
@@ -40,6 +43,12 @@ export interface SpecialHTMLElements {
   subviews<T>(
     data: (get: GetState) => ReadonlyArray<T>,
     viewGenerator: (useItem: UseItem<T>) => HTMLView,
+  ): this
+}
+
+export interface ShadowRootHostAttributes {
+  shadowRoot(
+    builder: (element: ConfigurableElement<TemplateElementAttributes, HTMLBuilder>) => void,
   ): this
 }
 
@@ -440,10 +449,16 @@ export interface AreaElementAttributes
 }
 
 export interface ArticleElementAttributes
-  extends SpecialElementAttributes<TagElement<"article">>, GlobalHTMLAttributes {}
+  extends
+    SpecialElementAttributes<TagElement<"article">>,
+    GlobalHTMLAttributes,
+    ShadowRootHostAttributes {}
 
 export interface AsideElementAttributes
-  extends SpecialElementAttributes<TagElement<"aside">>, GlobalHTMLAttributes {}
+  extends
+    SpecialElementAttributes<TagElement<"aside">>,
+    GlobalHTMLAttributes,
+    ShadowRootHostAttributes {}
 
 export interface AudioElementAttributes
   extends SpecialElementAttributes<TagElement<"audio">>, GlobalHTMLAttributes {
@@ -472,12 +487,18 @@ export interface BdoElementAttributes
   extends SpecialElementAttributes<TagElement<"bdo">>, GlobalHTMLAttributes {}
 
 export interface BlockquoteElementAttributes
-  extends SpecialElementAttributes<TagElement<"blockquote">>, GlobalHTMLAttributes {
+  extends
+    SpecialElementAttributes<TagElement<"blockquote">>,
+    GlobalHTMLAttributes,
+    ShadowRootHostAttributes {
   cite(value: string | Stateful<string | undefined>): BlockquoteElementAttributes
 }
 
 export interface BodyElementAttributes
-  extends SpecialElementAttributes<TagElement<"body">>, GlobalHTMLAttributes {
+  extends
+    SpecialElementAttributes<TagElement<"body">>,
+    GlobalHTMLAttributes,
+    ShadowRootHostAttributes {
   alink(value: string | Stateful<string | undefined>): BodyElementAttributes
   background(value: string | Stateful<string | undefined>): BodyElementAttributes
   bgcolor(value: string | Stateful<string | undefined>): BodyElementAttributes
@@ -579,7 +600,10 @@ export interface DialogElementAttributes
 }
 
 export interface DivElementAttributes
-  extends SpecialElementAttributes<TagElement<"div">>, GlobalHTMLAttributes {
+  extends
+    SpecialElementAttributes<TagElement<"div">>,
+    GlobalHTMLAttributes,
+    ShadowRootHostAttributes {
   align(value: string | Stateful<string | undefined>): DivElementAttributes
 }
 
@@ -616,7 +640,10 @@ export interface FigureElementAttributes
   extends SpecialElementAttributes<TagElement<"figure">>, GlobalHTMLAttributes {}
 
 export interface FooterElementAttributes
-  extends SpecialElementAttributes<TagElement<"footer">>, GlobalHTMLAttributes {}
+  extends
+    SpecialElementAttributes<TagElement<"footer">>,
+    GlobalHTMLAttributes,
+    ShadowRootHostAttributes {}
 
 export interface FormElementAttributes
   extends SpecialElementAttributes<TagElement<"form">>, GlobalHTMLAttributes {
@@ -632,32 +659,50 @@ export interface FormElementAttributes
 }
 
 export interface H1ElementAttributes
-  extends SpecialElementAttributes<TagElement<"h1">>, GlobalHTMLAttributes {
+  extends
+    SpecialElementAttributes<TagElement<"h1">>,
+    GlobalHTMLAttributes,
+    ShadowRootHostAttributes {
   align(value: string | Stateful<string | undefined>): H1ElementAttributes
 }
 
 export interface H2ElementAttributes
-  extends SpecialElementAttributes<TagElement<"h2">>, GlobalHTMLAttributes {
+  extends
+    SpecialElementAttributes<TagElement<"h2">>,
+    GlobalHTMLAttributes,
+    ShadowRootHostAttributes {
   align(value: string | Stateful<string | undefined>): H2ElementAttributes
 }
 
 export interface H3ElementAttributes
-  extends SpecialElementAttributes<TagElement<"h3">>, GlobalHTMLAttributes {
+  extends
+    SpecialElementAttributes<TagElement<"h3">>,
+    GlobalHTMLAttributes,
+    ShadowRootHostAttributes {
   align(value: string | Stateful<string | undefined>): H3ElementAttributes
 }
 
 export interface H4ElementAttributes
-  extends SpecialElementAttributes<TagElement<"h4">>, GlobalHTMLAttributes {
+  extends
+    SpecialElementAttributes<TagElement<"h4">>,
+    GlobalHTMLAttributes,
+    ShadowRootHostAttributes {
   align(value: string | Stateful<string | undefined>): H4ElementAttributes
 }
 
 export interface H5ElementAttributes
-  extends SpecialElementAttributes<TagElement<"h5">>, GlobalHTMLAttributes {
+  extends
+    SpecialElementAttributes<TagElement<"h5">>,
+    GlobalHTMLAttributes,
+    ShadowRootHostAttributes {
   align(value: string | Stateful<string | undefined>): H5ElementAttributes
 }
 
 export interface H6ElementAttributes
-  extends SpecialElementAttributes<TagElement<"h6">>, GlobalHTMLAttributes {
+  extends
+    SpecialElementAttributes<TagElement<"h6">>,
+    GlobalHTMLAttributes,
+    ShadowRootHostAttributes {
   align(value: string | Stateful<string | undefined>): H6ElementAttributes
 }
 
@@ -667,7 +712,10 @@ export interface HeadElementAttributes
 }
 
 export interface HeaderElementAttributes
-  extends SpecialElementAttributes<TagElement<"header">>, GlobalHTMLAttributes {}
+  extends
+    SpecialElementAttributes<TagElement<"header">>,
+    GlobalHTMLAttributes,
+    ShadowRootHostAttributes {}
 
 export interface HgroupElementAttributes
   extends SpecialElementAttributes<TagElement<"hgroup">>, GlobalHTMLAttributes {}
@@ -825,7 +873,10 @@ export interface LinkElementAttributes
 }
 
 export interface MainElementAttributes
-  extends SpecialElementAttributes<TagElement<"main">>, GlobalHTMLAttributes {}
+  extends
+    SpecialElementAttributes<TagElement<"main">>,
+    GlobalHTMLAttributes,
+    ShadowRootHostAttributes {}
 
 export interface MapElementAttributes
   extends SpecialElementAttributes<TagElement<"map">>, GlobalHTMLAttributes {
@@ -867,7 +918,10 @@ export interface MeterElementAttributes
 }
 
 export interface NavElementAttributes
-  extends SpecialElementAttributes<TagElement<"nav">>, GlobalHTMLAttributes {}
+  extends
+    SpecialElementAttributes<TagElement<"nav">>,
+    GlobalHTMLAttributes,
+    ShadowRootHostAttributes {}
 
 export interface NoscriptElementAttributes
   extends SpecialElementAttributes<TagElement<"noscript">>, GlobalHTMLAttributes {}
@@ -924,7 +978,10 @@ export interface OutputElementAttributes
 }
 
 export interface PElementAttributes
-  extends SpecialElementAttributes<TagElement<"p">>, GlobalHTMLAttributes {
+  extends
+    SpecialElementAttributes<TagElement<"p">>,
+    GlobalHTMLAttributes,
+    ShadowRootHostAttributes {
   align(value: string | Stateful<string | undefined>): PElementAttributes
 }
 
@@ -996,7 +1053,10 @@ export interface SearchElementAttributes
   extends SpecialElementAttributes<TagElement<"search">>, GlobalHTMLAttributes {}
 
 export interface SectionElementAttributes
-  extends SpecialElementAttributes<TagElement<"section">>, GlobalHTMLAttributes {}
+  extends
+    SpecialElementAttributes<TagElement<"section">>,
+    GlobalHTMLAttributes,
+    ShadowRootHostAttributes {}
 
 export interface SelectElementAttributes
   extends SpecialElementAttributes<TagElement<"select">>, GlobalHTMLAttributes {
@@ -1029,7 +1089,10 @@ export interface SourceElementAttributes
 }
 
 export interface SpanElementAttributes
-  extends SpecialElementAttributes<TagElement<"span">>, GlobalHTMLAttributes {}
+  extends
+    SpecialElementAttributes<TagElement<"span">>,
+    GlobalHTMLAttributes,
+    ShadowRootHostAttributes {}
 
 export interface StrongElementAttributes
   extends SpecialElementAttributes<TagElement<"strong">>, GlobalHTMLAttributes {}
@@ -1091,13 +1154,13 @@ export interface TdElementAttributes
 
 export interface TemplateElementAttributes
   extends SpecialElementAttributes<TagElement<"template">>, GlobalHTMLAttributes {
-  shadowrootclonable(value: string | Stateful<string | undefined>): TemplateElementAttributes
+  shadowrootclonable(value: boolean): TemplateElementAttributes
   shadowrootcustomelementregistry(
     value: string | Stateful<string | undefined>,
   ): TemplateElementAttributes
-  shadowrootdelegatesfocus(value: string | Stateful<string | undefined>): TemplateElementAttributes
-  shadowrootmode(value: string | Stateful<string | undefined>): TemplateElementAttributes
-  shadowrootserializable(value: string | Stateful<string | undefined>): TemplateElementAttributes
+  shadowrootdelegatesfocus(value: boolean): TemplateElementAttributes
+  shadowrootmode(value: "open" | "closed"): TemplateElementAttributes
+  shadowrootserializable(value: boolean): TemplateElementAttributes
 }
 
 export interface TextareaElementAttributes

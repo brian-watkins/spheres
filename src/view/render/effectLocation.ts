@@ -18,4 +18,11 @@ export class EffectLocation {
       return next
     })
   }
+
+  showdowRoot(): EffectLocation {
+    return new EffectLocation((root) => {
+      const element = this.findNode(root) as Element
+      return element.shadowRoot!.firstChild!
+    })
+  }
 }

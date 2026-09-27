@@ -32,6 +32,7 @@ export enum EffectTemplateTypes {
   Match,
   Event,
   Element,
+  ShadowRoot,
 }
 
 export interface TextEffectTemplate {
@@ -81,6 +82,13 @@ export interface ElementEffectTemplate {
   location: EffectLocation
 }
 
+export interface ShadowRootEffectTemplate {
+  type: EffectTemplateTypes.ShadowRoot
+  options: ShadowRootInit
+  content: DOMTemplate
+  location: EffectLocation
+}
+
 export type EffectTemplate =
   | TextEffectTemplate
   | AttributeEffectTemplate
@@ -89,6 +97,7 @@ export type EffectTemplate =
   | MatchEffectTemplate
   | EventEffectTemplate
   | ElementEffectTemplate
+  | ShadowRootEffectTemplate
 
 export enum TemplateType {
   List,
@@ -199,6 +208,11 @@ function initializeEffect(registry: TokenRegistry, root: Node, effect: EffectTem
       storeElement(registry, effect.identifier, element)
       break
     }
+    case EffectTemplateTypes.ShadowRoot: {
+      const element = effect.location.findNode(root) as Element
+      element.attachShadow(effect.options).appendChild(render(effect.content, registry))
+      break
+    }
   }
 }
 
@@ -258,6 +272,13 @@ function activateEffect(registry: TokenRegistry, root: Node, effect: EffectTempl
     case EffectTemplateTypes.Element: {
       const element = effect.location.findNode(root) as Element
       storeElement(registry, effect.identifier, element)
+      break
+    }
+    case EffectTemplateTypes.ShadowRoot: {
+      const element = effect.location.findNode(root) as Element
+      if (element.shadowRoot !== null) {
+        activate(effect.content, registry, element.shadowRoot.firstChild!)
+      }
       break
     }
   }

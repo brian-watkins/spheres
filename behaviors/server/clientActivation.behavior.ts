@@ -405,6 +405,100 @@ export default behavior("client activation of server rendered views", [
       ],
     }),
 
+  example(ssrTestAppContext())
+    .description("list of items with template elements that declare shadow roots")
+    .script({
+      suppose: [
+        fact("the app is loaded in the browser", async (context) => {
+          context.server.setSSRApp({
+            template: "../fixtures/ssrApp/listWithShadowRoot/template.html",
+            view: "./behaviors/server/fixtures/ssrApp/listWithShadowRoot/server.ts",
+          })
+          await context.browser.loadApp()
+        }),
+      ],
+      observe: [
+        effect("the server-rendered items display their shadow root content", async (context) => {
+          await expect(
+            context.browser.display.selectAll("[data-item] p").texts(),
+            resolvesTo(["In the shadows!", "In the shadows!"]),
+          )
+        }),
+      ],
+    })
+    .andThen({
+      perform: [
+        step("an item is added on the client", async (context) => {
+          await context.browser.display.selectWithText("Add Item").click()
+        }),
+      ],
+      observe: [
+        effect("the added item displays its shadow root content", async (context) => {
+          await expect(
+            context.browser.display.selectAll("[data-item] p").texts(),
+            resolvesTo(["In the shadows!", "In the shadows!", "In the shadows!"]),
+          )
+        }),
+      ],
+    }),
+
+  example(ssrTestAppContext())
+    .description("list of items with shadow roots and light dom children that handle events")
+    .script({
+      suppose: [
+        fact("the app is loaded in the browser", async (context) => {
+          context.server.setSSRApp({
+            template: "../fixtures/ssrApp/listWithShadowRootEvents/template.html",
+            view: "./behaviors/server/fixtures/ssrApp/listWithShadowRootEvents/server.ts",
+          })
+          await context.browser.loadApp()
+        }),
+      ],
+      perform: [
+        step("the button in a server-rendered item is clicked", async (context) => {
+          await context.browser.display.select("[data-item-button]").click()
+        }),
+      ],
+      observe: [
+        effect("the click count is updated", async (context) => {
+          await expect(
+            context.browser.display.select("[data-click-count]").text(),
+            resolvesTo("Clicks: 1"),
+          )
+        }),
+      ],
+    }),
+
+  example(ssrTestAppContext())
+    .description("list of items with an element after a shadow root host that handles events")
+    .script({
+      suppose: [
+        fact("the app is loaded in the browser", async (context) => {
+          context.server.setSSRApp({
+            template: "../fixtures/ssrApp/listWithShadowRootEvents/template.html",
+            view: "./behaviors/server/fixtures/ssrApp/listWithShadowRootEvents/server.ts",
+          })
+          await context.browser.loadApp()
+        }),
+      ],
+      perform: [
+        step(
+          "the button after the shadow root host in a server-rendered item is clicked",
+          async (context) => {
+            await context.browser.display.select("[data-item-sibling-button]").click()
+          },
+        ),
+      ],
+      observe: [
+        effect("the click count is updated", async (context) => {
+          await expect(
+            context.browser.display.select("[data-click-count]").text(),
+            resolvesTo("Clicks: 1"),
+          )
+        }),
+      ],
+    }),
+
   customElementShadowRootExample("open", "listWithCustomElementShadowRoot"),
   customElementShadowRootExample("closed", "listWithCustomElementClosedShadowRoot"),
 ])

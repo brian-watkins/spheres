@@ -23,4 +23,7 @@ export const booleanAttributes = [
   "required",
   "reversed",
   "selected",
+  "shadowrootclonable",
+  "shadowrootdelegatesfocus",
+  "shadowrootserializable",
 ]

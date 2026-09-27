@@ -38,6 +38,7 @@ import { BaseElementRenderer, ElementRenderer } from "./elementRenderers/element
 import { ScriptElementRenderer } from "./elementRenderers/scriptElementRenderer.js"
 import { getActivationTemplate, storeIdToken } from "./elementRenderers/activationElements.js"
 import { LinkElementRenderer } from "./elementRenderers/linkElementRenderer.js"
+import { ShadowRootTemplateRenderer } from "./elementRenderers/shadowRootTemplateRenderer.js"
 import {
   BasicElementConfigSupport,
   ElementConfigSupport,
@@ -129,10 +130,18 @@ class StringRenderer extends AbstractViewRenderer {
   }
 
   element(tag: string, builder?: ElementDefinition, support?: ElementSupport): this {
+    return this.renderElement(tag, builder, this.getElementRenderer(tag), support)
+  }
+
+  private renderElement(
+    tag: string,
+    builder: ElementDefinition | undefined,
+    elementRenderer: ElementRenderer,
+    support?: ElementSupport,
+  ): this {
     const elementId = this.idSequence.next
 
     const rendererDelegate = support ?? this.elementSupport
-    const elementRenderer = this.getElementRenderer(tag)
 
     const configSupport =
       elementRenderer.getConfigSupport() ?? rendererDelegate.getConfigSupport(tag)
@@ -144,6 +153,8 @@ class StringRenderer extends AbstractViewRenderer {
       config,
       children: children,
     })
+
+    configSupport.postBuild?.(config)
 
     this.appendToTemplate(elementRenderer.preTagTemplate())
 
@@ -158,6 +169,15 @@ class StringRenderer extends AbstractViewRenderer {
     }
 
     this.appendToTemplate(elementRenderer.preChildrenTemplate())
+
+    if (config.shadowRootBuilder !== undefined) {
+      this.renderElement(
+        "template",
+        config.shadowRootBuilder,
+        new ShadowRootTemplateRenderer(),
+        rendererDelegate,
+      )
+    }
 
     if (config.innerHTMLContent !== undefined) {
       if (isStateful(config.innerHTMLContent)) {

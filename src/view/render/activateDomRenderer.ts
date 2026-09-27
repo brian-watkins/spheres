@@ -37,6 +37,7 @@ import { MatcherBuilder } from "./viewMatcherBuilder.js"
 import { ElementConfigSupport, ElementSupport } from "../elementSupport.js"
 import { ElementIdentifier, storeElement } from "../element.js"
 import { DOMRoot } from "./domRoot.js"
+import { ShadowRootConfig } from "./shadowRootConfig.js"
 
 export class ActivateDomRenderer extends AbstractViewRenderer {
   private currentNode: Node | null
@@ -86,15 +87,17 @@ export class ActivateDomRenderer extends AbstractViewRenderer {
     const renderSupport = support ?? this.elementSupport
     const element = this.currentNode as Element
 
+    const config = new ActivateDomConfig(
+      renderSupport.getConfigSupport(tag),
+      this.zone,
+      this.registry,
+      this.zone.root,
+      element,
+      this.currentLocation,
+    )
+
     builder?.({
-      config: new ActivateDomConfig(
-        renderSupport.getConfigSupport(tag),
-        this.zone,
-        this.registry,
-        this.zone.root,
-        element,
-        this.currentLocation,
-      ),
+      config,
       children: new ActivateDomRenderer(
         renderSupport,
         this.zone,
@@ -103,6 +106,20 @@ export class ActivateDomRenderer extends AbstractViewRenderer {
         this.currentLocation.firstChild(),
       ),
     })
+
+    if (config.shadowRootBuilder !== undefined && element.shadowRoot !== null) {
+      const hostLocation = this.currentLocation
+      config.shadowRootBuilder({
+        config: new ShadowRootConfig(renderSupport.getConfigSupport("template")),
+        children: new ActivateDomRenderer(
+          renderSupport,
+          this.zone,
+          this.registry,
+          element.shadowRoot.firstChild!,
+          hostLocation.showdowRoot(),
+        ),
+      })
+    }
 
     this.currentNode = element.nextSibling
     this.currentLocation = this.currentLocation.nextSibling()

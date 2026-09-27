@@ -19,7 +19,13 @@ import {
   ViewDefinition,
   ViewMatcher,
 } from "./viewRenderer.js"
-import { DOMTemplate, EffectTemplate, EffectTemplateTypes, TemplateType } from "./domTemplate.js"
+import {
+  DOMTemplate,
+  EffectTemplate,
+  EffectTemplateTypes,
+  ShadowRootEffectTemplate,
+  TemplateType,
+} from "./domTemplate.js"
 import { MatcherBuilder } from "./viewMatcherBuilder.js"
 import { ElementConfigSupport, ElementSupport } from "../elementSupport.js"
 import { UpdateTextEffect } from "./effects/textEffect.js"
@@ -27,6 +33,7 @@ import { UpdateAttributeEffect } from "./effects/attributeEffect.js"
 import { UpdatePropertyEffect } from "./effects/propertyEffect.js"
 import { isStateful } from "../../store/tokenRegistry.js"
 import { ElementIdentifier } from "../element.js"
+import { ShadowRootConfig, ShadowRootConfigSupport } from "./shadowRootConfig.js"
 
 export class DomTemplateRenderer extends AbstractViewRenderer {
   public effectTemplates: Array<EffectTemplate> = []
@@ -102,14 +109,14 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
 
     const elementId = this.idSequence.next
 
-    const nextLocation = this.advanceLocation()
+    this.location = this.advanceLocation()
 
     const config = new DomTemplateConfig(
       renderSupport.getConfigSupport(tag),
       this.zone,
       elementId,
       element,
-      nextLocation,
+      this.location,
       this.eventType,
     )
 
@@ -117,7 +124,7 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
       renderSupport,
       this.zone,
       this.idSequence,
-      nextLocation,
+      this.location,
       element,
       this.eventType,
     )
@@ -127,7 +134,14 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
       children: children,
     })
 
-    this.location = nextLocation
+    if (config.shadowRootBuilder !== undefined) {
+      // keep ids in step with the server's <template> element
+      this.idSequence.skip()
+      config.effectTemplates.push(
+        this.buildShadowRootEffect(renderSupport, config.shadowRootBuilder),
+      )
+    }
+
     this.root.appendChild(element)
     this.effectTemplates = this.effectTemplates.concat(
       config.effectTemplates,
@@ -135,6 +149,29 @@ export class DomTemplateRenderer extends AbstractViewRenderer {
     )
 
     return this
+  }
+
+  private buildShadowRootEffect(
+    renderSupport: ElementSupport,
+    builder: ElementDefinition,
+  ): ShadowRootEffectTemplate {
+    const shadowRootConfig = new ShadowRootConfig(
+      new ShadowRootConfigSupport(renderSupport.getConfigSupport("template")),
+    )
+    const shadowRoot = new DomTemplateRenderer(
+      renderSupport,
+      this.zone,
+      this.idSequence,
+      new EffectLocation((root) => root),
+    )
+    builder({ config: shadowRootConfig, children: shadowRoot })
+
+    return {
+      type: EffectTemplateTypes.ShadowRoot,
+      options: shadowRootConfig.shadowRootInit,
+      content: shadowRoot.getTemplate(),
+      location: this.location,
+    }
   }
 
   subviews<T>(

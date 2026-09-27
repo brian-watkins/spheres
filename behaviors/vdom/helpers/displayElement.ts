@@ -124,6 +124,13 @@ export class DisplayElement {
     return elementCount > 0
   }
 
+  isVisible(): Promise<boolean> {
+    return usePage((page, opt) => page.locator(opt.selector).nth(opt.index).isVisible(), {
+      selector: this.selector,
+      index: this.index,
+    })
+  }
+
   click(position?: { x: number; y: number }): Promise<void> {
     return usePage(
       (page, opt) =>
@@ -152,7 +159,9 @@ export class DisplayElement {
         return page
           .locator(opt.selector)
           .nth(opt.index)
-          .evaluate((el) => document.activeElement === el, { timeout: 200 })
+          .evaluate((el) => (el.getRootNode() as Document | ShadowRoot).activeElement === el, {
+            timeout: 200,
+          })
       },
       {
         selector: this.selector,

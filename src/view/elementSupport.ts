@@ -7,6 +7,7 @@ export interface ElementConfig {
 
 export interface ElementConfigSupport {
   configure(config: ElementConfig, name: string, args: Array<any>): void
+  postBuild?(config: ElementConfig): void
 }
 
 export interface ElementSupport {

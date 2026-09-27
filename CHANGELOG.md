@@ -1,5 +1,11 @@
 # spheres
 
+## 0.32.0
+
+### Minor Changes
+
+- bd84931: Support for attaching shadow dom to elements declaratively
+
 ## 0.31.0
 
 ### Minor Changes

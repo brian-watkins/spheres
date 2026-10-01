@@ -135,11 +135,11 @@ class ConditionalViewOverlayRegistry extends OverlayTokenRegistry {
   }
 
   reset() {
-    this.registry.forEach((publisher, key) => {
+    for (const publisher of this.registry.values()) {
       if (publisher instanceof OverlayStateHandler) {
         publisher.detach()
-        this.registry.delete(key)
       }
-    })
+    }
+    this.registry.clear()
   }
 }

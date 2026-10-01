@@ -529,8 +529,27 @@ export default behavior("onRegister hook", [
         }),
       ],
       observe: [
-        effect("the fruit counter maintains its state", async () => {
-          await expect(selectElement("h1").text(), resolvesTo("apple clicks: 2"))
+        effect("the fruit counter starts with fresh state", async () => {
+          await expect(selectElement("h1").text(), resolvesTo("apple clicks: 0"))
+        }),
+        effect("the fruit counter is registered again", (context) => {
+          expect(
+            context.state.logs,
+            is([
+              "Registering [trigger]",
+              "Registering [fruit-counter-apple]",
+              "Writing [fruit-counter-apple] => 1",
+              "Writing [fruit-counter-apple] => 2",
+              `Writing [trigger] => {"type":"shape","corners":8}`,
+              "Registering [shape-counter-8]",
+              "Writing [shape-counter-8] => 1",
+              "Writing [shape-counter-8] => 2",
+              "Writing [shape-counter-8] => 3",
+              "Writing [shape-counter-8] => 4",
+              `Writing [trigger] => {"type":"fruit","name":"apple"}`,
+              "Registering [fruit-counter-apple]",
+            ]),
+          )
         }),
       ],
     }),

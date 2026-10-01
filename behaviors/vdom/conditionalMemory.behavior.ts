@@ -181,6 +181,265 @@ export default behavior("conditional view memory", [
         }),
       ],
     }),
+
+  example(renderContext<Container<boolean>>())
+    .description("local state is declared in a conditional view that is removed and shown again")
+    .script({
+      suppose: [
+        fact("there is state", (context) => {
+          context.setState(container({ initialValue: true }))
+        }),
+        fact("there is a conditional view that declares local state", (context) => {
+          function panel(root: HTMLBuilder) {
+            const count = container({ initialValue: 0 })
+            root.p((el) => {
+              el.config.dataAttribute("doubled")
+              el.children.textNode((get) => `Doubled: ${get(count) * 2}`)
+            })
+          }
+
+          context.mountView((root) => {
+            root.div((el) => {
+              el.children.subviewMatching((select) =>
+                select.withConditions().when((get) => get(context.state), panel),
+              )
+            })
+          })
+        }),
+      ],
+      observe: [
+        effect("the view is visible", async () => {
+          await expect(selectElement("p[data-doubled]").text(), resolvesTo("Doubled: 0"))
+        }),
+      ],
+    })
+    .andThen({
+      perform: [
+        step("create a reference for the view", () => {
+          const el = document.querySelector("p[data-doubled]")
+          expect(el, is(defined()))
+          window.__element_ref = new WeakRef(el!)
+        }),
+        step("hide the view", (context) => {
+          context.writeTo(context.state, false)
+        }),
+        step("show the view again", (context) => {
+          context.writeTo(context.state, true)
+        }),
+      ],
+      observe: [
+        effect("the view is visible again", async () => {
+          await expect(selectElement("p[data-doubled]").text(), resolvesTo("Doubled: 0"))
+        }),
+        effect("the removed dom element is garbage collected", async () => {
+          await requestGC()
+          expect(window.__element_ref.deref(), is(undefined))
+        }),
+      ],
+    }),
+
+  example(renderContext<Container<boolean>>())
+    .description("local state is declared in a union case view that is removed and shown again")
+    .script({
+      suppose: [
+        fact("there is state", (context) => {
+          context.setState(container({ initialValue: true }))
+        }),
+        fact("there is a union case view that declares local state", (context) => {
+          function panel(root: HTMLBuilder) {
+            const count = container({ initialValue: 0 })
+            root.p((el) => {
+              el.config.dataAttribute("doubled")
+              el.children.textNode((get) => `Doubled: ${get(count) * 2}`)
+            })
+          }
+
+          context.mountView((root) => {
+            root.div((el) => {
+              el.children.subviewMatching((select) =>
+                select
+                  .withUnion((get) => get(context.state))
+                  .when(
+                    (val): val is true => val === true,
+                    () => panel,
+                  ),
+              )
+            })
+          })
+        }),
+      ],
+      observe: [
+        effect("the view is visible", async () => {
+          await expect(selectElement("p[data-doubled]").text(), resolvesTo("Doubled: 0"))
+        }),
+      ],
+    })
+    .andThen({
+      perform: [
+        step("create a reference for the view", () => {
+          const el = document.querySelector("p[data-doubled]")
+          expect(el, is(defined()))
+          window.__element_ref = new WeakRef(el!)
+        }),
+        step("hide the view", (context) => {
+          context.writeTo(context.state, false)
+        }),
+        step("show the view again", (context) => {
+          context.writeTo(context.state, true)
+        }),
+      ],
+      observe: [
+        effect("the view is visible again", async () => {
+          await expect(selectElement("p[data-doubled]").text(), resolvesTo("Doubled: 0"))
+        }),
+        effect("the removed dom element is garbage collected", async () => {
+          await requestGC()
+          expect(window.__element_ref.deref(), is(undefined))
+        }),
+      ],
+    }),
+
+  example(renderContext<DerivedValueContext>())
+    .description(
+      "derived state of local state is declared in a conditional view that is removed and shown again",
+    )
+    .script({
+      suppose: [
+        fact("there is state", (context) => {
+          context.setState({
+            show: container({ initialValue: true }),
+            latestValueRef: undefined,
+            removedValueRef: undefined,
+          })
+        }),
+        fact(
+          "there is a conditional view that declares derived state of local state",
+          (context) => {
+            function panel(root: HTMLBuilder) {
+              const count = container({ initialValue: 0 })
+              const doubled = derived((get) => {
+                const result = { value: get(count) * 2 }
+                context.state.latestValueRef = new WeakRef(result)
+                return result
+              })
+
+              root.p((el) => {
+                el.config.dataAttribute("doubled")
+                el.children.textNode((get) => `Doubled: ${get(doubled).value}`)
+              })
+            }
+
+            context.mountView((root) => {
+              root.div((el) => {
+                el.children.subviewMatching((select) =>
+                  select.withConditions().when((get) => get(context.state.show), panel),
+                )
+              })
+            })
+          },
+        ),
+      ],
+      observe: [
+        effect("the view is visible", async () => {
+          await expect(selectElement("p[data-doubled]").text(), resolvesTo("Doubled: 0"))
+        }),
+      ],
+    })
+    .andThen({
+      perform: [
+        step("create a reference for the derived value", (context) => {
+          expect(context.state.latestValueRef, is(defined()))
+          context.state.removedValueRef = context.state.latestValueRef
+        }),
+        step("hide the view", (context) => {
+          context.writeTo(context.state.show, false)
+        }),
+        step("show the view again", (context) => {
+          context.writeTo(context.state.show, true)
+        }),
+      ],
+      observe: [
+        effect("the view is visible again", async () => {
+          await expect(selectElement("p[data-doubled]").text(), resolvesTo("Doubled: 0"))
+        }),
+        effect("the derived value of the removed view is garbage collected", async (context) => {
+          await requestGC()
+          expect(context.state.removedValueRef!.deref(), is(undefined))
+        }),
+      ],
+    }),
+
+  example(renderContext<DerivedValueContext>())
+    .description(
+      "derived state of local state is declared in a union case view that is removed and shown again",
+    )
+    .script({
+      suppose: [
+        fact("there is state", (context) => {
+          context.setState({
+            show: container({ initialValue: true }),
+            latestValueRef: undefined,
+            removedValueRef: undefined,
+          })
+        }),
+        fact("there is a union case view that declares derived state of local state", (context) => {
+          function panel(root: HTMLBuilder) {
+            const count = container({ initialValue: 0 })
+            const doubled = derived((get) => {
+              const result = { value: get(count) * 2 }
+              context.state.latestValueRef = new WeakRef(result)
+              return result
+            })
+
+            root.p((el) => {
+              el.config.dataAttribute("doubled")
+              el.children.textNode((get) => `Doubled: ${get(doubled).value}`)
+            })
+          }
+
+          context.mountView((root) => {
+            root.div((el) => {
+              el.children.subviewMatching((select) =>
+                select
+                  .withUnion((get) => get(context.state.show))
+                  .when(
+                    (val): val is true => val === true,
+                    () => panel,
+                  ),
+              )
+            })
+          })
+        }),
+      ],
+      observe: [
+        effect("the view is visible", async () => {
+          await expect(selectElement("p[data-doubled]").text(), resolvesTo("Doubled: 0"))
+        }),
+      ],
+    })
+    .andThen({
+      perform: [
+        step("create a reference for the derived value", (context) => {
+          expect(context.state.latestValueRef, is(defined()))
+          context.state.removedValueRef = context.state.latestValueRef
+        }),
+        step("hide the view", (context) => {
+          context.writeTo(context.state.show, false)
+        }),
+        step("show the view again", (context) => {
+          context.writeTo(context.state.show, true)
+        }),
+      ],
+      observe: [
+        effect("the view is visible again", async () => {
+          await expect(selectElement("p[data-doubled]").text(), resolvesTo("Doubled: 0"))
+        }),
+        effect("the derived value of the removed view is garbage collected", async (context) => {
+          await requestGC()
+          expect(context.state.removedValueRef!.deref(), is(undefined))
+        }),
+      ],
+    }),
 ])
 
 interface EvenCount {
@@ -193,3 +452,9 @@ interface OddCount {
 }
 
 type Parity = EvenCount | OddCount
+
+interface DerivedValueContext {
+  show: Container<boolean>
+  latestValueRef: WeakRef<{ value: number }> | undefined
+  removedValueRef: WeakRef<{ value: number }> | undefined
+}

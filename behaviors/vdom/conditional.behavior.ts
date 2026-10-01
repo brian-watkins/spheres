@@ -735,8 +735,8 @@ function matchedViewWithLocalStateExample(
         }),
       ],
       observe: [
-        effect("the counter view remembers its state", async () => {
-          await expect(selectElement("[data-count]").text(), resolvesTo("The count is: 6"))
+        effect("the counter view starts with fresh state", async () => {
+          await expect(selectElement("[data-count]").text(), resolvesTo("The count is: 0"))
         }),
       ],
     })
@@ -747,8 +747,8 @@ function matchedViewWithLocalStateExample(
         }),
       ],
       observe: [
-        effect("the counter tally continues from where it left off", async () => {
-          await expect(selectElement("[data-count]").text(), resolvesTo("The count is: 8"))
+        effect("the counter tally starts over", async () => {
+          await expect(selectElement("[data-count]").text(), resolvesTo("The count is: 2"))
         }),
       ],
     })

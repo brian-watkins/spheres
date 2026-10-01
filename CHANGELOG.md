@@ -1,5 +1,11 @@
 # spheres
 
+## 0.32.1
+
+### Patch Changes
+
+- 4c4f2fc: Match views reset internal state on render to fix potential memory leaks
+
 ## 0.32.0
 
 ### Minor Changes

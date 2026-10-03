@@ -131,6 +131,16 @@ export class DisplayElement {
     })
   }
 
+  isChecked(): Promise<boolean> {
+    return usePage(
+      (page, opt) => page.locator(opt.selector).nth(opt.index).isChecked({ timeout: 200 }),
+      {
+        selector: this.selector,
+        index: this.index,
+      },
+    )
+  }
+
   click(position?: { x: number; y: number }): Promise<void> {
     return usePage(
       (page, opt) =>

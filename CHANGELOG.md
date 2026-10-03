@@ -1,5 +1,11 @@
 # spheres
 
+## 0.32.2
+
+### Patch Changes
+
+- f475f0b: Support for controlled textarea elements via value config property
+
 ## 0.32.1
 
 ### Patch Changes

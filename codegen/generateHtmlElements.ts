@@ -154,6 +154,12 @@ specialHtmlElementsInterface.addMethod({
   returnType: "this",
 })
 
+// attributes that are not defined by the HTML spec for an element but
+// that we support, typically because they correspond to a DOM property
+const additionalElementAttributes: Record<string, Array<string>> = {
+  textarea: ["value"],
+}
+
 // attributes that configure how a shadow root is attached; these cannot
 // change once the shadow root exists so they do not accept stateful values
 const staticAttributeTypes = new Map([
@@ -255,7 +261,10 @@ for (const tag of htmlTags) {
     continue
   }
 
-  const elementAttributes = htmlElementAttributes[tag] ?? []
+  const elementAttributes = [
+    ...(htmlElementAttributes[tag] ?? []),
+    ...(additionalElementAttributes[tag] ?? []),
+  ]
 
   htmlElementsFile.addInterface({
     name: attributesName(tag),

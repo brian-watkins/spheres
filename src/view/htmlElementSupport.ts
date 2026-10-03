@@ -8,16 +8,20 @@ import {
 export class HTMLElementSupport implements ElementSupport {
   private configSupport = new HtmlElementConfigSupport(new BasicElementConfigSupport())
   private inputConfigSupport = new HtmlInputElementConfigSupport(this.configSupport)
+  private textareaConfigSupport = new HtmlTextareaElementConfigSupport(this.configSupport)
 
   createElement(tag: string): Element {
     return document.createElement(tag)
   }
 
   getConfigSupport(tag: string): ElementConfigSupport {
-    if (tag === "input") {
-      return this.inputConfigSupport
-    } else {
-      return this.configSupport
+    switch (tag) {
+      case "input":
+        return this.inputConfigSupport
+      case "textarea":
+        return this.textareaConfigSupport
+      default:
+        return this.configSupport
     }
   }
 }
@@ -41,6 +45,19 @@ class HtmlElementConfigSupport implements ElementConfigSupport {
 }
 
 class HtmlInputElementConfigSupport implements ElementConfigSupport {
+  constructor(private next: ElementConfigSupport) {}
+
+  configure(config: ElementConfig, name: string, args: Array<any>): void {
+    if (name === "value") {
+      config.property("value", args[0])
+      return
+    }
+
+    this.next.configure(config, name, args)
+  }
+}
+
+class HtmlTextareaElementConfigSupport implements ElementConfigSupport {
   constructor(private next: ElementConfigSupport) {}
 
   configure(config: ElementConfig, name: string, args: Array<any>): void {

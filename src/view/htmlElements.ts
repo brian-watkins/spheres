@@ -1178,6 +1178,7 @@ export interface TextareaElementAttributes
   required(value: boolean | Stateful<boolean | undefined>): TextareaElementAttributes
   rows(value: string | Stateful<string | undefined>): TextareaElementAttributes
   wrap(value: string | Stateful<string | undefined>): TextareaElementAttributes
+  value(value: string | Stateful<string | undefined>): TextareaElementAttributes
 }
 
 export interface TfootElementAttributes

@@ -13,7 +13,7 @@ import {
 export const getInitialValue = Symbol("initialValue")
 
 export interface ResettableState<T> extends PublishableState<T> {
-  [getInitialValue](registry: TokenRegistry): T
+  [getInitialValue](registry: TokenRegistry, batch?: StateBatch): T
 }
 
 export interface UpdateResult<T> {
@@ -139,7 +139,7 @@ export function dispatchMessage(
       break
     }
     case "reset": {
-      const value = message.container[getInitialValue](registry)
+      const value = message.container[getInitialValue](registry, batch)
       message.container[getStateHandler](registry).publish(value, batch)
       break
     }

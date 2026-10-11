@@ -5,6 +5,7 @@ import {
   isStateful,
   runQuery,
   Stateful,
+  StateBatch,
   StatePublisher,
   StateWriter,
   TokenRegistry,
@@ -50,8 +51,10 @@ export class Container<T, M = T, E = any> implements ResettableState<T>, Writabl
     private reconciler: Reconciler<T> | undefined,
   ) {}
 
-  [getInitialValue](registry: TokenRegistry): T {
-    return isStateful(this.initialValue) ? runQuery(registry, this.initialValue) : this.initialValue
+  [getInitialValue](registry: TokenRegistry, batch?: StateBatch): T {
+    return isStateful(this.initialValue)
+      ? runQuery(registry, this.initialValue, batch)
+      : this.initialValue
   }
 
   [getStateHandler](registry: TokenRegistry): StateWriter<T, M> {

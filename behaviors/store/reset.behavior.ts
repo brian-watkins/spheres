@@ -1,4 +1,4 @@
-import { Container, container, derived, DerivedState } from "@store/index.js"
+import { Container, container, derived, DerivedState, reset, write } from "@store/index.js"
 import { behavior, effect, example, fact, step } from "best-behavior"
 import { equalTo, expect, is } from "great-expectations"
 import { testStoreContext } from "./helpers/testStore"
@@ -90,6 +90,51 @@ export default behavior("reset container", [
       ],
     }),
 
+  example(testStoreContext<BatchedDerivedInitialValueContext>())
+    .description(
+      "reset container in a batch after updating the dependency of its derived initial value",
+    )
+    .script({
+      suppose: [
+        fact("there is a container with an initial value from a derived state", (context) => {
+          const mode = container({ initialValue: "all" })
+          const recipients = derived<string>((get) => (get(mode) === "all" ? "everyone" : "sender"))
+          context.setTokens({
+            mode,
+            recipients,
+            stringState: container({
+              initialValue: (get) => get(recipients),
+            }),
+          })
+        }),
+        fact("there is a subscriber", (context) => {
+          context.subscribeTo(context.tokens.stringState, "sub-one")
+        }),
+      ],
+      perform: [
+        step("a value is written to the container", (context) => {
+          context.writeTo(context.tokens.stringState, "custom")
+        }),
+        step(
+          "a batch updates the derived state's dependency and then resets the container",
+          (context) => {
+            context.sendBatch([
+              write(context.tokens.mode, "one"),
+              reset(context.tokens.stringState),
+            ])
+          },
+        ),
+      ],
+      observe: [
+        effect("upon reset the subscriber receives the updated derived value", (context) => {
+          expect(
+            context.valuesForSubscriber("sub-one"),
+            is(equalTo(["everyone", "custom", "sender"])),
+          )
+        }),
+      ],
+    }),
+
   example(testStoreContext<Container<number, string>>())
     .description("reset message-based container with static initial value")
     .script({
@@ -138,4 +183,10 @@ interface DerivedInitialValueContext {
   stringState: Container<string>
   previousState: Container<string>
   derivedState: DerivedState<string>
+}
+
+interface BatchedDerivedInitialValueContext {
+  mode: Container<string>
+  recipients: DerivedState<string>
+  stringState: Container<string>
 }

@@ -11,9 +11,9 @@ import {
   State,
   initListener,
 } from "../tokenRegistry.js"
-import { Container } from "./container.js"
+import type { Container } from "./container.js"
 import { Publisher } from "./handler/publisher.js"
-import { SuppliedState } from "./supplied.js"
+import type { SuppliedState } from "./supplied.js"
 
 export interface PendingMessage<M> {
   type: "pending"

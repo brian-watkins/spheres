@@ -16,6 +16,7 @@ import { MessageWriter, UpdateResult } from "./handler/messageWriter.js"
 import { Writer } from "./handler/writer.js"
 import { value, Value } from "./value.js"
 import { Reconciler } from "./reconciler/reconciler.js"
+import { meta } from "./meta.js"
 
 export interface ContainerInitializer<T, M> {
   initialValue: T | Stateful<T>
@@ -38,6 +39,7 @@ export function container<T, M = T, E = any>(
     config.reconciler,
   )
   didCreateToken(token)
+  didCreateToken(meta(token))
   return token
 }
 

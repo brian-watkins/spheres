@@ -1,4 +1,4 @@
-import { meta, State } from "../../store/index.js"
+import { State } from "../../store/index.js"
 import { recordTokens } from "../../store/state/stateRecorder.js"
 import {
   getStateHandler,
@@ -7,7 +7,6 @@ import {
   TokenRegistry,
 } from "../../store/tokenRegistry.js"
 import { ListItem, UseItem, ViewDefinition, ViewRenderer } from "./viewRenderer.js"
-import { Container } from "../../store/state/container.js"
 import { ListItemReader } from "./effects/list/itemReader.js"
 
 export class ListItemTemplateContext<T> {
@@ -24,12 +23,6 @@ export class ListItemTemplateContext<T> {
         return val
       })(viewRenderer)
     })
-
-    for (const token of this.viewTokens.values()) {
-      if (token instanceof Container) {
-        this.viewTokens.add(meta(token))
-      }
-    }
   }
 }
 

@@ -6,6 +6,7 @@ import {
   TokenRegistry,
 } from "../tokenRegistry.js"
 import { Publisher } from "./handler/publisher.js"
+import { meta } from "./meta.js"
 import { Reconciler } from "./reconciler/reconciler.js"
 import { didCreateToken } from "./stateRecorder.js"
 
@@ -24,6 +25,7 @@ export function supplied<T, E = any>(
     initializer.reconciler,
   )
   didCreateToken(token)
+  didCreateToken(meta(token))
   return token
 }
 

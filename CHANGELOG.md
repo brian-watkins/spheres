@@ -1,5 +1,11 @@
 # spheres
 
+## 0.32.4
+
+### Patch Changes
+
+- ad97c4c: fix meta state in conditional and list views
+
 ## 0.32.3
 
 ### Patch Changes

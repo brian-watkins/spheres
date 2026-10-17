@@ -15,7 +15,7 @@
   "dependencies": {
     "@floating-ui/dom": "^1.8.0",
     "luxon": "^3.4.0",
-    "spheres": "^0.32.0"
+    "spheres": "^0.32.4"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",

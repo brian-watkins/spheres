@@ -47,7 +47,7 @@
     "prepare": "git config core.hooksPath .githooks || true"
   },
   "devDependencies": {
-    "@changesets/cli": "^2.31.1",
+    "@changesets/cli": "^3.0.3",
     "@types/express": "^4.17.21",
     "aria-attributes": "^2.0.1",
     "best-behavior": "^0.16.11",

@@ -11,7 +11,7 @@ import {
 import { ListItemReader } from "../../view/render/effects/list/itemReader.js"
 import { ListItemTemplateContext } from "../../view/render/templateContext.js"
 
-export function createOverlayRegistry(
+export function createListItemOverlayRegistry(
   context: ListItemTemplateContext<any>,
   rootRegistry: TokenRegistry,
   itemData: any,
@@ -25,23 +25,17 @@ export function createOverlayRegistry(
   )
 }
 
-export class ListItemOverlayTokenRegistry extends OverlayTokenRegistry {
+export class ViewOverlayTokenRegistry extends OverlayTokenRegistry {
   private registry: Map<StateToken<unknown>, StateReader<unknown>> = new Map()
 
   constructor(
-    rootRegistry: TokenRegistry,
-    private listItemDataToken: State<unknown>,
-    private listItemDataReader: ListItemReader<any>,
+    parentRegistry: TokenRegistry,
     private viewTokens: Set<StateToken<unknown>>,
   ) {
-    super(rootRegistry)
+    super(parentRegistry)
   }
 
   getState<S extends StateToken<unknown>>(token: S): StateHandler<S> {
-    if (token === this.listItemDataToken) {
-      return this.listItemDataReader as StateHandler<S>
-    }
-
     if (this.viewTokens.has(token)) {
       let publisher = this.registry.get(token)
       if (publisher === undefined) {
@@ -54,6 +48,25 @@ export class ListItemOverlayTokenRegistry extends OverlayTokenRegistry {
         this.registry.set(token, publisher)
       }
       return publisher as StateHandler<S>
+    }
+
+    return super.getState(token)
+  }
+}
+
+export class ListItemOverlayTokenRegistry extends ViewOverlayTokenRegistry {
+  constructor(
+    rootRegistry: TokenRegistry,
+    private listItemDataToken: State<unknown>,
+    private listItemDataReader: ListItemReader<any>,
+    viewTokens: Set<StateToken<unknown>>,
+  ) {
+    super(rootRegistry, viewTokens)
+  }
+
+  getState<S extends StateToken<unknown>>(token: S): StateHandler<S> {
+    if (token === this.listItemDataToken) {
+      return this.listItemDataReader as StateHandler<S>
     }
 
     return super.getState(token)

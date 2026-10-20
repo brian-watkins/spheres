@@ -44,7 +44,10 @@ import {
   ElementConfigSupport,
   ElementSupport,
 } from "../../view/elementSupport.js"
-import { createOverlayRegistry } from "./templateOverlayRegistry.js"
+import {
+  createListItemOverlayRegistry,
+  ViewOverlayTokenRegistry,
+} from "./templateOverlayRegistry.js"
 
 export interface StringRendererOptions {
   stateManifest?: StateManifest
@@ -221,7 +224,12 @@ class StringRenderer extends AbstractViewRenderer {
           const listData = runQuery(registry, data)
           let html: string = ""
           for (let i = 0; i < listData.length; i++) {
-            let overlayRegistry = createOverlayRegistry(templateContext, registry, listData[i], i)
+            let overlayRegistry = createListItemOverlayRegistry(
+              templateContext,
+              registry,
+              listData[i],
+              i,
+            )
             html += stringForTemplate(overlayRegistry, renderer.getTemplate())
           }
           return html
@@ -255,7 +263,7 @@ class StringRenderer extends AbstractViewRenderer {
             case "view": {
               const templateContext = selection.templateContext()
               return stringForTemplate(
-                templateContext.overlayRegistry(registry),
+                new ViewOverlayTokenRegistry(registry, templateContext.tokens),
                 templateContext.template,
               )
             }

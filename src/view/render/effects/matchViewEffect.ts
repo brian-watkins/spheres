@@ -63,7 +63,7 @@ export class MatchViewEffect implements StateEffect {
       case "view": {
         const templateContext = match.templateContext()
         this.registry.setViewTokens(templateContext.tokens)
-        node = render(templateContext.template, templateContext.overlayRegistry(this.registry))
+        node = render(templateContext.template, this.registry)
         break
       }
     }
@@ -90,11 +90,7 @@ export class MatchViewEffect implements StateEffect {
     if (match.type === "view") {
       const templateContext = match.templateContext()
       this.registry.setViewTokens(templateContext.tokens)
-      activate(
-        templateContext.template,
-        templateContext.overlayRegistry(this.registry),
-        startNode.nextSibling!,
-      )
+      activate(templateContext.template, this.registry, startNode.nextSibling!)
     }
   }
 }

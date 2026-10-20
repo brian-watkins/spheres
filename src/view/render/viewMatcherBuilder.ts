@@ -1,14 +1,7 @@
-import { GetState, State } from "../../store/index.js"
-import { OverlayTokenRegistry } from "../../store/registry/overlayTokenRegistry.js"
+import { GetState } from "../../store/index.js"
 import { recordTokens } from "../../store/state/stateRecorder.js"
-import {
-  generateStateManager,
-  Subscribable,
-  TokenRegistry,
-  StateHandler,
-  StateToken,
-  StateWriter,
-} from "../../store/tokenRegistry.js"
+import { derived } from "../../store/state/derived.js"
+import { StateToken } from "../../store/tokenRegistry.js"
 import {
   ViewDefinition,
   ViewCaseMatcher,
@@ -16,8 +9,6 @@ import {
   ViewConditionMatcher,
   UseCase,
 } from "./viewRenderer.js"
-import { Container } from "../../store/state/container.js"
-import { GuardingStateHandler } from "../../store/state/handler/guardingStateHandler.js"
 
 export interface TemplateCollection<T> {
   match(get: GetState): TemplateMatch<T>
@@ -26,7 +17,6 @@ export interface TemplateCollection<T> {
 export interface TemplateContext<T> {
   template: T
   tokens: Set<StateToken<any>>
-  overlayRegistry: (registry: TokenRegistry) => TokenRegistry
 }
 
 export interface TemplateView<T> {
@@ -91,23 +81,17 @@ class CaseCollectionBuilder<T, S> implements ViewCaseMatcher<S>, MatcherCollecti
       templateContext: memoize(() => {
         let template!: any
         const tokens = recordTokens(() => {
+          const caseValue = derived<X>({
+            query: this.valueQuery as (get: GetState) => X,
+            reconciler: (current, next) => (typePredicate(next) ? next : current),
+          })
           const view = viewGenerator((generator) => (get) => {
-            return generator(this.valueQuery(get) as X, get)
+            return generator(get(caseValue), get)
           })
           template = this.createTemplate(view, index)
         })
 
-        return {
-          template,
-          tokens,
-          overlayRegistry: (registry) => {
-            return new CaseViewOverlayTokenRegistry(
-              registry,
-              (get) => typePredicate(this.valueQuery(get)),
-              tokens,
-            )
-          },
-        }
+        return { template, tokens }
       }),
     })
 
@@ -126,14 +110,7 @@ class CaseCollectionBuilder<T, S> implements ViewCaseMatcher<S>, MatcherCollecti
           template = this.createTemplate(view, this.caseMatchers.length)
         })
 
-        return {
-          template,
-          tokens,
-          // Note: No need for an overlay registry here as the default view does not get
-          // a particular discrimiant as its state argument -- the guard provided by
-          // the registry is not needed
-          overlayRegistry: (registry) => registry,
-        }
+        return { template, tokens }
       }),
     }
   }
@@ -187,11 +164,7 @@ class ConditionCollectionBuilder<T> implements ViewConditionMatcher, MatcherColl
       template = this.createTemplate(view, index)
     })
 
-    return {
-      template,
-      tokens,
-      overlayRegistry: (registry) => registry,
-    }
+    return { template, tokens }
   }
 
   getCollection(): TemplateCollection<T> {
@@ -221,44 +194,5 @@ function memoize<X>(fun: () => X): () => X {
       value = fun()
     }
     return value
-  }
-}
-
-class CaseViewOverlayTokenRegistry extends OverlayTokenRegistry {
-  private tokenMap: Map<State<any>, any> = new Map()
-
-  constructor(
-    parentRegistry: TokenRegistry,
-    private matcher: (get: GetState) => boolean,
-    private tokens: Set<State<any>>,
-  ) {
-    super(parentRegistry)
-  }
-
-  getState<S extends StateToken<unknown>>(token: S): StateHandler<S> {
-    let publisher = this.tokenMap.get(token)
-    if (publisher === undefined) {
-      if (this.tokens.has(token)) {
-        if (token instanceof Container) {
-          // containers do not need to be guarded and aren't shared across templates
-          // this allows internal containers to trigger the onRegister hook
-          publisher = this.parentRegistry.getState(token)
-        } else {
-          publisher = this.createGuardingStateHandler(generateStateManager(this, token))
-        }
-      } else {
-        publisher = this.createGuardingStateHandler(this.parentRegistry.getState(token))
-      }
-      this.tokenMap.set(token, publisher)
-    }
-    return publisher
-  }
-
-  private createGuardingStateHandler(subscribable: Subscribable): StateHandler<any> {
-    return new GuardingStateHandler(
-      this.parentRegistry,
-      subscribable as unknown as StateWriter<any>,
-      this.matcher,
-    )
   }
 }

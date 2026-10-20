@@ -8,15 +8,16 @@ import {
   exec,
   meta,
   pending,
+  State,
   supplied,
   SuppliedState,
   useCommand,
   write,
 } from "@store/index.js"
-import { HTMLBuilder } from "@view/index"
+import { HTMLBuilder, UseCase } from "@view/index"
 import { behavior, effect, example, fact, step } from "best-behavior"
 import { expect, resolvesTo } from "great-expectations"
-import { selectElement } from "./helpers/displayElement"
+import { selectElement, selectElements } from "./helpers/displayElement"
 import { renderContext } from "./helpers/renderContext"
 
 interface ConditionalStateContext {
@@ -42,6 +43,18 @@ interface ConditionalContainerContext {
   show: Container<boolean>
   load: Command<ContainerLoadRequest>
   pendingLoad?: { request: ContainerLoadRequest; actions: CommandActions }
+}
+
+interface ListView {
+  type: "list"
+  items: State<Array<string>>
+}
+
+interface SwitchedDependencyContext {
+  items: Container<Array<string>>
+  listA: State<Array<string>>
+  listB: State<Array<string>>
+  view: Container<ListView>
 }
 
 export default behavior("state declared in a conditional view", [
@@ -340,6 +353,81 @@ export default behavior("state declared in a conditional view", [
       observe: [
         effect("the meta state is ok and the value is shown", async () => {
           await expect(selectElement("p").text(), resolvesTo("ok: loaded"))
+        }),
+      ],
+    }),
+
+  example(renderContext<SwitchedDependencyContext>())
+    .description(
+      "derived state in a union view that switches away from its initial dependency and back",
+    )
+    .script({
+      suppose: [
+        fact("there is state with two lists derived from it", (context) => {
+          const items = container({ initialValue: ["a-1", "a-2", "b-1"] })
+          const listA = derived((get) => get(items).filter((item) => item.startsWith("a")))
+          const listB = derived((get) => get(items).filter((item) => item.startsWith("b")))
+          context.setState({
+            items,
+            listA,
+            listB,
+            view: container<ListView>({ initialValue: { type: "list", items: listB } }),
+          })
+        }),
+        fact(
+          "there is a union view that declares derived state based on the selected list",
+          (context) => {
+            function listView(useCase: UseCase<ListView>) {
+              const listItems = derived(useCase((view, get) => get(view.items)))
+
+              return (root: HTMLBuilder) => {
+                root.ul((el) => {
+                  el.children.subviews(
+                    (get) => get(listItems),
+                    (useItem) => (root) => {
+                      root.li((el) => {
+                        el.children.textNode(useItem((item) => item.data))
+                      })
+                    },
+                  )
+                })
+              }
+            }
+
+            context.mountView((root) => {
+              root.main((el) => {
+                el.children.subviewMatching((selector) =>
+                  selector
+                    .withUnion((get) => get(context.state.view))
+                    .when((view): view is ListView => view.type === "list", listView),
+                )
+              })
+            })
+          },
+        ),
+      ],
+      perform: [
+        step("show list A, then list B, then list A again", (context) => {
+          context.writeTo(context.state.view, { type: "list", items: context.state.listA })
+          context.writeTo(context.state.view, { type: "list", items: context.state.listB })
+          context.writeTo(context.state.view, { type: "list", items: context.state.listA })
+        }),
+      ],
+      observe: [
+        effect("list A is shown", async () => {
+          await expect(selectElements("li").texts(), resolvesTo(["a-1", "a-2"]))
+        }),
+      ],
+    })
+    .andThen({
+      perform: [
+        step("remove an item from list A", (context) => {
+          context.writeTo(context.state.items, ["a-1", "b-1"])
+        }),
+      ],
+      observe: [
+        effect("the removed item is no longer shown", async () => {
+          await expect(selectElements("li").texts(), resolvesTo(["a-1"]))
         }),
       ],
     }),

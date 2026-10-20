@@ -1,7 +1,7 @@
 import { behavior, effect, example, fact, step } from "best-behavior"
 import { RenderApp, renderContext } from "./helpers/renderContext"
 import { ListExamplesState, containerWithList } from "./helpers/listHelpers"
-import { container, update } from "@store/index"
+import { container, derived, update } from "@store/index"
 import { HTMLView } from "@view/htmlElements"
 import { selectElements } from "./helpers/displayElement"
 import { expect, resolvesTo } from "great-expectations"
@@ -17,6 +17,20 @@ export default behavior("matched view within a list item", [
     context.mountView(view),
   ),
   conditionMatchedViewWithLocalStateExample("server rendered", (context, view) =>
+    context.ssrAndActivate(view),
+  ),
+
+  defaultViewWithLocalDerivedStateExample("client rendered", (context, view) =>
+    context.mountView(view),
+  ),
+  defaultViewWithLocalDerivedStateExample("server rendered", (context, view) =>
+    context.ssrAndActivate(view),
+  ),
+
+  conditionMatchedViewWithLocalDerivedStateExample("client rendered", (context, view) =>
+    context.mountView(view),
+  ),
+  conditionMatchedViewWithLocalDerivedStateExample("server rendered", (context, view) =>
     context.ssrAndActivate(view),
   ),
 ])
@@ -207,6 +221,111 @@ function conditionMatchedViewWithLocalStateExample(
             selectElements("[data-item-state]").texts(),
             resolvesTo(["a is open", "b is open", "c is closed"]),
           )
+        }),
+      ],
+    })
+}
+
+function defaultViewWithLocalDerivedStateExample(
+  name: string,
+  renderer: (context: RenderApp<ListExamplesState>, view: HTMLView) => void,
+) {
+  return example(renderContext<ListExamplesState>())
+    .description(`default view uses local derived state based on the list item (${name})`)
+    .script({
+      suppose: [
+        containerWithList(["a", "b", "c"]),
+        fact(
+          "there is a list view whose items use a default view with local derived state",
+          (context) => {
+            function labelView(useValue: UseCase<string>): HTMLView {
+              return (root) => {
+                const label = derived(useValue((value) => value.toUpperCase()))
+
+                root.div((el) => {
+                  el.config.dataAttribute("item-label")
+                  el.children.textNode((get) => get(label))
+                })
+              }
+            }
+
+            function itemView(useItem: UseItem<string>): HTMLView {
+              return (root) => {
+                root.subviewMatching((selector) => {
+                  selector
+                    .withUnion(useItem((item) => item.data))
+                    .when((data): data is string => data === "b", labelView)
+                    .default(labelView)
+                })
+              }
+            }
+
+            renderer(context, (root) => {
+              root.main((el) => {
+                el.children.subviews((get) => get(context.state.listContainer), itemView)
+              })
+            })
+          },
+        ),
+      ],
+      observe: [
+        effect("each item shows its own label", async () => {
+          await expect(selectElements("[data-item-label]").texts(), resolvesTo(["A", "B", "C"]))
+        }),
+      ],
+    })
+}
+
+function conditionMatchedViewWithLocalDerivedStateExample(
+  name: string,
+  renderer: (context: RenderApp<ListExamplesState>, view: HTMLView) => void,
+) {
+  return example(renderContext<ListExamplesState>())
+    .description(
+      `condition matched view and default view use local derived state based on the list item (${name})`,
+    )
+    .script({
+      suppose: [
+        containerWithList(["a", "b", "c"]),
+        fact(
+          "there is a list view whose items use a condition matched view with local derived state",
+          (context) => {
+            function labelView(useItem: UseItem<string>): HTMLView {
+              return (root) => {
+                const label = derived(useItem((item) => item.data.toUpperCase()))
+
+                root.div((el) => {
+                  el.config.dataAttribute("item-label")
+                  el.children.textNode((get) => get(label))
+                })
+              }
+            }
+
+            function itemView(useItem: UseItem<string>): HTMLView {
+              return (root) => {
+                root.subviewMatching((selector) => {
+                  selector
+                    .withConditions()
+                    .when(
+                      useItem((item) => item.data === "b"),
+                      labelView(useItem),
+                    )
+                    .default(labelView(useItem))
+                })
+              }
+            }
+
+            renderer(context, (root) => {
+              root.main((el) => {
+                el.children.subviews((get) => get(context.state.listContainer), itemView)
+              })
+            })
+          },
+        ),
+      ],
+      observe: [
+        effect("each item shows its own label", async () => {
+          await expect(selectElements("[data-item-label]").texts(), resolvesTo(["A", "B", "C"]))
         }),
       ],
     })

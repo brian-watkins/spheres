@@ -1,5 +1,11 @@
 # spheres
 
+## 0.32.5
+
+### Patch Changes
+
+- 62697ec: Fix bug with conditional subviews losing subscriptions
+
 ## 0.32.4
 
 ### Patch Changes

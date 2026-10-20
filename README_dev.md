@@ -5,4 +5,5 @@
 ### Publishing
 
 1. `$ npm run change:version`
-2. `$ npm run change:release`
+2. `$ npm login`
+3. `$ npm run change:release`

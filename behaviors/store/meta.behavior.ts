@@ -1,7 +1,16 @@
 import { behavior, ConfigurableExample, effect, example, fact, step } from "best-behavior"
 import { arrayWith, equalTo, expect, is } from "great-expectations"
 import { okMessage, pendingMessage } from "./helpers/metaMatchers.js"
-import { container, Container, Meta, derived, DerivedState, meta } from "@store/index.js"
+import {
+  container,
+  Container,
+  Meta,
+  derived,
+  DerivedState,
+  meta,
+  ReactiveEffectHandle,
+  useEffect,
+} from "@store/index.js"
 import { testStoreContext, TestStore } from "./helpers/testStore.js"
 
 interface MetaContext {
@@ -237,10 +246,54 @@ const metaEffectOrderBehavior: ConfigurableExample = example(
     ],
   })
 
+interface MetaUnsubscribedContext extends MetaPublishCycleContext {
+  handle?: ReactiveEffectHandle
+}
+
+const metaUnsubscribedBehavior: ConfigurableExample = example(
+  testStoreContext<MetaUnsubscribedContext>(),
+)
+  .description("meta state whose only subscriber unsubscribes while it is pending")
+  .script({
+    suppose: [
+      fact("there is a container whose hooks set pending and then ok", containerWithPendingThenOk),
+      fact("there is an effect that subscribes to the meta state", (context) => {
+        context.tokens.handle = useEffect(context.store, {
+          run: (get) => {
+            get(meta(context.tokens.container))
+          },
+        })
+      }),
+    ],
+    perform: [
+      step("the container is written", (context) => {
+        context.writeTo(context.tokens.container, "loaded")
+      }),
+      step("the meta state is set to pending", (context) => {
+        context.writeTo(context.tokens.container, "load")
+      }),
+      step("the effect unsubscribes", (context) => {
+        context.tokens.handle?.unsubscribe()
+      }),
+      step("the container is reset", (context) => {
+        context.sendReset(context.tokens.container)
+      }),
+      step("a new effect subscribes to the meta state", (context) => {
+        context.subscribeTo(meta(context.tokens.container), "new-sub")
+      }),
+    ],
+    observe: [
+      effect("the new effect receives an ok meta value", (context) => {
+        expect(context.valuesForSubscriber("new-sub"), is(arrayWith([okMessage()])))
+      }),
+    ],
+  })
+
 export default behavior("meta container", [
   basicMetaBehavior,
   metaContainerWithReducer,
   metaErrorBehavior,
   metaGlitchBehavior,
   metaEffectOrderBehavior,
+  metaUnsubscribedBehavior,
 ])

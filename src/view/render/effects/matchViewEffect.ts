@@ -6,7 +6,6 @@ import {
   StateEffect,
   StateListenerType,
   StateReader,
-  StateWriter,
   StateHandler,
   TokenRegistry,
   StateToken,
@@ -123,8 +122,7 @@ class ConditionalViewOverlayRegistry extends OverlayTokenRegistry {
   }
 
   private createPublisher<S extends StateToken<unknown>>(token: S): StateHandler<S> {
-    const actualPublisher = this.parentRegistry.getState(token) as StateWriter<any, any>
-    const overlayPublisher = new OverlayStateHandler(this.parentRegistry, actualPublisher)
+    const overlayPublisher = new OverlayStateHandler(this.parentRegistry, token)
     overlayPublisher.init()
 
     return overlayPublisher as StateHandler<S>

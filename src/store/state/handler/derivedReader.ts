@@ -1,4 +1,11 @@
-import { GetState, StateDerivation, StateListenerType, StateReader } from "../../tokenRegistry.js"
+import {
+  GetState,
+  initListener,
+  StateDerivation,
+  StateListenerType,
+  StateReader,
+  TokenRegistry,
+} from "../../tokenRegistry.js"
 import { Reconciler } from "../reconciler/reconciler.js"
 import { SubscriberSet } from "./subscriberSet.js"
 
@@ -7,6 +14,7 @@ export class DerivedStateReader<T>
   implements StateReader<T>, StateDerivation
 {
   readonly type = StateListenerType.Derivation
+  private isDetached: boolean = false
   private value!: T
 
   constructor(
@@ -14,6 +22,17 @@ export class DerivedStateReader<T>
     private reconciler?: Reconciler<T>,
   ) {
     super()
+  }
+
+  prepareForRead(registry: TokenRegistry) {
+    if (this.isDetached) {
+      initListener(registry, this)
+      this.isDetached = false
+    }
+  }
+
+  didDetach() {
+    this.isDetached = true
   }
 
   init(get: GetState): void {

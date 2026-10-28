@@ -13,6 +13,10 @@ export class SubscriberSet implements Subscribable {
     this.subscribers.delete(subscriber)
   }
 
+  hasSubscribers(): boolean {
+    return this.subscribers.size > 0
+  }
+
   prepareSubscribers(effects: EffectList): void {
     for (const [subscriber, version] of this.subscribers) {
       if (subscriber.getVersion() !== version) {

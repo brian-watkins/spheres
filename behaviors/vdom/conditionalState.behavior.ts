@@ -7,17 +7,19 @@ import {
   derived,
   exec,
   meta,
+  reset,
   pending,
   State,
   supplied,
   SuppliedState,
+  use,
   useCommand,
   write,
 } from "@store/index.js"
 import { HTMLBuilder, UseCase } from "@view/index"
 import { behavior, effect, example, fact, step } from "best-behavior"
 import { expect, resolvesTo } from "great-expectations"
-import { selectElement, selectElements } from "./helpers/displayElement"
+import { selectElement, selectElements, selectElementWithText } from "./helpers/displayElement"
 import { renderContext } from "./helpers/renderContext"
 
 interface ConditionalStateContext {
@@ -431,4 +433,232 @@ export default behavior("state declared in a conditional view", [
         }),
       ],
     }),
+
+  example(renderContext<ConditionalReadContext>())
+    .description("external derived state read conditionally inside a conditional view")
+    .script({
+      suppose: [
+        fact("there is some state", (context) => {
+          const counter = container({ initialValue: 0 })
+          context.setState({
+            showValue: container({ initialValue: true }),
+            counter,
+            counterText: derived((get) => `Count: ${get(counter)}`),
+          })
+        }),
+        fact(
+          "there is a conditional view that reads the derived state only when the value is shown",
+          (context) => {
+            function panel(root: HTMLBuilder) {
+              root.p((el) => {
+                el.children.textNode((get) =>
+                  get(context.state.showValue) ? get(context.state.counterText) : "Hidden",
+                )
+              })
+            }
+
+            context.mountView((root) => {
+              root.main((el) => {
+                el.children.subviewMatching((selector) =>
+                  selector.withConditions().when(() => true, panel),
+                )
+              })
+            })
+          },
+        ),
+      ],
+      perform: [
+        step("hide the value", (context) => {
+          context.writeTo(context.state.showValue, false)
+        }),
+        step("update the state while the value is hidden", (context) => {
+          context.writeTo(context.state.counter, 1)
+        }),
+        step("show the value again", (context) => {
+          context.writeTo(context.state.showValue, true)
+        }),
+      ],
+      observe: [
+        effect("the latest value is shown", async () => {
+          await expect(selectElement("p").text(), resolvesTo("Count: 1"))
+        }),
+      ],
+    })
+    .andThen({
+      perform: [
+        step("update the state again", (context) => {
+          context.writeTo(context.state.counter, 2)
+        }),
+      ],
+      observe: [
+        effect("the value updates", async () => {
+          await expect(selectElement("p").text(), resolvesTo("Count: 2"))
+        }),
+      ],
+    }),
+
+  example(renderContext<ConditionalEventReadContext>())
+    .description(
+      "external derived state read by an event handler in a conditional view after it was read conditionally",
+    )
+    .script({
+      suppose: [
+        fact("there is some state", (context) => {
+          const counter = container({ initialValue: 0 })
+          context.setState({
+            showValue: container({ initialValue: true }),
+            counter,
+            counterText: derived((get) => `Count: ${get(counter)}`),
+            copiedText: container({ initialValue: "Nothing copied" }),
+          })
+        }),
+        fact(
+          "there is a conditional view with a button that copies the derived state",
+          (context) => {
+            function panel(root: HTMLBuilder) {
+              root.div((el) => {
+                el.children
+                  .p((el) => {
+                    el.config.dataAttribute("value")
+                    el.children.textNode((get) =>
+                      get(context.state.showValue) ? get(context.state.counterText) : "Hidden",
+                    )
+                  })
+                  .p((el) => {
+                    el.config.dataAttribute("copied")
+                    el.children.textNode((get) => get(context.state.copiedText))
+                  })
+                  .button((el) => {
+                    el.config.on("click", () =>
+                      use((get) => write(context.state.copiedText, get(context.state.counterText))),
+                    )
+                    el.children.textNode("Copy")
+                  })
+              })
+            }
+
+            context.mountView((root) => {
+              root.main((el) => {
+                el.children.subviewMatching((selector) =>
+                  selector.withConditions().when(() => true, panel),
+                )
+              })
+            })
+          },
+        ),
+      ],
+      perform: [
+        step("hide the value", (context) => {
+          context.writeTo(context.state.showValue, false)
+        }),
+        step("update the state while the value is hidden", (context) => {
+          context.writeTo(context.state.counter, 1)
+        }),
+        step("copy the value", async () => {
+          await selectElementWithText("Copy").click()
+        }),
+      ],
+      observe: [
+        effect("the latest value is copied", async () => {
+          await expect(selectElement("[data-copied]").text(), resolvesTo("Count: 1"))
+        }),
+      ],
+    }),
+
+  example(renderContext<Container<string>>())
+    .description("conditional view writes to external state that it never reads")
+    .script({
+      suppose: [
+        fact("there is some state", (context) => {
+          context.setState(container({ initialValue: "Nothing clicked" }))
+        }),
+        fact(
+          "the state is shown outside a conditional view with a button that writes to it",
+          (context) => {
+            function panel(root: HTMLBuilder) {
+              root.button((el) => {
+                el.config.on("click", () => write(context.state, "Clicked"))
+                el.children.textNode("Click")
+              })
+            }
+
+            context.mountView((root) => {
+              root.main((el) => {
+                el.children
+                  .p((el) => {
+                    el.config.dataAttribute("message")
+                    el.children.textNode((get) => get(context.state))
+                  })
+                  .subviewMatching((selector) => selector.withConditions().when(() => true, panel))
+              })
+            })
+          },
+        ),
+      ],
+      perform: [
+        step("click the button", async () => {
+          await selectElement("button").click()
+        }),
+      ],
+      observe: [
+        effect("the state is written", async () => {
+          await expect(selectElement("[data-message]").text(), resolvesTo("Clicked"))
+        }),
+      ],
+    }),
+
+  example(renderContext<Container<string>>())
+    .description("conditional view resets external state that it never reads")
+    .script({
+      suppose: [
+        fact("there is some state", (context) => {
+          context.setState(container({ initialValue: "Initial" }))
+        }),
+        fact(
+          "the state is shown outside a conditional view with a button that resets it",
+          (context) => {
+            function panel(root: HTMLBuilder) {
+              root.button((el) => {
+                el.config.on("click", () => reset(context.state))
+                el.children.textNode("Reset")
+              })
+            }
+
+            context.mountView((root) => {
+              root.main((el) => {
+                el.children
+                  .p((el) => {
+                    el.config.dataAttribute("message")
+                    el.children.textNode((get) => get(context.state))
+                  })
+                  .subviewMatching((selector) => selector.withConditions().when(() => true, panel))
+              })
+            })
+          },
+        ),
+      ],
+      perform: [
+        step("change the state", (context) => {
+          context.writeTo(context.state, "Changed")
+        }),
+        step("click the button", async () => {
+          await selectElement("button").click()
+        }),
+      ],
+      observe: [
+        effect("the state is reset", async () => {
+          await expect(selectElement("[data-message]").text(), resolvesTo("Initial"))
+        }),
+      ],
+    }),
 ])
+
+interface ConditionalReadContext {
+  showValue: Container<boolean>
+  counter: Container<number>
+  counterText: State<string>
+}
+
+interface ConditionalEventReadContext extends ConditionalReadContext {
+  copiedText: Container<string>
+}

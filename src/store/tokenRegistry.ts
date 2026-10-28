@@ -59,6 +59,8 @@ export interface EffectList extends Iterable<Subscriber> {
 
 export interface StateDerivation {
   readonly type: StateListenerType.Derivation
+  didDetach(): void
+  hasSubscribers(): boolean
   prepareSubscribers: (effects: EffectList) => void
   notifyStable(): void
   init(get: GetState, context?: any): void
@@ -116,6 +118,11 @@ export class Subscriber {
     switch (this.listener.type) {
       case StateListenerType.Derivation:
         this.listener.prepareSubscribers(effects)
+        if (!this.listener.hasSubscribers()) {
+          this.version = -1
+          dependency.removeSubscriber(this)
+          this.listener.didDetach()
+        }
         break
       case StateListenerType.ViewEffect:
         effects.addViewEffect(this)
@@ -178,6 +185,7 @@ export interface Subscribable {
 }
 
 export interface StateReader<T> extends Subscribable {
+  prepareForRead?(registry: TokenRegistry): void
   getValue(): T
 }
 

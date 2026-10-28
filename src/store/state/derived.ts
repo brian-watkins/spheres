@@ -36,7 +36,9 @@ export class DerivedState<T> implements StateToken<T> {
   ) {}
 
   [getStateHandler](registry: TokenRegistry): StateReader<T> {
-    return registry.getState(this)
+    const reader = registry.getState(this)
+    reader.prepareForRead?.(registry)
+    return reader
   }
 
   [createStateHandler](registry: TokenRegistry): StateReader<T> {

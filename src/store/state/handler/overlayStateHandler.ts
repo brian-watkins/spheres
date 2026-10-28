@@ -1,8 +1,10 @@
 import {
   createSubscriber,
+  getStateHandler,
   StateBatch,
   StateDerivation,
   StateListenerType,
+  StateToken,
   StateWriter,
   Subscriber,
   TokenRegistry,
@@ -16,17 +18,24 @@ export class OverlayStateHandler
   readonly type = StateListenerType.Derivation
   private subscriber: Subscriber
   private isSubscribed: boolean = false
+  private parent: StateWriter<any, any>
 
   constructor(
-    registry: TokenRegistry,
-    private parent: StateWriter<any, any>,
+    private registry: TokenRegistry,
+    private parentToken: StateToken<any>,
   ) {
     super()
+    this.parent = this.resolveParent()
     this.subscriber = createSubscriber(registry, this)
+  }
+
+  didDetach() {
+    this.isSubscribed = false
   }
 
   addSubscriber(subscriber: Subscriber): void {
     if (!this.isSubscribed) {
+      this.parent = this.resolveParent()
       this.parent.addSubscriber(this.subscriber)
       this.isSubscribed = true
     }
@@ -57,6 +66,13 @@ export class OverlayStateHandler
   }
 
   getValue() {
+    if (!this.isSubscribed) {
+      this.parent = this.resolveParent()
+    }
     return this.parent.getValue()
+  }
+
+  private resolveParent(): StateWriter<any, any> {
+    return this.parentToken[getStateHandler](this.registry) as StateWriter<any, any>
   }
 }

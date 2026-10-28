@@ -106,6 +106,15 @@ class MetaStateReader<M, E> extends Publisher<Meta<M, E>> implements StateDeriva
     super(initialValue)
   }
 
+  didDetach() {}
+
+  hasSubscribers(): boolean {
+    // always assert we have subscribers so we are never detached from
+    // our dependency (the token) since we wouldn't know how to rebuild
+    // the state if we had to re-initialize
+    return true
+  }
+
   init(get: GetState): void {
     // Subscribe to state updates on the token
     get(this.token)

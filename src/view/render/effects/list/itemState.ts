@@ -7,7 +7,6 @@ import {
   StateHandler,
   StateReader,
   StateToken,
-  StateWriter,
   TokenRegistry,
 } from "../../../../store/tokenRegistry.js"
 import { ListItemTemplateContext } from "../../templateContext.js"
@@ -19,10 +18,9 @@ class ExternalStateHandler extends OverlayStateHandler {
 
   constructor(
     registry: TokenRegistry,
-    parent: StateWriter<any, any>,
     readonly token: StateToken<unknown>,
   ) {
-    super(registry, parent)
+    super(registry, token)
   }
 }
 
@@ -86,8 +84,7 @@ export class ItemState extends OverlayTokenRegistry {
       }
     }
 
-    const actualPublisher = this.parentRegistry.getState(token) as StateWriter<any, any>
-    const overlayHandler = new ExternalStateHandler(this.parentRegistry, actualPublisher, token)
+    const overlayHandler = new ExternalStateHandler(this.parentRegistry, token)
     overlayHandler.next = this.externalStateHead
     this.externalStateHead = overlayHandler
 

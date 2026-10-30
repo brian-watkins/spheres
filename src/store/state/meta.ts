@@ -108,6 +108,10 @@ class MetaStateReader<M, E> extends Publisher<Meta<M, E>> implements StateDeriva
 
   didDetach() {}
 
+  get willUpdate(): boolean {
+    return this.isPending
+  }
+
   hasSubscribers(): boolean {
     // always assert we have subscribers so we are never detached from
     // our dependency (the token) since we wouldn't know how to rebuild

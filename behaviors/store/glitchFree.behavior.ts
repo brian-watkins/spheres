@@ -1,4 +1,4 @@
-import { Container, DerivedState, command, container, derived } from "@store/index.js"
+import { Container, DerivedState, command, container, derived, meta, write } from "@store/index.js"
 import { behavior, effect, example, fact, step } from "best-behavior"
 import { equalTo, expect, is } from "great-expectations"
 import { testStoreContext } from "./helpers/testStore"
@@ -338,7 +338,287 @@ export default behavior("glitch-free effects", [
         }),
       ],
     }),
+
+  example(testStoreContext<GlitchConditionalDependencyContext>())
+    .description(
+      "derived state that starts depending on other derived state during the update that changes it",
+    )
+    .script({
+      suppose: [
+        fact(
+          "there is derived state that only reads another derived state once a condition is true",
+          (context) => {
+            const root = container({ initialValue: "off" })
+            const isOn = derived({ name: "isOn", query: (get) => get(root) === "on" })
+            const label = derived({ name: "label", query: (get) => `${get(root)} label` })
+            const decorated = derived({
+              name: "decorated",
+              query: (get) => `decorated ${get(label)}`,
+            })
+            context.setTokens({
+              rootContainer: root,
+              label,
+              conditionalDerived: derived({
+                name: "conditionalDerived",
+                query: (get) => (get(isOn) ? get(decorated) : "nothing"),
+              }),
+            })
+          },
+        ),
+        fact(
+          "the conditional derived state is subscribed before the state it reads conditionally",
+          (context) => {
+            context.subscribeTo(context.tokens.conditionalDerived, "sub")
+            context.subscribeTo(context.tokens.label, "label-sub")
+          },
+        ),
+      ],
+      perform: [
+        step("the root container is updated so the condition is true", (context) => {
+          context.writeTo(context.tokens.rootContainer, "on")
+        }),
+      ],
+      observe: [
+        effect(
+          "the conditional derived receives the value derived from the updated state",
+          (context) => {
+            expect(context.valuesForSubscriber("sub"), is(["nothing", "decorated on label"]))
+          },
+        ),
+        effect("the label receives the value derived from the updated state", (context) => {
+          expect(context.valuesForSubscriber("label-sub"), is(["off label", "on label"]))
+        }),
+      ],
+    }),
+
+  example(testStoreContext<GlitchBatchConditionalDependencyContext>())
+    .description(
+      "derived state that starts depending on derived state of a container updated later in the same batch",
+    )
+    .script({
+      suppose: [
+        fact(
+          "there is derived state that only reads derived state of another container once a condition is true",
+          (context) => {
+            const switchContainer = container({ initialValue: "off" })
+            const labelContainer = container({ initialValue: "first" })
+            const isOn = derived((get) => get(switchContainer) === "on")
+            const label = derived((get) => `${get(labelContainer)} label`)
+            const decorated = derived((get) => `decorated ${get(label)}`)
+            context.setTokens({
+              switchContainer,
+              labelContainer,
+              label,
+              conditionalDerived: derived((get) => (get(isOn) ? get(decorated) : "nothing")),
+            })
+          },
+        ),
+        fact(
+          "the conditional derived state is subscribed before the state it reads conditionally",
+          (context) => {
+            context.subscribeTo(context.tokens.conditionalDerived, "sub")
+            context.subscribeTo(context.tokens.label, "label-sub")
+          },
+        ),
+      ],
+      perform: [
+        step(
+          "a batch updates the switch container so the condition is true and then updates the label container",
+          (context) => {
+            context.sendBatch([
+              write(context.tokens.switchContainer, "on"),
+              write(context.tokens.labelContainer, "second"),
+            ])
+          },
+        ),
+      ],
+      observe: [
+        effect(
+          "the conditional derived receives the value derived from the updated state",
+          (context) => {
+            expect(context.valuesForSubscriber("sub"), is(["nothing", "decorated second label"]))
+          },
+        ),
+        effect("the label receives the value derived from the updated state", (context) => {
+          expect(context.valuesForSubscriber("label-sub"), is(["first label", "second label"]))
+        }),
+      ],
+    }),
+
+  example(testStoreContext<GlitchConditionalMetaContext>())
+    .description(
+      "derived state that starts depending on meta state during the update that changes it",
+    )
+    .script({
+      suppose: [
+        fact(
+          "there is derived state that only reads meta state of a container once the container has a value",
+          (context) => {
+            const data = container({ initialValue: "" })
+            const isLoaded = derived((get) => get(data) !== "")
+            context.setTokens({
+              data,
+              status: derived<string>((get) => (get(isLoaded) ? get(meta(data)).type : "waiting")),
+            })
+          },
+        ),
+        fact("the container sets its meta state to pending when it is loading", (context) => {
+          context.useContainerHooks(context.tokens.data, {
+            onWrite(message, actions) {
+              if (message === "loading") {
+                actions.pending(message)
+              } else {
+                actions.ok(message)
+              }
+            },
+          })
+        }),
+        fact(
+          "the conditional derived state is subscribed before the meta state it reads conditionally",
+          (context) => {
+            context.subscribeTo(context.tokens.status, "status-sub")
+            context.subscribeTo(meta(context.tokens.data), "meta-sub")
+          },
+        ),
+      ],
+      perform: [
+        step("the container starts loading", (context) => {
+          context.writeTo(context.tokens.data, "loading")
+        }),
+        step("the container receives a value", (context) => {
+          context.writeTo(context.tokens.data, "fun")
+        }),
+      ],
+      observe: [
+        effect(
+          "the conditional derived receives the meta state derived from the updated container",
+          (context) => {
+            expect(context.valuesForSubscriber("status-sub"), is(["waiting", "ok"]))
+          },
+        ),
+        effect("the meta state returns to ok when the container receives a value", (context) => {
+          expect(
+            context.valuesForSubscriber("meta-sub").map((value) => value.type),
+            is(["ok", "pending", "ok"]),
+          )
+        }),
+      ],
+    }),
+
+  example(testStoreContext<GlitchConditionalDependencyContext>())
+    .description(
+      "derived state that starts depending on other derived state that turns out unchanged during the update",
+    )
+    .script({
+      suppose: [
+        fact(
+          "there is derived state that only reads another derived state once a condition is true",
+          (context) => {
+            const root = container({ initialValue: "off" })
+            const isOn = derived((get) => get(root) === "on")
+            const label = derived<string>((get) =>
+              get(root).length > 0 ? "has label" : "no label",
+            )
+            const decorated = derived((get) => `decorated ${get(label)}`)
+            context.setTokens({
+              rootContainer: root,
+              label,
+              conditionalDerived: derived((get) => (get(isOn) ? get(decorated) : "nothing")),
+            })
+          },
+        ),
+        fact(
+          "the conditional derived state is subscribed before the state it reads conditionally",
+          (context) => {
+            context.subscribeTo(context.tokens.conditionalDerived, "sub")
+            context.subscribeTo(context.tokens.label, "label-sub")
+          },
+        ),
+      ],
+      perform: [
+        step(
+          "the root container is updated so the condition is true and the label is unchanged",
+          (context) => {
+            context.writeTo(context.tokens.rootContainer, "on")
+          },
+        ),
+      ],
+      observe: [
+        effect(
+          "the conditional derived receives the value derived from the unchanged state",
+          (context) => {
+            expect(context.valuesForSubscriber("sub"), is(["nothing", "decorated has label"]))
+          },
+        ),
+        effect("the label does not receive a new value", (context) => {
+          expect(context.valuesForSubscriber("label-sub"), is(["has label"]))
+        }),
+      ],
+    }),
+
+  example(testStoreContext<GlitchMultiplePendingContext>())
+    .description(
+      "derived state that starts depending on multiple derived states that update later in the update",
+    )
+    .script({
+      suppose: [
+        fact(
+          "there is derived state that only reads two other derived states once a condition is true",
+          (context) => {
+            const root = container({ initialValue: "off" })
+            const isOn = derived((get) => get(root) === "on")
+            const first = derived((get) => `${get(root)} first`)
+            const second = derived((get) => `${get(root)} second`)
+            context.setTokens({
+              rootContainer: root,
+              first,
+              second,
+              conditionalDerived: derived((get) =>
+                get(isOn) ? `${get(second)} & ${get(first)}` : "nothing",
+              ),
+            })
+          },
+        ),
+        fact(
+          "the conditional derived state is subscribed before the states it reads conditionally",
+          (context) => {
+            context.subscribeTo(context.tokens.conditionalDerived, "sub")
+            context.subscribeTo(context.tokens.first, "first-sub")
+            context.subscribeTo(context.tokens.second, "second-sub")
+          },
+        ),
+      ],
+      perform: [
+        step("the root container is updated so the condition is true", (context) => {
+          context.writeTo(context.tokens.rootContainer, "on")
+        }),
+      ],
+      observe: [
+        effect(
+          "the conditional derived receives only the value derived from both updated states",
+          (context) => {
+            expect(context.valuesForSubscriber("sub"), is(["nothing", "on second & on first"]))
+          },
+        ),
+        effect("the derived states receive the updated values", (context) => {
+          expect(context.valuesForSubscriber("first-sub"), is(["off first", "on first"]))
+          expect(context.valuesForSubscriber("second-sub"), is(["off second", "on second"]))
+        }),
+      ],
+    }),
 ])
+
+interface GlitchMultiplePendingContext {
+  rootContainer: Container<string>
+  first: DerivedState<string>
+  second: DerivedState<string>
+  conditionalDerived: DerivedState<string>
+}
+
+interface GlitchConditionalMetaContext {
+  data: Container<string>
+  status: DerivedState<string>
+}
 
 interface GlitchUnchangedBranchContext {
   rootContainer: Container<{ items: Array<number> }>
@@ -357,6 +637,19 @@ interface GlitchCommandContext {
 interface GlitchEffectContext {
   rootContainer: Container<string>
   complexDerived: DerivedState<string>
+}
+
+interface GlitchConditionalDependencyContext {
+  rootContainer: Container<string>
+  label: DerivedState<string>
+  conditionalDerived: DerivedState<string>
+}
+
+interface GlitchBatchConditionalDependencyContext {
+  switchContainer: Container<string>
+  labelContainer: Container<string>
+  label: DerivedState<string>
+  conditionalDerived: DerivedState<string>
 }
 
 interface GlitchUndefinedEffectContext {

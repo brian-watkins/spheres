@@ -29,7 +29,15 @@ export class OverlayStateHandler
     this.subscriber = createSubscriber(registry, this)
   }
 
+  get willUpdate(): boolean {
+    if (this.isSubscribed) {
+      return this.isPending
+    }
+    return this.resolveParent().willUpdate ?? false
+  }
+
   didDetach() {
+    this.isPending = false
     this.isSubscribed = false
   }
 
@@ -38,6 +46,11 @@ export class OverlayStateHandler
       this.parent = this.resolveParent()
       this.parent.addSubscriber(this.subscriber)
       this.isSubscribed = true
+
+      if (this.parent.willUpdate) {
+        this.subscriber.updateOn(this.parent)
+        this.isPending = true
+      }
     }
     super.addSubscriber(subscriber)
   }
@@ -53,6 +66,7 @@ export class OverlayStateHandler
   detach(): void {
     if (this.isSubscribed) {
       this.parent.removeSubscriber(this.subscriber)
+      this.isPending = false
       this.isSubscribed = false
     }
   }

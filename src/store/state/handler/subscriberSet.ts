@@ -2,6 +2,7 @@ import { Subscribable, StateListenerVersion, Subscriber, EffectList } from "../.
 
 export class SubscriberSet implements Subscribable {
   private subscribers: Map<Subscriber, StateListenerVersion> = new Map()
+  protected isPending: boolean = false
 
   constructor() {}
 
@@ -18,6 +19,7 @@ export class SubscriberSet implements Subscribable {
   }
 
   prepareSubscribers(effects: EffectList): void {
+    this.isPending = true
     for (const [subscriber, version] of this.subscribers) {
       if (subscriber.getVersion() !== version) {
         this.removeSubscriber(subscriber)
@@ -28,6 +30,7 @@ export class SubscriberSet implements Subscribable {
   }
 
   runSubscribers(): void {
+    this.isPending = false
     const subs = this.subscribers.keys()
 
     // Start a new list -- any listeners added while running the current listeners
@@ -40,6 +43,7 @@ export class SubscriberSet implements Subscribable {
   }
 
   notifyStable(): void {
+    this.isPending = false
     for (const subscriber of this.subscribers.keys()) {
       subscriber.dependencyStable(this)
     }

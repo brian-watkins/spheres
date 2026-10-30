@@ -59,6 +59,7 @@ export interface EffectList extends Iterable<Subscriber> {
 
 export interface StateDerivation {
   readonly type: StateListenerType.Derivation
+  isStale?: boolean
   didDetach(): void
   hasSubscribers(): boolean
   prepareSubscribers: (effects: EffectList) => void
@@ -101,6 +102,14 @@ export class Subscriber {
 
   private subscribeOnGet<T>(token: State<T>): T {
     const reader = token[getStateHandler](this.registry)
+
+    if (reader.willUpdate) {
+      if (this.listener.type === StateListenerType.Derivation) {
+        this.listener.isStale = true
+      }
+      this.updateOn(reader)
+    }
+
     reader.addSubscriber(this)
     return reader.getValue()
   }
@@ -114,7 +123,7 @@ export class Subscriber {
   }
 
   prepareForUpdate(dependency: Subscribable, effects: EffectList): void {
-    this.parent = dependency
+    this.updateOn(dependency)
     switch (this.listener.type) {
       case StateListenerType.Derivation:
         this.listener.prepareSubscribers(effects)
@@ -134,6 +143,10 @@ export class Subscriber {
         effects.addUserEffect(this)
         break
     }
+  }
+
+  updateOn(dependency: Subscribable): void {
+    this.parent = dependency
   }
 
   dependencyUpdated(dependency: Subscribable): void {
@@ -174,8 +187,14 @@ export class Subscriber {
   private runListener() {
     this.version = this.version + 1
     this.listener.run(this.generateGetState(), this.context)
-    this.parent = undefined
-    this.dirty = false
+
+    if (this.listener.type === StateListenerType.Derivation && this.listener.isStale) {
+      this.dirty = true
+      this.listener.isStale = false
+    } else {
+      this.parent = undefined
+      this.dirty = false
+    }
   }
 }
 
@@ -185,6 +204,7 @@ export interface Subscribable {
 }
 
 export interface StateReader<T> extends Subscribable {
+  willUpdate?: boolean
   prepareForRead?(registry: TokenRegistry): void
   getValue(): T
 }

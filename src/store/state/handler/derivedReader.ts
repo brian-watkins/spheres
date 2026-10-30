@@ -16,6 +16,7 @@ export class DerivedStateReader<T>
   readonly type = StateListenerType.Derivation
   private isDetached: boolean = false
   private value!: T
+  isStale: boolean = false
 
   constructor(
     private derivation: (get: GetState) => T,
@@ -31,16 +32,30 @@ export class DerivedStateReader<T>
     }
   }
 
+  get willUpdate(): boolean {
+    return this.isPending
+  }
+
   didDetach() {
+    this.isPending = false
     this.isDetached = true
   }
 
   init(get: GetState): void {
     this.value = this.derivation(get)
+
+    if (this.isStale) {
+      this.isStale = false
+      this.isPending = true
+    }
   }
 
   run(get: GetState): void {
     const nextValue = this.calculateValue(get)
+
+    if (this.isStale) {
+      return
+    }
 
     if (Object.is(nextValue, this.value)) {
       this.notifyStable()

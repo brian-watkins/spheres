@@ -3,7 +3,9 @@ import {
   getStateHandler,
   PublishableState,
   StatePublisher,
+  TokenOrigin,
   TokenRegistry,
+  tokenOrigin,
 } from "../tokenRegistry.js"
 import { Publisher } from "./handler/publisher.js"
 import { meta } from "./meta.js"
@@ -32,7 +34,8 @@ export function supplied<T, E = any>(
 declare const errorType: unique symbol
 
 export class SuppliedState<T, E = any> implements PublishableState<T> {
-  declare readonly [errorType]?: E
+  declare readonly [errorType]?: E;
+  [tokenOrigin]: TokenOrigin | undefined = undefined
 
   constructor(
     readonly name: string | undefined,

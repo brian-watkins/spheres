@@ -11,10 +11,9 @@ import { ListItemReader } from "./effects/list/itemReader.js"
 
 export class ListItemTemplateContext<T> {
   readonly listItemDataToken: State<ListItem<T>> = stateReference()
-  readonly viewTokens: Set<StateToken<any>>
 
   constructor(viewRenderer: ViewRenderer, generator: (stateful: UseItem<T>) => ViewDefinition) {
-    this.viewTokens = recordTokens(() => {
+    recordTokens(this, () => {
       generator((useItem) => (get) => {
         const itemReader = get(this.listItemDataToken) as ListItemReader<T>
         itemReader.getState = get

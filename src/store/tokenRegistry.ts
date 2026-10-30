@@ -4,8 +4,13 @@ export interface State<Value> {
   [getStateHandler](registry: TokenRegistry): StateReader<Value>
 }
 
+export const tokenOrigin = Symbol("tokenOrigin")
+
+export type TokenOrigin = object
+
 export interface StateToken<Value> extends State<Value> {
   readonly name: string | undefined
+  [tokenOrigin]: TokenOrigin | undefined
   [createStateHandler](registry: TokenRegistry): StateReader<Value>
 }
 
@@ -186,6 +191,13 @@ export class Subscriber {
 
   private runListener() {
     this.version = this.version + 1
+    // this could potentially create tokens
+    // but it also runs the whole change of derived listeners
+    // so we'd want to deal with tokens at each level somehow ...
+    // I guess if later derived state in the list records its own tokens then
+    // it would be ok? but depends on how recordTokens is implemented (I think it can handle
+    // nested StateRecorders?)
+    // Also this is in one of the hot methods too ...
     this.listener.run(this.generateGetState(), this.context)
 
     if (this.listener.type === StateListenerType.Derivation && this.listener.isStale) {

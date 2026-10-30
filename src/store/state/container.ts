@@ -8,7 +8,9 @@ import {
   StateBatch,
   StatePublisher,
   StateWriter,
+  TokenOrigin,
   TokenRegistry,
+  tokenOrigin,
   WritableState,
 } from "../tokenRegistry.js"
 import { getInitialValue, ResettableState } from "../message.js"
@@ -46,6 +48,8 @@ export function container<T, M = T, E = any>(
 export const clone = Symbol("clone-container")
 
 export class Container<T, M = T, E = any> implements ResettableState<T>, WritableState<T, M> {
+  [tokenOrigin]: TokenOrigin | undefined = undefined
+
   constructor(
     readonly name: string | undefined,
     private initialValue: T | Stateful<T>,

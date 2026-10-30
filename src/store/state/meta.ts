@@ -10,6 +10,8 @@ import {
   StateDerivation,
   State,
   initListener,
+  TokenOrigin,
+  tokenOrigin,
 } from "../tokenRegistry.js"
 import type { Container } from "./container.js"
 import { Publisher } from "./handler/publisher.js"
@@ -72,7 +74,8 @@ export function meta<T, M, E>(state: Container<T, M, E> | SuppliedState<T, E>): 
 }
 
 export class MetaState<T, M, E = unknown> implements PublishableState<Meta<M, E>> {
-  readonly name: string
+  readonly name: string;
+  [tokenOrigin]: TokenOrigin | undefined = undefined
 
   constructor(private token: StateToken<T>) {
     this.name = `meta[${token}]`

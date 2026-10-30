@@ -1,7 +1,7 @@
 import { GetState } from "../../store/index.js"
 import { recordTokens } from "../../store/state/stateRecorder.js"
 import { derived } from "../../store/state/derived.js"
-import { StateToken } from "../../store/tokenRegistry.js"
+import { TokenOrigin } from "../../store/tokenRegistry.js"
 import {
   ViewDefinition,
   ViewCaseMatcher,
@@ -16,7 +16,7 @@ export interface TemplateCollection<T> {
 
 export interface TemplateContext<T> {
   template: T
-  tokens: Set<StateToken<any>>
+  origin: TokenOrigin
 }
 
 export interface TemplateView<T> {
@@ -80,7 +80,8 @@ class CaseCollectionBuilder<T, S> implements ViewCaseMatcher<S>, MatcherCollecti
       predicate: typePredicate,
       templateContext: memoize(() => {
         let template!: any
-        const tokens = recordTokens(() => {
+        const origin = {}
+        recordTokens(origin, () => {
           const caseValue = derived<X>({
             query: this.valueQuery as (get: GetState) => X,
             reconciler: (current, next) => (typePredicate(next) ? next : current),
@@ -91,7 +92,7 @@ class CaseCollectionBuilder<T, S> implements ViewCaseMatcher<S>, MatcherCollecti
           template = this.createTemplate(view, index)
         })
 
-        return { template, tokens }
+        return { template, origin }
       }),
     })
 
@@ -103,14 +104,15 @@ class CaseCollectionBuilder<T, S> implements ViewCaseMatcher<S>, MatcherCollecti
       type: "view",
       templateContext: memoize(() => {
         let template!: any
-        const tokens = recordTokens(() => {
+        const origin = {}
+        recordTokens(origin, () => {
           const view = viewGenerator((generator) => (get) => {
             return generator(this.valueQuery(get), get)
           })
           template = this.createTemplate(view, this.caseMatchers.length)
         })
 
-        return { template, tokens }
+        return { template, origin }
       }),
     }
   }
@@ -160,11 +162,12 @@ class ConditionCollectionBuilder<T> implements ViewConditionMatcher, MatcherColl
 
   private buildTemplate(view: ViewDefinition, index: number): TemplateContext<T> {
     let template!: any
-    const tokens = recordTokens(() => {
+    const origin = {}
+    recordTokens(origin, () => {
       template = this.createTemplate(view, index)
     })
 
-    return { template, tokens }
+    return { template, origin }
   }
 
   getCollection(): TemplateCollection<T> {

@@ -9,6 +9,8 @@ import {
   StateHandler,
   TokenRegistry,
   StateToken,
+  TokenOrigin,
+  tokenOrigin,
 } from "../../../store/tokenRegistry.js"
 import { clone, Container } from "../../../store/state/container.js"
 import { TemplateCollection, TemplateMatch } from "../viewMatcherBuilder.js"
@@ -61,7 +63,7 @@ export class MatchViewEffect implements StateEffect {
       }
       case "view": {
         const templateContext = match.templateContext()
-        this.registry.setViewTokens(templateContext.tokens)
+        this.registry.setOrigin(templateContext.origin)
         node = render(templateContext.template, this.registry)
         break
       }
@@ -88,7 +90,7 @@ export class MatchViewEffect implements StateEffect {
 
     if (match.type === "view") {
       const templateContext = match.templateContext()
-      this.registry.setViewTokens(templateContext.tokens)
+      this.registry.setOrigin(templateContext.origin)
       activate(templateContext.template, this.registry, startNode.nextSibling!)
     }
   }
@@ -96,16 +98,16 @@ export class MatchViewEffect implements StateEffect {
 
 class ConditionalViewOverlayRegistry extends OverlayTokenRegistry {
   private registry: Map<StateToken<unknown>, StateReader<unknown>> = new Map()
-  private viewTokens: Set<StateToken<any>> = new Set()
+  private origin: TokenOrigin | undefined = undefined
 
-  setViewTokens(tokens: Set<StateToken<any>>) {
-    this.viewTokens = tokens
+  setOrigin(origin: TokenOrigin) {
+    this.origin = origin
   }
 
   getState<S extends StateToken<unknown>>(token: S): StateHandler<S> {
     let publisher = this.registry.get(token)
     if (publisher === undefined) {
-      if (this.viewTokens.has(token)) {
+      if (this.origin !== undefined && token[tokenOrigin] === this.origin) {
         publisher = generateStateManager(this, token)
         if (token instanceof Container) {
           const rootToken = token[clone]()

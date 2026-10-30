@@ -4,9 +4,11 @@ import {
   StateReader,
   StateToken,
   TokenRegistry,
+  TokenOrigin,
   createStateHandler,
   getStateHandler,
   initListener,
+  tokenOrigin,
 } from "../tokenRegistry.js"
 import { DerivedStateReader } from "./handler/derivedReader.js"
 import { Reconciler } from "./reconciler/reconciler.js"
@@ -29,6 +31,8 @@ export function derived<T>(
 }
 
 export class DerivedState<T> implements StateToken<T> {
+  [tokenOrigin]: TokenOrigin | undefined = undefined
+
   constructor(
     readonly name: string | undefined,
     private derivation: (get: GetState) => T,

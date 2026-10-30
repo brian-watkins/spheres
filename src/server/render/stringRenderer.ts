@@ -263,7 +263,7 @@ class StringRenderer extends AbstractViewRenderer {
             case "view": {
               const templateContext = selection.templateContext()
               return stringForTemplate(
-                new ViewOverlayTokenRegistry(registry, templateContext.tokens),
+                new ViewOverlayTokenRegistry(registry, templateContext.origin),
                 templateContext.template,
               )
             }

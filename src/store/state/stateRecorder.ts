@@ -1,30 +1,16 @@
-import { StateToken } from "../tokenRegistry.js"
+import { StateToken, tokenOrigin, TokenOrigin } from "../tokenRegistry.js"
 
-class StateRecorder {
-  private _tokens: Set<StateToken<any>> = new Set()
-
-  recordToken(token: StateToken<any>) {
-    this._tokens.add(token)
-  }
-
-  get tokens(): Set<StateToken<any>> {
-    return this._tokens
-  }
-}
-
-const recorderStack: Array<StateRecorder> = []
+const originStack: Array<TokenOrigin> = []
 
 export function didCreateToken(token: StateToken<any>) {
-  let currentRecorder = recorderStack[0]
-  if (currentRecorder !== undefined) {
-    currentRecorder.recordToken(token)
+  const origin = originStack[originStack.length - 1]
+  if (origin !== undefined) {
+    token[tokenOrigin] = origin
   }
 }
 
-export function recordTokens(activity: () => void): Set<StateToken<any>> {
-  const recorder = new StateRecorder()
-  recorderStack.unshift(recorder)
+export function recordTokens(origin: TokenOrigin, activity: () => void): void {
+  originStack.push(origin)
   activity()
-  recorderStack.shift()
-  return recorder.tokens
+  originStack.pop()
 }

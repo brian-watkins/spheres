@@ -51,11 +51,15 @@ export class DerivedStateReader<T>
   }
 
   run(get: GetState): void {
+    // this could also create new tokens
     const nextValue = this.calculateValue(get)
 
     if (this.isStale) {
       return
     }
+
+    // we'd only want to do something with those recorded tokens
+    // as long as we aren't stale
 
     if (Object.is(nextValue, this.value)) {
       this.notifyStable()

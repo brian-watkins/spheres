@@ -4,10 +4,12 @@ import {
   StateDerivation,
   StateListenerType,
   StateReader,
+  TokenOrigin,
   TokenRegistry,
 } from "../../tokenRegistry.js"
 import { Reconciler } from "../reconciler/reconciler.js"
 import { SubscriberSet } from "./subscriberSet.js"
+import { getTokenOrigin, withTokenOrigin } from "../tokenOrigin.js"
 
 export class DerivedStateReader<T>
   extends SubscriberSet
@@ -21,6 +23,7 @@ export class DerivedStateReader<T>
   constructor(
     private derivation: (get: GetState) => T,
     private reconciler?: Reconciler<T>,
+    private origin?: TokenOrigin,
   ) {
     super()
   }
@@ -42,7 +45,7 @@ export class DerivedStateReader<T>
   }
 
   init(get: GetState): void {
-    this.value = this.derivation(get)
+    this.value = this.derive(get)
 
     if (this.isStale) {
       this.isStale = false
@@ -51,15 +54,11 @@ export class DerivedStateReader<T>
   }
 
   run(get: GetState): void {
-    // this could also create new tokens
     const nextValue = this.calculateValue(get)
 
     if (this.isStale) {
       return
     }
-
-    // we'd only want to do something with those recorded tokens
-    // as long as we aren't stale
 
     if (Object.is(nextValue, this.value)) {
       this.notifyStable()
@@ -76,7 +75,14 @@ export class DerivedStateReader<T>
   }
 
   private calculateValue(get: GetState): T {
-    const derived = this.derivation(get)
+    const derived = this.derive(get)
     return this.reconciler !== undefined ? this.reconciler(this.value, derived) : derived
+  }
+
+  private derive(get: GetState): T {
+    if (this.origin === getTokenOrigin()) {
+      return this.derivation(get)
+    }
+    return withTokenOrigin(this.origin, () => this.derivation(get))
   }
 }

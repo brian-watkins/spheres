@@ -1,4 +1,4 @@
-import { didCreateToken } from "./stateRecorder.js"
+import { getTokenOrigin } from "./tokenOrigin.js"
 import {
   createStateHandler,
   getStateHandler,
@@ -18,7 +18,6 @@ import { MessageWriter, UpdateResult } from "./handler/messageWriter.js"
 import { Writer } from "./handler/writer.js"
 import { value, Value } from "./value.js"
 import { Reconciler } from "./reconciler/reconciler.js"
-import { meta } from "./meta.js"
 
 export interface ContainerInitializer<T, M> {
   initialValue: T | Stateful<T>
@@ -34,21 +33,13 @@ export function container<T, M = T, E = any>(
 ): Container<T, M, E> {
   const config = typeof initializer === "function" ? initializer(value) : initializer
 
-  const token = new Container<T, M, E>(
-    config.name,
-    config.initialValue,
-    config.update,
-    config.reconciler,
-  )
-  didCreateToken(token)
-  didCreateToken(meta(token))
-  return token
+  return new Container<T, M, E>(config.name, config.initialValue, config.update, config.reconciler)
 }
 
 export const clone = Symbol("clone-container")
 
 export class Container<T, M = T, E = any> implements ResettableState<T>, WritableState<T, M> {
-  [tokenOrigin]: TokenOrigin | undefined = undefined
+  [tokenOrigin]: TokenOrigin | undefined = getTokenOrigin()
 
   constructor(
     readonly name: string | undefined,
@@ -76,7 +67,10 @@ export class Container<T, M = T, E = any> implements ResettableState<T>, Writabl
   }
 
   [clone](): Container<T, M, E> {
-    return new Container(this.name, this.initialValue, this.update, this.reconciler)
+    const token = new Container<T, M, E>(this.name, this.initialValue, this.update, this.reconciler)
+    // The clone is the root side token, even when created during a derivation with an origin
+    token[tokenOrigin] = undefined
+    return token
   }
 
   toString() {

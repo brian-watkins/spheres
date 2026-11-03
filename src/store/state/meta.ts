@@ -75,10 +75,11 @@ export function meta<T, M, E>(state: Container<T, M, E> | SuppliedState<T, E>): 
 
 export class MetaState<T, M, E = unknown> implements PublishableState<Meta<M, E>> {
   readonly name: string;
-  [tokenOrigin]: TokenOrigin | undefined = undefined
+  [tokenOrigin]: TokenOrigin | undefined
 
   constructor(private token: StateToken<T>) {
     this.name = `meta[${token}]`
+    this[tokenOrigin] = token[tokenOrigin]
   }
 
   [getStateHandler](registry: TokenRegistry): StatePublisher<Meta<M, E>> {

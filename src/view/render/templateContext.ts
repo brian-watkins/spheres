@@ -1,5 +1,5 @@
 import { State } from "../../store/index.js"
-import { recordTokens } from "../../store/state/stateRecorder.js"
+import { withTokenOrigin } from "../../store/state/tokenOrigin.js"
 import {
   getStateHandler,
   StateReader,
@@ -13,7 +13,7 @@ export class ListItemTemplateContext<T> {
   readonly listItemDataToken: State<ListItem<T>> = stateReference()
 
   constructor(viewRenderer: ViewRenderer, generator: (stateful: UseItem<T>) => ViewDefinition) {
-    recordTokens(this, () => {
+    withTokenOrigin(this, () => {
       generator((useItem) => (get) => {
         const itemReader = get(this.listItemDataToken) as ListItemReader<T>
         itemReader.getState = get

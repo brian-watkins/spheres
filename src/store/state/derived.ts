@@ -1,4 +1,4 @@
-import { didCreateToken } from "./stateRecorder.js"
+import { getTokenOrigin } from "./tokenOrigin.js"
 import {
   GetState,
   StateReader,
@@ -22,16 +22,13 @@ export interface DerivedStateInitializer<T> {
 export function derived<T>(
   initializer: DerivedStateInitializer<T> | ((get: GetState) => T),
 ): DerivedState<T> {
-  const token =
-    typeof initializer === "function"
-      ? new DerivedState(undefined, initializer, undefined)
-      : new DerivedState(initializer.name, initializer.query, initializer.reconciler)
-  didCreateToken(token)
-  return token
+  return typeof initializer === "function"
+    ? new DerivedState(undefined, initializer, undefined)
+    : new DerivedState(initializer.name, initializer.query, initializer.reconciler)
 }
 
 export class DerivedState<T> implements StateToken<T> {
-  [tokenOrigin]: TokenOrigin | undefined = undefined
+  [tokenOrigin]: TokenOrigin | undefined = getTokenOrigin()
 
   constructor(
     readonly name: string | undefined,
@@ -46,7 +43,7 @@ export class DerivedState<T> implements StateToken<T> {
   }
 
   [createStateHandler](registry: TokenRegistry): StateReader<T> {
-    const reader = new DerivedStateReader(this.derivation, this.reconciler)
+    const reader = new DerivedStateReader(this.derivation, this.reconciler, this[tokenOrigin])
     initListener(registry, reader)
     return reader
   }

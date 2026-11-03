@@ -8,9 +8,8 @@ import {
   tokenOrigin,
 } from "../tokenRegistry.js"
 import { Publisher } from "./handler/publisher.js"
-import { meta } from "./meta.js"
 import { Reconciler } from "./reconciler/reconciler.js"
-import { didCreateToken } from "./stateRecorder.js"
+import { getTokenOrigin } from "./tokenOrigin.js"
 
 export interface SuppliedStateInitializer<T> {
   name?: string
@@ -21,21 +20,14 @@ export interface SuppliedStateInitializer<T> {
 export function supplied<T, E = any>(
   initializer: SuppliedStateInitializer<T>,
 ): SuppliedState<T, E> {
-  const token = new SuppliedState(
-    initializer.name,
-    initializer.initialValue,
-    initializer.reconciler,
-  )
-  didCreateToken(token)
-  didCreateToken(meta(token))
-  return token
+  return new SuppliedState(initializer.name, initializer.initialValue, initializer.reconciler)
 }
 
 declare const errorType: unique symbol
 
 export class SuppliedState<T, E = any> implements PublishableState<T> {
   declare readonly [errorType]?: E;
-  [tokenOrigin]: TokenOrigin | undefined = undefined
+  [tokenOrigin]: TokenOrigin | undefined = getTokenOrigin()
 
   constructor(
     readonly name: string | undefined,

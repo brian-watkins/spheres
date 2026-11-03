@@ -1,5 +1,5 @@
 import { GetState } from "../../store/index.js"
-import { recordTokens } from "../../store/state/stateRecorder.js"
+import { withTokenOrigin } from "../../store/state/tokenOrigin.js"
 import { derived } from "../../store/state/derived.js"
 import { TokenOrigin } from "../../store/tokenRegistry.js"
 import {
@@ -81,7 +81,7 @@ class CaseCollectionBuilder<T, S> implements ViewCaseMatcher<S>, MatcherCollecti
       templateContext: memoize(() => {
         let template!: any
         const origin = {}
-        recordTokens(origin, () => {
+        withTokenOrigin(origin, () => {
           const caseValue = derived<X>({
             query: this.valueQuery as (get: GetState) => X,
             reconciler: (current, next) => (typePredicate(next) ? next : current),
@@ -105,7 +105,7 @@ class CaseCollectionBuilder<T, S> implements ViewCaseMatcher<S>, MatcherCollecti
       templateContext: memoize(() => {
         let template!: any
         const origin = {}
-        recordTokens(origin, () => {
+        withTokenOrigin(origin, () => {
           const view = viewGenerator((generator) => (get) => {
             return generator(this.valueQuery(get), get)
           })
@@ -163,7 +163,7 @@ class ConditionCollectionBuilder<T> implements ViewConditionMatcher, MatcherColl
   private buildTemplate(view: ViewDefinition, index: number): TemplateContext<T> {
     let template!: any
     const origin = {}
-    recordTokens(origin, () => {
+    withTokenOrigin(origin, () => {
       template = this.createTemplate(view, index)
     })
 

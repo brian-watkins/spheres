@@ -1309,9 +1309,9 @@ function multipleConditionalListsWithEvents(
           })
         }),
         fact("there is a conditional list view", (context) => {
-          function itemView(stateful: UseItem<string>): HTMLView {
-            const counters = collection(() => container({ initialValue: 0 }))
+          const counters = collection(() => container({ initialValue: 0 }))
 
+          function itemView(stateful: UseItem<string>): HTMLView {
             return (root) => {
               root.div((el) => {
                 el.children

@@ -1,5 +1,5 @@
 import { container, Container, State, update } from "@store/index.js"
-import { splitState } from "@store/util.js"
+import { split } from "@store/util/split.js"
 import { HTMLView, UseItem } from "@view/index"
 import { behavior, effect, example, fact, step } from "best-behavior"
 import { expect, resolvesTo } from "great-expectations"
@@ -114,7 +114,7 @@ function jobView(useItem: UseItem<string>): HTMLView {
       { id: "b", label: "task b" },
     ],
   })
-  const taskStates = splitState(tasks, (task) => task.id)
+  const taskStates = split(tasks, (task) => task.id)
 
   return (root) => {
     root.div((el) => {

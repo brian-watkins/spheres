@@ -2,7 +2,7 @@ import { behavior, effect, example, fact, step } from "best-behavior"
 import { renderContext } from "./helpers/renderContext"
 import { ListExamplesState } from "./helpers/listHelpers"
 import { Container, container, derived, State } from "@store/index"
-import { splitState } from "@store/util"
+import { split } from "@store/util/split"
 import { HTMLView } from "@view/htmlElements"
 import { expect, is } from "great-expectations"
 import { requestGC } from "./helpers/memoryHelpers"
@@ -356,7 +356,7 @@ export default behavior("list memory", [
           }
 
           function jobView(): HTMLView {
-            const taskStates = splitState(context.state.tasks, (task) => task.id)
+            const taskStates = split(context.state.tasks, (task) => task.id)
 
             return (root) => {
               root.section((el) => {

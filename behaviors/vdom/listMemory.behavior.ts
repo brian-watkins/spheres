@@ -1,7 +1,8 @@
 import { behavior, effect, example, fact, step } from "best-behavior"
 import { renderContext } from "./helpers/renderContext"
 import { ListExamplesState } from "./helpers/listHelpers"
-import { container, derived } from "@store/index"
+import { Container, container, derived, State } from "@store/index"
+import { splitState } from "@store/util"
 import { HTMLView } from "@view/htmlElements"
 import { expect, is } from "great-expectations"
 import { requestGC } from "./helpers/memoryHelpers"
@@ -327,4 +328,92 @@ export default behavior("list memory", [
         }),
       ],
     }),
+
+  example(renderContext<SplitStateMemoryContext>())
+    .description("element is removed from split state declared in a list item view that remains")
+    .script({
+      suppose: [
+        fact("there is state with a list of tasks", (context) => {
+          const removedTask = { id: "b" }
+
+          context.setState({
+            jobs: container({ initialValue: ["job"] }),
+            tasks: container<Array<MemoryTask>>({ initialValue: [] }),
+            removedTaskRef: new WeakRef(removedTask),
+          })
+
+          // Written rather than used as the initial value, since the tasks
+          // token holds on to its initial value for as long as it exists
+          context.writeTo(context.state.tasks, [{ id: "a" }, removedTask])
+        }),
+        fact("there is a list item view that splits the tasks and lists them", (context) => {
+          function taskView(useItem: UseItem<State<MemoryTask>>): HTMLView {
+            return (root) => {
+              root.p((el) => {
+                el.children.textNode(useItem((item, get) => get(item.data).id))
+              })
+            }
+          }
+
+          function jobView(): HTMLView {
+            const taskStates = splitState(context.state.tasks, (task) => task.id)
+
+            return (root) => {
+              root.section((el) => {
+                el.children.subviews((get) => get(taskStates), taskView)
+              })
+            }
+          }
+
+          context.mountView((root) => {
+            root.main((el) => {
+              el.children.subviews((get) => get(context.state.jobs), jobView)
+            })
+          })
+        }),
+      ],
+      observe: [
+        effect("every task is visible", () => {
+          const elements = Array.from(document.querySelectorAll("p")) as Array<HTMLElement>
+          expect(
+            elements.map((el) => el.innerText),
+            is(["a", "b"]),
+          )
+        }),
+      ],
+    })
+    .andThen({
+      perform: [
+        step("remove a task", (context) => {
+          context.writeTo(context.state.tasks, [{ id: "a" }])
+        }),
+        step("update the remaining task", (context) => {
+          // Derived state only stops listening to the tasks once they next update
+          context.writeTo(context.state.tasks, [{ id: "a" }])
+        }),
+      ],
+      observe: [
+        effect("the task is removed from the list", () => {
+          const elements = Array.from(document.querySelectorAll("p")) as Array<HTMLElement>
+          expect(
+            elements.map((el) => el.innerText),
+            is(["a"]),
+          )
+        }),
+        effect("the removed task is garbage collected", async (context) => {
+          await requestGC()
+          expect(context.state.removedTaskRef.deref(), is(undefined))
+        }),
+      ],
+    }),
 ])
+
+interface MemoryTask {
+  id: string
+}
+
+interface SplitStateMemoryContext {
+  jobs: Container<Array<string>>
+  tasks: Container<Array<MemoryTask>>
+  removedTaskRef: WeakRef<MemoryTask>
+}

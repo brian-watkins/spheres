@@ -3,8 +3,8 @@ import { defined, expect, is, resolvesTo } from "great-expectations"
 import { Container, container, derived, update } from "@store/index.js"
 import { renderContext } from "./helpers/renderContext.js"
 import { HTMLBuilder, HTMLView } from "@view/htmlElements.js"
-import { UseCase } from "@view/index.js"
-import { selectElement } from "./helpers/displayElement.js"
+import { UseCase, UseItem } from "@view/index.js"
+import { selectElement, selectElements } from "./helpers/displayElement.js"
 import { requestGC } from "./helpers/memoryHelpers.js"
 
 const extraState = container({ initialValue: "Hello!" })
@@ -440,7 +440,219 @@ export default behavior("conditional view memory", [
         }),
       ],
     }),
+
+  example(renderContext<RemovedTokenContext>())
+    .description("external token is removed from a list in a conditional view that stays visible")
+    .script({
+      suppose: [
+        fact("there is a list of external tokens", (context) => {
+          const removedToken = container({ initialValue: "two" })
+
+          context.setState({
+            show: container({ initialValue: true }),
+            rows: container<Array<Container<string>>>({ initialValue: [] }),
+            removedTokenRef: new WeakRef(removedToken),
+          })
+
+          // Written rather than used as the initial value, since the rows
+          // token holds on to its initial value for as long as it exists
+          context.writeTo(context.state.rows, [
+            container({ initialValue: "one" }),
+            removedToken,
+            container({ initialValue: "three" }),
+          ])
+        }),
+        fact("there is a conditional view that lists the external tokens", (context) => {
+          function rowView(useItem: UseItem<Container<string>>): HTMLView {
+            return (root) => {
+              root.p((el) => {
+                el.children.textNode(useItem((item, get) => get(item.data)))
+              })
+            }
+          }
+
+          function page(root: HTMLBuilder) {
+            root.section((el) => {
+              el.children.subviews((get) => get(context.state.rows), rowView)
+            })
+          }
+
+          context.mountView((root) => {
+            root.div((el) => {
+              el.children.subviewMatching((select) =>
+                select.withConditions().when((get) => get(context.state.show), page),
+              )
+            })
+          })
+        }),
+      ],
+      observe: [
+        effect("every row is visible", async () => {
+          await expect(selectElements("p").texts(), resolvesTo(["one", "two", "three"]))
+        }),
+      ],
+    })
+    .andThen({
+      perform: [
+        step("remove a token from the list", (context) => {
+          context.store.dispatch(
+            update(context.state.rows, (rows) => rows.filter((_, index) => index !== 1)),
+          )
+        }),
+      ],
+      observe: [
+        effect("the row is removed", async () => {
+          await expect(selectElements("p").texts(), resolvesTo(["one", "three"]))
+        }),
+        effect("the removed token is garbage collected", async (context) => {
+          await requestGC()
+          expect(context.state.removedTokenRef.deref(), is(undefined))
+        }),
+      ],
+    }),
+
+  example(renderContext<ReplacedTokenContext>())
+    .description("external token read by a conditional view that stays visible is replaced")
+    .script({
+      suppose: [
+        fact("there is state that holds an external token", (context) => {
+          const replacedToken = container({ initialValue: "first" })
+
+          context.setState({
+            show: container({ initialValue: true }),
+            current: container<Container<string> | undefined>({ initialValue: undefined }),
+            replacedTokenRef: new WeakRef(replacedToken),
+          })
+
+          // Written rather than used as the initial value, since the current
+          // token holds on to its initial value for as long as it exists
+          context.writeTo(context.state.current, replacedToken)
+        }),
+        fact("there is a conditional view that reads the external token", (context) => {
+          function page(root: HTMLBuilder) {
+            root.p((el) => {
+              el.children.textNode((get) => {
+                const token = get(context.state.current)
+                return token === undefined ? "" : get(token)
+              })
+            })
+          }
+
+          context.mountView((root) => {
+            root.div((el) => {
+              el.children.subviewMatching((select) =>
+                select.withConditions().when((get) => get(context.state.show), page),
+              )
+            })
+          })
+        }),
+      ],
+      observe: [
+        effect("the value of the external token is visible", async () => {
+          await expect(selectElement("p").text(), resolvesTo("first"))
+        }),
+      ],
+    })
+    .andThen({
+      perform: [
+        step("replace the external token", (context) => {
+          context.writeTo(context.state.current, container({ initialValue: "second" }))
+        }),
+      ],
+      observe: [
+        effect("the value of the new token is visible", async () => {
+          await expect(selectElement("p").text(), resolvesTo("second"))
+        }),
+        effect("the replaced token is garbage collected", async (context) => {
+          await requestGC()
+          expect(context.state.replacedTokenRef.deref(), is(undefined))
+        }),
+      ],
+    }),
+
+  example(renderContext<ManyTokensContext>())
+    .description("conditional view that reads many external tokens is removed")
+    .script({
+      suppose: [
+        fact("there is a large list of external tokens", (context) => {
+          context.setState({
+            show: container({ initialValue: true }),
+            rows: container({
+              initialValue: Array.from({ length: 200 }, (_, index) =>
+                container({ initialValue: `row ${index}` }),
+              ),
+            }),
+          })
+        }),
+        fact("there is a conditional view that lists the external tokens", (context) => {
+          function rowView(useItem: UseItem<Container<string>>): HTMLView {
+            return (root) => {
+              root.p((el) => {
+                el.children.textNode(useItem((item, get) => get(item.data)))
+              })
+            }
+          }
+
+          function page(root: HTMLBuilder) {
+            root.section((el) => {
+              el.children.subviews((get) => get(context.state.rows), rowView)
+            })
+          }
+
+          context.mountView((root) => {
+            root.div((el) => {
+              el.children.subviewMatching((select) =>
+                select.withConditions().when((get) => get(context.state.show), page),
+              )
+            })
+          })
+        }),
+      ],
+      observe: [
+        effect("the rows are visible", async () => {
+          await expect(selectElements("p").count(), resolvesTo(200))
+        }),
+      ],
+    })
+    .andThen({
+      perform: [
+        step("create a reference for the first row", () => {
+          const el = document.querySelector("p")
+          expect(el, is(defined()))
+          window.__element_ref = new WeakRef(el!)
+        }),
+        step("hide the view", (context) => {
+          context.writeTo(context.state.show, false)
+        }),
+      ],
+      observe: [
+        effect("the rows are removed", async () => {
+          await expect(selectElements("p").count(), resolvesTo(0))
+        }),
+        effect("the removed dom element is garbage collected", async () => {
+          await requestGC()
+          expect(window.__element_ref.deref(), is(undefined))
+        }),
+      ],
+    }),
 ])
+
+interface ManyTokensContext {
+  show: Container<boolean>
+  rows: Container<Array<Container<string>>>
+}
+
+interface ReplacedTokenContext {
+  show: Container<boolean>
+  current: Container<Container<string> | undefined>
+  replacedTokenRef: WeakRef<Container<string>>
+}
+
+interface RemovedTokenContext {
+  show: Container<boolean>
+  rows: Container<Array<Container<string>>>
+  removedTokenRef: WeakRef<Container<string>>
+}
 
 interface EvenCount {
   type: "even"

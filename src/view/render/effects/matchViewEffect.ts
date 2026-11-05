@@ -97,7 +97,8 @@ export class MatchViewEffect implements StateEffect {
 }
 
 class ConditionalViewOverlayRegistry extends OverlayTokenRegistry {
-  private registry: Map<StateToken<unknown>, StateReader<unknown>> = new Map()
+  private registry: WeakMap<StateToken<unknown>, StateReader<unknown>> = new WeakMap()
+  private overlayHandlers: Array<WeakRef<OverlayStateHandler>> = []
   private origin: TokenOrigin | undefined = undefined
 
   setOrigin(origin: TokenOrigin) {
@@ -126,16 +127,16 @@ class ConditionalViewOverlayRegistry extends OverlayTokenRegistry {
   private createPublisher<S extends StateToken<unknown>>(token: S): StateHandler<S> {
     const overlayPublisher = new OverlayStateHandler(this.parentRegistry, token)
     overlayPublisher.init()
+    this.overlayHandlers.push(new WeakRef(overlayPublisher))
 
     return overlayPublisher as StateHandler<S>
   }
 
   reset() {
-    for (const publisher of this.registry.values()) {
-      if (publisher instanceof OverlayStateHandler) {
-        publisher.detach()
-      }
+    for (const handlerRef of this.overlayHandlers) {
+      handlerRef.deref()?.detach()
     }
-    this.registry.clear()
+    this.overlayHandlers = []
+    this.registry = new WeakMap()
   }
 }

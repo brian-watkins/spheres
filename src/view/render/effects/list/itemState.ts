@@ -27,7 +27,7 @@ class ExternalStateHandler extends OverlayStateHandler {
 }
 
 export class ItemState extends OverlayTokenRegistry {
-  private itemRegistry: Map<StateToken<unknown>, StateReader<unknown>> | undefined = undefined
+  private itemRegistry: WeakMap<StateToken<unknown>, StateReader<unknown>> | undefined = undefined
   private externalStateHead: ExternalStateHandler | undefined = undefined
 
   static newInstance(
@@ -53,9 +53,9 @@ export class ItemState extends OverlayTokenRegistry {
     super(parentRegistry)
   }
 
-  getRegistry(): Map<StateToken<unknown>, StateReader<unknown>> {
+  getRegistry(): WeakMap<StateToken<unknown>, StateReader<unknown>> {
     if (this.itemRegistry === undefined) {
-      this.itemRegistry = new Map()
+      this.itemRegistry = new WeakMap()
     }
     return this.itemRegistry
   }

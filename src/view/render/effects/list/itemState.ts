@@ -69,12 +69,6 @@ export class ItemState extends OverlayTokenRegistry {
       const registry = this.getRegistry()
       let publisher = registry.get(token)
       if (publisher === undefined) {
-        // this could end up generating new tokens. so we could listen
-        // for new tokens here and then add them to a list so we store them
-        // relative to this reigstry since they depend on the value of a view
-        // token we have the value for. BUT the problem is that the derived state
-        // might just end up creating more tokens later -- here we are just catching
-        // tokens created on init.
         publisher = generateStateManager(this, token)
         if (token instanceof Container) {
           // Allow the onRegister store hook to fire for this container (if defined)

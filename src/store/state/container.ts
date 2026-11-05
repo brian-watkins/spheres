@@ -68,7 +68,6 @@ export class Container<T, M = T, E = any> implements ResettableState<T>, Writabl
 
   [clone](): Container<T, M, E> {
     const token = new Container<T, M, E>(this.name, this.initialValue, this.update, this.reconciler)
-    // The clone is the root side token, even when created during a derivation with an origin
     token[tokenOrigin] = undefined
     return token
   }

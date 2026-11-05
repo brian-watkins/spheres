@@ -128,9 +128,6 @@ class MetaStateReader<M, E> extends Publisher<Meta<M, E>> implements StateDeriva
     get(this.token)
   }
 
-  // This effect fires when the token updates with a new value, and so
-  // at that point we set the Meta token state to Ok. Hooks can still
-  // write a different value (pending/error) to Meta state directly.
   run(get: GetState): void {
     // Resubscribe to state updates on this token
     get(this.token)

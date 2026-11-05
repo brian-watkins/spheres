@@ -191,13 +191,6 @@ export class Subscriber {
 
   private runListener() {
     this.version = this.version + 1
-    // this could potentially create tokens
-    // but it also runs the whole change of derived listeners
-    // so we'd want to deal with tokens at each level somehow ...
-    // I guess if later derived state in the list records its own tokens then
-    // it would be ok? but depends on how recordTokens is implemented (I think it can handle
-    // nested StateRecorders?)
-    // Also this is in one of the hot methods too ...
     this.listener.run(this.generateGetState(), this.context)
 
     if (this.listener.type === StateListenerType.Derivation && this.listener.isStale) {

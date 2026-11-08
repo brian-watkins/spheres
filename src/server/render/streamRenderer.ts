@@ -18,6 +18,7 @@ import {
 import { GetState, getStateHandler, State, TokenRegistry } from "../../store/tokenRegistry.js"
 import { HTMLView } from "../../view/index.js"
 import { getActivationTemplate } from "./elementRenderers/activationElements.js"
+import { serializeForScript } from "./htmlEscaping.js"
 import { buildStringRenderer } from "./stringRenderer.js"
 import { stringForTemplate } from "./template.js"
 import { ViteContext } from "./viteContext.js"
@@ -136,7 +137,7 @@ class SpheresStateStream {
   }
 
   private scriptTag(storeId: string, chunkId: string, data: SerializedState): string {
-    return `<script type="application/json" data-spheres-store="${storeId}" data-spheres-stream="${chunkId}">${JSON.stringify(data)}</script>`
+    return `<script type="application/json" data-spheres-store="${storeId}" data-spheres-stream="${chunkId}">${serializeForScript(data)}</script>`
   }
 
   private markerTag(storeId: string, chunkId: string): string {

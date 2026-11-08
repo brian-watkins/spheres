@@ -9,6 +9,7 @@ import {
   stringContaining,
 } from "great-expectations"
 import { ssrTestAppContext } from "./helpers/testSSRServer"
+import { UNTRUSTED_TEXT } from "./fixtures/ssrApp/islandWithUntrustedText/state"
 
 export default behavior("client activation of server rendered views", [
   example(ssrTestAppContext())
@@ -362,6 +363,34 @@ export default behavior("client activation of server rendered views", [
       observe: [
         effect("the stateful text updates", async (context) => {
           await expect(context.browser.display.select("[data-text]").text(), resolvesTo("Hello!"))
+        }),
+      ],
+    }),
+
+  example(ssrTestAppContext())
+    .description("app with initial state text that tries to close the state script")
+    .script({
+      suppose: [
+        fact("the app is loaded in the browser", async (context) => {
+          context.server.setSSRApp({
+            template: "../fixtures/ssrApp/islandWithUntrustedText/template.html",
+            view: "./behaviors/server/fixtures/ssrApp/islandWithUntrustedText/server.ts",
+          })
+          await context.browser.loadApp()
+        }),
+      ],
+      observe: [
+        effect("the text is displayed as it was written", async (context) => {
+          await expect(
+            context.browser.display.select("[data-message]").text(),
+            resolvesTo(UNTRUSTED_TEXT),
+          )
+        }),
+        effect("the script in the text does not run", async (context) => {
+          const scriptRan = await context.browser.browser.page.evaluate(
+            () => (window as any).__untrustedScriptRan === true,
+          )
+          expect(scriptRan, is(equalTo(false)))
         }),
       ],
     }),

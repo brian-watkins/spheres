@@ -1,6 +1,7 @@
 import { behavior, effect, example, fact, step } from "best-behavior"
 import { ssrTestAppContext } from "./helpers/testSSRServer"
-import { expect, resolvesTo, stringContaining } from "great-expectations"
+import { equalTo, expect, is, resolvesTo, stringContaining } from "great-expectations"
+import { UNTRUSTED_TEXT } from "./fixtures/ssrApp/streamingUntrustedText/state"
 
 export default behavior("ssr with streaming data", [
   example(ssrTestAppContext())
@@ -193,6 +194,33 @@ export default behavior("ssr with streaming data", [
             context.browser.display.select(`[data-zone="shadow"] h3`).text(),
             resolvesTo("Clicks: 1"),
           )
+        }),
+      ],
+    }),
+
+  example(ssrTestAppContext())
+    .description("streaming state with text that tries to close the state script")
+    .script({
+      suppose: [
+        fact("the app is loaded in the browser", async (context) => {
+          context.server.setStreamingSSRApp({
+            view: "./behaviors/server/fixtures/ssrApp/streamingUntrustedText/server.ts",
+          })
+          await context.browser.loadApp()
+        }),
+      ],
+      observe: [
+        effect("the text is displayed as it was written", async (context) => {
+          await expect(
+            context.browser.display.select("[data-message]").text(),
+            resolvesTo(UNTRUSTED_TEXT),
+          )
+        }),
+        effect("the script in the text does not run", async (context) => {
+          const scriptRan = await context.browser.browser.page.evaluate(
+            () => (window as any).__untrustedScriptRan === true,
+          )
+          expect(scriptRan, is(equalTo(false)))
         }),
       ],
     }),

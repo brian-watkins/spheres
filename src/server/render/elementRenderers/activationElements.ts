@@ -12,6 +12,7 @@ import {
   templateFromString,
   toStatefulString,
 } from "../template.js"
+import { serializeForScript } from "../htmlEscaping.js"
 import {
   getExtraResources,
   getTransformedResource,
@@ -99,7 +100,7 @@ export function storeDataTemplate(stateManifest: StateManifest): HTMLTemplate {
           }
         }
 
-        return JSON.stringify(values)
+        return serializeForScript(values)
       }),
     ],
   }

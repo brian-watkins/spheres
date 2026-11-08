@@ -368,6 +368,35 @@ export default behavior("client activation of server rendered views", [
     }),
 
   example(ssrTestAppContext())
+    .description("app with empty stateful text in a style element on server")
+    .script({
+      suppose: [
+        fact("the app is loaded in the browser", async (context) => {
+          context.server.setSSRApp({
+            template: "../fixtures/ssrApp/islandWithEmptyStyle/template.html",
+            view: "./behaviors/server/fixtures/ssrApp/islandWithEmptyStyle/server.ts",
+          })
+          await context.browser.loadApp()
+        }),
+      ],
+      perform: [
+        step("enter some css into the text field", async (context) => {
+          await context.browser.display.select("input").type("p { color: red; }")
+        }),
+      ],
+      observe: [
+        effect("the style element text updates", async (context) => {
+          await expect(
+            context.browser.browser.page.evaluate(
+              () => document.querySelector("[data-style]")?.textContent,
+            ),
+            resolvesTo("p { color: red; }"),
+          )
+        }),
+      ],
+    }),
+
+  example(ssrTestAppContext())
     .description("app with initial state text that tries to close the state script")
     .script({
       suppose: [

@@ -220,6 +220,22 @@ export default behavior("Render view to HTML string", [
     })
     expect(actual, is("<div>&lt;b&gt;Tom &amp; Jerry&lt;/b&gt;</div>"))
   }),
+  renderTest("rendering static text in a style element leaves it unescaped", (renderer) => {
+    const actual = renderer.renderView((root) => {
+      root.div((el) => {
+        el.children.style((el) => el.children.textNode("div > p { color: red; }"))
+      })
+    })
+    expect(actual, is("<div><style>div > p { color: red; }</style></div>"))
+  }),
+  renderTest("rendering static text in a script element leaves it unescaped", (renderer) => {
+    const actual = renderer.renderView((root) => {
+      root.div((el) => {
+        el.children.script((el) => el.children.textNode("if (1 < 2 && true) {}"))
+      })
+    })
+    expect(actual, is("<div><script>if (1 < 2 && true) {}</script></div>"))
+  }),
 
   renderTest("rendering svg", (renderer) => {
     expect(

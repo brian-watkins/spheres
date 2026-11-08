@@ -74,7 +74,10 @@ export function buildStringRenderer(
   }
 }
 
-const ZERO_WIDTH_SPACE = "&#x200b;"
+const ZERO_WIDTH_SPACE_ENTITY = "&#x200b;"
+const ZERO_WIDTH_SPACE_CHARACTER = "\u200b"
+
+const rawTextElements = new Set(["script", "style"])
 
 class StringRenderer extends AbstractViewRenderer {
   hasBodyElement: boolean = false
@@ -105,7 +108,7 @@ class StringRenderer extends AbstractViewRenderer {
     if (isStateful(value)) {
       const text = toStatefulString(value)
       this.appendToTemplate(
-        templateFromStateful((registry) => escapeText(text(registry)) || ZERO_WIDTH_SPACE),
+        templateFromStateful((registry) => escapeText(text(registry)) || ZERO_WIDTH_SPACE_ENTITY),
       )
     } else {
       this.appendStringToTemplate(escapeText(value))
@@ -154,7 +157,9 @@ class StringRenderer extends AbstractViewRenderer {
       elementRenderer.getConfigSupport() ?? rendererDelegate.getConfigSupport(tag)
 
     const config = new StringConfig(configSupport, elementId)
-    const children = new StringRenderer(rendererDelegate, this.options, this.idSequence)
+    const children = rawTextElements.has(tag)
+      ? new RawTextStringRenderer()
+      : new StringRenderer(rendererDelegate, this.options, this.idSequence)
 
     builder?.({
       config,
@@ -376,5 +381,35 @@ class HTMLMarkupSupport implements ElementSupport {
 
   getConfigSupport(): ElementConfigSupport {
     return this.configSupport
+  }
+}
+
+class RawTextStringRenderer extends AbstractViewRenderer {
+  readonly hasBodyElement = false
+
+  private _template: HTMLTemplate = emptyTemplate()
+
+  getTemplate(): HTMLTemplate {
+    return this._template
+  }
+
+  textNode(value: string | Stateful<string>): this {
+    const template = isStateful(value)
+      ? templateFromStateful(toStatefulString(value, ZERO_WIDTH_SPACE_CHARACTER))
+      : templateFromString(value)
+    this._template = addTemplate(this._template, template)
+    return this
+  }
+
+  element(tag: string): this {
+    throw new Error(`Cannot render a ${tag} element as raw text content`)
+  }
+
+  subviews(): this {
+    throw new Error("Cannot render a list of views as raw text content")
+  }
+
+  subviewMatching(): this {
+    throw new Error("Cannot render a conditional view as raw text content")
   }
 }

@@ -188,6 +188,38 @@ export default behavior("Render view to HTML string", [
     })
     expect(actual, is("<div>&#x200b;</div>"))
   }),
+  renderTest("rendering stateful text escapes characters that have meaning in HTML", (renderer) => {
+    const text = container({ initialValue: "<b>Tom & Jerry</b>" })
+    const actual = renderer.renderView((root) => {
+      root.div((el) => el.children.textNode((get) => get(text)))
+    })
+    expect(actual, is("<div>&lt;b&gt;Tom &amp; Jerry&lt;/b&gt;</div>"))
+  }),
+  renderTest(
+    "rendering a stateful attribute escapes characters that have meaning in a quoted value",
+    (renderer) => {
+      const text = container({ initialValue: `say "hi" & bye` })
+      const actual = renderer.renderView((root) => {
+        root.div((el) => el.config.dataAttribute("message", (get) => get(text)))
+      })
+      expect(actual, is(`<div data-message="say &quot;hi&quot; &amp; bye"></div>`))
+    },
+  ),
+  renderTest(
+    "rendering a static attribute escapes characters that have meaning in a quoted value",
+    (renderer) => {
+      const actual = renderer.renderView((root) => {
+        root.div((el) => el.config.dataAttribute("message", `say "hi" & bye`))
+      })
+      expect(actual, is(`<div data-message="say &quot;hi&quot; &amp; bye"></div>`))
+    },
+  ),
+  renderTest("rendering static text escapes characters that have meaning in HTML", (renderer) => {
+    const actual = renderer.renderView((root) => {
+      root.div((el) => el.children.textNode("<b>Tom & Jerry</b>"))
+    })
+    expect(actual, is("<div>&lt;b&gt;Tom &amp; Jerry&lt;/b&gt;</div>"))
+  }),
 
   renderTest("rendering svg", (renderer) => {
     expect(

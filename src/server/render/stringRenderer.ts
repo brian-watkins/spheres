@@ -31,6 +31,7 @@ import {
   templateFromString,
   toStatefulString,
 } from "./template.js"
+import { escapeAttributeValue, escapeText } from "./htmlEscaping.js"
 import { HeadElementRenderer } from "./elementRenderers/headElementRenderer.js"
 import { HtmlElementRenderer } from "./elementRenderers/htmlElementRenderer.js"
 import { BodyElementRenderer } from "./elementRenderers/bodyElementRenderer.js"
@@ -102,9 +103,12 @@ class StringRenderer extends AbstractViewRenderer {
 
   textNode(value: string | Stateful<string>): this {
     if (isStateful(value)) {
-      this.appendToTemplate(templateFromStateful(toStatefulString(value, ZERO_WIDTH_SPACE)))
+      const text = toStatefulString(value)
+      this.appendToTemplate(
+        templateFromStateful((registry) => escapeText(text(registry)) || ZERO_WIDTH_SPACE),
+      )
     } else {
-      this.appendStringToTemplate(value)
+      this.appendStringToTemplate(escapeText(value))
     }
 
     return this
@@ -358,7 +362,7 @@ class StringConfig extends AbstractViewConfig {
 }
 
 function attributeString(name: string, value: string): string {
-  const valuePart = value === "" ? "" : `="${value}"`
+  const valuePart = value === "" ? "" : `="${escapeAttributeValue(value)}"`
   return ` ${name}${valuePart}`
 }
 

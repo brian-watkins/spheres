@@ -1,5 +1,13 @@
 # spheres
 
+## 0.32.6
+
+### Patch Changes
+
+- 0f904cd: Escape state and html attributes and text streamed from the server
+- f90dbbf: Add split function for creating array of state tokens from a list
+- 6a4818f: Derived state stops updating when nothing subscribes to it
+
 ## 0.32.5
 
 ### Patch Changes

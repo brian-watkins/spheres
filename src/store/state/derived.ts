@@ -1,6 +1,7 @@
 import { getTokenOrigin } from "./tokenOrigin.js"
 import {
   GetState,
+  State,
   StateReader,
   StateToken,
   TokenRegistry,
@@ -12,6 +13,7 @@ import {
 } from "../tokenRegistry.js"
 import { DerivedStateReader } from "./handler/derivedReader.js"
 import { Reconciler } from "./reconciler/reconciler.js"
+import { StateRef } from "./stateRef.js"
 
 export interface DerivedStateInitializer<T> {
   query: (get: GetState) => T
@@ -46,6 +48,10 @@ export class DerivedState<T> implements StateToken<T> {
     const reader = new DerivedStateReader(this.derivation, this.reconciler, this[tokenOrigin])
     initListener(registry, reader)
     return reader
+  }
+
+  at<S extends State<any>>(locator: (value: T) => S): StateRef<S> {
+    return new StateRef(this, locator)
   }
 
   toString() {

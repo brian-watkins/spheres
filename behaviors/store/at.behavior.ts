@@ -5,6 +5,8 @@ import {
   command,
   container,
   Container,
+  derived,
+  DerivedState,
   exec,
   meta,
   ReactiveEffectHandle,
@@ -290,7 +292,43 @@ export default behavior("at", [
         }),
       ],
     }),
+  example(testStoreContext<DerivedContext>())
+    .description("container nested inside derived state")
+    .script({
+      suppose: [
+        fact("there is derived state whose value contains a container", (context) => {
+          const name = container({ initialValue: "brian" })
+          const otherName = container({ initialValue: "carol" })
+          const useOther = container({ initialValue: false })
+          context.setTokens({
+            useOther,
+            person: derived((get) => ({ name: get(useOther) ? otherName : name })),
+          })
+        }),
+        fact("there is a subscriber to the inner container via at", (context) => {
+          context.subscribeTo(
+            context.tokens.person.at((person) => person.name),
+            "name-sub",
+          )
+        }),
+      ],
+      perform: [
+        step("the derived state is updated to contain a different container", (context) => {
+          context.writeTo(context.tokens.useOther, true)
+        }),
+      ],
+      observe: [
+        effect("the subscriber gets the value of the new inner container", (context) => {
+          expect(context.valuesForSubscriber("name-sub"), is(["brian", "carol"]))
+        }),
+      ],
+    }),
 ])
+
+interface DerivedContext {
+  useOther: Container<boolean>
+  person: DerivedState<Person>
+}
 
 interface SuppliedContext {
   person: SuppliedState<Person>

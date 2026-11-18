@@ -36,7 +36,7 @@ const cellCollection = collection(() =>
           cellValue: derived({
             query: (get) => {
               return result
-                .value((identifier) => get(get(cellContainer(identifier)).cellValue))
+                .value((identifier) => get(cellContainer(identifier).at((cell) => cell.cellValue)))
                 .mapError<CellError>(() => new UnableToCalculate())
             },
           }),

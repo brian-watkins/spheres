@@ -160,7 +160,7 @@ function adjustRadiusView(root: HTMLBuilder) {
           .max("75")
           .min("2")
           .step("1")
-          .value((get) => `${get(get(dialog)!.circle).radius}`)
+          .value((get) => `${get(dialog.at((d) => d!.circle)).radius}`)
           .on(
             "input",
             useValue((value) => {

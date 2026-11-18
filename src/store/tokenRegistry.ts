@@ -1,12 +1,20 @@
 export const getStateHandler = Symbol("getStateHandler")
 
+export const resolveState = Symbol("resolveState")
+
 export interface State<Value> {
   [getStateHandler](registry: TokenRegistry): StateReader<Value>
+  [resolveState]?(get: GetState): State<Value>
 }
 
 export const tokenOrigin = Symbol("tokenOrigin")
 
 export type TokenOrigin = object
+
+export function resolveToken<T>(state: State<T>, get: GetState): State<T> {
+  const resolved = state[resolveState]?.(get)
+  return resolved === undefined ? state : resolveToken(resolved, get)
+}
 
 export interface StateToken<Value> extends State<Value> {
   readonly name: string | undefined
@@ -106,6 +114,10 @@ export class Subscriber {
   ) {}
 
   private subscribeOnGet<T>(token: State<T>): T {
+    if (token[resolveState] !== undefined) {
+      token = resolveToken(token, (state) => this.subscribeOnGet(state))
+    }
+
     const reader = token[getStateHandler](this.registry)
 
     if (reader.willUpdate) {

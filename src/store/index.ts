@@ -60,5 +60,6 @@ export {
 export { type SuppliedState, type SuppliedStateInitializer, supplied } from "./state/supplied.js"
 export { type Collection, collection } from "./state/collection.js"
 export { type Value, valueAt } from "./state/value.js"
+export { type StateRef, type StateValue } from "./state/stateRef.js"
 export { type StateManifest, type SerializableState } from "./serialize.js"
 export { split } from "./util/split.js"

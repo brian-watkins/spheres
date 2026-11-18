@@ -188,6 +188,54 @@ const unsubscribingEffect: ConfigurableExample = example(
     ],
   })
 
+const effectUnsubscribedBeforeItRuns: ConfigurableExample = example(
+  testStoreContext<CollectingEffectContext>(),
+)
+  .description("an effect that is unsubscribed by another effect before it runs")
+  .script({
+    suppose: [
+      fact("there is a container", (context) => {
+        context.setTokens({
+          container: container({ initialValue: "hello" }),
+          collector: [],
+        })
+      }),
+      fact("there is an effect that unsubscribes the other effect when it runs", (context) => {
+        const tokens = context.tokens
+        useEffect(context.store, {
+          init: (get) => {
+            get(tokens.container)
+          },
+          run: (get) => {
+            get(tokens.container)
+            tokens.handle?.unsubscribe()
+          },
+        })
+      }),
+      fact("there is an effect that collects the container values", (context) => {
+        const tokens = context.tokens
+        tokens.handle = useEffect(context.store, {
+          run: (get) => {
+            tokens.collector.push(get(tokens.container))
+          },
+        })
+      }),
+    ],
+    perform: [
+      step("the container is updated", (context) => {
+        context.writeTo(context.tokens.container, "yo yo!")
+      }),
+      step("the container updates again", (context) => {
+        context.writeTo(context.tokens.container, "Hello again!")
+      }),
+    ],
+    observe: [
+      effect("the unsubscribed effect does not run again", (context) => {
+        expect(context.tokens.collector, is(["hello"]))
+      }),
+    ],
+  })
+
 class UnsubscribingEffect implements ReactiveEffect {
   constructor(
     public collector: Array<string>,
@@ -323,6 +371,7 @@ export default behavior("effect", [
   basicEffect,
   effectWithHiddenDependencies,
   unsubscribingEffect,
+  effectUnsubscribedBeforeItRuns,
   multipleDependencyEffect,
   initializingEffectExample,
 ])

@@ -4,6 +4,7 @@ import {
   getStateHandler,
   isStateful,
   runQuery,
+  State,
   Stateful,
   StateBatch,
   StatePublisher,
@@ -17,6 +18,7 @@ import { getInitialValue, ResettableState } from "../message.js"
 import { MessageWriter, UpdateResult } from "./handler/messageWriter.js"
 import { Writer } from "./handler/writer.js"
 import { value, Value } from "./value.js"
+import { StateRef } from "./stateRef.js"
 import { Reconciler } from "./reconciler/reconciler.js"
 
 export interface ContainerInitializer<T, M> {
@@ -64,6 +66,10 @@ export class Container<T, M = T, E = any> implements ResettableState<T>, Writabl
     return this.update
       ? new MessageWriter(registry, value, this.update, this.reconciler)
       : new Writer(value, this.reconciler)
+  }
+
+  at<S extends State<any>>(locator: (value: T) => S): StateRef<S> {
+    return new StateRef(this, locator)
   }
 
   [clone](): Container<T, M, E> {

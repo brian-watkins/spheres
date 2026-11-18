@@ -79,9 +79,11 @@ function cell(id: string): HTMLView {
         .div(({ config, children }) => {
           config
             .class("px-1 py-1")
-            .hidden((get) => (get(get(cellContainer(id)).editable) ? "hidden" : undefined))
+            .hidden((get) =>
+              get(cellContainer(id).at((cell) => cell.editable)) ? "hidden" : undefined,
+            )
           children.textNode((get) => {
-            const cellValue = get(get(cellContainer(id)).cellValue)
+            const cellValue = get(cellContainer(id).at((cell) => cell.cellValue))
             return cellValue.resolve({
               ok: (val) => val,
               err: (error) => {
@@ -98,7 +100,9 @@ function cell(id: string): HTMLView {
         .form(({ config, children }) => {
           config
             .class("absolute top-1 left-0")
-            .hidden((get) => (get(get(cellContainer(id)).editable) ? undefined : "hidden"))
+            .hidden((get) =>
+              get(cellContainer(id).at((cell) => cell.editable)) ? undefined : "hidden",
+            )
             .on("submit", (evt) => {
               evt.preventDefault()
               const cellDefinition = (

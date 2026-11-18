@@ -16,6 +16,7 @@ import {
   PublishableState,
   StateBatch,
   runQuery,
+  resolveToken,
 } from "./tokenRegistry.js"
 import { CommandManager, ManagedCommandController } from "./command/managedCommandController.js"
 import { RootTokenRegistry } from "./registry/rootTokenRegistry.js"
@@ -206,6 +207,7 @@ function containerWriteActions<T, M, E>(
 class EffectListener implements StateEffect, ReactiveEffectHandle {
   readonly type = StateListenerType.UserEffect
   private dependencies = new Set<State<any>>()
+  private isUnsubscribed = false
   private subscriber: Subscriber
 
   constructor(
@@ -217,27 +219,30 @@ class EffectListener implements StateEffect, ReactiveEffectHandle {
 
   init(get: GetState): void {
     if (this.effect.init !== undefined) {
-      this.effect.init((ref) => {
-        this.dependencies.add(ref)
-        return get(ref)
-      })
+      this.effect.init(this.track(get))
     } else {
-      this.effect.run((ref) => {
-        this.dependencies.add(ref)
-        return get(ref)
-      })
+      this.effect.run(this.track(get))
     }
   }
 
   run(get: GetState): void {
+    if (this.isUnsubscribed) return
+
     this.dependencies.clear()
-    this.effect.run((ref) => {
-      this.dependencies.add(ref)
-      return get(ref)
-    })
+    this.effect.run(this.track(get))
+  }
+
+  private track(get: GetState): GetState {
+    const tracked: GetState = (token) => {
+      const resolved = resolveToken(token, tracked)
+      this.dependencies.add(resolved)
+      return get(resolved)
+    }
+    return tracked
   }
 
   unsubscribe() {
+    this.isUnsubscribed = true
     for (const token of this.dependencies) {
       token[getStateHandler](this.registry).removeSubscriber(this.subscriber)
     }

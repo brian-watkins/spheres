@@ -116,6 +116,23 @@ Program authors don't create Meta tokens directly — they access them via `meta
 `meta(supplied)` and read them in queries, effects, or views. Meta reflects the storage-system
 status of the underlying token.
 
+### Nested state (`at`)
+
+```ts
+// on Container, SuppliedState, DerivedState, and StateRef
+at<S extends State<any>>(locator: (value: T) => S): StateRef<S>
+```
+
+When a token's value contains other tokens, `at` returns a `StateRef` to the nested token. A
+`StateRef` can be read, subscribed to, written to, and reset like the token it locates. It follows
+the outer token: if the outer value changes to hold a different nested token, the `StateRef`
+switches to that token. Calls chain, and the locator may return a meta token.
+
+```ts
+get(team.at((t) => t.leader).at((l) => l.name))
+get(person.at((p) => meta(p.name)))
+```
+
 ## Reconcilers
 
 `container`, `derived`, and `supplied` all accept an optional `reconciler`, which decides how much

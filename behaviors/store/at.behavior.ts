@@ -1,6 +1,18 @@
 import { behavior, effect, example, fact, step } from "best-behavior"
 import { testStoreContext } from "./helpers/testStore.js"
-import { container, Container, meta, ReactiveEffectHandle, reset, useEffect } from "@store/index.js"
+import {
+  Command,
+  command,
+  container,
+  Container,
+  exec,
+  meta,
+  ReactiveEffectHandle,
+  reset,
+  supplied,
+  SuppliedState,
+  useEffect,
+} from "@store/index.js"
 import { arrayWith, expect, is } from "great-expectations"
 import { okMessage, pendingMessage } from "./helpers/metaMatchers.js"
 
@@ -240,7 +252,51 @@ export default behavior("at", [
         ),
       ],
     }),
+  example(testStoreContext<SuppliedContext>())
+    .description("container nested inside supplied state")
+    .script({
+      suppose: [
+        fact("there is supplied state whose value contains a container", (context) => {
+          context.setTokens({
+            person: supplied({
+              initialValue: { name: container({ initialValue: "brian" }) },
+            }),
+            otherName: container({ initialValue: "carol" }),
+            supplyPerson: command<Person>(),
+          })
+        }),
+        fact("there is a command that supplies a value to the supplied state", (context) => {
+          context.useCommand(context.tokens.supplyPerson, (message, { supply }) => {
+            supply(context.tokens.person, message)
+          })
+        }),
+        fact("there is a subscriber to the inner container via at", (context) => {
+          context.subscribeTo(
+            context.tokens.person.at((person) => person.name),
+            "name-sub",
+          )
+        }),
+      ],
+      perform: [
+        step("the supplied state is updated to contain a different container", (context) => {
+          context.store.dispatch(
+            exec(context.tokens.supplyPerson, { name: context.tokens.otherName }),
+          )
+        }),
+      ],
+      observe: [
+        effect("the subscriber gets the value of the new inner container", (context) => {
+          expect(context.valuesForSubscriber("name-sub"), is(["brian", "carol"]))
+        }),
+      ],
+    }),
 ])
+
+interface SuppliedContext {
+  person: SuppliedState<Person>
+  otherName: Container<string>
+  supplyPerson: Command<Person>
+}
 
 interface MetaContext {
   name: Container<string>

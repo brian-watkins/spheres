@@ -2,6 +2,7 @@ import {
   createStateHandler,
   getStateHandler,
   PublishableState,
+  State,
   StatePublisher,
   TokenOrigin,
   TokenRegistry,
@@ -10,6 +11,7 @@ import {
 import { Publisher } from "./handler/publisher.js"
 import { Reconciler } from "./reconciler/reconciler.js"
 import { getTokenOrigin } from "./tokenOrigin.js"
+import { StateRef } from "./stateRef.js"
 
 export interface SuppliedStateInitializer<T> {
   name?: string
@@ -41,6 +43,10 @@ export class SuppliedState<T, E = any> implements PublishableState<T> {
 
   [getStateHandler](registry: TokenRegistry): StatePublisher<T> {
     return registry.getState(this)
+  }
+
+  at<S extends State<any>>(locator: (value: T) => S): StateRef<S> {
+    return new StateRef(this, locator)
   }
 
   toString() {
